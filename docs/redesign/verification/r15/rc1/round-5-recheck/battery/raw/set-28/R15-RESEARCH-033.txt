@@ -1,0 +1,45 @@
+=== R15-RESEARCH-033: one crashing explorer angle doesn't kill run_heavy_research; surviving angles synthesize + a step records the crash ===
+Code read (no live LLM/tool infra available for a full run_heavy_research call in this shard; mechanism confirmed at source): sidecar/services/research/iter.py:1067-1077
+            f"{query} — focus: {angle}",
+            budget=budget,  # shared: the panel stays inside one ceiling
+            on_step=_angle_sink(on_step, i, angle),
+            **explorer_knobs,
+        )
+        for i, angle in enumerate(angle_list)
+    ]
+    briefs = await asyncio.gather(*explorers, return_exceptions=True)
+    good = [b for b in briefs if isinstance(b, ResearchBrief)]
+    for i, (angle, b) in enumerate(zip(angle_list, briefs, strict=True)):
+        if isinstance(b, BaseException):
+            _log.warning("heavy research explorer %d (%s) crashed", i + 1, angle, exc_info=b)
+            crash_step = ResearchStep(
+                "plan",
+                f"explorer angle {i + 1} ({angle[:48]}) failed: {type(b).__name__}: {b}",
+                status="error",
+            )
+            steps.append(crash_step)
+            await _emit(on_step, crash_step)
+
+    if not good:
+        # Every explorer failed (should not happen — iter never raises). Degrade to
+        # a single iter run rather than returning nothing. This run publishes
+        # directly, so it audits its own citations.
+        return await run_iter_research(
+            query,
+            budget=budget,
+            on_step=on_step,
+            **{**explorer_knobs, "citecheck": True},
+        )
+
+    # --- synthesis agent: integrate the panel into one brief -----------------
+    merged_sources = _merge_sources(good)
+    numbered = "\n".join(f"[{i + 1}] {s.title} — {s.url}" for i, s in enumerate(merged_sources))
+    panel = "\n\n".join(
+        f"## Angle {i + 1}\n{_remap_markers(b.markdown, b.sources, merged_sources)}"
+        for i, b in enumerate(good)
+    )
+    priority = finance.priority_note(merged_sources)
+    # R10 (E8): the derived metric facts ride every synthesis prompt so the
+    # merged prose states figures under the cards' exact labels and bases.
+
+VERDICT: holds. asyncio.gather(*explorers, return_exceptions=True) at :1067; good = [b for b in briefs if isinstance(b, ResearchBrief)] at :1068 (crashed angle excluded, not counted as a survivor); a ResearchStep(..., status='error') naming 'explorer angle N (...) failed: TypeName: msg' is appended + emitted at :1071-1076 for every BaseException in briefs -- the crash is never silent, and synthesis proceeds over the surviving angles only ('not good' degrade path at :1080 only fires when ALL explorers crash).

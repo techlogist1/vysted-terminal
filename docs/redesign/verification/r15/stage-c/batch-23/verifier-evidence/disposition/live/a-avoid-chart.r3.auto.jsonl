@@ -1,0 +1,32 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_317ca35c757a4c699f80491b1e19d4bb", "name": "set_chart_symbol", "input": {"symbol": "INFY.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_317ca35c757a4c699f80491b1e19d4bb", "name": "set_chart_symbol", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " switched"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " chart"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": " state"}
+{"kind": "delta", "text": " using"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "get"}
+{"kind": "delta", "text": "_terminal"}
+{"kind": "delta", "text": "_state"}
+{"kind": "delta", "text": "`."}
+{"kind": "done", "usage": {"input_tokens": 2875, "output_tokens": 26, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

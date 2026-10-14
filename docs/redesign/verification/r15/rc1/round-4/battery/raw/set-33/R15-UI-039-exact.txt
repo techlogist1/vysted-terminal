@@ -1,0 +1,3 @@
+CMD: curl -s -m 20 'http://127.0.0.1:52344/resolve/autocomplete?q=GUJGASLTD'
+---
+{"query":"GUJGASLTD","region":"IN","candidates":[{"symbol":"GUJENERGY","name":"GUJARAT ENERGY LIMITED","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"GUJENERGY.NS","confidence":1.0,"isin":"INE844O01030","bse_code":"539336","industry":null,"former_name":"GUJGASLTD","board":"mainboard","exchange_group":"A","face_value":2.0,"rename":{"renamed_from":"GUJGASLTD","renamed_to":"GUJENERGY","effective_date":"2026-07-01","note":"GUJGASLTD was renamed to GUJENERGY on NSE (effective 2026-07-01); the resolver answers the current symbol."}}]}

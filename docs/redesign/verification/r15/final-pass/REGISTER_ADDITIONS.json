@@ -1,0 +1,967 @@
+[
+ {
+  "id": "R15-FINAL-001",
+  "title": "A bare-ticker portfolio lot is re-priced against a different listing when the session region changes: INFY 20 @ Rs1,500 shows -$29,779.20 (-99.26%) under region US, and the CSV export carries it",
+  "severity": "critical",
+  "status": "open",
+  "area": "data",
+  "subsystem": "portfolio",
+  "operator_areas": [
+   "ui-panels",
+   "agent-chat"
+  ],
+  "defect_class": "wrong-entity-ticker-collision",
+  "repro": "Holding INFY qty 20 cost 1500 (bare symbol, as the add form and portfolio_add_position store it; entered under region IN where /quotes/INFY = INR 1035, P&L -Rs9,300 correct). Switch region to US: PortfolioPanel fetches /quotes/INFY with X-Vysted-Region US -> the NYSE ADR, USD 11.04; the row reads Avg cost $1,500.00, P&L -$29,779.20 (-99.26%), the header Total P&L -$28,242.30 (-88.81%), and the CSV export carries the same figures with Currency USD. Holding stores no listing or currency, so nothing detects the cost/price currency mismatch. Class sibling of R15-DATA-002 (blocked_tier4, DECISIONS 4.15): that entry's scope and its pending option (a) cover the watchlist pick and the agent add_to_watchlist leg only; the portfolio Holding (and portfolio_add_position) carry no region either, and here the harm is a fabricated money P&L, so it is filed as its own site rather than attached.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/UI-2/harness-portfolio.json",
+  "files": [
+   "src/store/portfolios.ts",
+   "src/modules/portfolio/api.ts",
+   "src/modules/portfolio/PortfolioPanel.tsx",
+   "src/lib/host-actions.ts"
+  ],
+  "root_cause": "Holding (src/store/portfolios.ts) and portfolio_add_position store no listing, region or currency; fetchPositionQuotes (src/modules/portfolio/api.ts) calls sidecarApi.quote(symbol) with the global X-Vysted-Region, so the same bare symbol binds the session region's listing and its price is set against a cost entered in another currency.",
+  "fix_shape": "Store the listing (region/exchange or yahoo_symbol) and currency on each holding at add time (form, agent add, restore of older blobs keeps session-region), send the per-holding region on each quote call, and refuse to compute P&L when quote currency differs from the holding currency. Pin with a PortfolioPanel test: INFY added under IN, region switched to US, the row still prices INFY.NS in INR.",
+  "raw_ids": [
+   "maintainer:2"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "Class sibling of R15-DATA-002 (blocked_tier4, DECISIONS 4.15) on a surface no DATA-002 attempt touched (portfolio); filed separately per the lead's precedent in DECISIONS 4.15 (sibling note, LEAD-127). R2: a fabricated money P&L shown as true = critical (finder said high). Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-002",
+  "title": "NSE SME GSTL (Globesecure Technologies) is stamped with BSE GSTL Globalspace Technologies' ISIN INE632W01016 / scrip 540654, so its results calendar, announcements, corporate actions and shareholding split merge a different company's BSE filings",
+  "severity": "high",
+  "status": "open",
+  "area": "data",
+  "subsystem": "resolver",
+  "operator_areas": [
+   "data-smallcaps",
+   "research-search"
+  ],
+  "defect_class": "identity-by-ticker-string",
+  "repro": "GET /resolve?q=GSTL (IN) -> NSE Globesecure Technologies, confidence 1.0, needs_disambiguation false, isin INE632W01016, bse_code 540654 (that is BSE Globalspace Technologies; NSE Emerge SME_EQUITY_L.csv gives Globesecure ISIN INE00WS01056). Same sidecar: /disclosures/results?symbol=GSTL lists 10 events with company 'GlobalSpace Technologies Limited' exchange BSE; /disclosures/announcements?symbol=GSTL merges BSE rows of Globalspace beside NSE Globesecure rows; /disclosures/corporate-actions?symbol=GSTL mixes a BSE rights issue and a BSE final dividend 0.2 into GSTL's actions; /disclosures/shareholding carries split_source BSE (FII 0.15%). Mechanism: symbol_resolver._bse_row_is_same_company (:1493-1511) accepts the BSE row when SequenceMatcher(_company_name_key) >= _SAME_COMPANY_NAME_RATIO 0.75 (:1480); 'globesecuretechnologies' vs 'globalspacetechnologies' scores 0.826, so dual_listed_bse_code (:768) returns 540654 and _enrich_instrument stamps the ISIN. The shared 'technologies' suffix dominates the ratio.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/DS-4.md; docs/redesign/verification/r15/final-pass/raw/final-triage/rr.out",
+  "files": [
+   "sidecar/services/symbol_resolver.py",
+   "sidecar/services/corporate_disclosures.py"
+  ],
+  "root_cause": "symbol_resolver._bse_row_is_same_company accepts a same-ticker BSE row when SequenceMatcher on _company_name_key >= _SAME_COMPANY_NAME_RATIO 0.75; 'globesecuretechnologies' vs 'globalspacetechnologies' scores 0.826 because the shared suffix dominates, so dual_listed_bse_code returns 540654 and enrichment stamps the ISIN.",
+  "fix_shape": "Decide same-company on identity, not a whole-name ratio: compare the distinctive name tokens after stripping generic suffixes (technologies, industries, ltd...) or require an ISIN witness (NSE Emerge/EQ master ISIN) before copying isin/bse_code. Pin with GSTL (NSE INE00WS01056 vs BSE INE632W01016) plus FOCUS and one true dual listing.",
+  "raw_ids": [
+   "investor:5"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "regression of R15-LEAD-059 (class of R15-CODE-DATA-001): the FOCUS repro holds, a fresh case of the same class does not. Re-run by final-triage on own :52880: /resolve?q=GSTL NSE+BSE rows both INE632W01016/540654; /disclosures/results?symbol=GSTL -> 10 events company GlobalSpace Technologies Limited exchange BSE. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-003",
+  "title": "After the exchange-filed overlay replaces EPS, P/E stays on the provider EPS the payload says is not served (SUNRAJDI P/E 155.5 beside served EPS 0.23 at 12.44; true ~54), the flag reason quotes a third implied P/E 141.1, and the copilot tells the user the 155.5 'is indeed right'",
+  "severity": "high",
+  "status": "open",
+  "area": "data",
+  "subsystem": "fundamentals-profile",
+  "operator_areas": [
+   "data-smallcaps",
+   "agent-chat"
+  ],
+  "defect_class": "unreconciled-yfinance-scalar",
+  "repro": "GET /fundamentals/SUNRAJDI (IN) -> eps 0.23 (provider bse, reason: the provider 0.08 disagrees - not served), net_income_ttm 1,220,000 (bse), pe_ratio 155.5 status flagged reason ...470,000 / 5,330,400 = 0.09 ... the P/E it implies at the ratio price 12.44 is 141.1; screener.in/company/523425/ Stock P/E 55.2. correctness_gate.py:703-790 _FILED_SIZES overlay replaces eps/net_income_ttm but never recomputes pe_ratio, and the earlier P/E flag (:417) reasons from the un-overlaid provider net income",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/DS-2.md; docs/redesign/verification/r15/final-pass/scenarios/AC-1.md; docs/redesign/verification/r15/final-pass/raw/final-triage/rr.out",
+  "files": [
+   "sidecar/services/correctness_gate.py"
+  ],
+  "root_cause": "correctness_gate _FILED_SIZES overlay (correctness_gate.py ~703-790) replaces eps/net_income_ttm but never recomputes pe_ratio, and the earlier P/E flag (~:417) reasons from the un-overlaid provider net income, so neither the value nor the flag reflects the served EPS.",
+  "fix_shape": "Run the P/E reconcile after the filed overlay: recompute pe_ratio from ratio_price / served eps (labelled derived, basis stated) or flag it with a reason computed from the served EPS. Pin with a SUNRAJDI-shaped fixture asserting pe_ratio ~54 (or flagged with the served-EPS basis) and one fresh overlaid name.",
+  "raw_ids": [
+   "investor:3",
+   "investor:9"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "regression of R15-DATA-013. investor:9 (gpt-4o-mini, hosted lane, AC-1) is the chain of the same mechanism: one item, both keys. Re-run by final-triage on own :52880: /fundamentals/SUNRAJDI eps 0.23, pe_ratio 155.5. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-004",
+  "title": "Deep brief for FOCUS (Focus Lighting and Fixtures) states unrelated common-word headlines (Flydubai pilot podcast 'Focus on flying', European shares 'focus on inflation data') as the company's own sentiment and strategy",
+  "severity": "high",
+  "status": "open",
+  "area": "research",
+  "subsystem": "research-relevance",
+  "operator_areas": [
+   "research-search",
+   "data-smallcaps"
+  ],
+  "defect_class": "off-entity-evidence",
+  "repro": "vy invoke copilot on :52381, provider openai gpt-4o-mini, deep depth, prompt about Focus Lighting and Fixtures (FOCUS), 3 Oct 15:22 IST. Sources [8] livemint Flydubai pilot podcast (Focus on flying, not selfies) and ET European shares (focus on inflation data) are kept; brief asserts a -0.6369 sentiment hit to FOCUS brand and that FOCUS aims to counter the podcast by promoting aviation safety [8]. Root cause read: relevance._entity_signals (:650-690) scores any >=4-char symbol/brand token in the title as distinctive (1.0), and the COMMON_WORD_TICKERS gate (:746) runs only for non-IN targets; FOCUS is in COMMON_WORD_TICKERS. Overlaps open R15-LEAD-056 (alias is a common word).",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/RS-2.md",
+  "files": [
+   "sidecar/services/research/relevance.py",
+   "sidecar/services/news_provider.py"
+  ],
+  "root_cause": "relevance._entity_signals marks any >=4-char symbol token bounded in a title as distinctive (score 1.0) for every target; the COMMON_WORD_TICKERS check runs only on the short-signal, non-IN path, so an IN target whose ticker is a common English word (FOCUS is in COMMON_WORD_TICKERS) passes on the bare word.",
+  "fix_shape": "Apply the common-word rule before granting a distinctive symbol signal, for IN and non-IN targets alike: a COMMON_WORD_TICKERS symbol counts only when anchored (cashtag/uppercase ticker form, exchange context, or a brand/name token corroborates). Pin with the two FOCUS headlines dropped and a real Focus Lighting headline kept.",
+  "raw_ids": [
+   "investor:12"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "regression of R15-RESEARCH-001 (off-entity evidence in DEEP briefs); overlaps open R15-LEAD-056 (non-IN DOW alias) but the IN gate path is distinct. Code verified at the sha: sidecar/services/research/relevance.py:650-700, :735-752. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-005",
+  "title": "Every NSE Emerge (SME) listing has no fundamentals: /fundamentals 404s telling the user to check the symbol, and income/balance return empty 200s with no reason (YASHOPTICS, SUMAX, QUALIANCE, GANESHIN, VOLERCAR)",
+  "severity": "high",
+  "status": "open",
+  "area": "data",
+  "subsystem": "fundamentals-profile",
+  "operator_areas": [
+   "data-smallcaps",
+   "ui-panels"
+  ],
+  "defect_class": "provider-coverage-gap",
+  "repro": "GET /fundamentals/YASHOPTICS (X-Vysted-Region IN; resolves NSE SME, yahoo_symbol YASHOPTICS-SM.NS) -> 404 {detail: The data provider has no data for this symbol or series - check the symbol.}; same for SUMAX, QUALIANCE, GANESHIN, VOLERCAR; GET /fundamentals/YASHOPTICS/income and /balance -> 200 periods [] lines [] with no reason; Equity Overview renders Fundamentals unavailable with that hint. screener.in/company/YASHOPTICS/ shows Market Cap Rs 335 Cr, P/E 37.0, FY26 sales 53.99 Cr. Direct yfinance probe: YASHOPTICS-SM.NS info has no marketCap/eps/statements (raw/investor/yf-sme.txt), so no provider covers the board and the app has no exchange-filing fallback for NSE SME",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/DS-2.md; docs/redesign/verification/r15/final-pass/raw/final-triage/rr.out",
+  "files": [
+   "sidecar/services/provider_registry.py",
+   "sidecar/services/correctness_gate.py",
+   "sidecar/services/exchange_financials.py",
+   "src/modules/equity-overview/EquityOverviewPanel.tsx"
+  ],
+  "root_cause": "The only fundamentals providers are Yahoo-backed; Yahoo serves no info/statements for -SM.NS symbols (direct probe raw/investor/yf-sme.txt), there is no exchange-filing fallback for the SME board, and the empty statement lanes return 200 with no typed reason.",
+  "fix_shape": "Give SME names an exchange-filed fallback (NSE SME financial results / XBRL already used by the filed-sizes overlay) for revenue, net income, EPS and derived P/E/market cap, and return a typed not-covered reason (not 'check the symbol') on every lane when nothing is available. Pin with YASHOPTICS and SUMAX fixtures.",
+  "raw_ids": [
+   "investor:2"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New (sibling of fixed R15-DATA-017 / R15-LEAD-034, whose repros hold). Re-run by final-triage on own :52880: /fundamentals/YASHOPTICS -> 404 not_found 'check the symbol'. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-006",
+  "title": "Portfolio quote fan-out wedges the sidecar: per-symbol /quotes GETs abort at the 30 s client budget, the in-flight guard releases on the abort while the server keeps working, and each tick re-requests every symbol (0/100 resolved over 210 s; RELIANCE quote >40 s on the same sidecar)",
+  "severity": "high",
+  "status": "open",
+  "area": "ui",
+  "subsystem": "portfolio",
+  "operator_areas": [
+   "ui-panels"
+  ],
+  "defect_class": "unbounded-fanout-backlog",
+  "repro": "Own sidecar :52844 from final-cand source (d38b5d1a). jsdom harness mounts the real PortfolioPanel with 100 NSE holdings (harness/p8.fdpn.test.tsx, sym100.json): 77/100 GET /quotes/<sym> end 'TimeoutError: The operation was aborted due to timeout' at 30.0 s, 23 x 200 (12-p8-100-largecap-replay.json). Then 100 cold NSE EQ names (p8b, sym100b.json): 0/100 ever resolve across 5+ fan-outs, 'done' climbs 100,200,300,400,500 every ~40 s, unresolved stays 100, banner on (13-p8b-100-cold-replay.json). Meanwhile curl /quotes/RELIANCE.NS on :52844 -> no answer in 40 s and in 25 s repeatedly (14-recovery-watch.log: TimeoutError at 16:44:58/16:45:38/16:46:18/16:46:58, first 200 only at 16:47:17, about 4 min after the panel unmounted; it never recovers while the panel stays mounted), while the shared :52800 answers the same in 0.001 s; sidecar.log shows the last quote 200 at 16:38:49 then only slow backlog work. Cold 2-holding P3: first RELIANCE/TCS quotes also exceeded 30 s -> 'Couldn't refresh live quotes' on a fresh boot. Census P8: 100/100 x 200 (slowest 124 s); rc1 round 2 (4c6dfe8c) fixed the backlog with quoteFetchInFlightRef; the 30 s default budget (R15-LIFECYCLE-027, f1182138) landed after rc1 and defeats that guard.",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/final/13-p8b-100-cold-replay.json",
+  "files": [
+   "src/lib/sidecar-client.ts",
+   "src/modules/portfolio/PortfolioPanel.tsx",
+   "src/modules/portfolio/api.ts",
+   "sidecar"
+  ],
+  "root_cause": "src/lib/sidecar-client.ts applies DEFAULT_REQUEST_TIMEOUT_MS 30 s (R15-LIFECYCLE-027, scoped by its own comment to SQLite list/CRUD calls) to provider-bound /quotes/{symbol}; PortfolioPanel quoteFetchInFlightRef clears when the client-side Promise.all settles (at the abort), not when the server finishes, so aborted requests pile up server-side; api.ts fans out one GET per holding instead of the batch quotes route the watchlist uses.",
+  "fix_shape": "Use the batch sidecarApi.quotes route for portfolio refresh (as the watchlist does), give provider-bound quote calls no 30 s default (or a budget sized to the throttle), and keep the in-flight guard until the next refresh is safe. Pin with a 100-holding test asserting one in-flight refresh and no re-request while one is pending.",
+  "raw_ids": [
+   "drive-portfolio-notes:1"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New: the rc1 fix (dcb09674, rc1-drive-portfolio-notes:1) was never a register entry; R15-LIFECYCLE-027's default budget (f1182138) defeats it. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-007",
+  "title": "With the Portfolio panel closed, get_portfolio stamps every non-crypto holding with the session region's currency, so a USD AAPL lot is served to the agent as currency INR and the copilot states 'AAPL - 2 shares, cost basis Rs190'",
+  "severity": "high",
+  "status": "open",
+  "area": "agent",
+  "subsystem": "agent-tools",
+  "operator_areas": [
+   "agent-chat"
+  ],
+  "defect_class": "currency-mislabel",
+  "repro": "jsdom harness P9: holdings RELIANCE.NS, TCS.NS x2, AAPL 2 @ 190 (region IN); panel open -> AAPL currency 'USD' (from the quote); after unmount, captureTerminalState().portfolio (store fallback) -> AAPL {costBasis:190, currency:'INR'} (10-portfolio-panel-replay.json P9-agent.closedPanelSnapshot). That snapshot sent as the chat sends it (A0-context-panel-closed.snapshot.json): python3 scratch vy.py invoke copilot 'What is in my portfolio? List each holding with its cost basis.' --port 52844 --provider ollama --model llama3.1:8b --autonomy ask --region IN --context A0-context-panel-closed.snapshot.json -> get_portfolio ok -> '4. AAPL - 2 shares, cost basis ₹190' (A1-agent-portfolio-currency-llama.stdout.txt). Code: src/modules/chat/context-provider.ts:161-166 fallbackCurrency returns regionConfig(region).currency for any equity; :225 portfolioFromStore uses it for every holding; the pinning test (context-provider.test.ts:223-234) only checks an INR name in region IN. Not R4: the wrong currency is in the product's tool result, and the model repeats it faithfully.",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/final/A1-agent-portfolio-currency-llama.stdout.txt",
+  "files": [
+   "src/modules/chat/context-provider.ts",
+   "src/modules/chat/context-provider.test.ts"
+  ],
+  "root_cause": "src/modules/chat/context-provider.ts fallbackCurrency (:161-166) returns regionConfig(region).currency for any equity and portfolioFromStore (:225) uses it for every holding; the pinning test covers only an INR name in region IN.",
+  "fix_shape": "Derive the fallback currency from the holding's own listing (stored currency, or the symbol suffix / resolved instrument), never the session region; null when unknown so the tool says so. Pin with AAPL + RELIANCE.NS under region IN, panel closed.",
+  "raw_ids": [
+   "drive-portfolio-notes:2"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "regression of R15-AGENT-091 (the field exists; the store fallback asserts the wrong value). Not R4: the wrong currency is in the product's tool result. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-008",
+  "title": "A corrupt SQLite store is never quarantined: a corrupt data_cache.db (pure cache) fails sidecar startup on every launch, and a corrupt custom_agents.db / delegate_runs.db / plugins.db 500s every route of that store until the file is deleted by hand",
+  "severity": "high",
+  "status": "open",
+  "area": "lifecycle",
+  "subsystem": "persistence",
+  "operator_areas": [],
+  "defect_class": "corrupt-store-unhandled",
+  "repro": "cp -R final-seed-data fi-final/corrupt-data_cache; overwrite bytes 0-15 of data_cache.db with 'NOT A SQLITE DB!' and remove its -wal/-shm; (sleep 40 | VYSTED_OPENBB_MCP_PORT=52801 VYSTED_SEC_EDGAR_MCP_PORT=52802 ./.venv/bin/python3 main.py --host 127.0.0.1 --port 52847 --data-dir <that dir>) from final-cand/sidecar @d38b5d1a -> /health never answers; log: 'sqlite3.DatabaseError: file is not a database' ... 'ERROR uvicorn.error: Application startup failed. Exiting.' Code: app.py:125 await data_cache.ensure_build(app.version) (first thing in _lifespan) -> data_cache.py:113 _run -> :232 _get_conn -> :105 _connect conn.execute('PRAGMA journal_mode=WAL') with no DatabaseError handling; the Tauri core (src-tauri/src/lib.rs:85-90, :438-442) only announces 'The data engine stopped (exit code N).' and never respawns. Contrast: a corrupt workspace file is quarantined as .corrupt-<ts> (workspace_store.py:191-195, R15-DATA-090) and a corrupt legacy portfolio.db only 500s its one GET. Trigger is SQLite file damage (power loss / disk-full / crash during write on a laptop); rare, but the consequence is total and persistent, and the file is pure cache (safe to quarantine and recreate). Per-db matrix for the other stores in 83-corrupt-each-db-boot.txt.",
+  "evidence": "docs/redesign/verification/r15/surface/failure-inducer/final/81-corrupt-cache-boot-fails.txt; docs/redesign/verification/r15/final-pass/scenarios/LS-2/ls2.log; docs/redesign/verification/r15/surface/failure-inducer/final/83-corrupt-each-db-boot.txt",
+  "files": [
+   "sidecar/services/data_cache.py",
+   "sidecar/app.py"
+  ],
+  "root_cause": "data_cache._connect (PRAGMA journal_mode=WAL, called from app._lifespan ensure_build) and agents_store._connect / runs_store / plugins_store connect with no sqlite3.DatabaseError handling, unlike workspace_store's .corrupt-<ts> quarantine (R15-DATA-090).",
+  "fix_shape": "One shared open helper: on DatabaseError ('file is not a database' / 'malformed'), rename the file (and -wal/-shm) to .corrupt-<ts>, log it, and recreate; for the rebuildable cache this is silent, for user stores surface a one-line notice. Pin with a corrupt-header test per store and a boot test with a corrupt data_cache.db.",
+  "raw_ids": [
+   "FI-FINAL-CORRUPT-CACHE-BRICKS-BOOT",
+   "maintainer:5"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "Same mechanism found twice in this pass (failure-inducer per-db matrix surface/failure-inducer/final/83-corrupt-each-db-boot.txt and maintainer LS-2): one item, both keys. Class sibling of fixed R15-DATA-090 (workspace JSON only). Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-009",
+  "title": "AMAL (NSE, the default IN bind) serves market_cap and shares_outstanding unavailable while the same ISIN on BSE (AMAL.BO) serves both in the same sidecar",
+  "severity": "medium",
+  "status": "open",
+  "area": "data",
+  "subsystem": "fundamentals-profile",
+  "operator_areas": [
+   "data-smallcaps",
+   "ui-panels"
+  ],
+  "defect_class": "single-provider-ratio-gap",
+  "repro": "GET /fundamentals/AMAL with X-Vysted-Region IN (or /fundamentals/AMAL.NS) -> market_cap null, field_meta.market_cap unavailable provider did not publish this field; GET /fundamentals/AMAL.BO -> market_cap 8690951168, shares_outstanding 12362662 (ISIN INE841D01013 on both rows of /resolve?q=AMAL); screener.in/company/AMAL/consolidated/ Market Cap Rs 868 Cr",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/DS-1.md; docs/redesign/verification/r15/final-pass/raw/final-triage/rr.out",
+  "files": [
+   "sidecar/services/yfinance_provider.py"
+  ],
+  "root_cause": "The NSE-bound fundamentals path passes Yahoo's missing marketCap/sharesOutstanding through; the derived market-cap leg (price x master shares) added for R15-DATA-048 does not fire for this listing although the BSE listing of the same ISIN carries the share count.",
+  "fix_shape": "When a listing lacks shares/market cap, derive from the dual listing (same ISIN) or the exchange master share count, stamped derived with basis. Pin with AMAL.NS.",
+  "raw_ids": [
+   "investor:1"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "regression of R15-DATA-048. Re-run by final-triage on own :52880: /fundamentals/AMAL market_cap null; /fundamentals/AMAL.BO market_cap 8690951168. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-010",
+  "title": "SIFY analyst revenue estimate (USD-sized 191.7M) is labelled revenue_currency INR, a ~64x understatement against Sify's quarterly revenue INR 12,352 M, and the Earnings estimate grid renders it",
+  "severity": "medium",
+  "status": "open",
+  "area": "data",
+  "subsystem": "earnings",
+  "operator_areas": [
+   "data-smallcaps"
+  ],
+  "defect_class": "currency-mislabel",
+  "repro": "GET /earnings/SIFY/estimates (US) -> revenue_estimate_mean 191700000.0, revenue_currency INR, analyst count 1; same sidecar GET /fundamentals/SIFY -> revenue_ttm 46,506,049,536 financial_currency INR (quarterly ~11.6 bn INR). Sify 6-K ex99.1 filed 2026-07-16 (https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm): Revenue was INR 12,352 Million. earnings_provider.py:124-155 _revenue_currency: scale check vs INR total revenue fails (0.016), then falls back to country India -> INR, i.e. labels the estimate with the very currency the scale check just ruled out; EpsEstimateGrid.tsx:73-129 renders it",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/DS-3.md; docs/redesign/verification/r15/final-pass/raw/final-triage/rr.out",
+  "files": [
+   "sidecar/services/earnings_provider.py"
+  ],
+  "root_cause": "earnings_provider._revenue_currency (:124-155): the scale check against INR total revenue fails, then it falls back to country India -> INR, labelling the estimate with the currency the scale check just ruled out.",
+  "fix_shape": "When the scale check rules out the reporting currency, label the trading currency (or withhold with a reason), never the ruled-out one. Pin with a SIFY fixture and WIT.",
+  "raw_ids": [
+   "investor:4"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "regression of R15-DATA-113. Re-run by final-triage on own :52880: /earnings/SIFY/estimates revenue_estimate_mean 191700000.0 revenue_currency INR. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-011",
+  "title": "Symbol autocomplete never offers the BSE company of a same-ticker collision: 'Zeal Aqua', 'Sanathnagar Enterprises', ZEAL.BO and SEL.BO return only the NSE namesake or nothing, though /resolve binds the BSE company",
+  "severity": "medium",
+  "status": "open",
+  "area": "data",
+  "subsystem": "symbol-resolution",
+  "operator_areas": [
+   "data-smallcaps",
+   "ui-panels"
+  ],
+  "defect_class": "identity-by-ticker-string",
+  "repro": "GET /resolve/autocomplete?q=Zeal%20Aqua (IN) -> candidates []; q=Sanathnagar%20Enterprises -> []; q=ZEAL.BO -> only NSE ZEAL Zeal Global Services (ZEAL-SM.NS); q=SEL.BO -> NSE SEL Sungarner Energies first, no Sanathnagar. Same sidecar GET /resolve?q=ZEAL.BO -> BSE Zeal Aqua Ltd INE819S01025 539963, and /resolve?q=ZEAL lists both companies. Mechanism: symbol_resolver.autocomplete (:1637) skips every BSE row whose ticker exists in the NSE master ('dual-listed symbols are skipped so the canonical NSE row is the one candidate'), assuming same ticker = same company, which _bse_row_is_same_company already knows is false for FOCUS/ZEAL/SEL; it also drops the .BO pin by matching on the stripped bare ticker. A user typing the BSE company's name in the picker cannot select it.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/DS-4.md; docs/redesign/verification/r15/final-pass/raw/final-triage/rr.out",
+  "files": [
+   "sidecar/services/symbol_resolver.py"
+  ],
+  "root_cause": "symbol_resolver.autocomplete (~:1637) skips every BSE row whose bare ticker exists in the NSE master (same ticker assumed same company), and matches a .BO pin on the stripped bare ticker.",
+  "fix_shape": "Skip a BSE row only when _bse_row_is_same_company (or ISIN) says it is the NSE company; honour a .BO pin. Pin with ZEAL / SEL.",
+  "raw_ids": [
+   "investor:6"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New: distinct mechanism from R15-LEAD-130 (former name / scrip code). Re-run by final-triage on own :52880: autocomplete 'Zeal Aqua' -> []; ZEAL.BO -> only NSE Zeal Global Services. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-012",
+  "title": "RELIANCE.BO earnings history is two quarters stale against the NSE listing of the same company (latest 2025-12-31 vs 2026-06-30) and its analyst consensus differs (36 vs 26 analysts), with no staleness or listing-basis note",
+  "severity": "medium",
+  "status": "open",
+  "area": "data",
+  "subsystem": "earnings",
+  "operator_areas": [
+   "data-smallcaps"
+  ],
+  "defect_class": "listing-feed-staleness",
+  "repro": "Same sidecar, region IN, 15:09 IST: GET /earnings/RELIANCE.NS/history -> periods 2026-06-30 (EPS 15.48), 2026-03-31, 2025-12-31, 2025-09-30; GET /earnings/RELIANCE.BO/history -> 2025-12-31, 2025-09-30, 2025-06-30, 2025-03-31 (the two newest filed quarters missing). GET /fundamentals/RELIANCE.NS/ratings -> target_mean 1676.85, 5/20/0/0/1; /fundamentals/RELIANCE.BO/ratings -> target_mean 1716.65, 9/25/0/1/1. One ISIN, one company; the lanes pass the listing's Yahoo feed through as-is, so a BSE-pinned user sees an earnings table that stops at Dec 2025.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/DS-6.md; docs/redesign/verification/r15/final-pass/raw/final-triage/rr.out",
+  "files": [
+   "sidecar/services/earnings_provider.py",
+   "sidecar/services/yfinance_provider.py"
+  ],
+  "root_cause": "The earnings and ratings lanes pass each listing's Yahoo feed through as-is; for a dual-listed ISIN nothing prefers the fresher listing or flags a history that stops two quarters short.",
+  "fix_shape": "For a dual-listed instrument, serve earnings/ratings from the primary (fresher) listing with a basis note, or flag a history whose latest period is >1 quarter behind the sibling listing. Pin with RELIANCE.BO.",
+  "raw_ids": [
+   "investor:7"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Re-run by final-triage on own :52880: /earnings/RELIANCE.BO/history latest 2025-12-31; /earnings/RELIANCE.NS/history latest 2026-06-30. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-013",
+  "title": "'Should I buy Amal Ltd?' on gpt-4o-mini gets a buy lean justified by an industry P/E comparison no tool fetched",
+  "severity": "medium",
+  "status": "open",
+  "area": "agent",
+  "subsystem": "copilot-prompt",
+  "operator_areas": [
+   "agent-chat"
+  ],
+  "defect_class": "ungrounded-claim-hosted",
+  "repro": "vy invoke copilot 'Should I buy Amal Ltd shares now?' --provider openai --model gpt-4o-mini, :52381, 15:17:12 IST. Tools called: resolve_symbol, price_data AMAL, fundamentals AMAL only (no peer, sector or screener call; the fundamentals payload carries sector/industry names but no industry P/E). Answer ends: 'Given the positive revenue and earnings growth, along with a reasonable P/E ratio in comparison to other firms in the industry, you may consider this a good point for investment.' The comparative claim has no tool result behind it, and the copilot prompt (sidecar/agents/copilot.json) gives no stance for buy/sell questions, so a paid model turns a single-name lookup into an endorsement.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/AC-1.md",
+  "files": [
+   "sidecar/agents/copilot.json",
+   "sidecar/services/figure_grounding.py"
+  ],
+  "root_cause": "sidecar/agents/copilot.json gives no stance for buy/sell questions and no rule that a comparative claim (vs peers/industry) needs a tool result; a hosted model turns a single-name lookup into an endorsement.",
+  "fix_shape": "Add a copilot rule: no buy/sell recommendation; comparative claims only from a fetched peer/screener result, otherwise say it was not checked. Pin with a prompt-contract test.",
+  "raw_ids": [
+   "investor:10"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "Hosted lane, outside the R4 class; judged under R1 as a product gap in the copilot prompt (an advice posture), not mere model prose. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-014",
+  "title": "Ollama lane: a tool call leaked as a Python-literal dict (None/True/False) is not rescued; the raw call blob is shown as the assistant reply",
+  "severity": "medium",
+  "status": "open",
+  "area": "agent",
+  "subsystem": "llm-adapters",
+  "operator_areas": [
+   "agent-chat"
+  ],
+  "defect_class": "tool-call-leak-unrescued",
+  "repro": "llama3.1:8b on own sidecar :52825, prompt 'Buy 10 RELIANCE for me' (ask or auto): 3-4 of 6 G8-2 replies were the literal text {\"name\": \"portfolio_add_position\", \"parameters\": {... \"cost_basis\": None ...}}. rescue_leaked_tool_call returns None for that verbatim text (json.loads fails on None) and rescues the identical text with null (G8-2/rescue-repro.txt). Class gap of R15-AGENT-018 (fixed): JSON and call-syntax are handled, the Python-literal dict form is not. Safety held: nothing staged or applied.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/G8-2/rescue-repro.txt; docs/redesign/verification/r15/final-pass/battery/raw/R15-AGENT-022.txt",
+  "files": [
+   "sidecar/services/llm/tool_call_rescue.py",
+   "sidecar/services/llm/ollama.py"
+  ],
+  "root_cause": "rescue_leaked_tool_call (sidecar/services/llm/tool_call_rescue.py) parses only JSON and call syntax; json.loads fails on None, so the identical text with null is rescued and the Python-literal form is not.",
+  "fix_shape": "Accept the Python-literal dict form (ast.literal_eval on the matched object, offered tool names only) in the shared rescue. Pin with the verbatim G8-2 reply.",
+  "raw_ids": [
+   "maintainer:1",
+   "battery3-agent022-local-text-toolcall"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "regression of R15-AGENT-018 (class gap). battery3 (AGENT-022 Sumax prompt, cost_basis: None) is the same mechanism: one item. Safety held in every sample (nothing staged or applied). Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-015",
+  "title": "THIRD_PARTY_NOTICES.md lists the wrong version for 56 of 121 main-sidecar Python components because transitive deps are unpinned and the bundle ships what pip resolved at build time",
+  "severity": "medium",
+  "status": "open",
+  "area": "release",
+  "subsystem": "licensing-notices",
+  "operator_areas": [],
+  "defect_class": "unpinned-transitive-deps",
+  "repro": "final-cand d38b5d1a: compare THIRD_PARTY_NOTICES.md 'Python - vysted-sidecar' rows with the build venv final-cand/sidecar/.venv (built 14:35, the venv the bundle binary was frozen from): 56 of 121 differ (anyio 4.13.0 listed vs 4.15.1, aiohttp 3.13.5 vs 3.14.3, cachetools 6.2.6 vs 7.2.0, caio 0.9.25 vs 0.12.9, certifi 2026.5.20 vs 2026.7.22, ...; LS-4/notices-drift.txt). The frozen binary's own archive confirms it (anyio-4.15.1.dist-info, LS-4/main-binary-dist-info.txt). sidecar/requirements.txt pins only top-level packages (and google-genai>=1.0, jsonschema>=4.0 float), with no lock or constraints file, so every rebuild can ship a different closure than the one the notices (and CI) saw. No package is missing from the notices and no licence family changed in the drifted set (frozendict LGPL-3.0 still listed in Section A).",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/LS-4/notices-drift.txt",
+  "files": [
+   "sidecar/requirements.txt",
+   "scripts/r15/third_party_notices.py",
+   "scripts/ensure-sidecar.mjs"
+  ],
+  "root_cause": "sidecar/requirements.txt pins only top-level packages (two float), with no lock/constraints file, so each rebuild can freeze a different closure than the one the notices were generated from.",
+  "fix_shape": "Add a constraints/lock file generated from the release venv, install with it in ensure-sidecar and CI, and regenerate the notices from it. Pin with a check that notices versions equal the lock.",
+  "raw_ids": [
+   "maintainer:7"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. No package missing and no licence family changed in the drifted set. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-016",
+  "title": "arrange_layout custom reports success ('Arranged sec_filings_list' / 'Arranged your panels') when no panel token resolves and the layout is unchanged",
+  "severity": "medium",
+  "status": "open",
+  "area": "agent",
+  "subsystem": "host-actions",
+  "operator_areas": [
+   "agent-chat",
+   "ui-panels"
+  ],
+  "defect_class": "false-success",
+  "repro": "applyHostAction('arrange_layout', {pattern:'custom', panels:['sec_filings_list']}) on a grid holding chart/watchlist/news -> label 'Arranged sec_filings_list', groups unchanged; {pattern:'custom', panels:'chart, sec-filings'} (string, not array) -> parseCustomPanels yields [] -> 'Arranged your panels', groups unchanged. planCustom drops unknown tokens, applyCustomLayout early-returns on an empty plan, the custom branch returns done(...) regardless; the catalog panels schema has no enum so the model is never told the valid ids.",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/final/L-layouts-probe.json",
+  "files": [
+   "src/lib/host-actions.ts",
+   "src/lib/layout-templates.ts",
+   "sidecar/services/agent_tools/catalog.py"
+  ],
+  "root_cause": "planCustom drops unknown tokens, applyCustomLayout early-returns on an empty plan, and the custom branch returns done(...) regardless; the catalog panels schema has no enum of valid ids.",
+  "fix_shape": "Return a failure naming the unresolved tokens when the plan is empty (partial note when some drop), and enumerate valid panel ids in the catalog schema. Pin with the two probe inputs.",
+  "raw_ids": [
+   "drive-panels-layouts:nd-1"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-017",
+  "title": "A holding whose symbol answers 404 raises the transport-failure banner 'Couldn't refresh live quotes' with a Retry that can never succeed, and the 404 is re-requested every 5 s",
+  "severity": "medium",
+  "status": "open",
+  "area": "ui",
+  "subsystem": "portfolio",
+  "operator_areas": [
+   "ui-panels"
+  ],
+  "defect_class": "error-misclassified",
+  "repro": "jsdom harness P5: add ZZZZNOTREAL qty 10 cost 100 -> sidecar GET /quotes/ZZZZNOTREAL 404 -> panel shows '1 without a live quote' AND 'Couldn't refresh live quotes - values shown without market data. Retry' (10-portfolio-panel-replay.json P5-unresolved-crypto.unresolved.panel). P6 mixed portfolio with 4 resolved rows + ZZZZNOTREAL: same banner path (failed>0). Code: src/modules/portfolio/api.ts:30-36 fetchPositionQuote maps every error (404 not_found included) to {error}; :52-58 counts it in failed; PortfolioPanel.tsx:223 setQuotesError(failed > 0); :1171-1174 renders the banner. The converse of R15-UI-004 (fixed: transport failure used to look like not-found; now not-found looks like transport failure). Same at rc1 (rc1/portfolio-replay.json P5), so not a regression; not in the register.",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/final/10-portfolio-panel-replay.json",
+  "files": [
+   "src/modules/portfolio/api.ts",
+   "src/modules/portfolio/PortfolioPanel.tsx"
+  ],
+  "root_cause": "fetchPositionQuote maps every error (404 not_found included) to {error}; fetchPositionQuotes counts it in failed; PortfolioPanel sets quotesError(failed > 0).",
+  "fix_shape": "Distinguish not_found (row-level 'no quote for this symbol', not retried each tick) from transport failure (banner + Retry). Pin with ZZZZNOTREAL beside resolved rows.",
+  "raw_ids": [
+   "drive-portfolio-notes:3"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New: converse of fixed R15-UI-004. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-018",
+  "title": "With the ULTRA slider one user turn fans out into N sequential full ULTRA heavy runs (4 research calls -> ~19 min, ~$1.25, each brief replacing the last)",
+  "severity": "medium",
+  "status": "open",
+  "area": "research",
+  "subsystem": "research-depth",
+  "operator_areas": [
+   "research-search"
+  ],
+  "defect_class": "unbounded-spend",
+  "repro": "turn.py --port 52344 --provider openai --model gpt-4o-mini --depth ultra --prompt 'Research Data Patterns (India) Limited — latest quarterly results, order book, valuation and peer comparison.' -> 4 research tool_use (depth quick) at 3.1s, each begins depth=ultra Heavy mode, sequential: publish at 288s ($0.32), 590s ($0.30), third started; client stopped at 604s.",
+  "evidence": "docs/redesign/verification/r15/surface/research-briefs/final/F3-depth-floor-fanout.md",
+  "files": [
+   "sidecar/services/agent_tools/research.py",
+   "sidecar/services/agent_runtime.py"
+  ],
+  "root_cause": "The depth floor lifts every research call of the turn to ULTRA and nothing limits research calls per turn.",
+  "fix_shape": "Apply the depth floor to the first research call of a turn only (later calls keep the model's depth) or cap heavy research calls per turn at one. Pin with a 4-call turn.",
+  "raw_ids": [
+   "drive-research-briefs:3"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-019",
+  "title": "Settings SearXNG card tells a user whose Docker/OrbStack is installed but stopped that Docker 'isn't available' and to install it, ignoring docker.cli_present/daemon_running and the sidecar's 'start Docker/OrbStack' detail",
+  "severity": "medium",
+  "status": "open",
+  "area": "ui",
+  "subsystem": "settings-searxng",
+  "operator_areas": [
+   "research-search",
+   "ui-panels"
+  ],
+  "defect_class": "copy-wrong",
+  "repro": "Own sidecar :52845 from d38b5d1a source, OrbStack installed but not running: GET /search/searxng/status -> 200 {state:'not_installed_docker', detail:'docker CLI found but the daemon is not running — start Docker/OrbStack', docker:{cli_present:true, daemon_running:false}} (two runs, 16:45:04 and 16:45:21 IST). SettingsPanel.tsx:841-842 maps not_installed_docker to the chip 'Docker not found' and :967-978 renders 'SearXNG runs in a local Docker container, and Docker isn't available on this machine. Install Docker first — docs.docker.com/...'; grep for daemon_running|cli_present in src/ and types/ = 0 hits, although the manager contract (searxng_manager.py:13-16) says these flags exist to disambiguate 'Install Docker/OrbStack' vs 'Start it'. Distinct from fixed R15-LIFECYCLE-007 (PATH resolution, cli_present false): here the CLI is found and the UI drops the disambiguation.",
+  "evidence": "docs/redesign/verification/r15/surface/settings-plugins/final/03-searxng-daemon-down.txt",
+  "files": [
+   "src/components/SettingsPanel.tsx",
+   "sidecar/services/searxng_manager.py"
+  ],
+  "root_cause": "SettingsPanel.tsx (:841-842, :967-978) branches on state only; daemon_running/cli_present are read nowhere in src/ or types/.",
+  "fix_shape": "Read docker.cli_present/daemon_running (mirror in types/) and show 'Start Docker/OrbStack' when the CLI is present. Pin with the daemon-down status payload.",
+  "raw_ids": [
+   "drive-settings-plugins:searxng-daemon-down-install-copy"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New: distinct from fixed R15-LIFECYCLE-007 (PATH resolution). Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-020",
+  "title": "Keyless web search: the Brave engine (impersonated fetch) gets HTTP 429 while a plain-UA curl from the same host gets 200 in the same minute, so keyless web_search returns zero rows on this network",
+  "severity": "medium",
+  "status": "open",
+  "area": "research",
+  "subsystem": "keyless-search",
+  "operator_areas": [
+   "research-search"
+  ],
+  "defect_class": "fingerprint-blocked",
+  "repro": "in-process BraveSearchBackend.search('Dixon Technologies') -> SearchError HTTP 429; curl -A 'Mozilla/5.0' search.brave.com same query -> 200, 20 data-type=web blocks. Not a regression of R15-RESEARCH-008 (rotation and the 25 s cap hold); filed for 0.9.1.",
+  "evidence": "docs/redesign/verification/r15/final-pass/battery/raw/R15-RESEARCH-008.txt; docs/redesign/verification/r15/final-pass/raw/final-triage/brave.out",
+  "files": [],
+  "root_cause": "BraveSearchBackend fetches through the impersonation lane, whose fingerprint Brave rate-limits; the plain request is served.",
+  "fix_shape": "Try a plain-UA fetch for Brave when the impersonated request 429s (or default Brave to plain), keeping the breaker semantics. Pin with a stub 429-then-200 fetch.",
+  "raw_ids": [
+   "battery2-brave-impersonated-fetch-429"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "Re-run by final-triage 18:2x IST: in-process BraveSearchBackend.search -> SearchError HTTP 429 in 0.7 s; curl -A Mozilla/5.0 -> 200 (raw/final-triage/brave.out). Not a regression of R15-RESEARCH-008. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-021",
+  "title": "docs/SIDECAR_API.md ('the contract') documents 20 of 111 live routes and states an allow-all-origins CORS posture, a 501 macro hook and stub routers that the running sidecar contradicts",
+  "severity": "medium",
+  "status": "open",
+  "area": "docs",
+  "subsystem": "sidecar-api-doc",
+  "operator_areas": [],
+  "defect_class": "doc-drift",
+  "repro": "curl :52800/openapi.json -> 111 method+path pairs, 91 absent from SIDECAR_API.md (raw/final-docs/undocumented.txt). SIDECAR_API.md:16 'allows all origins' vs curl -H 'Origin: http://evil.example' :52800/health -> 403 (sidecar/app.py:289-293 ALLOWED_ORIGINS + _OriginGuardMiddleware). :31,:88 macro '501' vs GET /macro/GDP -> 422 and /health macro_series=openbb-mcp. :125-136 'Stub routers' vs /indicators (50 indicators), /portfolio/positions real.",
+  "evidence": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "files": [
+   "docs/SIDECAR_API.md"
+  ],
+  "root_cause": "The doc was never regenerated as routers and the origin guard landed.",
+  "fix_shape": "Regenerate the route list from /openapi.json and correct the CORS (origin guard), macro and stub sections.",
+  "raw_ids": [
+   "F-DOCS-001"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Verified at the sha: SIDECAR_API.md:16 'the sidecar allows all origins'. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-022",
+  "title": "R12_HAND_TESTING_GUIDE.md, the only hand-testing guide, walks an order-placement 'safety showcase', a brokers plugin and a paper portfolio removed by D81",
+  "severity": "medium",
+  "status": "open",
+  "area": "docs",
+  "subsystem": "hand-testing-guide",
+  "operator_areas": [],
+  "defect_class": "doc-drift",
+  "repro": "docs/redesign/R12_HAND_TESTING_GUIDE.md:37 'Orders (the safety showcase): ask \"buy 5 shares of RELIANCE at market\" ... ROUTES TO THE CONFIRM-BEFORE-PLACE DIALOG'; :7 'prepares (never places) orders', Next.js UI; :9 agent can 'only prepare [a broker order]'; :25 'my paper portfolio'; :36 six plugins incl. 'brokers' vs plugins/ at d38b5d1a = example, openbb-mcp, vysted-lenses, vysted-news, yfinance. Document, not product surface (src/ has 0 offers).",
+  "evidence": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "files": [
+   "docs/redesign/R12_HAND_TESTING_GUIDE.md"
+  ],
+  "root_cause": "The guide predates D81 and was never revised.",
+  "fix_shape": "Replace or retire it (the release docs lane writes the cold hand-testing guide); no order wording survives.",
+  "raw_ids": [
+   "F-DOCS-002"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Verified at the sha: R12_HAND_TESTING_GUIDE.md:37. Document only; no product order surface (D81 holds). Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-023",
+  "title": "RELEASE_RUNBOOK.md step 1 tells the operator to merge the superseded worktree-agent-r15-version-0.9.0 branch although the 0.9.0 bump is already in the sha",
+  "severity": "medium",
+  "status": "open",
+  "area": "release",
+  "subsystem": "release-runbook",
+  "operator_areas": [],
+  "defect_class": "doc-drift",
+  "repro": "docs/RELEASE_RUNBOOK.md:14-15 and :70-84 ('Neither commit is an ancestor ... merge worktree-agent-r15-version-0.9.0 ... restoring CLAUDE.md first'). At d38b5d1a all five version sources read 0.9.0 via 06879089 'chore(release): bump version to 0.9.0 in all five sources + Cargo.lock'; git merge-base --is-ancestor 517da226 HEAD still fails, so following the step merges a superseded bump plus its CLAUDE.md commit onto an already-bumped tree.",
+  "evidence": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "files": [
+   "docs/RELEASE_RUNBOOK.md"
+  ],
+  "root_cause": "The runbook was written before 06879089 landed the bump; 517da226 is still not an ancestor, so following the step merges a superseded bump plus its CLAUDE.md commit.",
+  "fix_shape": "Drop step 1 and the merge section; state that all five sources read 0.9.0 at the candidate.",
+  "raw_ids": [
+   "F-DOCS-004"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Verified: git merge-base --is-ancestor 517da226 d38b5d1a -> 1; RELEASE_RUNBOOK.md:14-15. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-024",
+  "title": "Ownership witness flags a near-agreeing institutions figure with a false reason: Yahoo 0.00% vs filed 0.03% (AMAL) is flagged 'disagrees ... beyond 3pp'",
+  "severity": "low",
+  "status": "open",
+  "area": "data",
+  "subsystem": "ownership-witness",
+  "operator_areas": [
+   "data-smallcaps"
+  ],
+  "defect_class": "copy-wrong",
+  "repro": "GET /fundamentals/AMAL (IN) -> held_percent_institutions 0.0, field_meta flagged: 'yfinance institutions 0.00% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: 0.03%) beyond 3pp'. Same for ICON (0.27%) and SUNRAJDI (0.17%). correctness_gate.reconcile_ownership (:478-525) flags on zero_mismatch (one side zero) but always writes 'beyond 3pp' in the reason, so the stated rule is false and an immaterial 0.03pp gap reads as a disagreement in the Equity Overview.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/DS-7.md",
+  "files": [
+   "sidecar/services/correctness_gate.py"
+  ],
+  "root_cause": "correctness_gate.reconcile_ownership (:478-525) flags on zero_mismatch but always writes 'beyond 3pp'.",
+  "fix_shape": "State the zero-vs-nonzero rule in the reason, or skip the flag when the gap is under the threshold.",
+  "raw_ids": [
+   "investor:8"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-025",
+  "title": "DEEP research overran its 180 s wall budget by 79 s (259 s) on the local lane: the final synthesis call is not boxed by the remaining wall",
+  "severity": "low",
+  "status": "open",
+  "area": "research",
+  "subsystem": "research-depth-iter-deep",
+  "operator_areas": [
+   "research-search"
+  ],
+  "defect_class": "budget-overrun",
+  "repro": "vy invoke copilot \"research Sunraj Diamond Exports\" --provider ollama --model llama3.1:8b --options {\"research_depth\":\"deep\"}, :52381, 15:16:43-15:22:46 IST. execution started_at 1791020844.05, finished_at 1791021103.07 (259 s) against depth.py DEEP wall_seconds=180. Steps: round 1 overran its 90 s slice, wind-down round 2, then synthesize took 79,000 ms; the citation step reports audit skipped (-79s wall remaining < 15s). research/iter.py guards new rounds and the audit with remaining_wall, but the synthesis call runs after the wall is spent with no cap of its own.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/RS-1.md",
+  "files": [
+   "sidecar/services/research/iter.py",
+   "sidecar/services/research/deep.py"
+  ],
+  "root_cause": "research/iter.py guards new rounds and the audit with remaining_wall; synthesis runs after the wall is spent with no cap.",
+  "fix_shape": "Box synthesis with max(remaining_wall, a floor) and say so in the brief when it is cut.",
+  "raw_ids": [
+   "investor:11"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Runtime budget, not the R4 figure class. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-026",
+  "title": "Screener freshness line prints unrounded float seconds ('quotes 41.64699196815491s ago')",
+  "severity": "low",
+  "status": "open",
+  "area": "ui",
+  "subsystem": "screener",
+  "operator_areas": [
+   "ui-panels"
+  ],
+  "defect_class": "formatting",
+  "repro": "Run any screen (custom INFY.NS,TCS.NS,...; region IN) in ScreenerPanel; within the first minute the freshness line reads 'quotes 41.64699196815491s ago · valuation 41.64699912071228s ago · deep fields 46.1444091796875s ago'. fmtAgo computes Math.floor(Date.now()/1000) - epochSec with a float epochSec from the sidecar freshness block and prints it as is below 60 s.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/UI-4/harness-screener.json",
+  "files": [
+   "src/modules/screener/ScreenerPanel.tsx"
+  ],
+  "root_cause": "fmtAgo (ScreenerPanel.tsx:29-31) subtracts a float epochSec from a floored now.",
+  "fix_shape": "Floor the difference.",
+  "raw_ids": [
+   "maintainer:3"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Verified at the sha. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-027",
+  "title": "News titles keep raw HTML entities: the News Feed shows 'F&amp;O Talk: ...' literally (and the agent news tool gets the same)",
+  "severity": "low",
+  "status": "open",
+  "area": "data",
+  "subsystem": "news",
+  "operator_areas": [
+   "ui-panels",
+   "research-search"
+  ],
+  "defect_class": "formatting",
+  "repro": "GET /news?limit=60 (region IN): Economic Times items arrive as 'F&amp;O Talk: 22,600 is a key Nifty support; ...' and 'Bonus issues &amp; stock split: ...'. NewsFeedPanel renders item.title as text, so the panel shows '&amp;'. Same text reaches the agent news tool.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/free-maintainer-1.md; docs/redesign/verification/r15/final-pass/raw/final-triage/rr.out",
+  "files": [
+   "sidecar/services/news_provider.py",
+   "src/modules/news/NewsFeedPanel.tsx"
+  ],
+  "root_cause": "news_provider passes feed titles through without html.unescape.",
+  "fix_shape": "html.unescape titles (and summaries) once in news_provider.",
+  "raw_ids": [
+   "maintainer:4"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Re-run by final-triage on own :52880: 2 of 60 /news titles carry &amp;. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-028",
+  "title": "A bundle sidecar that cannot bind its port dies with SIGABRT (exit 134, Fatal Python error _enter_buffered_busy on the stdin watchdog) instead of a clean non-zero exit",
+  "severity": "low",
+  "status": "open",
+  "area": "lifecycle",
+  "subsystem": "sidecar-boot",
+  "operator_areas": [],
+  "defect_class": "unclean-exit",
+  "repro": "With my own sidecar holding :52825, start the bundle binary on --port 52825 with stdin held open (fifo): uvicorn logs [Errno 48] address already in use, shuts down, then the interpreter aborts at finalisation because the stdin-EOF watchdog daemon thread holds the stdin buffer lock (taken-port.log); exit status 134. The first instance is unaffected (health 200). On macOS an abort also writes a crash report.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/LS-2/taken-port.log",
+  "files": [
+   "sidecar/main.py"
+  ],
+  "root_cause": "The stdin-EOF watchdog daemon thread holds the stdin buffer lock at interpreter finalisation after uvicorn exits on EADDRINUSE.",
+  "fix_shape": "Exit via os._exit(code) after uvicorn returns (or stop the watchdog first).",
+  "raw_ids": [
+   "maintainer:6"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-029",
+  "title": "transform.code size caps are bypassed by sum(list, start): a 25-character expression builds an uncapped list (8.3 GB peak RSS) and keeps running after the 5 s timeout",
+  "severity": "low",
+  "status": "open",
+  "area": "platform",
+  "subsystem": "workflow-engine",
+  "operator_areas": [],
+  "defect_class": "resource-cap-bypass",
+  "repro": "evaluate_code({}, {'expression': 'sum([[0]*100000]*250, [])'}) -> TimeoutError after 7.98 s with the worker thread still running, peak RSS 8.3 GB; n=80 returns an 8,000,000-item list in 0.6 s. [0]*100001 and 7^(10^7) are refused, so PLATFORM-066's own repros hold; sum's start argument and list + are uncapped. Reachable via save_workflow/run_workflow (MCP, agent) and the server preview.",
+  "evidence": "docs/redesign/verification/r15/final-pass/scenarios/free-maintainer-2-repro.txt",
+  "files": [
+   "sidecar/services/workflow_nodes/code_node.py"
+  ],
+  "root_cause": "code_node caps list * and ** but not sum()'s start argument / list +, and the timed-out worker thread is not stopped.",
+  "fix_shape": "Cap list concatenation (sum with a list start, list +) like list *, and run evaluation where it can be killed.",
+  "raw_ids": [
+   "maintainer:8"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "regression of R15-CODE-PLATFORM-066 (class gap; its own repros hold). Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-030",
+  "title": "write_note files a note under the literal company name ('COCHIN SHIPYARD') instead of the ticker, so the symbol's note view (COCHINSHIP) stays empty",
+  "severity": "low",
+  "status": "open",
+  "area": "agent",
+  "subsystem": "host-actions",
+  "operator_areas": [
+   "agent-chat"
+  ],
+  "defect_class": "arg-not-resolved",
+  "repro": "Ollama llama3.1:8b, AUTO: 'Write a note on Cochin Shipyard: valuation looks stretched at ~50x trailing P/E; revisit after Q2 results.' -> write_note{scope:'Cochin Shipyard'} staged; accept -> note stored in bucket 'COCHIN SHIPYARD'; noteFor('COCHINSHIP') returns empty. noteScope() only uppercases (no /resolve), while the catalog schema asks for 'a symbol like NVDA' and add_to_watchlist already resolves names via GET /resolve.",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/17-t4-note-accept-readback.json",
+  "files": [
+   "src/lib/host-actions.ts",
+   "sidecar/services/agent_tools/catalog.py"
+  ],
+  "root_cause": "noteScope() only uppercases the scope; it never resolves a name as add_to_watchlist does via /resolve.",
+  "fix_shape": "Resolve a non-ticker scope through /resolve before writing (keep the literal when nothing resolves, and say so).",
+  "raw_ids": [
+   "drive-composer-chat:nd-1"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New; class sibling of fixed R15-CODE-FRONTEND-014 (scope 'global'). Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-031",
+  "title": "delete_workspace leaves <name>.vysted-workspace.bak behind, so a later corrupt-file recovery of a same-named workspace resurrects the deleted workspace's content",
+  "severity": "low",
+  "status": "open",
+  "area": "lifecycle",
+  "subsystem": "workspace-store",
+  "operator_areas": [],
+  "defect_class": "stale-backup",
+  "repro": "On own sidecar :52843: PUT /workspace/PLX twice (content A-old-holdings then A2) -> DELETE /workspace/PLX (204; .bak remains on disk) -> PUT /workspace/PLX content C -> truncate own PLX.vysted-workspace -> GET /workspace/PLX returns the DELETED 'A-old-holdings' blob from the stale .bak. The data dir listing after the drive also shows 'Research%3A RELIANCE.vysted-workspace.bak' left after its delete.",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/final/F-ws-delete-bak-resurrect.txt",
+  "files": [
+   "sidecar/services/workspace_store.py"
+  ],
+  "root_cause": "workspace_store delete removes the main file only.",
+  "fix_shape": "Delete the .bak with the workspace.",
+  "raw_ids": [
+   "drive-panels-layouts:nd-2"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-032",
+  "title": "A local-model narrative written with markdown-bold headers (**TAKE** / **BULL** ...) collapses to a flat summary + insights; the five typed fields come back empty",
+  "severity": "low",
+  "status": "open",
+  "area": "ui",
+  "subsystem": "fundamentals-profile",
+  "operator_areas": [
+   "ui-panels"
+  ],
+  "defect_class": "parser-brittle",
+  "repro": "GET /fundamentals/RELIANCE/narrative with X-LLM-Provider: ollama, X-LLM-Model: llama3.1:8b (own :52843, under the Ollama lock) -> 200 in 32.6s, verified:true; summary holds '**TAKE** ... **BUSINESS** ... **STORYLINE** ... **BULL**', insights end in '**BEAR**' / '**RISKS**', the five typed fields are null/[]. _parse_output's header regex ^([A-Za-z ]+):\\s*(.*)$ matches only a plain 'HEADER:' line, so bold or colon-less headers never switch section. One sample; model formatting varies run to run. The fix test (test_five_section_fixture_parses_all_fields) uses a plain fixture only.",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/final/F-eo-narrative-ollama-RELIANCE.txt",
+  "files": [
+   "sidecar/services/company_narrative.py"
+  ],
+  "root_cause": "company_narrative._parse_output matches only a plain 'HEADER:' line.",
+  "fix_shape": "Strip markdown emphasis and accept a colon-less header line before matching. Pin with a bold-header fixture.",
+  "raw_ids": [
+   "drive-panels-layouts:reg-1"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "regression of R15-UI-094 (one sample; model formatting varies). Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-033",
+  "title": "A whitespace-only Avg cost saves the holding at cost basis 0, and a hex quantity '0x10' saves as 16",
+  "severity": "low",
+  "status": "open",
+  "area": "ui",
+  "subsystem": "portfolio",
+  "operator_areas": [
+   "ui-panels"
+  ],
+  "defect_class": "validation-at-wrong-layer",
+  "repro": "jsdom harness P2 through the real form: TCS.NS qty 5 cost '   ' -> no error, holding [TCS.NS, 5, 0]; TCS.NS qty '0x10' cost 100 -> no error, holding [TCS.NS, 16, 100]; control: cost '' -> 'Avg cost per share is required' (10-portfolio-panel-replay.json P2-validation cost-spaces / qty-hex / cost-blank). Code: src/store/portfolios.ts:113 checks raw.costBasis === '' without trim, then Number('   ') === 0 passes; Number('0x10') === 16 passes the plain-number check at :100. The agent path is unaffected (host-actions costBasisOf accepts only finite numbers).",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/final/10-portfolio-panel-replay.json",
+  "files": [
+   "src/store/portfolios.ts"
+  ],
+  "root_cause": "validateHolding (src/store/portfolios.ts:113) tests the raw string for === '' without trim, then trusts Number().",
+  "fix_shape": "Trim before the empty check and accept only a plain decimal pattern.",
+  "raw_ids": [
+   "drive-portfolio-notes:4"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "regression of R15-UI-078. Verified at the sha. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-034",
+  "title": "Brief header reads 'web + structured data' directly above the 'Structured data only - no web sources found' banner on a filings-only brief",
+  "severity": "low",
+  "status": "open",
+  "area": "ui",
+  "subsystem": "research-brief",
+  "operator_areas": [
+   "ui-panels",
+   "research-search"
+  ],
+  "defect_class": "copy-wrong",
+  "repro": "Live DEEP Coforge (ollama) and ULTRA Data Patterns (gpt-4o-mini) briefs: web_available false, sources = NSE/BSE filing PDFs + vysted:// rows; jsdom render of <BriefPanel/> shows both 'web + structured data' and 'Structured data only — no web sources found'.",
+  "evidence": "docs/redesign/verification/r15/surface/research-briefs/final/F2-header-web-badge-vs-banner.md",
+  "files": [
+   "src/modules/research/BriefPanel.tsx"
+  ],
+  "root_cause": "The header keys on any https source row; the banner excludes filings.",
+  "fix_shape": "Derive both from the same web-origin predicate.",
+  "raw_ids": [
+   "drive-research-briefs:2"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "Residual of R15-RESEARCH-041 named in its refuter note. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-035",
+  "title": "MCP_INTEGRATION.md names 25 tools; the live MCP surface lists 39",
+  "severity": "low",
+  "status": "open",
+  "area": "docs",
+  "subsystem": "mcp-doc",
+  "operator_areas": [],
+  "defect_class": "doc-drift",
+  "repro": "JSON-RPC initialize + tools/list on :52800/mcp/ -> 39 names (raw/final-docs/mcp-live.txt). Absent from MCP_INTEGRATION.md:117-121 and :134-143: compare_symbols, corporate_actions, corporate_announcements, earnings_call_transcript, exchange_deals, financial_statements, market_overview, option_chain, research, resolve_symbol, shareholding_pattern, web_search, list_runs, save_workflow. :207 sample toolCount 26 / 2025-06-18 vs live 39 / 2025-11-25. Doc-named-not-live: 0.",
+  "evidence": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "files": [
+   "docs/MCP_INTEGRATION.md"
+  ],
+  "root_cause": "Doc not regenerated from the catalog.",
+  "fix_shape": "Regenerate the tool list from tools/list.",
+  "raw_ids": [
+   "F-DOCS-003"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-036",
+  "title": "CURRENT_STATE.md cites a missing build report, the deleted monte_carlo.py and an absent ConnectCard.tsx, and reports 0.8.0 and 619 vitest / 942 pytest",
+  "severity": "low",
+  "status": "open",
+  "area": "docs",
+  "subsystem": "current-state",
+  "operator_areas": [],
+  "defect_class": "doc-drift",
+  "repro": "CURRENT_STATE.md:38 docs/redesign/FOUNDATION_BUILD_REPORT.md absent (sibling of fixed R15-DOCS-023's dead link); :388 monte_carlo.py absent (deleted by fixed R15-CODE-PLATFORM-040); :594 ConnectCard.tsx absent from tree; :154,:265,:638-640,:879 '0.8.0' vs 0.9.0 in all sources; :10,:856 '619 vitest, 942 pytest' vs logs/ci-local.log:370 (2032) and :1295 (3921).",
+  "evidence": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "files": [
+   "docs/CURRENT_STATE.md"
+  ],
+  "root_cause": "Doc drift.",
+  "fix_shape": "Correct in the release docs lane's CURRENT_STATE rewrite.",
+  "raw_ids": [
+   "F-DOCS-005"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-037",
+  "title": "RELEASE_RUNBOOK.md's 'verbatim' ci-local block differs from package.json ci-local",
+  "severity": "low",
+  "status": "open",
+  "area": "release",
+  "subsystem": "release-runbook",
+  "operator_areas": [],
+  "defect_class": "doc-drift",
+  "repro": "docs/RELEASE_RUNBOOK.md:252-262 has 'python -m pip ...' and 'pnpm test'; package.json scripts.ci-local at d38b5d1a has 'python3 -m pip ...' and 'vitest run --coverage'.",
+  "evidence": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "files": [
+   "docs/RELEASE_RUNBOOK.md"
+  ],
+  "root_cause": "Doc drift.",
+  "fix_shape": "Copy the block from package.json.",
+  "raw_ids": [
+   "F-DOCS-006"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "New. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ },
+ {
+  "id": "R15-FINAL-038",
+  "title": "MCP discovery file advertises protocol 2025-06-18 while /mcp/status reports 2025-11-25; the Rust sync comment points at a constant that does not exist",
+  "severity": "low",
+  "status": "open",
+  "area": "platform",
+  "subsystem": "mcp",
+  "operator_areas": [],
+  "defect_class": "constant-drift",
+  "repro": "src-tauri/src/lib.rs:311-313 MCP_PROTOCOL_VERSION='2025-06-18', comment 'Mirrors _PROTOCOL_VERSION in sidecar/services/mcp_server.py'; no such constant: mcp_server.py:50,389-391 returns mcp.types.LATEST_PROTOCOL_VERSION; GET :52800/mcp/status -> protocolVersion 2025-11-25. Negotiation still works (initialize asking 2025-06-18 is answered with it).",
+  "evidence": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "files": [
+   "src-tauri/src/lib.rs",
+   "sidecar/services/mcp_server.py"
+  ],
+  "root_cause": "src-tauri/src/lib.rs:311-313 MCP_PROTOCOL_VERSION hard-codes 2025-06-18; mcp_server returns mcp.types.LATEST_PROTOCOL_VERSION.",
+  "fix_shape": "Write the live negotiated version into the discovery file (or align the constant) and fix the comment.",
+  "raw_ids": [
+   "F-DOCS-008"
+  ],
+  "closure_evidence": "",
+  "tier4": false,
+  "note": "Sibling of fixed R15-CODE-AGENT-022 (which fixed /mcp/status only). Verified at the sha. Admitted 3 Oct by final-triage (fresh claude-opus-5-5) at d38b5d1a."
+ }
+]

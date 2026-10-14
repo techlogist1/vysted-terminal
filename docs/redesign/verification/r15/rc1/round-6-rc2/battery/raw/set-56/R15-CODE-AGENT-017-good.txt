@@ -1,0 +1,6 @@
+# rc1-battery-22 raw R15-CODE-AGENT-017 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ bash /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/p22_017b.sh
+{"id":"custom:good","name":"Good","philosophy":"p","system_prompt":"hello prompt","tools":["research"],"default_provider":"ollama","default_model":"qwen2.5:7b","icon":"x","created_at":1790989848,"updated_at":1790989848}
+GET /custom-agents (good + bad row) HTTP 200
+[{"id":"custom:good","name":"Good","philosophy":"p","system_prompt":"hello prompt","tools":["research"],"default_provider":"ollama","default_model":"qwen2.5:7b","icon":"x","created_at":1790989848,"updated_at":1790989848}]
+EXIT=0

@@ -1,0 +1,1 @@
+{"symbol":"IBN","count":0,"patterns":[],"coverage":"not_applicable","note":"IBN is not an NSE/BSE instrument; Indian exchange disclosures do not apply","provider":null,"major_shareholders":[],"source_url":null}

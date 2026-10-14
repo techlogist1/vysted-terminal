@@ -1,0 +1,30 @@
+# LIFECYCLE-013 entry repro (own sidecar :52603, worktree HEAD 633f8440), Ollama lock held per call
+## launch
+launch: {"runId":"f444b3e7bde843c588273f2cf31bb2d8","run_id":"f444b3e7bde843c588273f2cf31bb2d8"}
+RUN f444b3e7bde843c588273f2cf31bb2d8 status error provider ollama model llama3.1:8b detail token ceiling 2000 reached (7600 used) cost {'tokens': 7600, 'spend_usd': 0.0, 'steps': 1, 'spendUsd': 0.0}
+api/ps: ['llama3.1:8b']
+Sun Sep 27 16:42:00 IST 2026
+rmdir: /tmp/vysted-r15-ollama.lock: No such file or directory
+## resume
+resume f444b3e7bde843c588273f2cf31bb2d8: {"resumed":true}
+RUN f444b3e7bde843c588273f2cf31bb2d8 status error provider ollama model llama3.1:8b detail token ceiling 2000 reached (7608 used) cost {'tokens': 15208, 'spend_usd': 0.0, 'steps': 2, 'spendUsd': 0.0}
+api/ps: ['llama3.1:8b']
+Sun Sep 27 16:43:18 IST 2026
+## script
+P=localhost:52603
+mode=$1; id=$2
+if [ "$mode" = launch ]; then
+  r=$(curl -s -m 30 -X POST $P/agents/copilot/runs -H 'content-type: application/json' -d '{"prompt":"Compare AAPL and MSFT valuation: get quotes and fundamentals for both, then summarize.","provider":"ollama","model":"llama3.1:8b","budget":{"maxTokens":2000}}')
+  echo "launch: $r"; id=$(echo "$r" | python3 -c "import json,sys; print(json.load(sys.stdin)['runId'])")
+else
+  echo "resume $id: $(curl -s -m 30 -X POST $P/runs/$id/resume)"
+fi
+for i in $(seq 1 60); do
+  st=$(curl -s $P/runs/$id | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['status'])")
+  [ "$st" != running ] && [ "$st" != planned ] && break
+  [ "$st" = planned ] && { echo "planned -> start: $(curl -s -X POST $P/runs/$id/start)"; }
+  sleep 5
+done
+curl -s $P/runs/$id | python3 -c "import json,sys; d=json.load(sys.stdin); print('RUN', d['id'], 'status',d['status'],'provider',d.get('provider'),'model',d.get('model'),'detail',d.get('detail'),'cost',d.get('cost'))"
+echo "api/ps: $(curl -s localhost:11434/api/ps | python3 -c "import json,sys; print([m['name'] for m in json.load(sys.stdin).get('models',[])])")"
+date

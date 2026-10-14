@@ -1,0 +1,90 @@
+[
+ {
+  "flat_after": "between",
+  "criteria": [
+   {
+    "field": "market_cap",
+    "operator": "between",
+    "value": {
+     "min": 100000000000,
+     "max": 100000000000
+    }
+   },
+   {
+    "field": "roe",
+    "operator": "between",
+    "value": {
+     "min": 0.18,
+     "max": 0.18
+    }
+   }
+  ]
+ },
+ {
+  "flat_after": "lte",
+  "criteria": [
+   {
+    "field": "market_cap",
+    "operator": "lte",
+    "value": 100000000000
+   },
+   {
+    "field": "roe",
+    "operator": "lte",
+    "value": 0.18
+   }
+  ]
+ },
+ {
+  "flat_after": "between",
+  "criteria": [
+   {
+    "field": "market_cap",
+    "operator": "between",
+    "value": {
+     "min": 100000000000,
+     "max": 100000000000
+    }
+   },
+   {
+    "field": "roe",
+    "operator": "between",
+    "value": {
+     "min": 0.18,
+     "max": 0.18
+    }
+   }
+  ]
+ },
+ {
+  "flat_after": "gt",
+  "criteria": [
+   {
+    "field": "market_cap",
+    "operator": "gt",
+    "value": 100000000000
+   },
+   {
+    "field": "roe",
+    "operator": "gt",
+    "value": 0.18
+   }
+  ]
+ },
+ {
+  "group_after": "between",
+  "group": "{\"combinator\":\"and\",\"criteria\":[{\"combinator\":\"or\",\"criteria\":[{\"field\":\"pe_ratio\",\"operator\":\"between\",\"value\":{\"min\":8,\"max\":8}}]}]}"
+ },
+ {
+  "group_after": "gte",
+  "group": "{\"combinator\":\"and\",\"criteria\":[{\"combinator\":\"or\",\"criteria\":[{\"field\":\"pe_ratio\",\"operator\":\"gte\",\"value\":8}]}]}"
+ },
+ {
+  "group_after": "between",
+  "group": "{\"combinator\":\"and\",\"criteria\":[{\"combinator\":\"or\",\"criteria\":[{\"field\":\"pe_ratio\",\"operator\":\"between\",\"value\":{\"min\":8,\"max\":8}}]}]}"
+ },
+ {
+  "group_after": "lt",
+  "group": "{\"combinator\":\"and\",\"criteria\":[{\"combinator\":\"or\",\"criteria\":[{\"field\":\"pe_ratio\",\"operator\":\"lt\",\"value\":8}]}]}"
+ }
+]

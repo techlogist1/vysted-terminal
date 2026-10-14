@@ -1,0 +1,4 @@
+00:32:21
+curl -sS -H 'X-Vysted-Region: US' 'http://127.0.0.1:52310/quotes?symbols=BTC%2FUSDT,ETH%2FUSDT&asset_class=crypto'
+[{"symbol":"BTC/USDT","price":84919.99,"change":647.32,"change_percent":0.768,"volume":7994.42285,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-10-03T19:02:24.003000Z","provider":"ccxt:binance","freshness":"live"},{"symbol":"ETH/USDT","price":2683.72,"change":15.31,"change_percent":0.574,"volume":99349.8081,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-10-03T19:02:23.966000Z","provider":"ccxt:binance","freshness":"live"}]
+HTTP 200 3.403080s

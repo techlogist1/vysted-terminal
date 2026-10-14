@@ -1,0 +1,7 @@
+[   1.1s] error: {"kind": "error", "message": "OpenRouter returned a server error \u2014 it may be a temporary outage.", "action": "Try again in a few minutes.", "detail": "Upstream error from Nvidia: Service temporarily overloaded", "code": "provider_5xx"}
+[   1.1s] done: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 1.1s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · nvidia/nemotron-3-super-120b-a12b:free

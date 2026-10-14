@@ -1,0 +1,35 @@
+=== CODE-AGENT-010 / AGENT-034 / AGENT-037 (fake-provider in-process run_manager script) ===
+{
+  "R15-CODE-AGENT-010": {
+    "status_after_done": "done",
+    "cancel_on_done": "RunStateError: run 'f4bb543df2694e36b1e7e2ec76654436' is done; it cannot become cancelled",
+    "status_unchanged": true,
+    "resume_on_done": "RunStateError: run 'f4bb543df2694e36b1e7e2ec76654436' is done; it cannot become running",
+    "answer_on_done": "RunStateError: run 'f4bb543df2694e36b1e7e2ec76654436' is done; it cannot become running",
+    "unknown_run_start": "RunNotFound: unknown run: 'unknown-run-id-xyz'"
+  },
+  "R15-AGENT-034": {
+    "budget_max_spend_usd": 1.0,
+    "budget_max_tokens": 120000,
+    "budget_max_steps": 12,
+    "budget_max_wall_seconds": 600.0
+  },
+  "R15-AGENT-037": {
+    "status": "error",
+    "detail": "token ceiling 1000 reached (100000 used)",
+    "provider_calls": 1,
+    "cost_tokens": 100000
+  },
+  "R15-AGENT-038": {
+    "status": "error",
+    "detail": "step ceiling 1 reached (1 taken)",
+    "transcript_has_final_text": false
+  },
+  "R15-LIFECYCLE-012": {
+    "running_before_kill": "done",
+    "status_after_task_drop_no_shutdown": "done",
+    "checkpoint_before_kill_nonnull": true,
+    "reconcile_fn_found": false,
+    "status_after_reconcile": "done"
+  }
+}

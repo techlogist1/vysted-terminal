@@ -1,0 +1,56 @@
+[
+ {
+  "raw_id": "DAT-P17-1",
+  "verdict": "admitted",
+  "severity_final": "critical",
+  "reason": "Holds and the mechanism is confirmed in code: yfinance_provider.py:363 sets Fundamentals.currency from info['currency'] (the USD trading currency) while :391-392 copy totalRevenue/netIncomeToCommon, which Yahoo states in financialCurrency (INR for SIFY). models/fundamentals.py:55 says these sizes 'are in currency', and EquityOverviewPanel.tsx:121-122,839 and brief-blocks.tsx:368 format them as money in that currency, so the UI shows about '$46.5B revenue' for a company with roughly $492M revenue. The same seam also corrupts Yahoo's own price_to_sales (0.0218), which is served as ok.",
+  "evidence": "sidecar/services/yfinance_provider.py:363, sidecar/services/yfinance_provider.py:391-392, sidecar/models/fundamentals.py:52-56, src/modules/equity-overview/EquityOverviewPanel.tsx:121-122, src/modules/equity-overview/EquityOverviewPanel.tsx:836-839, src/modules/research/brief-blocks.tsx:368, docs/redesign/verification/r15/battery/collected/P17_SIFY.json:180,204-205",
+  "evidence_checked": "Opened the provider mapping, the model contract and both UI consumers. Re-ran GET :52152/fundamentals/SIFY at 2026-09-23T01:22:49Z: currency USD, revenue_ttm 46506049536, net_income_ttm -912369984, field_meta revenue_ttm status ok. Direct yfinance read at 2026-09-23T01:24:37Z: currency USD, financialCurrency INR, totalRevenue 46506049536.",
+  "repro_check": "curl -s 127.0.0.1:52152/fundamentals/SIFY -> currency USD with INR-magnitude revenue_ttm/net_income_ttm stamped ok; yf.Ticker('SIFY').info -> financialCurrency 'INR' (the app never reads this key for the size fields)."
+ },
+ {
+  "raw_id": "DAT-P17-2",
+  "verdict": "admitted_with_correction",
+  "severity_final": "medium",
+  "reason": "Real: every symbol outside NSE/BSE raises ProviderError (corporate_disclosures.py:392-393), and the router maps that to HTTP 502 (routers/disclosures.py:69,90,111). An out-of-scope instrument is reported as an upstream failure, and no ADR ownership lane exists. Corrections: the message is literally accurate (SIFY is not an NSE/BSE instrument). No frontend panel calls these routes (the only consumers are the agent tools at disclosure_tools.py:53-54,75-76, which pass it on as 'provider error', and ownership_check, which returns None). The pack itself records the Indian shareholding pattern as a world_gap. The result is a mislabelled error plus a missing 20-F ownership fallback, not a high-severity core-flow break, so the severity is lowered to medium.",
+  "evidence": "sidecar/services/corporate_disclosures.py:383-393, sidecar/routers/disclosures.py:66-70, sidecar/routers/disclosures.py:88-91, sidecar/routers/disclosures.py:109-112, sidecar/services/agent_tools/disclosure_tools.py:49-56, sidecar/services/agent_tools/disclosure_tools.py:73-78, sidecar/services/ownership_check.py:119-140, docs/redesign/verification/r15/battery/packs/P17_SIFY.json (shareholding.world_gap)",
+  "evidence_checked": "Opened the disclosures service lane gate, the router exception mapping, the agent-tool wrappers and ownership_check. grep of src/ found no frontend consumer of /disclosures/*. Re-ran all three GETs against :52152 on 2026-09-23: all return HTTP 502 with the cited details.",
+  "repro_check": "curl -s -w '%{http_code}' '127.0.0.1:52152/disclosures/shareholding?symbol=SIFY' (and /announcements, /results) -> 502 {detail: \"disclosures: 'SIFY' is not a known NSE/BSE instrument\"} / nse_direct variant."
+ },
+ {
+  "raw_id": "DAT-P17-3",
+  "verdict": "admitted_with_correction",
+  "severity_final": "medium",
+  "reason": "The symptom reproduces, but the stated mechanism is wrong. The name matcher does scan the US master (symbol_resolver.py:754-755), and SIFY scores higher than every Indian row (fuzzy 0.913 against 0.80 for ASMTEC). The real cause: the stray '(ADR)' token keeps the query out of the name-exact and canonical bands, so every row lands in BAND_FUZZY. There the sort key (band, locale_rank, score) at :763 ranks all IN-locale rows above a better-scoring US row under an IN session, and _MAX_CANDIDATES=6 (:115) truncates SIFY off the list. 'Sify Technologies', 'Sify Technologies Ltd' and 'Sify Technologies Limited' all bind SIFY at 1.0, and region US/GLOBAL puts SIFY first. Nothing binds wrongly (needs_disambiguation is true), so the severity is lowered to medium. The general defect is that within the fuzzy band the locale key buries a clearly better foreign match entirely rather than just ordering it lower.",
+  "evidence": "sidecar/services/symbol_resolver.py:115, sidecar/services/symbol_resolver.py:511-518, sidecar/services/symbol_resolver.py:521-532, sidecar/services/symbol_resolver.py:560-596, sidecar/services/symbol_resolver.py:740-767",
+  "evidence_checked": "Opened the tokenizer, _name_score, _locale_rank and the banded match/sort. Called _name_score directly in the sidecar venv: SIFY (0, 0.913) vs ASMTEC (0, 0.80). resolve(q,'US') and resolve(q,'GLOBAL') both put SIFY first. Probed :52152 /resolve with 6 name variants on 2026-09-23.",
+  "repro_check": "curl '127.0.0.1:52152/resolve?q=Sify+Technologies+Ltd+%28ADR%29' -> 6 BSE candidates, no SIFY; same without '(ADR)' -> resolved SIFY 1.0; symbol_resolver.resolve(q,'GLOBAL') -> ['SIFY','ASMTEC',...]."
+ },
+ {
+  "raw_id": "DAT-P17-4",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "The former_name half is refuted. Instrument.former_name is defined as 'the retired symbol, when answered as its renamed form' (symbol_resolver.py:239) and is filled only from the NSE symbol-change lane (:896). It is a former TICKER, not a former legal name, and SIFY's NASDAQ ticker has not changed, so null is correct for that field. The remaining gap holds: the identity payload has no field for former legal names, board/listing tier or listing date, and the US master carries only [ticker, name]. That is a low-severity identity-history gap.",
+  "evidence": "sidecar/services/symbol_resolver.py:236-239, sidecar/services/symbol_resolver.py:345-356, sidecar/services/symbol_resolver.py:857-905, sidecar/services/resolver_masters/us_instruments.json (row ['SIFY','SIFY TECHNOLOGIES LTD'])",
+  "evidence_checked": "Opened the Instrument dataclass, the US master loader and _enrich_instrument, and inspected the us_instruments.json row for SIFY. The collected resolve body at collected/P17_SIFY.json:19-31 matches.",
+  "repro_check": "curl '127.0.0.1:52152/resolve?q=SIFY' -> former_name null (by field definition: no ticker rename), no board/listing_date keys in the schema."
+ },
+ {
+  "raw_id": "DAT-P17-5",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "ISIN is null, but by documented design for every US instrument, not a lookup failure specific to SIFY. _enrich_instrument (symbol_resolver.py:857-868) joins ISIN only from the BSE master or the India sector map and says outright that US tickers get nothing added; the US master (:345-356) stores only [ticker, name] for all 10,365 rows. It is an honest null with no fabrication risk, and a US ticker is already unambiguous for routing. The severity is lowered to low: a class-wide missing identifier for US rows (add ISIN/CUSIP to the SEC master if cross-source matching needs it).",
+  "evidence": "sidecar/services/symbol_resolver.py:236, sidecar/services/symbol_resolver.py:345-356, sidecar/services/symbol_resolver.py:857-892, sidecar/services/resolver_masters/us_instruments.json",
+  "evidence_checked": "Opened the enrichment join and the US master loader, and checked the SIFY row and the row shape in us_instruments.json (10,365 rows, 2 columns).",
+  "repro_check": "curl '127.0.0.1:52152/resolve?q=SIFY' -> isin null; the same holds for any US ticker (e.g. NVDA) because the US master has no ISIN column."
+ },
+ {
+  "raw_id": "DAT-P17-6",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "This is partly wrong. dividend_per_share_ttm is a derived field that /fundamentals deliberately does not stamp (yfinance_provider.py:167-181, and the collected payload has no field_meta for it). The research FAST leg does compute it: _apply_dividend_ttm sets 0.0 with the label 'no dividends paid (trailing 12m)' on affirmed_zero (research/fast.py:207-224), and get_dividend_ttm('SIFY') returns affirmed_zero today. The gap that remains is narrower: on the /fundamentals route and the Equity Overview panel, dividend_yield and dividend_per_share show 'provider did not publish this field' even though Yahoo publishes trailingAnnualDividendRate 0.0, which the mapping ignores (yfinance_provider.py:347-351,375). No last-declared dividend (2019) is exposed anywhere. Severity stays low.",
+  "evidence": "sidecar/services/yfinance_provider.py:167-187, sidecar/services/yfinance_provider.py:347-351, sidecar/services/yfinance_provider.py:375, sidecar/services/research/fast.py:207-230, sidecar/services/dividend_history.py:132-155",
+  "evidence_checked": "Opened the provider mapping, the derived-field exclusion, the research TTM application and dividend_history. Ran dividend_history.get_dividend_ttm('SIFY') in the sidecar venv -> DividendTTM(0.0,'affirmed_zero'). yfinance info at 2026-09-23T01:24:37Z: dividendRate None, trailingAnnualDividendRate 0.0. Re-ran :52152/fundamentals/SIFY: all three dividend fields null.",
+  "repro_check": "curl 127.0.0.1:52152/fundamentals/SIFY -> dividend_* null; asyncio.run(dividend_history.get_dividend_ttm('SIFY')) -> affirmed_zero 0.0 (research path shows the sourced zero)."
+ }
+]

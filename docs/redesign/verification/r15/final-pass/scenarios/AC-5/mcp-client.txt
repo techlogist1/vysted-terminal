@@ -1,0 +1,15 @@
+COUNT 39
+NAMES ['analyst_history', 'analyst_individual', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'fundamentals', 'get_workspace', 'invoke_agent', 'list_agents', 'list_runs', 'list_workflows', 'list_workspaces', 'macro_search', 'macro_series', 'market_overview', 'news', 'option_chain', 'price_bond', 'price_data', 'price_option', 'price_target_history', 'research', 'resolve_symbol', 'run_workflow', 'save_workflow', 'screener_run', 'sec_filing_content', 'sec_filings_list', 'sec_insider_transactions', 'shareholding_pattern', 'web_search', 'yield_curve_value']
+{
+ "get_quote": "absent",
+ "list_agents:{}": {
+  "is_error": false,
+  "structured_type": "dict",
+  "text": "{\"agents\":[{\"id\":\"buffett\",\"name\":\"Warren Buffett\",\"philosophy\":\"Value investing with a wide-moat lens \u2014 wonderful businesses at fair prices, held forever.\",\"tools\":[\"price_data\",\"fundamentals\",\"news\"],\"default_provider\":\"anthropic\",\"default_model\":null,\"icon\":\"landmark\",\"effective_tools\":[\"price_da"
+ },
+ "market_overview:{}": {
+  "is_error": false,
+  "structured_type": "dict",
+  "text": "{\"ok\":true,\"region\":\"IN\",\"indices\":[{\"symbol\":\"^NSEI\",\"name\":\"Nifty 50\",\"price\":22421.95,\"change\":-198.49921874999927,\"change_percent\":-0.8775211174208869,\"currency\":\"INR\",\"market_state\":null,\"provider\":\"yfinance\"},{\"symbol\":\"^BSESN\",\"name\":\"BSE Sensex\",\"price\":71909.7,\"change\":-570.5890625000029,\"c"
+ }
+}

@@ -1,0 +1,19 @@
+=== R15-CODE-FRONTEND-004: sidecar _SAFE_NAME + workspace_store ===
+=== live POST /workspace with 'Research: NVDA' ===
+{"status":"saved","name":"Research: NVDA"}
+HTTP:200
+
+=== live POST /workspace with 'Research: M&M' ===
+{"status":"saved","name":"Research: M&M"}
+HTTP:200
+
+=== live GET /workspace/Research: NVDA ===
+{}
+HTTP:200
+
+=== cleanup: delete it ===
+
+HTTP:204
+
+
+HTTP:204

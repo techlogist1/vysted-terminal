@@ -1,0 +1,4 @@
+{"_meta": {"t0": 1790129127.877768, "status": 200, "request": {"prompt": "What is BDL's P/E?", "context_snapshot": null, "provider": "openai", "model": "gpt-4o-mini", "mode": "agent", "autonomy": "ask", "options": {"history": "<0 turns>", "deepResearchBackend": "auto", "research_depth": "normal"}}}}
+{"kind": "error", "message": "Something went wrong with the AI provider.", "action": "Try again or switch provider in Settings.", "detail": "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.", "code": "unknown", "_t": 0.04}
+{"kind": "done", "_t": 0.04}
+{"_summary": {"status": "error_frame", "secs": 5.0, "kinds": {"error": 1, "done": 1}, "usage": {}}}

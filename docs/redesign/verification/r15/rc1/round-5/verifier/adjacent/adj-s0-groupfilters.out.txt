@@ -1,0 +1,3 @@
+schema required: ['criteria']
+['group'] -> {'__vysted_invalid_args__': 'invalid arguments for write_screener_filters: missing criteria — ask the user for it; do not guess'}
+['criteria', 'group'] -> {'criteria': [], 'group': {'op': 'or', 'children': [{'field': 'pe', 'op': '<', 'value': 20}]}}

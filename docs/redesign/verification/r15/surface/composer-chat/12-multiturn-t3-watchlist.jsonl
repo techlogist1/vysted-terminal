@@ -1,0 +1,52 @@
+{"_meta": {"t0": 1790128656.600561, "status": 200, "request": {"prompt": "Add both of them \u2014 Cochin Shipyard and Mazagon Dock \u2014 to my watchlist.", "context_snapshot": {"focused_source": "chart-1", "by_source": {"__terminal__": {"focusedPanel": "chart-1", "capturedAt": 0, "charts": [{"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}], "focusedChart": {"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}, "watchlist": {"symbols": ["KPITTECH", "BDL", "CAMS"], "selected": "KPITTECH"}, "portfolio": {"positionCount": 1, "totalValue": null, "activePortfolioName": "Main", "holdings": [{"id": "h1", "symbol": "BDL", "quantity": 10, "costBasis": 1450, "assetClass": "equity", "marketValue": null, "pnl": null}]}, "openPanels": ["chart", "watchlist", "brief"], "brief": {"phase": "empty"}, "viewport": {"width": 1920, "height": 1080}}}, "captured_at": 1790128656600}, "provider": "ollama", "model": "llama3.1:8b", "mode": "agent", "autonomy": "auto", "options": {"history": "<4 turns>", "deepResearchBackend": "auto", "research_depth": "normal"}}}}
+{"kind": "tool_use", "tool_call_id": "", "name": "add_to_watchlist", "input": {"asset_class": "equity", "symbol": "COCHINSHIP"}, "_t": 145.43}
+{"_ack_skipped": "empty tool_call_id (host-actions.ts ackHostAction returns early)", "_t": 145.43}
+{"kind": "tool_use", "tool_call_id": "", "name": "add_to_watchlist", "input": {"symbol": "MAZAGONDOCK", "asset_class": "equity"}, "_t": 147.82}
+{"_ack_skipped": "empty tool_call_id (host-actions.ts ackHostAction returns early)", "_t": 147.82}
+{"kind": "delta", "text": "Your", "_t": 213.0}
+{"kind": "delta", "text": " watch", "_t": 213.05}
+{"kind": "delta", "text": "list", "_t": 213.1}
+{"kind": "delta", "text": " now", "_t": 213.15}
+{"kind": "delta", "text": " includes", "_t": 213.2}
+{"kind": "delta", "text": " Co", "_t": 213.26}
+{"kind": "delta", "text": "chin", "_t": 213.31}
+{"kind": "delta", "text": " Ship", "_t": 213.36}
+{"kind": "delta", "text": "yard", "_t": 213.42}
+{"kind": "delta", "text": " Limited", "_t": 213.47}
+{"kind": "delta", "text": " and", "_t": 213.52}
+{"kind": "delta", "text": " Maz", "_t": 213.58}
+{"kind": "delta", "text": "agon", "_t": 213.64}
+{"kind": "delta", "text": " Dock", "_t": 213.69}
+{"kind": "delta", "text": " Ship", "_t": 213.74}
+{"kind": "delta", "text": "builders", "_t": 213.79}
+{"kind": "delta", "text": " Limited", "_t": 213.85}
+{"kind": "delta", "text": ".", "_t": 213.9}
+{"kind": "delta", "text": " Please", "_t": 213.95}
+{"kind": "delta", "text": " note", "_t": 214.01}
+{"kind": "delta", "text": " that", "_t": 214.06}
+{"kind": "delta", "text": " these", "_t": 214.11}
+{"kind": "delta", "text": " additions", "_t": 214.16}
+{"kind": "delta", "text": " are", "_t": 214.22}
+{"kind": "delta", "text": " pending", "_t": 214.27}
+{"kind": "delta", "text": " confirmation", "_t": 214.32}
+{"kind": "delta", "text": ".\n\n", "_t": 214.38}
+{"kind": "delta", "text": "Would", "_t": 214.43}
+{"kind": "delta", "text": " you", "_t": 214.48}
+{"kind": "delta", "text": " like", "_t": 214.54}
+{"kind": "delta", "text": " to", "_t": 214.59}
+{"kind": "delta", "text": " explore", "_t": 214.64}
+{"kind": "delta", "text": " more", "_t": 214.69}
+{"kind": "delta", "text": " about", "_t": 214.75}
+{"kind": "delta", "text": " either", "_t": 214.8}
+{"kind": "delta", "text": " of", "_t": 214.86}
+{"kind": "delta", "text": " these", "_t": 214.91}
+{"kind": "delta", "text": " companies", "_t": 214.96}
+{"kind": "delta", "text": " or", "_t": 215.01}
+{"kind": "delta", "text": " add", "_t": 215.07}
+{"kind": "delta", "text": " them", "_t": 215.12}
+{"kind": "delta", "text": " to", "_t": 215.17}
+{"kind": "delta", "text": " your", "_t": 215.23}
+{"kind": "delta", "text": " portfolio", "_t": 215.28}
+{"kind": "delta", "text": "?", "_t": 215.34}
+{"kind": "done", "usage": {"input_tokens": 3296, "output_tokens": 46, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop", "_t": 215.41}
+{"_summary": {"status": "ok", "secs": 220.4, "kinds": {"tool_use": 2, "delta": 45, "done": 1}, "usage": {"input_tokens": 3296, "output_tokens": 46, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}}}

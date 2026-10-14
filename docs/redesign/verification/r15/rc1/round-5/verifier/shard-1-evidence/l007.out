@@ -1,0 +1,6 @@
+PATH= /usr/bin:/bin:/usr/sbin:/sbin
+resolved: /usr/local/bin/docker
+detect: DockerProbe(cli_present=True, daemon_running=True, runtime='Docker Engine - Community')
+refresh: {"state": "degraded", "detail": "SearXNG is running but its search engines are blocked", "reason": "brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA", "port": 8888, "url": null, "container": "running", "container_name": "vysted-searxng", "image": "searxng/searxng", "docker": {"cli_present": true, "daemon_running": true, "runtime": "Docker Engine - Community"}}
+pull-nonexistent: (1, '', 'Error response from daemon: failed to resolve reference "docker.io/searxng/searxng:vshard1-nonexistent-tag": docker.io/searxng/searxng:vshard1-nonexistent-tag: not found\n')
+no-PATH resolved: None /usr/local/bin/docker

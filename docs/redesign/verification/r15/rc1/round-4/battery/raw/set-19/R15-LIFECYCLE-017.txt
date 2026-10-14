@@ -1,0 +1,48 @@
+CMD: code read sidecar/services/screener.py:1066-1094 (enrichment loop)
+    async def _one(sym: str) -> None:
+        nonlocal done
+        key = sym.upper()
+        try:
+            if provider_health.is_open(provider_health.YAHOO):
+                # D53: open circuit — the field stays missing and the serve-with-
+                # label ladder covers the row from stale/seed basis instead.
+                state.throttled_seen = True
+                return
+            async with sem:
+                try:
+                    rich = await asyncio.wait_for(
+                        provider_registry.get_fundamentals(key),
+                        timeout=_INFO_TIMEOUT_SECONDS,
+                    )
+                except (TimeoutError, ProviderError) as exc:  # field stays missing
+                    if isinstance(exc, ProviderError) and exc.kind == "rate_limited":
+                        state.throttled_seen = True
+                    logger.debug("screener: enrichment failed for %s: %s", key, exc)
+                    return
+                except Exception as exc:  # noqa: BLE001 — a code bug, not an upstream miss
+                    logger.warning(
+                        "screener: unexpected enrichment error for %s: %s: %s",
+                        key,
+                        type(exc).__name__,
+                        exc,
+                    )
+                    return
+            await fundamentals_store.upsert_info(key, rich)
+---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/test_screener_formula.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/test_screener.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/test_screener_tools.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/test_screener_batch.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/test_b5_screener.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/test_screener_india.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/test_screener_nodes.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/test_screener_router.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/__pycache__/test_screener_router.cpython-313-pytest-9.0.3.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/__pycache__/test_screener_india.cpython-313-pytest-9.0.3.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/__pycache__/test_screener_nodes.cpython-313-pytest-9.0.3.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/__pycache__/test_b5_screener.cpython-313-pytest-9.0.3.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/__pycache__/test_screener_formula.cpython-313-pytest-9.0.3.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/__pycache__/test_screener.cpython-313-pytest-9.0.3.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/__pycache__/test_screener_batch.cpython-313-pytest-9.0.3.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/__pycache__/test_screener_tools.cpython-313-pytest-9.0.3.pyc
+VERDICT: holds — code read only (original cert was 'pytest plus a code read'; not re-running pytest per battery rule). screener.py:1081 catches (TimeoutError, ProviderError) at logger.debug (expected upstream misses); a bare except Exception at :1088-1094 logs logger.warning with exception type+message for unexpected code bugs; done+=1 and emit() moved into the outer finally (:1093-1096, wrapping the whole try incl. the circuit-open early return), so progress advances on every outcome including the exception path. Matches the fix mechanism exactly.

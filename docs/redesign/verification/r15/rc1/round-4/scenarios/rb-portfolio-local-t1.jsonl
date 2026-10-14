@@ -1,0 +1,61 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_1f70d1fdfb6e426795a58ebb83d59feb", "name": "portfolio_add_position", "input": {"cost_basis": 1500, "asset_class": "equity", "symbol": "INFY.NS", "quantity": 10}}
+{"kind": "tool_result", "tool_call_id": "call_1f70d1fdfb6e426795a58ebb83d59feb", "name": "portfolio_add_position", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " proposed"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " addition"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " tracked"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Review"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " proposal"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " queue"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " when"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'re"}
+{"kind": "delta", "text": " ready"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " apply"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " basis"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "150"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " quantity"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": "."}
+{"kind": "research_step", "tool_call_id": "call_1f70d1fdfb6e426795a58ebb83d59feb", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position INFY.NS. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 2939, "output_tokens": 53, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,29 @@
+# DATA-061 replay on :52312 (candidate 5ff9be04)
+## GET /quotes/ZZZZNOTREAL
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+
+## GET /fundamentals/ZZZZNOTREAL/income
+{"symbol":"ZZZZNOTREAL.NS","periods":[],"lines":[],"provider":"yfinance","gaps":[]}
+HTTP 200
+
+## GET /fundamentals/ZZZZNOTREAL/balance
+{"symbol":"ZZZZNOTREAL.NS","periods":[],"lines":[],"provider":"yfinance","gaps":[]}
+HTTP 200
+
+## GET /fundamentals/ZZZZNOTREAL/ratings
+{"symbol":"ZZZZNOTREAL.NS","consensus":null,"target_mean":null,"target_high":null,"target_low":null,"strong_buy":0,"buy":0,"hold":0,"sell":0,"strong_sell":0,"provider":"yfinance","as_of":"2026-09-26T17:53:00.359827Z"}
+HTTP 200
+
+## GET /history/ZZZZNOTREAL
+{"symbol":"ZZZZNOTREAL","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":"unknown_symbol","partial":false,"coverage_start":null}
+HTTP 200
+
+## GET /macro/GDPZZZNOTREAL
+{"detail":"provider is required for a series id"}
+HTTP 422
+
+## GET /quotes/%24%24%25%5E
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+

@@ -1,0 +1,19 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_2290d0f9a26646f79d8bf3db835e619f", "name": "price_data", "input": {"symbol": "MSFT", "timeframe": "1d"}}
+[  36.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_2290d0f9a26646f79d8bf3db835e619f", "name": "price_data", "ok": true, "error": null}
+[  46.6s] heartbeat: {"kind": "heartbeat"}
+[  56.6s] heartbeat: {"kind": "heartbeat"}
+[  68.3s] done: {"kind": "done", "usage": {"input_tokens": 6475, "output_tokens": 89, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The price_data tool returned the following result for MSFT today (2026-09-25):
+
+The most recent quote is not available in this result set.
+
+However, I can see that the last available closing price was 497.93 on 2026-09-24.
+
+Please note that the result set only goes back to 2026-05-18, and there may be more recent data available for MSFT today.
+
+=== ok · 68.3s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 88, 'done': 1} · usage in=6475 out=89 · est $0.00000 · llama3.1:8b

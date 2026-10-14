@@ -1,0 +1,12 @@
+CMD: curl -s 'http://127.0.0.1:52351/resolve?q=Mazagon%20Dock&region=IN'
+EXIT: 0, HTTP 200
+{"ok":true,"resolved":{"symbol":"MAZDOCK","name":"Mazagon Dock Shipbuilders Limited","yahoo_symbol":"MAZDOCK.NS",...}}
+
+CMD: curl -s 'http://127.0.0.1:52351/resolve?q=MAZAGONDOCK&region=IN'
+{"ok":false,"message":"No instrument matched 'MAZAGONDOCK'.","resolved":null,"candidates":[]}
+
+CMD: curl -s 'http://127.0.0.1:52351/resolve?q=Cochin%20Shipyard&region=IN'
+{"ok":true,"resolved":{"symbol":"COCHINSHIP","name":"Cochin Shipyard Limited",...}}
+
+Code check: src/lib/host-actions.ts:2029-2035 add_to_watchlist for assetClass===equity routes to addResolvedEquity(); addResolvedEquity() (:2054-...) calls sidecarGet('/resolve', {q: raw}) BEFORE addSymbol -- matches the live probe above exactly (resolved add / failed add / resolved add).
+Committed pinned test: src/lib/host-actions.test.ts:200 'add_to_watchlist resolves a company name or fails with candidates, never a blank row (R15-AGENT-044)'.

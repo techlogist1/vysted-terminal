@@ -1,0 +1,101 @@
+[
+  {
+    "key": "rc1-vshard-1:1",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-RESEARCH-006",
+    "title": "NOT CERTIFIED (partial): cross-check extract + recheck searches still run before the wall timeout; only the verdict loop is metered",
+    "repro": "scratchpad r006.py: stub _extract_claims sleeping 5 s, cross_check under BudgetGuard(max_wall_seconds=0.5) -> returns after 5.01 s (literal verdict-loop repro holds: 2.00 s under 2 s wall). Local extract cap 150 s > 90 s reserve.",
+    "suspected_files": [
+      "sidecar/services/research/verify.py",
+      "sidecar/services/agent_tools/deep_research.py"
+    ],
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md"
+  },
+  {
+    "key": "rc1-vshard-1:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-RESEARCH-009",
+    "title": "Heavy/ULTRA brief stopped by its spend ceiling publishes note=None, and the cross-check keeps spending after the breach",
+    "repro": "scratchpad r009.py: ULTRA openrouter stub with max_spend_usd tiny -> run aborts on spend ceiling, result note=None; cross_check then runs on its own BudgetGuard (steps/wall only, no token/spend ceiling).",
+    "suspected_files": [
+      "sidecar/services/research/iter.py",
+      "sidecar/services/agent_tools/deep_research.py"
+    ],
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md"
+  },
+  {
+    "key": "rc1-vshard-1:3",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-AGENT-008",
+    "title": "Latest round's tool results are never elided, so a multi-result round leaves the answer below the 1/8 reserve or overflows num_ctx 16384",
+    "repro": "agent_runtime estimates: broad-cue copilot prompt + 2 capped 8,192-char results = ~16,054 of 16,384 tokens (330 left); 3 results at 36 tools leave 61; 4 overflow.",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py"
+    ],
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md"
+  },
+  {
+    "key": "rc1-vshard-1:4",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-CODE-FRONTEND-006",
+    "title": "Scheduled and MCP-run workflows run with no event sink: action.notify_desktop reports notified:true but nothing is delivered",
+    "repro": "workflow_scheduler._fire and mcp_server.py:301 call workflow_engine.run_workflow(spec, inputs) without an event sink; builtin action_notify_desktop returns {notified: True}; only the editor path's store appendEvent feeds pendingNotifications.",
+    "suspected_files": [
+      "sidecar/services/workflow_scheduler.py",
+      "sidecar/services/mcp_server.py",
+      "sidecar/services/workflow_nodes/builtin.py"
+    ],
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md"
+  },
+  {
+    "key": "rc1-vshard-1:5",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-UI-003",
+    "title": "Editing a custom agent silently clears its default_model on save",
+    "repro": "Custom agent with default_model 'minimax/minimax-m3' -> Agent Builder Edit -> Save: fromCustomAgentWire drops default_model, customSpecToSummary sets defaultModel null, handleEdit reads it from customSummaries -> PUT default_model: null.",
+    "suspected_files": [
+      "src/store/agents.ts",
+      "src/modules/agent-builder/AgentBuilderPanel.tsx"
+    ],
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md"
+  },
+  {
+    "key": "rc1-vshard-1:6",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-016",
+    "title": "A scrip with one trade inside 52 weeks keeps a forward-fill-derived provider 52w low unflagged when within the 10% tolerance",
+    "repro": "scratchpad d016.py: reconcile via apply_witnesses with one BSE bar 200 days ago at 49.88, provider 52w low 46.58 / high 49.88 -> served, no field_meta flag.",
+    "suspected_files": [
+      "sidecar/services/correctness_gate.py"
+    ],
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md"
+  },
+  {
+    "key": "rc1-vshard-1:7",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-074",
+    "title": "Announcements cache key includes limit and the raw symbol form, so callers differing only in limit or .NS suffix re-walk the full NSE+BSE history",
+    "repro": "scratchpad d074.py: tool limit 50 twice -> 1 fetch (holds); then limit 20, INFY.NS limit 50, MAX_LIMIT 200 -> each +2 lane fetches.",
+    "suspected_files": [
+      "sidecar/services/corporate_disclosures.py"
+    ],
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md"
+  },
+  {
+    "key": "rc1-vshard-1:8",
+    "kind": "environment",
+    "severity": "low",
+    "register_id": null,
+    "title": "Host blocked by Yahoo (429, circuit open) and every keyless/SearXNG search engine (DDG timeout/CAPTCHA, Brave 429, Mojeek 403, Startpage CAPTCHA)",
+    "repro": "GET /fundamentals/DAL on :52601 and :52152 -> rate_limited; /system/provider-health yahoo open; searxng refresh -> degraded 'engines are blocked'.",
+    "suspected_files": [],
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md"
+  }
+]

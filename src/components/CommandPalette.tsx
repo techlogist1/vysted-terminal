@@ -1,8 +1,47 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { CommandIcon } from "lucide-react";
-import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
+/**
+ * CommandPalette — cmdk-powered Raycast-grade launcher (FR-120 / SC-031).
+ *
+ * Five groups in fixed priority order:
+ *   1. Ask AI   — always-visible free-text row; routes query to the agent.
+ *   2. Agents   — agent roster; selecting opens chat focused on that agent.
+ *   3. Actions  — CommandSpec[] from enabled modules.
+ *   4. Panels   — PanelSpec[] from enabled modules.
+ *   5. Symbols  — watchlist + resolved; query-gated (hidden when empty query) + capped ≤50.
+ *
+ * Empty-query state: "Recent" (last-used items) above the groups. A panel an
+ * action already opens has no separate Panels row (R15-LEAD-027).
+ *
+ * Settings → Command palette (FR-038, R15-UI-087): `paletteShowRecents` turns
+ * the recents-first empty state (and the "recent" row tags) off, and
+ * `paletteSymbolScope: "watchlist"` limits instrument search to the watchlist
+ * (no live resolver "Tickers" group).
+ *
+ * Cross-group ranking: a custom `paletteFilter` adds per-group score offsets so
+ * agents always outrank actions which outrank panels which outrank symbols,
+ * while cmdk fuzzy-ranks within each group normally.
+ *
+ * Keybinding: `palette.open` (default `mod+k`) registers its handler with the
+ * keybindings store; the one app-level dispatcher (`page.tsx`) resolves the
+ * remap-aware binding and fires it.
+ *
+ * AI-ask routing: selecting the Ask AI row reveals the agent dock (the single
+ * agent surface — FR-001) and pushes the query onto the agent-command bus, which
+ * the always-mounted `ChatSidebar` consumes and routes through its normal send
+ * path. The agent surface is NOT a dockview panel (no second chat surface).
+ */
+
+import { Command } from "cmdk";
+import {
+  Bot,
+  Command as CommandIcon,
+  LayoutGrid,
+  Search,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Dialog,
@@ -11,138 +50,433 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { EmptyState } from "@/components/EmptyState";
 import { executeCommand } from "@/lib/commands";
-import { useCommandPalette } from "@/store/command-palette";
-import type { CommandSpec } from "../../types/plugin";
+import { loadSymbolIntoChart } from "@/lib/host-actions";
+import { useSymbolAutocomplete } from "@/lib/symbol-autocomplete";
+import { useActiveAgentStore } from "@/store/active-agent";
+import { sendToAgent } from "@/store/agent-command";
+import { useAgentDockStore } from "@/store/agent-dock";
+import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
+import {
+  buildPaletteCorpus,
+  paletteFilter,
+  SYMBOL_CAP,
+  useCommandPalette,
+  type PaletteItem,
+} from "@/store/command-palette";
+import { formatBinding, registerAction, useKeybindingsStore } from "@/store/keybindings";
+import { useModulesStore } from "@/store/modules";
+import { useSettingsStore } from "@/store/settings";
+import { useSymbolsStore } from "@/store/symbols";
+import { useWorkspaceStore } from "@/store/workspace";
+
+// ---------------------------------------------------------------------------
+// Public export
+// ---------------------------------------------------------------------------
 
 export function CommandPalette() {
-  const { open, setOpen, toggle, commands } = useCommandPalette();
+  const { open, setOpen, toggle } = useCommandPalette();
 
-  useEffect(() => {
-    function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        toggle();
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggle]);
+  // Register `palette.open`'s handler; the app-level dispatcher (`page.tsx`)
+  // resolves the (possibly remapped) binding and calls this.
+  useEffect(() => registerAction("palette.open", toggle), [toggle]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="border-charcoal-700 bg-charcoal-900 max-w-xl gap-0 p-0 shadow-2xl"
+        className="border-charcoal-700 bg-charcoal-875 max-w-3xl grid-cols-1 gap-0 overflow-hidden p-0 sm:max-w-3xl"
         showCloseButton={false}
       >
-        <DialogHeader className="border-charcoal-700 border-b px-5 py-3">
-          <DialogTitle className="text-charcoal-200 flex items-center gap-2 font-mono text-sm font-medium">
-            <CommandIcon className="size-3.5 text-amber-400" aria-hidden="true" />
-            Command Palette
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            Search and run commands contributed by the enabled modules.
+        <DialogHeader className="sr-only">
+          <DialogTitle>Command Palette</DialogTitle>
+          <DialogDescription>
+            Search agents, actions, panels, symbols, or ask the AI anything.
           </DialogDescription>
         </DialogHeader>
-        {/* The body is a child component so its query/highlight state resets
-            each time the palette opens — Radix unmounts DialogContent while
-            the dialog is closed. */}
-        <CommandPaletteBody commands={commands} onClose={() => setOpen(false)} />
+        {/* Body is its own component so state resets on each open (Radix unmounts
+            DialogContent while closed). */}
+        <PaletteBody onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );
 }
 
-interface CommandPaletteBodyProps {
-  commands: CommandSpec[];
+// ---------------------------------------------------------------------------
+// Palette body — owns query state and the cmdk Command tree
+// ---------------------------------------------------------------------------
+
+interface PaletteBodyProps {
   onClose: () => void;
 }
 
-function CommandPaletteBody({ commands, onClose }: CommandPaletteBodyProps) {
+function PaletteBody({ onClose }: PaletteBodyProps) {
   const [query, setQuery] = useState("");
-  const [highlight, setHighlight] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const { recordSelection } = useCommandPalette();
+  const showRecents = useSettingsStore((state) => state.paletteShowRecents);
+  const searchAllInstruments = useSettingsStore((state) => state.paletteSymbolScope === "all");
+  const recordedRecents = useCommandPalette((state) => state.recents);
+  const recents = useMemo(
+    () => (showRecents ? recordedRecents : []),
+    [showRecents, recordedRecents],
+  );
+
+  // Live corpus — rebuilt whenever a source store changes, so an agent or a
+  // plugin's commands that load while the palette is open appear.
+  const modules = useModulesStore((state) => state.modules);
+  const enabledModules = useModulesStore((state) => state.enabled);
+  const firstPartyAgents = useAgentsStore(selectFirstPartyAgents);
+  const customAgents = useAgentsStore(selectCustomAgents);
+  const symbolEntries = useSymbolsStore((state) => state.entries);
+  const corpus = useMemo(
+    () => buildPaletteCorpus(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- buildPaletteCorpus reads these stores
+    [modules, enabledModules, firstPartyAgents, customAgents, symbolEntries],
+  );
+
+  // Partition by kind.
+  const agents = useMemo(() => corpus.filter((i) => i.kind === "agent"), [corpus]);
+  const actions = useMemo(() => corpus.filter((i) => i.kind === "action"), [corpus]);
+  const panels = useMemo(() => corpus.filter((i) => i.kind === "panel"), [corpus]);
+  const symbols = useMemo(() => corpus.filter((i) => i.kind === "symbol"), [corpus]);
+
+  // Recent items resolved to full PaletteItems (most-recent first, up to 5).
+  const recentItems = useMemo(() => {
+    const byId = new Map(corpus.map((item) => [item.id, item]));
+    return recents
+      .map((id) => byId.get(id))
+      .filter((item): item is PaletteItem => item !== undefined)
+      .slice(0, 5);
+  }, [corpus, recents]);
+
+  // Whether the symbol group should be visible (only when there's a query).
+  const hasQuery = query.trim().length > 0;
+  const showSymbols = hasQuery;
+
+  // Live resolver candidates (R7): the corpus only knows watchlist/known
+  // symbols, so a company-name query ("Route Mobile") found nothing. The fast
+  // masters-only autocomplete fills the gap; corpus rows win on dedupe.
+  // Watchlist scope skips the resolver entirely (an empty query never fetches).
+  const liveCandidates = useSymbolAutocomplete(searchAllInstruments ? query : "", 6);
+  const liveSymbolRows = useMemo(() => {
+    const known = new Set(symbols.map((i) => i.symbolEntry?.symbol.toUpperCase()).filter(Boolean));
+    return liveCandidates.filter((c) => !known.has(c.symbol.toUpperCase()));
+  }, [liveCandidates, symbols]);
+
+  // Auto-focus the input when the body mounts (palette just opened).
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  const filtered = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) {
-      return commands;
-    }
-    return commands.filter(
-      (command) =>
-        command.title.toLowerCase().includes(needle) ||
-        command.trigger.toLowerCase().includes(needle),
-    );
-  }, [commands, query]);
+  // ---------------------------------------------------------------------------
+  // Selection handlers
+  // ---------------------------------------------------------------------------
 
-  function run(index: number) {
-    const command = filtered[index];
-    if (!command) {
-      return;
-    }
-    executeCommand(command);
+  const openPanel = useWorkspaceStore((state) => state.openPanel);
+
+  const handleSelectAskAi = useCallback(() => {
+    const q = query.trim();
+    if (!q) return;
+    // Reveal the agent dock (the single agent surface) and push the query onto
+    // the agent-command bus — the always-mounted ChatSidebar routes it through
+    // its normal send path (works whether the dock was open or just revealed).
+    useAgentDockStore.getState().setCollapsed(false);
+    sendToAgent(q);
     onClose();
-  }
+  }, [query, onClose]);
 
-  function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      setHighlight((current) => Math.min(current + 1, filtered.length - 1));
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      setHighlight((current) => Math.max(current - 1, 0));
-    } else if (event.key === "Enter") {
-      event.preventDefault();
-      run(highlight);
-    }
-  }
+  const handleSelectItem = useCallback(
+    (item: PaletteItem) => {
+      recordSelection(item.id);
+
+      switch (item.kind) {
+        case "agent":
+          // Switch the chat surface to THIS agent (the row was dead wiring
+          // until R7 — it revealed the dock but never changed the persona),
+          // then surface the dock.
+          if (item.agentSummary) {
+            useActiveAgentStore.getState().setActiveAgent(item.agentSummary.id);
+          }
+          useAgentDockStore.getState().setCollapsed(false);
+          break;
+        case "action":
+          if (item.action) {
+            item.action();
+          } else if (item.commandSpec) {
+            executeCommand(item.commandSpec);
+          }
+          break;
+        case "panel":
+          if (item.panelSpec) {
+            openPanel(item.panelSpec.id);
+          }
+          break;
+        case "symbol":
+          if (item.symbolEntry) {
+            // The always-consumed chart-command channel (opens a chart if none
+            // is on screen) — not the opt-in sync bus, which the chart ignores
+            // by default.
+            loadSymbolIntoChart(item.symbolEntry.symbol, undefined, item.symbolEntry.region);
+          }
+          break;
+      }
+      onClose();
+    },
+    [recordSelection, openPanel, onClose],
+  );
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15, ease: "easeOut" }}
+    <Command
+      label="Command palette"
+      filter={paletteFilter}
+      loop
+      className="bg-charcoal-875 flex min-w-0 flex-col"
     >
-      <input
-        ref={inputRef}
-        value={query}
-        onChange={(event) => {
-          setQuery(event.target.value);
-          setHighlight(0);
-        }}
-        onKeyDown={handleInputKeyDown}
-        placeholder="Search commands…"
-        aria-label="Search commands"
-        className="text-charcoal-100 placeholder:text-charcoal-400 w-full bg-transparent px-5 py-3 font-mono text-sm outline-none"
-      />
-      <div className="border-charcoal-700 max-h-80 overflow-y-auto border-t py-1">
-        {filtered.length === 0 ? (
-          <p className="text-charcoal-400 px-5 py-6 text-center font-mono text-sm">
-            {commands.length === 0 ? "No commands registered yet." : "No matching commands."}
-          </p>
-        ) : (
-          filtered.map((command, index) => (
-            <button
-              key={command.id}
-              type="button"
-              onClick={() => run(index)}
-              onMouseEnter={() => setHighlight(index)}
-              className={`flex w-full flex-col gap-0.5 px-5 py-2 text-left font-mono ${
-                index === highlight ? "bg-charcoal-800" : ""
-              }`}
-            >
-              <span className="text-charcoal-100 text-sm">{command.title}</span>
-              {command.description ? (
-                <span className="text-charcoal-400 text-xs">{command.description}</span>
-              ) : null}
-            </button>
-          ))
+      {/* Search input */}
+      <div className="border-charcoal-700 flex items-center gap-3 border-b px-4 py-3">
+        <Search className="text-charcoal-400 size-4 shrink-0" aria-hidden />
+        <Command.Input
+          ref={inputRef}
+          value={query}
+          onValueChange={setQuery}
+          placeholder="Ask anything, search agents, panels, symbols…"
+          className="text-charcoal-100 placeholder:text-charcoal-500 text-body min-w-0 flex-1 bg-transparent outline-none"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="text-charcoal-500 hover:text-charcoal-300 text-caption transition-colors"
+            aria-label="Clear search"
+          >
+            esc
+          </button>
         )}
       </div>
-    </motion.div>
+
+      {/* Results list */}
+      <Command.List
+        className={"max-h-96 w-full min-w-0 overflow-y-auto py-2" /* tokens-ok: scroll cap */}
+      >
+        {/* Empty state — shown when query returns no matches */}
+        <Command.Empty>
+          <EmptyState
+            dense
+            icon={Search}
+            headline="No matches"
+            hint="Try a panel, action, agent, or ticker."
+          />
+        </Command.Empty>
+
+        {/* ── Empty-query state: Recent ─────────────────────────────────── */}
+        {!hasQuery && recentItems.length > 0 && (
+          <Command.Group heading="Recent" className="[&_[cmdk-group-heading]]:group-heading-style">
+            {recentItems.map((item) => (
+              <PaletteItemRow
+                key={item.id}
+                item={item}
+                isRecent={false}
+                onSelect={() => handleSelectItem(item)}
+                icon={<KindIcon kind={item.kind} />}
+              />
+            ))}
+          </Command.Group>
+        )}
+
+        {/* ── Group 1: Ask AI ───────────────────────────────────────────── */}
+        <Command.Group value="ask-ai" forceMount className={hasQuery ? undefined : "hidden"}>
+          <AskAiItem query={query} onSelect={handleSelectAskAi} />
+        </Command.Group>
+
+        {/* ── Group 2: Agents ───────────────────────────────────────────── */}
+        {agents.length > 0 && (
+          <Command.Group heading="Agents" className="[&_[cmdk-group-heading]]:group-heading-style">
+            {agents.map((item) => (
+              <PaletteItemRow
+                key={item.id}
+                item={item}
+                isRecent={recents.includes(item.id)}
+                onSelect={() => handleSelectItem(item)}
+                icon={<Bot className="text-charcoal-300 size-4 shrink-0" aria-hidden />}
+              />
+            ))}
+          </Command.Group>
+        )}
+
+        {/* ── Group 3: Actions ──────────────────────────────────────────── */}
+        {actions.length > 0 && (
+          <Command.Group heading="Actions" className="[&_[cmdk-group-heading]]:group-heading-style">
+            {actions.map((item) => (
+              <PaletteItemRow
+                key={item.id}
+                item={item}
+                isRecent={recents.includes(item.id)}
+                onSelect={() => handleSelectItem(item)}
+                icon={<CommandIcon className="text-charcoal-400 size-4 shrink-0" aria-hidden />}
+              />
+            ))}
+          </Command.Group>
+        )}
+
+        {/* ── Group 4: Panels ───────────────────────────────────────────── */}
+        {panels.length > 0 && (
+          <Command.Group heading="Panels" className="[&_[cmdk-group-heading]]:group-heading-style">
+            {panels.map((item) => (
+              <PaletteItemRow
+                key={item.id}
+                item={item}
+                isRecent={recents.includes(item.id)}
+                onSelect={() => handleSelectItem(item)}
+                icon={<LayoutGrid className="text-charcoal-400 size-4 shrink-0" aria-hidden />}
+              />
+            ))}
+          </Command.Group>
+        )}
+
+        {/* ── Group 5b: Live ticker matches from the resolver ───────────── */}
+        {showSymbols && liveSymbolRows.length > 0 && (
+          <Command.Group heading="Tickers" className="[&_[cmdk-group-heading]]:group-heading-style">
+            {liveSymbolRows.map((c) => (
+              <Command.Item
+                key={`live:${c.symbol}:${c.exchange}`}
+                value={`live-symbol:${c.symbol} ${c.name}`}
+                keywords={[c.symbol, c.name, c.exchange]}
+                forceMount
+                onSelect={() => {
+                  // R15-DATA-002: the picked candidate's own region rides the
+                  // chart command so a cross-region ticker (AMAL: BSE/NASDAQ)
+                  // charts the listing the user actually selected.
+                  loadSymbolIntoChart(c.symbol, undefined, c.region);
+                  onClose();
+                }}
+                className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
+              >
+                <TrendingUp className="text-charcoal-400 size-4 shrink-0" aria-hidden />
+                <span className="text-charcoal-100 text-body shrink-0">{c.symbol}</span>
+                <span className="text-charcoal-500 text-micro shrink-0">{c.exchange}</span>
+                <span className="text-charcoal-400 text-caption min-w-0 flex-1 truncate">
+                  {c.name}
+                </span>
+              </Command.Item>
+            ))}
+          </Command.Group>
+        )}
+
+        {/* ── Group 5: Symbols (query-gated, capped) ────────────────────── */}
+        {showSymbols && symbols.length > 0 && (
+          <Command.Group
+            heading={`Symbols${symbols.length >= SYMBOL_CAP ? ` (top ${SYMBOL_CAP})` : ""}`}
+            className="[&_[cmdk-group-heading]]:group-heading-style"
+          >
+            {symbols.map((item) => (
+              <PaletteItemRow
+                key={item.id}
+                item={item}
+                isRecent={recents.includes(item.id)}
+                onSelect={() => handleSelectItem(item)}
+                icon={<TrendingUp className="text-charcoal-400 size-4 shrink-0" aria-hidden />}
+              />
+            ))}
+          </Command.Group>
+        )}
+      </Command.List>
+    </Command>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Kind icon helper (used in Recent rows where kind is dynamic)
+// ---------------------------------------------------------------------------
+
+function KindIcon({ kind }: { kind: PaletteItem["kind"] }) {
+  switch (kind) {
+    case "agent":
+      return <Bot className="text-charcoal-300 size-4 shrink-0" aria-hidden />;
+    case "action":
+      return <CommandIcon className="text-charcoal-400 size-4 shrink-0" aria-hidden />;
+    case "panel":
+      return <LayoutGrid className="text-charcoal-400 size-4 shrink-0" aria-hidden />;
+    case "symbol":
+      return <TrendingUp className="text-charcoal-400 size-4 shrink-0" aria-hidden />;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Ask AI row
+// ---------------------------------------------------------------------------
+
+interface AskAiItemProps {
+  query: string;
+  onSelect: () => void;
+}
+
+function AskAiItem({ query, onSelect }: AskAiItemProps) {
+  const trimmed = query.trim();
+  if (!trimmed) return null;
+
+  return (
+    <Command.Item
+      value={`ask-ai:${trimmed}`}
+      keywords={["ask", "ai", "agent", "query", trimmed]}
+      onSelect={onSelect}
+      forceMount
+      className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
+    >
+      <Sparkles className="text-charcoal-300 size-4 shrink-0" aria-hidden />
+      <div className="min-w-0 flex-1">
+        <span className="text-charcoal-300 text-caption">Ask agent: </span>
+        <span className="text-charcoal-100 text-body font-medium">&ldquo;{trimmed}&rdquo;</span>
+      </div>
+      <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded-control border px-1 py-0.5">
+        Enter
+      </kbd>
+    </Command.Item>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Generic palette item row
+// ---------------------------------------------------------------------------
+
+interface PaletteItemRowProps {
+  item: PaletteItem;
+  isRecent: boolean;
+  onSelect: () => void;
+  icon: React.ReactNode;
+}
+
+function PaletteItemRow({ item, isRecent, onSelect, icon }: PaletteItemRowProps) {
+  // Resolved (remap-aware) binding for an action row's own command id — never
+  // a fabricated combo, so a row only ever shows a chord that actually fires.
+  const binding = useKeybindingsStore((state) =>
+    item.commandSpec ? state.bindingFor(item.commandSpec.id) : "",
+  );
+  return (
+    <Command.Item
+      value={item.id}
+      keywords={[item.label, item.description ?? ""].filter(Boolean)}
+      onSelect={onSelect}
+      className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
+    >
+      {icon}
+      <div className="min-w-0 flex-1">
+        <div className="text-charcoal-100 text-body truncate">{item.label}</div>
+        {item.description && (
+          <div className="text-charcoal-500 text-caption truncate">{item.description}</div>
+        )}
+      </div>
+      {binding && (
+        <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded-control shrink-0 border px-1 py-0.5">
+          {formatBinding(binding)}
+        </kbd>
+      )}
+      {isRecent && <span className="text-charcoal-500 text-caption shrink-0">recent</span>}
+    </Command.Item>
   );
 }

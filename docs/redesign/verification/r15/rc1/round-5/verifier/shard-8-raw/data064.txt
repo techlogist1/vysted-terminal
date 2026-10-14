@@ -1,0 +1,37 @@
+== history/SPY?timeframe=30m
+200 bars 286 first 2026-08-26T09:30:00-04:00 {'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': False, 'coverage_start': None}
+== history/AAPL?timeframe=30m
+200 bars 286 first 2026-08-26T09:30:00-04:00 {'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': False, 'coverage_start': None}
+== history/RELIANCE?timeframe=30m
+200 bars 286 first 2026-08-26T09:00:00+05:30 {'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': False, 'coverage_start': None}
+== history/RELIANCE.NS?timeframe=30m
+200 bars 286 first 2026-08-26T09:00:00+05:30 {'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': False, 'coverage_start': None}
+== history/TCS.NS?timeframe=30m
+200 bars 286 first 2026-08-26T09:00:00+05:30 {'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': False, 'coverage_start': None}
+== history/RELIANCE.NS?timeframe=30m&range=1y
+200 bars 767 first 2026-07-06T09:00:00+05:30 {'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': True, 'coverage_start': '2026-07-06'}
+== history/AAPL?timeframe=30m&range=1y
+200 bars 780 first 2026-07-02T09:30:00-04:00 {'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': True, 'coverage_start': '2026-07-02'}
+== history/INFY.NS?timeframe=15m&range=6mo
+200 bars 1467 first 2026-07-06T09:15:00+05:30 {'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': True, 'coverage_start': '2026-07-06'}
+== history/MSFT?timeframe=1h&range=5y
+200 bars 5073 first 2023-10-27T09:30:00-04:00 {'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': True, 'coverage_start': '2023-10-27'}
+== history/ASML?timeframe=5m&range=ytd
+200 bars 4680 first 2026-07-02T09:30:00-04:00 {'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': True, 'coverage_start': '2026-07-02'}
+== history/HDFCBANK.NS?timeframe=1m&range=1mo
+200 bars 2527 first 2026-09-17T09:15:00+05:30 {'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': True, 'coverage_start': '2026-09-17'}
+== indicators/SPY?indicators=rsi,sma&timeframe=30m
+200 provider yfinance [('rsi', 272), ('sma', 267)]
+== indicators/TCS.NS?indicators=rsi&timeframe=30m
+200 provider yfinance [('rsi', 272)]
+    r=await agent_tools.invoke_tool("price_data",{"symbol":s,"timeframe":"30m"})
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-9bc600e-fix-int/sidecar/services/agent_tools/__init__.py", line 66, in invoke_tool
+    raise KeyError(f"unknown tool {tool_id!r}; registered: {registered_tools()}")
+KeyError: "unknown tool 'price_data'; registered: ['backtest_summary']"
+provider health: yahoo circuit OPEN for 68s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+provider yfinance failed for ohlcv, falling through: yfinance history rate-limited for 'TCS.NS': Too Many Requests. Rate limited. Try after a while.
+AAPL ok False {'error': "provider error: yfinance history rate-limited for 'AAPL': Too Many Requests. Rate limited. Try after a while."}
+RELIANCE.NS ok False {'error': "provider error: yfinance history rate-limited for 'RELIANCE.NS': Too Many Requests. Rate limited. Try after a while."}
+TCS.NS ok False {'error': "provider error: yfinance history rate-limited for 'TCS.NS': Too Many Requests. Rate limited. Try after a while."}
+route AAPL 30m range=6mo (price_data default) bars 0 {'provider': None, 'reason': None, 'partial': None, 'coverage_start': None, 'detail': 'The data provider is throttled right now — try again shortly.'}

@@ -1,0 +1,6 @@
+COCHINSHIP.NS MODEL-FACING fundamentals: {'market_cap': '₹36,226 cr', 'dividend_yield': 0.008199999999999999, 'revenue_growth': 0.023974943542678664, 'earnings_growth': -0.19366146192703143, 'roe': 0.11585091377521958, 'profit_margin': 0.13479, 'fifty_two_week_change': -0.22291195, 'held_percent_insiders': 0.63335}
+  any 'unit'/'display' keys near fractions: []
+  field_meta.dividend_yield: {'status': 'ok', 'provider': 'yfinance', 'as_of': '2026-09-25T09:45:01+00:00', 'reason': None, 'label': None, 'basis_note': None}
+KPITTECH.NS MODEL-FACING fundamentals: {'market_cap': '₹14,139 cr', 'dividend_yield': 0.0144, 'revenue_growth': 0.08853421681469702, 'earnings_growth': -0.31833227651120716, 'roe': 0.16453896894359418, 'profit_margin': 0.08839, 'fifty_two_week_change': -0.57067287, 'held_percent_insiders': 0.45268002}
+  any 'unit'/'display' keys near fractions: []
+  field_meta.dividend_yield: {'status': 'ok', 'provider': 'yfinance', 'as_of': '2026-09-25T09:45:01+00:00', 'reason': None, 'label': None, 'basis_note': None}

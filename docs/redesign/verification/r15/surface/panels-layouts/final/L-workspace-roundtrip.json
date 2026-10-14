@@ -1,0 +1,117 @@
+{
+ "serializedKeys": [
+  "schemaVersion",
+  "name",
+  "layout",
+  "enabledModules",
+  "chartViews",
+  "chartDrawings",
+  "defaultProviderId",
+  "watchlist",
+  "portfolios",
+  "agentMode",
+  "autonomyMode",
+  "agentDock",
+  "modelOverrides",
+  "modelOverridesV",
+  "keybindingOverrides",
+  "settings",
+  "searchSettings",
+  "brief",
+  "notes",
+  "savedScreens",
+  "researchSpaces",
+  "agentSpaces"
+ ],
+ "save": {
+  "ok": true
+ },
+ "saveResearch": {
+  "ok": true
+ },
+ "saveLong": {
+  "ok": false,
+  "err": "WorkspaceError: Could not save workspace \"LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL\" (HTTP 400: Workspace name 'LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL' is too long to save (300 bytes when encoded, max 200).)."
+ },
+ "saveReserved": {
+  "ok": false,
+  "err": "WorkspaceError: Names starting with \"__\" are reserved; choose another name."
+ },
+ "saveUnderscore": {
+  "ok": false,
+  "err": "WorkspaceError: Names starting with \"__\" are reserved; choose another name."
+ },
+ "list": {
+  "ok": true,
+  "value": [
+   "R15 Final PL",
+   "Research: RELIANCE",
+   "a/b",
+   "निवेश योजना"
+  ]
+ },
+ "afterClear": {
+  "panels": [],
+  "groups": [],
+  "active": null,
+  "maximized": false,
+  "width": 1440
+ },
+ "load": {
+  "ok": true
+ },
+ "afterLoad": {
+  "panels": [
+   "chart",
+   "news"
+  ],
+  "groups": [
+   [
+    "chart"
+   ],
+   [
+    "news"
+   ]
+  ],
+  "active": "news",
+  "maximized": false,
+  "width": 1440
+ },
+ "loadMissing": {
+  "ok": false,
+  "err": "WorkspaceError: Could not load workspace \"nope-final\" (HTTP 404: Workspace 'nope-final' not found.)."
+ },
+ "exportImport": {
+  "ok": true,
+  "value": {
+   "bytes": 3362,
+   "name": "R15 Final PL",
+   "keys": 22
+  }
+ },
+ "parseGarbage": {
+  "ok": false,
+  "err": "WorkspaceError: The file is not valid JSON."
+ },
+ "migrateOld": {
+  "ok": true,
+  "value": [
+   "name",
+   "layout",
+   "schemaVersion"
+  ]
+ },
+ "deleteSaved": {
+  "ok": true
+ },
+ "deleteResearch": {
+  "ok": true
+ },
+ "listFinal": {
+  "ok": true,
+  "value": [
+   "a/b",
+   "निवेश योजना"
+  ]
+ }
+}

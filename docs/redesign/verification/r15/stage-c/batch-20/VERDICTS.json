@@ -1,0 +1,17 @@
+{
+  "certified": [],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-LEAD-030",
+      "reason": "Not certified a sixth time. The literal repro and every batch-19 shape hold: b17v/b18v/b19v probes are BAD 0, apart from the two false-premise 'q?' lines, which pass in their premise-true form in b20w_probe (18/18). The live SIFY TTM prompt (x2) streamed no figure, and true controls stream unchanged. The title claim still fails on fresh cases of the same class. (1) LIVE ESCAPE, all-errored turn: price_data errored (invalid args) and llama3.1:8b streamed 'Although the `price_data` tool failed, I can tell you that SBIN.NS's latest close was ₹742.35.' (the app's /quotes/SBIN.NS reads 983.0; verifier-evidence/live2.out y-neg-estimate-sbin). Cause: _judge_clause returns None when _NEGATIVE matches anywhere in the clause ('failed', 'unavailable', \"couldn't\"). That check runs before rule 1, so any clause that also carries a negative word bypasses the plan's 'every unit with an ungrounded figure is replaced'. Offline: v-allerr-negative-since/although/couldnt all stream the fabricated figure (verifier-evidence/fresh.out). (2) ESCAPE, mixed turn: price_data ok for TCS.NS and a call for INFY.NS errored, and 'Infosys last traded at ₹1,233.65.' / 'Infosys has a P/E of 24.6 and a market cap of ₹7.1 lakh crore.' stream. Rule 2b matches the errored subject only by ticker, never by company name (v-mixed-errored-alias-name, v-mixed-alias-fund). All 3 negative cases and both alias cases fail the same way on base d685a4be, so none is a regression."
+    },
+    {
+      "id": "R15-LEAD-036",
+      "reason": "The literal repro holds: f-named-colon-fenced-json now yields the note as prose with no ``` (b19v_probe/b20w_probe), and a fresh chunked ```text fence also renders as prose. The fix_shape ('strip any enclosing fence the original dump opened') and the acceptance ('the replacement carries no fence markers') fail on a fresh fence of the same class. For a CommonMark tilde fence, all-errored fundamentals, 'Here is the output:\\n\\n~~~json\\n{\"pe\": 8.4, \"roe\": 0.214}\\n~~~\\n\\nHope that helps.' becomes 'The fundamentals tool returned no data for this in this turn.\\n\\n~~~\\n\\nHope that helps.' (verifier-evidence/fresh.out v036-tilde-fence). The orphan closing ~~~ opens an unclosed code block that swallows the following prose. Cause: _FENCE_OPEN/_FENCE_CLOSE (agent_runtime.py:2084-2085) recognise backtick fences only. Base renders the note inside the ~~~json fence, so this is no regression."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-20-int@3595bcd6bb2d908ced4e036c52fa77ec768a06ae"
+}

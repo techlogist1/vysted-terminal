@@ -1,0 +1,9 @@
+# R15-LIFECYCLE-017 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'except Exception as exc:  # noqa: BLE001 — a code bug' sidecar/services/screener.py; grep -n '"screener: unexpected enrichment error' sidecar/services/screener.py; grep -n 'LIFECYCLE-017' sidecar/tests/*.py | head
+--- output ---
+1121:                except Exception as exc:  # noqa: BLE001 — a code bug, not an upstream miss
+1123:                        "screener: unexpected enrichment error for %s: %s: %s",
+sidecar/tests/test_b5_screener.py:73:    """R15-LIFECYCLE-017: an adapter bug (AttributeError) during phase E is
+
+EXIT=0 (0.0s)

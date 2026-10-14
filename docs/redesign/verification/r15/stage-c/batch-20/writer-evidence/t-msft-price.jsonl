@@ -1,0 +1,104 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_d8382ae085d943b4ad48761681f1c8f4", "name": "price_data", "input": {"asset_class": "equity", "range": "1mo", "symbol": "MSFT", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_d8382ae085d943b4ad48761681f1c8f4", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " MS"}
+{"kind": "delta", "text": "FT"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Microsoft"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "513"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "99"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " y"}
+{"kind": "delta", "text": "finance"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " overview"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " movements"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " highest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " recorded"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " month"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "517"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "48"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " lowest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " recorded"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " month"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "485"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "44"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " August"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " prices"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " historical"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " reflect"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 4799, "output_tokens": 99, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

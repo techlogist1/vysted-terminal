@@ -1,0 +1,152 @@
+[
+  {
+    "raw_id": "COD-portfolio-1",
+    "title": "broker_portfolio hands the agent hardcoded paper-mode equity/cash/buying-power with no provenance label, under a description saying \"REAL\"",
+    "severity": "critical",
+    "area": "agent",
+    "subsystem": "portfolio",
+    "repro": "Connect Kite/Dhan/AngelOne (adapter mode defaults to \"paper\", broker_base.py:94) -> ask the agent \"what is my buying power?\" -> broker_portfolio returns equity=1000000.0, cash=500000.0, buyingPower=1000000.0, positions=[] and the model states them as the user's real account. Same branch fires in LIVE mode whenever _client is None.",
+    "evidence": "sidecar/services/agent_tools/broker_portfolio.py:36 (returns summary.model_dump(by_alias=True)); sidecar/models/broker.py:109-121 (AccountSummary has no synthetic/mode/provider, extra=\"forbid\"); sidecar/services/brokers/kite.py:179-189; sidecar/services/brokers/dhan.py:112-122; sidecar/services/brokers/angelone.py:89-99; sidecar/services/broker_base.py:94 (default mode \"paper\"); contrast sidecar/services/brokers/kite.py:231-234 (granular read computes `synthetic`) and sidecar/models/broker_reads.py:13-14,42-44 (FR-041 label mandatory); claim of realness at broker_portfolio.py:3-5 and sidecar/services/agent_tools/catalog.py:913-915,921",
+    "notes": "FR-041 provenance is enforced on the granular REST read path and absent on the agent path — the one consumer that cannot see a UI badge. Mechanism: the paper branch returns fabricated constants and the wire model has no field that could say so, so the LLM receives fabricated money indistinguishable from a live read and narrates it as fact (wrong money-relevant data shown as true). The `or self._client is None` disjunct extends this to a live-mode adapter whose client failed to build, which should raise BrokerError instead. Smallest fix: label at the tool boundary from state the adapter already exposes — return {\"synthetic\": adapter.mode == \"paper\", \"mode\": adapter.mode, \"provider\": broker} alongside \"account\" (broker_base.py:110 exposes `mode`). No ABC change, no AccountSummary change, no 6.5 change."
+  },
+  {
+    "raw_id": "COD-portfolio-2",
+    "title": "Sidecar position PUT/DELETE sync is dead by construction — the SQLite ledger never sees an update or a delete",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "portfolio",
+    "repro": "Agent applies portfolio_update_position or portfolio_delete_position with the position_id it read from get_portfolio (a frontend holding id, e.g. \"h-3f2a...\"): sidecarPositionId does Number(\"h-3f2a...\") -> NaN -> returns undefined -> portfolioUrl(undefined) -> PUT/DELETE http://127.0.0.1:<port>/portfolio/positions -> FastAPI declares those methods only at /positions/{position_id} -> 405 -> syncPositionToSidecar returns false -> the boolean is discarded. The row stays in portfolio.db unchanged forever.",
+    "evidence": "src/lib/host-actions.ts:1313-1317 (sidecarPositionId), 1255-1259 (portfolioUrl), 1306 (return response.ok || 404), 1361 and 1381 (return value discarded); sidecar/services/agent_tools/catalog.py:1345 (\"position_id\": {\"type\": \"string\"}); src/lib/host-actions.ts:550 (resolveHolding matches the frontend holding id); sidecar/routers/portfolio.py:33,42 (PUT/DELETE only at /positions/{position_id}); sidecar/routers/portfolio.py:21,27 (GET/POST at /positions)",
+    "notes": "Define-errors-out-of-existence violated: the failure was made unrepresentable by discarding it, not by preventing it. The SQLite table is append-only by accident — POST lands, PUT/DELETE never do — so it diverges monotonically from the store. Latent today because nothing reads it (see COD-portfolio-3); it becomes wrong money the moment any feature does. Smallest fix: delete the sync with the rest of the ledger (COD-portfolio-3). If the ledger must stay: read the sidecar's assigned integer id from the POST response (host-actions.ts:1337 currently discards it) and persist it on the Holding so PUT/DELETE address a real row."
+  },
+  {
+    "raw_id": "COD-portfolio-3",
+    "title": "Portfolio truth is forked between sidecar SQLite and the frontend store; nothing reads the sidecar side and four docstrings make three incompatible claims",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "portfolio",
+    "repro": "design — hand-enter a holding in the panel (store only) then have the agent add one (store + sidecar POST); GET /portfolio/positions now returns a subset that matches no surface. No production code path reads that endpoint: it appears only in sidecar/tests/test_portfolio.py and src/lib/host-actions.test.ts:987.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:286-289,309 (user path: store only); src/lib/host-actions.ts:1337+1342, 1361+1366, 1381+1386 (agent path: both); contradictory docs at sidecar/services/portfolio_db.py:1-12, src/modules/portfolio/api.ts:4-7, src/store/portfolios.ts:212-213, src/lib/host-actions.ts:1254,1321; grep for /portfolio/positions readers: sidecar/tests/test_portfolio.py, src/lib/host-actions.test.ts only",
+    "notes": "Better-together-or-apart / design-for-the-future violated: the second design shipped and the first was never deleted, so one concept has two stores, 521 LOC (190 impl + 331 tests) with no reader, and no maintainer can learn from the code which is authoritative. Smallest fix is deletion, not reconciliation: the store already feeds the panel, the workspace blob and get_portfolio's snapshot — cut sidecar/routers/portfolio.py, sidecar/services/portfolio_db.py, sidecar/models/portfolio.py, sidecar/tests/test_portfolio.py and src/lib/host-actions.ts:1254-1317, which also resolves COD-portfolio-2 and removes three false docstrings. Check sidecar/models/__init__.py:74 (re-export) and the prose reference at sidecar/models/broker.py:13 when cutting."
+  },
+  {
+    "raw_id": "COD-portfolio-4",
+    "title": "The live-quote failure banner and its Retry are unreachable: fetchPositionQuotes can never reject, so a sidecar outage renders identically to \"symbol not found\"",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "portfolio",
+    "repro": "Stop the sidecar (or break the quote route) with holdings present -> every Price / Mkt val / P&L cell shows \"—\" and the footer reads \"N without a live quote\"; the warning banner never appears and Retry is unreachable. Mechanism: fetchPositionQuote catches every error to null, so Promise.all over those promises cannot reject, so the panel's .catch never runs.",
+    "evidence": "src/modules/portfolio/api.ts:23-32 (try/catch -> null), api.ts:35-45 (Promise.all over non-rejecting promises); src/modules/portfolio/PortfolioPanel.tsx:153-159 (dead .catch), 112-113 (quotesError/quotesNonce), 794-808 (dead banner + Retry); src/modules/portfolio/PortfolioPanel.test.tsx:62,94,113,132 (only mockResolvedValue — no test exercises the path)",
+    "notes": "An exception masked at the wrong level turned a failure into a silent empty and killed an honest-failure surface three files away — the panel's own comment at PortfolioPanel.tsx:109-111 states the intent (\"a failed live-quote fetch must not silently leave every cell at — forever\") that the code cannot deliver. On a terminal whose moat is data trust, \"we could not reach the data\" must not render as \"this instrument does not exist\". Smallest fix: have fetchPositionQuote distinguish a thrown error from an unresolved symbol (return a {quote} | {error} union, or count throws) and have fetchPositionQuotes return {quotes, failed}; set quotesError when failed > 0. The banner and Retry already exist and already work."
+  },
+  {
+    "raw_id": "COD-portfolio-5",
+    "title": "CSV export writes a fabricated cross-currency Weight % and carries no currency column — the D57 law the table enforces is abandoned in the exported file",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "portfolio",
+    "repro": "Hold RELIANCE (INR quote) and AAPL (USD quote) -> the table drops the Wt column and shows per-currency subtotals -> click Export portfolio to CSV -> the file contains a Weight % for every row computed as marketValue / (INR sum + USD sum), and Price / Market value / P&L columns with no currency to disambiguate a Rs row from a $ row.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:486-497 (weight written unconditionally at 495), 474-485 (header row: no Currency column); contrast 400-411 (the Wt column is dropped when mixedCurrencies, with the rationale at 400-401) and src/modules/portfolio/metrics.ts:26-32,144-147 (weight divides by the cross-currency totalMarketValue)",
+    "notes": "Consistency violated against the project's own standard: D57 is enforced everywhere in the panel (PortfolioPanel.tsx:402, 726-752, 756-767) and dropped in the one artifact the user takes to a spreadsheet, which is where they will actually do arithmetic on it. Wrong money-relevant data leaves the app's guardrails as a number that looks authoritative. Smallest fix: add a Currency column sourced from quote?.currency, and emit \"\" for Weight % when summary.mixedCurrencies — two lines, matching what the table already decided."
+  },
+  {
+    "raw_id": "COD-portfolio-6",
+    "title": "editingId survives a portfolio switch, so Save silently writes nothing while the UI reads as a successful save",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "portfolio",
+    "repro": "Portfolio A holds RELIANCE -> click its Edit (pencil) -> without cancelling, change the Active portfolio select to B -> edit the quantity -> click Save. updateHolding(B.id, <A's holding id>, input) finds no holding with that id in B, so nothing is written; the form clears its error and resets, so the panel looks like it saved. A's RELIANCE is unchanged and no error is shown.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:106 (editingId), 285-291 (updateHolding(active.id, editingId, input) then setError(null)/resetForm()), 557-569 (the portfolio select never clears editingId), 294-303 (handleEdit sets it); src/store/portfolios.ts:164-177 (updateHolding maps h.id === holdingId inside the target portfolio only — a miss is a silent no-op)",
+    "notes": "The form's edit target is a holding id scoped to a portfolio, but the portfolio it applies to is read at submit time from `active` — two sources of one truth that can drift between opening the form and submitting it. Consequence: the user's edit is lost with a success-shaped UI (the same fabricated-success class the codebase already fixed once at src/store/portfolios.ts:255-260). Smallest fix: clear editingId + reset the form in the select's onChange (and on deletePortfolio), or scope editing state to {portfolioId, holdingId} and bail with an error when it no longer matches `active`."
+  },
+  {
+    "raw_id": "COD-portfolio-7",
+    "title": "68-line typed client (addPosition/updatePosition/deletePosition/refresh) is dead code whose comment names a consumer that does not exist, and its tests give it green coverage",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "portfolio",
+    "repro": "design — grep the tree for importers of addPosition/updatePosition/deletePosition/refresh from @/store/portfolios: only src/store/portfolios.test.ts and a vi.fn() mock in src/modules/panel-context-publishers.test.tsx. The real host-action apply path imports only the hook and calls addHolding/updateHolding/removeHolding directly.",
+    "evidence": "src/store/portfolios.ts:209-276 (the block), 210-212 (\"Team FRONTEND-BRIEF's portfolio_add/update/delete_position apply cases import from here\" — they do not), 271-276 (refresh() is an empty no-op); src/lib/host-actions.ts:43 (imports usePortfoliosStore, AssetClass, Holding only), 1342, 1366, 1386 (calls the store methods directly); src/store/portfolios.test.ts:4-7 (the only importer)",
+    "notes": "Dead code with a confidently wrong comment is worse than dead code: the next maintainer edits addPosition believing they are changing agent behaviour, and the tests pass either way. It also carries the only surviving instance of the fabricated-success re-read pattern (226-236, counting holdings before/after and assuming append-at-end) that was deliberately removed from its sibling at 255-260. Smallest fix: delete lines 209-276 and the matching describe blocks in portfolios.test.ts. If the seam is wanted, make addHolding return the new id (pull the complexity down) so the re-read trick is unnecessary."
+  },
+  {
+    "raw_id": "COD-portfolio-8",
+    "title": "Holding validation lives in the panel form, not in the store — the workspace-restore path accepts negative quantity/cost and coerces garbage to 0",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "portfolio",
+    "repro": "A workspace blob (or any non-form caller) carrying {symbol:\"RELIANCE\", quantity:\"abc\", costBasis:-100} restores through setAll -> normalizeHolding -> quantity 0, costBasis -100 accepted. The holding counts in positionCount, publishes to the agent with marketValue 0, and shows a negative cost in the table. The form path would have rejected both (\"Quantity must be greater than 0\", \"Cost basis cannot be negative\").",
+    "evidence": "src/store/portfolios.ts:69-89 (normalizeHolding: no sign checks; 84-85 coerce non-finite to 0), 186-206 (setAll — the workspace-restore path — runs the same normalizer); contrast src/modules/portfolio/PortfolioPanel.tsx:266-277 (form guards) and src/lib/host-actions.ts:1334,1358 (agent guards quantity > 0); the validating model sidecar/models/portfolio.py:36-39 (gt=0, ge=0) sits on the dead path (COD-portfolio-3)",
+    "notes": "Validation at a trust boundary implemented in one of the three callers. normalizeHolding is named and documented as the coercion gate (\"Coerce an arbitrary (possibly corrupt-blob) holding to a valid one, or drop it\", line 68) but only drops on an empty symbol; silently rewriting a bad quantity to 0 produces a plausible-looking zero-value holding rather than an honest rejection. Smallest fix: in normalizeHolding, return null when quantity is not finite or <= 0, or when costBasis is not finite or < 0 — one place, inherited by the form, the agent path and workspace restore."
+  },
+  {
+    "raw_id": "COD-portfolio-9",
+    "title": "Quotes are fetched once per holding-set change and never refresh; no as-of timestamp, while the sibling watchlist polls",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "portfolio",
+    "repro": "Open Portfolio with holdings, leave the panel open across a session without adding/removing/renaming a holding -> the effect's deps ([quotesKey, quotesNonce]) never change, no refetch occurs, and the Price / Mkt val / P&L / Concentration figures remain at their first-resolved values with nothing on screen saying when they were captured.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:141 (quotesKey from symbol:assetClass only), 142-164 (the effect, deps at 164), 717-792 (the summary bar renders no timestamp); contrast src/modules/watchlist/WatchlistPanel.tsx:219-224 (setInterval(refresh, POLL_INTERVAL_MS))",
+    "notes": "Consistency + data trust: two panels showing live prices from the same sidecar, one polls and one does not, and the non-polling one is the money surface. A stale price presented with no as-of marker is read as current P&L. Smallest fix: reuse the watchlist's interval pattern (bump quotesNonce on a timer, cleared on unmount — the nonce seam already exists at line 113), and render the capture time in the summary bar."
+  },
+  {
+    "raw_id": "COD-portfolio-10",
+    "title": "Delete portfolio destroys every hand-entered holding on one unconfirmed click and the workspace autosave persists it",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "portfolio",
+    "repro": "Hand-enter twenty holdings -> click the trash icon in the portfolio toolbar -> the portfolio and all holdings are gone immediately, no confirmation, no undo; the workspace autosave writes the new state, so a relaunch does not recover them.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:607-616 (Trash2 -> deletePortfolio(active.id), no confirm); src/store/portfolios.ts:136-146 (filters the portfolio out; replaces with a fresh empty one when it was the last); persistence via the workspace blob per src/store/portfolios.ts:15-17",
+    "notes": "The only irreversible destruction of manually entered data in the panel, sitting in the same icon row as the reversible Rename and the harmless Export, with the same affordance. Every other hand-entered fact in this subsystem is recoverable (edit a holding, re-add a row); this one is not. Smallest fix: confirm when the portfolio has holdings — a two-step inline confirm matching the existing pfAction inline-edit pattern (511-548), not a modal."
+  },
+  {
+    "raw_id": "COD-portfolio-11",
+    "title": "The cost-basis unit (per-share vs total) is documented to the agent but never to the user, and a wrong reading scales every P&L by the quantity",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "portfolio",
+    "repro": "Buy 100 shares at 1,200 for 120,000 total -> a user reading \"Cost basis\" as the total enters 120000 -> costValue = 120000 * 100 = 12,000,000 -> the panel reports a loss of ~11.88M against a live price of 1,250. Nothing in the form, the column header, the placeholder or the empty-state hint says per-share.",
+    "evidence": "src/modules/portfolio/metrics.ts:94 (costValue = position.cost_basis * position.quantity); src/modules/portfolio/PortfolioPanel.tsx:646-655 (form label \"Cost basis\", no placeholder/hint), 353 (column header \"Cost\"), 818 (empty-state hint is silent on units); contrast sidecar/services/agent_tools/catalog.py:1350 (\"Per-share cost in the listing currency.\" — told to the model only)",
+    "notes": "Obviousness with a money consequence: the one consumer that was given the unit is the LLM; the human typing the number was not. \"Cost basis\" is idiomatically ambiguous (per-share average vs total invested) and the panel offers no feedback that would expose the error — the resulting P&L is large but internally consistent. Smallest fix: label it \"Avg cost / share\" (or add placeholder=\"per share\") and set the column header to \"Avg cost\"; no logic change."
+  },
+  {
+    "raw_id": "COD-portfolio-12",
+    "title": "metrics.ts computes on the sidecar wire model although no sidecar position reaches it; the panel adapts Holding->Position with id: i to avoid touching tests, and then joins rows to holdings by array index",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "portfolio",
+    "repro": "design — holdings (camelCase, string ids) are mapped to the snake_case Position shape with a synthetic integer id equal to the array index, purely so metrics.ts and its tests need not change; the table then recovers the real holding by position in the array.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:124-136 (the adapter; id: i at 127; stated reason at 121-123: \"keeps metrics.ts + its tests untouched\"), 314-317 (summary.rows.map((row, i) => ({...row, holding: holdings[i]}))), 312-313 (the ordering invariant, stated only in a comment), 831 (rowKey falls back to symbol when holding is undefined); src/modules/portfolio/metrics.ts:8 (imports Position from types/data)",
+    "notes": "Information leakage (the sidecar's serialization format reaches a purely client-side computation) plus a test-shaped production decision, whose downstream cost is an ordering invariant held by a comment instead of by structure. Correct today — buildPortfolioSummary preserves input order — but any future filter/sort inside it silently binds each row's Edit/Delete button to the wrong holding. Smallest fix: change metrics.ts to take Holding (camelCase, real id) and update metrics.test.ts; the adapter, the synthetic id and the index join all disappear together."
+  },
+  {
+    "raw_id": "COD-portfolio-13",
+    "title": "pnlTone helper exists and is used, and the identical ternary is re-inlined in the P&L cell",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "portfolio",
+    "repro": "design — grep the file for text-positive/text-negative: the helper at 43-45 and a byte-identical ternary at 391-393.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:43-45 (pnlTone), 742 and 748 (callers), 391-393 (the same ternary inlined in the pnl column's cell renderer)",
+    "notes": "Duplicated truth in one file: changing the neutral-at-zero token (currently text-charcoal-200) updates the summary bar and leaves the table cell behind. One-line fix: call pnlTone(r.pnl) at 391-393."
+  },
+  {
+    "raw_id": "COD-portfolio-14",
+    "title": "updateHolding's interface comment says \"Patch\" but it replaces, and absent numerics become 0",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "portfolio",
+    "repro": "design — a caller trusting the word \"Patch\" and passing {symbol, quantity} would get costBasis 0 (Number(undefined) -> NaN -> 0). TypeScript's required HoldingInput prevents it from a typed caller today, so the defect is in the comment, not yet in behaviour.",
+    "evidence": "src/store/portfolios.ts:105 (\"Patch an existing holding.\"), 164-177 (builds a fresh holding from input via normalizeHolding), 84-85 (non-finite -> 0); contrast 239-248 (updatePosition's doc explicitly warns: \"Missing fields are NOT merged over the existing holding\")",
+    "notes": "The hazard is documented correctly in one place and mis-documented in the other, on the same seam — the interface comment a caller reads first is the wrong one. The money consequence if a future untyped caller (an agent apply path, a blob migration) trusts it is a silently zeroed cost basis. One-word fix: \"Replace an existing holding's fields (not a partial merge).\""
+  },
+  {
+    "raw_id": "COD-portfolio-15",
+    "title": "PortfolioSummary.concentration is derived from cross-currency weights and returned unflagged; only the panel knows to withhold it",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "portfolio",
+    "repro": "design — buildPortfolioSummary on holdings quoted in INR and USD returns a concentration number computed from weights that divide by the cross-currency totalMarketValue; the value is meaningless but carries no marker on the contract.",
+    "evidence": "src/modules/portfolio/metrics.ts:150 (concentration from row.weight), 144-147 (weight divides by totalMarketValue), 70-71 (its doc carries no mixed-currency caveat); contrast 54-62 (totalMarketValue and totalPnl both document the D57 caveat explicitly) and src/modules/portfolio/PortfolioPanel.tsx:756-767 (the panel withholds it with a stated reason)",
+    "notes": "The D57 law is held by the caller, not by the contract: the one existing consumer knows to hide the field, and any new consumer (an agent tool, a report, a second panel) will read a fabricated ratio that the type says nothing about. Smallest fix: either document the caveat on the field as its two neighbours do, or return concentration: null when mixedCurrencies — the panel's branch then reads from the data rather than re-deriving the rule."
+  }
+]

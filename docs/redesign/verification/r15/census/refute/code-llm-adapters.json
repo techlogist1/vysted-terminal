@@ -1,0 +1,119 @@
+[
+  {
+    "raw_id": "COD-llm-adapters-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The inconsistency is real: groq._parse_tool_args and ollama._parse_tool_input coerce malformed JSON to {} and gemini passes fc.args with no schema check, while only OpenAIProvider validates/repairs/stamps INVALID_ARGS_SENTINEL. The stated consequence is overstated: symbol-keyed handlers validate their own required args and return {ok:False, error:'missing or non-string symbol'} to the model (price_data.py:35-37, fundamentals.py:179-181), so the model does get a self-correctable error, not a silent wrong-instrument answer; Gemini args arrive pre-parsed so no JSON-fragment truncation exists there. Residual: tools with only optional args silently run on defaults, and the error text is less specific. high -> medium.",
+    "evidence": "sidecar/services/llm/groq.py:36-49, sidecar/services/llm/ollama.py:98-112, sidecar/services/llm/gemini.py:157-163, sidecar/services/llm/openai.py:80-86, sidecar/services/llm/openai.py:495-590, sidecar/services/agent_runtime.py:638-662, sidecar/services/agent_tools/price_data.py:35-37, sidecar/services/agent_tools/fundamentals.py:179-181",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); read all four adapters' tool-arg paths, runtime _dispatch_tool, and two handler arg guards",
+    "repro_check": "Code trace: groq/ollama {} -> agent_runtime._dispatch_tool -> agent_tools.invoke_tool -> price_data handler returns {'ok': False, 'error': 'missing or non-string symbol'} as the role=tool result; no live repro (needs a model that truncates)."
+  },
+  {
+    "raw_id": "COD-llm-adapters-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The repro mechanism is wrong: ollama.AsyncClient.chat(stream=True) returns a lazy async generator and makes no HTTP request at await time, so a 500/connection error/'model does not support tools' surfaces during iteration and is humanized into an LLMErrorEvent (ollama.py:228-237), never a silent tool-less retry. The bare `except Exception: stream = None` (no log) only catches client-side construction errors (e.g. a Tool.model_validate failure on a malformed schema); a TypeError from an unknown kwarg recurs on the retry and surfaces as an error. Residual: a swallowed, unlogged exception, and the retry-without-tools fallback is effectively dead for its documented purpose. high -> low.",
+    "evidence": "sidecar/services/llm/ollama.py:139-169, sidecar/services/llm/ollama.py:228-237, sidecar/.venv/lib/python3.13/site-packages/ollama/_client.py:767-790",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); read ollama SDK 0.6.2 AsyncClient._request; ran a local probe of the SDK against a dead port",
+    "repro_check": "sidecar/.venv/bin/python probe: await AsyncClient(host='http://127.0.0.1:9').chat(stream=True, tools=[...]) returned an async_generator without raising; ConnectError raised only on iteration; an unknown kwarg (temperature=) raised TypeError at await."
+  },
+  {
+    "raw_id": "COD-llm-adapters-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real in code: oneshot.complete and native_search_oneshot call get_provider(provider) with no base_url, so the repair adapter ignores self._base_url. The claimed consequence (the BYOK key sent to the vendor host despite a user proxy) cannot happen from any shipped surface. The agent path, the only place tools and repair run, itself calls get_provider(provider_id) with no base_url (agent_runtime.py:1344), so the stream and the repair already hit the same host. The raw /llm/chat path gets no user base_url or tool_ids from the UI (ChatSidebar.tsx:1028-1035 passes neither). This is a latent trap for a future proxy feature, reachable only by a hand-crafted loopback API call. high -> low.",
+    "evidence": "sidecar/services/llm/openai.py:626-631, sidecar/services/llm/oneshot.py:46-53, sidecar/services/llm/oneshot.py:78, sidecar/services/llm/native_search.py:241, sidecar/services/agent_runtime.py:1344, src/modules/chat/ChatSidebar.tsx:1028-1035, src/modules/chat/streaming.ts:133-145",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); grep of every get_provider call site; traced frontend base_url sources (only registry defaults, model-catalog.ts:97)",
+    "repro_check": "grep -rn 'get_provider(' sidecar (non-test): only routers/llm.py forwards a base_url; agent_runtime.py:1344 does not, so stream and repair hosts coincide on every UI-reachable path."
+  },
+  {
+    "raw_id": "COD-llm-adapters-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Confirmed: routers/llm.py:126-130 is a four-name denylist, agent_runtime._ADAPTER_OPTION_KEYS is an allowlist, and wireOptions forwards every other key. The same class already shipped once (commit 7ad0b79). It is not a live break today, though: the only raw-chat caller (ChatSidebar.tsx:1028-1035) sends no options at all, so it is a trap set rather than a core flow failing. high -> medium.",
+    "evidence": "sidecar/routers/llm.py:122-130, sidecar/services/agent_runtime.py:91-107, src/modules/chat/streaming.ts:124-130, src/modules/chat/ChatSidebar.tsx:1028-1035",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); read both filters, wireOptions, the sole streamChat caller, and git log for the prior crash fix",
+    "repro_check": "git log -S on routers/llm.py shows 7ad0b79 'strip frontend control keys (research_depth live crash)'; current streamChat caller passes no options, so no live repro."
+  },
+  {
+    "raw_id": "COD-llm-adapters-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Confirmed: get_provider returns GeminiProvider()/GroqProvider() and drops base_url despite documenting it as an override. No UI surface can send one, though: the registry default_base_url is null for gemini and groq, and KeyEntryDialog/OnboardingFlow/sidecar-client post only {provider, api_key} to /llm/keys/validate. The cited repro needs a hand-crafted request. This is a parameter that lies, with no user-reachable consequence. medium -> low.",
+    "evidence": "sidecar/services/llm/__init__.py:72-93, sidecar/services/llm/gemini.py:96-97, sidecar/services/llm/groq.py:98-99, src/components/KeyEntryDialog.tsx:177-181, src/components/OnboardingFlow.tsx:77-80, src/lib/sidecar-client.ts:229-233, sidecar/config/model_registry.json",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); read factory, both constructors, all three frontend validate callers, registry default_base_url values",
+    "repro_check": "python3 read of model_registry.json: gemini/groq default_base_url = None; grep of 'keys/validate' in src: bodies carry no base_url."
+  },
+  {
+    "raw_id": "COD-llm-adapters-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: DEEPSEEK/XAI/OPENROUTER base URLs are string literals guarded only by a prose 'must match' comment, in a module that already imports model_registry and derives PROVIDER_INFO from it. They match the JSON today. /llm/models is fed the registry value by the frontend (model-catalog.ts:97) while the agent path uses the constant, so an edit to the JSON would split the two paths silently. No test covers it.",
+    "evidence": "sidecar/services/llm/__init__.py:24, sidecar/services/llm/__init__.py:33-47, sidecar/services/llm/__init__.py:54-64, sidecar/services/model_registry.py:108-113, src/store/model-catalog.ts:95-98",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); compared the constants with the registry values (deepseek https://api.deepseek.com, xai https://api.x.ai/v1, openrouter https://openrouter.ai/api/v1: all equal today)",
+    "repro_check": "design; python3 dump of model_registry.json default_base_url vs __init__.py constants: equal today, no enforcing test."
+  },
+  {
+    "raw_id": "COD-llm-adapters-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The finding holds, and its scope is broader than stated. The static TS tables are not just an offline fallback: resolveModel returns DEFAULT_MODEL_BY_PROVIDER for any provider without an override even when the sidecar is up (model-selection.ts:119), and restored overrides are pruned against the static KNOWN_MODELS_BY_PROVIDER (model-selection.ts:76). A JSON default change therefore ships a stale model id to every user with no override, and a JSON-only new model is dropped on relaunch. The drift test compares only the two TS copies. Severity medium stands.",
+    "evidence": "src/store/model-selection.ts:16-61, src/store/model-selection.ts:70-78, src/store/model-selection.ts:113-120, src/store/model-selection.test.ts:12-26, src/store/llm-providers.ts:40-113, src/modules/chat/ModelControl.tsx:135-140",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); read both TS tables, the drift test, every consumer of the static tables (grep), and spot-checked defaults against the JSON (in lockstep today)",
+    "repro_check": "grep DEFAULT_MODEL_BY_PROVIDER src: used unconditionally in resolveModel (model-selection.ts:119); no test imports sidecar/config/model_registry.json."
+  },
+  {
+    "raw_id": "COD-llm-adapters-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: _repair_tool_args calls oneshot.complete with no timeout (openai.py:626-631), though oneshot documents the ~600s SDK-default hazard and sibling native_search uses a 90s cap. The loops at openai.py:526-589 repair every failing call serially with no per-round cap. LLMDoneEvent usage comes only from streamed chunk usage (openai.py:795-800), so repair tokens bypass the BudgetGuard. The trigger (schema-miss tool args) is uncommon, which is why this is medium and not high.",
+    "evidence": "sidecar/services/llm/openai.py:495-590, sidecar/services/llm/openai.py:626-631, sidecar/services/llm/oneshot.py:46-67, sidecar/services/llm/native_search.py:195-197, sidecar/services/llm/openai.py:795-800",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); read resolve/repair loops, the oneshot signature and timeout doc, and the usage assembly",
+    "repro_check": "Code trace: oneshot.complete(self._provider_id, model, api_key, [...]) has no timeout= kwarg; usage is set only from chunk.usage in the stream loop."
+  },
+  {
+    "raw_id": "COD-llm-adapters-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Confirmed that validate_key returns detail=f'transport error: {exc}', bypassing humanize(), and KeyEntryDialog renders validation.detail (KeyEntryDialog.tsx:76). The credential-leak half is unreachable: no frontend caller sends base_url to /llm/keys/validate (KeyEntryDialog.tsx:181, OnboardingFlow.tsx:80, sidecar-client.ts:233), so no user:pass@host URL can appear. What remains is a raw SDK string (e.g. 'Connection error.') instead of message+action in one dialog. medium -> low.",
+    "evidence": "sidecar/routers/llm.py:99-111, src/components/KeyEntryDialog.tsx:72-76, src/components/KeyEntryDialog.tsx:177-188, src/components/OnboardingFlow.tsx:77-86",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); read the router route and all three frontend callers",
+    "repro_check": "Would run: POST /llm/keys/validate {provider:'anthropic', api_key:'x'} with network down -> detail 'transport error: Connection error.'; not run (non-GET, needs vy.py and adds nothing to the code read)."
+  },
+  {
+    "raw_id": "COD-llm-adapters-10",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Confirmed: GET /llm/models takes X-LLM-Key with a docstring saying 'never the body', while /llm/chat and /llm/keys/validate carry api_key in the JSON body. It is a documentation and consistency contradiction with no functional defect. The transport is loopback-only, and a 422 echo would return the key only to the same local caller that sent it. medium -> low.",
+    "evidence": "sidecar/routers/llm.py:52-65, sidecar/routers/llm.py:99-104, sidecar/routers/llm.py:114-139, sidecar/models/llm.py:243-269",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); read the router in full",
+    "repro_check": "design; router source shows Header(alias='X-LLM-Key') on /models and payload.api_key on /chat and /keys/validate."
+  },
+  {
+    "raw_id": "COD-llm-adapters-11",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Confirmed: the rescue path hardcodes tool_call_id 'leaked-0' (openai.py:320-326), and the runtime passes ids through unchanged into metadata tool_calls (agent_runtime.py:1536, 1579), so two rescues in one conversation duplicate the id. Impact is unproven: each duplicate sits in its own adjacent assistant->tool pair, the frontend keys steps by message id rather than tool_call_id (chat-history.ts:184-192), and 'ollama' in _CONTENT_LEAK_PROVIDERS is unreachable because get_provider('ollama') returns OllamaProvider. No 400 was demonstrated. Only DeepSeek and OpenRouter can hit it, and only on two leak-rescues. medium -> low.",
+    "evidence": "sidecar/services/llm/openai.py:320-326, sidecar/services/llm/openai.py:61, sidecar/services/llm/__init__.py:92-93, sidecar/services/agent_runtime.py:1536, sidecar/services/agent_runtime.py:1579, src/store/chat-history.ts:184-192",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); read the rescue code, the runtime id propagation, and frontend step keying; no upstream API repro",
+    "repro_check": "Would need a live DeepSeek multi-round session with two text-leaked tool calls; not run (requires a model that leaks, costs spend)."
+  },
+  {
+    "raw_id": "COD-llm-adapters-12",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed: openai.py:854-855, groq.py:208-209 and gemini.py:203-204 have `except <ProviderError>: raise` with no body beyond the re-raise. anthropic.py:170-173 is the same, though it carries an intent comment. Behaviour is identical to having no clause. This is polish only.",
+    "evidence": "sidecar/services/llm/openai.py:854-855, sidecar/services/llm/groq.py:208-209, sidecar/services/llm/gemini.py:203-204, sidecar/services/llm/anthropic.py:170-173",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); grep of the bare re-raise clauses and read of anthropic validate_key",
+    "repro_check": "grep -n 'except .*Error:$' -A1 on the four adapters shows the bare `raise` bodies."
+  },
+  {
+    "raw_id": "COD-llm-adapters-13",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The promised behaviour IS implemented, one layer up. The adapter surfaces reasoning_content as LLMThinkingEvent (openai.py:759-763), exactly as the comment says ('surface it as a thinking event so the runtime can echo it'). The runtime accumulates those events into round_reasoning_parts (agent_runtime.py:1428-1442) and echoes them on the reconstructed tool-use turn for reasoner models (agent_runtime.py:1528-1529). The only flaw is a comment placed above an unrelated boolean, which would not change a decision.",
+    "evidence": "sidecar/services/llm/openai.py:746-763, sidecar/services/agent_runtime.py:1428-1442, sidecar/services/agent_runtime.py:1515-1540",
+    "evidence_checked": "code-only against HEAD 6998a34 (stack :52152 healthy but no POST repro needed); read the adapter stream loop and the runtime round loop",
+    "repro_check": "grep -n 'reasoning' sidecar/services/agent_runtime.py -> round_reasoning_parts accumulation at :1432-1442 and echo at :1528-1529."
+  }
+]

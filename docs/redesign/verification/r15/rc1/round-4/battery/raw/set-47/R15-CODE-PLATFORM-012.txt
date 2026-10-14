@@ -1,0 +1,8 @@
+NOT RUN as a vitest execution: this role's rules forbid running vitest/pytest suites (heavy lane owns them); no tsx/ts-node in candidate node_modules/.bin to execute TS logic in-process without vitest.
+Attempted (source confirmation, not a run): grep -n "handleToggle|useMarketplaceStore|runtime.loadPlugin|runtime.unloadPlugin" src/components/PluginManagerPanel.tsx
+  9:import { useMarketplaceStore } from "@/store/marketplace";
+  172:  async function handleToggle(nextEnabled: boolean) {
+  178:      const marketplace = useMarketplaceStore.getState();
+-> handleToggle now routes through useMarketplaceStore (matches fix_shape "Route PluginRow.handleToggle through useMarketplaceStore.enable/disable"), not the bare runtime.loadPlugin/unloadPlugin the register described as broken.
+Certified only via vitest: src/components/PluginManagerPanel.test.tsx:118 "toggling an active plugin off persists enabled:false and detaches it (R15-CODE-PLATFORM-012)"; src/lib/plugin-runtime.test.ts:585 "disablePlugin persists enabled:false and detaches the plugin's contributions".
+Verdict: ci_pinned, naming the above two tests.

@@ -1,0 +1,5 @@
+ENTRY: R15-AGENT-041 -- ci_pinned
+Repro is frontend-only (proposed-changes store apply/undo); no sidecar API for Undo. Pinned test still present:
+18:  it("keeps an applied data write listed with Undo, which restores it (R15-AGENT-041)", () => {
+--- source still has undo path ---
+241:            ? { ...c, status: "undone", detail: undefined }

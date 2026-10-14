@@ -1,0 +1,8 @@
+CMD: in-process agent_runtime.invoke_agent (tests helper _cross_round, mocked provider, tool result {ok:false}) with fabricated fenced ```json dump after the errored call
+--- orig repro: single-round fenced fabricated JSON, tool errored
+'Checking.\nThe fundamentals tool returned no data for this in this turn.\n\n'
+fenced lines: [] | fence marker count: 0 | figure leaked: False
+--- cross-round: fenced block in round 2 after errored call
+'Checking.\nThe fundamentals tool returned no data for this in this turn.\n\n'
+fenced lines: [] | fence marker count: 0 | figure leaked: False
+EXIT=0

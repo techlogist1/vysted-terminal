@@ -1,0 +1,6 @@
+# rc1-battery-22 raw R15-AGENT-082 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -rn "parses a priced model's spend_usd\|free model's 0 is a real zero\|unpriced yields undefined\|footer shows tokens and estimated spend" src --include=*.test.ts --include=*.test.tsx | cut -c1-220; grep -n 'spend_usd' sidecar/routers/llm.py | head -5
+src/modules/chat/ChatSidebar.test.tsx:1140:  it("a finished message's footer shows tokens and estimated spend (R15-AGENT-082)", async () => {
+src/modules/chat/streaming.test.ts:232:  it("parses a priced model's spend_usd into doneFrameOf", async () => {
+166:                    event.spend_usd = budget_guard.spend_usd(
+EXIT=0

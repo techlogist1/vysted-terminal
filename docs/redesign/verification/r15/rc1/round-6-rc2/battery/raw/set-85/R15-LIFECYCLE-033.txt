@@ -1,0 +1,24 @@
+# R15-LIFECYCLE-033 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:42:54Z, sidecar :52348
+# kind=sh
+# command:
+#   P=52348
+#   echo '$ POST /system/provider-health/trip {"weight":3.0} (own sidecar, booted without the rig-hooks flag)'
+#   curl -s -m10 -X POST -H 'Content-Type: application/json' -d '{"weight":3.0}' -w '\nHTTP %{http_code}\n' http://127.0.0.1:$P/system/provider-health/trip
+#   echo '$ POST /system/provider-health/reset'
+#   curl -s -m10 -X POST -w '\nHTTP %{http_code}\n' http://127.0.0.1:$P/system/provider-health/reset
+#   echo '$ GET /system/provider-health (breaker still closed)'
+#   curl -s -m10 -w '\nHTTP %{http_code}\n' http://127.0.0.1:$P/system/provider-health | head -c 400
+#   echo '$ route existence in openapi'; curl -s -m10 http://127.0.0.1:$P/openapi.json | python3 -c "import sys,json; p=json.load(sys.stdin)['paths']; print([k for k in p if 'provider-health' in k])"
+# output:
+$ POST /system/provider-health/trip {"weight":3.0} (own sidecar, booted without the rig-hooks flag)
+{"detail":"Not Found"}
+HTTP 404
+$ POST /system/provider-health/reset
+{"detail":"Not Found"}
+HTTP 404
+$ GET /system/provider-health (breaker still closed)
+{"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":0.0,"consecutive_opens":0,"opens_total":2,"throttles_total":23.0},"fallthroughs":[{"provider":"openbb-mcp","model_key":"fundamentals","count":74,"last_error":"openbb-mcp fundamentals returned no rows for 'GRANDOAK.NS'","last_at":1790988172.3698828}]}
+HTTP 200
+$ route existence in openapi
+['/system/provider-health', '/system/provider-health/trip', '/system/provider-health/reset']
+# exit=0

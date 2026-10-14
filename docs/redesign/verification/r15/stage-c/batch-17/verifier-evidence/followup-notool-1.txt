@@ -1,0 +1,8 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  25.4s] done: {"kind": "done", "usage": {"input_tokens": 6109, "output_tokens": 40, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The tool that gave me the market cap figure was `fundamentals`. It returned a value of $4.90T (USD 4 trillion) for the market capitalization of AAPL.
+
+=== ok · 25.4s · events {'heartbeat': 2, 'delta': 40, 'done': 1} · usage in=6109 out=40 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,26 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_046158c917bc45d7b166c2296a6c3473", "name": "set_chart_symbol", "input": {"symbol": "INFY.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_046158c917bc45d7b166c2296a6c3473", "name": "set_chart_symbol", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " chart"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " switched"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Verify"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": " state"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " confirmation"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2875, "output_tokens": 20, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

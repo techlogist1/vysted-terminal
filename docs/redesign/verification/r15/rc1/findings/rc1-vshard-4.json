@@ -1,0 +1,126 @@
+[
+  {
+    "key": "rc1-vshard-4:1",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-RESEARCH-028",
+    "title": "FAST research drops web_search reason on the ok path: a degraded SearXNG still reports keyless-fallback with web_reason None, so the brief shows the 'set up Unlimited local research' nudge",
+    "repro": "own sidecar :52604 with SearXNG state degraded (GET /search/searxng/status); agent invoke research on a symbol -> publish_brief web backend keyless-fallback, reason None; in-process r028.py: web_search tool returns reason 'searxng_degraded' but research.fast._web_round returns reason None",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/research-run1.jsonl",
+    "suspected_files": [
+      "sidecar/services/research/fast.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-4:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-061",
+    "title": "Yahoo throttle still mislabelled: earnings estimates return 502 provider_error, and statement routes return 200 empty with provider_health.record_success",
+    "repro": "during a Yahoo throttle: curl :52604/earnings/HDFCBANK.NS/estimates -> 502 provider_error; /fundamentals/HDFCBANK.NS/income -> 200 periods [] while /fundamentals/HDFCBANK.NS -> 429 rate_limited",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/d061-evidence.txt",
+    "suspected_files": [
+      "sidecar/services/earnings_provider.py",
+      "sidecar/services/yfinance_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-4:3",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-066",
+    "title": "NSE throttle wait still sleeps inside the to_thread executor: a cold 20-name batch stalls cached single quotes (0.002 s -> 5.5 s, one 30 s timeout) and /history (14.3 s)",
+    "repro": "cold GET /quotes?symbols=<20 fresh NIFTY names> and, concurrently, GET /quotes/RELIANCE.NS (EOD-cached) and /history/RELIANCE.NS?range=1mo",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/d066-evidence.txt",
+    "suspected_files": [
+      "sidecar/services/nse_provider.py",
+      "sidecar/routers/quotes.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-4:4",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-055",
+    "title": "Research brief still labels a September-2026 listing (MPIMANIPAL.NS, listed 2026-09-17) as '52-week price change (Yahoo)' / 'trailing 52 weeks' and 'Below 52-week high'; the since-listing logic exists only in EquityOverviewPanel",
+    "repro": "in-process derive_semantics(structured from live MPIMANIPAL.NS quote+fundamentals, 'IN') -> fifty_two_week_change label '52-week price change (Yahoo)', basis 'trailing 52 weeks'",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/d055-semantics.txt",
+    "suspected_files": [
+      "sidecar/services/research/semantics.py",
+      "src/modules/research/brief-blocks.tsx"
+    ]
+  },
+  {
+    "key": "rc1-vshard-4:5",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-DATA-032",
+    "title": "INFY.NS revenue estimate is INR-sized (491,180,745,790) but labelled revenue_currency USD (from financialCurrency); Yahoo's annual totalRevenue is 20.3B USD",
+    "repro": "GET :52604/earnings/INFY.NS/estimates -> revenue_estimate_mean 491180745790, revenue_currency USD",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4.md",
+    "suspected_files": [
+      "sidecar/services/earnings_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-4:6",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-DATA-048",
+    "title": "Derived ROCE and ROE diverge from screener.in (KPITTECH ROCE 21.3% vs 26.3%, ROE 16.5% vs 20.9%): period-end capital, no average, no witness",
+    "repro": "GET :52604/fundamentals/KPITTECH.NS -> roce 0.2127 (derived); compare screener.in",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4.md",
+    "suspected_files": [
+      "sidecar/services/yfinance_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-4:7",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-114",
+    "title": "fetch_latest_fo stops walking on an older-day transport failure: today 404, D-1 failed, D-2 cached -> returns None instead of the cached D-2",
+    "repro": "in-process d114.py script B -> (None, ['2026-10-01','2026-09-30'])",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/d114.py",
+    "suspected_files": [
+      "sidecar/services/option_chain.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-4:8",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-054",
+    "title": "listing_date field_meta provider is stamped 'yfinance' while the value comes from the NSE master (symbol_resolver.nse_listing_date)",
+    "repro": "GET :52604/fundamentals/MPIMANIPAL.NS -> listing_date 2026-09-17, field_meta.listing_date.provider yfinance",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/mpim-fund.json",
+    "suspected_files": [
+      "sidecar/services/yfinance_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-4:9",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-UI-027",
+    "title": "Keybinding recorder uses event.key: on macOS Option+1 records 'alt+¡', conflicts() misses the clash with alt+1 (agent.mode.agent), so the remap silently never fires",
+    "repro": "code trace: SettingsPanel comboFromEvent(event.key) + store/keybindings.ts matchesEvent event.code fallback",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4.md",
+    "suspected_files": [
+      "src/components/SettingsPanel.tsx",
+      "src/store/keybindings.ts"
+    ]
+  },
+  {
+    "key": "rc1-vshard-4:10",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-061",
+    "title": "Unknown macro provider returns 502 provider_error 'Retry' instead of a 4xx client error",
+    "repro": "curl :52604/macro/GDP?provider=bogus -> 502 provider_error",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4.md",
+    "suspected_files": [
+      "sidecar/routers/macro.py"
+    ]
+  }
+]

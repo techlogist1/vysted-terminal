@@ -1,0 +1,32 @@
+{
+  "@maz": [
+    "@MAZDOCKMAZDOCK · NSEMazagon Dock Shipbuilders Limited · [NSE: 2064 -2.32%]ticker@MAZDAMAZDA · NSEMazda Limited · [NSE: ",
+    "@MAZDOCKMAZDOCK · NSEMazagon Dock Shipbuilders Limited · [NSE: 2064 -2.32%]ticker@MAZDAMAZDA · NSEMazda Limited · [NSE: ",
+    "@MAZDOCKMAZDOCK · NSEMazagon Dock Shipbuilders Limited · [NSE: 2064 -2.32%]ticker@MAZDAMAZDA · NSEMazda Limited · [NSE: ",
+    "@MAZDOCKMAZDOCK · NSEMazagon Dock Shipbuilders Limited · [NSE: 2064 -2.32%]ticker@MAZDAMAZDA · NSEMazda Limited · [NSE: ",
+    "@MAZDOCKMAZDOCK · NSEMazagon Dock Shipbuilders Limited · [NSE: 2064 -2.32%]ticker@MAZDAMAZDA · NSEMazda Limited · [NSE: ",
+    "@MAZDOCKMAZDOCK · NSEMazagon Dock Shipbuilders Limited · [NSE: 2064 -2.32%]ticker@MAZDAMAZDA · NSEMazda Limited · [NSE: "
+  ],
+  "@COCHIN": [
+    "@COCHINSHIPCOCHINSHIP · NSECochin Shipyard Limitedticker@COCHINMCOCHINM · BSECochin Minerals & Rutiles Ltd-$ticker@COCHM",
+    "@COCHINSHIPCOCHINSHIP · NSECochin Shipyard Limitedticker@COCHINMCOCHINM · BSECochin Minerals & Rutiles Ltd-$ticker@COCHM",
+    "@COCHINSHIPCOCHINSHIP · NSECochin Shipyard Limitedticker@COCHINMCOCHINM · BSECochin Minerals & Rutiles Ltd-$ticker@COCHM",
+    "@COCHINSHIPCOCHINSHIP · NSECochin Shipyard Limitedticker@COCHINMCOCHINM · BSECochin Minerals & Rutiles Ltd-$ticker@COCHM",
+    "@COCHINSHIPCOCHINSHIP · NSECochin Shipyard Limitedticker@COCHINMCOCHINM · BSECochin Minerals & Rutiles Ltd-$ticker@COCHM",
+    "@COCHINSHIPCOCHINSHIP · NSECochin Shipyard Limitedticker@COCHINMCOCHINM · BSECochin Minerals & Rutiles Ltd-$ticker@COCHM"
+  ],
+  "fetchLog": [
+    "/resolve?q=maz&region=IN -> 200",
+    "/quotes?symbols=MAZDOCK%2CMAZDA%2CMAZE%2CSMLMAH%2CAMZN%2CAMZE&asset_class=equity -> 200",
+    "/resolve?q=ma&region=IN -> 200",
+    "/quotes?symbols=MA&asset_class=equity -> 200",
+    "/resolve?q=CO&region=IN -> 200",
+    "/resolve?q=COC&region=IN -> 200",
+    "/resolve?q=COCHIN&region=IN -> 200",
+    "/resolve?q=COCHI&region=IN -> 200",
+    "/resolve?q=COCH&region=IN -> 200",
+    "/quotes?symbols=COCHINSHIP%2CCOCHINM%2CCOCHMAL%2CTPR&asset_class=equity -> 200",
+    "/quotes?symbols=COCH&asset_class=equity -> 200",
+    "/quotes?symbols=COALINDIA%2CCOFORGE%2CCOROMANDEL%2CCOLPAL%2CCOCHINSHIP%2CCONCOR&asset_class=equity -> 200"
+  ]
+}

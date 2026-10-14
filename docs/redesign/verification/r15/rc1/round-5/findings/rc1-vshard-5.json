@@ -1,0 +1,111 @@
+[
+ {
+  "key": "rc1-vshard-5:1",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-DOCS-016",
+  "title": "CURRENT_STATE.md:753 still hand-counts '18 surviving host actions' while HOST_ACTION_NAMES/catalog write set is 19",
+  "repro": "sed -n 750,756p docs/CURRENT_STATE.md vs python -c 'len([c for c in CAPABILITY_CATALOG.values() if not c.read_only])' -> 19 at 633f8440",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-5.md",
+  "suspected_files": [
+   "docs/CURRENT_STATE.md"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:2",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-CODE-PLATFORM-072",
+  "title": "ccxt (a live provider_registry provider) still has no marketplace row; no registry<->marketplace parity test; REGISTRY_PROVIDER_ID/INDIA_DATA_LANES are hand lists",
+  "repro": "GET /data-sources on :52605 lists ccxt rank 10; grep REGISTRY_PROVIDER_ID/INDIA_DATA_LANES in src/lib/marketplace.ts -> no ccxt",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-5.md",
+  "suspected_files": [
+   "src/lib/marketplace.ts",
+   "src/modules/marketplace/MarketplacePanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-LEAD-026",
+  "title": "GET /history/QQZZFAKE.NS and /history/XYZNOTATICKER.BO still return 200, 0 bars, reason null (suffixed unknown symbols never typed unknown_symbol) - the residual the register note names",
+  "repro": "curl 'http://127.0.0.1:52605/history/QQZZFAKE.NS?timeframe=1d' -> bars 0 reason None (ZZZZNOTREAL -> unknown_symbol)",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/routers/history.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:4",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-RESEARCH-025",
+  "title": "Screener formula still coerces a boolean operand of a comparison: 'roe > (pe_ratio < 15)' validates ok and matches roe 0.9/pe 99",
+  "repro": "POST /screener/formula/validate {'formula':'roe > (pe_ratio < 15)'} -> ok:true; evaluate_formula(roe=0.9,pe=99) -> True",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/services/screener_formula.py",
+   "src/lib/screener-expr.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:5",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-UI-028",
+  "title": "Agent/MCP compute_greeks and price_option return QuantLib-unit vega/theta/rho unlabelled; llama3.1:8b stated 'vega 83.47, theta -16.33' for the default call",
+  "repro": "POST /agents/copilot/invoke (ollama llama3.1:8b) 'Compute the greeks for a European call: spot 220, strike 220, ... What are vega and theta?'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-5-raw/ag-greeks.sse",
+  "suspected_files": [
+   "sidecar/services/agent_tools/quant_tools.py",
+   "sidecar/services/agent_tools/catalog.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-UI-032",
+  "title": "SEC company search is a raw substring match: 'Coca-Cola' misses KO (COCA COLA CO); 'Apple' returns MAUI LAND & PINEAPPLE",
+  "repro": "GET /sec/filings/search?q=Coca-Cola -> CCEP, COKE only",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/services/sec_filings_provider.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-084",
+  "title": "add_chart_drawing: a non-empty bogus panelId from the model bypasses the open-chart fallback and resolves to 'no chart is open' while the model reports the line added",
+  "repro": "ollama llama3.1:8b 'Put a horizontal line at 2,900 on the TCS chart' -> input panelId 'chart panel ID (assuming it is already open)'; host-actions.ts parseChartDrawing uses str(input,'panelId') || findOpenPanel",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-5-raw/ag-draw-tcs.sse",
+  "suspected_files": [
+   "src/lib/host-actions.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DOCS-005",
+  "title": "BLUEPRINT.md:20/:615 say 12 AI agents; /agents and sidecar/agents/*.json have 13 first-party agents",
+  "repro": "curl /agents -> 13 ids; grep '12 AI agents' docs/BLUEPRINT.md",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-5.md",
+  "suspected_files": [
+   "docs/BLUEPRINT.md"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:9",
+  "kind": "environment",
+  "severity": "low",
+  "register_id": "R15-DATA-048",
+  "title": "Yahoo quoteSummary rate-limited for the run (direct yfinance YFRateLimitError); DATA-048 live repro inconclusive",
+  "repro": "PYTHONPATH=. .venv/bin/python3 -c \"import yfinance as yf; yf.Ticker('TTKHLTCARE.NS').info\" -> YFRateLimitError",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-5.md",
+  "suspected_files": []
+ }
+]

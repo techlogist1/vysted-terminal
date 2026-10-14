@@ -1,0 +1,14 @@
+=== AGENT-076: ollama.py tools-stream fallback (source excerpt) ===
+        # text-JSON call may be rescued for.
+        offered: set[str] = set()
+        if tools is not None:
+            try:
+                stream = await client.chat(
+                    model=model,
+                    messages=api_messages,
+                    stream=True,
+                    tools=tools,
+                    **kwargs,
+                )
+                offered = {tool["function"]["name"] for tool in tools}
+            except Exception:  # noqa: BLE001 — degrade gracefully, retry below.

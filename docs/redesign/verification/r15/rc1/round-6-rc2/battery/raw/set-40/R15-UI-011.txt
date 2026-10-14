@@ -1,0 +1,11 @@
+RAW rc1-battery-12 @ ace7dd76 ci_pinned source probe (no vitest by role rule)
+$ grep BacktestPanel tests
+src/modules/backtest/BacktestPanel.test.tsx:261:  it("swaps Run for Stop while a backtest is streaming", async () => {
+src/modules/backtest/BacktestPanel.test.tsx:499:  it("Stop aborts the live stream, idles the run, and Retry runs on a fresh controller", async () => {
+116:  // One controller per run, shared by Run and Retry, so Stop can abort
+118:  const controllerRef = useRef<AbortController | null>(null);
+121:      const controller = new AbortController();
+127:  const handleStop = useCallback(() => controllerRef.current?.abort(), []);
+278:              onClick={handleStop}
+280:              aria-label="Stop backtest"
+285:              Stop

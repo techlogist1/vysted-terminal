@@ -1,0 +1,52 @@
+# Critic re-check R15-AGENT-074 at e032be7dd164a504215055a1cd7b7b497dbd68e9
+
+$ git -C repo merge-base --is-ancestor 325465a0 e81c9e7c / e032be7d
+325465a0 ancestor of e81c9e7c (batch 7)
+325465a0 ancestor of sha
+
+$ git show --stat 325465a0
+325465a0 fix(runs): a budget breach stops the turn before its tools run (R15-AGENT-037, R15-AGENT-038, R15-AGENT-074)
+
+ sidecar/services/agent_runtime.py | 33 ++++++++++++++++-----
+ sidecar/services/budget_guard.py  |  9 ++++--
+ sidecar/services/run_manager.py   | 39 +++++++++++++++----------
+ sidecar/tests/test_run_manager.py | 61 ++++++++++++++++++++++++++++++++++++++-
+ 4 files changed, 116 insertions(+), 26 deletions(-)
+
+$ git show 325465a0 (mechanism hunks)
+31:-    provider_str = str(provider or "")
+52:-    def _on_round_usage(usage: LLMUsage, used_model: str) -> None:
+55:-        guard.record(usage, used_model, provider_str)
+56:+    def _on_round_usage(usage: LLMUsage, used_model: str, used_provider: str) -> bool:
+61:+        guard.record(usage, used_model, used_provider)
+31:+#: The notice ``invoke_agent`` yields when ``on_round_usage`` refused another
+41:-    on_round_usage: Callable[[LLMUsage, str], None] | None = None,
+42:+    on_round_usage: Callable[[LLMUsage, str, str], bool] | None = None,
+68:-                if on_round_usage is not None:
+69:-                    on_round_usage(event.usage or LLMUsage(), resolved_model)
+71:+                    on_round_usage(event.usage or LLMUsage(), resolved_model, provider_id)
+72:+                    if on_round_usage is not None
+
+$ git blame at sha
+325465a0d (Lokavya Singh 2026-09-24 16:12:05 +0530 215)         guard.record(usage, used_model, used_provider)
+325465a0d (Lokavya Singh 2026-09-24 16:12:05 +0530 2116)                     on_round_usage(event.usage or LLMUsage(), resolved_model, provider_id)
+8bd21736e (Lokavya Singh 2026-09-24 16:18:34 +0530 556)         provider=run.provider,
+
+$ sed -n 667,668p services/agent_runtime.py
+def _resolve_provider_id(spec: AgentSpec, override: LLMProviderId | None) -> LLMProviderId:
+    return override or spec.default_provider
+$ grep -n provider_str services/run_manager.py
+(no hits)
+
+$ price_per_million at sha
+anthropic/opus 30.0 | empty/opus 5.0 | ollama/qwen 0.0 | empty/qwen 5.0
+
+$ ORIGINAL probe: pytest tests/test_run_manager.py::test_a_provider_less_run_is_priced_at_the_resolved_provider
+.                                                                        [100%]
+1 passed in 0.07s
+
+$ FRESH variant: pytest evidence/critic/R15-AGENT-074_variant_test.py -v (ollama-default provider-less = $0; provider-less opus $1 ceiling breaches on round 1; resume of provider-less run priced at anthropic/opus)
+============================== 3 passed in 1.55s ===============================
+
+$ curl GET http://127.0.0.1:52350/runs
+{"runs":[]} [200]

@@ -1,0 +1,10 @@
+CMD: curl -s http://127.0.0.1:52356/workspace ; curl -s http://127.0.0.1:52356/workspaces (buggy old path); then a real FastMCP in-memory Client over _build_server() pointed at :52356 via VYSTED_SIDECAR_INTERNAL_BASE_URL, calling list_workspaces and get_workspace
+OUTPUT (route-path fix): GET /workspace -> 200 ["__autosave__"]; GET /workspaces -> 404 Not Found
+["__autosave__"]
+{"detail":"Not Found"}
+OUTPUT (real MCP tools, own :52356):
+list_workspaces: {'workspaces': ['__autosave__']}
+get_workspace('__autosave__'): returns the saved workspace dict (layout/grid populated)
+get_workspace('not-a-real-ws-xyz'): {'ok': False, 'error': "GET /workspace/not-a-real-ws-xyz failed: Client error '404 Not Found' ..."} -- typed failure, not a transport crash
+
+VERDICT: holds -- both v1.0 external MCP workspace tools work end-to-end against a live sidecar: list_workspaces returns the wrapped dict (no more bare-list crash), get_workspace resolves a real workspace and fails typed on a missing one. Confirmed live via the real FastMCP Client, not source-only.

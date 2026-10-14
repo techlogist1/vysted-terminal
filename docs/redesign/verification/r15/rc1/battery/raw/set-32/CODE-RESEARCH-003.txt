@@ -1,0 +1,4 @@
+sidecar/services/research/deep.py:8: "The single-pass run_deep_research loop that used to live here was removed"
+grep for run_deep_research across services/research/*.py: 0 live callers (only historical mention in the removal comment).
+services/research/depth.py maps DEEP -> iter.run_iter_research, ULTRA -> iter.run_heavy_research (one bounded loop family, no second drifted loop).
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/research/deep.py:8:The single-pass ``run_deep_research`` loop that used to live here was removed

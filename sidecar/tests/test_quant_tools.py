@@ -123,7 +123,7 @@ async def test_yield_curve_value_happy_path() -> None:
 def test_no_order_placement_tool_ids_registered() -> None:
     """BLUEPRINT §6.5 audit assertion — the agent_tools registry must NEVER
     expose a placement-style tool id even via the Phase 6 quant surface.
-    Mirrors the grep done by ``test_safety_end_to_end.py``.
+    Mirrors the id check in ``test_no_trading_surface.py``.
     """
     ids = set(agent_tools.registered_tools())
     forbidden = {"place_order", "submit_order", "execute_order", "auto_approve"}

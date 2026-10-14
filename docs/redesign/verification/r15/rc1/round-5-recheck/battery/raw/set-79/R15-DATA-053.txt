@@ -1,0 +1,3 @@
+=== R15-DATA-053 live repro: GET /quotes/SBIN.BO?asset_class=equity on candidate sidecar :52364 ===
+curl -s -m 25 'http://127.0.0.1:52364/quotes/SBIN.BO?asset_class=equity' -> HTTP 200
+{"symbol":"SBIN","price":982.5,"change":4.0,"change_percent":0.4087889626980072,"volume":234000.0,"open":980.0,"high":985.9,"low":977.0,"prev_close":978.5,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}

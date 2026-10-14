@@ -1,0 +1,8 @@
+# R15-CODE-FRONTEND-023 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'R15-CODE-FRONTEND-023' src/modules/chart/ChartPanel.tsx src/modules/chart/ChartPanel.test.tsx | cut -c1-200
+--- output ---
+src/modules/chart/ChartPanel.tsx:379:  // every mouse move, peer chart or not (R15-CODE-FRONTEND-023).
+src/modules/chart/ChartPanel.test.tsx:1172:  it("N crosshair moves on a lone chart cause 0 ChartPanel re-renders (R15-CODE-FRONTEND-023)", async () => {
+
+EXIT=0 (0.0s)

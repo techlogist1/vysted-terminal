@@ -1,0 +1,27 @@
+def test_complete_with_usage_returns_the_done_usage(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The adapter's ``done`` usage comes back beside the text; ``complete`` stays ``str``."""
+
+    class _Adapter:
+        async def stream_chat(self, **_: Any):
+            yield LLMDeltaEvent(text="hel")
+            yield LLMDeltaEvent(text="lo")
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=120, output_tokens=30))
+
+    monkeypatch.setattr(oneshot, "get_provider", lambda _p: _Adapter())
+    text, usage = asyncio.run(
+        oneshot.complete_with_usage("openai", "gpt-4.1", "k", [{"role": "user", "content": "q"}])
+    )
+    assert text == "hello"
+    assert usage is not None and usage.input_tokens == 120 and usage.output_tokens == 30
+    plain = asyncio.run(
+        oneshot.complete("openai", "gpt-4.1", "k", [{"role": "user", "content": "q"}])
+    )
+    assert plain == "hello"
+
+
+def test_deep_run_with_reported_usage_has_a_nonzero_cost(native_run) -> None:
+    out = native_run(PROFILES["deep"], LLMUsage(input_tokens=2000, output_tokens=500))
+    assert out["ok"] is True
+    assert out["_llm_calls"] > 0
+    assert out["cost"]["tokens"] == 2500 * out["_llm_calls"]
+    assert out["cost"]["spend_usd"] > 0

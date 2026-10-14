@@ -1,0 +1,19 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Source re-check (repro is design+code trace).
+grep -n "read_notes\|write_note" sidecar/services/agent_tools/catalog.py:
+1182:            "read_notes",
+1185:                "before write_note with mode 'replace', and whenever the user refers "
+1661:            "write_note",
+
+grep -n "note" src/modules/chat/context-provider.ts:
+15:import { useNotesStore } from "@/store/notes";
+300:/** Each note rides the request capped at this many characters (C2). */
+303:  "\n[note truncated here; the full text is in the Notes panel]";
+305:/** The user's notes as the `__notes__` snapshot entry (C2): the general note
+306: *  and every non-empty per-symbol note, each capped. They ride beside
+322:  const notes: Record<string, string> = {};
+325:      notes[symbol] = capNote(text);
+328:  return { general: capNote(general), bySymbol: notes };
+332: *  user's notes, which the agent reads with `read_notes` (R15-AGENT-020). */
+337:    bySource: { __terminal__: terminalState, __notes__: captureNotes() },
+
+VERDICT: holds. `read_notes` capability exists in the catalog and `captureNotes()` puts note text (general + per-symbol) into the `__notes__` context bus entry the agent reads, matching the certified fix shape (memory becomes read-write, not write-only).

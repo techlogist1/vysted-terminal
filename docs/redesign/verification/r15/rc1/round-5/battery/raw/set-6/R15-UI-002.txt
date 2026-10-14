@@ -1,0 +1,22 @@
+R15-UI-002 -- Cmd-K ticker pick -> chart
+Source: src/components/CommandPalette.tsx:207,394 both call loadSymbolIntoChart() (imported from host-actions.ts:55), not the dead chart-sync bus. loadSymbolIntoChart writes useChartCommandStore, the always-consumed channel (host-actions.ts:323).
+55:import { loadSymbolIntoChart } from "@/lib/host-actions";
+207:            loadSymbolIntoChart(item.symbolEntry.symbol, undefined, item.symbolEntry.region);
+394:                  loadSymbolIntoChart(c.symbol, undefined, c.region);
+
+Pinned vitest src/components/CommandPalette.test.tsx:217 'a ticker pick commands the chart through the always-consumed chart-command channel' -- unmodified, matches register repro (Cmd-K -> type -> pick Tickers row -> chart-command channel set).
+  it("a ticker pick commands the chart through the always-consumed chart-command channel", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel } as never);
+    resetChartCommandStoreForTests();
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Ask anything/i), { target: { value: "nvda" } });
+    const symbolsGroup = screen.getByText("Symbols").closest("[cmdk-group]") as HTMLElement;
+    fireEvent.click(within(symbolsGroup).getByText("NVDA"));
+    expect(useChartCommandStore.getState().command?.symbol).toBe("NVDA");
+    // No chart on screen → one is opened so the command has a consumer.
+    expect(openPanel).toHaveBeenCalledWith("chart");
+  });
+
+  it("a cross-region ticker pick charts the region of the listing actually picked (R15-DATA-002)", () => {

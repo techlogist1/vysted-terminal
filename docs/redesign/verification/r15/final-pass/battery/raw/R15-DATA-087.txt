@@ -1,0 +1,10 @@
+# R15-DATA-087 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:46:23+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for r in US IN; do echo -n "\$ GET /macro/DGS10 (no provider) [$r]: "; curl -s -m 60 -w ' [%{http_code}]' -H "X-Vysted-Region: $r" "$H/macro/DGS10" | head -c 400; echo; done
+echo -n "\$ GET /macro/CPIAUCSL?provider=fred: "; curl -s -m 60 -w ' [%{http_code}]' "$H/macro/CPIAUCSL?provider=fred" | head -c 300; echo
+--- output ---
+$ GET /macro/DGS10 (no provider) [US]: {"detail":"provider is required for a series id"} [422]
+$ GET /macro/DGS10 (no provider) [IN]: {"detail":"provider is required for a series id"} [422]
+$ GET /macro/CPIAUCSL?provider=fred: {"detail":"FRED needs a free API key for macro data. Get one at fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, and reload — or switch the series provider to ECB, IMF, or World Bank, which need no key.","code":"provider_error","action":"Retry, or try again later."} [502]
+
+EXIT=0 (0.0s)

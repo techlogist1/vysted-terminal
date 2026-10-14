@@ -1,0 +1,43 @@
+# R15-AGENT-087 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:43:03Z, sidecar :52348
+# kind=sh
+# command:
+#   echo '$ spec FR-003 text'; grep -n "FR-003" -A3 specs/*/spec.md | head -12
+#   echo '$ agent-mode.ts docblock'; sed -n 1,14p src/store/agent-mode.ts
+#   echo '$ agent-modes.ts modes + keybindings alt+N'; grep -n "alt+[0-9]" src/store/keybindings.ts types/agent-modes.ts src/store/agent-mode.ts | head
+#   echo '$ any remaining "four" modes / alt+3 / alt+4 claim in spec or store'; grep -rn "alt+3\|alt+4\|four-mode\|four modes\|Ask / Edit / Build / Delegate" src/store/agent-mode.ts types/agent-modes.ts specs/*/spec.md | head
+# output:
+$ spec FR-003 text
+830:- **FR-003**: The system MUST present the agent on stable global hotkeys as **two modes**
+831-  — **Agent** (⌥1, inferred intent: read/edit/build classified server-side from the
+832-  request, no mode-picking) and **Delegate** (⌥2, autonomous budget-bounded background
+833-  task) — plus the orthogonal **autonomy axis** (ASK/AUTO), with the active mode and
+$ agent-mode.ts docblock
+/**
+ * Agent-mode store — the current two-mode intent + autonomy-axis model
+ * (FR-003; see REBUILD_SPEC.md:179 for the collapse from the old four modes).
+ *
+ * Holds the active mode (Agent / Delegate, `types/agent-modes.ts`). Mode is
+ * shown in the agent surface and switchable by keyboard (⌥1–⌥2). It rides the
+ * workspace blob so a cockpit reopens in the mode the user left it in. Read vs
+ * edit vs build is an inferred intent within "Agent" mode, classified and
+ * gated server-side (`classify_intent` in the sidecar); autonomy (ask/auto) is
+ * the orthogonal "how much confirmation" axis. This store is the frontend's
+ * display + dispatch state for mode only.
+ */
+
+import { create } from "zustand";
+$ agent-modes.ts modes + keybindings alt+N
+src/store/keybindings.ts:32: * key last — e.g. `"mod+k"`, `"alt+1"`, `"mod+enter"`, `"mod+shift+p"`.
+src/store/keybindings.ts:76:  // Build on alt+1-4) described bindings the shipped handler no longer has.
+src/store/keybindings.ts:78:    keys: "alt+1",
+src/store/keybindings.ts:85:    keys: "alt+2",
+src/store/keybindings.ts:433: * elsewhere. `"alt+1"` → `"⌥1"` (mac) / `"Alt+1"`. Pure + SSR-safe.
+$ any remaining "four" modes / alt+3 / alt+4 claim in spec or store
+src/store/agent-mode.ts:3: * (FR-003; see REBUILD_SPEC.md:179 for the collapse from the old four modes).
+types/agent-modes.ts:4: * The old four explicit modes (Ask / Edit / Build / Delegate) forced the user to
+specs/001-agent-native-redesign/spec.md:47:  dual-mode agent surface + four-mode spine + diff/accept gate) is the redesign core; P2
+specs/001-agent-native-redesign/spec.md:259:Collapsed from the original four-mode design to **two modes on stable hotkeys** plus an
+specs/001-agent-native-redesign/spec.md:834:  autonomy always visible. Collapsed from the original four-mode design
+specs/001-agent-native-redesign/spec.md:1291:   around the agent (chrome, entry points, information hierarchy, four-mode spine, diff gate) with
+specs/001-agent-native-redesign/spec.md:1434:- **SC-029** Model swap preserves context on every path; Enter sends in every composer; one mode system — the two-mode + autonomy-axis spine (`REBUILD_SPEC.md:179`), not the original four modes (audit).
+# exit=0

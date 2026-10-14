@@ -1,0 +1,14 @@
+# R15-LIFECYCLE-010 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:35+0530
+
+$ git merge-base --is-ancestor 68bb7aa4 HEAD && echo 'closure 68bb7aa4 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 68bb7aa4 NOT an ancestor'
+[exit 0] [0.02s]
+closure 68bb7aa4 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-LIFECYCLE-010\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/lib/sidecar-client.test.ts:12:/** R15-LIFECYCLE-010: a spawn failure is named at once, never a 300 s probe. */
+src/lib/sidecar-client.ts:99:    // A spawn failure or an exited engine is named at once (R15-LIFECYCLE-010).
+src-tauri/src/lib.rs:21:/// Where the main sidecar is in its life (R15-LIFECYCLE-010).
+src-tauri/src/lib.rs:1014:        // R15-LIFECYCLE-010: the arm for a missing sidecar command records the
+

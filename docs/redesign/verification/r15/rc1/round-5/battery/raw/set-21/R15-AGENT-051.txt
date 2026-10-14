@@ -1,0 +1,12 @@
+NO GUI in this run (role note: GUI-driven repros are operator-attended, separate workflow). Repro's mechanism is server-side (sidecar/services/agent_runtime.py _render_terminal_preamble), so verified by direct source inspection of the candidate at 9bc600ece2ce6343a6aa48f130d7620b1466bb98 (read, not a live browser probe):
+
+sed -n '429,439p' sidecar/services/agent_runtime.py:
+    focused_panel = ts.get("focusedPanel")
+    charts = [c for c in ts.get("charts") or [] if isinstance(c, dict)]
+    focused_chart = next((c for c in charts if c.get("panelId") == focused_panel), None)
+    shown = focused_chart or (charts[0] if charts else None)
+    ...
+    label = "Focused chart" if focused_chart is not None else "Chart"
+
+OBSERVED: the preamble now resolves the SECOND chart's panelId against ts["focusedPanel"] (focused_chart) before falling back to charts[0], and only labels it "Focused chart" when that lookup succeeds -- eliminating the always-charts[0]-labelled-as-focused contradiction the register named. Comment at line 432 explicitly cites R15-AGENT-051.
+VERDICT: holds (source-level; no browser session available to drive two chart panels live this run)

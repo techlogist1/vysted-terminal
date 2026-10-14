@@ -1,0 +1,74 @@
+{
+ "getScripHeaderData/w": {
+  "CurrRate": {
+   "LTP": "688.10",
+   "Chg": "-17.60",
+   "PcChg": "-2.49",
+   "D_Cpricelink": "",
+   "IssueChgVal": "",
+   "IssueChgPC": ""
+  },
+  "Cmpname": {
+   "FullN": "Amal Ltd",
+   "ShortN": "amal",
+   "SeriesN": "Amal Ltd",
+   "SEOUrlEQ": "/stock-share-price/amal-ltd/amal/506597/",
+   "SEOUrlDR": "/stock-share-price/future-options/derivatives/506597/",
+   "IsNotPropernFIT": "0",
+   "Category": "Listed",
+   "EquityScrips": "506597"
+  },
+  "Header": {
+   "Noticecnt": "1",
+   "PrevClose": "705.70",
+   "Open": "701.30",
+   "High": "703.10",
+   "Low": "684.60",
+   "LTP": "688.10",
+   "DisplayText": "",
+   "Category": "Listed",
+   "PRE_OPEN_NO_BIDS": null,
+   "PRE_OPEN_NO_I_PRICE": null,
+   "PRE_OPEN_I_PRICE": null,
+   "PRE_OPEN_I_PRICE_QTY": null,
+   "PCAS_NO_BIDS": null,
+   "PCAS_INDICATIVE_PRICE": null,
+   "PCAS_INDICATIVE_QTY": null,
+   "PERODIC_CALL_AUCTION": null,
+   "GSMURL": "",
+   "GSMText": "",
+   "Invit": "0",
+   "Ason": "24 Sep 26 | 16:00",
+   "NAVRate": "",
+   "NAVdttm": "",
+   "ASMText": "",
+   "SMSText": "",
+   "IRPText": "",
+   "ASMURL": "",
+   "SMSURL": "https://www.bseindia.com/attention_investors.aspx",
+   "IRPURL": "https://www.bseindia.com/markets/MarketInfo/DispNewNoticesCirculars.aspx?page=20230210-55",
+   "IDB_DisplayText": "",
+   "IsALF": "0",
+   "EMSText": "",
+   "EMSURL": ""
+  },
+  "CompResp": {
+   "compRes": null,
+   "texturl": null
+  }
+ },
+ "StockTrading/w": {
+  "WAP": "694.65",
+  "Turnoverin": "(Lakh)",
+  "Turnover": "37.43",
+  "TTQin": "",
+  "TTQ": "5388",
+  "TwoWkAvgQtyin": "",
+  "TwoWkAvgQty": "3657",
+  "CktLimit": "5,388.00/550.50",
+  "MktCapFull": "850.67",
+  "MktCapFF": "243.06",
+  "ExDate": "31 Jul 2026",
+  "blockdttm": ""
+ }
+}

@@ -1,0 +1,7 @@
+CMD: python3 -c '<inline call to services.workflow_nodes.code_node.evaluate_code>' from sidecar/ (candidate venv)
+PASS: '2^3^2' -> 512 (expected 512)
+PASS: '-2^2' -> -4 (expected -4)
+PASS: '2+3*4^2' -> 50 (expected 50)
+PASS: 'round(2.5)' -> 3.0 (expected 3)
+PASS: 'round(-2.5)' -> -3.0 (expected -3)
+PASS: 'a > 1 ? a ^ 2 : 0' -> 4 (expected 4)

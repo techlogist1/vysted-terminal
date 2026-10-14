@@ -1,0 +1,8 @@
+# R15-CODE-FRONTEND-021 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n -F 'R15-CODE-FRONTEND-021' src/modules/chat/ChatSidebar.test.tsx
+--- output ---
+580:  it("ContextBadge hidden with no bus events, shown with one panel event (asserted on kind) (R15-CODE-FRONTEND-021)", () => {
+
+EXIT=0 (0.0s)

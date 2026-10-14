@@ -1,0 +1,33 @@
+sha: 68d5573aff9a579af084dcbb124843f2aecff6e8 (worktree sidecar venv, in-process)
+$ PYTHONPATH=. ./.venv/bin/python3 scratchpad/vs2/agent048_probe.py
+import asyncio, time, json
+import services.llm.oneshot as O
+from services.llm.openai import OpenAIProvider
+from models.llm import LLMToolUseEvent, LLMDeltaEvent, LLMDoneEvent, LLMUsage
+calls = {"n": 0}
+MODE = {"v": "hang"}
+class Fake:
+    async def _gen(self):
+        calls["n"] += 1
+        if MODE["v"] == "hang":
+            await asyncio.sleep(3600)
+        yield LLMDeltaEvent(text='{"bogus": 1}')
+        yield LLMDoneEvent(usage=LLMUsage(input_tokens=100, output_tokens=7), finish_reason="stop")
+    def stream_chat(self, **k): return self._gen()
+O.get_provider = lambda *a, **k: Fake()
+p = OpenAIProvider()
+# fresh: five DIFFERENT tools (the entry's repro is five failing calls; mix parse failures + schema misses)
+from services.llm.openai import _ToolArgFailure
+events = [LLMToolUseEvent(tool_call_id=f"c{i}", name=n, input={"wrong": i}) for i, n in enumerate(["fundamentals", "earnings_history", "analyst_history"])]
+fails = [_ToolArgFailure("f1", "corporate_actions", "{not json", "arguments were not valid JSON"), _ToolArgFailure("f2", "fundamentals", "[1,2]", "not an object")]
+async def main():
+    for mode in ("hang", "reply"):
+        MODE["v"] = mode; calls["n"] = 0
+        repairs = []
+        t = time.monotonic()
+        out = await p._resolve_tool_events(list(events), list(fails), model="m", api_key=None, repairs=repairs)
+        print(mode, "elapsed %.1fs" % (time.monotonic() - t), "repair calls made:", calls["n"], "ledger:", [None if u is None else (u.input_tokens, u.output_tokens) for u in repairs], "sentinel outputs:", sum(1 for e in out if "__vysted_invalid_args__" in e.input), "/", len(out))
+asyncio.run(main())
+--- output
+hang elapsed 60.2s repair calls made: 2 ledger: [None, None] sentinel outputs: 5 / 5
+reply elapsed 0.0s repair calls made: 2 ledger: [(100, 7), (100, 7)] sentinel outputs: 5 / 5

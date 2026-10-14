@@ -1,0 +1,65 @@
+import { readFileSync, writeFileSync } from "node:fs";
+
+const OUT = process.env.GATE8_OUT!;
+const PORT = process.env.GATE8_PORT!;
+const RAW = process.env.GATE8_RAW!;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+test("gate8 gated agent write applied as the frontend does", async () => {
+  window.history.replaceState({}, "", `/?sidecar-port=${PORT}`);
+  const { usePortfoliosStore } = await import("@/store/portfolios");
+  const { useWorkspaceStore } = await import("@/store/workspace");
+  const { useAgentAutonomyStore } = await import("@/store/agent-autonomy");
+  const { useProposedChangesStore } = await import("@/store/proposed-changes");
+  const { isHostActionMutation } = await import("@/lib/host-actions");
+  const ws = await import("@/lib/workspace");
+  const base = `http://127.0.0.1:${PORT}`;
+  const log: Record<string, unknown> = {};
+  const stub = {
+    toJSON: () => ({ grid: { root: { type: "branch", data: [] }, width: 0, height: 0, orientation: "HORIZONTAL" }, panels: {} }),
+    fromJSON: () => {}, panels: [], getPanel: () => undefined, removePanel: () => {}, addPanel: () => {},
+  };
+  useWorkspaceStore.setState({ dockviewApi: stub as never });
+  const readBlob = async () => (await (await fetch(`${base}/workspace/__autosave__`)).json());
+  const holdings = () => {
+    const s = usePortfoliosStore.getState();
+    return structuredClone(s.portfolios.find((p) => p.id === s.activeId)!.holdings);
+  };
+  // launch restore of the persisted ledger
+  ws.deserializeWorkspace(await readBlob());
+  const ledger0 = holdings();
+  log.ledgerBefore = ledger0;
+  log.autonomy = useAgentAutonomyStore.getState().autonomy;
+
+  // the agent's tool_use events, as the SSE stream delivered them
+  const events = readFileSync(RAW, "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l));
+  const uses = events.filter((e) => (e.kind ?? e.type) === "tool_use");
+  log.toolUses = uses;
+  const proposals: { id: string; name: string }[] = [];
+  for (const e of uses) {
+    const name = e.name ?? e.tool;
+    const input = e.input ?? e.args ?? {};
+    const toolCallId = e.tool_call_id ?? e.id ?? e.toolCallId ?? "";
+    if (!isHostActionMutation(name)) continue;
+    // ChatSidebar.onToolUse → enqueueChange
+    const { id, outcome } = useProposedChangesStore.getState().enqueue({ toolCallId, name, input, batchId: "gate8" });
+    proposals.push({ id, name });
+    log[`outcome_${id}`] = await outcome;
+  }
+  log.pendingAfterPropose = structuredClone(useProposedChangesStore.getState().changes.map((c) => ({ id: c.id, name: c.action.name, status: c.status, title: c.title, before: c.before, after: c.after })));
+  log.ledgerAfterPropose = holdings();
+  log.ledgerUnchangedUntilApplied = JSON.stringify(log.ledgerAfterPropose) === JSON.stringify(ledger0);
+  log.blobAfterPropose = (await readBlob()).portfolios;
+  // the user accepts (the review card's Accept → store.accept)
+  for (const p of proposals) {
+    log[`accept_${p.id}`] = await useProposedChangesStore.getState().accept(p.id);
+  }
+  log.ledgerAfterAccept = holdings();
+  // autosave path, then read back
+  const payload = ws.serializeWorkspace("__autosave__");
+  const post = await fetch(`${base}/workspace`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "__autosave__", workspace: payload }) });
+  log.persistPost = post.status;
+  await sleep(500);
+  log.blobAfterAccept = (await readBlob()).portfolios;
+  writeFileSync(OUT, JSON.stringify(log, null, 1));
+});

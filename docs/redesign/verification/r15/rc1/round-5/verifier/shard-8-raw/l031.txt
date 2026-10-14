@@ -1,0 +1,8 @@
+repro sify-1 chunks                | shown='' | rescued=('price_data', {'symbol': 'SIFY'}) | tail_shown=''
+fresh char-by-char fundamentals    | shown='' | rescued=('fundamentals', {'symbol': 'INFY'}) | tail_shown=''
+fresh type-first key order         | shown='{"type": "function", "name": "fundamentals", "parameters": {"symbol": "SIFY"}}' | rescued=('fundamentals', {'symbol': 'SIFY'}) | tail_shown=''
+fresh function-wrapper             | shown='' | rescued=None | tail_shown='{"function": {"name": "fundamentals", "arguments": {"symbol": "SIFY"}}}'
+fresh fenced json                  | shown='' | rescued=('fundamentals', {'symbol': 'SIFY'}) | tail_shown=''
+fresh call syntax                  | shown='' | rescued=('fundamentals', {'symbol': 'SIFY'}) | tail_shown=''
+fresh python_tag                   | shown='' | rescued=('price_data', {'symbol': 'SIFY'}) | tail_shown=''
+fresh truncated + native call      | shown='' | rescued=None | tail_shown='Let me check. {"name": "price_data", "parameters": {"symbol": "SIFY"'

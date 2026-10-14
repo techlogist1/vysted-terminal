@@ -1,0 +1,32 @@
+import sys
+sys.path.insert(0, "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-1006c6d-fix-int/sidecar/tests")
+from datetime import UTC, datetime
+import pytest
+from test_quotes import _freeze_locale_clock
+from conftest import *  # noqa: F401,F403
+from models.market import Quote
+
+# 2026-09-23 15:00 UTC = 11:00 ET (NYSE open) = 20:30 IST (NSE closed) = 01:00 AEST 24th (ASX closed)
+US_HOURS = datetime(2026, 9, 23, 15, 0, tzinfo=UTC)
+NSE_HOURS = datetime(2026, 9, 23, 5, 0, tzinfo=UTC)
+CASES = [
+  # (symbol url, ts of last trade, now, region header)
+  ("RELIANCE.NS", datetime(2026, 9, 23, 10, 0, tzinfo=UTC), US_HOURS, "US"),   # NSE closed at 10:00 UTC
+  ("%5ENSEBANK", datetime(2026, 9, 23, 10, 0, tzinfo=UTC), US_HOURS, "US"),
+  ("%5ECNXIT", NSE_HOURS, NSE_HOURS, "US"),
+  ("MSFT", datetime(2026, 9, 22, 20, 0, tzinfo=UTC), NSE_HOURS, "IN"),
+  ("BHP.AX", datetime(2026, 9, 23, 6, 0, tzinfo=UTC), US_HOURS, "US"),        # ASX closed 9h ago
+  ("7203.T", datetime(2026, 9, 23, 6, 0, tzinfo=UTC), US_HOURS, "US"),        # TSE closed
+  ("%5EN225", datetime(2026, 9, 23, 6, 0, tzinfo=UTC), US_HOURS, "IN"),
+  ("HSBA.L", datetime(2026, 9, 23, 15, 30, tzinfo=UTC), datetime(2026, 9, 23, 17, 0, tzinfo=UTC), "US"),  # LSE closed 16:30 UTC, NYSE open
+]
+@pytest.mark.parametrize("sym,ts,now,reg", CASES)
+def test_case(client, monkeypatch, sym, ts, now, reg):
+    from services import provider_registry
+    _freeze_locale_clock(monkeypatch, now)
+    def quote(symbol, asset_class="equity"):
+        return Quote(symbol=symbol, price=100.0, change=0.0, change_percent=0.0, timestamp=ts, provider="yfinance")
+    monkeypatch.setattr(provider_registry, "get_quote", quote)
+    body = client.get(f"/quotes/{sym}", headers={"X-Vysted-Region": reg}).json()
+    print(f"\nRESULT {sym} region={reg} now={now.isoformat()} last_trade={ts.isoformat()} -> freshness={body.get('freshness')}")
+    assert body["freshness"] != "live"

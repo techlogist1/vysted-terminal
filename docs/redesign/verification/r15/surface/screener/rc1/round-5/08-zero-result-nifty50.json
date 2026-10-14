@@ -1,0 +1,2 @@
+{"universe":"nifty50","evaluated_count":49,"skipped_count":1,"skip_details":[{"symbol":"TMPV.NS","reason":"missing_field:pe_ratio"}],"result_count":0,"matched_count":0,"rows":[],"duration_ms":127.15091701829806,"partial":false,"coverage":"screened 49 of 50 — 1 unavailable","freshness":null,"basis_counts":null,"throttled":false}
+HTTP 200

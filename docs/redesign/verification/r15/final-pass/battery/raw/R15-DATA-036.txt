@@ -1,0 +1,9 @@
+# R15-DATA-036 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:44:25+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b19_set13.py 036 2>&1 | grep -v Warning
+--- output ---
+== seed one real day: 5060
+== warm 1y _assemble_history KSE: {'seconds': 0.31, 'bars': 246, 'last_close': 179.15}
+== again: 0.31
+
+EXIT=0 (1.5s)

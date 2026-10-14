@@ -1,0 +1,49 @@
+=== R15-LIFECYCLE-015 probe (candidate 1006c6da) ===
+import asyncio, sys, os
+os.environ["VYSTED_DATA_DIR"] = "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/probe015-data"
+sys.path.insert(0, ".")
+from services import backtest_engine, backtest_store
+from services.backtest_engine import BacktestStrategy, Bar
+from models.backtest import BacktestRequest
+
+class _Noop(BacktestStrategy):
+    NAME = "noop-probe"
+    async def on_bar(self, bar, portfolio):
+        return []
+
+async def main():
+    async def loader(_s, _a, _b):
+        return [Bar("2025-01-02", "AAA", 100.0, 100.0, 100.0, 100.0, 1)]
+    backtest_engine.register_strategy("noop-probe", _Noop)
+    req = BacktestRequest(strategyId="noop-probe", params={}, symbols=["AAA"],
+                           startDate="2025-01-01", endDate="2025-12-31", initialCapital=100000.0)
+    base = await backtest_engine.run_backtest(req, bar_loader=loader)
+
+    backtest_store.reset_for_tests()
+    for i in range(34):
+        variant = base.model_copy(update={"run_id": f"run-{i:02d}", "started_at": 1_000_000 + i})
+        backtest_store.put(variant)
+
+    still_in_memory = backtest_store._cache.get("run-00")
+    print("run-00 evicted from in-memory LRU (33rd-oldest of 34, capacity 32):", still_in_memory is None)
+    readable_via_disk = backtest_store.get("run-00")
+    print("run-00 still readable via get() (disk fallback) after eviction:", readable_via_disk is not None)
+
+    backtest_store.reset_for_tests()  # simulate a restart: memory wiped, disk intact
+    after_restart = backtest_store.get("run-00")
+    print("run-00 readable after simulated restart:", after_restart is not None)
+
+    runs = backtest_store.list_runs()
+    ids = [r.run_id for r in runs]
+    print("list_runs() order (first 3, last 3):", ids[:3], ids[-3:])
+    print("newest-first correct:", ids[0] == "run-33" and ids[-1] == "run-00")
+
+asyncio.run(main())
+OUTPUT:
+run-00 evicted from in-memory LRU (33rd-oldest of 34, capacity 32): True
+run-00 still readable via get() (disk fallback) after eviction: True
+run-00 readable after simulated restart: True
+list_runs() order (first 3, last 3): ['run-33', 'run-32', 'run-31'] ['run-02', 'run-01', 'run-00']
+newest-first correct: True
+
+VERDICT: holds. 34 runs (>32 capacity): run-00 is evicted from the in-memory LRU but still readable via disk fallback, and still readable after a simulated restart (fresh cache). list_runs() returns newest-first (run-33 first, run-00 last).

@@ -1,0 +1,26 @@
+# R15-DATA-017 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:07:28+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in JNPR SUMAX DHOOTTRANS QUALIANCE SHANTIINOR; do for k in shareholding announcements results; do echo -n "$s $k: "; curl -s -m 100 -H "X-Vysted-Region: IN" -w ' HTTP=%{http_code}' "$H/disclosures/$k?symbol=$s" -o /tmp/fb2_$$.json; python3 -c "
+import json;d=json.load(open('/tmp/fb2_$$.json'))
+if isinstance(d,dict): print(' coverage',d.get('coverage'),'sources',d.get('sources'),'count',d.get('count',len(d.get('patterns') or d.get('items') or d.get('events') or [])), 'promoter', (d.get('patterns') or [{}])[0].get('promoter_percent') if d.get('patterns') else '')
+" ; done; done; rm -f /tmp/fb2_$$.json; echo -n "quote SUMAX: "; curl -s -m 60 -H "X-Vysted-Region: IN" -w ' HTTP=%{http_code}' "$H/quotes/SUMAX" | cut -c1-200; echo
+--- output ---
+JNPR shareholding:  HTTP=200 coverage covered sources None count 1 promoter 85.94
+JNPR announcements:  HTTP=200 coverage covered sources ['NSE', 'BSE'] count 42 promoter 
+JNPR results:  HTTP=200 coverage covered sources ['NSE', 'BSE'] count 1 promoter 
+SUMAX shareholding:  HTTP=200 coverage covered sources None count 1 promoter 69.67
+SUMAX announcements:  HTTP=200 coverage covered sources ['NSE'] count 9 promoter 
+SUMAX results:  HTTP=200 coverage covered sources ['NSE'] count 0 promoter 
+DHOOTTRANS shareholding:  HTTP=200 coverage covered sources None count 1 promoter 82.78
+DHOOTTRANS announcements:  HTTP=200 coverage covered sources ['NSE', 'BSE'] count 21 promoter 
+DHOOTTRANS results:  HTTP=200 coverage covered sources ['NSE', 'BSE'] count 1 promoter 
+QUALIANCE shareholding:  HTTP=200 coverage covered sources None count 1 promoter 63.66
+QUALIANCE announcements:  HTTP=200 coverage covered sources ['NSE'] count 6 promoter 
+QUALIANCE results:  HTTP=200 coverage covered sources ['NSE'] count 0 promoter 
+SHANTIINOR shareholding:  HTTP=200 coverage covered sources None count 1 promoter 56.05
+SHANTIINOR announcements:  HTTP=200 coverage covered sources ['NSE'] count 4 promoter 
+SHANTIINOR results:  HTTP=200 coverage covered sources ['NSE'] count 0 promoter 
+quote SUMAX: {"symbol":"SUMAX","price":101.25,"change":-2.5,"change_percent":-2.4096385542168677,"volume":63600.0,"open":102.0,"high":102.5,"low":99.0,"prev_close":103.75,"currency":"INR","market_state":"CLOSED","
+
+
+EXIT=0 (24.9s)

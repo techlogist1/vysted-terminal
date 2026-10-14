@@ -1,0 +1,25 @@
+===== repro_equity_infy
+## What the user is looking at
+Chart: SPY (1D, no indicators).
+Focused panel: equity-overview.
+When the user says "this" or "it", they mean INFY unless they name another symbol. Never invent figures — call a tool to fetch them.
+===== fresh_chart2
+## What the user is looking at
+Focused chart: NVDA (1H, vwap).
+When the user says "this" or "it", they mean NVDA unless they name another symbol. Never invent figures — call a tool to fetch them.
+AGREE NVDA NVDA
+===== fresh_analyst_lowercase
+## What the user is looking at
+Chart: SPY (1D, no indicators).
+Focused panel: analyst-ratings.
+When the user says "this" or "it", they mean msft unless they name another symbol. Never invent figures — call a tool to fetch them.
+===== fresh_sec_identifier
+## What the user is looking at
+Chart: SPY (1D, no indicators).
+Focused panel: sec-filings.
+When the user says "this" or "it", they mean SPY unless they name another symbol. Never invent figures — call a tool to fetch them.
+===== fresh_three_charts_third_focused
+## What the user is looking at
+Focused chart: TCS.NS (1W, rsi).
+When the user says "this" or "it", they mean TCS.NS unless they name another symbol. Never invent figures — call a tool to fetch them.
+AGREE TCS.NS TCS.NS

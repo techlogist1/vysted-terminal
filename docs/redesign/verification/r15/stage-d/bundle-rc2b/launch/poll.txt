@@ -1,0 +1,43 @@
+T0 23:47:10
+app pid 27014
++10s listeners=[] did_not_come_up=0 healthy=0 load={ 2.96 2.03 2.05 }
++21s listeners=[] did_not_come_up=0 healthy=0 load={ 3.13 2.09 2.08 }
++31s listeners=[] did_not_come_up=0 healthy=0 load={ 3.32 2.17 2.10 }
++41s listeners=[] did_not_come_up=0 healthy=0 load={ 3.12 2.16 2.10 }
++51s listeners=[] did_not_come_up=0 healthy=0 load={ 2.80 2.13 2.09 }
++61s listeners=[] did_not_come_up=0 healthy=0 load={ 3.15 2.22 2.12 }
+{"sha256": "435738c0f034d94ece807a992968c05e3309a0baa0de6737c839a997a54e6348", "path": "docs/redesign/verification/r15/stage-d/bundle-rc2b/launch/1fddb2b-01-first-launch-early.png", "tool": "screencapture-l", "frontmost_app": "", "window_owner": "Vysted Terminal", "taken_at": "2026-10-03T18:18:14.632232+00:00"}
+capture 1fddb2b-01-first-launch-early wid=7153 +64s
++74s listeners=[] did_not_come_up=0 healthy=0 load={ 3.09 2.26 2.14 }
++84s listeners=[] did_not_come_up=0 healthy=0 load={ 3.00 2.26 2.14 }
++94s listeners=[] did_not_come_up=0 healthy=0 load={ 2.99 2.29 2.15 }
++104s listeners=[] did_not_come_up=0 healthy=0 load={ 2.76 2.26 2.14 }
++114s listeners=[] did_not_come_up=0 healthy=1 load={ 2.79 2.29 2.15 }
+Not Found
+{"sha256": "55734194ab313b9430d4ff8ec0bb42eb7c63425de62fd339fa5a341873cdd238", "path": "docs/redesign/verification/r15/stage-d/bundle-rc2b/launch/1fddb2b-02-connected.png", "tool": "screencapture-l", "frontmost_app": "", "window_owner": "Vysted Terminal", "taken_at": "2026-10-03T18:19:20.626996+00:00"}
+capture 1fddb2b-02-connected wid=7153 +130s
++140s listeners=[] did_not_come_up=0 healthy=1 load={ 3.00 2.37 2.19 }
++150s listeners=[] did_not_come_up=0 healthy=1 load={ 2.91 2.38 2.19 }
++160s listeners=[] did_not_come_up=0 healthy=1 load={ 2.61 2.33 2.17 }
++170s listeners=[] did_not_come_up=0 healthy=1 load={ 2.21 2.25 2.15 }
++180s listeners=[] did_not_come_up=0 healthy=1 load={ 2.02 2.21 2.13 }
++190s listeners=[] did_not_come_up=0 healthy=1 load={ 1.86 2.17 2.12 }
++201s listeners=[] did_not_come_up=0 healthy=1 load={ 1.88 2.17 2.12 }
++211s listeners=[] did_not_come_up=0 healthy=1 load={ 2.04 2.19 2.13 }
++221s listeners=[] did_not_come_up=0 healthy=1 load={ 1.80 2.14 2.11 }
++231s listeners=[] did_not_come_up=0 healthy=1 load={ 1.60 2.08 2.09 }
++241s listeners=[] did_not_come_up=0 healthy=1 load={ 1.44 2.03 2.07 }
++251s listeners=[] did_not_come_up=0 healthy=1 load={ 1.45 2.01 2.06 }
++261s listeners=[] did_not_come_up=0 healthy=1 load={ 1.61 2.03 2.07 }
++271s listeners=[] did_not_come_up=0 healthy=1 load={ 1.76 2.04 2.07 }
++281s listeners=[] did_not_come_up=0 healthy=1 load={ 2.10 2.11 2.10 }
++291s listeners=[] did_not_come_up=0 healthy=1 load={ 2.17 2.12 2.10 }
++301s listeners=[] did_not_come_up=0 healthy=1 load={ 1.91 2.07 2.08 }
++311s listeners=[] did_not_come_up=0 healthy=1 load={ 1.78 2.03 2.07 }
++321s listeners=[] did_not_come_up=0 healthy=1 load={ 1.73 2.01 2.06 }
++331s listeners=[] did_not_come_up=0 healthy=1 load={ 1.62 1.98 2.05 }
++342s listeners=[] did_not_come_up=0 healthy=1 load={ 1.60 1.96 2.04 }
+{"sha256": "2ba99ef9310124dc0e032e41ce22838004b678ee1634dd889b40f9fc046b652e", "path": "docs/redesign/verification/r15/stage-d/bundle-rc2b/launch/1fddb2b-03-steady-320s.png", "tool": "screencapture-l", "frontmost_app": "", "window_owner": "Vysted Terminal", "taken_at": "2026-10-03T18:22:52.550627+00:00"}
+capture 1fddb2b-03-steady-320s wid=7153 +342s
+quit SIGTERM tree=[27014 27030 27032 ] alive_after_8s=[]
+DONE

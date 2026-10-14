@@ -1,0 +1,11 @@
+CMD: grep -rniE 'open_interest|openInterest' sidecar/models/ sidecar/services/quotes.py types/ (candidate)
+ugrep: warning: sidecar/services/quotes.py: No such file or directory
+sidecar/models/market.py:102:    open_interest: float | None = None
+types/data.ts:92:  open_interest: number | null;
+EXIT: 2
+---broker_reads.py shapes---
+ugrep: warning: sidecar/models/broker_reads.py: No such file or directory
+---option chain capability check---
+927:            "price_option",
+973:            "compute_greeks",
+1059:            "option_chain",

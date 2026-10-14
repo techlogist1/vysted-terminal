@@ -1,0 +1,16 @@
+# Set 13 — batch-4/W4-market-data-gate (regression battery shard 14)
+
+Sidecar: candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98, port 52354, data dir rc1-round-5-data-rc1-battery-14.
+
+| id | repro run | observed | verdict |
+|---|---|---|---|
+| R15-DATA-016 | `GET /fundamentals/DAL` | `fifty_two_week_high`/`low` null, both `withheld` "no trades in 52 weeks (last trade 2025-03-12); withheld"; date fields `ok` at 2026-09-27 (session moved forward from the batch's run, dates unaffected). | holds |
+| R15-DATA-034 | in-process `yahoo_batch_provider.fundamentals_from_v7` with rows at yield 1.5, 0.9, 0.03 | 1.5 and 0.9 → `dividend_yield=None`, field_meta withheld "exceeds the plausible fraction bound of 25%"; 0.03 → passes clean, no meta. Bound is the single 25% constant, no 2.0 local bound reachable via this path. | holds |
+| R15-DATA-035 | in-process `bse_provider._download_bhavcopy`/`_bhavcopy_for` with a temp cache: HTML-200 response, a marker with mtime after the day, a marker with mtime on the day | HTML-200 writes no marker (day stays uncached); a marker with mtime on the trading day itself is not honoured (re-fetched); live `/quotes?symbols=RELIANCE.NS` still serves real EOD data. | holds |
+| R15-DATA-036 | `GET /history/KSE.BO?range=1y` cold then warm, timed | 255 bars, cold 0.42s / warm 0.34s, byte-identical between calls; last bar close 180.8 (2026-09-25, market moved since the cert's 179.15). No ~8-12s per-request-parse regression. | holds |
+| R15-DATA-047 | `GET /fundamentals/ABBOTINDIA` | `dividend_per_share=525` flagged "below the 656 actually paid in the trailing 12 months by 20% — the rate can omit a special dividend…", `dividend_per_share_ttm=656` ok. Exact text match to certification. | holds |
+| R15-DATA-049 | `GET /fundamentals/VIYASH`, `/ICON`, `/ELCIDIN` | VIYASH/ICON: ttm=0.0, yield=0.0, reason "no dividends paid (trailing 12m)". ELCIDIN: ttm=25.0, yield≈0.024% reason "trailing-12m dividends paid (25) / price (103800)" (price moved slightly from cert's 105800, mechanism identical). | holds |
+| R15-DATA-082 | in-process `ccxt_provider._ticker_to_quote` (no price field) and `provider_registry.get_quote("BTC/USDT","crypto")` with a stubbed zero-price ticker; live `/quotes?symbols=BTC/USDT,ETH/USDT&asset_class=crypto` | No-price-field ticker → `ProviderError` (no 0.0 quote). Stubbed `last:0, close:0` through the registry → `CorrectnessError: non-positive price 0.0` (gate now runs for crypto quotes too). Live quotes return real prices, `freshness: live`. | holds |
+| R15-LIFECYCLE-004 | census harness `parser_drift.py` (repointed at the candidate's sidecar) section A: real RELIANCE historicalOR window, O/H/L/V keys renamed, `_rows_to_bars` then `provider_registry.get_history("RELIANCE.NS","1d","1mo")` | `_rows_to_bars` on the renamed rows raises `ProviderError: nse_direct: historical row for 2026-09-22 lacks CH_OPENING_PRICE, CH_TRADE_HIGH_PRICE, CH_TRADE_LOW_PRICE, CH_TOT_TRADED_QTY (payload shape changed)` — exact match to the cert's wording. Through the registry, the same drift raises, falls through, and is served as `nse`, 26 real bars, 0 flat, 0 zero-volume (cert: 26 real bars, 0 flat, 0 zero-volume). | holds |
+
+COVERAGE: 8/8 ids raw; no raw: none.

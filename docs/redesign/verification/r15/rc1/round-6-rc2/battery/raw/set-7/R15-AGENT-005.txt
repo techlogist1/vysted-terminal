@@ -1,0 +1,9 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/ip.sh /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b4_005.py
+('gemini', None, 'gemini-2.5-pro') with tools: False | one-shot (no function tools): True
+('groq', None, 'llama-3.3-70b-versatile') with tools: False | one-shot (no function tools): False
+('xai', None, None) with tools: False | one-shot (no function tools): False
+('groq', None, 'groq/compound') with tools: True | one-shot (no function tools): True
+('gemini', None, 'gemini-3-pro-preview') with tools: True | one-shot (no function tools): True
+
+exit=0

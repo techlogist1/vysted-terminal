@@ -1,0 +1,4 @@
+literal history bars 1238 -> 33 zero-vol 0 min low 37.5
+literal DAL (last trade 2025-03-12, no bars) None None {'fifty_two_week_high': ('withheld', 'no trades in 52 weeks (last trade 2025-03-12); withheld'), 'fifty_two_week_low': ('withheld', 'no trades in 52 weeks (last trade 2025-03-12); withheld')}
+fresh: one BSE trade 200d ago @49.88, provider low 46.58 49.88 46.58 {}
+fresh: no venue bars, ratio as_of 200d ago 49.88 46.58 {}

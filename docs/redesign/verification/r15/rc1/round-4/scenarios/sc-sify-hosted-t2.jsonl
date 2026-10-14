@@ -1,0 +1,23 @@
+{"kind": "tool_use", "tool_call_id": "call_193071eaaeca4662bbf6712c68e297c6", "name": "resolve_symbol", "input": {"query": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_193071eaaeca4662bbf6712c68e297c6", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_f06958c046cb4d26b1697a9dbadef97e", "name": "sec_filings_list", "input": {"symbol": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_f06958c046cb4d26b1697a9dbadef97e", "name": "sec_filings_list", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_c42a3cf57bb7483896894cf2c033fcf3", "name": "sec_filing_content", "input": {"accession": "0001554855-26-001437", "identifier": "SIFY", "form_type": "20-F"}}
+{"kind": "heartbeat"}
+{"kind": "tool_result", "tool_call_id": "call_c42a3cf57bb7483896894cf2c033fcf3", "name": "sec_filing_content", "ok": true, "error": null}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources. "}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources. "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " detailed"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 11353, "output_tokens": 29, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.024057}

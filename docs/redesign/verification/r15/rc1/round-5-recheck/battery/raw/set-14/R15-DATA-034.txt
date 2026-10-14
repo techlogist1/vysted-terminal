@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "<string>", line 10, in <module>
+    meta = f.field_meta.get('dividend_yield')
+           ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'
+yield=1.5 -> dividend_yield=None
+  field_meta: withheld a dividend yield of 150.00% exceeds the plausible fraction bound of 25% — an ambiguous-unit value; withheld
+yield=0.9 -> dividend_yield=None
+  field_meta: withheld a dividend yield of 90.00% exceeds the plausible fraction bound of 25% — an ambiguous-unit value; withheld
+yield=0.03 -> dividend_yield=0.03

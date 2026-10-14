@@ -1,0 +1,25 @@
+# R15-DATA-015 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:48+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+echo "\$ GET /fundamentals/ELCIDIN (IN)"; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/fundamentals/ELCIDIN" | python3 -c "
+import sys,json;d=json.load(sys.stdin);fm=d.get('field_meta') or {}
+for k in ('fifty_two_week_high','fifty_two_week_low','price','ratio_price'):
+    print(k,'=',d.get(k),'| meta',json.dumps(fm.get(k))[:300])"
+echo "outside-world: BSE HighLow ELCIDIN 503681"; curl -s -m 20 -A 'Mozilla/5.0' -H 'Referer: https://www.bseindia.com/' 'https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=503681' | head -c 400; echo
+--- output ---
+$ GET /fundamentals/ELCIDIN (IN)
+fifty_two_week_high = 137000.0 | meta {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T11:43:38.677389+00:00", "reason": "52-week high 137,000.00 comes from the same provider 52-week window as the flagged low, and that window disagrees with the NSE + BSE exchange range 87,003.00-144,500.00 since 2025-09-18; kept, flagg
+fifty_two_week_low = 101110.0 | meta {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T11:43:38.677389+00:00", "reason": "52-week low 101,110.00 is 14% off the NSE + BSE exchange range 87,003.00-144,500.00 since 2025-09-18; kept, flagged", "label": null, "basis_note": null}
+price = None | meta null
+ratio_price = 102155.0 | meta {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:52:54+00:00", "reason": null, "label": null, "basis_note": null}
+outside-world: BSE HighLow ELCIDIN 503681
+<HTML><HEAD>
+<TITLE>Access Denied</TITLE>
+</HEAD><BODY>
+<H1>Access Denied</H1>
+ 
+You don't have permission to access "http&#58;&#47;&#47;api&#46;bseindia&#46;com&#47;BseIndiaAPI&#47;api&#47;HighLow&#47;w&#63;" on this server.<P>
+Reference&#32;&#35;18&#46;56f10117&#46;1791027828&#46;3d27c679
+<P>https&#58;&#47;&#47;errors&#46;edgesuite&#46;net&#47;18&#46;56f10117&#46;1791027828&#46;3d27c679</P>
+</BO
+
+EXIT=0 (11.1s)

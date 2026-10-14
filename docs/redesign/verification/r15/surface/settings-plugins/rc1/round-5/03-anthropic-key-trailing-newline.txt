@@ -1,0 +1,4 @@
+CMD: curl POST /llm/keys/validate provider=anthropic api_key with trailing 
+
+{"ok":false,"reason":"invalid","detail":"Anthropic rejected this key."}
+HTTP 200

@@ -1,0 +1,30 @@
+CMD: source read of services/research/deep.py _synthesis_llm (explicitly R15-RESEARCH-014-tagged) + services/llm/oneshot.py finish_reasons(); no live Anthropic key available in this isolated BYOK profile (same limitation the original batch-5 certifier hit), so the underlying is_length_finish plumbing this function calls was instead live-proven in this shard's own R15-AGENT-026 probe (real Ollama length-finish -> is_length_finish True).
+        )
+    except Exception:  # noqa: BLE001 — an LLM failure or per-call overrun ends the round, not the run
+        return ""
+    return out if isinstance(out, str) else ""
+
+
+async def _synthesis_llm(llm_call: LLMCall, messages: list[dict[str, Any]]) -> tuple[str, bool]:
+    """:func:`_safe_llm` for a synthesis call, plus whether the completion was
+    cut at the model's output limit (R15-RESEARCH-014)."""
+    with oneshot.finish_reasons() as reasons:
+        body = await _safe_llm(llm_call, messages)
+    return body, any(is_length_finish(r) for r in reasons)
+
+
+#: while a :func:`finish_reasons` block is open (task-local).
+_finish_sink: ContextVar[list[str | None] | None] = ContextVar("oneshot_finish_sink", default=None)
+
+
+@contextmanager
+def finish_reasons() -> Iterator[list[str | None]]:
+    """Collect the ``done`` finish reason of every completion run in the block.
+
+    The research loop's ``llm_call`` returns text only, so a synthesis cut at
+    the model's output limit looked complete (R15-RESEARCH-014); a caller wraps
+    its call in this block to learn how the completion ended.
+    """
+    reasons: list[str | None] = []
+    token = _finish_sink.set(reasons)
+    try:

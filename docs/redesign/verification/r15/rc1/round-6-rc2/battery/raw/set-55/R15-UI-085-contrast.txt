@@ -1,0 +1,13 @@
+# rc1-battery-22 raw R15-UI-085 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/p22_085.py; grep -n -- '--color-charcoal-600' styles/tokens.css
+charcoal-900 #161616 charcoal-950 #0a0a0a
+charcoal-600 #484848 1.98:1 on 900
+charcoal-500 #8a8a8a 5.24:1 on 900
+charcoal-400 #a8a8a8 7.61:1 on 900
+sage-500 #767676 3.98:1 on 900
+sage-400 #a0a0a0 6.92:1 on 900
+brass-500 #363636 1.50:1 on 900
+lume #f7f7f7 16.89:1 on 900
+sage-300 #cfcfcf 11.62:1 on 900
+40:  --color-charcoal-600: #484848; /* strong border / disabled fg */
+EXIT=0

@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_c2a7e317edd14083a2bdb79beea6d225", "name": "portfolio_update_position", "input": {"asset_class": "equity", "cost_basis": 3100, "position_id": "manual entry (not provided)", "quantity": -5, "symbol": "TCS"}}
+[  37.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_c2a7e317edd14083a2bdb79beea6d225", "name": "portfolio_update_position", "ok": true, "error": null}
+[  41.6s] research_step: {"kind": "research_step", "tool_call_id": "call_c2a7e317edd14083a2bdb79beea6d225", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_update_position TCS. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  41.6s] done: {"kind": "done", "usage": {"input_tokens": 2963, "output_tokens": 48, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You sold 5 TCS shares at ₹3,100 each.
+
+Your total proceeds from this sale would be:
+₹3,100 * 5 = ₹15,500
+
+Please review and accept the update in your portfolio.
+
+=== ok · 41.6s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 46, 'research_step': 1, 'done': 1} · usage in=2963 out=48 · est $0.00000 · llama3.1:8b

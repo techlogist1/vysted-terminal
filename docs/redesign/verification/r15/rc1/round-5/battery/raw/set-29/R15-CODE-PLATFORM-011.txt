@@ -1,0 +1,21 @@
+CMD: curl -s -X POST http://127.0.0.1:52363/agents/buffett/runs -H 'Content-Type: application/json' -d '{"prompt":"x","budget":{"max_tokens":"abc"}}'
+{"detail":[{"type":"int_parsing","loc":["body","budget","max_tokens"],"msg":"Input should be a valid integer, unable to parse string as an integer","input":"abc"}]}
+EXIT: 0
+--- backend 422 shape (above) confirms int_parsing loc=['body','budget','max_tokens'] msg 'Input should be a valid integer...' ---
+--- frontend source check: extractSidecarDetail (src/lib/sidecar-client.ts:49-73) builds 'field: msg' from the array; launchDelegateRun (src/lib/delegate-runs.ts:187) renders 'Could not start: ${reasonOf(err)}' where err is a SidecarError whose message came from extractSidecarDetail. No raw JSON / [object Object] path exists. ---
+    requestHeaders["Content-Type"] = "application/json";
+    init.body = JSON.stringify(opts.body);
+  }
+  const response = await sidecarFetch(url.toString(), init);
+  if (!response.ok) {
+    // A body with no `detail` (and a blank status text) still names the status.
+    let detail = response.statusText || `HTTP ${response.status}`;
+    try {
+      detail = extractSidecarDetail(await response.json(), detail);
+    } catch {
+      // Response body was not JSON — keep the status text.
+    }
+    throw new SidecarError(response.status, detail);
+  }
+--- computed message for this exact 422 would be: max_tokens: Input should be a valid integer, unable to parse string as an integer -> 'Could not start: max_tokens: Input should be a valid integer, unable to parse string as an integer' ---
+VERDICT: holds

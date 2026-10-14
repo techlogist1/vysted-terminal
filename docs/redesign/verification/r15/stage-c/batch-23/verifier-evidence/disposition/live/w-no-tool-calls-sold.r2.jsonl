@@ -1,0 +1,77 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " updated"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " local"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " sell"}
+{"kind": "delta", "text": " transaction"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Sold"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": " units"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "200"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Your"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " proceeds"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "800"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " session"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " but"}
+{"kind": "delta", "text": " according"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " known"}
+{"kind": "delta", "text": " closing"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "09"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "900"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2747, "output_tokens": 77, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

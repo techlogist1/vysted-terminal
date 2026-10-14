@@ -1,0 +1,7 @@
+RAW rc1-battery-12 @ ace7dd76 in-process (candidate venv) probe 010
+rows before 3
+earnings:AAPL:x -> None
+disclosures:RELIANCE:y -> None
+rows after reading 2 stale keys 1 (ratings:TCS:z not read, untouched)
+fresh row survives: True
+exit=

@@ -1,0 +1,12 @@
+# R15-DATA-076 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:06:52+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in DAL FUSION; do echo "\$ GET /fundamentals/$s [IN]"; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/fundamentals/$s" | python3 -c "
+import sys,json;d=json.load(sys.stdin);fm=d.get('field_meta') or {}
+print('revenue_growth',d.get('revenue_growth'),'| meta',json.dumps(fm.get('revenue_growth'))[:400])"; done
+--- output ---
+$ GET /fundamentals/DAL [IN]
+revenue_growth 0.452 | meta {"status": "ok", "provider": "bse", "as_of": "2026-06-30", "reason": null, "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30", "basis_note": null}
+$ GET /fundamentals/FUSION [IN]
+revenue_growth 0.05464631816403103 | meta {"status": "ok", "provider": "nse", "as_of": "2026-06-30", "reason": "exchange-filed (NSE) figure served; the provider's 128.1% disagrees with it \u2014 not served", "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30", "basis_note": null}
+
+EXIT=0 (19.2s)

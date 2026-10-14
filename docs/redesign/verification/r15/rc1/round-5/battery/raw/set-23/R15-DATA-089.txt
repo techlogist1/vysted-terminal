@@ -1,0 +1,2 @@
+Same evidence as R15-CODE-FRONTEND-012 (same root fix): sidecar/routers/portfolio.py is GET-only; host-actions.ts has zero references to sidecarPositionId/portfolioUrl/syncPositionToSidecar (grep confirmed). Agent portfolio_update_position/portfolio_delete_position now resolve entirely against the frontend portfolios store (resolveHolding + usePortfoliosStore, see R15-AGENT-042 raw) and never attempt to reach the sidecar ledger at all, so the NaN-id/405/discarded-failure chain the register describes cannot occur -- the path it occurred on no longer exists.
+VERDICT: holds

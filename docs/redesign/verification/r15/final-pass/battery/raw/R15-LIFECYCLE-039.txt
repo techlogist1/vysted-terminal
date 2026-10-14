@@ -1,0 +1,35 @@
+# R15-LIFECYCLE-039 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:36+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$PATH
+TD=$(mktemp -d "$B/out/tmpdir.XXXX"); export TMPDIR=$TD/
+cd "$C"; node --input-type=module - <<'JS'
+import { spawn, execSync } from "node:child_process";
+import { writeFileSync, mkdirSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+const m = await import("./scripts/smoke-test-sidecars.mjs");
+const dir = m._STATE_DIR; mkdirSync(dir, { recursive: true }); console.log("STATE_DIR", dir);
+const env = { ...process.env, VYSTED_SMOKE_TEST_MARKER: "vysted-smoke-test-v1" };
+const owner = spawn("sleep", ["300"], { env, detached: true, stdio: "ignore" });
+const a = spawn("sleep", ["301"], { env, detached: true, stdio: "ignore" });
+const b = spawn("sleep", ["302"], { env, detached: true, stdio: "ignore" });
+const dead = spawn("true"); await new Promise((r) => dead.on("exit", r));
+const row = (pid) => [{ pid, binary: "sleep", marker: "vysted-smoke-test-v1", spawnedAt: Date.now() }];
+writeFileSync(join(dir, `live-children-${owner.pid}.json`), JSON.stringify(row(a.pid)));
+writeFileSync(join(dir, `live-children-${dead.pid}.json`), JSON.stringify(row(b.pid)));
+await m._scopedOrphanPreflight();
+const alive = (p) => { try { process.kill(p, 0); return true; } catch { return false; } };
+await new Promise((r) => setTimeout(r, 500));
+console.log("A-child (live owner) alive:", alive(a.pid), "| B-child (dead owner) reaped:", !alive(b.pid));
+console.log("ledgers left:", readdirSync(dir));
+for (const p of [owner.pid, a.pid, b.pid]) { try { process.kill(p, "SIGTERM"); } catch {} }
+JS
+--- output ---
+STATE_DIR /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb0/out/tmpdir.hpgi/vysted-smoke-test
+[smoke] pre-flight (ATTENDED-SAFE) complete: reaped 1 leaked child(ren), dropped 0 stale/unowned ledger row(s), left 1 ledger(s) owned by a still-running concurrent smoke-test process untouched.
+A-child (live owner) alive: true | B-child (dead owner) reaped: true
+ledgers left: [ 'live-children-99279.json' ]
+
+--- stderr ---
+[smoke] pre-flight: reaping a leaked child from a PRIOR RUN OF THIS SCRIPT (pid=99295, binary=sleep) — confirmed via this script's own marker, tree-killing.
+
+EXIT=0 (1.1s)

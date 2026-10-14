@@ -1,0 +1,10 @@
+# R15-UI-049 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'promoteKeyedProvider' src | grep -v 'test.ts:[0-9]*: *await' | cut -c1-180 | head -6
+--- output ---
+src/components/KeyEntryDialog.tsx:89:      if (await useLLMProvidersStore.getState().promoteKeyedProvider(providerId)) {
+src/store/llm-providers.ts:83:  promoteKeyedProvider: (id: LLMProviderId) => Promise<boolean>;
+src/store/llm-providers.ts:92:  promoteKeyedProvider: async (id) => {
+src/store/llm-providers.test.ts:10:describe("promoteKeyedProvider (R15-UI-049)", () => {
+
+EXIT=0 (0.0s)

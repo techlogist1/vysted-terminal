@@ -1,0 +1,20 @@
+Repro (design/measurement, per register): grep sidecar/services/agent_runtime.py + sidecar/services/llm/ollama.py at candidate 1006c6da.
+
+$ grep -n "DEFAULT_NUM_CTX\|num_ctx" sidecar/services/llm/ollama.py
+55:DEFAULT_NUM_CTX = 16384
+158:        request_options.setdefault("num_ctx", DEFAULT_NUM_CTX)
+
+$ grep -n "_window_tool_subset\|_fit_to_window" sidecar/services/agent_runtime.py
+1023:def _window_tool_subset(tool_ids, messages, window) -> list[str]:
+1050:def _fit_to_window(messages, tool_ids, window) -> None:
+2730:        tool_ids = _window_tool_subset(tool_ids, messages, window)
+2798:        _fit_to_window(run.messages, run.tool_ids, run.window)
+
+Read _window_tool_subset (lines 1023-1044): when full schema+system prompt would exceed half the
+window, it subsets tool_ids to always-on + domain-cued specialists instead of sending all 50.
+Read _fit_to_window (1050-1068): elides OLDEST tool results (never the latest round, never
+non-tool messages) until the round fits (window - answer reserve).
+
+Verdict: holds. Both mitigations (schema-subsetting AND tool-result elision) are present and
+wired into the live invoke_agent path (call sites at 2730 and 2798), directly answering the
+register's two complaints (all-50-schemas-every-round; tool results uncapped/never cleared).

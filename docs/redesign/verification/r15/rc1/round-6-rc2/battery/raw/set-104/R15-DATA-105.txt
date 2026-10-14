@@ -1,0 +1,6 @@
+RAW rc1-battery-12 @ ace7dd76 in-process (candidate venv) probe 105
+series fields: ['symbol', 'timeframe', 'bars', 'provider', 'freshness', 'reason', 'partial', 'coverage_start']
+ValueError -> freshness = 'unknown' bars 1
+KeyError -> freshness = 'unknown' bars 1
+TypeError -> freshness = 'unknown' bars 1
+PASS: never None

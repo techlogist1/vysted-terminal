@@ -1,0 +1,19 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_48f94735678443f59c281d5582eccdbf", "name": "read_notes", "input": {"scope": "global"}}
+{"kind": "tool_result", "tool_call_id": "call_48f94735678443f59c281d5582eccdbf", "name": "read_notes", "ok": true, "error": null}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": "Clear"}
+{"kind": "delta", "text": "ing"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " noting"}
+{"kind": "delta", "text": " global"}
+{"kind": "delta", "text": " '"}
+{"kind": "delta", "text": "p"}
+{"kind": "delta", "text": "wn"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": "'"}
+{"kind": "delta", "text": ".\""}
+{"kind": "done", "usage": {"input_tokens": 1782, "output_tokens": 14, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

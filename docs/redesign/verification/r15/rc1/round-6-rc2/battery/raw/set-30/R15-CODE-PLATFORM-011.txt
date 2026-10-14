@@ -1,0 +1,8 @@
+$ curl -X POST /agents/buffett/runs {"prompt":"x","budget":{"max_tokens":"abc"}}
+{"detail":[{"type":"int_parsing","loc":["body","budget","max_tokens"],"msg":"Input should be a valid integer, unable to parse string as an integer","input":"abc"}]}
+HTTP 422
+client leg: delegate-runs.ts
+192:    useAgentRunsStore.getState().endRun(localId, "error", `Could not start: ${reasonOf(err)}`);
+tests:
+src/lib/delegate-runs.test.ts:288:  it("a rejected launch shows the 422 field errors, not [object Object]", async () => {
+src/lib/sidecar-client.test.ts:225:  it("a POST answering a 422 array throws 'field: msg' and sends a JSON body", async () => {

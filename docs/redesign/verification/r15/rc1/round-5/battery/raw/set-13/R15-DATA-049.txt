@@ -1,0 +1,15 @@
+=== VIYASH ===
+dividend_per_share_ttm: 0.0
+dividend_yield: 0.0
+ttm meta: {'status': 'ok', 'provider': 'yfinance', 'as_of': None, 'reason': 'no dividends paid (trailing 12m)', 'label': 'no dividends paid (trailing 12m)', 'basis_note': None}
+yield meta: {'status': 'ok', 'provider': 'yfinance', 'as_of': None, 'reason': 'no dividends paid (trailing 12m)', 'label': 'no dividends paid (trailing 12m)', 'basis_note': None}
+=== ICON ===
+dividend_per_share_ttm: 0.0
+dividend_yield: 0.0
+ttm meta: {'status': 'ok', 'provider': 'yfinance', 'as_of': None, 'reason': 'no dividends paid (trailing 12m)', 'label': 'no dividends paid (trailing 12m)', 'basis_note': None}
+yield meta: {'status': 'ok', 'provider': 'yfinance', 'as_of': None, 'reason': 'no dividends paid (trailing 12m)', 'label': 'no dividends paid (trailing 12m)', 'basis_note': None}
+=== ELCIDIN ===
+dividend_per_share_ttm: 25.0
+dividend_yield: 0.00024084778420038535
+ttm meta: {'status': 'ok', 'provider': 'yfinance', 'as_of': None, 'reason': None, 'label': None, 'basis_note': None}
+yield meta: {'status': 'ok', 'provider': 'yfinance', 'as_of': None, 'reason': 'trailing-12m dividends paid (25) / price (103800)', 'label': None, 'basis_note': None}

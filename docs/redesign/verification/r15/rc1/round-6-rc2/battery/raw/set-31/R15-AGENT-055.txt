@@ -1,0 +1,7 @@
+# R15-AGENT-055 at ace7dd7
+$ in-process catalog arrange_layout description
+Arrange the cockpit using a named template, for the user to review. 'auto' arranges the panels ALREADY OPEN around their content — a published brief gets the dominant column, the chart gets width, the watchlist parks in a side rail; pick 'auto' whenever the user asks to arrange/organise/tidy their windows without naming a layout. Templates: 'single-focus' (the chart alone, maximised: a quick look; places chart); 'research-cockpit' (the chart beside the company overview, the research brief and news: the flagship deep dive; places chart + equity-overview + brief + news); 'compare' (one maximised chart with the second ticker overlaid on it; pass two tickers as `symbols`; places chart); 'macro-scan' (the macro panel with the chart beside it and the screener below: a market overview; places macro + chart + screener). 'default' resets the panel arrangement (chart drawings and module choices are kept); 'focus' maximises one panel (pass `panel`); 'custom' places exactly the panels you name in 
+promises dual/heatmap/stats: False
+layout_templates.json present: False
+--- open_company_overview
+pinned: src/lib/layout-templates.test.ts (planLayout single-focus/compare/macro-scan)

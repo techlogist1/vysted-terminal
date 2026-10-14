@@ -1,0 +1,13 @@
+PASS [TRUE] rev-according-news-reports: "According to news reports from Reuters, AAPL rose 3% to $190.\n"
+PASS [TRUE] rev-based-on-research: "Based on research from Morgan Stanley, the target is $250.\n"
+PASS [TRUE] rev-based-on-price-data: "The P/E is 30, based on the price data and earnings.\n"
+PASS [TRUE] fresh-per-news: "Per news from Bloomberg, MSFT closed at $512.\n"
+PASS [TRUE] fresh-as-per-fundamentals-word: "As per fundamentals of the business and today's quote, AAPL trades at $190.\n"
+PASS [TRUE] fresh-fetched-from-research: "I fetched this from research published by Goldman: NVDA's target is $200.\n"
+PASS [FAB] fab-according-to-backtick: "The price_data tool returned no data for this in this turn.\n"
+PASS [FAB] fab-according-to-snake: "The price_data tool returned no data for this in this turn.\n"
+PASS [FAB] fab-according-to-the-tool-noun: "The price_data tool returned no data for this in this turn.\n"
+PASS [FAB] fab-live1-dump: "The fundamentals tool returned no data for this in this turn.\nDone."
+PASS [TRUE] true-err-plus-ok-figure: "The fundamentals tool returned an error, so I used financial statements, which shows revenue of \u20b94,411 cr.\n"
+PASS [FAB] fab-camel: "The price_data tool returned no data for this in this turn.\n"
+BAD 0

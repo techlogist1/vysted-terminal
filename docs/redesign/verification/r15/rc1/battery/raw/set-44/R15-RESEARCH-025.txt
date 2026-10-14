@@ -1,0 +1,10 @@
+--(pe>10)+1--
+{"ok":false,"error":"a boolean expression can't be used in arithmetic — wrap the comparison on its own, or combine with 'and'/'or'","position":7,"fields":[]}
+--(pe>10)*2+1--
+{"ok":false,"error":"a boolean expression can't be used in arithmetic — wrap the comparison on its own, or combine with 'and'/'or'","position":7,"fields":[]}
+--abs(pe>10)--
+{"ok":false,"error":"abs() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+--max(pe>10,1)--
+{"ok":false,"error":"max() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+--pe>10 and pb<3--
+{"ok":true,"error":null,"position":null,"fields":["pe_ratio","price_to_book"]}

@@ -1,0 +1,101 @@
+$ grep -rn "color-warning\|color-caution" styles src (non-test)
+styles/tokens.css:83:  --color-warning: #e0a13a; /* DATA signal only -- stale/synthetic/paper/partial/
+styles/tokens.css:86:    infra/lifecycle/config -- see --color-caution (R15-UI-073). */
+styles/tokens.css:87:  --color-caution: #e0a13a; /* INFRA/LIFECYCLE signal -- Docker/engine health,
+styles/tokens.css:90:    validation. Same value as --color-warning today (no visual change); the
+src/components/StatusChrome.tsx:231:        : "bg-caution animate-pulse";
+src/components/SettingsPanel.tsx:842:      return { label: "Docker not found", className: "text-caution border-caution/40" };
+src/components/SettingsPanel.tsx:855:      return { label: "Degraded — engines blocked", className: "text-caution border-caution/40" };
+src/components/SettingsPanel.tsx:1018:        <span className="text-caution" role="alert">
+src/components/SettingsPanel.tsx:1160:          <span className="text-caution text-micro mt-1">
+src/components/SettingsPanel.tsx:1550:          className="border-caution/40 bg-caution/10 text-caution text-caption mb-4 flex items-start gap-2 rounded-none border px-3 
+src/components/SettingsPanel.tsx:1556:              <p key={c.keys} className="text-caution/90 mt-1">
+src/components/SettingsPanel.tsx:1611:                            conflicted ? "text-caution" : "text-charcoal-100",
+src/components/DataBadges.tsx:16: * from the design tokens (`--color-warning` is documented as "stale data"), so a
+src/components/DataBadges.tsx:59:        synthetic ? "bg-charcoal-850 text-warning" : "bg-charcoal-800 text-charcoal-300",
+src/components/DataBadges.tsx:106:        ? "bg-charcoal-850 text-warning"
+src/components/OnboardingFlow.tsx:543:            <div className="border-caution/30 bg-caution/5 flex flex-col gap-2 rounded-none border px-4 py-3">
+src/components/PluginManagerPanel.tsx:137:  initializing: "bg-charcoal-850 text-caution",
+src/components/PluginManagerPanel.tsx:139:  stopping: "bg-charcoal-850 text-caution",
+src/components/PluginManagerPanel.tsx:254:  degraded: "bg-caution",
+src/modules/research/brief-blocks.tsx:840:                    definitional ? "text-charcoal-500" : "text-warning"
+src/modules/research/BriefPanel.tsx:866:              <Globe className="text-warning mt-0.5 size-4 shrink-0" />
+src/modules/research/BriefPanel.tsx:868:                <p className="text-caption text-warning font-medium">
+src/modules/screener/ScreenerPanel.tsx:292:          <span className="text-caution text-micro">Enter at least one ticker to screen.</span>
+src/modules/screener/ScreenerPanel.tsx:459:              never a filled background. Badge is text-only (text-warning), no bg. */}
+src/modules/screener/ScreenerPanel.tsx:463:                className="text-warning text-micro border-warning/50 rounded-none border px-1 py-0.5 font-medium tracking-wide 
+src/modules/screener/ScreenerPanel.tsx:483:              <div className="text-warning text-micro" data-testid="throttle-notice">
+src/modules/screener/ScreenerResultsTable.tsx:507:              , <span className="text-warning tabular-nums">{result.skipped_count} skipped</span>
+src/modules/chat/AgentsRail.tsx:134:                  ? "text-caution"
+src/modules/chat/AgentsRail.tsx:261:            className={cn("h-full", frac >= 1 ? "bg-caution" : "bg-amber-500")}
+src/modules/chat/AgentsRail.tsx:287:            <span className="text-caution min-w-0 truncate" title={run.question}>
+src/modules/chat/ModelControl.tsx:185:            className="text-caution shrink-0"
+src/modules/chat/ModelControl.tsx:192:          <span className="text-caution shrink-0" title="No BYOK key configured">
+src/modules/chat/ModelControl.tsx:228:              className="text-caution text-caption hover:text-charcoal-100 w-full cursor-pointer px-3 py-1 text-left font-mono trans
+src/modules/chat/ModelControl.tsx:252:            <div className="text-caution text-micro px-3 py-1">
+src/modules/sec/FilingsListTable.tsx:27:  "8-K": "text-caution",
+src/modules/chart/ChartPanel.tsx:1585:              <span aria-hidden className="text-warning" title="No data">
+src/modules/marketplace/MarketplacePanel.tsx:320:    tone = "text-caution border-caution/40";
+src/modules/marketplace/MarketplacePanel.tsx:326:    tone = "text-caution border-caution/40";
+src/modules/backtest/BacktestResultView.tsx:517:          <div key={warning} className="text-warning text-micro mt-1" data-testid="run-warning">
+src/modules/portfolio/PortfolioPanel.tsx:1173:          <span className="text-warning text-caption">
+
+$ AgentsRail lines 85-140
+9:  const budget = run.budget;
+10:  // R15-UI-073: the status dot below was color-only (aria-hidden, no text
+11:  // twin) — a colorblind or screen-reader user had no way to tell paused
+16:    : run.status === "paused"
+23:    budget?.maxTokens && cost
+24:      ? Math.min(1, cost.tokens / budget.maxTokens)
+44:                : run.status === "paused" || planned
+48:            role="img"
+50:            title={statusLabel}
+
+$ AgentsRail budget bar + paused dot
+      transition={tween(0.2)}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-2">
+          <span
+            className={
+              failed
+                ? "text-negative"
+                : run.status === "paused" || planned
+                  ? "text-caution"
+                  : "animate-pulse text-amber-400"
+            }
+            role="img"
+            aria-label={statusLabel}
+            title={statusLabel}
+          >
+            ●
+          </span>
+          <span className="text-charcoal-200 truncate">{run.agentName}</span>
+          <span className="text-charcoal-500">{agentModeMeta(run.mode).label}</span>
+          {cost && cost.tokens > 0 && (
+            <span className="text-charcoal-500">
+              {cost.tokens.toLocaleString()} tok · ${cost.spendUsd.toFixed(4)}
+            </span>
+          )}
+        </span>
+      )}
+      {frac !== null && (
+        <div
+          className="bg-charcoal-800 h-0.5 w-full overflow-hidden"
+          role="progressbar"
+          aria-label={frac >= 1 ? "Budget exhausted" : "Budget used"}
+          aria-valuenow={Math.round(frac * 100)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <div
+            className={cn("h-full", frac >= 1 ? "bg-caution" : "bg-amber-500")}
+            style={{ width: `${Math.round(frac * 100)}%` }}
+          />
+        </div>
+      )}
+      {run.status === "paused" && run.question && run.sidecarRunId && (
+        <>
+          <form
+            className="mt-0.5 flex items-center gap-1"
+            onSubmit={(e) => {

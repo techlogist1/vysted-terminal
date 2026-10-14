@@ -1,0 +1,13 @@
+# R15-UI-023 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:39+0530
+
+$ git merge-base --is-ancestor e81c9e7 HEAD && echo 'closure e81c9e7 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure e81c9e7 NOT an ancestor'
+[exit 0] [0.02s]
+closure e81c9e7 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-023\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/modules/chart/ChartPanel.tsx:328:  // indicators render only against their own candles (R15-UI-023).
+src/modules/chart/ChartPanel.test.tsx:432:  it("a failed /indicators after a symbol change leaves no overlay of the old symbol (R15-UI-023)", async () => {
+src/modules/chart/ChartPanel.test.tsx:453:  it("does not draw indicators before their own symbol's candles land (R15-UI-023)", async () => {
+

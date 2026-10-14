@@ -1,0 +1,101 @@
+[
+ {
+  "key": "rc1-vshard-4:1",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-LEAD-023",
+  "title": "LEAD-023 not fixed: empty-history, no-regularMarketTime quote still raises instead of pricing with unknown as-of (D-B9-2 reframe needs lead adjudication)",
+  "repro": "lead023.py fake ticker (no regularMarketTime, empty 5d history) -> get_quote / registry AXON, ZZZT raise ProviderError 'Yahoo returned a price with no trade time'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py",
+   "docs/redesign/DECISIONS.md"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:2",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-073",
+  "title": "DATA-073 partial: NSE holiday table still ends 2026-12-25 and the expiry test checks Dec 1 of current year, not today+12 months",
+  "repro": "locale._is_trading_day(2027-01-26,'IN') -> True; trading_sessions_between(2027-01-25,2027-01-27,'IN') -> 2; tests/test_locale.py:82-88 asserts max >= Dec 1 current year",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/locale.py",
+   "sidecar/tests/test_locale.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-UI-058",
+  "title": "UI-058 partial: import reports 'Imported settings.' when a section key is present but nothing applied (another app's {settings:{...}}, only-unknown keybinding ids, empty sections)",
+  "repro": "scratch vitest probe rendering SettingsPanel: import {settings:{fontSize:14,theme:'dark'}} / {keybindingOverrides:{'no.such.action':'mod+j'}} / {settings:{},enabledModules:{}} -> green 'Imported settings.', store unchanged",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "src/components/SettingsPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:4",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-DATA-069",
+  "title": "Analyst ratings swallow Yahoo rate-limit into an empty 200 list (reads as no coverage)",
+  "repro": "while Yahoo throttled: GET /fundamentals/MSFT/ratings/price-target-history -> 200 {history:[]}; _fetch_ratings_sync catches accessor exceptions to None",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/analyst_ratings_extended.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:5",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-UI-052",
+  "title": "Settings privacy copy over-promises: 'Nothing leaves this machine except calls you make to providers you configure' and SearXNG 'nothing leaves this machine but the pages it fetches'",
+  "repro": "read SettingsPanel.tsx:122-123 and :1324; keyless Yahoo/NSE/BSE/DDG calls are never configured by the user; SearXNG forwards queries upstream",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "src/components/SettingsPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:6",
+  "kind": "chain",
+  "severity": "medium",
+  "register_id": "R15-CROSS-PLATFORM-002",
+  "title": "Flaky test_research_fast::test_fast_web_round_runs_alongside_a_time_boxed_fan_out: unstubbed earnings-quality leg also times out -> ValueError unpack",
+  "repro": "repeat the test 12x: ~5/12 two timed-out legs; 'ValueError: too many values to unpack (expected 1)' at tests/test_research_fast.py:926",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/tests/test_research_fast.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:7",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-LEAD-018",
+  "title": "ReasoningSplitter releases a held reasoning echo in full when an answer follows it; a short answer that prefixes the reasoning is dropped",
+  "repro": "ReasoningSplitter: reasoning R, content R+'\\n\\nThe P/E ratio ...' -> answer contains full R; reasoning 'Yes. The user...' + content 'Yes.' -> answer ''",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/llm/reasoning_split.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-AGENT-007",
+  "title": "OpenRouter chat URL still a literal in research lanes (not from model_registry)",
+  "repro": "grep: services/research/sonar.py:42, services/agent_tools/deep_research.py:795",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/research/sonar.py",
+   "sidecar/services/agent_tools/deep_research.py"
+  ]
+ }
+]

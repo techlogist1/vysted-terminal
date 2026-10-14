@@ -1,0 +1,9 @@
+CMD: POST /workflow/save (data.fetch_quote AAPL -> action.webhook); PUT /workflow/webhooks/b9v-ref (X-Vysted-Webhook-Url); POST /workflow/schedules everyMinutes:1 (expect 422) then everyMinutes:5; wait unattended (no further calls) for the live 60s-tick scheduler loop to fire it; local HTTP receiver on :52999 captures the POST.
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+--- unattended fire, no interaction between schedule creation and this check ---
+GET /workflow/schedules after wait:
+[{"id":"sch-813bd64d4a8b","workflowId":"b9v-wf1","trigger":{"kind":"interval","everyMinutes":5},"enabled":true,"createdAt":1790501579729,"lastFiredAt":1790501938110,"lastSeen":null,"lastStatus":"ok","lastDetail":null}]
+local receiver log (the webhook delivery):
+1790501571.071421 /test {"x":1}
+1790501939.480742 /hook {"workflow":"b9v unattended AAPL webhook","node":"n2","value":{"symbol":"AAPL","price":341.07000732421875,"change":5.160007324218725,"change_percent":1.536127928379246,"volume":29950100.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:01Z","provider":"yfinance","freshness":null}}
+note: schedule created 15:02:59.729 local, fired 15:08:58.110 local (~5m58s later, one fire only, within the >=5min interval bound); the sidecar's own boot-time BSE-symbol-master yfinance warmup (14:58-15:03, visible in sidecar.log) delayed the first eligible tick slightly past the bare 5:00 mark -- consistent with an event-loop-cooperative scheduler, not a scheduler defect.

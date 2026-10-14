@@ -1,0 +1,53 @@
+# R15-RESEARCH-008 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:19:37+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio, time
+from services.agent_tools.web_search import _web_search
+async def main():
+    for q in ['recent news about Dixon Technologies','Dixon Technologies Q1 results']:
+        t=time.monotonic(); r=await _web_search({'query':q}); el=time.monotonic()-t
+        rows=r.get('results') or r.get('rows') or []
+        print('%.1fs'%el,'ok',r.get('ok'),'rows',len(rows),'engine',r.get('engine') or r.get('provider'),'| first:',[(x.get('title') or '')[:50] for x in rows[:3]], r.get('message') or r.get('error') or '')
+asyncio.run(main())
+PY
+echo '$ direct engine status (curl, no key)'; for u in 'https://html.duckduckgo.com/html/?q=Dixon+Technologies' 'https://search.brave.com/search?q=Dixon+Technologies' 'https://www.mojeek.com/search?q=Dixon+Technologies'; do curl -s -o /dev/null -m15 -A 'Mozilla/5.0' -w "%{http_code} $u\n" "$u"; done
+echo '$ in-process rotation replica at the PRODUCTION deadline: ddg hangs forever, brave answers (stubs; mirrors the entry fix shape)'
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio, time
+from services.search.base import SearchResult, SearchResponse, Citation
+from services.search.keyless import KeylessSearchBackend, ENGINE_DEADLINE_SECS, ENGINE_CHAIN
+from services.search.breaker import reset_breakers
+from services.search.pacing import reset_queue
+from services.agent_tools import catalog
+reset_breakers(); reset_queue()
+class Hang:
+    calls=0
+    async def search(self,q,*,options=None):
+        Hang.calls+=1; await asyncio.sleep(3600)
+class Brave:
+    async def search(self,q,*,options=None):
+        r=[SearchResult(url="https://b.example/1",title="Dixon Q1",snippet="s")]
+        return SearchResponse(results=r,citations=[Citation(url=x.url,title=x.title,excerpt=x.snippet) for x in r],backend="brave",query=q)
+async def nos(_): return None
+t=time.monotonic()
+resp=asyncio.run(KeylessSearchBackend(engines={"ddg":Hang(),"brave":Brave(),"mojeek":Brave()},sleeper=nos).search("Dixon Technologies"))
+print("deadline",ENGINE_DEADLINE_SECS,"chain",ENGINE_CHAIN,"web_search cap",catalog.timeout_for("web_search"))
+print("backend",resp.backend,"rows",len(resp.results),"elapsed %.1fs"%(time.monotonic()-t),"ddg calls",Hang.calls)
+PY
+--- output ---
+17.5s ok False rows 0 engine None | first: [] keyless web search has no engine available right now — DuckDuckGo: unreachable; Brave: rate-limiting; Mojeek: rate-limiting. Wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route.
+11.5s ok False rows 0 engine None | first: [] keyless web search has no engine available right now — DuckDuckGo: unreachable; Brave: rate-limiting; Mojeek: rate-limiting. Wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route.
+$ direct engine status (curl, no key)
+000 https://html.duckduckgo.com/html/?q=Dixon+Technologies
+200 https://search.brave.com/search?q=Dixon+Technologies
+403 https://www.mojeek.com/search?q=Dixon+Technologies
+$ in-process rotation replica at the PRODUCTION deadline: ddg hangs forever, brave answers (stubs; mirrors the entry fix shape)
+deadline 6.0 chain ('ddg', 'brave', 'mojeek') web_search cap 25.0
+backend keyless:brave rows 1 elapsed 6.0s ddg calls 1
+
+EXIT=0 (48.0s)
+
+--- addendum 2026-10-03 17:50:09 IST: same-minute Brave comparison (product engine vs plain curl) ---
+product BraveSearchBackend -> SearchError Brave HTML search is blocking/rate-limiting right now (HTTP 429) — rotating to the next keyless engine
+plain curl (UA Mozilla/5.0): HTTP 200 bytes 302601
+data-type="web" result blocks in plain page: 20

@@ -1,0 +1,4 @@
+# probe at ace7dd76 (candidate worktree /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand)
+$ grep -rniE 'tray' src-tauri/src/*.rs src-tauri/tauri.conf.json | head; echo '--docs'; grep -niE 'tray' docs/BLUEPRINT.md | head
+--docs
+EXIT=0

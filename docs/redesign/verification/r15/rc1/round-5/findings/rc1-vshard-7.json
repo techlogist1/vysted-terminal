@@ -1,0 +1,102 @@
+[
+ {
+  "key": "rc1-vshard-7:1",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-RESEARCH-002",
+  "title": "NOT CERTIFIED: a leading UNVERIFIED in markdown underscore emphasis (_UNVERIFIED_ / __UNVERIFIED__) still parses as AGREE via the marker substring scan",
+  "repro": "cd <worktree>/sidecar && ./.venv/bin/python -c \"from services.research.verify import _parse_verdict; print(_parse_verdict('_UNVERIFIED_ - no source confirms the 23% operating margin.'))\" -> ('agree', ...); same for '__UNVERIFIED__ - evidence does not support the figure'. The entry's three literal strings now read unverified. leading_token strips '*:-#>[]' but not '_', and the standalone \\bUNVERIFIED\\b check fails because '_' is a word character, so the reason's 'confirm'/'support' decides. The ULTRA brief renders '- **AGREE** - claim' with the detail suppressed (verify.py:398).",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-5/verifier/shard-7-raw/RESEARCH-002.txt",
+  "suspected_files": [
+   "sidecar/services/research/deep.py",
+   "sidecar/services/research/verify.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:2",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-AGENT-027",
+  "title": "Entry leg humanize('groq', exc(status_code=413)) with no body still returns code=unknown 'Something went wrong with Groq. Try again'",
+  "repro": "PYTHONPATH=. ./.venv/bin/python -c \"from services.errors import humanize\\nclass Exc(Exception):\\n  def __init__(s,c): super().__init__(); s.status_code=c\\nprint(humanize('groq', Exc(413)).code)\" -> unknown (also openai; and humanize('groq', status=413)). The marker-less 413 context_overflow row in _BODY_RULES is only consulted under 'if raw:' (errors.py:415-418) and the status branches have no 413, so a body-less 413 falls to 'unknown'. With any body (the SDK 'Error code: 413 - ...' string) it reads context_overflow; every other leg of the entry is fixed.",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-5/verifier/shard-7-raw/AGENT-027.txt",
+  "suspected_files": [
+   "sidecar/services/errors.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-CODE-AGENT-033",
+  "title": "NOT CERTIFIED: the eval grader still passes a trial whose tool call errored when a later call of the same tool (a different subject, not a retry) succeeded",
+  "repro": "grader.grade({expect:{tools:[{tool:'option_chain'}]}}, [tool_use option_chain {symbol:AAPL, expiry:nearest}, tool_result ok=false (real handler output 'invalid argument: Invalid isoformat string'), tool_use option_chain {symbol:MSFT}, tool_result ok=true, delta, done]) -> [] (pass). grader.py:95-104 keys last_result by tool NAME, so any later same-name success masks an earlier failed call on another input; the single-call entry repro now fails correctly.",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-5/verifier/shard-7-raw/CODE-AGENT-033-grader.txt",
+  "suspected_files": [
+   "scripts/agent_eval/grader.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:4",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "Screener top-K round-robin cut gives currency-less rows their own group slot, so a null-market-cap row displaces real values from 'top K by market cap'",
+  "repro": "In-process run_screener (VYSTED_DATA_DIR scratch; registry stubbed) custom [RELIANCE.NS 1.655e13 INR, TCS.NS 7.55e12 INR, HDFCBANK.NS 1.13e13 INR, MANIKA.NS market_cap None currency None], sort market_cap desc, limit=2 -> served [RELIANCE.NS, MANIKA.NS(None)], HDFCBANK dropped; limit=200 orders MANIKA last correctly. screener.py:874 groups row.currency or '' so the '' group gets a round-robin slot (near R15-DATA-112 / R15-UI-006 missing-values-last).",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-5/verifier/shard-7-raw/DATA-112-fresh.txt",
+  "suspected_files": [
+   "sidecar/services/screener.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:5",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "humanize reads a Gemini free-tier per-minute 429 (RESOURCE_EXHAUSTED 'You exceeded your current quota ... Please retry in 21.6s') as insufficient_credit 'add credit'",
+  "repro": "humanize('gemini', google.genai.errors.ClientError(429, {error:{code:429,status:'RESOURCE_EXHAUSTED',message:'You exceeded your current quota, please check your plan and billing details ... Quota exceeded for metric: generate_content_free_tier_requests, limit: 15 ... Please retry in 21.6s.'}})) -> code=insufficient_credit 'Your Google Gemini account is out of credit or quota.' / 'Add credit or check your plan'. The any-provider 429 'quota' row (errors.py:274-281) cannot tell a per-minute quota from exhausted credit.",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-5/verifier/shard-7-raw/AGENT-027.txt",
+  "suspected_files": [
+   "sidecar/services/errors.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:6",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "Earnings drill-down 'As of' chip shows the client fetch clock and ignores the envelope's server as_of, so Refresh inside the sidecar's 24 h cache relabels cached surprises as fresh",
+  "repro": "GET /earnings/AAPL/surprises twice -> both carry as_of 2026-09-27T11:12:02Z (cached stamp). src/store/earnings.ts:54-58 keeps only {payload, fetchedAt}; EarningsCalendarPanel.tsx:454-465 renders 'As of' from fetchedAt; Refresh re-fetches the cached payload and the chip moves to 'now'. AnalystRatingsPanel.tsx:121-124 prefers server asOf (the pattern the earnings panel skips).",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-5/verifier/shard-7-raw/DATA-068.txt",
+  "suspected_files": [
+   "src/store/earnings.ts",
+   "src/modules/earnings/EarningsCalendarPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "/earnings/{sym}/estimates maps a yfinance 429 to 502 provider_error 'unexpected response' while /fundamentals/{sym}/ratings maps the same throttle to 429 rate_limited",
+  "repro": "GET :52607/earnings/AAPL/estimates -> 502 {code:provider_error, detail:'The data provider returned an unexpected response.'}; sidecar log: 'yfinance earnings calendar failed for AAPL: Too Many Requests. Rate limited.' Same moment GET /fundamentals/AAPL/ratings -> 429 rate_limited.",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-5/verifier/shard-7-raw/DATA-068.txt",
+  "suspected_files": [
+   "sidecar/routers/earnings.py",
+   "sidecar/services/earnings_provider.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "A listed 1994 JPM 10-K opens as 502 provider_error 'unexpected response' (sec-edgar-mcp get_filing_sections NoneType) instead of degrading to the raw filing text",
+  "repro": "GET :52607/sec/filings?symbol=JPM&form_type=10-K&limit=40 -> 37 rows, oldest 0000950123-94-000607 (1994-03-25); GET /sec/filings/0000950123-94-000607?identifier=JPM&form_type=10-K -> 502 {code:provider_error, detail:'The data provider returned an unexpected response.'} after 36.7 s; sidecar log: \"sec-edgar-mcp tool 'get_filing_sections' failed: Failed to get filing sections: expected string or bytes-like object, got 'NoneType'\". Metadata resolved (not the LEAD-010 404); GS's 2000 10-K and MSFT's 1994 DEF 14A open 200.",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-5/verifier/shard-7-raw/LEAD-010.txt",
+  "suspected_files": [
+   "sidecar/services/sec_filings_provider.py",
+   "sidecar/sec_edgar_mcp_subprocess/"
+  ]
+ }
+]

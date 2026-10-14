@@ -1,0 +1,9 @@
+{"shard": "news-2", "labels": [
+{"id": "news-81", "answer": "no", "confidence": 0.97, "note": "Apple item; AAPL not a listed holding"},
+{"id": "news-82", "answer": "no", "confidence": 0.97, "note": "Apple item; AAPL not a listed holding"},
+{"id": "news-83", "answer": "no", "confidence": 0.97, "note": "QQQ/BlackRock ETF item; not a listed holding"},
+{"id": "news-84", "answer": "no", "confidence": 0.97, "note": "Festival sponsored by Invesco QQQ; not a holding"},
+{"id": "news-85", "answer": "yes", "confidence": 0.7, "note": "Kaynes Technology India named among five RSI-scan stocks"},
+{"id": "news-86", "answer": "no", "confidence": 0.85, "note": "Ticker collision: Flanigan's (US BDL), not Indian holding BDL"},
+{"id": "news-87", "answer": "no", "confidence": 0.87, "note": "Ticker collision: Flanigan's NYSE American BDL, not Indian BDL"}
+]}

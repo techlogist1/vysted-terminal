@@ -1,0 +1,32 @@
+Source confirmation (no vitest run this shard): ChartPanel.tsx lines 798-824
+
+    useEffect(() => {
+      const handleKey = (event: KeyboardEvent) => {
+        if (event.key === "Escape") { ... }
+        if ((event.key === "Delete" || event.key === "Backspace") && selectedDrawingId) {
+          // Panel-scoped: a key typed elsewhere (the agent composer) or into a
+          // field never deletes, and a locked drawing refuses it (R15-UI-021).
+          // Nothing focused (body) still counts: WebKit does not focus a clicked
+          // button, so after selecting a drawing's chip the key targets body.
+          const target = event.target instanceof Element ? event.target : null;
+          if (
+            !target ||
+            (target !== document.body && !rootRef.current?.contains(target)) ||
+            target.closest(TEXT_ENTRY_SELECTOR) ||
+            drawings.find((d) => d.id === selectedDrawingId)?.locked
+          ) {
+            return;
+          }
+          removeDrawing(panelId, selectedDrawingId);
+          setSelectedDrawingId(null);
+        }
+      };
+      window.addEventListener("keydown", handleKey);
+      return () => window.removeEventListener("keydown", handleKey);
+    ...
+
+Matches VERDICTS.md certified evidence exactly: (1) locked drawing (drawings.find(...).locked) refuses
+delete, (2) delete from a contentEditable/input/textarea (TEXT_ENTRY_SELECTOR) is excluded,
+(3) a key event whose target lives in another panel (not document.body, not inside rootRef) is
+excluded (the "another panel's button" case from VERDICTS.md). No live vitest run permitted this
+shard (heavy lane owns vitest); source read is exact byte match to the described guard clauses.

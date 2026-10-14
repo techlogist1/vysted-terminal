@@ -1,0 +1,4 @@
+INSPIRE vs INSPIRE-SM.NS: True
+IPHL vs IPHL-SM.NS: True
+ISHAN vs ISHAN-SM.NS: True
+sanity unrelated: RELIANCE vs INFY.NS: False

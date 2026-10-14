@@ -1,0 +1,2 @@
+CMD: in-process replay of the original scratch proof (candidate venv, fake provider, temp data dir) via /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/inproc_runs.py; EXIT=0
+AGENT-074: spend 0.0021 expected opus 0.0021 default-rate 0.00035

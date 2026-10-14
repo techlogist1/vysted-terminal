@@ -1,0 +1,14 @@
+PROBE: R15-UI-005 (no fabricated 0 for unresolved live quotes)
+vitest is barred for this role (stall rule). Certification is a jsdom+live-sidecar
+component test: src/modules/portfolio/PortfolioPanel.test.tsx:141 and :175
+("no live quote resolves -> null total with a note, never a fabricated 0";
+"an all-unresolved portfolio publishes totalValue null, never 0").
+Static confirmation at candidate sha 1006c6da:
+- src/modules/portfolio/PortfolioPanel.tsx:411 -- "R15-UI-005: an empty
+  `byCurrency` means NOTHING resolved -- the sum then ..." with :429
+  totalValueNote = "no live quotes resolved" and :982 UI text
+  "— (no live quotes)".
+- Test assertions (lines 180, 190) expect exactly that text and
+  totalValueNote value.
+VERDICT: ci_pinned (src/modules/portfolio/PortfolioPanel.test.tsx:141,175) --
+only provable via the jsdom+live-sidecar render test, barred under the stall rule.

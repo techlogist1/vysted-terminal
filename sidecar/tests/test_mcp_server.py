@@ -17,6 +17,8 @@ import asyncio
 from typing import Any
 
 import pytest
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from fastapi.testclient import TestClient
 
 from services import mcp_server
@@ -36,43 +38,90 @@ def test_status_endpoint_reports_ready(client: TestClient) -> None:
     assert body["ready"] is True
     assert body["endpoint"] == "/mcp"
     assert isinstance(body["toolCount"], int)
-    assert body["toolCount"] >= 8  # 5 data + 2 agent + 2 workspace tools
+    # catalog-projected data/analysis tools + 6 runtime (agents/workspaces/workflows)
+    assert body["toolCount"] >= 8
     assert body["protocolVersion"]
 
 
-def test_mcp_server_registers_expected_tools() -> None:
-    """Every Phase-3 + v0.5.0 workflow tool is registered on the FastMCP server."""
+def test_mcp_server_registers_catalog_and_runtime_tools() -> None:
+    """The MCP surface = the catalog's projected capabilities + the runtime tools."""
+    from services.agent_tools.catalog import mcp_tool_ids
+
     server = mcp_server.get_mcp_server()
     tools = asyncio.run(server.list_tools())
     names = {tool.name for tool in tools}
+    # Every catalog-projected capability appears by its canonical (internal) name.
+    assert set(mcp_tool_ids()).issubset(names)
+    # The runtime tools (agents/workspaces/workflows/runs) are MCP-only and stay.
     assert {
-        "get_quote",
-        "get_history",
-        "get_fundamentals",
-        "get_news",
-        "get_macro_series",
         "list_agents",
         "invoke_agent",
         "list_workspaces",
         "get_workspace",
-        # v0.5.0 workflow tools — Teammate W
         "run_workflow",
         "list_workflows",
+        "list_runs",
     }.issubset(names)
+    # Representative catalog names the internal copilot also uses (same names).
+    assert {"price_data", "fundamentals", "macro_series", "news"}.issubset(names)
 
 
-def test_get_quote_tool_proxies_quotes_endpoint(client: TestClient, mock_yfinance: object) -> None:
-    """The ``get_quote`` tool returns the same payload the /quotes/{symbol} route returns.
+def test_projected_tool_dispatches_to_the_registered_handler() -> None:
+    """A projected data tool runs the SAME registered handler the copilot calls.
 
-    The fixture pins the FastAPI app reference for in-process httpx, so the
-    tool call invokes the mocked yfinance backend by going through the
-    real router stack.
+    Register a stub handler and verify the MCP tool dispatches through
+    ``agent_tools.invoke_tool`` to it (no logic duplication; the external surface
+    is the internal handler). Restores the real registry afterwards.
     """
-    server = mcp_server.get_mcp_server()
-    # The MCP server's bound app is the TestClient's app (set in create_app).
-    result = asyncio.run(server.call_tool("get_quote", {"symbol": "AAPL"}))
-    text_blocks = [block.text for block in result.content if getattr(block, "type", None) == "text"]
-    assert any("AAPL" in block for block in text_blocks)
+    from services import agent_tools
+
+    async def _fake(args: dict[str, Any]) -> dict[str, Any]:
+        return {"ok": True, "echo": args}
+
+    agent_tools.register_tool("price_data", _fake)
+    try:
+        server = mcp_server.get_mcp_server()
+        result = asyncio.run(server.call_tool("price_data", {"symbol": "AAPL"}))
+        payload = result.structured_content or {}
+        assert payload.get("ok") is True
+        assert payload.get("echo") == {"symbol": "AAPL"}
+    finally:
+        agent_tools.reset_for_tests()
+
+
+def test_failing_catalog_tool_returns_is_error() -> None:
+    """R15-CODE-AGENT-023: a catalog-tool handler that raises comes back over MCP
+    as ``isError: true`` (a :class:`fastmcp.exceptions.ToolError`), the same
+    signal Vysted's own MCP-client code (openbb_mcp_provider, sec_filings_provider)
+    keys failure off of — never a successful result whose body says ``ok: false``."""
+    import json as _json
+
+    from services import agent_tools
+
+    async def _boom(_args: dict[str, Any]) -> dict[str, Any]:
+        raise RuntimeError("kaboom")
+
+    agent_tools.register_tool("price_data", _boom)
+    try:
+        call = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "price_data", "arguments": {}},
+        }
+        with TestClient(mcp_server.get_streamable_http_app()) as mcp_client:
+            response = mcp_client.post(
+                "/",
+                headers={"Accept": "application/json, text/event-stream"},
+                json=call,
+            )
+        assert response.status_code == 200
+        data_line = next(line for line in response.text.splitlines() if line.startswith("data:"))
+        body = _json.loads(data_line.removeprefix("data:").strip())
+        assert body["result"]["isError"] is True
+        assert "kaboom" in body["result"]["content"][0]["text"]
+    finally:
+        agent_tools.reset_for_tests()
 
 
 def test_invoke_agent_tool_returns_error_when_agents_router_missing(
@@ -136,6 +185,40 @@ def test_protocol_version_returns_a_string() -> None:
     version = mcp_server.protocol_version()
     assert isinstance(version, str)
     assert len(version) > 0
+
+
+def test_status_protocol_version_matches_initialize_handshake(client: TestClient) -> None:
+    """R15-CODE-AGENT-022: ``/mcp/status`` reports the SDK's
+    ``LATEST_PROTOCOL_VERSION`` — the same revision a live ``initialize``
+    handshake negotiates — not a hardcoded constant that drifts behind it."""
+    import json as _json
+
+    from mcp.types import LATEST_PROTOCOL_VERSION
+
+    status = client.get("/mcp/status").json()
+    assert status["protocolVersion"] == LATEST_PROTOCOL_VERSION
+
+    call = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": LATEST_PROTOCOL_VERSION,
+            "capabilities": {},
+            "clientInfo": {"name": "test", "version": "0"},
+        },
+    }
+    with TestClient(mcp_server.get_streamable_http_app()) as mcp_client:
+        response = mcp_client.post(
+            "/",
+            headers={"Accept": "application/json, text/event-stream"},
+            json=call,
+        )
+    assert response.status_code == 200
+    # Streamable-HTTP framing: one ``data: <json>`` SSE line per message.
+    data_line = next(line for line in response.text.splitlines() if line.startswith("data:"))
+    handshake = _json.loads(data_line.removeprefix("data:").strip())
+    assert handshake["result"]["protocolVersion"] == status["protocolVersion"]
 
 
 # ---------------------------------------------------------------------------
@@ -205,3 +288,90 @@ def test_list_workflows_tool_returns_dict_wrap(client: TestClient) -> None:
     assert isinstance(payload, dict)
     workflows = payload.get("workflows")
     assert isinstance(workflows, list)
+
+
+def test_invoke_agent_takes_its_key_from_the_request_header_not_an_argument() -> None:
+    """The key is never in the tool schema (the calling model's context); an
+    ``X-Vysted-Api-Key`` header on the /mcp request reaches the invoke body."""
+    tools = {t.name: t for t in asyncio.run(mcp_server.get_mcp_server().list_tools())}
+    assert "api_key" not in tools["invoke_agent"].parameters["properties"]
+
+    seen: dict[str, Any] = {}
+    stub = FastAPI()
+
+    @stub.post("/agents/{agent_id}/invoke")
+    async def _invoke(agent_id: str, request: Request) -> StreamingResponse:
+        seen["body"] = await request.json()
+        frame = b'data: {"kind":"done","usage":{}}\n\n'
+        return StreamingResponse(iter([frame]), media_type="text/event-stream")
+
+    mcp_server.bind_app(stub)
+    call = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {"name": "invoke_agent", "arguments": {"agent_id": "buffett", "prompt": "hi"}},
+    }
+    with TestClient(mcp_server.get_streamable_http_app()) as mcp_client:
+        response = mcp_client.post(
+            "/",
+            headers={
+                "Accept": "application/json, text/event-stream",
+                "X-Vysted-Api-Key": "canary-key",
+            },
+            json=call,
+        )
+    assert response.status_code == 200
+    assert seen["body"] == {"prompt": "hi", "api_key": "canary-key"}
+
+
+@pytest.mark.parametrize(
+    ("tool", "path"),
+    [("list_agents", "/agents"), ("list_runs", "/runs"), ("list_workspaces", "/workspace")],
+)
+def test_list_tool_reports_a_failing_route_as_not_ok(tool: str, path: str) -> None:
+    """A 5xx from the in-process route is ``ok: false``, never an empty list."""
+    broken = FastAPI()
+
+    @broken.get(path)
+    def _fail() -> None:
+        raise HTTPException(status_code=500, detail="store unreadable")
+
+    mcp_server.bind_app(broken)
+    result = asyncio.run(mcp_server.get_mcp_server().call_tool(tool, {}))
+    payload = result.structured_content or {}
+    assert payload.get("ok") is False
+    assert "500" in payload["error"]
+
+
+def test_workspace_tools_reach_the_workspace_router(
+    client: TestClient, tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-CODE-AGENT-034: the router prefix is ``/workspace``, not ``/workspaces``;
+    ``list_workspaces`` and ``get_workspace`` must hit the real routes."""
+    monkeypatch.setenv("VYSTED_DATA_DIR", str(tmp_path))
+    save = client.post("/workspace", json={"name": "t-ws", "workspace": {"version": 1}})
+    assert save.status_code == 200
+
+    server = mcp_server.get_mcp_server()
+
+    listed = asyncio.run(server.call_tool("list_workspaces", {}))
+    listed_payload = listed.structured_content or {}
+    assert isinstance(listed_payload, dict)
+    assert "t-ws" in listed_payload["workspaces"]
+
+    got = asyncio.run(server.call_tool("get_workspace", {"workspace_id": "t-ws"}))
+    assert got.structured_content == {"version": 1}
+
+    missing = asyncio.run(server.call_tool("get_workspace", {"workspace_id": "missing"}))
+    missing_payload = missing.structured_content or {}
+    assert missing_payload.get("ok") is False
+    assert "404" in missing_payload["error"]
+
+    # The fresh case: a name with a space round-trips through the quoted path.
+    save_spaced = client.post(
+        "/workspace", json={"name": "my workspace", "workspace": {"version": 2}}
+    )
+    assert save_spaced.status_code == 200
+    got_spaced = asyncio.run(server.call_tool("get_workspace", {"workspace_id": "my workspace"}))
+    assert got_spaced.structured_content == {"version": 2}

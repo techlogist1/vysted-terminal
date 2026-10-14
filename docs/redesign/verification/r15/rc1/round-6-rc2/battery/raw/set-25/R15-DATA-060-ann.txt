@@ -1,0 +1,4 @@
+# probe at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52357
+CMD: curl -s -m 100  http://127.0.0.1:52357/disclosures/announcements?symbol=SIFY&limit=25
+{"symbol":"SIFY","exchange":null,"count":0,"announcements":[],"sources":[],"errors":{},"windows":{},"coverage":"not_applicable","note":"SIFY is not an NSE/BSE instrument; Indian exchange disclosures do not apply"}
+@@HTTP 200 time 0.000945

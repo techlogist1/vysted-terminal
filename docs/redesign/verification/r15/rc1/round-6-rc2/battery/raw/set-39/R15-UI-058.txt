@@ -1,0 +1,54 @@
+COMMAND: sed SettingsPanel.tsx buildSettingsExport / handleImportFile; live node probe of keybindings setOverrides merge; pinned SettingsPanel.test.tsx:319/394/403, keybindings.test.ts:85/94
+EXIT: 0
+OUTPUT:
+setOverrides merge w/ bogus: overrides={"changes.acceptAll":"mod+shift+a"}
+export function buildSettingsExport(): SettingsExport {
+  const defaultProviderId = useLLMProvidersStore.getState().defaultProviderId;
+  return {
+    version: 2,
+    keybindingOverrides: { ...useKeybindingsStore.getState().overrides },
+    settings: useSettingsStore.getState().toBundle(),
+    searchSettings: useSearchSettingsStore.getState().toBundle(),
+    defaultProviderId,
+    defaultModel: useModelSelectionStore.getState().modelFor(defaultProviderId),
+    enabledModules: { ...useModulesStore.getState().enabled },
+  };
+}
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "vysted-settings.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setStatus({ kind: "ok", message: "Exported vysted-settings.json (no secrets included)." });
+  }
+
+  async function handleImportFile(file: File) {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as Partial<SettingsExport>;
+      // A file that recognises NOTHING (an empty object, another app's JSON,
+      // a bare `{theme:'dark'}`) must not report success — R15-UI-058: the
+      // old unconditional "Imported settings." told the user their file
+      // loaded when in fact nothing was applied. Each branch below only
+      // fires when its section is structurally the right shape.
+      let appliedAny = false;
+
+      if (parsed.keybindingOverrides && typeof parsed.keybindingOverrides === "object") {
+        setOverrides(parsed.keybindingOverrides);
+        appliedAny = true;
+      }
+
+      setStatus(
+        appliedAny
+          ? { kind: "ok", message: "Imported settings. Secrets re-enter via the keychain." }
+          : { kind: "error", message: "Could not read that file — expected a Vysted export." },
+      );
+    } catch {
+src/store/keybindings.test.ts:85:  it("R15-UI-058: merges over the CURRENT overrides instead of replacing them", () => {
+src/store/keybindings.test.ts:94:  it("R15-UI-058: rejects an unknown action id and a non-string value without touching existing overrides", () => {
+src/components/SettingsPanel.test.tsx:371:  // ---- Import gating + SettingsExport v2 (R15-UI-058) ----
+src/components/SettingsPanel.test.tsx:394:  it("a bundle lacking region preserves the CURRENT region instead of resetting it", async () => {
+src/components/SettingsPanel.test.tsx:403:  it("keybindingOverrides with a bogus action id merges instead of wiping the existing remap", async () => {
+src/components/SettingsPanel.test.tsx:460:  it("R15-UI-058: search-settings setAll preserves the CURRENT searxngUrl when a later bundle omits it", () => {

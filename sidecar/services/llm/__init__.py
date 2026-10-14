@@ -18,7 +18,11 @@ dialog.
 
 from __future__ import annotations
 
+import logging
+from typing import Any, cast
+
 from models.llm import LLMProviderId, LLMProviderInfo
+from services import model_registry
 
 from .anthropic import AnthropicProvider
 from .base import LLMProvider
@@ -28,37 +32,61 @@ from .ollama import OllamaProvider
 from .openai import OpenAIProvider
 
 # ---------------------------------------------------------------------------
-# OpenAI-shaped base URLs for DeepSeek + xAI dispatch
+# OpenAI-shaped base URLs for DeepSeek + xAI + OpenRouter dispatch
 # ---------------------------------------------------------------------------
+# Read from ``default_base_url`` in config/model_registry.json (the one source,
+# R15-CODE-AGENT-007); ``get_provider`` reads the registry at call time and these
+# names stay as the import-time view. OpenRouter is a unified BROKER (one key,
+# all upstreams): the adapter adds its attribution headers + cheapest-capable
+# provider routing when provider_id is ``"openrouter"``.
 
-DEEPSEEK_BASE_URL = "https://api.deepseek.com"
-XAI_BASE_URL = "https://api.x.ai/v1"
+DEEPSEEK_BASE_URL = model_registry.default_base_url_for("deepseek")
+XAI_BASE_URL = model_registry.default_base_url_for("xai")
+OPENROUTER_BASE_URL = model_registry.default_base_url_for("openrouter")
 
 
-PROVIDER_INFO: tuple[LLMProviderInfo, ...] = (
-    LLMProviderInfo(id="anthropic", label="Anthropic", requires_key=True),
-    LLMProviderInfo(id="openai", label="OpenAI", requires_key=True),
-    LLMProviderInfo(id="gemini", label="Google Gemini", requires_key=True),
-    LLMProviderInfo(id="groq", label="Groq", requires_key=True),
+#: Built from the single-source registry (``config/model_registry.json``) so
+#: the provider list, labels, default base urls, default models, and selectable
+#: model lists never drift from a second hardcoded copy. Source of truth for
+#: ``GET /llm/providers``.
+PROVIDER_INFO: tuple[LLMProviderInfo, ...] = tuple(
     LLMProviderInfo(
-        id="ollama",
-        label="Ollama (local)",
-        requires_key=False,
-        default_base_url="http://127.0.0.1:11434",
-    ),
-    LLMProviderInfo(
-        id="deepseek",
-        label="DeepSeek",
-        requires_key=True,
-        default_base_url=DEEPSEEK_BASE_URL,
-    ),
-    LLMProviderInfo(
-        id="xai",
-        label="xAI",
-        requires_key=True,
-        default_base_url=XAI_BASE_URL,
-    ),
+        id=cast(LLMProviderId, row["id"]),
+        label=row["label"],
+        requires_key=bool(row["requires_key"]),
+        default_base_url=row.get("default_base_url"),
+        default_model=row.get("default_model", ""),
+        known_models=list(row.get("known_models", [])),
+    )
+    for row in model_registry.provider_rows()
 )
+
+
+logger = logging.getLogger(__name__)
+
+#: Option keys an adapter's ``stream_chat`` consumes (``**options``): provider
+#: tuning params + the runtime's web-search flags. The ONE allowlist for every
+#: caller (R15-CODE-AGENT-005): any other key (a composer control such as
+#: ``depth``, a key added later) would ride into the provider SDK and TypeError
+#: the stream.
+ADAPTER_OPTION_KEYS = frozenset(
+    {
+        "temperature",
+        "top_p",
+        "max_tokens",
+        "web_search",
+        "web_search_max_uses",
+        "config",  # Gemini generation-config passthrough
+    }
+)
+
+
+def scrub_adapter_options(options: dict[str, Any]) -> dict[str, Any]:
+    """Keep only :data:`ADAPTER_OPTION_KEYS`; log-warn whatever is dropped."""
+    dropped = sorted(k for k in options if k not in ADAPTER_OPTION_KEYS)
+    if dropped:
+        logger.warning("dropped unsupported LLM option key(s): %s", ", ".join(dropped))
+    return {k: v for k, v in options.items() if k in ADAPTER_OPTION_KEYS}
 
 
 def list_provider_info() -> list[LLMProviderInfo]:
@@ -83,23 +111,27 @@ def get_provider(provider_id: LLMProviderId, base_url: str | None = None) -> LLM
     if provider_id == "openai":
         return OpenAIProvider(base_url=base_url)
     if provider_id == "gemini":
-        return GeminiProvider()
+        return GeminiProvider(base_url=base_url)
     if provider_id == "groq":
-        return GroqProvider()
+        return GroqProvider(base_url=base_url)
     if provider_id == "ollama":
         return OllamaProvider(base_url=base_url)
-    if provider_id == "deepseek":
-        return OpenAIProvider(base_url=base_url or DEEPSEEK_BASE_URL, provider_id="deepseek")
-    if provider_id == "xai":
-        return OpenAIProvider(base_url=base_url or XAI_BASE_URL, provider_id="xai")
+    if provider_id in ("deepseek", "xai", "openrouter"):
+        return OpenAIProvider(
+            base_url=base_url or model_registry.default_base_url_for(provider_id),
+            provider_id=provider_id,
+        )
     raise ValueError(f"Unknown LLM provider id: {provider_id!r}")
 
 
 __all__ = [
+    "ADAPTER_OPTION_KEYS",
     "DEEPSEEK_BASE_URL",
+    "OPENROUTER_BASE_URL",
     "PROVIDER_INFO",
     "XAI_BASE_URL",
     "LLMProvider",
     "get_provider",
     "list_provider_info",
+    "scrub_adapter_options",
 ]

@@ -1,0 +1,8 @@
+CMD: curl -s -o /dev/null -w '%{http_code}' -m 10 'https://fc.yahoo.com/'
+-> 404
+CMD: curl -s -o /dev/null -w '%{http_code}' -m 10 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=AAPL'
+-> 429
+CMD: curl -s -m 15 'http://127.0.0.1:52348/fundamentals/AAPL' -H 'X-Vysted-Region: US'
+-> {"symbol":"AAPL","provider":"yfinance","name":"Apple Inc.","market_cap":4977636933632.0}
+OBSERVED: the upstream Yahoo crumb/v7 path is still down live (fc.yahoo.com 404, v7 quote 429) -- this is an external, ongoing upstream condition, unchanged from the register's own repro (environmental, not a product regression). What the register entry certified as "fixed" is the sidecar's own graceful fallback: despite the same crumb/v7 failures, /fundamentals/AAPL served real, current data (Apple Inc., market_cap ~4.98T) via the yfinance fallback path, not a stale silent basis with no indication.
+VERDICT: holds (fallback mechanism intact; upstream Yahoo crumb outage persists as a known external condition per the entry's own repro, not a regression)

@@ -1,0 +1,142 @@
+[
+  {
+    "raw_id": "COD-research-depth-iter-deep-1",
+    "title": "ULTRA cross-check prints AGREE over claims the verifier reported UNVERIFIED",
+    "severity": "critical",
+    "area": "research",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "python -c \"from services.research.verify import _parse_verdict; print(_parse_verdict('UNVERIFIED - no source confirms the 23% operating margin.'))\" -> ('agree', ...). The verdict prompt (verify.py:199-207) asks for '<VERDICT> - <reason naming the source domains>', so an UNVERIFIED reason routinely contains 'confirm'/'support'/'consistent'/'match'; _parse_verdict scans the WHOLE first line for markers, agree-markers are checked after disagree-markers but before any verdict-token check. The ULTRA brief then renders '- **AGREE** - <numeric claim> (<domains>)'.",
+    "evidence": "sidecar/services/research/verify.py:102-116, sidecar/services/research/verify.py:199-207, sidecar/services/research/verify.py:268, sidecar/services/research/verify.py:273, sidecar/tests/test_research_verify.py:191-197",
+    "notes": "Design-it-twice/obviousness: the prompt already mandates a leading verdict word, so the second design (read the first token) was available and never taken. Consequence: a money-relevant figure (price, margin, ratio, valuation) the verification round explicitly could NOT confirm is published as cross-checked, and verify.py:273 suppresses `detail` on AGREE so the words 'no source confirms' are dropped from the output; `disagreements` (verify.py:396) and brief.note stay silent, so nothing else flags it. test_parse_verdict_is_conservative covers only 'cannot tell from the evidence', so CI is green. Smallest fix: parse the first WORD (head = first_line.split()[0].strip('*:-').lower()), exact-match UNVERIFIED/DISAGREE/AGREE first, fall back to the marker scan only when the head is not a verdict token; add the three proven strings to the test."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-2",
+    "title": "ULTRA cross-check ignores its budget after the first line; the 90s reserve is decorative",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "An ULTRA run whose 5 extracted claims each take a slow verdict turn: cross_check() checks budget.breach() once at entry and records once, then runs 1 extract call + N parallel searches + N native calls + N SEQUENTIAL verdict LLM calls with no further breach check and no asyncio.timeout. With _safe_llm's 60s per-call cap that is ~60 + 5x60 = ~360s inside a BudgetGuard(max_wall_seconds=90).",
+    "evidence": "sidecar/services/research/verify.py:304, sidecar/services/research/verify.py:319, sidecar/services/research/verify.py:357-394, sidecar/services/research/deep.py:165, sidecar/services/agent_tools/deep_research.py:78, sidecar/services/agent_tools/deep_research.py:231-236, sidecar/services/agent_tools/deep_research.py:272, sidecar/services/research/verify.py:37-41",
+    "notes": "Pass-through parameter + a comment asserting a false invariant. verify.py:37-41 states the round 'is metered by the SAME BudgetGuard as the run' - it is neither the same guard (a fresh one is built at deep_research.py:272) nor metered after entry. Consequence: the last stage of the most expensive depth opts out of the entire wall-guard apparatus (_PER_ROUND_WALL_SECS, MIN_ROUND_WALL_SECS, per-round asyncio.timeout, the R13 adaptive slice) that exists to kill the 8-minutes-unfinished bug; a 360s ULTRA can run ~270s of panel plus ~400s of verification. Smallest fix: wrap the claim loop in `async with asyncio.timeout(budget.max_wall_seconds)` and re-check budget.breach() before each _verdict_for, degrading the remainder to UNVERIFIED with the reason already used at verify.py:375-378; then correct the docstring."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-3",
+    "title": "ULTRA independence floor double-counts the native channel; one domain can be labelled corroborated",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "Dual-channel ULTRA claim whose only evidence is ONE domain reached by both lanes: domains = _row_domains(rows) | _row_domains(native_rows) = {d}; independence = len(domains) + 1 (native_text) = 2 >= min_domains 2 -> the verdict runs and, since channels == ['searxng','native'], an AGREE renders as 'AGREE (corroborated across channels)' under an intro promising 'at least 2 independent sources required per claim'.",
+    "evidence": "sidecar/services/research/verify.py:365, sidecar/services/research/verify.py:373, sidecar/services/research/verify.py:250-255, sidecar/services/research/verify.py:265-266, sidecar/services/research/verify.py:391-393, sidecar/services/agent_tools/deep_research.py:274",
+    "notes": "Obviousness: line 365 already folds the native lane's citation domains into `domains`, and line 373 adds +1 for the same lane; the two lines read correct in isolation. Consequence: independence-not-volume is the stated point of ULTRA (depth.py:102-104), and a single-domain claim can wear a corroboration badge - the exact failure this round was built to prevent. Smallest fix: `independence = len(domains) + (1 if native_text and not native_rows else 0)` and gate `corroborated` on the two channels resting on DIFFERENT domains."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-4",
+    "title": "ULTRA silently loses the R13 exchange-filings citations that DEEP records",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "Run ULTRA on a thin-web Indian listing. run_heavy_research pre-seeds snapshot['disclosures'] (iter.py:923-929) and hands the same snapshot to every explorer; in each explorer `structured.get('disclosures') is None` is False, so the guarded block is skipped entirely - including the _record_web of floor['rows'] that DEEP executes. run_heavy_research never records those rows itself. Result: zero exchange-announcement [n] sources in the merged ULTRA brief; the same query at DEEP has them.",
+    "evidence": "sidecar/services/research/iter.py:350, sidecar/services/research/iter.py:357-363, sidecar/services/research/iter.py:918-929, sidecar/services/research/disclosures.py:127-137",
+    "notes": "Consistency + one guard controlling two unrelated actions. Consequence: for exactly the case the R13 filings floor exists for (a micro-cap whose open-web results are its foreign namesake), the strictest depth publishes no dated exchange filings as citations; the rows also feed findings.coverage['web'] and distinct_web_domains, so their absence makes ULTRA's stricter min_web_domains=2 floor harder to meet at the depth that demands it. Smallest fix: split the guard - pull only when absent, but always _record_web from structured['disclosures']['rows']."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-5",
+    "title": "The ULTRA branch of _run_loop has no exception guard while the DEEP branch does",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "Any exception raised inside run_heavy_research escapes _run_loop to the agent tool handler as a raw error. Reachable path: snapshot_structured at iter.py:915 is outside any try, and its 'never raises' contract is held only by seven independent helper except blocks. The identical failure at DEEP is caught at deep_research.py:283 and degraded to the single-pass fallback with an honest note.",
+    "evidence": "sidecar/services/agent_tools/deep_research.py:259-280, sidecar/services/agent_tools/deep_research.py:281-296, sidecar/services/research/iter.py:915, sidecar/services/research/fast.py:377-385",
+    "notes": "Consistency: same operation, two behaviours, chosen by depth - and the tier the user waited longest for gets the weaker one. Smallest fix: give the heavy branch the same try/except; structurally better and also one line, add return_exceptions=True to the fast.py:377 gather so the 'never raises' contract is held where it is made."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-6",
+    "title": "snapshot_structured's 'never raises' contract is held by seven other modules, not by its own gather",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "design - add an eighth disclosure-only cross-check to the fan-out without its own try/except and every research path (FAST bundle, DEEP, ULTRA, tier-B) raises out of snapshot_structured; only DEEP has a caller-side except.",
+    "evidence": "sidecar/services/research/fast.py:377-385, sidecar/services/research/fast.py:273-274, sidecar/services/research/fast.py:303-304, sidecar/services/dividend_history.py:147, sidecar/services/market_cap_witness.py:151, sidecar/services/research/range_check.py:208",
+    "notes": "Pull complexity downward: the docstring promises 'this never raises' and the obligation is pushed outward to every current and future cross-check author. The gather that owns the promise is the one place that can hold it. Smallest fix: `results = await asyncio.gather(..., return_exceptions=True)` plus a coercion of any BaseException to None before the `if x is not None` folds below."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-7",
+    "title": "run_deep_research is an unreachable second copy of the round loop that has already drifted",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "design - ~310 LOC reachable only from the `except Exception` at deep_research.py:283, guarding a loop the same file documents as never raising. It duplicates iter's round loop (plan -> researchers -> reflect, per-round asyncio.timeout, wind-down retry) and the R13 adaptive round slice landed in only one copy: iter.py:611,628 pass observed_latency, deep.py:1241,1255 do not.",
+    "evidence": "sidecar/services/research/deep.py:986-1295, sidecar/services/research/deep.py:1241, sidecar/services/research/deep.py:1255, sidecar/services/research/deep.py:90-95, sidecar/services/research/iter.py:611, sidecar/services/research/iter.py:628, sidecar/services/agent_tools/deep_research.py:281-288",
+    "notes": "Modifying existing code / duplicated truth. Consequence: deep.py:90-95 now documents adaptive behaviour that module does not have, so a maintainer reading the fallback learns a false fact about it; every future round-loop fix has two homes and one will be missed again. Smallest fix: delete run_deep_research (iter's abort->synthesize already covers degradation - the except has no recorded firing) and keep the shared helpers, or have the fallback call the same extracted round."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-8",
+    "title": "iter.py and verify.py import 15 private names from deep.py; the underscore prefix is a lie",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "design - iter.py imports _ROUND_MODEL, _ROUND_PROVIDER, _WEB_ONLY_FLOOR_NOTE, _emit, _Findings, _record_structured, _record_web, _reflect_says_complete, _round_wall_limit, _run_researcher, _safe_llm, _split_subquestions, _synthesize_brief from deep.py; verify.py imports _emit, _safe_llm, _safe_tool, _split_subquestions - while never calling deep.py's public run_deep_research.",
+    "evidence": "sidecar/services/research/iter.py:40-67, sidecar/services/research/verify.py:56-64",
+    "notes": "Information hiding/leakage: no edit inside deep.py's 'private' surface is local, and the next maintainer is told by the naming convention that it is. The module split is in the wrong place - the helpers want to be together, the two loops want to be one. Smallest fix: move the shared round helpers to services/research/_loop.py as public names; deep.py keeps only its entry point (or disappears with finding 7)."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-9",
+    "title": "Three second copies of the depth knobs, against a docstring claiming none exist",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "design - depth.py:29-30 states 'no second copy of these numbers exists anywhere', but deep_research.py:463-467 holds a SECOND per-depth wall table (tier B), :478-483 a second per-depth cost-band table, and :74 _MIN_HEAVY_ANGLES = 2 duplicates iter.py:89 _MIN_ANGLES = 2 with the comment 'Kept in lockstep with'.",
+    "evidence": "sidecar/services/research/depth.py:29-30, sidecar/services/agent_tools/deep_research.py:74, sidecar/services/agent_tools/deep_research.py:463-467, sidecar/services/agent_tools/deep_research.py:478-483, sidecar/services/research/iter.py:89",
+    "notes": "Information leakage held together by a comment asking a human to remember. Consequence: tier A's 'ultra' and tier B's 'ultra' already disagree about wall time (360 vs 480) with no single place that says so; the panel threshold is asserted equal in two files. Smallest fix: move tier_b_wall_seconds and cost_band onto DepthProfile and expose the panel threshold as a profile property (profile.is_panel), so 'the ONE knob table' becomes true again."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-10",
+    "title": "run_deep_brief documents stale wall defaults and its clamp cannot express ULTRA's own default",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "run_deep_brief(q, depth='ultra', wall_seconds=360) -> _clamp(360, 30, 300, 360) returns 300, silently cutting the profile's own default; run_deep_brief(q, depth='ultra') -> _clamp(None, ...) hits the TypeError branch and returns 360 unclamped. Two callers asking for the same thing get different budgets. The docstring says deep 120 / ultra 240; depth.py says 180 / 360.",
+    "evidence": "sidecar/services/agent_tools/deep_research.py:404-405, sidecar/services/agent_tools/deep_research.py:426, sidecar/services/agent_tools/deep_research.py:96-102, sidecar/services/research/depth.py:141, sidecar/services/research/depth.py:157",
+    "notes": "Comment duplicating a value that has since moved, plus a validation ceiling that predates the R13/R9 bumps it now silently contradicts. Consequence: an explicit wall_seconds equal to the documented default is silently reduced by 60s on ULTRA. Smallest fix: clamp against max(300, profile.wall_seconds) (or the profile's own ceiling) and delete the numbers from the docstring in favour of naming depth.PROFILES."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-11",
+    "title": "DEEP/ULTRA researchers still call SEC EDGAR for Indian listings; the region fix landed only in fast.py",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "A DEEP/ULTRA run on an NSE/BSE name with any filing/sec/insider-shaped sub-question: deep.py:708-710 selects sec_filings_list with the Indian symbol regardless of region, the leg fails, and deep.py:806-812 then injects 'temporarily unavailable this run ... This is a feed outage, NOT evidence the data does not exist' into the researcher prompt. fast.py:413-442 makes exactly this decision by region and routes an Indian target to corporate_announcements instead.",
+    "evidence": "sidecar/services/research/deep.py:705-717, sidecar/services/research/deep.py:806-812, sidecar/services/research/fast.py:413-442, sidecar/services/research/relevance.py:374-378",
+    "notes": "General-purpose vs special-purpose plus a one-of-two-copies fix. Consequence: one guaranteed-failing tool call per filings sub-question, and the model is told the miss is a transient feed outage for a company whose filings that jurisdiction never indexed - the framing at deep.py:806-812 exists to prevent exactly that misreading. Mitigated but not fixed by disclosures.wants_disclosures firing alongside. Smallest fix: reuse relevance.is_india_target in the researcher's bucket choice, as _filings_leg already does."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-12",
+    "title": "Heavy panel drops a crashed explorer with no step, no note and no count",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "One of three ULTRA explorers raises: asyncio.gather(..., return_exceptions=True) returns the exception, the comprehension filters it out by isinstance, and nothing is emitted. structured['panel'] lists only survivors and note is set to None, so the published brief claims a 3-angle panel it did not run.",
+    "evidence": "sidecar/services/research/iter.py:1001-1002, sidecar/services/research/iter.py:1004-1005, sidecar/services/research/iter.py:1134-1136, sidecar/services/research/iter.py:1156",
+    "notes": "A swallowed exception turning a failure into a silent partial - and the file elsewhere is scrupulous about never-silent degradation (deep_research.py:289-295 routes exactly this kind of demotion onto brief.note). Smallest fix: emit one ResearchStep per dropped angle and record the dropped count in structured['panel'] (not brief.note, which is user-facing prose)."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-13",
+    "title": "_reflect_says_complete substring-scans the whole reflect completion",
+    "severity": "low",
+    "area": "research",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "_reflect_says_complete('Price action is not covered yet') -> True: 'covered' is an affirmative marker and none of gap/missing/incomplete/not enough/more research appears. Only the coverage floor (coverage_floor_met) stops the round ending early.",
+    "evidence": "sidecar/services/research/deep.py:308-323, sidecar/services/research/deep.py:1202-1204, sidecar/services/research/iter.py:576-578",
+    "notes": "Same design weakness as finding 1 in a lower-stakes place: a whole-text marker scan where the prompt asks for a structured answer ('State whether coverage is COMPLETE or list remaining GAPS'). Consequence today is bounded by the AND with the coverage floor, so it is polish - but the two parsers should be fixed with the same shape so the next reader sees one convention, not two."
+  },
+  {
+    "raw_id": "COD-research-depth-iter-deep-14",
+    "title": "_Report.render() tail-truncation drops the cited-facts section and keeps the plan",
+    "severity": "low",
+    "area": "research",
+    "subsystem": "research-depth-iter-deep",
+    "repro": "A distilled report longer than char_cap (6000 DEEP / 9000 ULTRA) is truncated from the head - text[-cap:] - so '## Facts established' (the section the distill prompt says carries every fact with its [n] markers) is the first thing lost, while '## Planned next' always survives.",
+    "evidence": "sidecar/services/research/iter.py:108-115, sidecar/services/research/iter.py:173-180, sidecar/services/research/iter.py:250-256",
+    "notes": "The render() comment says 'Keep the newest distilled content', which is right for free-form prose and wrong for the four-section contract R9 B3 introduced above it - the newest content is the plan, not the evidence, and render() feeds the SYNTHESIS prompt too. Smallest fix: when the four section headings are present, trim '## Dead ends' and '## Planned next' first and keep Facts established whole."
+  }
+]

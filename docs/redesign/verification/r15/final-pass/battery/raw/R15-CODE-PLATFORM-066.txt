@@ -1,0 +1,11 @@
+# R15-CODE-PLATFORM-066 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:06+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p066.py 2>&1 | grep -v Warning
+--- output ---
+'7**(10**7)'         0.0003s -> ValueError: power result too large (over 10000 bits)
+'[0]*10**9'          0.0001s -> ValueError: repetition too large (over 100000 items)
+"10^9 * 'ab'"        0.0001s -> ValueError: repetition too large (over 100000 items)
+'round(1, 10^7)'     0.0001s -> ValueError: round: digits must be in [0, 15]; got 10000000
+in-bound: {'value': 1030.0}
+
+EXIT=0 (2.9s)

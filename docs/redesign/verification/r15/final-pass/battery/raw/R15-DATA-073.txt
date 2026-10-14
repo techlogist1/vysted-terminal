@@ -1,0 +1,24 @@
+# R15-DATA-073 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:31:34+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import httpx, datetime
+from services import locale
+s=httpx.Client(headers={'User-Agent':'Mozilla/5.0','Accept':'application/json'},timeout=30,follow_redirects=True)
+s.get('https://www.nseindia.com/')
+r=s.get('https://www.nseindia.com/api/holiday-master?type=trading')
+d=r.json(); live={datetime.datetime.strptime(x['tradingDate'],'%d-%b-%Y').date() for x in d.get('CM',[])}
+live26={x for x in live if x.year==2026}
+app26={datetime.date.fromisoformat(x) for x in locale._NSE_HOLIDAYS if x.startswith('2026')}
+print('== live NSE CM 2026 holidays:',len(live26)); print('== app _NSE_HOLIDAYS 2026:',len(app26))
+print('== live - app:',sorted(live26-app26)); print('== app - live:',sorted(app26-live26))
+PY
+ls "$C/sidecar/services/resolver_masters/regenerate_holidays.py"; grep -n 'R15-DATA-073' "$C/sidecar/tests/test_locale.py" | head -2
+--- output ---
+== live NSE CM 2026 holidays: 20
+== app _NSE_HOLIDAYS 2026: 20
+== live - app: []
+== app - live: []
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/services/resolver_masters/regenerate_holidays.py
+83:    # R15-DATA-073: a bundled calendar that stops before December silently turns
+
+EXIT=0 (1.9s)

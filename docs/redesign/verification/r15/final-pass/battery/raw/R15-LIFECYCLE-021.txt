@@ -1,0 +1,33 @@
+# R15-LIFECYCLE-021 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:33:38+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio
+from services import provider_registry as pr, provider_health as ph
+import services.nse_provider as nd
+from services.errors import ProviderError
+def dead(*a,**k): raise ProviderError('nse_direct: simulated dead nseindia session (connection refused)')
+nd._get_json=dead
+async def go():
+    for s in ('RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS'):
+        q=pr.get_quote(s,"equity"); q=(await q) if asyncio.iscoroutine(q) else q; print('== quote',s,{'provider':q.provider,'price':q.price})
+asyncio.run(go()); print('== provider_health.fallthroughs():',[{k:v for k,v in f.items() if k!='last_at'} for f in ph.fallthroughs() if f.get('model_key')=='quote'])
+PY
+echo '$ live /system/provider-health keys'; curl -s -m 20 "$H/system/provider-health" | python3 -c "import sys,json;d=json.load(sys.stdin);print(list(d.keys()),'fallthroughs is list:',isinstance(d.get('fallthroughs'),list))"
+--- output ---
+provider nse_direct failed for quote, falling through: nse_direct: simulated dead nseindia session (connection refused)
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: simulated dead nseindia session (connection refused)
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: simulated dead nseindia session (connection refused)
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: simulated dead nseindia session (connection refused)
+  return np.datetime64(dt)
+== quote RELIANCE.NS {'provider': 'nse', 'price': 1167.7}
+== quote TCS.NS {'provider': 'nse', 'price': 2075.0}
+== quote INFY.NS {'provider': 'nse', 'price': 1035.0}
+== quote HDFCBANK.NS {'provider': 'nse', 'price': 721.2}
+== provider_health.fallthroughs(): [{'provider': 'nse_direct', 'model_key': 'quote', 'count': 4, 'last_error': 'nse_direct: simulated dead nseindia session (connection refused)'}]
+$ live /system/provider-health keys
+['yahoo', 'fallthroughs'] fallthroughs is list: True
+
+EXIT=0 (1.6s)

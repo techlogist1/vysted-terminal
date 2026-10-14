@@ -1,0 +1,37 @@
+{"kind": "delta", "text": "Adding"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " now"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " updated"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " W"}
+{"kind": "delta", "text": "IP"}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " @"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "165"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "125"}
+{"kind": "delta", "text": ")\n\n"}
+{"kind": "delta", "text": "What"}
+{"kind": "delta", "text": " else"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " do"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2743, "output_tokens": 38, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

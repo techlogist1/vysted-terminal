@@ -1,26 +1,45 @@
 "use client";
 
+import { ListX } from "lucide-react";
+
+import { DataTable, type DataColumn } from "@/components/DataTable";
+import { EmptyState } from "@/components/EmptyState";
+import { currencyAffix, formatPrice, formatUnit } from "@/lib/format";
+
 import type { EarningsEstimateDetail } from "../../../types/earnings";
 
-function fmt(value: number | null, digits = 2): string {
-  if (value === null) {
-    return "—";
-  }
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+interface EstimateRow {
+  /** Stable row id (labels repeat across the EPS / Revenue sections). */
+  id: string;
+  label: string;
+  value: string | null;
 }
 
-function fmtLargeMoney(value: number | null): string {
-  if (value === null) {
-    return "—";
-  }
-  const abs = Math.abs(value);
-  if (abs >= 1e12) return `${(value / 1e12).toFixed(2)}T`;
-  if (abs >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
-  if (abs >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
-  return value.toLocaleString("en-US");
+/** Statement-table columns — label left, estimate right-aligned in its own
+ *  numeric column (design law: never a key-value dump grid). */
+const COLUMNS: DataColumn<EstimateRow>[] = [
+  { key: "label", header: "Metric", tier: "secondary", width: "60%", format: (r) => r.label },
+  { key: "value", header: "Estimate", numeric: true, width: "40%", format: (r) => r.value },
+];
+
+/** R15-DATA-031: EPS values carried no currency at all. `currency === null`
+ *  means the provider could not determine the EPS currency (R15-DATA-113) —
+ *  render the bare number, never a guessed code. */
+function eps(value: number | null, currency: string | null, digits = 2): string | null {
+  if (value === null) return null;
+  if (currency === null) return formatPrice(value, digits);
+  const { prefix, suffix } = currencyAffix(currency);
+  return `${prefix}${formatPrice(value, digits)}${suffix}`;
+}
+
+/** R15-DATA-031: revenue's K/M/B suffix carried no currency symbol either.
+ *  `currency === null` means the provider could not determine it
+ *  (R15-DATA-113) — render the bare number, never a guessed code. */
+function revenue(value: number | null, currency: string | null): string | null {
+  if (value === null) return null;
+  if (currency === null) return formatUnit(value);
+  const { prefix, suffix } = currencyAffix(currency);
+  return `${prefix}${formatUnit(value)}${suffix}`;
 }
 
 interface Props {
@@ -28,41 +47,100 @@ interface Props {
 }
 
 /**
- * Six-cell mean / median / high / low / stddev / analyst-count grid for
- * the next upcoming earnings event. Renders an em-dash placeholder when
- * the upstream did not surface a value.
+ * Next-quarter estimate detail as a two-section statement table (EPS /
+ * Revenue) on the shared DataTable — label left, value right-aligned tabular.
+ * Missing upstream values render the shared null glyph; a missing detail
+ * altogether renders the composed dense empty state.
  */
 export function EpsEstimateGrid({ estimate }: Props) {
   if (!estimate) {
     return (
-      <p className="text-charcoal-400 font-mono text-xs" data-testid="eps-estimate-grid-empty">
-        Estimate detail unavailable.
-      </p>
+      <div data-testid="eps-estimate-grid-empty">
+        <EmptyState
+          dense
+          icon={ListX}
+          headline="No estimate detail"
+          hint="The provider surfaced no consensus detail for this event."
+        />
+      </div>
     );
   }
+  // R15-DATA-113: revenue is stated in its own scale-checked currency, which
+  // for a foreign reporter differs from the trading currency `currency`
+  // carries. `undefined` (a pre-fix cached envelope) falls back to
+  // `currency`; `null` (the provider could not determine it) stays null so
+  // the grid renders no currency code rather than a guessed one.
+  const revenueCurrency =
+    estimate.revenue_currency === undefined ? estimate.currency : estimate.revenue_currency;
   return (
-    <div
-      className="grid grid-cols-3 gap-x-6 gap-y-2 font-mono text-xs"
-      data-testid="eps-estimate-grid"
-    >
-      <Cell label="EPS mean" value={fmt(estimate.eps_estimate_mean)} />
-      <Cell label="EPS median" value={fmt(estimate.eps_estimate_median)} />
-      <Cell label="EPS high" value={fmt(estimate.eps_estimate_high)} />
-      <Cell label="EPS low" value={fmt(estimate.eps_estimate_low)} />
-      <Cell label="EPS stddev" value={fmt(estimate.eps_estimate_stddev, 3)} />
-      <Cell label="# analysts" value={String(estimate.estimate_analyst_count)} />
-      <Cell label="Rev mean" value={fmtLargeMoney(estimate.revenue_estimate_mean)} />
-      <Cell label="Rev high" value={fmtLargeMoney(estimate.revenue_estimate_high)} />
-      <Cell label="Rev low" value={fmtLargeMoney(estimate.revenue_estimate_low)} />
-    </div>
-  );
-}
-
-function Cell({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-2">
-      <dt className="text-charcoal-400">{label}</dt>
-      <dd className="text-charcoal-100">{value}</dd>
+    <div data-testid="eps-estimate-grid">
+      <DataTable
+        columns={COLUMNS}
+        sections={[
+          {
+            label: "EPS",
+            rows: [
+              {
+                id: "eps-mean",
+                label: "Mean",
+                value: eps(estimate.eps_estimate_mean, estimate.currency),
+              },
+              {
+                id: "eps-median",
+                label: "Median",
+                value: eps(estimate.eps_estimate_median, estimate.currency),
+              },
+              {
+                id: "eps-high",
+                label: "High",
+                value: eps(estimate.eps_estimate_high, estimate.currency),
+              },
+              {
+                id: "eps-low",
+                label: "Low",
+                value: eps(estimate.eps_estimate_low, estimate.currency),
+              },
+              {
+                id: "eps-stddev",
+                label: "Std. dev.",
+                value: eps(estimate.eps_estimate_stddev, estimate.currency, 3),
+              },
+              {
+                id: "eps-analysts",
+                label: "Analysts",
+                value:
+                  estimate.estimate_analyst_count === null
+                    ? null
+                    : String(estimate.estimate_analyst_count),
+              },
+            ],
+          },
+          {
+            // R15-DATA-113: revenue is stated in the reporting currency
+            // (revenue_currency), which for a foreign reporter differs from
+            // the trading currency the EPS section above uses.
+            label: "Revenue",
+            rows: [
+              {
+                id: "rev-mean",
+                label: "Mean",
+                value: revenue(estimate.revenue_estimate_mean, revenueCurrency),
+              },
+              {
+                id: "rev-high",
+                label: "High",
+                value: revenue(estimate.revenue_estimate_high, revenueCurrency),
+              },
+              {
+                id: "rev-low",
+                label: "Low",
+                value: revenue(estimate.revenue_estimate_low, revenueCurrency),
+              },
+            ],
+          },
+        ]}
+        rowKey={(row) => row.id}
+      />
     </div>
   );
 }

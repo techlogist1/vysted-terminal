@@ -1,0 +1,15 @@
+grep for 'note' string in disclosure_tools.py near shareholding:
+24:``note`` (C3); a US-listed ADR's shareholding carries its 20-F major holders
+49:    """``coverage`` always; ``note`` only when the service stated one."""
+51:    if response.note:
+52:        out["note"] = response.note
+188:        return {"ok": True, "symbol": response.symbol, "available": False, "reason": response.note}
+--- catalog.py shareholding_pattern description ---
+821:            "shareholding_pattern",
+822-            description=(
+823-                "Quarterly shareholding pattern for an NSE- or BSE-listed Indian "
+824-                "company, newest quarter first: promoter(+group), public (incl. "
+--- live call ---
+{'ok': True, 'symbol': 'CREST', 'coverage': 'covered', 'count': 12}
+has note key: False
+first pattern keys: ['symbol', 'quarter_end', 'quarter_basis', 'promoter_percent', 'fii_percent', 'dii_percent', 'institutions_percent', 'public_percent', 'public_basis', 'public_non_institutional_percent', 'employee_trusts_percent', 'submission_date', 'xbrl_url', 'source', 'split_source', 'split_as_of', 'split_basis', 'promoter_pledged_percent', 'promoter_pledge_basis']

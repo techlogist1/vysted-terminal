@@ -1,0 +1,21 @@
+== workflows.db
+workflows schedules 
+  audit_orders count: Error: in prepare, no such table: audit_orders
+== custom_agents.db
+custom_agents 
+  audit_orders count: Error: in prepare, no such table: audit_orders
+== portfolio.db
+positions sqlite_sequence 
+  audit_orders count: Error: in prepare, no such table: audit_orders
+== delegate_runs.db
+runs 
+  audit_orders count: Error: in prepare, no such table: audit_orders
+== plugins.db
+plugin_configs 
+  audit_orders count: Error: in prepare, no such table: audit_orders
+== data_cache.db
+cache meta 
+  audit_orders count: Error: in prepare, no such table: audit_orders
+== fundamentals_cache.db
+fundamentals 
+  audit_orders count: Error: in prepare, no such table: audit_orders

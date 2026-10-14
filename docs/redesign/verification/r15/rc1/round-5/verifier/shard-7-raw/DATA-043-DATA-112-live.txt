@@ -1,0 +1,60 @@
+cwd=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-9bc600e-fix-int sha=633f844071d972b337f4c3526d86555c80df0568 sidecar=:52607 (own, from this worktree)
+== DATA-043 repro custom AAPL,RELIANCE.NS sort market_cap desc
+count 2 partial False
+  RELIANCE.NS 16590810644480.0 INR 1226.0 22.222223
+  AAPL 4911671017472.0 USD None 38.550976
+== DATA-043 fresh custom MSFT,TCS.NS,7203.T,SAP.DE,HDFCBANK.NS,NVDA sort market_cap desc
+count 4 partial True
+  HDFCBANK.NS 11341831077888.0 INR 735.6 16.078688
+  TCS.NS 7532857786368.0 INR 2082.0 15.128615
+  NVDA 5434765213696.0 USD 225.07000732421875 28.489874
+  MSFT 3832843862016.0 USD 516.1699829101562 28.739979
+== DATA-043 fresh price asc
+count 4 partial True
+  HDFCBANK.NS 11341831077888.0 INR 735.6 16.078688
+  TCS.NS 7532857786368.0 INR 2082.0 15.128615
+  NVDA 5434765213696.0 USD 225.07000732421875 28.489874
+  MSFT 3832843862016.0 USD 516.1699829101562 28.739979
+== DATA-112 repro MANIKA,RELIANCE,TCS
+count 3 partial False
+  RELIANCE.NS 16590810644480.0 INR 1226.0 22.222223
+  TCS.NS 7532857786368.0 INR 2082.0 15.128615
+  MANIKA.NS None INR 42.32 22.041668
+== DATA-112 repro asc
+count 3 partial False
+  TCS.NS 7532857786368.0 INR 2082.0 15.128615
+  RELIANCE.NS 16590810644480.0 INR 1226.0 22.222223
+  MANIKA.NS None INR 42.32 22.041668
+== DATA-112 fresh: BOGUSXYZ.NS, SIFY, AAPL, INFY.NS, ZZZZQ
+count 4 partial True
+  INFY.NS 4051153715200.0 INR 1000.2 12.902477
+  JONJUA.BO 110633392.0 INR 3.14 1.3711791
+  MANIKA.NS None INR 42.32 22.041668
+  AAPL 4911671017472.0 USD None 38.550976
+== DATA-112 fresh: pe_ratio desc
+count 4 partial False
+  RELIANCE.NS 16590810644480.0 INR 1226.0 22.222223
+  MANIKA.NS None INR 42.32 22.041668
+  TCS.NS 7532857786368.0 INR 2082.0 15.128615
+  JONJUA.BO 110633392.0 INR 3.14 1.3711791
+EXIT=0
+== DATA-043 fresh: top-K cut on a mixed universe (limit 2)
+   body: {"universe":"custom","custom_symbols":["AAPL","NVDA","RELIANCE.NS","TCS.NS"],"criteria":[],"sort_by":"market_cap","sort_dir":"desc","limit":2}
+   matched_count 4 result_count 2 partial False
+   RELIANCE.NS 16590810644480.0 INR
+   NVDA 5434765213696.0 USD
+== DATA-043 fresh: threshold market_cap > 1e13 on mixed universe
+   body: {"universe":"custom","custom_symbols":["AAPL","NVDA","RELIANCE.NS","TCS.NS"],"criteria":[{"field":"market_cap","operator":"gt","value":1e13}],"sort_by":"market_cap","sort_dir":"desc"}
+   matched_count 1 result_count 1 partial False
+   RELIANCE.NS 16590810644480.0 INR
+EXIT=0
+== DATA-043 repro + coverage, limit 200
+  coverage: screened 4 of 4 — 0 unavailable · spans INR, USD — ranked within each currency
+   RELIANCE.NS 16590810644480.0 INR
+   TCS.NS 7532857786368.0 INR
+   NVDA 5434765213696.0 USD
+   AAPL 4977636933632.0 USD
+== DATA-043 repro + coverage, limit 2
+  coverage: screened 4 of 4 — 0 unavailable · spans INR, USD — ranked within each currency
+   RELIANCE.NS 16590810644480.0 INR
+   NVDA 5434765213696.0 USD

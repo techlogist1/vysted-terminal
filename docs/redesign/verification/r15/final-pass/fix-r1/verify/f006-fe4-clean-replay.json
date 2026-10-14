@@ -1,0 +1,256 @@
+{
+ "clean100b": {
+  "holdings": 100,
+  "samples": [
+   {
+    "t": 5,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 10,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 15,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 20,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 25,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 30,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 35,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 40,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 45,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 50,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 55,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 60,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 65,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 70,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 75,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 80,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 85,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 90,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 95,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 100,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 105,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 110,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 115,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 121,
+    "quotesInflight": 0,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 126,
+    "quotesInflight": 0,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 131,
+    "quotesInflight": 0,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 136,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 141,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   },
+   {
+    "t": 146,
+    "quotesInflight": 1,
+    "priced": 100,
+    "rows": 100,
+    "banner": false,
+    "banner_text": ""
+   }
+  ],
+  "requests": [
+   {
+    "t": 0,
+    "ms": 120002,
+    "status": "TimeoutError: The operation was aborted due to timeout",
+    "path": "/quotes?symbols=SUVEN.NS,KENNAMET.NS,FIRSTCRY.NS,AFCONS.NS,G",
+    "nsyms": 27
+   },
+   {
+    "t": 136,
+    "ms": 1750,
+    "status": 200,
+    "path": "/quotes?symbols=SUVEN.NS,KENNAMET.NS,FIRSTCRY.NS,AFCONS.NS,G",
+    "nsyms": 27
+   }
+  ],
+  "maxQuotesInflight": 1
+ }
+}

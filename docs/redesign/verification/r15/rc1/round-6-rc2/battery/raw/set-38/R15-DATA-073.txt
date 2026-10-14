@@ -1,0 +1,7 @@
+# in-process (candidate venv): live NSE holiday-master vs locale._NSE_HOLIDAYS, ace7dd76
+== live NSE CM 2026 holidays: 20
+== app _NSE_HOLIDAYS 2026: 20
+== live - app: []
+== app - live: []
+== regenerator present: []
+# regenerator: sidecar/services/resolver_masters/regenerate_holidays.py exists; test sidecar/tests/test_locale.py cites R15-DATA-073

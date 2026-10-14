@@ -1,0 +1,44 @@
+=== R15-LEAD-018 probe (candidate 1006c6da) ===
+import sys, json
+sys.path.insert(0, ".")
+from services.llm.reasoning_split import ReasoningSplitter
+from models.llm import LLMThinkingEvent, LLMDeltaEvent
+
+splitter = ReasoningSplitter()
+thinking_text = []
+answer_text = []
+
+with open("tests/fixtures/llm/nemotron_cot.jsonl") as f:
+    for line in f:
+        chunk = json.loads(line)
+        delta = chunk["choices"][0]["delta"]
+        reasoning = delta.get("reasoning")
+        content = delta.get("content")
+        if reasoning:
+            for ev in splitter.reasoning(reasoning):
+                if isinstance(ev, LLMThinkingEvent):
+                    thinking_text.append(ev.text)
+        if content:
+            for ev in splitter.content(content):
+                if isinstance(ev, LLMThinkingEvent):
+                    thinking_text.append(ev.text)
+                elif isinstance(ev, LLMDeltaEvent):
+                    answer_text.append(ev.text)
+
+for ev in splitter.flush():
+    if isinstance(ev, LLMDeltaEvent):
+        answer_text.append(ev.text)
+
+thinking = "".join(thinking_text)
+answer = "".join(answer_text)
+print("THINKING chars:", len(thinking))
+print("ANSWER chars:", len(answer))
+print("ANSWER preview:", repr(answer[:300]))
+print("thinking text found verbatim inside answer:", thinking[:80] in answer if thinking else "n/a")
+OUTPUT (replaying the real captured nemotron fixture, 27 chunks, 1 with a nonempty content field -- the reasoning echo):
+THINKING chars: 296
+ANSWER chars: 0
+ANSWER preview: ''
+thinking text found verbatim inside answer: False
+
+VERDICT: holds. The echoed content chunk is recognized as a prefix of the streamed reasoning and dropped (round ended mid-echo); zero chain-of-thought characters reach the ANSWER/delta channel.

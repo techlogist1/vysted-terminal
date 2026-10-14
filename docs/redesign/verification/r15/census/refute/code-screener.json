@@ -1,0 +1,137 @@
+[
+  {
+    "raw_id": "COD-screener-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Real: apply_criteria sorts on raw market_cap (screener.py:396-398) and the table comparator does av - bv ignoring row.currency (ScreenerResultsTable.tsx:307-310), so a mixed custom list (reachable: ScreenerPanel custom input -> store.ts:374 custom_symbols) ranks/thresholds INR against USD, and no criterion input or header carries a unit (only the engine docstring screener.py:41-43 does; even DEFAULT_CRITERIA market_cap > 1e11 at store.ts:233 means $100B on sp500 and Rs 10,000 cr on nifty50). Downgraded critical->high: every displayed value is correct and currency-labelled per row (ScreenerResultsTable.tsx:151-152), so no wrong number is shown as true; the defect is wrong ordering/filter semantics in mixed-currency lists plus an unlabelled threshold unit.",
+    "evidence": "sidecar/services/screener.py:41, sidecar/services/screener.py:396, src/modules/screener/ScreenerResultsTable.tsx:152, src/modules/screener/ScreenerResultsTable.tsx:297, src/modules/screener/ScreenerCriteriaBuilder.tsx:31, src/store/screener.ts:233, src/store/screener.ts:374",
+    "evidence_checked": "code-only: engine sort, client comparator, criteria builder field labels (no currency/unit anywhere, grep), custom-universe wiring in store/panel. Live repro not run (custom run hits upstream quotes).",
+    "repro_check": "Would run: python3 scripts/r15/vy.py POST /screener/run {universe:'custom',custom_symbols:['AAPL','RELIANCE.NS'],criteria:[]} on :52152 and compare row order to market_cap/currency; code path makes the order deterministic (-(market_cap) with no FX)."
+  },
+  {
+    "raw_id": "COD-screener-2",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds exactly: run_screener passes needed_fields = _enrichment_fields_needed(...) (screener.py:1044), which keeps only fields in yahoo_batch_provider._ENRICHMENT_FIELDS (yahoo_batch_provider.py:517-545; pe_ratio/forward_pe/dividend_yield/price_to_book are NOT in it), so _finalize's absent-check (screener.py:718-723) never itemizes a NULL pe_ratio, and _evaluate_criterion returns False for None (screener.py:296-297) - counted as evaluated-and-failed. The formula path itemizes the same NULL as missing_field (screener_formula.py:47-52, evaluate_formula 577-578).",
+    "evidence": "sidecar/services/screener.py:1044, sidecar/services/screener.py:433, sidecar/services/screener.py:718, sidecar/services/screener.py:296, sidecar/services/yahoo_batch_provider.py:517, sidecar/services/screener_formula.py:577",
+    "evidence_checked": "code read of both paths + ran screener_formula directly: evaluate_formula(compile_formula('pe < 20'), Fundamentals(pe_ratio=None)) -> (False, 'pe_ratio'), confirming the formula side itemizes while the criteria side cannot (pe_ratio not in _ENRICHMENT_FIELDS).",
+    "repro_check": "sidecar/.venv/bin/python3 -c \"...evaluate_formula(compile_formula('pe < 20'), Fundamentals(symbol='X',provider='t'), None)\" -> (False, 'pe_ratio'); criteria-path skip is gated on _ENRICHMENT_FIELDS membership which excludes pe_ratio."
+  },
+  {
+    "raw_id": "COD-screener-3",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds and is worse than stated: the server sorts by market_cap desc and cuts to limit (screener.py:396-398, 764-765; store default limit=200 at store.ts:315), the client re-sorts only result.rows (ScreenerResultsTable.tsx:326-330), and result_count is len(rows) not len(matched) (screener.py:821), so the header '200 rows (N evaluated)' (ScreenerResultsTable.tsx:427) does not even disclose that more rows matched than are shown.",
+    "evidence": "sidecar/services/screener.py:396, sidecar/services/screener.py:764, sidecar/services/screener.py:821, src/modules/screener/ScreenerResultsTable.tsx:326, src/modules/screener/ScreenerResultsTable.tsx:427, src/store/screener.ts:315",
+    "evidence_checked": "code-only: engine sort+limit, result_count assignment, client sort memo, results header text; no sort_by on ScreenerRequest (models/screener.py:200-222).",
+    "repro_check": "Would run a broad nse-all screen via vy.py and compare min(pe_ratio) of returned rows to the universe min; code makes the truncation deterministic (matched[:limit] after market_cap sort)."
+  },
+  {
+    "raw_id": "COD-screener-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: default_universe_for_region (screener.py:114-117) has no caller anywhere in sidecar/src/types/plugins (grep: only its def, __all__ and the router docstring routers/screener.py:74-77 that claims it serves callers), and the store initialises universe: 'sp500' (store.ts:267). Corrections: store.ts:654 is __resetForTests, not a user-facing reset; and severity high->medium - it is a first-frame default on a dropdown the user changes in one click, not a broken flow, though the router docstring does falsely assert FR-060 is shipped.",
+    "evidence": "sidecar/services/screener.py:114, sidecar/routers/screener.py:74, src/store/screener.ts:267, src/store/screener.ts:654",
+    "evidence_checked": "grep -rn default_universe_for_region over sidecar src types plugins (*.py/*.ts/*.tsx); grep for any region-based setUniverse in src/modules/screener and store - none.",
+    "repro_check": "grep -rn 'default_universe_for_region' --include=*.py --include=*.ts --include=*.tsx sidecar src types plugins -> only def, __all__, router docstring."
+  },
+  {
+    "raw_id": "COD-screener-5",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds: _screener_run returns result.model_dump(mode='json') wholesale (screener_tools.py:67-70) including skip_details (one SkipDetail per unevaluated symbol, models/screener.py:343-347, built per universe symbol at screener.py:778-783), and the agent loop places the tool result string into the tool message with no size cap (agent_runtime.py:1566-1578; no truncation constant found). screener_run is on the copilot allow-list (agents/copilot.json:16), so a partial/no_data-heavy india-all run (~5k symbols) puts tens of thousands of tokens into one turn.",
+    "evidence": "sidecar/services/agent_tools/screener_tools.py:67, sidecar/services/agent_tools/screener_tools.py:39, sidecar/models/screener.py:347, sidecar/services/screener.py:778, sidecar/services/agent_runtime.py:1566, sidecar/agents/copilot.json:16",
+    "evidence_checked": "code-only: tool body, result model, _finalize ledger construction, agent_runtime tool-result dispatch (grep for truncation/caps found none).",
+    "repro_check": "Would invoke copilot via scripts/r15/vy.py asking for an india-all screen and measure the tool-result length in the run transcript; code shows no aggregation or cap."
+  },
+  {
+    "raw_id": "COD-screener-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: _is_boolean checks only the root (screener_formula.py:449-450), _call parses each arg as a full _or_expr (388-391), and the evaluator float()s a bool (513-517), so booleans silently coerce inside arithmetic/min/max/abs. Reproduced exactly.",
+    "evidence": "sidecar/services/screener_formula.py:449, sidecar/services/screener_formula.py:388, sidecar/services/screener_formula.py:513",
+    "evidence_checked": "ran services.screener_formula directly in the sidecar venv against Fundamentals(pe_ratio=3|99, roe=0.9).",
+    "repro_check": "'min(pe < 5, roe) > 0.5' -> True at pe=3, False at pe=99; 'abs(pe_ratio > 3) > 0.5' -> False at 3, True at 99; '(pe_ratio < 15) + 1 > 1.5' -> True at 3, False at 99 - all compile without FormulaError."
+  },
+  {
+    "raw_id": "COD-screener-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: matched_criteria is filled only on the flat branch (screener.py:363-374) and has no production reader (grep: only types/screener.ts:176 and tests). Corrections: severity medium->low - on the flat branch it is by construction always [0..n-1] for any served row (break on first fail), so it carries no information and nothing user-visible depends on it; and the proposed 'drop the flattenLeaves mirroring' is wrong - the flat criteria mirror also drives the simple builder view via applyFilters (store.ts:302-309), not only the phantom column.",
+    "evidence": "sidecar/services/screener.py:363, sidecar/services/screener.py:394, types/screener.ts:176, src/lib/host-actions.ts:1153, src/store/screener.ts:302",
+    "evidence_checked": "grep -rn matched_criteria over src types plugins sidecar (non-test hits: model, engine, type only); read applyFilters.",
+    "repro_check": "grep -rn 'matched_criteria' src types --include=*.ts --include=*.tsx | grep -v test -> only types/screener.ts:176."
+  },
+  {
+    "raw_id": "COD-screener-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: except (TimeoutError, Exception) (screener.py:984) swallows every exception, logs at DEBUG only (986), and the failure branch does done += 1 then returns without emit (987-988), while emit is reached only after a successful upsert (989-992) - so a systematically failing adapter is indistinguishable from slowness and the enrich progress line stops advancing once failures dominate.",
+    "evidence": "sidecar/services/screener.py:979, sidecar/services/screener.py:984, sidecar/services/screener.py:988, sidecar/services/screener.py:991",
+    "evidence_checked": "code-only: _run_enrichment _one() body.",
+    "repro_check": "Would monkeypatch provider_registry.get_fundamentals to raise AttributeError in a scratch test and observe no WARNING log and no 'enrich' progress frames; code path is unambiguous."
+  },
+  {
+    "raw_id": "COD-screener-9",
+    "verdict": "refuted",
+    "severity_final": "medium",
+    "reason": "The repro path is not live: deserializeSavedScreens and setSavedScreens have NO production caller (grep over src excluding tests finds them only in src/store/screener.ts; src/lib/workspace.ts never references saved screens), so no workspace blob ever reaches this validator. NOTE for the lead - this exposes a different, larger defect: saved screens are in-memory only (store.ts:280, 620-637) and are lost on every restart, despite the 'wired to workspace by the lead' comment (store.ts:68, 224-226).",
+    "evidence": "src/store/screener.ts:83, src/store/screener.ts:224, src/store/screener.ts:280, src/store/screener.ts:637, src/lib/workspace.ts:439",
+    "evidence_checked": "grep -rln 'deserializeSavedScreens|setSavedScreens' src (non-test) -> only src/store/screener.ts; grep savedScreens/SavedScreen across src+types (non-test) -> only the store and ScreenerPanel UI.",
+    "repro_check": "grep -rln 'deserializeSavedScreens\\|setSavedScreens' src | grep -v .test. -> src/store/screener.ts only; the validator is unreachable, the persistence gap is the real issue."
+  },
+  {
+    "raw_id": "COD-screener-10",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Positional tuples are real (_bse_rows/_bse_lookup -> india_symbol_meta reads bse_row[1..3], screener_universe_india.py:71-103, 209-218), but the stated blast radius is false: market_cap_witness._lookup reads scrip_code from sector_seed_for(), a NAMED-key dict from india_sector_map.json (screener_universe_india.py:234-244; market_cap_witness.py:118-124), not from these tuples. The only tuple consumer is the boot seed (fundamentals_warm.py:120-128), all inside one module - a latent refactor hazard, not a data-trust risk.",
+    "evidence": "sidecar/services/screener_universe_india.py:103, sidecar/services/screener_universe_india.py:210, sidecar/services/screener_universe_india.py:234, sidecar/services/market_cap_witness.py:118, sidecar/services/fundamentals_warm.py:120",
+    "evidence_checked": "code-only: all tuple producers/consumers (grep india_symbol_meta/_bse_lookup/_bse_rows) and the witness lookup.",
+    "repro_check": "grep -rn 'india_symbol_meta\\|_bse_lookup()\\|_bse_rows()' sidecar --include=*.py | grep -v tests -> in-module uses + fundamentals_warm.py:120; witness uses sector_seed_for dict keys."
+  },
+  {
+    "raw_id": "COD-screener-11",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: sector_map_generated/sector_map_coverage call the uncached _load_master (screener_universe_india.py:41-50, 130-160) while _sector_map is @lru_cache, and market_cap_witness._lookup calls sector_map_generated per witness (market_cap_witness.py:127). Downgraded medium->low: measured ~7.4 ms per call, inside to_thread, invoked once per research snapshot for an Indian listing (research/fast.py:375) - negligible, not a per-screener-row cost.",
+    "evidence": "sidecar/services/screener_universe_india.py:41, sidecar/services/screener_universe_india.py:147, sidecar/services/market_cap_witness.py:127, sidecar/services/research/fast.py:375",
+    "evidence_checked": "code read + timed sector_map_generated() 10x in the sidecar venv (1.05 MB file).",
+    "repro_check": "sidecar/.venv/bin/python3 -c 'time 10x screener_universe_india.sector_map_generated()' -> ~7.4 ms/call."
+  },
+  {
+    "raw_id": "COD-screener-12",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The double-invocation idiom is real ({basisLine() && <div>{basisLine()}</div>} etc., ScreenerPanel.tsx:433-446; skipBreakdown builds a Map over skip_details, 160-175) and the panel re-renders on each progress frame (subscribes at 91). Downgraded medium->low: counting ≤~5k entries is sub-millisecond work per call, so there is no user-visible jank - polish, not a defect a user hits.",
+    "evidence": "src/modules/screener/ScreenerPanel.tsx:91, src/modules/screener/ScreenerPanel.tsx:160, src/modules/screener/ScreenerPanel.tsx:433, src/modules/screener/ScreenerPanel.tsx:439",
+    "evidence_checked": "code-only: panel subscriptions and header render.",
+    "repro_check": "Would profile a streaming india-all run in React DevTools; the loop is O(n) over ≤5k items twice per frame - not measurable jank."
+  },
+  {
+    "raw_id": "COD-screener-13",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: the operator onChange rebuilds the criterion with value 20 for any scalar op and {min:0,max:100} for between (ScreenerCriteriaBuilder.tsx:161-171), discarding the typed threshold; the advanced editor does the same (CriterionGroupEditor.tsx:175-179). Especially destructive for market_cap (e.g. 1e11 -> 20).",
+    "evidence": "src/modules/screener/ScreenerCriteriaBuilder.tsx:161, src/modules/screener/ScreenerCriteriaBuilder.tsx:170, src/modules/screener/CriterionGroupEditor.tsx:179",
+    "evidence_checked": "code-only: both operator-change handlers.",
+    "repro_check": "Would render ScreenerCriteriaBuilder in vitest, set P/E < 8, change operator to gt and assert value; handler code sets value: 20 unconditionally."
+  },
+  {
+    "raw_id": "COD-screener-14",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: the 'unary POST /screener/run -> guarded set(lastResult/status) -> null controller -> return' sequence is duplicated in the network-error fallback (store.ts:401-420) and the 404 fallback (423-442), and the completion protocol again at the stream tail (551-564), each with its own aborted/isCurrent ordering, while the superseded-run invariant lives only in a comment (30-36).",
+    "evidence": "src/store/screener.ts:30, src/store/screener.ts:403, src/store/screener.ts:425, src/store/screener.ts:562",
+    "evidence_checked": "code-only: runScreener body.",
+    "repro_check": "design finding - read the three blocks side by side; no runtime repro."
+  },
+  {
+    "raw_id": "COD-screener-15",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The comment is false as claimed (unknown universe is a Literal -> 422 at models/screener.py:205; resolve_universe raises ProviderError at screener.py:214/260; an invalid formula is rejected at the request boundary, models/screener.py:224-238). Correction: the handler is not strictly unreachable - pydantic ValidationError subclasses ValueError (verified) and FormulaError(ValueError) exists (screener_formula.py:78), so an internal model-construction bug inside run_screener would be misreported as a client 400 instead of a 500. Same fix (delete or narrow the except).",
+    "evidence": "sidecar/routers/screener.py:84, sidecar/services/screener.py:214, sidecar/services/screener.py:260, sidecar/models/screener.py:205, sidecar/models/screener.py:224, sidecar/services/screener_formula.py:78",
+    "evidence_checked": "code read + python: issubclass(pydantic_core.ValidationError, ValueError) -> True.",
+    "repro_check": "sidecar/.venv/bin/python3 -c 'import pydantic_core; print(issubclass(pydantic_core.ValidationError, ValueError))' -> True."
+  }
+]

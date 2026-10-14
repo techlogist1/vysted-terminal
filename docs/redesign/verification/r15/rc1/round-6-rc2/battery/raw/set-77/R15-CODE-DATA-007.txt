@@ -1,0 +1,3 @@
+candidate ace7dd76; cmd: cd sidecar; PYTHONPATH=. .venv/bin/python scratchpad/b13_disc.py (NSE lane monkeypatched to raise KeyError, BSE lane ok)
+shareholding with NSE lane KeyError -> 1 BSE
+both lanes KeyError raised ProviderError disclosures: every shareholding source failed for 'RELIANCE' (NSE: 'pr_and_prgrp'; BSE: 'pr_and_prgrp')

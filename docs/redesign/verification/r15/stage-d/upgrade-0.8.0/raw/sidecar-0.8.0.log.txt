@@ -1,0 +1,28 @@
+INFO:     Started server process [45675]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:52150 (Press CTRL+C to quit)
+INFO:     127.0.0.1:49535 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49540 - "POST /portfolio/positions HTTP/1.1" 201 Created
+INFO:     127.0.0.1:49541 - "POST /portfolio/positions HTTP/1.1" 201 Created
+INFO:     127.0.0.1:49542 - "POST /portfolio/positions HTTP/1.1" 201 Created
+INFO:     127.0.0.1:49543 - "PUT /portfolio/positions/3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49544 - "POST /custom-agents HTTP/1.1" 201 Created
+INFO:     127.0.0.1:49545 - "POST /workflow/save HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49546 - "POST /workspace HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49547 - "POST /workspace HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49563 - "GET /quotes/AAPL HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49566 - "GET /fundamentals/AAPL/analyst-ratings HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49568 - "GET /fundamentals/AAPL/ratings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49572 - "GET /fundamentals/AAPL/ratings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49577 - "GET /fundamentals/AAPL/ratings/history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49581 - "GET /portfolio/positions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49582 - "GET /custom-agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49583 - "GET /custom-agents/custom%3Adividend-hawk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49584 - "GET /workflow/saved HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49585 - "GET /workflow/saved/wf-aapl-close-check HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49586 - "GET /workspace HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49587 - "GET /workspace/Main%20Desk HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49588 - "GET /workspace/Research_Desk-2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49589 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49590 - "GET /agents HTTP/1.1" 200 OK

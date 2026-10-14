@@ -1,0 +1,17 @@
+Repro: live Gemini round with thinking (design repro; needs a real Gemini key + thinking response, not reproducible via free-tier local probe without spend). Source re-check instead.
+CMD: sed -n '190,199p' sidecar/services/llm/gemini.py
+                meta = getattr(response, "usage_metadata", None)
+                if meta is not None:
+                    # Gemini bills thinking and the tool-use prompt too
+                    # (R15-CODE-AGENT-004); each count may be None.
+                    usage = LLMUsage(
+                        input_tokens=(getattr(meta, "prompt_token_count", 0) or 0)
+                        + (getattr(meta, "tool_use_prompt_token_count", 0) or 0),
+                        output_tokens=(getattr(meta, "candidates_token_count", 0) or 0)
+                        + (getattr(meta, "thoughts_token_count", 0) or 0),
+                    )
+
+CMD: grep -n thoughts_token_count sidecar/tests/test_llm_gemini.py
+52:        self.thoughts_token_count = thoughts
+
+OBSERVED: output_tokens = candidates_token_count + thoughts_token_count; input_tokens = prompt_token_count + tool_use_prompt_token_count, both None-safe via 'or 0'. Matches fix_shape exactly.

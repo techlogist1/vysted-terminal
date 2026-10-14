@@ -1,0 +1,6 @@
+provider yfinance failed for quote, falling through: yfinance quote failed for 'AXON': Yahoo returned a price with no trade time
+provider yfinance failed for quote, falling through: yfinance quote failed for 'ZZZT': Yahoo returned a price with no trade time
+provider-level AXON ProviderError: yfinance quote failed for 'AXON': Yahoo returned a price with no trade time kind None
+registry AXON -> ProviderError yfinance quote failed for 'AXON': Yahoo returned a price with no trade time
+provider-level ZZZT ProviderError: yfinance quote failed for 'ZZZT': Yahoo returned a price with no trade time kind None
+registry ZZZT -> ProviderError yfinance quote failed for 'ZZZT': Yahoo returned a price with no trade time

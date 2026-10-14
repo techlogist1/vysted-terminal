@@ -1,0 +1,7 @@
+grep confirms committed vitest pin (src/modules/quant/BondPricerPanel.test.tsx):
+  L14  // R15-DATA-100: the display currency defaults to the SESSION region's --
+  L58  it("R15-DATA-100: in region IN, prices render with Rs, not a hard-coded $", async () => { ... })
+  L67  it("R15-DATA-100: the display-currency select overrides the region default", async () => { ... })
+No backend /quant/bond/price endpoint carries currency formatting (pricing math is currency-agnostic;
+the hard $-prefix was a pure rendering defect in BondPricerPanel.tsx). Original register repro is
+UI-driven (price a bond, read the rendered prefix). Verdict: ci_pinned.

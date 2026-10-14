@@ -1,0 +1,18 @@
+=== call 1: GET /fundamentals/AAPL/ratings ===
+{"symbol":"AAPL","consensus":"buy","target_mean":328.22205,"target_high":405.0,"target_low":215.0,"strong_buy":6,"buy":19,"hold":13,"sell":3,"strong_sell":3,"provider":"yfinance","as_of":"2026-09-27T10:10:11.383703Z"}
+=== call 2 (immediate repeat, same as_of expected) ===
+{"symbol":"AAPL","consensus":"buy","target_mean":328.22205,"target_high":405.0,"target_low":215.0,"strong_buy":6,"buy":19,"hold":13,"sell":3,"strong_sell":3,"provider":"yfinance","as_of":"2026-09-27T10:10:11.383703Z"}
+=== call 3: GET /earnings/AAPL/history (as_of field) ===
+{"symbol":"AAPL","history":[{"fiscal_period":null,"period_end":"2026-06-30","reported_date":"2026-07-30","eps_actual":2.02,"eps_estimate_mean":1.89243,"revenue_actual":null,"revenue_estimate_mean":null,"currency":"USD","revenue_currency":"USD"},{"fiscal_period":null,"period_end":"2026-03-31","reported_date":"2026-04-30","eps_actual":2.01,"eps_estimate_mean":1.94275,"revenue_actual":null,"revenue_estimate_mean":null,"currency":"USD","revenue_currency":"USD"},{"fiscal_period":null,"period_end":"2025-12-31","reported_date":"2026-01-29","eps_actual":2.84,"eps_estimate_mean":2.6708,"revenue_actual":null,"revenue_estimate_mean":null,"currency":"USD","revenue_currency":"USD"},{"fiscal_period":null,"period_end":"2025-09-30","reported_date":"2025-10-30","eps_actual":1.85,"eps_estimate_mean":1.76993
+=== call 4: GET /fundamentals/AAPL/ratings/history ===
+{"symbol":"AAPL","history":[{"symbol":"AAPL","date":"2026-09-23","firm":"B of A Securities","analyst_name":null,"rating_from":"buy","rating_to":"buy","raw_rating":"Buy","note":"reit","provider":"yfinance"},{"symbol":"AAPL","date":"2026-09-18","firm":"Evercore ISI Group","analyst_name":null,"rating_from":"buy","rating_to":"buy","raw_rating":"Outperform","note":"main","provider":"yfinance"},{"symbol":"AAPL","date":"2026-09-17","firm":"B of A Securities","analyst_name":null,"rating_from":"buy","rating_to":"buy","raw_rating":"Buy","note":"reit","provider":"yfinance"},{"symbol":"AAPL","date":"2026-09-10","firm":"TD Cowen","analyst_name":null,"rating_from":"buy","rating_to":"buy","raw_rating":"Buy","note":"reit","provider":"yfinance"},{"symbol":"AAPL","date":"2026-09-10","firm":"Rosenblatt","ana
+=== call 5: GET /fundamentals/AAPL/ratings/price-target-history ===
+{"symbol":"AAPL","history":[{"symbol":"AAPL","date":"2026-09-23","firm":"B of A Securities","analyst_name":null,"target_from":370.0,"target_to":370.0,"currency":"USD","provider":"yfinance"},{"symbol":"AAPL","date":"2026-09-18","firm":"Evercore ISI Group","analyst_name":null,"target_from":365.0,"target_to":380.0,"currency":"USD","provider":"yfinance"},{"symbol":"AAPL","date":"2026-09-17","firm":"B of A Securities","analyst_name":null,"target_from":370.0,"target_to":370.0,"currency":"USD","provider":"yfinance"},{"symbol":"AAPL","date":"2026-09-10","firm":"B of A Securities","analyst_name":null,"target_from":380.0,"target_to":370.0,"currency":"USD","provider":"yfinance"},{"symbol":"AAPL","date":"2026-09-10","firm":"Rosenblatt","analyst_name":null,"target_from":303.0,"target_to":303.0,"currenc
+
+=== as_of presence confirmed on all 4 endpoints (python json parse) ===
+GET /fundamentals/AAPL/ratings: as_of=2026-09-27T10:10:11.383703Z (repeat call: identical, cache-served)
+GET /earnings/AAPL/history: as_of present = True, 2026-09-27T10:10:13.958019Z
+GET /fundamentals/AAPL/ratings/history: as_of present = True, 2026-09-27T10:10:14.981648Z
+GET /fundamentals/AAPL/ratings/price-target-history: as_of present = True, 2026-09-27T10:10:15.228530Z
+
+This fixes the batch-10 'issue seen outside the entries': the base /fundamentals/{symbol}/ratings consensus envelope previously had no as_of; now every envelope the entry names carries one.

@@ -1,0 +1,83 @@
+{
+  "prompt": "research Mazagon Dock Shipbuilders in depth — order book and margins",
+  "autonomy": "auto",
+  "elapsed_s": 78.037,
+  "stopped": true,
+  "messages": [
+    {
+      "id": "bd9ce570-b3b0-481d-b8dc-555ef70347b8",
+      "role": "user",
+      "content": "research Mazagon Dock Shipbuilders in depth — order book and margins",
+      "createdAt": 1791024608441
+    },
+    {
+      "id": "d73eaf1e-8a8d-4476-aab4-e7c328795881",
+      "role": "assistant",
+      "content": "",
+      "agentId": "copilot",
+      "providerId": "ollama",
+      "modelId": null,
+      "pending": false,
+      "createdAt": 1791024608441,
+      "researchSteps": [
+        {
+          "stepKind": "engine",
+          "detail": "research:begin fbfdf4f813e142818c0385788b636b01 depth=deep query=Mazagon Dock Shipbuilders — order book and margins",
+          "status": "ok",
+          "index": 1
+        },
+        {
+          "stepKind": "engine",
+          "detail": "Your active model — ollama/llama3.1:8b · IterResearch (evolving report)",
+          "status": "ok",
+          "index": 2
+        },
+        {
+          "stepKind": "plan",
+          "detail": "round 1: seeded 3 sub-question(s) (planning rides round 2)",
+          "latencyMs": 0,
+          "status": "ok",
+          "index": 3
+        }
+      ],
+      "researchStartedAt": 1791024610757,
+      "stopped": true,
+      "usage": null
+    }
+  ],
+  "proposed": [],
+  "notices": {
+    "errorFrames": {},
+    "notices": {},
+    "compactions": {}
+  },
+  "before": {
+    "watchlist": [
+      "^NSEI",
+      "RELIANCE.NS",
+      "TCS.NS",
+      "HDFCBANK.NS"
+    ],
+    "notes": {
+      "g": "",
+      "s": {}
+    }
+  },
+  "after": {
+    "watchlist": [
+      "^NSEI",
+      "RELIANCE.NS",
+      "TCS.NS",
+      "HDFCBANK.NS"
+    ],
+    "notes": {
+      "g": "",
+      "s": {}
+    },
+    "screener": {
+      "formula": "",
+      "criteria": "[{\"field\":\"pe_ratio\",\"operator\":\"lt\",\"value\":20},{\"field\":\"market_cap\",\"operator\":\"gt\",\"value\":100000000000},{\"field\":\"sector\",\"operator\":\"eq\",\"value\":\"Technology\"}]"
+    }
+  },
+  "domText": "research Mazagon Dock Shipbu…Youresearch Mazagon Dock Shipbuilders in depth — order book and marginsVysted Copilot▸Worked · 3 stepsstoppedNormalDeepUltraLlama3.1 8B"
+}

@@ -1,0 +1,3 @@
+[
+ "tool 'price_data' raised: correctness gate: empty series for 'IBULHSGFIN.NS' from 'yfinance'"
+]

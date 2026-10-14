@@ -1,0 +1,11 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_a8fe47d925ae4e75ad3895192c30904a", "name": "market_overview", "input": {"region": "IN"}}
+[  32.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_5c88f416dfc24c6f9516ae931ba62070", "name": "price_data", "input": {"range": "1mo", "symbol": "ZOMATO.NS"}}
+[  44.4s] heartbeat: {"kind": "heartbeat"}
+[  53.9s] done: {"kind": "done", "usage": {"input_tokens": 5345, "output_tokens": 29, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+No data for Zomato (ZOMATO.NS). Our provider, yfinance, couldn't retrieve the stock's current information.
+
+=== ok · 53.9s · events {'heartbeat': 3, 'tool_use': 2, 'delta': 28, 'done': 1} · usage in=5345 out=29 · est $0.00000 · llama3.1:8b

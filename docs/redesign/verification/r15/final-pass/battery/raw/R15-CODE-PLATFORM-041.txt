@@ -1,0 +1,15 @@
+# R15-CODE-PLATFORM-041 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:40+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for n in 2 3; do echo "\$ POST /quant/option/price binomial steps=$n"; curl -s -m 30 -X POST "$H/quant/option/price" -H 'content-type: application/json' -d "{\"exercise\":\"american\",\"payoff\":\"put\",\"method\":\"binomial\",\"binomial_steps\":$n,\"spot\":100,\"strike\":100,\"risk_free_rate\":0.05,\"dividend_yield\":0,\"volatility\":0.2,\"valuation_date\":\"2026-01-01\",\"expiry_date\":\"2027-01-01\"}" -w '\nHTTP %{http_code}\n' | cut -c1-250; done; grep -n 'MIN_BINOMIAL_STEPS' -r "$C/src/modules/quant" | head -3
+--- output ---
+$ POST /quant/option/price binomial steps=2
+{"detail":"binomial_steps must be between 3 and 100000 (got 2)"}
+HTTP 400
+$ POST /quant/option/price binomial steps=3
+{"price":6.511053501726552,"greeks":{"delta":-0.41819332640492923,"gamma":0.02463227210455445,"vega":41.79835020268543,"theta":-2.5099351137936554,"rho":-40.03330966096632},"method":"binomial","monte_carlo_std_error":null,"duration_ms":5.088959005661
+HTTP 200
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/src/modules/quant/OptionPricerPanel.tsx:40:import { MIN_BINOMIAL_STEPS, MIN_MC_PATHS } from "../../../types/quant";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/src/modules/quant/OptionPricerPanel.tsx:304:      if (!Number.isInteger(steps) || steps < MIN_BINOMIAL_STEPS) {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/src/modules/quant/OptionPricerPanel.tsx:305:        return `Tree steps must be a whole number ≥ ${MIN_BINOMIAL_STEPS}.`;
+
+EXIT=0 (2.2s)

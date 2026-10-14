@@ -1,0 +1,15 @@
+=== command 1: GET /custom-agents before any registration ===
+[]  (confirmed above)
+
+=== command 2: POST /custom-agents replicating syncPluginAgents(pluginId, true) for vysted-lenses quant-tutor (the preinstalled plugin's spec, per plugin-agents.ts:52-63 and plugins/vysted-lenses/index.ts:28-42) ===
+{"id":"custom:vysted-lenses-quant-tutor","name":"Quant Tutor","philosophy":"Teaches as it analyzes — explains every figure it fetches in plain language.","system_prompt":"You are the Quant Tutor.","tools":["get_terminal_state","get_portfolio","price_data","fundamentals","macro_series","earnings_history","analyst_history"],"default_provider":"anthropic","default_model":null,"icon":"graduation-cap","created_at":1790503535,"updated_at":1790503535}
+=== command 3: GET /custom-agents after registration ===
+[{"id":"custom:vysted-lenses-quant-tutor","name":"Quant Tutor","philosophy":"Teaches as it analyzes — explains every figure it fetches in plain language.","system_prompt":"You are the Quant Tutor.","tools":["get_terminal_state","get_portfolio","price_data","fundamentals","macro_series","earnings_history","analyst_history"],"default_provider":"anthropic","default_model":null,"icon":"graduation-cap","created_at":1790503535,"updated_at":1790503535}]
+=== command 4: DELETE /custom-agents/custom:vysted-lenses-quant-tutor (mirrors syncPluginAgents(pluginId, false) on disable) ===
+HTTP 204
+=== command 5: GET /custom-agents after removal ===
+[]
+
+=== source check: plugin-bootstrap.ts boot loop wires attach->syncPluginAgents for a preinstalled plugin (the R15-AGENT-014 fix) ===
+225:    await syncPluginAgents(pluginId, true);
+283:      await runtime.loadPlugin(plugin);

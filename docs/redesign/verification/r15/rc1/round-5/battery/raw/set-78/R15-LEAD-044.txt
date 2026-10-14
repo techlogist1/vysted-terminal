@@ -1,0 +1,9 @@
+CMD: curl -s -m 115 -X POST 'http://127.0.0.1:52348/screener/run' -H 'Content-Type: application/json' -H 'X-Vysted-Region: IN' -d '{"universe":"sp500","criteria":[{"field":"market_cap","operator":"gt","value":0}],"limit":1000,"sort_by":"market_cap","sort_dir":"desc"}'
+HTTP 200 (218446 bytes, 503 rows returned)
+Filtered for the register's named collision tickers (session region forced to IN via X-Vysted-Region header, universe=sp500):
+  ACGL  Arch Capital Group Ltd.   USD  94.66
+  CCL   Carnival Corporation Ltd. USD  22.25
+  HAL   Halliburton Company       USD  32.76
+  IEX   IDEX Corporation          USD  230.08
+OBSERVED: with an IN session region, the sp500 universe screen resolves HAL/CCL/IEX/ACGL to their US entities (Halliburton, Carnival, IDEX, Arch Capital), all priced in USD -- NOT the Indian entities the register bug named (Hindustan Aeronautics, CCL Products India, Indian Energy Exchange, Automobile Corp of Goa). Source confirms the mechanism: services/screener.py _region_scope() sets a request-region ContextVar from _UNIVERSE_REGION.get(universe.id) (screener.py:1334-1336), not the session region, so _fetch_pair (screener.py:580) resolves ambiguous bare tickers under the universe's own region.
+VERDICT: holds

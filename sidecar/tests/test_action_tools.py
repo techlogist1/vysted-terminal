@@ -1,9 +1,9 @@
 """Safety + behaviour tests for the copilot's per-invocation action tools.
 
 The copilot can DRIVE the terminal (open panels, set the chart symbol, add to
-the watchlist) and can PREPARE — never place — broker orders. These tests pin
-the §6.5 invariant: no tool the AI can call places/submits/executes an order;
-``propose_order`` only ever returns an ``awaiting_user_review`` directive.
+the watchlist). Vysted has no trading path (D81); these tests pin that no tool
+the AI can call places/submits/executes an order and that host actions stage
+for review.
 """
 
 from __future__ import annotations
@@ -27,19 +27,6 @@ def test_no_order_placement_tool_anywhere() -> None:
         assert not _FORBIDDEN.search(tid), f"forbidden placement tool id registered: {tid}"
 
 
-def test_propose_order_only_prepares_never_places() -> None:
-    local = agent_runtime._build_local_tools(None)
-    assert "propose_order" in local
-    result = asyncio.run(local["propose_order"]({"symbol": "AAPL", "side": "buy", "quantity": 10}))
-    assert result["ok"] is True
-    assert result["proposal_created"] is True
-    assert result["status"] == "awaiting_user_review"
-    assert result["host_action"]["type"] == "propose_order"
-    # It must NOT report the order as applied/placed.
-    assert "applied" not in result
-    assert "placed" not in result
-
-
 def test_ui_action_tools_return_host_directives() -> None:
     local = agent_runtime._build_local_tools(None)
     for tid in ("set_chart_symbol", "open_panel", "add_to_watchlist"):
@@ -47,6 +34,43 @@ def test_ui_action_tools_return_host_directives() -> None:
         result = asyncio.run(local[tid]({"symbol": "AAPL", "panel": "chart"}))
         assert result["ok"] is True
         assert result["host_action"]["type"] == tid
+        # FR-010 diff gate: host actions are STAGED for review, never applied
+        # immediately — the model must not be told the change already happened.
+        assert "applied" not in result
+        assert result["status"] == "awaiting_user_review"
+
+
+def test_write_screener_filters_stages_for_review() -> None:
+    # FR-114: the agent CONFIGURES the screener panel; it never runs it. Like
+    # every host action it is STAGED for the user's review (the §6.5 gate), so it
+    # returns awaiting_user_review with the host_action directive and no "applied".
+    local = agent_runtime._build_local_tools(None)
+    assert "write_screener_filters" in local
+    args = {
+        "criteria": [{"field": "pe_ratio", "operator": "lt", "value": 15}],
+        "group": {
+            "combinator": "or",
+            "criteria": [
+                {"field": "roe", "operator": "gt", "value": 0.2},
+                {
+                    "combinator": "and",
+                    "criteria": [
+                        {"field": "dividend_yield", "operator": "gt", "value": 0.03},
+                        {"field": "debt_to_equity", "operator": "lt", "value": 1},
+                    ],
+                },
+            ],
+        },
+        "universe": "sp500",
+    }
+    result = asyncio.run(local["write_screener_filters"](args))
+    assert result["ok"] is True
+    assert result["status"] == "awaiting_user_review"
+    assert result["host_action"]["type"] == "write_screener_filters"
+    # The full criteria + nested group tree round-trips to the host directive.
+    assert result["host_action"]["args"] == args
+    # It must NOT report the filters as applied/run.
+    assert "applied" not in result
 
 
 def test_get_terminal_state_returns_inbound_snapshot() -> None:

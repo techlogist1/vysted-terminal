@@ -1,0 +1,3 @@
+# GET /quotes?symbols=RELIANCE.NS,ZZZNOTREAL.NS,BHP.AX  (ace7dd76, own sidecar :52359, headers: none)
+[{"symbol":"RELIANCE.NS","price":1167.7,"change":-19.299999999999955,"change_percent":-1.6259477674810408,"volume":16771221.0,"open":1180.1,"high":1183.9,"low":1160.8,"prev_close":1187.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"nse_direct","freshness":"eod"},{"symbol":"BHP.AX","price":61.209999084472656,"change":0.9500007629394531,"change_percent":1.5765031354140968,"volume":7394485.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"AUD","market_state":null,"timestamp":"2026-10-02T06:18:01Z","provider":"yfinance","freshness":"eod"}]
+# exit=0

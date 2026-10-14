@@ -1,0 +1,23 @@
+COMMAND: python3 sidecar/... probe_platform004_019.py (in-process, candidate venv) reproducing register repro (logic_branch falsy strings + un-taken-port skip propagation, notify_desktop on false_path)
+EXIT: 0
+OUTPUT:
+=== R15-CODE-PLATFORM-004: logic.branch truthiness of falsy strings ===
+  value='false' -> {'true_path': SKIP, 'false_path': 'false'}
+  value='no' -> {'true_path': SKIP, 'false_path': 'no'}
+  value='0' -> {'true_path': SKIP, 'false_path': '0'}
+  value='off' -> {'true_path': SKIP, 'false_path': 'off'}
+
+=== R15-CODE-PLATFORM-004: engine skip propagation (un-taken port) ===
+  run status: ok
+  notify.status: skipped
+  log.status (two hops down un-taken port): skipped
+  taken.status: ok
+  branch.outputs: {'true_path': 'yes'}
+  node-skipped events: {'log', 'notify'}
+
+=== R15-CODE-PLATFORM-019: FIRST_COMPLETED release + per-node timeout ===
+  c started at t=0.00s while a (4s sleep) still running: run.done()=False
+  run finished at t=4.00s, status=ok
+
+=== R15-CODE-PLATFORM-019: per-node timeout produces node-error ===
+  h.status=error h.error='node timed out after 2s' elapsed=2.00s

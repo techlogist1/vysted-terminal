@@ -1,0 +1,52 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-180-1",
+    "title": "The documented genuine Kite Connect OAuth session-exchange is dead code -- no UI path ever calls it",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "broker-connect / kite",
+    "repro": "Open the broker-connect panel, pick Zerodha Kite -> the credential form asks for API Key, API Secret, Access Token (pasted), and Static IP. There is no 'open login page' / 'paste redirect URL' step anywhere. Grep the frontend for any call to POST /brokers/kite/session ('kite/session', 'exchangeSession', 'kiteSession') across src/ -> zero hits outside test/doc strings.",
+    "evidence": "sidecar/services/brokers/kite.py:507-533 (exchange_request_token: real KiteConnect.generate_session SHA-256 exchange, correctly implemented); sidecar/routers/brokers.py:415-420 (POST /brokers/kite/session wired to it) vs src/modules/broker-connect/BrokerConnectPanel.tsx:54-58 (BROKER_CREDENTIAL_FIELDS.kite = [api_key, api_secret, access_token, static_ip] -- access_token collected as a plain paste field) and :210-312 (connect() posts straight to /brokers/{id}/connect with those fields; no call to the session-exchange endpoint anywhere in src/)",
+    "notes": "docs/CURRENT_STATE.md sec3.5 documents this as 'genuinely end-to-end': login page opens in the system browser, user pastes back the redirect URL or bare request token, sidecar performs the real exchange. None of that is reachable -- a real user has to obtain a Kite access token through some OUT-OF-BAND mechanism (undocumented anywhere in the app) and paste it in directly, which is a materially worse and more confusing BYOK onboarding than what is promised, and it strands a correct, tested backend implementation as unreachable dead code. Smallest fix: wire BrokerConnectPanel's kite case to open the Kite login URL and POST the returned request_token to /brokers/kite/session before calling /connect with the resolved access_token, exactly as kite.py's own docstring describes."
+  },
+  {
+    "raw_id": "INT-pdd-readme-180-2",
+    "title": "CURRENT_STATE.md's plugin/broker-adapter section is substantially stale -- a full marketplace + lazy broker registry has since shipped",
+    "severity": "high",
+    "area": "docs",
+    "subsystem": "plugin system / broker registry",
+    "repro": "Read docs/CURRENT_STATE.md sec3.4-3.5 ('exactly three bundled plugins load'; 'only Dhan/AngelOne/Kite registered by default, Alpaca/IB/OANDA/ccxt-exec dead at runtime'; 'plugin secret resolution is effectively a no-op'), then read src/lib/marketplace.ts and sidecar/services/brokers/registry.py -- none of those three claims hold any more.",
+    "evidence": "src/lib/marketplace.ts:1-14,82-331 (a full install/enable/configure/remove 'marketplace' with 12 CATALOG_ROWS: 5 preinstalled -- vysted-yfinance, openbb-mcp, vysted-lenses, vysted-news, vysted-example -- plus all 7 broker plugins imported and catalogued, preinstalled:false); plugins/vysted-lenses/index.ts:3-13,18-24,27-42 (a pre-installed plugin already exercising contributesAgents with a real 'Quant Tutor' AgentSpec); src/lib/plugin-bootstrap.ts:236-247 (resolveSecrets wired to the OS keychain via getSecret, not a no-op); sidecar/services/brokers/registry.py:12-20,49-68 ('the sidecar registers no broker adapter at startup ... FR-051' -- ALL SEVEN adapters, including Dhan/AngelOne/Kite, are registered identically and lazily via KNOWN_ADAPTER_FACTORIES on marketplace-connect, not just the previously-claimed three)",
+    "notes": "This isn't one small drift -- it's the whole shape of the extensibility model changing (a bespoke 3-plugin/static-companion-map system -> a marketplace catalog with uniform lazy broker registration and a live agent-contributing plugin) without the 'honest baseline' doc being updated. A maintainer or agent reading CURRENT_STATE.md today would materially misjudge what already exists (risk: someone re-builds the marketplace, or the keychain secret wiring, believing it's missing) and would misjudge the CLAUDE.md gotcha about 'BUNDLED_PLUGINS'/'PLUGIN_COMPANIONS' naming, which itself predates this rename to CATALOG_ROWS. Smallest fix: rewrite CURRENT_STATE.md sec3.4-3.5 (and the CLAUDE.md plugin-contract gotcha) from src/lib/marketplace.ts and services/brokers/registry.py directly."
+  },
+  {
+    "raw_id": "INT-pdd-readme-180-3",
+    "title": "Screener doc says OR-grouping is 'reserved for later' and sp500 is capped at 'top 100' -- both are already false",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "screener",
+    "repro": "Read docs/CURRENT_STATE.md sec3.3's screener bullet, then open sidecar/models/screener.py and sidecar/services/screener_universes/sp500.json.",
+    "evidence": "sidecar/models/screener.py:171-213 (CriterionGroup: 'Enables OR + nested logic ... beyond the flat AND-only criteria list'; ScreenerRequest.group: CriterionGroup | None); sidecar/services/screener.py:338 (a recursive AND/OR group evaluator, live); sidecar/services/screener_universes/sp500.json (label 'S&P 500', 506 symbols, not a top-100 subset); sidecar/services/screener_universe_india.py:6-9,33 (nse-all ~2675 / bse-all / india-all universes exist, undocumented by this promise)",
+    "notes": "An agent or user told 'OR-grouping is reserved for later' will not discover a capability that already ships and is wired end-to-end into the request model -- that's a real capability-discoverability gap for a research-agent product whose moat is claimed to be data/research quality. Smallest fix: correct the CURRENT_STATE.md screener bullet (drop 'top 100', add OR/nested-group support, add nse-all/bse-all/india-all to the universe list)."
+  },
+  {
+    "raw_id": "INT-pdd-readme-180-4",
+    "title": "provider_registry.py's dispatch model has moved from an asset-class switch to a preference-order multi-source resolver, undocumented",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "provider_registry",
+    "repro": "Request a history bar for an NSE-listed symbol and trace which provider actually serves it, versus what docs/CURRENT_STATE.md sec3.3 says ('equity -> yfinance').",
+    "evidence": "sidecar/services/provider_registry.py:1-24 (docstring: 'dispatch is no longer a hardcoded if asset_class switch -- it is a resolver ... walks installed providers in a PREFERENCE ORDER'); :143-198 (nse_direct rank15, nse/jugaad rank20, bse rank25, all region-scoped to IN and ranked ABOVE yfinance rank50 for the equity quote/ohlcv model-keys)",
+    "notes": "This is a real, deliberate, well-documented-in-code upgrade (FR-035/FR-053, three India-specific EOD fallback providers ranked ahead of yfinance) that the higher-level baseline doc never picked up. Anyone reasoning about IN data quality/coverage from CURRENT_STATE.md alone would underestimate what already exists. Smallest fix: replace the 'routes every data request by asset class' sentence with the model-key/preference-order description already written in provider_registry.py's own docstring."
+  },
+  {
+    "raw_id": "INT-pdd-readme-180-5",
+    "title": "Workspace persistence is documented as SQLite-backed; it is actually one flat JSON file per workspace",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "workspace_store",
+    "repro": "Save a workspace, then look for it in the sidecar's SQLite databases -- it isn't there. Read sidecar/services/workspace_store.py instead.",
+    "evidence": "sidecar/services/workspace_store.py:1-9 ('.vysted-workspace files on disk'), :66-92 (save_workspace writes JSON to a per-writer temp file then os.replace's it over '<name>.vysted-workspace' -- no sqlite3 import in the file) versus sidecar/services/plugins_store.py:27,78-79 (genuinely sqlite3-backed, confirming the doc is right about plugin config but wrong about workspace state)",
+    "notes": "Functionally the atomic-rename file store is a fine design (it even fixes a documented torn-write bug), so this is a documentation-accuracy defect, not a runtime one -- but it would send a maintainer looking in the wrong place (a SQLite table that doesn't exist) when debugging a corrupted workspace. Smallest fix: split the CURRENT_STATE.md sentence so it no longer groups workspace persistence with plugin config's SQLite store."
+  }
+]

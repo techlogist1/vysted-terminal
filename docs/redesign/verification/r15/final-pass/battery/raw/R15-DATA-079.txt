@@ -1,0 +1,10 @@
+# R15-DATA-079 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:19:34+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/quant/option/chain/NIFTY' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);cs=d.get('contracts',[]);print({k:v for k,v in d.items() if k!='contracts'});print('contracts',len(cs),'with_oi',sum(1 for x in cs if x.get('open_interest')));print(cs[:2]);print(t[i:])"
+[exit 0] [1.24s]
+{'symbol': 'NIFTY', 'expiry': '2026-10-06', 'expiries': ['2026-10-06', '2026-10-13', '2026-10-19', '2026-10-27', '2026-11-03', '2026-11-23', '2026-12-29', '2027-03-30', '2027-06-29', '2027-09-28', '2027-12-28', '2028-06-27', '2028-12-26', '2029-06-26', '2029-12-24', '2030-06-25', '2030-12-31', '2031-06-24'], 'underlying_price': 22421.95, 'as_of': '2026-10-01', 'provider': 'nse-fo-bhavcopy', 'currency': 'INR', 'freshness': 'eod'}
+contracts 232 with_oi 203
+[{'expiry': '2026-10-06', 'strike': 20050.0, 'option_type': 'call', 'open_interest': 0.0, 'change_in_oi': 0.0, 'last_price': 4121.65, 'settle_price': 2388.2, 'volume': 0.0, 'implied_volatility': None}, {'expiry': '2026-10-06', 'strike': 20050.0, 'option_type': 'put', 'open_interest': 53625.0, 'change_in_oi': 53625.0, 'last_price': 0.65, 'settle_price': 0.65, 'volume': 2594.0, 'implied_volatility': None}]
+
+[http 200 1.230151s]
+

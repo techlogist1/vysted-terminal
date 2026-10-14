@@ -1,0 +1,18 @@
+# R15-UI-027 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:39+0530
+
+$ git merge-base --is-ancestor f407107 HEAD && echo 'closure f407107 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure f407107 NOT an ancestor'
+[exit 0] [0.02s]
+closure f407107 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-027\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.29s]
+src/components/SettingsPanel.test.tsx:226:    // modifier and must collapse to "mod" (R15-UI-027) — literal "ctrl" is
+src/components/SettingsPanel.test.tsx:237:  it("recording Cmd+K on macOS records mod+k and is caught as a real conflict with the mod+k default (R15-UI-027)", () => {
+src/store/keybindings.ts:238:    // Group by the RESOLVED physical chord (R15-UI-027 residual), not the raw
+src/store/keybindings.ts:371: * platform (R15-UI-027 residual): `"mod"` collapses to `"meta"` on macOS or
+src/store/keybindings.ts:497:  // Shift is STRICT for a plain letter key (R15-UI-027 residual): otherwise
+src/store/keybindings.test.ts:122:  // R15-UI-027 residual: conflicts() must group on the RESOLVED chord, not
+src/store/keybindings.test.ts:229:  // R15-UI-027 residual: shift must be STRICT for a letter key, both ways —
+src/store/keybindings.test.ts:232:  describe("shift strictness (R15-UI-027 residual)", () => {
+

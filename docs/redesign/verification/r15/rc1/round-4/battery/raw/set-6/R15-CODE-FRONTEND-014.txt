@@ -1,0 +1,9 @@
+R15-CODE-FRONTEND-014: frontend TS/store/component logic — cannot execute the exact original repro without vitest+jsdom or a live GUI (both out of scope for this role: 'never run vitest or pytest suites'; 'No GUI').
+
+Static source check performed instead:
+CMD: grep -n 'global.*General\|Agent layout' src/lib/host-actions.ts
+768: *  "Agent layout" only when no saved layout is active ("default" is the
+776:  return active && active !== "default" && !isReservedLayoutName(active) ? active : "Agent layout";
+
+Pinned test that exercises this behavior at runtime: src/lib/host-actions.test.ts:1257,1273
+VERDICT: ci_pinned

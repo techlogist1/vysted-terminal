@@ -1,0 +1,54 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_e5bc8add4050444abfc5553fcfdee120", "name": "price_data", "input": {"range": "1mo", "symbol": "HDFCBANK.NS", "timeframe": "1d", "asset_class": "equity"}}
+{"kind": "tool_result", "tool_call_id": "call_e5bc8add4050444abfc5553fcfdee120", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " HDF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "735"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " closed"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "720"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": "th"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " fluct"}
+{"kind": "delta", "text": "uating"}
+{"kind": "delta", "text": " between"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "710"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "85"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "739"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "75"}
+{"kind": "delta", "text": " since"}
+{"kind": "delta", "text": " then"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 4729, "output_tokens": 47, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

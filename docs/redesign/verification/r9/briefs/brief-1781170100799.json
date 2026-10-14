@@ -1,0 +1,250 @@
+{
+ "query": "Saksoft Limited SAKSOFT.NS",
+ "symbol": "SAKSOFT",
+ "mode": "DEEP",
+ "depth": "deep",
+ "markdown": "# Saksoft Limited (SAKSOFT.NS) \u2014 Research Brief\n\n**Ticker:** SAKSOFT.NS  \n**Sector:** Technology  \n**Industry:** Information Technology Services [21]\n\n---\n\n## Company Overview\n\nSaksoft Limited is an IT services provider listed on the National Stock Exchange (NSE) and BSE. As of the latest available annual report (2024\u201325), the company\u2019s operations are concentrated in digital transformation, data engineering, and enterprise application services [6]. The company\u2019s market capitalisation stood at approximately \u20b917,594 million as of June 10, 2026 [21].\n\n---\n\n## Recent Stock Performance\n\n- **Current price (June 10, 2026):** \u20b9142.28, up 1.07% from the prior close [20].  \n- **52\u2011week high:** \u20b9180.25 (February 3, 2026) [6].  \n- **52\u2011week low:** \u20b9107.59 (March 30, 2026) [6].  \n- From the first available trading bar on January 28, 2026 (open \u20b9170.00) to the current price of \u20b9142.28, the stock has declined approximately 16.3% [20].\n\nThe stock has a beta of 0.356, indicating lower volatility relative to the broader market [21].\n\n---\n\n## Financial Fundamentals (TTM / Latest Available)\n\n| Metric | Value | Source |\n|--------|-------|--------|\n| P/E ratio (trailing) | 13.51x | [21] |\n| Forward P/E | 4.03x | [21] |\n| Price-to-book | 2.26x | [21] |\n| Price-to-sales | 1.75x | [21] |\n| EV/EBITDA | 8.62x | [21] |\n| Return on equity (ROE) | 19.07% | [21] |\n| Return on assets (ROA) | 10.48% | [21] |\n| Gross margin | 49.2% | [21] |\n| Operating margin | 16.8% | [21] |\n| Profit margin | 13.23% | [21] |\n| Debt-to-equity | 0.056 | [21] |\n| Current ratio | 2.17 | [21] |\n| Book value per share | \u20b960.92 | [21] |\n| EPS (trailing) | \u20b910.19 | [21] |\n\nNote: Quarterly financial results for Q4 FY2026 (ended March 31, 2026) and prior quarters were filed with stock exchanges, but the PDF filings are scanned images and no extractable quarterly figures are available from the filings [1][2][3][4]. Consequently, TTM revenue and net income are not independently confirmed in this brief.\n\n---\n\n## Dividends and Corporate Actions\n\n- **Dividend per share (DPS):** \u20b91.00 [21].  \n- **Dividend yield:** ~0.7% based on the current price [21].  \n- The company maintains a Dividend Distribution Policy [12], but no specific recent declaration beyond the indicated DPS is confirmed in this run.\n\nNo other corporate actions (buybacks, splits) were identified in the available sources.\n\n---\n\n## Outlook and Guidance\n\n- A Q1 FY2026 earnings call transcript is available [8], but **forward guidance or management commentary was not extracted** in this analysis.  \n- An investor presentation was filed but its content could not be parsed [5].  \n- No analyst reports or independent forecasts are included in the gathered data.\n\nThere is no confirmed forward revenue or profit guidance for FY2027 or beyond at this time.\n\n---\n\n## Key Risks and Considerations\n\n- The stock has retreated ~16.3% from its January 2026 opening price, and the 52\u2011week range (\u20b9107.59\u2013\u20b9180.25) indicates significant price volatility [6][20].  \n- The inability to extract quarterly figures from scanned filings limits the ability to assess recent earnings momentum [1][2][3][4].  \n- The forward P/E of 4.03x is notably lower than the trailing P/E of 13.51x, which may imply expected earnings growth or a re\u2011rating if forward estimates are reliable [21]. However, no source for forward estimates is provided.\n\n---\n\n*This brief is based solely on the working report and cited sources. Unavailable or unextracted information is not conjectured.*",
+ "sources": [
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/03e389c9-1d06-4667-bcc0-ec69b41febcf.pdf",
+   "title": "Board Meeting Outcome for Financial Results March 31, 2026",
+   "excerpt": "BSE \u00b7 Board Meeting \u00b7 2026-05-25T13:48:01.757000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_25052026134035_OutcomeofBM25052026Signed.pdf",
+   "title": "Saksoft Limited has submitted to the Exchange, the financial results for the period ended March 31, 2026.",
+   "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-05-25T13:41:54+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_02022026125728_OutcomeSEintimationsigned.pdf",
+   "title": "Saksoft Limited has submitted to the Exchange, the financial results for the period ended December 31, 2025.",
+   "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-02-02T12:57:42+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_10112025123949_OutcomeSEIntimationsigned.pdf",
+   "title": "Saksoft Limited has submitted to the Exchange, the financial results for the period ended September 30, 2025.",
+   "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2025-11-10T12:42:44+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0784b3dd-f8ce-43cc-9dbb-90d012760adc.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Investor Presentation",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-25T21:57:13.703000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ebdbfc33-34d9-497d-8802-fa07109cfa3b.pdf",
+   "title": "[PDF] Saksoft Limited Annual Report 2024-25 - BSE",
+   "excerpt": "... Saksoft Limited Annual. Report 2024-25. Contents. 5. 2024. Entering the AI era ... Net profit grew. 12.32% to Rs. 1,088 Million. EPS increased. 7% to Rs ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.sebi.gov.in/sebi_data/attachdocs/1293427310084.pdf",
+   "title": "[PDF] SAKSOFT LIMITED - SEBI",
+   "excerpt": "20/- EACH AGGREGATING RS. 750 LAKHS. This being the first issue of the Equity Shares of Saksoft Limited (the \u201cCompany\u201d), there has been no.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.alphaspread.com/security/nse/saksoft/investor-relations/earnings-call/q1-2026",
+   "title": "SAKSOFT Q1-2026 Earnings Call - Alpha Spread",
+   "excerpt": "11 Aug 2025 \u00b7 Guidance. 3. Acquisition. 6. Revenue. 27. EBITDA. 8. from 0. Operator. Ladies and gentlemen, good day, and welcome to Saksoft Limited Q1 FY '26 ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.sharekhan.com/stock/saksoft-ltd",
+   "title": "Saksoft Ltd,Price \u20b9139.65 (0.43%) | on Tue 9/06/2026,12:43:0",
+   "excerpt": "2 Jun 2026, 6:14PM Saksoft Limited has informed the Exchange about Transcript. Saksoft - Announcement under Regulation 30 (LODR)-Change in Management. 29 May ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://blinkx.in/insights/dividend/saksoft-ltd-dividend",
+   "title": "Saksoft Ltd Dividend - Payout, Yield & Future Updates - BlinkX",
+   "excerpt": "In September, 2002, the company changed their name from Sak Infotech Limited to Saksoft Limited. ... Saksoft Ltd has declared dividend worth \u20b90.0 in the latest ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://simplywall.st/stocks/in/software/nse-saksoft/saksoft-shares",
+   "title": "Saksoft (NSEI:SAKSOFT) - Stock Analysis - Simply Wall St",
+   "excerpt": "Rating 4/6 \u00b7 Review by Simply Wall StSaksoft (NSE:SAKSOFT) Has Affirmed Its Dividend Of \u20b90.40. Saksoft Limited ( NSE:SAKSOFT ) has announced that it will pay a dividend of \u20b90.40 per share on the ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.saksoft.com/wp-content/uploads/2022/05/Dividend-Distribution-Policy.pdf",
+   "title": "[PDF] Dividend Distribution Policy | Saksoft",
+   "excerpt": "1.2 The Board of Directors (the \u201cBoard\u201d) of Saksoft Limited (the \u201cCompany\u201d) has adopted the. Policy of the Company as required in terms of Regulation 43A of ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.tickertape.in/stocks/saksoft-SAKS",
+   "title": "SAKSOFT Share Price Live: Saksoft NSE Today - Tickertape",
+   "excerpt": "Revenue Decline and Client Dependency. Saksoft Limited reported a 3% sequential decline in revenues for the 3rd Quarter of Financial \u00b7 Margin Pressure and ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.icicidirect.com/stocks/saksoft-share-price",
+   "title": "Saksoft Share Price Today - Live NSE/BSE - ICICI Direct",
+   "excerpt": "IT Consulting & Software firm Saksoft declares Q3FY22 result: Saksoft Limited Reported Strong Revenue growth of 18%,; PAT growth of 39% for 9MFY22 ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bajajfinserv.in/investments/saksoft-share-price",
+   "title": "Saksoft Limited Share Price Today Live NSE/BSE - Bajaj Finserv",
+   "excerpt": "Over the past year, Saksoft Limited has achieved a return of -30.43%. ... SAKSOFT LIMITED CORPORATE ACTION. Dividend. Bonus. Split. Dividend date, Dividend ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.saksoft.com/wp-content/uploads/2024/07/SaksoftAnnualReport2024.pdf",
+   "title": "[PDF] Inch wide. mile deep. - Saksoft",
+   "excerpt": "31 Jul 2024 \u00b7 This document contains statements about expected future events and financial and operating results of. Saksoft Limited, which are forward-.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.saksoft.com/wp-content/uploads/2018/07/Annual-Report-2018.pdf",
+   "title": "[PDF] Saksoft Limited Annual Report 2017-18",
+   "excerpt": "... guidance to the Company's management and ... even date to the members of Saksoft Limited on the Standalone Financial Statements of the Company for the year ended.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.saksoft.com/wp-content/uploads/2022/07/2021-2022.pdf",
+   "title": "[PDF] inch wide. mile deep. - Saksoft",
+   "excerpt": "To the Members of. Saksoft Limited. We have examined the compliance of conditions of Corporate. Governance by Saksoft Limited ('the Company') for the year.",
+   "domain": "web"
+  },
+  {
+   "url": "https://scanx.trade/stock-market-news/earnings/saksoft-reports-24-revenue-growth-in-q1-targets-inr-1-000-1-100-crores-for-full-year/17069056",
+   "title": "Saksoft Reports 24% Revenue Growth in Q1, Targets INR 1,000 ... - ScanX",
+   "excerpt": "18 Aug 2025 \u00b7 Management Commentary. Aditya Krishna, Chairman & Managing Director of Saksoft Limited, stated, \"We are pleased with our Q1 performance, which ...",
+   "domain": "web"
+  },
+  {
+   "url": "vysted://price/SAKSOFT",
+   "title": "Price for SAKSOFT",
+   "excerpt": "Structured price snapshot via nse_direct gathered this run.",
+   "domain": "nse_direct"
+  },
+  {
+   "url": "vysted://fundamentals/SAKSOFT",
+   "title": "Fundamentals for SAKSOFT",
+   "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+   "domain": "yfinance"
+  },
+  {
+   "url": "vysted://news/SAKSOFT",
+   "title": "News for SAKSOFT",
+   "excerpt": "Structured news pull.",
+   "domain": "vysted"
+  }
+ ],
+ "sourceCount": 22,
+ "cost": {
+  "tokens": 0,
+  "spendUsd": 0
+ },
+ "webAvailable": true,
+ "structured": {
+  "resolved": {
+   "ok": true,
+   "query": "Saksoft Limited SAKSOFT.NS",
+   "region": "IN",
+   "resolved": {
+    "symbol": "SAKSOFT",
+    "name": "Saksoft Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "SAKSOFT.NS",
+    "confidence": 0.812
+   },
+   "needs_disambiguation": false,
+   "candidates": [
+    {
+     "symbol": "SAKSOFT",
+     "name": "Saksoft Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "SAKSOFT.NS",
+     "confidence": 0.812
+    },
+    {
+     "symbol": "BSOFT",
+     "name": "BIRLASOFT LIMITED",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "BSOFT.NS",
+     "confidence": 0.685
+    }
+   ]
+  },
+  "price": {
+   "ok": true,
+   "provider": "nse_direct",
+   "data": {
+    "symbol": "SAKSOFT",
+    "price": 142.28,
+    "change": 1.509999999999991,
+    "change_percent": 1.0726717340342338,
+    "volume": 193697,
+    "currency": "INR",
+    "market_state": "REGULAR",
+    "timestamp": "2026-06-10T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "SAKSOFT.NS",
+    "name": "Saksoft Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "currency": "INR",
+    "market_cap": 17594509312,
+    "pe_ratio": 13.50638,
+    "forward_pe": 4.0313416,
+    "peg_ratio": null,
+    "price_to_book": 2.2592297,
+    "price_to_sales": 1.7468886,
+    "ev_to_ebitda": 8.618,
+    "book_value": 60.919,
+    "dividend_yield": 0.006999999999999999,
+    "dividend_per_share": 1,
+    "eps": 10.19,
+    "beta": 0.356,
+    "fifty_two_week_high": 253.99,
+    "fifty_two_week_low": 107.59,
+    "fifty_two_week_change": -0.29228014,
+    "roe": 0.19065,
+    "roa": 0.10484,
+    "gross_margin": 0.492,
+    "operating_margin": 0.16792999,
+    "profit_margin": 0.13232,
+    "debt_to_equity": 0.05607,
+    "current_ratio": 2.166,
+    "quick_ratio": 1.882,
+    "revenue_ttm": 10071912448,
+    "net_income_ttm": 1332697984,
+    "free_cash_flow": 851386496,
+    "shares_outstanding": 127839193,
+    "revenue_growth": 0.037,
+    "earnings_growth": 0.216,
+    "held_percent_insiders": 0.72541,
+    "held_percent_institutions": 0.00217,
+    "provider": "yfinance"
+   }
+  }
+ },
+ "backend": "keyless-fallback",
+ "createdAt": 1781170100799
+}

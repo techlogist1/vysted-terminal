@@ -1,0 +1,13 @@
+PROBE: R15-UI-004 (portfolio live-quote failure banner / Retry)
+vitest is barred for this role (stall rule). Certification is a jsdom+live-sidecar
+component test: src/modules/portfolio/PortfolioPanel.test.tsx:117
+("R15-UI-004: a failed live-quote fetch shows the banner and Retry re-fetches").
+Static confirmation the fix mechanism is present at candidate sha 1006c6da:
+- src/modules/portfolio/api.ts:29-38 -- comment documents the old bug and the
+  error path now distinguishes failure from null explicitly (not silently
+  swallowed into null for every case).
+- src/modules/portfolio/PortfolioPanel.tsx:236 -- "R15-UI-004: `failed` counts
+  real fetch failures (never a swallowed ...)" -- a `failed` counter distinct
+  from `not found` drives the banner condition.
+VERDICT: ci_pinned (src/modules/portfolio/PortfolioPanel.test.tsx:117) -- only
+provable via the jsdom+live-sidecar render test, barred under the stall rule.

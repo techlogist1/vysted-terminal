@@ -1,0 +1,13 @@
+grep confirms committed vitest pin (src/modules/portfolio/metrics.test.ts):
+  L66  it("single-currency portfolio: one bucket, mixedCurrencies false (D57)", ...)
+  L84  // R15-CODE-PLATFORM-053 (case the fix was not written against): a
+  L86  single-currency portfolio still gets a real numeric concentration.
+  L86  expect(s.concentration).not.toBeNull();
+  L87  expect(s.concentration).toBeCloseTo(1500 / (1500 + 800));
+  L90  it("mixed-currency portfolio: per-currency subtotals, never a cross-currency sum (D57)", ...)
+  L106 // R15-DATA-042 / R15-CODE-PLATFORM-053: weight and concentration are a
+  L107 share of a cross-currency sum -- the contract nulls them, not just the panel that reads it.
+  L112 expect(s.concentration).toBeNull();
+  L113 expect(s.rows.every((r) => r.weight === null)).toBe(true);
+This is the contract-level (buildPortfolioSummary) fix the register asked for: concentration/weight are
+nulled AT THE SOURCE, not just withheld by the panel. Design-level entry, no HTTP repro. Verdict: ci_pinned.

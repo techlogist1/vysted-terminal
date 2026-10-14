@@ -1,0 +1,9 @@
+# R15-AGENT-088 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:10+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn "bare base with one suffixed known match\|ambiguous bare base stays raw" src --include=*.test.ts* | cut -c1-220; grep -n 'bare-ticker' src/modules/chat/ChatSidebar.tsx | head -4
+--- output ---
+src/modules/chat/slash-commands.test.ts:79:      it("a bare base with one suffixed known match resolves to the suffixed symbol", () => {
+428:  // The composer's known-ticker set for the bare-ticker fast path (R15-AGENT-088,
+749:      if (result.kind === "bare-ticker") {
+
+EXIT=0 (0.0s)

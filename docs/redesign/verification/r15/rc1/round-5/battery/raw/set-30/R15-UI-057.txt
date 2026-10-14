@@ -1,0 +1,31 @@
+CMD: curl -s -X POST http://127.0.0.1:52356/llm/keys/validate -d '{"provider":"<p>","api_key":"sk-fake-key-with-trailing-space-000000 "}' for p in openai anthropic groq deepseek gemini
+-- openai --
+{"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+-- anthropic --
+{"ok":false,"reason":"invalid","detail":"Anthropic rejected this key."}
+-- groq --
+{"ok":false,"reason":"invalid","detail":"Groq rejected this key."}
+-- deepseek --
+{"ok":false,"reason":"invalid","detail":"DeepSeek rejected this key."}
+-- gemini --
+{"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+
+-- source check: src/components/KeyEntryDialog.tsx:68 'const secret = key.trim();' before Save posts to validate/persist --
+  }, [open]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const provider = providers.find((p) => p.id === providerId) ?? null;
+
+  async function handleSave() {
+    // A pasted key often carries a trailing space/newline; it is not part of
+    // the key (R15-UI-057) — the same trim onboarding applies.
+    const secret = key.trim();
+    if (!providerId || !secret) {
+      return;
+    }
+    setStatus("validating");
+    setErrorDetail(null);
+    const controller = new AbortController();
+    inFlight.current = controller;
+
+VERDICT: holds -- KeyEntryDialog.tsx:68 trims the pasted key before it is sent, so the raw untrimmed value never reaches the wire from the Settings dialog. As a defense in depth, the sidecar itself now returns a clean invalid/<Provider> rejected this key. for all 5 providers on an untrimmed fake key over direct API call (openai/anthropic/groq/deepseek/gemini), not the old raw 'transport error: Connection error.'.

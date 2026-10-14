@@ -1,0 +1,5 @@
+# in-process probe at ace7dd76 (sidecar venv, scratch data dir), script scratchpad/b19_set13.py 036
+# exit=0
+== seed one real day: 5060
+== warm 1y _assemble_history KSE: {'seconds': 0.33, 'bars': 246, 'last_close': 179.15}
+== again: 0.32

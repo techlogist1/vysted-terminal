@@ -1,0 +1,10 @@
+# R15-UI-032 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:41+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for q in Apple Nvidia AAPL zzqxnotacompany; do echo -n "$q: "; curl -s -m 60 "$H/sec/filings/search?q=$q" | python3 -c "import sys,json;d=json.load(sys.stdin);r=d.get('results',d) if isinstance(d,dict) else d;print(len(r),[(x.get('name') or x.get('title'),x.get('ticker') or x.get('symbol')) for x in r[:2]])"; done
+--- output ---
+Apple: 6 [('Apple Inc.', 'AAPL'), ('Apple Hospitality REIT, Inc.', 'APLE')]
+Nvidia: 1 [('NVIDIA CORP', 'NVDA')]
+AAPL: 1 [('Apple Inc.', 'AAPL')]
+zzqxnotacompany: 0 []
+
+EXIT=0 (0.6s)

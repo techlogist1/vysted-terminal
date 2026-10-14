@@ -1,0 +1,35 @@
+{"detail":"unknown agent: 'nope'"}=== streaming.ts !ok branch, extractSidecarDetail usage ===
+14:  extractSidecarDetail,
+343:    if (!response.ok || !response.body) {
+348:      throw new SidecarError(response.status, extractSidecarDetail(parsed, fallback));
+ */
+export const AGENT_STREAM_IDLE_MS = 45_000;
+export const CHAT_STREAM_IDLE_MS = 330_000;
+
+/**
+ * Map the camelCase frontend `options` onto the wire body. `researchDepth` (the
+ * composer's three-stop depth slider) crosses as snake_case `research_depth` so
+ * the sidecar reads ONE spelling; every other key passes through unchanged (the
+ * sidecar already consumes `history`/`deepResearchBackend`/`modelWebSearch`
+ * as-is — renaming them here would silently break those contracts).
+ */
+function wireOptions(options?: Record<string, unknown>): Record<string, unknown> {
+  if (!options) {
+    return {};
+  }
+  const { researchDepth, ...rest } = options;
+  return researchDepth === undefined ? rest : { ...rest, research_depth: researchDepth };
+}
+
+/** Stream a raw chat completion (no agent). */
+export async function streamChat(payload: ChatRequest, handlers: StreamingHandlers): Promise<void> {
+  const body = JSON.stringify({
+    provider: payload.provider,
+    model: payload.model,
+    messages: payload.messages,
+    api_key: payload.apiKey,
+    base_url: payload.baseUrl,
+    options: wireOptions(payload.options),
+  });
+  await consumeSseStream("/llm/chat", body, handlers, CHAT_STREAM_IDLE_MS);
+}

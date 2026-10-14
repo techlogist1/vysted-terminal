@@ -1,0 +1,5 @@
+Source check: PortfolioPanel.tsx:430 `id: holdings[i]?.id` published per row (previously only the
+closed-panel fallback carried ids). host-actions.ts:678 `resolveHolding` + line 2049 doc comment
+"an ambiguous or unresolved name fails with the candidates" - an ambiguous same-symbol match now
+refuses and names each lot instead of picking the first silently.
+Verdict: holds (source-confirmed).

@@ -1,0 +1,18 @@
+# R15-CODE-PLATFORM-026 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:37+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; wc -l scripts/ensure-sidecar.mjs scripts/ensure-openbb-mcp-sidecar.mjs scripts/ensure-sec-edgar-mcp-sidecar.mjs scripts/sidecar-specs.mjs; grep -n "function targetTriple\|targetTriple = " scripts/*.mjs; node -e 'import("./scripts/sidecar-specs.mjs").then(m=>console.log("rows",m.SIDECAR_SPECS.length, m.SIDECAR_SPECS.map(s=>s.name)))'; ls scripts/sidecar-specs.test.mjs
+--- output ---
+      14 scripts/ensure-sidecar.mjs
+      16 scripts/ensure-openbb-mcp-sidecar.mjs
+      15 scripts/ensure-sec-edgar-mcp-sidecar.mjs
+     318 scripts/sidecar-specs.mjs
+     363 total
+scripts/sidecar-specs.mjs:195:export function targetTriple() {
+rows 3 [
+  'vysted-sidecar',
+  'vysted-openbb-mcp-sidecar',
+  'vysted-sec-edgar-mcp-sidecar'
+]
+scripts/sidecar-specs.test.mjs
+
+EXIT=0 (0.0s)

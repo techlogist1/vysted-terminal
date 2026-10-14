@@ -1,0 +1,10 @@
+== A0 real historicalOR rows: 10
+== A0 real row keys (sample): ['CH_52WEEK_HIGH_PRICE', 'CH_52WEEK_LOW_PRICE', 'CH_CLOSING_PRICE', 'CH_LAST_TRADED_PRICE', 'CH_OPENING_PRICE', 'CH_PREVIOUS_CLS_PRICE', 'CH_SERIES', 'CH_SYMBOL', 'CH_TIMESTAMP', 'CH_TOTAL_TRADES', 'CH_TOT_TRADED_QTY', 'CH_TOT_TRADED_VAL', 'CH_TRADE_HIGH_PRICE', 'CH_TRADE_LOW_PRICE']
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/parser_drift_battery14.py", line 32, in <module>
+    bars = nse_provider._rows_to_bars(drift["data"])
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/nse_provider.py", line 434, in _rows_to_bars
+    raise ProviderError(
+    ...<2 lines>...
+    )
+services.errors.ProviderError: nse_direct: historical row for 2026-09-22 lacks CH_OPENING_PRICE, CH_TRADE_HIGH_PRICE, CH_TRADE_LOW_PRICE, CH_TOT_TRADED_QTY (payload shape changed)

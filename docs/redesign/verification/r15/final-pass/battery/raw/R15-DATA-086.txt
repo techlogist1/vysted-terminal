@@ -1,0 +1,9 @@
+# R15-DATA-086 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:09+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b4_086.py 2>&1 | grep -v Warning | tail -8
+--- output ---
+DOWN: ProviderError network World Bank search failed for 'unemployment': HTTPSConnectionPool(host='api.worldbank.org', port=443): Max retries exceeded with url: /v2/en/sources/2/concepts?per_page=1000&page=1&format=json (Caused by NameResolutionError("HTTPSConnection(host='api.worldbank.org', port=443): Failed to resolve 'api.worldbank.org' ([Errno 8] network down (probe))"))
+['Any', 'Callable', 'DB_FILENAME', 'MAX_BACKUPS', 'MAX_ROWS', 'Path', 'annotations', 'asyncio', 'clear', 'contextlib', 'db_path', 'ensure_build', 'get', 'get_cache_dir', 'get_data_dir', 'get_with_meta', 'invalidate', 'json', 'logger', 'logging']
+UP: 25 rows [('per_lm_alllm.adq_pop_tot', 'Adequacy of unemployment benefits and AL'), ('per_lm_alllm.ben_q1_tot', 'Benefit incidence of unemployment benefi'), ('per_lm_alllm.cov_pop_tot', 'Coverage of unemployment benefits and AL')]
+
+EXIT=0 (1.1s)

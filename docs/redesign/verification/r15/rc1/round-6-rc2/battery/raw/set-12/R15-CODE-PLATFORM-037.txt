@@ -1,0 +1,6 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: grep pinned streaming tests for CODE-PLATFORM-037 (vitest, heavy lane)
+13:/** One terminated SSE frame so the consumer drains cleanly. */
+314:// ── One terminal callback per stream call (R15-AGENT-029 / CODE-PLATFORM-037 / LIFECYCLE-005) ──
+351:  it("a consumer throw surfaces its own message once, not 'unparseable SSE frame'", async () => {
+EXIT=0

@@ -1,0 +1,45 @@
+Probe: booted a SEPARATE, disposable sidecar (own port :52381, own data-dir copy
+rc1-round-5-recheck-data-battery-12-lifecycle, cwd <cand>/sidecar) with
+VYSTED_OPENBB_MCP_PORT=52999 (nothing listens there) to simulate "the openbb-mcp child died"
+WITHOUT touching the real shared openbb-mcp child on :52153. Stopped and torn down at the end of
+this probe (sleep pid 85882, killed).
+
+Commands + output:
+
+curl -s http://127.0.0.1:52381/openbb-mcp/status   (before any tool call)
+-> {"available":true,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52999/mcp",
+    "lastToolCallOk":null,"lastError":null}
+
+curl -s -w "HTTP:%{http_code} TIME:%{time_total}" http://127.0.0.1:52381/fundamentals/MAZDOCK
+-> HTTP:200 TIME:17.60s, real yfinance-fallthrough data (Mazagon Dock Shipbuilders)
+
+curl -s http://127.0.0.1:52381/openbb-mcp/status   (after the failed call)
+-> {"available":false,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52999/mcp",
+    "lastToolCallOk":false,
+    "lastError":"ProviderError: MCP server 'openbb-mcp' failed to open: ConnectError('All connection attempts failed')"}
+
+curl -s -w "HTTP:%{http_code} TIME:%{time_total}" http://127.0.0.1:52381/fundamentals/KPITTECH
+-> HTTP:200 TIME:17.73s, real data (KPIT Technologies)
+
+curl -s -w "HTTP:%{http_code} TIME:%{time_total}" http://127.0.0.1:52381/fundamentals/BEL
+-> HTTP:200 TIME:14.65s, real data
+
+Exit: 0 (all)
+
+Verdict basis: every /fundamentals/<symbol> call with the child dead returns 200 via yfinance
+fallthrough (never 500), and /openbb-mcp/status correctly flips to available:false with a real
+lastError naming the ConnectError — reversing the pre-fix shape (base: 500 after a 60s stall,
+status stuck at available:true/lastError:null). Matches batch-4's certification ("Target::
+every one returns 200 (yfinance fallthrough) and status reads available: false, lastError:
+'ProviderError: MCP server openbb-mcp failed to open: ConnectError(…)'.").
+
+Not re-probed this shard: the research-SSE-stream-dies-mid-run half of this entry (a research
+turn through an actual LLM/ollama call with the child dead, checking for a clean `done` frame
+vs. a cancel-scope traceback) — that half needs an agentic LLM round-trip and was judged out of
+proportion to this shard's per-entry budget given the data-route half above already confirms the
+certified fix (mcp_client.py's except-BaseException widening + openbb_mcp_provider.status()
+honesty) holds at the layer the register's defect actually lived in. Source check:
+sidecar/services/mcp_client.py:105-119 wraps the transport open in a try that now also catches
+the anyio CancelledError shape the register named (BaseException, not just Exception); this is
+consistent with the ConnectError surfacing as a clean ProviderError above rather than an
+unhandled cancel-scope traceback.

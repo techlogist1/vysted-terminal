@@ -1,0 +1,24 @@
+R15-UI-027: frontend keybindings store — needs vitest to execute; out of scope for this role.
+
+CMD: sed -n '370,386p' src/store/keybindings.ts
+ * Resolve a combo to the concrete physical chord it produces on the CURRENT
+ * platform (R15-UI-027 residual): `"mod"` collapses to `"meta"` on macOS or
+ * `"ctrl"` elsewhere, so `"mod+p"` and `"meta+p"` compare equal on macOS
+ * (both are ⌘P) while `"mod+p"` and `"ctrl+p"` compare equal off macOS —
+ * `conflicts()` groups on this instead of the raw string.
+ */
+function resolveChord(keys: string): string {
+  const { modifiers, key } = parseBinding(keys);
+  const mac = isMacPlatform();
+  const resolved = new Set<string>();
+  for (const m of modifiers) {
+    resolved.add(m === "mod" ? (mac ? "meta" : "ctrl") : m);
+  }
+  const order = ["ctrl", "alt", "shift", "meta"] as const;
+  const ordered = order.filter((m) => resolved.has(m));
+  return [...ordered, ...(key ? [key] : [])].join("+");
+}
+
+Confirms: resolveChord() collapses 'mod' to the platform's real modifier (meta on macOS, ctrl elsewhere) before conflicts() compares chords, matching the certified fix (mod+p vs meta+p now collide on macOS; shift+mod+p vs mod+p do not).
+Pinned tests: src/store/keybindings.test.ts:124,133,144
+VERDICT: ci_pinned

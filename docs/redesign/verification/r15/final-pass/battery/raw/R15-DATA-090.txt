@@ -1,0 +1,26 @@
+# R15-DATA-090 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:31:34+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+W=$(curl -s -m 10 "$H/system/data-dir" 2>/dev/null); DD=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-3/workspaces
+post(){ curl -s -m 20 -w " [%{http_code}]\n" -X POST "$H/workspace" -H "content-type: application/json" -d "{\"name\":\"fb3ws\",\"workspace\":$1}"; }
+echo '$ POST v1,v2'; post '{"v":1}'; post '{"v":2}'; ls $DD | grep fb3ws
+echo '$ truncate main file; GET'; printf '{"trunc' > $DD/fb3ws.vysted-workspace; curl -s -m 20 -w " [%{http_code}]\n" "$H/workspace/fb3ws"; ls $DD | grep fb3ws
+echo '$ next save then .bak parse'; post '{"v":3}'; python3 -c "import json;print('bak parse', json.load(open('$DD/fb3ws.vysted-workspace.bak')))"
+echo '$ non-dict on disk: write [] then GET'; printf '[]' > $DD/fb3ws.vysted-workspace; rm -f $DD/fb3ws.vysted-workspace.bak; curl -s -m 20 -w " [%{http_code}]\n" "$H/workspace/fb3ws"
+--- output ---
+$ POST v1,v2
+{"status":"saved","name":"fb3ws"} [200]
+{"status":"saved","name":"fb3ws"} [200]
+fb3ws.vysted-workspace
+fb3ws.vysted-workspace.bak
+$ truncate main file; GET
+{"v":1} [200]
+fb3ws.vysted-workspace
+fb3ws.vysted-workspace.bak
+fb3ws.vysted-workspace.corrupt-1791030694485
+$ next save then .bak parse
+{"status":"saved","name":"fb3ws"} [200]
+bak parse {'v': 1}
+$ non-dict on disk: write [] then GET
+{"detail":"Workspace 'fb3ws' not found."} [404]
+
+EXIT=0 (0.1s)

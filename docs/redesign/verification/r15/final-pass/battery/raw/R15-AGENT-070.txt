@@ -1,0 +1,10 @@
+# R15-AGENT-070 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:19+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p_lows.py a70 2>&1 | grep -v Warning
+--- output ---
+research timeout_from_args True timeout_seconds None
+replace(research, timeout_seconds=60) -> ValueError: research: timeout_from_args derives the budget from the call's args; a fixed timeout_seconds would be ignored
+research timeout (args-derived): 390.0
+price_data flagged timeout_from_args -> 210.0 (guard used, not name match)
+
+EXIT=0 (1.2s)

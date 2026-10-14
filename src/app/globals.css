@@ -1,50 +1,97 @@
 @import "tailwindcss";
 
-/* Vysted design-token primitives ("Claude after dark" — espresso base, coral
-   accent; legacy token names charcoal/amber/brass/sage carry new values). */
+/* Vysted design-token primitives. R6 "Pure Black" -- pure neutral grayscale
+   ramp (faithful OpenCode dark), monochrome chrome, the single peach accent
+   reserved for live-agent activity only. Legacy token names charcoal/amber/
+   brass/sage carry the neutral/peach values. */
 @import "../../styles/tokens.css";
 
-/* dockview layout-engine base styles — imported here, before the Vysted theme
+/* dockview layout-engine base styles -- imported here, before the Vysted theme
    override below, so the override reliably wins the cascade. */
 @import "dockview/dist/styles/dockview.css";
 
+/* Enter/leave keyframe utilities (animate-in / fade-in-0 / zoom-in-95 / ...)
+   used by the Radix dialog primitive. Without this @plugin the utilities emit
+   no CSS and every dialog pops instantly. */
+@plugin "tailwindcss-animate";
+
 /* Map the Vysted primitives onto shadcn/ui's semantic names. Literal fallbacks
-   keep this resilient if a token is ever missing. */
+   keep this resilient if a token is ever missing. Fallbacks use NEUTRAL values so
+   a missing token degrades to the same neutral gray -- never warm, never blue.
+   primary/accent/ring are NEUTRAL (monochrome chrome): the peach accent is NOT a
+   global semantic -- it is applied explicitly, only on live-agent elements. */
 @theme inline {
-  --color-background: var(--color-charcoal-950, #1a1512);
-  --color-foreground: var(--color-charcoal-100, #ece3d9);
-  --color-card: var(--color-charcoal-900, #241d19);
-  --color-card-foreground: var(--color-charcoal-100, #ece3d9);
-  --color-popover: var(--color-charcoal-875, #29211d);
-  --color-popover-foreground: var(--color-charcoal-100, #ece3d9);
-  --color-primary: var(--color-amber-400, #d97757);
-  --color-primary-foreground: var(--color-charcoal-950, #1a1512);
-  --color-secondary: var(--color-charcoal-800, #352a25);
-  --color-secondary-foreground: var(--color-charcoal-100, #ece3d9);
-  --color-muted: var(--color-charcoal-800, #352a25);
-  --color-muted-foreground: var(--color-charcoal-400, #998778);
-  /* Accent = brand coral (single-accent system; was the retired sage green). */
-  --color-accent: var(--color-amber-400, #d97757);
-  --color-accent-foreground: var(--color-charcoal-950, #1a1512);
-  --color-border: var(--color-charcoal-700, #473a33);
-  --color-input: var(--color-charcoal-700, #473a33);
-  --color-ring: var(--color-amber-400, #d97757);
-  --color-destructive: var(--color-negative, #cf5b48);
+  --color-background: var(--color-charcoal-950, #0a0a0a);
+  --color-foreground: var(--color-charcoal-100, #ededed);
+  --color-card: var(--color-charcoal-900, #161616);
+  --color-card-foreground: var(--color-charcoal-100, #ededed);
+  --color-popover: var(--color-charcoal-875, #1d1d1d);
+  --color-popover-foreground: var(--color-charcoal-100, #ededed);
+  /* Primary = a quiet neutral control surface (NOT the accent). */
+  --color-primary: var(--color-charcoal-700, #353535);
+  --color-primary-foreground: var(--color-charcoal-100, #ededed);
+  --color-secondary: var(--color-charcoal-800, #2b2b2b);
+  --color-secondary-foreground: var(--color-charcoal-100, #ededed);
+  --color-muted: var(--color-charcoal-800, #2b2b2b);
+  --color-muted-foreground: var(--color-charcoal-400, #a8a8a8);
+  /* Accent = a neutral raised surface (monochrome — single-accent is applied
+     explicitly on live-agent elements, never via this semantic). */
+  --color-accent: var(--color-charcoal-800, #2b2b2b);
+  --color-accent-foreground: var(--color-charcoal-100, #ededed);
+  --color-border: var(--color-charcoal-700, #353535);
+  --color-input: var(--color-charcoal-700, #353535);
+  --color-ring: var(--color-charcoal-600, #484848);
+  --color-destructive: var(--color-negative, #e5544b);
   --radius: var(--radius-panel); /* track the token, not a literal */
 }
 
-/* --- Chrome primitives -----------------------------------------------------
- * Composite vars for the flat, warm "Claude after dark" chrome: a faint coral
- * hairline rule, a flat panel edge (whisper of depth, NO watch-bezel metal),
- * and a coral glow for active controls. Plain CSS vars (not @theme) since they
- * are composite shadows, not single-value utilities. */
+/* --- Chrome primitives -------------------------------------------------------
+ * Composite vars for the flat, low-chrome warm-graphite frame. Plain CSS vars
+ * (not @theme) since they are composite shadows, not single-value utilities. */
 :root {
-  --hairline: rgb(217 119 87 / 0.18); /* coral @ 18% — quiet fine divider */
-  --hairline-strong: rgb(217 119 87 / 0.32); /* coral @ 32% */
-  --bezel-shadow:
-    inset 0 1px 0 rgb(245 241 234 / 0.03), inset 0 0 0 1px rgb(26 21 18 / 0.5),
-    0 1px 2px rgb(0 0 0 / 0.35);
-  --glow-coral: 0 0 0 1px rgb(217 119 87 / 0.35), 0 0 12px rgb(217 119 87 / 0.14);
+  /* NEUTRAL chrome tint (selection, scrollbar-hover, drag-over) -- monochrome.
+     NOT the accent: the peach spotlight is applied via --color-amber-400 on the
+     few live-agent elements only, so this stays a plain neutral gray. */
+  --accent-rgb: 120 120 120; /* neutral gray -- chrome tint, no warm cast */
+  --hairline: rgb(115 115 115 / 0.14); /* neutral @ 14% -- quiet fine divider */
+  --hairline-strong: rgb(115 115 115 / 0.24); /* neutral @ 24% */
+  /* No shadow/glow primitive of ANY kind (VYSTED_DESIGN.md §Elevation).
+     Depth = the surface ladder (canvas->chrome->panel->raised->inset) + a 1px
+     hairline; a floating element climbs exactly one rung. */
+}
+
+/* --- Named @utilities consumed via Tailwind variants -----------------------
+ * `group-heading-style` is applied by the ⌘K palette as
+ * `[&_[cmdk-group-heading]]:group-heading-style` — a Tailwind variant that
+ * targets cmdk's group-heading node. It MUST be a registered @utility (not a
+ * @layer class) or the variant emits no CSS and group headers render invisible
+ * (the R4 "wall of agents" bug). Mirrors `text-micro` + a tertiary tint and the
+ * row inset so headers sit flush over their rows. (PRODUCT_DESIGN_DECISIONS §15.) */
+@utility group-heading-style {
+  font-size: var(--text-micro, 0.6875rem); /* 11px */
+  line-height: var(--leading-heading, 1.3);
+  font-weight: var(--font-weight-label, 500);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-charcoal-500, #8a8a8a);
+  padding: 8px 12px 4px; /* 8 12 4 */
+}
+
+/* --- ⌘K palette row truncation -------------------------------------------
+ * cmdk wraps rows in [cmdk-list-sizer] / [cmdk-group-items] divs that carry a
+ * min-content floor inside the grid-based DialogContent, so a long command-row
+ * description overflows the dialog and HARD-CLIPS (no ellipsis) instead of
+ * truncating. Force min-width:0 down the cmdk tree so the flex-1 row text can
+ * shrink and the row's `truncate` engages, keeping the description inside the
+ * row (VYSTED_DESIGN.md command-palette rule). */
+[cmdk-list-sizer],
+[cmdk-group],
+[cmdk-group-items],
+[cmdk-item] {
+  min-width: 0;
+}
+[cmdk-list-sizer] {
+  width: 100%;
 }
 
 @layer base {
@@ -56,148 +103,361 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: var(--font-mono, ui-monospace, "SF Mono", monospace);
+    /* ONE monospace family across the whole app (VYSTED_DESIGN.md). The
+       --font-serif slot resolves to JetBrains Mono, as do --font-sans/--font-mono,
+       so every text role -- chrome, prose, and data -- is the same face.
+       tabular-nums keeps numeric columns aligned like a gauge. */
+    font-family: var(--font-serif, ui-monospace, "SF Mono", monospace);
     /* Instrument-readout numerics: tabular figures align like a gauge across
        every table, price, and stat in the app. */
     font-variant-numeric: tabular-nums;
     font-feature-settings:
       "tnum" 1,
+      "zero" 1,
       "calt" 0;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Lock the document box so the shell is a fixed viewport and ONLY panel
+       interiors scroll. Without this the document stays a live scroller and a
+       focus/inertia/sub-pixel event nudges the whole app a few px (the
+       whole-app micro-scroll). overscroll-behavior:none also stops dockview's
+       inner overflow:auto regions from chaining scroll to the document. */
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
   }
 
-  /* Quiet warm atmosphere: a faint coral ambient at the top edge over a soft
-     warm vignette — espresso depth without a flat field. Fixed so it doesn't
-     scroll. De-skeuomorphized: no CRT phosphor bloom. */
+  /* Vite mounts the app inside #root (Next rendered children directly under
+     body) -- continue the fixed-viewport height chain through it. */
+  #root {
+    height: 100%;
+  }
+
+  /* Flat pure-neutral field. No ambient glow, no grain, no vignette, no
+     gradient -- a single flat neutral near-black (#0a0a0a). The peach accent
+     (live-agent activity only) and the content hierarchy carry the eye. */
   body {
-    background-image:
-      radial-gradient(120% 80% at 50% -10%, rgb(217 119 87 / 0.035), transparent 50%),
-      radial-gradient(140% 120% at 50% 50%, transparent 60%, rgb(0 0 0 / 0.3));
-    background-attachment: fixed;
-  }
-
-  /* Barely-there warm grain — keeps the espresso gradients from banding. Much
-     quieter than the retired CRT film grain. Below content, never intercepts. */
-  body::before {
-    content: "";
+    /* Pin the viewport box: even a stray over-min child cannot shift the
+       document. Pairs with the html/body overflow:hidden lock above. */
     position: fixed;
     inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    opacity: 0.02;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  /* Keep the app shell above the grain. */
-  body > * {
-    position: relative;
-    z-index: 1;
+    background-image: none;
   }
 
   h1,
   h2,
   h3 {
-    font-family: var(--font-serif, ui-serif, Georgia, serif);
-    /* Fraunces is variable with an optical-size axis — let it use display
-       optics at heading sizes. */
+    font-family: var(--font-serif, ui-sans-serif, system-ui, sans-serif);
+    /* Precise grotesque display at heading sizes. */
     font-optical-sizing: auto;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.012em;
   }
 
-  /* Coral selection + crisp coral focus ring everywhere. */
+  /* Neutral selection + a crisp neutral focus ring everywhere (monochrome). */
   ::selection {
-    background: rgb(217 119 87 / 0.28);
-    color: var(--color-lume, #f5f1ea);
+    background: rgb(var(--accent-rgb) / 0.3);
+    color: var(--color-lume, #f7f7f7);
   }
 
   :focus-visible {
-    outline: 1px solid var(--color-amber-400, #d97757);
+    outline: 1px solid var(--color-charcoal-400, #a8a8a8);
     outline-offset: 1px;
+  }
+
+  /* Honour the OS "reduce motion" setting: collapse every animation/transition
+     to an instant cut. The framer-motion tree additionally honours this via
+     <MotionConfig reducedMotion="user"> in page.tsx. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 /* --- Instrument utility classes (opt-in chrome) --------------------------- */
 @layer components {
-  /* Uppercase, tracked, warm-neutral section label. */
+  /* Uppercase, tracked, neutral section label (micro role -- 11px floor). */
   .hud-label {
     font-family: var(--font-mono, ui-monospace, monospace);
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 0.625rem;
-    color: var(--color-brass-300, #a8917f);
+    letter-spacing: 0.1em;
+    font-size: var(--text-micro, 0.6875rem);
+    color: var(--color-brass-300, #a0a0a0);
   }
 
-  /* Flat panel edge — a whisper of warm depth, no metal bevel. */
-  .instrument-bezel {
-    box-shadow: var(--bezel-shadow);
-    border-top: 1px solid rgb(245 241 234 / 0.03);
-  }
-
-  /* A single flat coral hairline (e.g. under the header) — no gauge ticks. */
+  /* A single flat warm hairline (e.g. under the header). */
   .tick-rule {
     background: var(--hairline);
     height: 1px;
   }
 
-  /* Coral glow for an active/primary control. */
+  /* Agent-active / primary control: 1px accent border + one luminance step.
+     No blurred glow (VYSTED_DESIGN.md -- "no drop shadows and no glow anywhere"). */
   .hud-active {
-    box-shadow: var(--glow-coral);
+    box-shadow: 0 0 0 1px var(--color-amber-400, #fab283);
+    background-color: var(--color-charcoal-875, #1d1d1d);
+  }
+
+  /* Agent-active node: 1px accent border + one luminance step (no blurred glow).
+     Replaces the retired .node-glow treatment. */
+  .node-active {
+    box-shadow: 0 0 0 1px var(--color-amber-400, #fab283);
+    background-color: var(--color-charcoal-875, #1d1d1d);
+  }
+
+  /* Streaming cursor -- a 2px accent bar that blinks while tokens arrive. Apply
+     `.stream-cursor` to the trailing inline element of streaming text. Kept --
+     it is feedback, not glow. */
+  .stream-cursor::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: 1.05em;
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    background: var(--color-amber-400, #fab283);
+    border-radius: 1px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .stream-cursor::after {
+      animation: stream-blink 1s steps(2, jump-none) infinite;
+    }
+  }
+
+  /* Notes editor live-markdown rendering, locked to the Warm Graphite type scale
+     (PRODUCT_DESIGN_DECISIONS §12). The Tiptap content container wears
+     `.notes-prose`; these element rules beat Tailwind preflight (specificity
+     0,1,1 > 0,0,1) so headings/lists/code render on-system instead of the
+     browser/Tailwind defaults. Apply INSTEAD of `prose prose-sm`. */
+  .notes-prose {
+    color: var(--color-charcoal-100, #ededed);
+    font-size: var(--text-body, 0.8125rem);
+    line-height: var(--leading-prose, 1.6);
+  }
+  .notes-prose h1 {
+    font-size: var(--text-overview, 1.4375rem);
+    line-height: var(--leading-display, 1.25);
+    font-weight: var(--font-weight-heading, 700);
+    letter-spacing: -0.012em;
+    margin: 16px 0 8px;
+  }
+  .notes-prose h2 {
+    font-size: var(--text-section, 1.1875rem);
+    line-height: var(--leading-heading, 1.3);
+    font-weight: var(--font-weight-heading, 700);
+    margin: 16px 0 8px;
+  }
+  .notes-prose h3 {
+    font-size: var(--text-panel-title, 0.8125rem);
+    line-height: var(--leading-heading, 1.3);
+    font-weight: var(--font-weight-label, 500);
+    margin: 12px 0 4px;
+  }
+  .notes-prose p {
+    margin: 0 0 8px;
+  }
+  .notes-prose ul,
+  .notes-prose ol {
+    margin: 0 0 8px;
+    padding-left: 24px;
+  }
+  .notes-prose ul {
+    list-style: disc;
+  }
+  .notes-prose ol {
+    list-style: decimal;
+  }
+  .notes-prose li {
+    margin: 2px 0;
+  }
+  .notes-prose ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 8px;
+  }
+  .notes-prose ul[data-type="taskList"] li {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .notes-prose blockquote {
+    border-left: 2px solid var(--color-charcoal-600, #484848);
+    padding-left: 12px;
+    color: var(--color-charcoal-400, #a8a8a8);
+    margin: 0 0 8px;
+  }
+  .notes-prose code {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.9em;
+    background: var(--color-charcoal-850, #242424);
+    padding: 0.1em 0.35em;
+    border-radius: var(--radius-control, 0.25rem);
+  }
+  .notes-prose pre {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: var(--text-caption, 0.8125rem);
+    background: var(--color-charcoal-925, #101010);
+    border: 1px solid var(--color-charcoal-700, #353535);
+    border-radius: var(--radius-panel, 0);
+    padding: 12px;
+    margin: 0 0 8px;
+    overflow-x: auto;
+  }
+  .notes-prose pre code {
+    background: transparent;
+    padding: 0;
+  }
+  .notes-prose a {
+    color: var(--color-charcoal-200, #e2e2e2);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .notes-prose hr {
+    border: none;
+    border-top: 1px solid var(--color-charcoal-700, #353535);
+    margin: 16px 0;
   }
 }
 
-/* dockview layout-engine theme, mapped to the Vysted INSTRUMENT palette. The
-   panel host applies `dockview-theme-dark dockview-theme-vysted`; the dark theme
-   supplies defaults and this rule overrides the visible surfaces. Coral hairline
-   separators + a coral active tab read as a clean warm cockpit frame. */
-.dockview-theme-vysted {
-  --dv-group-view-background-color: var(--color-charcoal-900, #241d19);
-  --dv-tabs-and-actions-container-background-color: var(--color-charcoal-925, #1f1916);
-  --dv-activegroup-visiblepanel-tab-background-color: var(--color-charcoal-875, #29211d);
-  --dv-activegroup-visiblepanel-tab-color: var(--color-lume, #f5f1ea);
-  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #1f1916);
-  --dv-activegroup-hiddenpanel-tab-color: var(--color-charcoal-400, #998778);
-  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-charcoal-900, #241d19);
-  --dv-inactivegroup-visiblepanel-tab-color: var(--color-charcoal-300, #b8a698);
-  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #1f1916);
-  --dv-inactivegroup-hiddenpanel-tab-color: var(--color-charcoal-600, #5c4d44);
-  --dv-separator-border: 1px solid var(--hairline);
-  --dv-tab-divider-color: var(--hairline);
-  --dv-paneview-header-border-color: var(--hairline);
-  --dv-paneview-active-outline-color: var(--color-amber-400, #d97757);
-  --dv-active-sash-color: var(--color-amber-500, #c2603f);
-  --dv-sash-color: transparent;
-  --dv-context-menu-background-color: var(--color-charcoal-875, #29211d);
-  --dv-context-menu-color: var(--color-charcoal-200, #d6c8bb);
-  --dv-icon-hover-background-color: var(--color-charcoal-700, #473a33);
-  --dv-drag-over-background-color: rgb(217 119 87 / 0.14);
-  --dv-drag-over-border-color: var(--color-amber-400, #d97757);
-  --dv-tab-font-size: 11px;
+@keyframes stream-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
-/* The active tab wears a coral underline tick along its bottom edge — the lit
-   marker. Non-layout (box-shadow inset) so it never disturbs dockview's
-   sizing; if the class name drifts in a future dockview it simply no-ops. */
+/* dockview layout-engine theme, mapped to the Vysted pure-neutral palette.
+   The panel host applies `dockview-theme-dark dockview-theme-vysted`; the dark
+   theme supplies defaults and this rule overrides the visible surfaces.
+   All --dv-* values are neutral grayscale -- no warm cast, no amber, no blue. */
+/* dockview 4.x wraps panel content in a nested `.dv-shell` that carries its OWN
+   default theme class (dockview-theme-abyss -- a cold navy default), which
+   RE-declares the --dv-* variables and shadows a wrapper-only override. So the
+   override must also land on the `.dv-shell` itself (equal specificity, later in
+   source -> wins) or the tab strip + group view render the navy default. */
+.dockview-theme-vysted,
+.dockview-theme-vysted .dv-shell {
+  --dv-group-view-background-color: var(--color-charcoal-900, #161616);
+  --dv-tabs-and-actions-container-background-color: var(--color-charcoal-925, #101010);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--color-charcoal-875, #1d1d1d);
+  --dv-activegroup-visiblepanel-tab-color: var(--color-lume, #f7f7f7);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #101010);
+  --dv-activegroup-hiddenpanel-tab-color: var(--color-charcoal-400, #a8a8a8);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-charcoal-900, #161616);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--color-charcoal-300, #cccccc);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #101010);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--color-charcoal-600, #484848);
+  /* Panel/tab seams: the 24% warm hairline -- barely-there. */
+  --dv-separator-border: 1px solid var(--hairline-strong);
+  --dv-tab-divider-color: var(--hairline-strong);
+  --dv-paneview-header-border-color: var(--hairline-strong);
+  --dv-paneview-active-outline-color: var(--color-charcoal-500, #8a8a8a);
+  --dv-active-sash-color: var(--color-charcoal-500, #8a8a8a);
+  --dv-sash-color: transparent;
+  --dv-context-menu-background-color: var(--color-charcoal-875, #1d1d1d);
+  --dv-context-menu-color: var(--color-charcoal-200, #e2e2e2);
+  --dv-icon-hover-background-color: var(--color-charcoal-700, #353535);
+  --dv-drag-over-background-color: rgb(var(--accent-rgb) / 0.14);
+  --dv-drag-over-border-color: var(--color-charcoal-500, #8a8a8a);
+  /* R8: pinned to the type-scale token (caption — the chrome-label step), not
+     a literal, so a scale change re-values the tab strip with it. */
+  --dv-tab-font-size: var(--text-caption, 0.8125rem);
+}
+
+/* The active tab wears a NEUTRAL underline tick along its bottom edge -- the lit
+   marker, monochrome (the active state also brightens the tab text via lume).
+   Non-layout (box-shadow inset) so it never disturbs dockview's sizing; if the
+   class name drifts in a future dockview it simply no-ops. */
 .dockview-theme-vysted .dv-active-group .dv-tab.dv-active-tab {
-  box-shadow: inset 0 -2px 0 var(--color-amber-400, #d97757);
+  box-shadow: inset 0 -2px 0 var(--color-charcoal-400, #a8a8a8);
 }
 
 .dockview-theme-vysted .dv-tab {
   letter-spacing: 0.04em;
   transition: color 120ms var(--ease-instrument, ease);
+  /* R7: a crowded strip used to crush labels mid-word ("Equi", "Sc…"). Below
+     this floor a tab is unreadable — hold it and let the strip overflow into
+     dockview's dropdown instead. */
+  min-width: 96px;
+}
+
+/* R9 V7 — the minimum-tab-width law's second half. dockview 6.x has no
+   `minimumTabWidth` option: tabs hold the 96px floor above, the STRIP scrolls,
+   and a partially-scrolled tab used to hard-clip to a 2–3 char fragment right
+   beside the overflow chip. Fade the strip's trailing edge instead (Cursor's
+   treatment): the partial tab reads as a designed continuation into the "N
+   more" dropdown, never a broken fragment. Mask only — no layout change, so
+   dockview's overflow measurement is untouched. */
+.dockview-theme-vysted .dv-tabs-container {
+  mask-image: linear-gradient(to right, black calc(100% - 24px), transparent);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent);
+}
+
+/* R8 §3.1 — dockview's default tab content sets text-overflow on the PARENT
+   but never overflow:hidden on the label node, so a squeezed tab HARD-CLIPS
+   mid-word ("Portfol"). Give the label node a real ellipsis; the min-width
+   floor above keeps full labels at every sane strip width. */
+.dockview-theme-vysted .dv-tab .dv-default-tab .dv-default-tab-content {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The tabs-overflow control on the design ladder: a quiet 24px compact chip
+   with a REAL affordance — chevron + "N more" (not the library's bare ">18"),
+   hover step, pointer cursor. The library renders [svg chevron][span count];
+   the ::after supplies the word so the chip reads "⌄ 18 more". */
+.dockview-theme-vysted .dv-tabs-overflow-dropdown-default {
+  background-color: var(--color-charcoal-850, #242424);
+  color: var(--color-charcoal-400, #a8a8a8);
+  border: 1px solid var(--color-charcoal-700, #353535);
+  border-radius: var(--radius-control, 4px);
+  font-size: var(--text-micro, 0.6875rem);
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dockview-theme-vysted .dv-tabs-overflow-dropdown-default > span::after {
+  content: " more";
+}
+
+.dockview-theme-vysted .dv-tabs-overflow-dropdown-default:hover {
+  background-color: var(--color-charcoal-875, #1d1d1d);
+  color: var(--color-charcoal-100, #ededed);
 }
 
 /* Paint dockview's scroll viewport so a panel's over-scroll region never falls
-   through to the WKWebView default backdrop (the "blue void"). Belt-and-braces
-   alongside the per-panel single-scroll-container fix (map-settings 3a). */
+   through to the WKWebView default backdrop. */
 .dockview-theme-vysted .dv-view {
-  background-color: var(--color-charcoal-900, #241d19);
+  background-color: var(--color-charcoal-900, #161616);
 }
 
-/* Vysted-themed scrollbars — quiet warm-neutral rails that light coral on grab.
+/* Force the leaf view to never scroll -- the panel content owns the single
+   `.overflow-y-auto` scroller, so a tall panel (e.g. Settings) must not ALSO
+   scroll the dockview viewport behind it (the double-scrollbar bug). dockview's
+   own `.dv-split-view-container .dv-view-container .dv-view` sets overflow:auto
+   at specificity (0,3,0); this selector adds the theme class to reach (0,4,0)
+   and win the cascade without !important. */
+.dockview-theme-vysted .dv-split-view-container .dv-view-container .dv-view {
+  overflow: hidden;
+}
+
+/* Vysted-themed scrollbars -- quiet neutral rails that brighten on grab.
    WebKit covers Chromium / Tauri's webview; the `scrollbar-*` block gives
-   Firefox parity. A coral rail everywhere would be too loud, so the resting
-   rail is warm-neutral and only the hover/grab state goes coral. */
+   Firefox parity. */
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -208,18 +468,96 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgb(133 112 95 / 0.4);
+  background: rgb(115 115 115 / 0.4);
   border-radius: 4px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgb(217 119 87 / 0.6);
+  background: rgb(var(--accent-rgb) / 0.55);
   background-clip: padding-box;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgb(133 112 95 / 0.4) transparent;
+  scrollbar-color: rgb(115 115 115 / 0.4) transparent;
+}
+
+/* @xyflow/react chrome resolved to the Vysted ladder. The library ships
+   near-white default fills for the zoom/fit/lock Controls and the minimap --
+   the one place third-party chrome leaked an unstyled surface (R7 defect D1).
+   Buttons follow the control spec: inset fill, 1px border, text-secondary
+   glyphs, 4px outer radius on the group, hover = one luminance step. */
+.react-flow {
+  /* The library's own theming variables -- these beat its stylesheet's
+     defaults regardless of import order (the class-selector overrides below
+     alone lose to @xyflow's identically-specific, later-loaded rules). */
+  --xy-controls-button-background-color: var(--color-charcoal-850, #242424);
+  --xy-controls-button-background-color-hover: var(--color-charcoal-875, #1d1d1d);
+  --xy-controls-button-color: var(--color-charcoal-400, #a8a8a8);
+  --xy-controls-button-color-hover: var(--color-charcoal-100, #ededed);
+  --xy-controls-button-border-color: var(--color-charcoal-700, #353535);
+  --xy-controls-box-shadow: none;
+  --xy-edge-stroke: var(--color-charcoal-600, #484848);
+  --xy-edge-stroke-selected: var(--color-charcoal-300, #cccccc);
+  --xy-connectionline-stroke: var(--color-charcoal-500, #8a8a8a);
+  --xy-handle-background-color: var(--color-charcoal-500, #8a8a8a);
+  --xy-handle-border-color: var(--color-charcoal-950, #0a0a0a);
+  --xy-minimap-background-color: var(--color-charcoal-925, #101010);
+  --xy-minimap-mask-background-color: rgb(16 16 16 / 0.7);
+  --xy-minimap-node-background-color: var(--color-charcoal-850, #242424);
+  --xy-attribution-background-color: transparent;
+  --xy-edge-label-background-color: var(--color-charcoal-900, #161616);
+  --xy-edge-label-color: var(--color-charcoal-300, #cccccc);
+  --xy-selection-border: 1px dotted var(--color-charcoal-500, #8a8a8a);
+  --xy-selection-background-color: rgb(115 115 115 / 0.08);
+}
+
+.react-flow__controls {
+  box-shadow: none;
+  border: 1px solid var(--color-charcoal-700, #353535);
+  border-radius: var(--radius-control, 4px);
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  width: 24px;
+  height: 24px;
+  background: var(--color-charcoal-850, #242424);
+  border-bottom: 1px solid var(--color-charcoal-700, #353535);
+  color: var(--color-charcoal-400, #a8a8a8);
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--color-charcoal-875, #1d1d1d);
+  color: var(--color-charcoal-100, #ededed);
+}
+
+.react-flow__controls-button svg {
+  fill: currentColor;
+  max-width: 11px;
+  max-height: 11px;
+}
+
+.react-flow__attribution {
+  background: transparent;
+  color: var(--color-charcoal-500, #8a8a8a);
+}
+
+.react-flow__minimap {
+  background: var(--color-charcoal-925, #101010);
+}
+
+.react-flow__minimap-mask {
+  fill: rgb(16 16 16 / 0.7);
+}
+
+.react-flow__minimap-node {
+  fill: var(--color-charcoal-850, #242424);
+  stroke: var(--color-charcoal-700, #353535);
 }

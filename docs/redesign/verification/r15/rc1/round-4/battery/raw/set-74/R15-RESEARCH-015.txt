@@ -1,0 +1,6 @@
+CMD: sidecar/.venv/bin/python3 /tmp/r015_probe.py (in-process call to services.research.verify._claim_evidence at sha 1006c6da)
+EXIT: 0
+---OUTPUT---
+CaseC domains= ['nseindia.com'] channels= ['searxng', 'native'] independence= 1 distinct_lanes= False -> would_be_unverified_pre_llm= True
+CaseD domains= ['example.com'] channels= ['searxng'] independence= 1 distinct_lanes= True -> would_be_unverified_pre_llm= True
+ControlB domains= ['bloomberg.com', 'reuters.com'] channels= ['searxng', 'native'] independence= 2 distinct_lanes= True -> would_be_unverified_pre_llm= False

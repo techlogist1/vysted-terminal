@@ -1,0 +1,267 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_dbc91b62d31d441e81efe4be34159ba6", "name": "price_data", "input": {"asset_class": "equity", "range": "6mo", "symbol": "AAPL", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_dbc91b62d31d441e81efe4be34159ba6", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Apple"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "341"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "07"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Over"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " months"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Apple"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " fluct"}
+{"kind": "delta", "text": "uated"}
+{"kind": "delta", "text": " between"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "274"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "91"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "343"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "22"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " generally"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " trending"}
+{"kind": "delta", "text": " upward"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " some"}
+{"kind": "delta", "text": " minor"}
+{"kind": "delta", "text": " dips"}
+{"kind": "delta", "text": " along"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " way"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " key"}
+{"kind": "delta", "text": " highlights"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Highest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " past"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " months"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "343"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "22"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "July"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ")\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Lowest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " past"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " months"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "274"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "91"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "June"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ")\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Average"}
+{"kind": "delta", "text": " daily"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " volume"}
+{"kind": "delta", "text": " over"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " past"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " months"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "44"}
+{"kind": "delta", "text": " million"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Market"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " over"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": " trillion"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " figures"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " subject"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " reflect"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " situation"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "It"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " always"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " good"}
+{"kind": "delta", "text": " idea"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " advisor"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " conduct"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " own"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " before"}
+{"kind": "delta", "text": " making"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " investment"}
+{"kind": "delta", "text": " decisions"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Also"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " mention"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " some"}
+{"kind": "delta", "text": " significant"}
+{"kind": "delta", "text": " events"}
+{"kind": "delta", "text": " affecting"}
+{"kind": "delta", "text": " Apple"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " past"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " months"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " such"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " announcement"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " new"}
+{"kind": "delta", "text": " iPhone"}
+{"kind": "delta", "text": " models"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Changes"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " global"}
+{"kind": "delta", "text": " economic"}
+{"kind": "delta", "text": " conditions"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Competition"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " tech"}
+{"kind": "delta", "text": " companies"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "These"}
+{"kind": "delta", "text": " factors"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " influenced"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " fluctuations"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " Apple"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'re"}
+{"kind": "delta", "text": " interested"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " learning"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " events"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " how"}
+{"kind": "delta", "text": " they"}
+{"kind": "delta", "text": " impacted"}
+{"kind": "delta", "text": " Apple"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6493, "output_tokens": 257, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

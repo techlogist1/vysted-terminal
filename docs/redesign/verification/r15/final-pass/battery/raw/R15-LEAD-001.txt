@@ -1,0 +1,19 @@
+# R15-LEAD-001 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:37+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n "^mcp==\|^httpx==\|^fastmcp==" sidecar/*_mcp_subprocess/requirements.txt; ls -la src-tauri/binaries/; echo "\$ GET /mcp/status"; curl -s -m 10 "$H/mcp/status"; echo
+--- output ---
+sidecar/openbb_mcp_subprocess/requirements.txt:32:fastmcp==3.3.1
+sidecar/openbb_mcp_subprocess/requirements.txt:34:mcp==1.27.1
+sidecar/openbb_mcp_subprocess/requirements.txt:35:httpx==0.28.1
+sidecar/sec_edgar_mcp_subprocess/requirements.txt:19:mcp==1.27.1
+sidecar/sec_edgar_mcp_subprocess/requirements.txt:20:httpx==0.28.1
+total 460544
+drwxr-xr-x@  5 lokavyasingh  wheel       160 Oct  3 14:41 .
+drwxr-xr-x@ 14 lokavyasingh  wheel       448 Oct  3 14:42 ..
+-rwxr-xr-x@  1 lokavyasingh  wheel  54433456 Oct  3 14:40 vysted-openbb-mcp-sidecar-aarch64-apple-darwin
+-rwxr-xr-x@  1 lokavyasingh  wheel  82789344 Oct  3 14:41 vysted-sec-edgar-mcp-sidecar-aarch64-apple-darwin
+-rwxr-xr-x@  1 lokavyasingh  wheel  86665968 Oct  3 14:39 vysted-sidecar-aarch64-apple-darwin
+$ GET /mcp/status
+{"ready":true,"toolCount":39,"endpoint":"/mcp","protocolVersion":"2025-11-25"}
+
+EXIT=0 (0.0s)

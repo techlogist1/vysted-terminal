@@ -1,0 +1,10 @@
+# R15-UI-011 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n "swaps Run for Stop\|Stop aborts the live stream" src/modules/backtest/BacktestPanel.test.tsx | cut -c1-200; grep -c 'AbortController' src/modules/backtest/BacktestPanel.tsx src/store/backtest.ts
+--- output ---
+261:  it("swaps Run for Stop while a backtest is streaming", async () => {
+499:  it("Stop aborts the live stream, idles the run, and Retry runs on a fresh controller", async () => {
+src/modules/backtest/BacktestPanel.tsx:2
+src/store/backtest.ts:0
+
+EXIT=0 (0.0s)

@@ -1,0 +1,8 @@
+POST(SSE) /workflow/run
+status=200
+{"spec": {"id": "wf-r15-panels", "name": "R15 quote->compare", "version": 1, "updatedAt": 1790133114888, "nodes": [{"id": "q", "type": "data.fetch_quote", "position": {"x": 0, "y": 0}, "config": {"symbol": "RELIANCE"}}, {"id": "j", "type": "transform.json_path", "position": {"x": 200, "y": 0}, "config": {"path": "price"}}, {"id": "c", "type": "logic.compare", "position": {"x": 400, "y": 0}, "config": {"op": "gt", "b": 1000}}], "edges": [{"id": "e1", "sourceNode": "q", "sourcePort": "quote", "targetNode": "j", "targetPort": "input"}, {"id": "e2", "sourceNode": "j", "sourcePort": "value", "targetNode": "c", "targetPort": "a"}, {"id": "e4", "sourceNode": "c", "sourcePort": "result", "targetNode": "q", "targetPort": "symbol"}]}, "inputs": {}}
+---
+data: {"kind":"run-start","runId":"ad98d4c6-951c-4db7-b454-536bcdfb66c8","startedAt":1791025544920}
+
+data: {"kind":"run-error","runId":"ad98d4c6-951c-4db7-b454-536bcdfb66c8","message":"workflow contains a cycle (could not order ['c', 'j', 'q'])","durationMs":0.0}
+

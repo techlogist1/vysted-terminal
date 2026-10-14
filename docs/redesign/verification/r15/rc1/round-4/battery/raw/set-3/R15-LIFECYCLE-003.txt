@@ -1,0 +1,10 @@
+NOT RUN LIVE: frontend-only (autosave gating / restoreSettled flag), same constraint.
+SOURCE CHECK (candidate HEAD 1006c6da):
+  src/lib/workspace.ts:1030 `let restoreSettled = false;`
+  src/lib/workspace.ts:1047 `if (!restoreSettled) { ... }` -- autosaveLayout is a no-op until restore finishes.
+  src/lib/workspace.ts:958 `restoreSettled = true;` set in restoreLastSessionOrDefault's finally-equivalent path.
+  src/lib/workspace.ts:1103 PERSISTED_SLICES.map((slice) => slice.subscribe(autosaveLayout)) -- single wiring loop (matches fix_shape "delete PanelHost's private timer").
+PINNED TEST (ci_pinned):
+  src/lib/workspace.test.ts:1317 describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018)")
+  (contains "autosaves nothing during the launch restore; the first save after it carries the research space" at line 1406, and the full-registry round-trip at line 1457)
+VERDICT BASIS: source matches fix_shape (restoreSettled gate + single subscription loop); pinned describe block above.

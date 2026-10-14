@@ -1,0 +1,21 @@
+{
+ "tag": "intent-S2H-r1",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_offmachine_s2.md section 1 (INTENT chunks) in full before touching anything.",
+ "stages": [
+  {
+   "label": "chunk",
+   "model": "sonnet",
+   "effort": "high",
+   "prompt": "Your task spec is PROMPT_offmachine_s2.md section 1, with <source> = \"spec\", <start> = 135, <end> = 180. docs/redesign/verification/r15/census/intent/ledger-spec-135.json is a PARTIAL ledger (only 16 of 45 rows assessed). Continue from the existing ledger file: assess ONLY these ids, never delete existing rows - INT-SP-152, INT-SP-153, INT-SP-154, INT-SP-155, INT-SP-156, INT-SP-157, INT-SP-158, INT-SP-159, INT-SP-160, INT-SP-161, INT-SP-162, INT-SP-163, INT-SP-164, INT-SP-165, INT-SP-166, INT-SP-167, INT-SP-168, INT-SP-169, INT-SP-170, INT-SP-171, INT-SP-172, INT-SP-173, INT-SP-174, INT-SP-175, INT-SP-176, INT-SP-177, INT-SP-178, INT-SP-179, INT-SP-180. Append rows for exactly these 29 ids to the ledger; do not touch any other id."
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Raw file: docs/redesign/verification/r15/census/raw/intent-spec-135.json. Output: docs/redesign/verification/r15/census/refute/intent-spec-135.json. Follow PROMPT_refute.md exactly; if the raw file has 0 findings, write an empty array and return count 0."
+  }
+ ],
+ "items": [
+  {"id": "spec-135", "source": "spec", "start": 135, "end": 180}
+ ]
+}

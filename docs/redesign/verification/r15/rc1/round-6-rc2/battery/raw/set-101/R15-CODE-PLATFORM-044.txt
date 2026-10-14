@@ -1,0 +1,18 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ cd sidecar && ./.venv/bin/python3 - <<'E'
+import inspect
+from services.llm.base import LLMProvider
+from services.llm import anthropic, gemini, groq, ollama, openai
+print('base stream_chat isasyncgenfunction:', inspect.isasyncgenfunction(LLMProvider.stream_chat), 'iscoroutinefunction:', inspect.iscoroutinefunction(LLMProvider.stream_chat))
+for m in (anthropic, gemini, groq, ollama, openai):
+    for n,c in vars(m).items():
+        if inspect.isclass(c) and issubclass(c, LLMProvider) and c is not LLMProvider and 'stream_chat' in vars(c):
+            print(m.__name__, n, inspect.isasyncgenfunction(c.stream_chat))
+E
+exit=0
+base stream_chat isasyncgenfunction: False iscoroutinefunction: False
+services.llm.anthropic AnthropicProvider True
+services.llm.gemini GeminiProvider True
+services.llm.groq GroqProvider True
+services.llm.ollama OllamaProvider True
+services.llm.openai OpenAIProvider True

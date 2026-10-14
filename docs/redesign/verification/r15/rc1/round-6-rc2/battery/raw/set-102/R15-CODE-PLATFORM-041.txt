@@ -1,0 +1,12 @@
+$ POST /quant/option/price binomial steps=2
+HTTP/1.1 400 Bad Request
+date: Sat, 03 Oct 2026 01:11:39 GMT
+server: uvicorn
+content-length: 64
+content-type: application/json
+vary: Origin
+
+{"detail":"binomial_steps must be between 3 and 100000 (got 2)"}
+$ steps=3
+{"price":4.96592179046133,"greeks":{"delta":0.5577282251412863,"gamma":0.042901547940330076,"vega":21.4558591129256,"theta":-11.120654624255966,"rho":12.754990508120834},"method":"binomial","monte_carlo_std_error":null,"duration_ms":1.5712500317022204}
+HTTP 200

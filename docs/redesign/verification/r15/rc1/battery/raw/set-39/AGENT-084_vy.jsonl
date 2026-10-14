@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  53.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_8945b6c79743437caa0d6431cf639e9a", "name": "add_chart_drawing", "input": {"panelId": "chart", "points": [{"price": 1450.0}], "kind": "horizontal-line"}}
+[  57.2s] research_step: {"kind": "research_step", "tool_call_id": "call_8945b6c79743437caa0d6431cf639e9a", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: add_chart_drawing. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  57.2s] done: {"kind": "done", "usage": {"input_tokens": 2854, "output_tokens": 52, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I've added a horizontal line at 1,450 on the RELIANCE chart for your review. To confirm and apply this change, you'll need to accept it in the proposal bar. Would you like me to open the proposal bar for you?
+
+=== ok · 57.2s · events {'heartbeat': 5, 'tool_use': 1, 'delta': 51, 'research_step': 1, 'done': 1} · usage in=2854 out=52 · est $0.00000 · llama3.1:8b

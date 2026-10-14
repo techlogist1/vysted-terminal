@@ -1,0 +1,25 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p019.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import asyncio
+from typing import Any
+from services.budget_guard import BudgetGuard
+from services.research import iter as it
+from services.research.target import ResearchTarget
+from services.search import extract
+t=ResearchTarget(symbol="AAPL",name="AAPL Limited",exchange="NASDAQ",asset_class="equity",confidence=1.0,region="US")
+async def llm(m): return "COMPLETE"
+async def tc(name,args):
+    if name=="web_search":
+        return {"ok":True,"results":[{"url":"https://www.investing.com/equities/apple-computer-inc","title":"AAPL x"},{"url":"http://127.0.0.1:52343/health","title":"AAPL ssrf"}]}
+    return {"ok":False,"error":"stub"}
+b=asyncio.run(it.run_iter_research("AAPL results",tool_call=tc,llm_call=llm,budget=BudgetGuard(max_steps=8),visit=extract.visit_for_research,target=t,bound=True))
+for s in b.steps:
+    if "visit" in s.detail: print(s.status,s.detail)
+print(asyncio.run(extract.visit_for_research("http://127.0.0.1:52343/health")))
+--- output ---
+error visit failed: https://www.investing.com/equities/apple-computer-inc (HTTP 403)
+error visit failed: https://www.investing.com/equities/apple-computer-inc (HTTP 403)
+error visit failed: https://www.investing.com/equities/apple-computer-inc (HTTP 403)
+VisitResult(text=None, reason='blocked non-public or non-http(s) URL')
+EXIT=0

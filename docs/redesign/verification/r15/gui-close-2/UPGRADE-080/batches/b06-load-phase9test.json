@@ -1,0 +1,5 @@
+[{"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-38-before-load.png"},
+ {"cmd":"click","x":924,"y":639},{"cmd":"wait","seconds":3},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-39-phase9test-loaded.png"},
+ {"cmd":"wait","seconds":5},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-40-phase9test-settled.png"}]

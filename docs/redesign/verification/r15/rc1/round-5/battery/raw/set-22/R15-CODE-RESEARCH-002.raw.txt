@@ -1,0 +1,7 @@
+BASELINE ok keys: ['derived', 'fundamentals', 'price']
+INJECTED (2 faults) - no crash. ok keys: ['derived', 'fundamentals', 'price']
+price ok: False
+fundamentals ok: False
+BASELINE price.ok: False fundamentals.ok: False
+INJECTED price.ok: False fundamentals.ok: False
+NO CRASH - snapshot_structured returned normally with both faults injected

@@ -1,0 +1,58 @@
+=== R15-DOCS-004: PRODUCT_DESIGN_DECISIONS.md no longer silently contradicts the live 'Pure Black' zinc+cool-indigo palette ===
+cmd: git show HEAD:docs/redesign/PRODUCT_DESIGN_DECISIONS.md | head -25 ; git show HEAD:styles/tokens.css
+# Vysted R4 — Product Design Decisions (the taste authority)
+
+> **SUPERSEDED (R15-DOCS-004):** §0–§7, §9, §10 describe the "Warm Graphite" palette
+> (warm near-black ramp, amber accent `#d89a4e`, Inter sans) and its specific sizing/hex
+> values. That palette was reversed twice — R6 "Pure Black" (pure-neutral ramp, OpenCode
+> peach accent `#fab283`) and R9 (Linear/Cursor-anchored scale, JetBrains Mono only) — and
+> neither reversal was recorded here. Those sections are **dead**; the current palette,
+> type, and scale authority is **`docs/redesign/VYSTED_DESIGN.md`** (colors, type, spacing
+> tokens) and **`docs/redesign/R9_DESIGN_SYSTEM.md`** (control/spacing scale). §8 and
+> §11–§16 are **still binding** — they describe structural/behavioral patterns (empty
+> states, the `DataTable`/editor/composer/palette patterns, the enforcement gate) through
+> token _names_, which the current palette still defines (see `styles/tokens.css`'s "names
+> are historical, not literal" note); only the _values_ changed. Do not cite §0–§7, §9, or
+> §10 from source code — `src/lib/design-doc-citations.test.ts` fails the build if you do.
+>
+> **Status:** RATIFIED for the R4 session-3 build. This is the single document every
+> teammate obeys so the result is ONE coherent look, not six interpretations.
+> **Ground truth:** the reference screenshots in `docs/redesign/references/`
+> (`perplexity-home.png`, `cursor-agent.png`, `cursor-plan.png`). When this doc and a
+> screenshot disagree, the screenshot wins and this doc is corrected. When this doc and a
+> UI-rigor skill default disagree, **this doc wins** (skills supply execution rigor —
+> contrast math, states, a11y — never the taste).
+>
+> **What changed vs the prior build (the two measured failures, reversed):**
+>
+
+--- styles/tokens.css (head + charcoal-900/amber-400) ---
+/* Vysted -- design tokens. R6 "Pure Black" design language (faithful OpenCode dark).
+ *
+ * The aesthetic: a PURE NEUTRAL grayscale ramp (R=G=B at every step -- a clean
+ * near-black, ZERO warm/brown cast, zero blue), modeled directly on OpenCode's
+ * default dark theme (a Radix-style 12-step neutral scale: #0a0a0a well ->
+ * #ededed text). The UI is essentially MONOCHROME: a single scarce accent
+ * (OpenCode's warm peach `#fab283`) is reserved for at most ONE rare spotlight
+ * role -- live agent activity -- and the only other saturated colors are the
+ * luminance-matched green/red kept strictly for P&L signal (data, never chrome).
+ * A flat field, no glow. Ground truth: docs/redesign/references/ + OpenCode dark.
+ *
+ * NOTE ON NAMES: token NAMES are kept from the retired systems (charcoal,
+ * amber, brass, sage, lume) so the ~92 files that reference them as
+ * Tailwind classes re-skin with ZERO edits -- only the VALUES changed. Names
+ * are historical, not literal:
+ *   charcoal-N   = PURE NEUTRAL gray ramp (R=G=B, #0a0a0a..#ededed)
+ *   amber-N      = the single scarce accent (OpenCode peach #fab283)
+ *   brass-N, sage-N = neutral-gray secondaries (aligned to the ramp)
+ *   lume         = neutral near-white (#f7f7f7)
+ * The canvas palette is mirrored in src/lib/chart-theme.ts -- change BOTH in
+ * lockstep or the chart drifts (FR-030). See docs/redesign/PRODUCT_DESIGN_DECISIONS.md.
+ *
+ * Defined as a Tailwind 4 @theme block so every token is also a utility class
+ * (bg-charcoal-900, text-amber-400, font-serif [Inter], ...).
+ * Semantic shadcn mapping + chrome primitives live in src/app/globals.css.
+35:  --color-charcoal-900: #161616; /* panel / card surface (the anchor) */
+54:  --color-amber-400: #fab283; /* BRAND -- OpenCode dark primary accent (#fab283) */
+
+VERDICT: holds. Doc opens with a 'SUPERSEDED (R15-DOCS-004)' banner naming both reversals (R6 Pure Black, R9) and which sections are dead (§0-7,9,10) vs binding (§8,11-16), pointing readers at VYSTED_DESIGN.md/R9_DESIGN_SYSTEM.md; tokens.css:35/54 charcoal-900=#161616, amber-400=#fab283 match the live pure-neutral+peach system the banner names.

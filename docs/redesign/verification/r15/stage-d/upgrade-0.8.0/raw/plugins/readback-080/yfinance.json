@@ -1,0 +1,10 @@
+{
+    "enabled": true,
+    "granted_secret_ids": [],
+    "plugin_id": "yfinance",
+    "settings": {
+        "defaultExchange": "binance",
+        "refreshSeconds": 15,
+        "showVolume": true
+    }
+}

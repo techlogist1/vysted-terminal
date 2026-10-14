@@ -21,11 +21,25 @@
  * runtime types around invocation + streaming.
  */
 
+import type { AgentMode } from "./agent-modes";
+
+/**
+ * Autonomy axis — how much the agent's cockpit-driving act-path asks before it
+ * applies. ORTHOGONAL to {@link AgentMode}. `"auto"` skips the per-change accept
+ * for read-safe host-actions (panel / chart / watchlist); `"ask"` stages them in
+ * the review gate.
+ * Mirrors the `AgentAutonomy` union in `src/store/agent-autonomy.ts`.
+ */
+export type AgentAutonomy = "ask" | "auto";
+
 // ---------------------------------------------------------------------------
 // Providers + models
 // ---------------------------------------------------------------------------
 
-/** The seven BYOK providers Phase 3 ships. */
+/**
+ * The BYOK providers. `openrouter` (JARVIS sprint) is a unified BROKER — one key,
+ * all upstreams, cheapest-capable routing — riding the OpenAI-shaped wire format.
+ */
 export type LLMProviderId =
   | "anthropic"
   | "openai"
@@ -33,14 +47,16 @@ export type LLMProviderId =
   | "groq"
   | "ollama"
   | "deepseek"
-  | "xai";
+  | "xai"
+  | "openrouter";
 
 /**
- * A free-form model identifier (e.g. `"claude-opus-4-7"`, `"gpt-4.1-mini"`,
- * `"llama3.1:70b"`). The host does not enumerate models — providers expose
- * their own catalogs via `POST /llm/models` (sidecar) and the agent builder
- * UI surfaces them as a dropdown. Strings keep the contract open to model
- * releases that ship between Vysted versions.
+ * A free-form model identifier (e.g. `"claude-opus-4-8"`, `"gpt-4.1-mini"`,
+ * `"llama3.1:8b"`). Model ids stay open strings so a model that ships between
+ * Vysted releases still works via a free-form override. The curated per-provider
+ * model lists are CONFIG-DRIVEN — the sidecar serves `default_model` +
+ * `known_models` on `GET /llm/providers` from `sidecar/config/model_registry.json`
+ * (the single source of truth); the HUD + agent builder surface them as a dropdown.
  */
 export type LLMModelId = string;
 
@@ -53,6 +69,53 @@ export interface LLMProviderInfo {
   requiresKey: boolean;
   /** Default endpoint URL — most providers are fixed; Ollama defaults to localhost. */
   defaultBaseUrl?: string;
+  /** Config-driven default model for this provider (from `model_registry.json`,
+   *  served on `GET /llm/providers`). Optional for an older sidecar. */
+  defaultModel?: string;
+  /** Curated selectable models for the HUD/builder dropdowns (config-driven).
+   *  Free-form override still works; this is a curation hint, not a gate. */
+  knownModels?: string[];
+}
+
+/** One model in a LIVE provider catalog (`GET /llm/models`). Mirrors the sidecar
+ *  `LLMModelOption`. Richer than a bare id string — `supportsTools` lets the agent
+ *  picker flag a model that would break host-actions. Fields beyond id/label are
+ *  best-effort; `undefined`/`null` means "the catalog did not say", never "false". */
+export interface LLMModelOption {
+  id: string;
+  label: string;
+  contextLength?: number | null;
+  /** `true`/`false` when known; `null`/`undefined` when the catalog is silent. */
+  supportsTools?: boolean | null;
+  /** Short price hint, e.g. `"$0.30 / $1.20 per 1M"`. */
+  pricing?: string | null;
+  /** Native web-search capability of THIS model, derived per-model from the
+   *  OpenRouter catalog (WS5):
+   *   - `"native"` — the model has its own server-side web search; the agent
+   *     rides it and withholds the local search tool.
+   *   - `"plugin"` — no per-model native search, but OpenRouter can run its
+   *     billed `web` plugin in front of the model.
+   *   - `"none"` — neither; the agent keeps the local/BYOK search tool (the
+   *     FR-082 fallback that never fabricates).
+   *  `null`/`undefined` = the catalog did not say (every non-OpenRouter provider). */
+  webSearch?: "native" | "plugin" | "none" | null;
+  /** `true`/`false` when the catalog reports structured-output support; `null`/
+   *  `undefined` when silent. Best-effort metadata, not a gate. */
+  supportsStructuredOutputs?: boolean | null;
+  /** `true`/`false` when the catalog reports reasoning support; `null`/
+   *  `undefined` when silent. Best-effort metadata, not a gate. */
+  supportsReasoning?: boolean | null;
+}
+
+/** `GET /llm/models` payload — a provider's live (or fallback) model list.
+ *  Mirrors the sidecar `LLMModelCatalog`. `source` is `"live"` when the
+ *  provider's catalog API answered, `"fallback"` when the registry known-models
+ *  were served because the live fetch failed. */
+export interface LLMModelCatalog {
+  provider: LLMProviderId;
+  models: LLMModelOption[];
+  source: "live" | "fallback";
+  note?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -88,9 +151,76 @@ export interface LLMMessage {
 export type LLMStreamEvent =
   | { kind: "delta"; text: string }
   | { kind: "tool_use"; toolCallId: string; name: string; input: Record<string, unknown> }
+  /** How a dispatched tool call ended (R15-CODE-AGENT-033): `error` is the
+   *  result's error/message (≤200 chars) when `ok` is false; no payload. */
+  | { kind: "tool_result"; toolCallId: string; name: string; ok: boolean; error?: string }
+  | {
+      /**
+       * A live research-pipeline step, emitted WHILE a long research tool runs
+       * (Track A). Lets the agent surface animate a "working" trace (plan →
+       * search → synthesize) in real time instead of going silent for the
+       * duration of a multi-second tool round. Cosmetic — never gates anything.
+       */
+      kind: "research_step";
+      /** The tool round this step belongs to (the `tool_use` call id). */
+      toolCallId: string;
+      /** The emitting tool, e.g. `"deep_research"` / `"research"`. */
+      tool: string;
+      /** plan | tool | search | compress | reflect | synthesize. */
+      stepKind: string;
+      /** A short human line describing what the step did. */
+      detail: string;
+      /** Wall-clock latency of the stage in ms, when measured. */
+      latencyMs?: number;
+      /** `"ok"` | `"error"` | `"skipped"`. */
+      status: string;
+      /** Monotonic 1-based step counter within the run (ordering/keys). */
+      index: number;
+    }
+  | {
+      /**
+       * A visible "plan-then-execute" surface for a compound request (Track 6 #2),
+       * emitted BEFORE the tool loop on a capable model. Advisory — the loop still
+       * drives execution; `staged` host-action steps are pre-queued into the
+       * diff/accept gate.
+       */
+      kind: "agent_plan";
+      /** The restated goal the plan addresses. */
+      goal: string;
+      /** Ordered steps; `staged` marks a host-action pre-queued for review. */
+      steps: PlanStepView[];
+      /** A short note when the planner degraded (e.g. "answering directly"). */
+      note?: string;
+    }
   | { kind: "thinking"; text: string }
-  | { kind: "done"; usage?: LLMUsage; finishReason?: string }
-  | { kind: "error"; message: string };
+  /** Liveness while the runtime waits on a provider or a tool (R15-AGENT-025):
+   *  carries nothing; the stream's stall watchdog resets on it. */
+  | { kind: "heartbeat" }
+  /** `contextWindow`: the lane's token window when it has one (Ollama's
+   *  num_ctx), for the composer's context meter (R15-AGENT-040). */
+  | { kind: "done"; usage?: LLMUsage; finishReason?: string; contextWindow?: number }
+  | {
+      kind: "error";
+      message: string;
+      /** The next step in plain language ("Top up or switch provider in Settings"). */
+      action?: string;
+      /** The raw provider text — shown behind a "Details" disclosure only. */
+      detail?: string;
+      /** Machine tag from the sidecar humanizer ("provider_402", "network", "auth", …). */
+      code?: string;
+    };
+
+/** One step of an {@link LLMStreamEvent} `agent_plan` (Track 6 #2). */
+export interface PlanStepView {
+  /** A planner action verb (e.g. `set_chart_symbol`, `research`, `answer`). */
+  action: string;
+  /** Best-effort args for the action. */
+  args: Record<string, unknown>;
+  /** A short human line shown in the plan list. */
+  rationale: string;
+  /** Whether this step was pre-staged into the diff/accept gate. */
+  staged: boolean;
+}
 
 /** Token usage reported on `done`. Optional — some providers omit usage on stream. */
 export interface LLMUsage {
@@ -99,6 +229,9 @@ export interface LLMUsage {
   /** Anthropic-style cache hits, when reported by the provider. */
   cacheReadInputTokens?: number;
   cacheCreationInputTokens?: number;
+  /** The model that actually answered, when the provider names it (a router
+   *  slug such as `openrouter/auto` picks one per call — R15-AGENT-075). */
+  servedModel?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -136,6 +269,22 @@ export interface AgentInvocationRequest {
    * never persists it.
    */
   apiKey?: string;
+  /**
+   * The four-mode intent (FR-003): `"ask"` (read-only Q&A), `"edit"` (focused-
+   * panel change), `"build"` (multi-panel), `"delegate"` (background). The
+   * sidecar gates the effective tool set on this — `"ask"` is filtered to
+   * read-only capabilities so it can never mutate (enforced server-side so an
+   * external MCP client cannot bypass it). Defaults to `"ask"`.
+   */
+  mode?: AgentMode;
+  /**
+   * Autonomy axis (Claude-Code-style), ORTHOGONAL to `mode`: `"auto"` means
+   * host-actions apply immediately (the agent narrates them in past tense);
+   * `"ask"` (or omitted) stages them in the review queue. The sidecar threads
+   * this into the host-action narration so the copilot tells the truth about
+   * what actually landed.
+   */
+  autonomy?: AgentAutonomy;
   /**
    * Provider-specific overrides + runtime options (mirrors the sidecar
    * `AgentInvocationRequest.options`). The copilot rides recent conversation

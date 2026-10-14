@@ -1,0 +1,2 @@
+curl -s --max-time 15 -X POST http://127.0.0.1:52352/llm/keys/validate -H 'Content-Type: application/json' -d '{"provider":"ollama","model":"gemma3:4b"}'
+{"ok":false,"reason":"model_not_pulled","detail":"gemma3:4b is not downloaded in Ollama (local) yet."}EXIT:0

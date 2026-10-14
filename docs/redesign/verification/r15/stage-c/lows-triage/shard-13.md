@@ -1,0 +1,15 @@
+# Lows pre-triage — shard 13
+
+- shard: 13 (label lows-refute-13)
+- sha: e032be7dd164a504215055a1cd7b7b497dbd68e9 (004-r4-experience-rebuild)
+- hint: research-depth-iter-deep, sidecar/fundamentals -- sidecar/services/research/iter.py, deep.py, verify.py, depth.py
+- model: claude-fable-5-1
+- probe target: own sidecar :52350 up (stack.json); no HTTP probe was needed — every entry decided by grep/read at the sha or a focused in-venv Python probe
+- note: the dispatch text named ids R15-DEEP-001/002/003 and R15-SCFUND-001, which do not exist in the register at the sha (no id or raw_id matches). INDEX.json shard 13 carries the same hint with ids R15-LEAD-006, R15-CODE-RESEARCH-005, R15-CODE-RESEARCH-006, R15-RESEARCH-035; those were triaged.
+
+| id | verdict | fix commit / duplicate / blocked kind | confidence | evidence | reason |
+|---|---|---|---|---|---|
+| R15-LEAD-006 | still_reproduces | — | 5 | evidence/R15-LEAD-006/grep-row-value.txt; cmd: grep -n '^def _row_value' sidecar/services/*.py => growth_check.py:94, earnings_quality.py:134 | At the sha `grep '^def _row_value' sidecar/services/*.py` returns growth_check.py:94 and earnings_quality.py:134 with byte-identical bodies (earnings_quality's docstring even says 'Mirrors growth_check._row_value'). No commit in a122dbf6..e032be7d touched either def; git log --grep=LEAD-006 is empty. |
+| R15-CODE-RESEARCH-005 | still_reproduces | — | 5 | evidence/R15-CODE-RESEARCH-005/imports.txt; cmd: python regex over the deep-import blocks => iter.py 31 names/14 private, verify.py 8/3, 15 distinct private | At the sha iter.py:41-72 still imports 14 underscore names from deep.py and verify.py:62-71 imports 3 (15 distinct incl. _safe_tool). 9703eee7 (CODE-RESEARCH-003) deleted deep.py's own loop but left the helpers underscore-named, so the private-surface-as-public-API leak is unchanged; no commit or batch dir names CODE-RESEARCH-005. |
+| R15-CODE-RESEARCH-006 | still_reproduces | — | 5 | evidence/R15-CODE-RESEARCH-006/grep.txt; cmd: grep -n '_MIN_HEAVY_ANGLES\|_MIN_ANGLES\|min_angles\|is_panel' sidecar/services/research/*.py sidecar/services/agent_tools/deep_research.py => iter.py:95, deep_research.py:85,87,216,271,340,414,440 | At the sha deep_research.py:87 `_MIN_HEAVY_ANGLES = 2` under a 'kept in lockstep with iter._MIN_ANGLES' comment (lines 84-86) and iter.py:95 `_MIN_ANGLES = 2` both exist; depth.py:25-30 still claims 'no second copy of these numbers exists anywhere'. grep finds no is_panel/min_angles on DepthProfile (depth.py:85-100). Line numbers shifted from the register (74->87, 89->95). |
+| R15-RESEARCH-035 | still_reproduces | — | 5 | evidence/R15-RESEARCH-035/render-probe.txt; cmd: ./.venv/bin/python -c 'from services.research.iter import _Report; ...render()' => Facts established survives: False / Planned next survives: True | Fresh probe at the sha: iter.py:116-124 render() still does `text[-cap:]`; a 6,980-char four-section body with char_cap=6000 rendered to 6,002 chars with '## Facts established' absent and '## Planned next' present. No commit in a122dbf6..e032be7d touched render(); no batch dir names RESEARCH-035. |

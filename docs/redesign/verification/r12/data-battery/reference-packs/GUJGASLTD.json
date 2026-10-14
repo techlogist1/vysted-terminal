@@ -1,0 +1,272 @@
+{
+  "generated_at": "2026-07-10",
+  "generated_by": "independent-web-research (no localhost/Vysted API touched)",
+  "company": {
+    "legal_name": "Gujarat Energy Limited",
+    "common_name": "Gujarat Gas / Gujarat Energy",
+    "former_name": "Gujarat Gas Limited (renamed effective 14 May 2026, fresh Certificate of Incorporation issued by RoC Ahmedabad)",
+    "cin": "L40200GJ2012SGC069118",
+    "isin": "INE844O01030",
+    "sector": "City gas distribution -> integrated energy (CGD + gas trading + E&P + renewables + strategic investments post-merger)",
+    "exchange_listings": {
+      "nse": { "symbol_current": "GUJENERGY", "symbol_former": "GUJGASLTD", "series": "EQ", "symbol_change_effective": "2026-07-01" },
+      "bse": { "scrip_code": "539336" },
+      "notes": "Same listed entity throughout - only the trading symbol/name changed (GUJGASLTD -> GUJENERGY on NSE, name Gujarat Gas Limited -> Gujarat Energy Limited on both exchanges). Some data providers and cached pages still resolve under the old GUJGASLTD symbol/URL."
+    },
+    "corporate_action_context": {
+      "event": "Composite Scheme of Amalgamation and Arrangement: Gujarat State Petroleum Corporation Ltd (GSPC), Gujarat State Petronet Ltd (GSPL) and GSPC Energy Ltd amalgamated INTO Gujarat Gas Ltd; GSPL Transmission Ltd also part of the composite scheme.",
+      "mca_approval": "2026-04-17 (final MCA approval)",
+      "scheme_effective_date": "2026-05-01",
+      "name_change_effective": "2026-05-14 (RoC certificate)",
+      "new_shares_allotted_to_gspc_gspl_shareholders": "62,27,14,719 equity shares (face value INR 2 each), board approval 2026-05-16, listed on NSE/BSE from 2026-06-18",
+      "post_merger_shares_outstanding_est": "~93.82 crore shares (per multiple sources re EPS FY26 restated on expanded equity base)",
+      "gspl_transmission_allotment": "separate record date fixed 2026-07-02 for GSPL Transmission Ltd share allotment - MAY further increase outstanding share count after this pack's as-of date",
+      "impact_on_this_pack": "This is a live, still-settling corporate action. Nearly every downstream metric below (market cap, 52-week range, EPS, book value, ROE, promoter holding) shows real, material disagreement across data providers because some have refreshed to the post-merger share base/financials and some have not. Disagreements are reported explicitly rather than silently resolved, per instructions."
+    }
+  },
+  "price_and_valuation": {
+    "last_close": {
+      "value": 286.45,
+      "currency": "INR",
+      "basis": "NSE, EOD",
+      "as_of": "2026-07-09",
+      "source": "tickertape.in",
+      "cross_check": [
+        { "value": 286.00, "as_of": "2026-07-09", "source": "screener.in/company/GUJENERGY/consolidated/" },
+        { "value": 286.45, "as_of": "2026-07-09", "source": "groww.in" },
+        { "value": 287.95, "as_of": "unspecified, likely 2026-07-08/09", "source": "ticker.finology.in", "note": "flagged elsewhere as likely running a stale/pre-merger share-count basis for other metrics on the same page - price itself is close to consensus" },
+        { "value": 295.60, "as_of": "2026-07-06", "source": "business-standard.com (older snapshot)" },
+        { "value": 297.85, "as_of": "2026-07-03", "source": "sharekhan.com / sources citing NSE ~297.85 / BSE ~298" },
+        { "value": 340.00, "as_of": "2026-07-01", "source": "anandrathi.com (older snapshot)" }
+      ],
+      "disagreement_note": "Three closest-dated sources (tickertape, screener.in, groww - all timestamped 2026-07-09) agree tightly at INR 286.00-286.45 (<0.2% spread). Older snapshots (Jul 1, Jul 3, Jul 6) show a clear declining trend from ~340 -> ~298 -> ~296 -> ~286, consistent with a stock in a sustained slide through early July 2026, not a genuine data conflict - just different calendar days."
+    },
+    "market_cap": {
+      "value_cr": 26900,
+      "range_cr": "26,801 - 26,989",
+      "basis": "INR crore, full market cap, ~93.8cr shares outstanding post-merger",
+      "as_of": "2026-07-09",
+      "cross_check": [
+        { "value_cr": 26875.62, "source": "tickertape.in", "as_of": "2026-07-09" },
+        { "value_cr": 26989, "source": "screener.in", "as_of": "2026-07-09" },
+        { "value_cr": 26801, "source": "groww.in", "as_of": "2026-07-09" },
+        { "value_cr": 37753.26, "source": "ticker.finology.in", "note": "OUTLIER - implies ~131cr shares at the quoted price, well above the ~93.82cr post-merger share count confirmed by multiple news sources; likely counting an additional pending allotment (e.g. GSPL Transmission Ltd tranche, record date 2026-07-02) that has not actually settled/listed yet, or a stale computation" },
+        { "value_cr": 30684.84, "source": "anandrathi.com", "as_of": "2026-07-01", "note": "stale snapshot at the higher Jul-1 price of INR 340, not a basis disagreement" },
+        { "value_cr": 28151.62, "source": "web aggregator snapshot", "as_of": "2026-07-03" }
+      ],
+      "disagreement_note": "Three same-day sources (tickertape, screener.in, groww, all 2026-07-09) cluster tightly at INR 26,801-26,989 Cr (<0.7% spread) - treated as the reliable current figure. ticker.finology.in's INR 37,753 Cr is a clear outlier, most likely from over-counting shares amid the still-settling merger allotments; flagged, not blended in."
+    },
+    "pe_ttm": {
+      "value_range": "15.2 - 16.42",
+      "cross_check": [
+        { "value": 15.2, "source": "screener.in" },
+        { "value": 16.02, "source": "tickertape.in" },
+        { "value": 15.98, "source": "groww.in" },
+        { "value": 16.42, "source": "ticker.finology.in" }
+      ],
+      "note": "Cluster of ~15.2-16.4x. No figure silently chosen as definitive - spread reported. Spread plausibly reflects each provider using a slightly different TTM EPS window as FY26 quarterly restatements (pre- vs post-merger) roll through."
+    },
+    "eps_ttm": {
+      "value_range": "14.91 - 18.82",
+      "currency": "INR",
+      "cross_check": [
+        { "value": 18.82, "source": "implied from screener.in P/E 15.2 at close 286 (286/15.2)", "internally_consistent_with_pb": true },
+        { "value": 17.88, "source": "groww.in", "internal_check": "17.88 x 15.98 = 285.7, consistent with groww's own stated price 286.45 - internally consistent" },
+        { "value": 17.53, "source": "ticker.finology.in", "internal_check": "17.53 x 16.42 = 287.8, consistent with finology's own stated price 287.95 - internally consistent" },
+        { "value": 14.91, "source": "tickertape.in", "internal_check": "14.91 x 16.02 = 238.9, which does NOT match tickertape's own stated price of 286.45 - flagged as an internally inconsistent / likely extraction-artifact figure on tickertape's page" }
+      ],
+      "note": "Three of four sources cluster at ~17.5-18.8 and are each internally self-consistent (EPS x P/E ~= price). tickertape's 14.91 fails that same internal check and is flagged as the probable outlier/misread rather than blended into the range."
+    },
+    "week52_high": {
+      "value_range": "413.51 - 508.7",
+      "cross_check": [
+        { "value": 413.51, "source": "tickertape.in", "as_of": "2026-07-09" },
+        { "value": 421, "source": "screener.in", "as_of": "2026-07-09" },
+        { "value": 490.20, "source": "groww.in", "as_of": "2026-07-09" },
+        { "value": 508.7, "source": "anandrathi.com / nirmalbang.com", "as_of": "2026-07-01 to 2026-07-03" }
+      ],
+      "disagreement_note": "Real, unresolved spread of ~413 to ~509 across sources dated within days of each other - NOT a simple stale-cache timing issue like the price/mcap spreads above. Most likely explanation: some platforms have re-based the 52-week high series for the corporate action (name/symbol change, huge new share allotment) while others still carry the pre-merger, unadjusted historical high near INR 508-509. Both figures are reported; neither is silently discarded."
+    },
+    "week52_low": {
+      "value_range": "257.16 - 301.5",
+      "cross_check": [
+        { "value": 257.16, "source": "tickertape.in", "as_of": "2026-07-09" },
+        { "value": 262, "source": "screener.in", "as_of": "2026-07-09" },
+        { "value": 284.00, "source": "groww.in", "as_of": "2026-07-09" },
+        { "value": 289, "source": "nirmalbang.com", "as_of": "2026-07-03" },
+        { "value": 301.5, "source": "anandrathi.com", "as_of": "2026-07-01" }
+      ],
+      "disagreement_note": "Values decline monotonically with the as-of date (301.5 on Jul-1 -> 289 on Jul-3 -> 257-284 on Jul-9), consistent with a stock making fresh 52-week lows nearly every day through early-mid July 2026 as it slides - the '52-week low' metric keeps getting revised down each day. Not treated as a data conflict; the most recent (2026-07-09) readings of 257.16-284.00 are used as current."
+    },
+    "drawdown_from_52w_high_pct": {
+      "primary_calc": {
+        "value_pct": -31.4,
+        "formula": "(close - 52w_high) / 52w_high",
+        "inputs_used": { "close": 286.45, "week52_high": 417.26, "note": "week52_high here is the average of the two closely-dated 2026-07-09 sources, tickertape 413.51 and screener.in 421" },
+        "as_of": "2026-07-09"
+      },
+      "alt_calc_using_higher_unadjusted_high": {
+        "value_pct": -43.7,
+        "inputs_used": { "close": 286.45, "week52_high": 508.7 },
+        "note": "If the higher, apparently unadjusted 52-week high (~508.7, per anandrathi/nirmalbang) is used instead, drawdown is far steeper. Both results reported given the genuine source disagreement on the high itself."
+      }
+    },
+    "week52_price_change_pct": {
+      "reported_values": [
+        { "value_pct": -29.77, "source": "tickertape.in", "as_of": "2026-07-09" }
+      ],
+      "caveat": "Only one source surfaced an explicit trailing-12-month return figure. Given the scale of the corporate restructuring (name change, ~93.82cr-share expanded equity base, absorption of GSPC/GSPL/GSPC Energy), a clean like-for-like 52-week price-return comparison against 'the same company a year ago' is methodologically fuzzy - the underlying entity a year ago (pure-play Gujarat Gas CGD business) is not the same entity as today (integrated energy group). Reported as-is with this caveat rather than treated as a precise apples-to-apples return."
+    }
+  },
+  "dividends": {
+    "face_value_inr": 2.00,
+    "dividend_yield_pct": {
+      "computed_from_paid_ttm_dividend_and_current_price": 2.03,
+      "computation": "5.82 / 286.45 = 2.03%",
+      "cross_check": [
+        { "value": 2.03, "source": "screener.in / ticker.finology.in-style", "matches_computation": true },
+        { "value": 2.28, "source": "tickertape.in" },
+        { "value": 1.04, "source": "groww.in" },
+        { "value": 3.09, "source": "ticker.finology.in" }
+      ],
+      "disagreement_note": "Yield figures scatter from 1.04% to 3.09% across sources despite close agreement on price. The 2.03% figure is the one that reconciles directly against the confirmed trailing-12-month PAID dividend (INR 5.82/share) and current price (286.45); other figures may be using the newly-declared-but-unpaid INR 8.90 dividend, a stale price, or a different trailing window - not resolved with certainty, reported as a spread."
+    },
+    "paid_trailing_12_months": [
+      {
+        "type": "Final dividend, FY2024-25",
+        "amount_per_share_inr": 5.82,
+        "of_face_value_pct": "291%",
+        "ex_date": "2025-09-04",
+        "pay_date": "2025-10-13",
+        "status": "PAID",
+        "source": "digrin.com and stockevents.app dividend history (cross-checked, agree on amount, ex-date, and payment date)"
+      }
+    ],
+    "declared_not_yet_paid": [
+      {
+        "type": "Final dividend, FY2025-26 (recommended by Board with Q4 FY26 results)",
+        "amount_per_share_inr": 8.90,
+        "of_face_value_pct": "445%",
+        "board_recommendation_date": "with Q4 FY26 results (reported May 2026)",
+        "expected_ex_date": "2026-09-04",
+        "expected_pay_date": "2026-10-13",
+        "status": "DECLARED, NOT YET PAID - subject to shareholder approval at the forthcoming AGM; ex-date and pay date are both in the future relative to today (2026-07-10)",
+        "yoy_change": "+53% vs the INR 5.82 prior-year final dividend",
+        "source": "psuconnect.in, sahi.com, digrin.com/stockevents.app forward-looking entries (cross-checked, agree on amount)"
+      }
+    ],
+    "specials_in_ttm": "None identified - the INR 5.82 paid in the trailing 12 months was an ordinary annual final dividend, not flagged as special by any source. The company pays a single annual dividend (no interim dividends identified in the last 2 years).",
+    "note": "Only INR 5.82/share was actually cash-paid within the trailing 12 months (ex-date 2025-09-04, paid 2025-10-13). The much larger INR 8.90/share dividend - a post-merger step-up reportedly linked to the enlarged, integrated entity's cash flows - is declared but its record/pay dates (Sep/Oct 2026) fall outside the trailing-12-month PAID window as of today; kept separate per instructions rather than blended into the TTM figure."
+  },
+  "latest_quarter": {
+    "period_label": "Q4 FY26 (quarter ended 31 Mar 2026)",
+    "note_on_timing": "This is the last quarter reported BEFORE the merger scheme became effective (2026-05-01), so it reflects the pre-merger, pure-play Gujarat Gas CGD business on both bases below. Q1 FY27 (Apr-Jun 2026), which would be the first quarter to include GSPC/GSPL/GSPC Energy financials, had not yet been announced as of this pack's generation date (2026-07-10).",
+    "standalone": {
+      "revenue_cr": 5976,
+      "revenue_cr_alt": 5975.63,
+      "net_profit_cr": 521,
+      "net_profit_cr_alt": 520.58,
+      "eps_inr": 5.55,
+      "source": "psuconnect.in ('PAT Surges to INR 521 Cr'), ticker.finology.in (5,975.63 / 520.58 / EPS 5.55) - closely agree"
+    },
+    "consolidated": {
+      "revenue_cr": 5791,
+      "net_profit_cr": 351,
+      "source": "dailyhunt.in / et now coverage ('profit skyrockets 1024% YoY to Rs 351 crore', revenue down 9% YoY)"
+    },
+    "tax_anomaly_caveat": "One press source (marketsmojo.com) headlines 'Q4 FY26: Profit Plunges 47% as Tax Anomaly Clouds Strong Revenue Growth', which is NOT necessarily contradictory with the YoY PAT surge reported elsewhere - it likely refers to a sequential (QoQ) decline or a pre-tax/adjusted profit view distorted by one-off deferred-tax items in one or both of the compared quarters (FY25 full-year PAT of INR 3,482 Cr is separately reported as including a one-time deferred tax credit of over INR 2,000 Cr). This nuance could not be fully reconciled from press coverage alone without the filed results PDF; flagged as an open item rather than silently smoothed over."
+  },
+  "same_quarter_prior_year": {
+    "period_label": "Q4 FY25 (quarter ended 31 Mar 2025)",
+    "standalone": {
+      "revenue_cr": 6560,
+      "revenue_cr_alt": 6560.23,
+      "net_profit_cr": 45,
+      "net_profit_cr_alt": 44.89,
+      "eps_inr": 0.48,
+      "source": "psuconnect.in, ticker.finology.in"
+    },
+    "consolidated": {
+      "revenue_cr": 6363,
+      "net_profit_cr": 31,
+      "source": "dailyhunt.in / et now coverage"
+    }
+  },
+  "growth_mrq_yoy": {
+    "revenue_growth_pct": {
+      "standalone": -8.9,
+      "consolidated": -9.0,
+      "check_standalone": "(5976-6560)/6560 = -8.9%",
+      "check_consolidated": "(5791-6363)/6363 = -9.0%, matches the -9% figure directly reported by press coverage"
+    },
+    "earnings_growth_pct": {
+      "standalone": 1057.8,
+      "consolidated": 1032.3,
+      "check_standalone": "(521-45)/45 = 1057.8%",
+      "check_consolidated": "(351-31)/31 = 1032.3%, close to the 1024.3% figure directly reported by press coverage (small variance from rounding of the underlying crore figures)",
+      "note": "Extraordinary YoY growth is a low-base effect - Q4 FY25 net profit (INR 45cr standalone / INR 31cr consolidated) was unusually depressed, plausibly by the same tax-related items referenced in the tax_anomaly_caveat above, not organic like-for-like operating improvement of this magnitude."
+    },
+    "basis": "Q4 FY26 vs Q4 FY25, both standalone and consolidated bases reported (see latest_quarter / same_quarter_prior_year)"
+  },
+  "profitability_and_balance_sheet": {
+    "roe_latest_fy_pct": {
+      "value_range": "9.10 - 14.19",
+      "cross_check": [
+        { "value": 13.2, "label": "ROE (last year)", "source": "screener.in" },
+        { "value": 14.0, "label": "ROE (3-year avg)", "source": "screener.in" },
+        { "value": 14.19, "source": "ticker.finology.in" },
+        { "value": 9.10, "source": "groww.in" }
+      ],
+      "as_of": "FY26 (year ended Mar 2026)",
+      "disagreement_note": "Meaningful spread (9.1% to 14.2%), likely driven by different net-worth/share-count bases as the merger's balance sheet impact gets reflected inconsistently across providers. Not resolved to a single number."
+    },
+    "roce_pct": {
+      "value": 18.5,
+      "source": "screener.in",
+      "cross_check": [{ "value": 19.8, "source": "ticker.finology.in" }]
+    },
+    "book_value_inr": {
+      "value_range": "141.8 - 268",
+      "cross_check": [
+        { "value": 268, "source": "screener.in", "internal_check": "P/B 1.07x at close 286 implies book value 267.3, internally consistent" },
+        { "value": 196.53, "source": "groww.in" },
+        { "value": 141.8, "source": "ticker.finology.in" }
+      ],
+      "disagreement_note": "Large, unresolved spread (INR 141.8 to 268) across sources - almost certainly a mechanical effect of the merger (net worth jumping from GSPC/GSPL/GSPC Energy absorption vs the ~93.82cr expanded share count) landing differently depending on each provider's data-refresh timing. Reported as a range, not picked."
+    }
+  },
+  "shareholding": {
+    "promoter_holding_pct": {
+      "current": 38.94,
+      "as_of": "post-merger (quarter/period after 2026-05-01 scheme effective date)",
+      "source": "screener.in - most current figure available",
+      "stale_cross_check": [
+        { "value": 60.89, "as_of": "pre-merger, through Mar 2026 quarter", "source": "ticker.finology.in and groww.in (groww explicitly dates its figure 'as of May 2026' but this appears to still be the pre-restructuring number, not yet refreshed)" }
+      ],
+      "note": "Promoter holding genuinely dropped from ~60.9% to ~38.9% as part of the merger: GSPC (the prior 100%-promoter-classified holding vehicle) ceased to exist as a separate entity, and its own shareholder base (which includes non-promoter holders) received direct Gujarat Energy shares, diluting the promoter block. Both figures are real at different points in time - not a case of picking one over the other; flagged which is current vs stale."
+    }
+  },
+  "sources_used": [
+    "https://www.screener.in/company/GUJENERGY/consolidated/",
+    "https://www.tickertape.in/stocks/gujarat-gas-GGAS",
+    "https://ticker.finology.in/company/GUJENERGY",
+    "https://groww.in/stocks/gujarat-gas-ltd",
+    "https://www.digrin.com/stocks/detail/GUJGASLTD.NS/",
+    "https://stockevents.app/en/stock/GUJGASLTD.NSE/dividends",
+    "https://www.gujaratgas.com/investors/financial-results/quarterly-results/",
+    "https://www.gujaratgas.com/resources/downloads/change-of-name-of-the-company-gujarat-energy-limited-16-05-2026.pdf",
+    "https://www.psuconnect.in/financial/gujarat-energy-q4-results-pat-surges-to-521-cr",
+    "https://www.marketsmojo.com/news/result-analysis/gujarat-gas-q4-fy26-profit-plunges-47-as-tax-anomaly-clouds-strong-revenue-growth-4026831",
+    "https://m.dailyhunt.in/news/india/english/et+now-epaper-etnow (Q4 FY26 results coverage, consolidated figures)",
+    "https://scanx.trade/stock-market-news/companies/gujarat-gas-credits-shares-following-gspc-and-gspl-merger/43863546",
+    "web-search aggregation across broker/aggregator pages (anandrathi.com, nirmalbang.com, business-standard.com, sharekhan.com, indmoney.com, bajajfinserv.in, dhan.co, paytmmoney.com, icicidirect.com, investonline.in) for price/mcap/52-week cross-checking",
+    "attempted directly and FAILED/blocked: www.screener.in/company/GUJGASLTD/ (404 - symbol retired), www.moneycontrol.com (fetch blocked), www.nseindia.com/get-quotes/equity (timeout), www.bseindia.com stock page (returned only page shell, no data), Google Finance (symbol not found under old GUJGASLTD listing)"
+  ],
+  "known_data_gaps_and_caveats": [
+    "COMPANY IDENTITY: Gujarat Gas Limited (NSE: GUJGASLTD) is now Gujarat Energy Limited (NSE: GUJENERGY, BSE: 539336) - same ISIN (INE844O01030), same CIN, same listed entity, but the underlying business, share count, and financials materially changed on 2026-05-01 when GSPC, GSPL and GSPC Energy Ltd were amalgamated into it. Anyone querying 'GUJGASLTD' post-2026-07-01 should expect to be redirected/resolved to GUJENERGY.",
+    "Could not directly fetch moneycontrol.com (blocked), the live NSE quote page (timed out), or a populated BSE page (returned only the page shell) - relied on screener.in, tickertape.in, groww.in, ticker.finology.in and web-search aggregation of broker pages instead.",
+    "Market cap, P/E, EPS, 52-week range, book value, ROE and promoter holding all show real, materially larger-than-usual cross-source disagreement versus a normal stock, attributable to the still-settling merger (new 62.27cr-share allotment listed 2026-06-18, a further GSPL Transmission Ltd allotment with record date 2026-07-02 that may add still more shares after this pack's as-of date). Every such disagreement is reported as a range/spread above rather than silently resolved to one number, per instructions.",
+    "Latest reported quarter (Q4 FY26, ended 31 Mar 2026) predates the merger's effective date, so it still reflects the pre-merger pure-play Gujarat Gas CGD business only. Q1 FY27 (Apr-Jun 2026), which would be the first quarter to reflect the enlarged post-merger entity, was not yet reported as of this pack's generation date (2026-07-10) - could not be included.",
+    "The 'tax anomaly' referenced in one press headline (marketsmojo.com) versus the >1000% YoY PAT growth reported elsewhere (psuconnect.in, dailyhunt.in) could not be fully reconciled without the primary filed results PDF - flagged as an open item in latest_quarter.tax_anomaly_caveat rather than resolved."
+  ]
+}

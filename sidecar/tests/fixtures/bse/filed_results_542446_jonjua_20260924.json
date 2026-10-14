@@ -1,0 +1,756 @@
+{
+ "get_result_detail": {
+  "542446|126.00": [
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "",
+    "fld_desc": "Type",
+    "fld_type": "0.1000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "",
+    "fld_desc": "Date Begin",
+    "fld_type": "0.2000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "",
+    "fld_desc": "Date End",
+    "fld_type": "0.3000",
+    "type": ""
+   }
+  ],
+  "542446|127.00": [
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "",
+    "fld_desc": "Type",
+    "fld_type": "0.1000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "",
+    "fld_desc": "Date Begin",
+    "fld_type": "0.2000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "",
+    "fld_desc": "Date End",
+    "fld_type": "0.3000",
+    "type": ""
+   }
+  ],
+  "542446|128.00": [
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "Un-Audited",
+    "fld_desc": "Type",
+    "fld_type": "0.1000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "01-Oct-25",
+    "fld_desc": "Date Begin",
+    "fld_type": "0.2000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "31-Dec-25",
+    "fld_desc": "Date End",
+    "fld_type": "0.3000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "3",
+    "Header": "0",
+    "Value": "15.4000",
+    "fld_desc": "Net Sales/Revenue From Operations",
+    "fld_type": "1.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "9",
+    "Header": "0",
+    "Value": "0.4700",
+    "fld_desc": "Other Income",
+    "fld_type": "2.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "10",
+    "Header": "0",
+    "Value": "15.8700",
+    "fld_desc": "Total Income",
+    "fld_type": "3.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "16",
+    "Header": "1",
+    "Value": "-6.8100",
+    "fld_desc": "Expenditure",
+    "fld_type": "4.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Cost of Materials Consumed",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-3.6000",
+    "fld_desc": "Depreciation and amortisation expense",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-0.2050",
+    "fld_desc": "Employee benefit expense",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-0.1390",
+    "fld_desc": "Finance Costs",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-0.4910",
+    "fld_desc": "Other Expenses",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-2.3790",
+    "fld_desc": "Purchases of stock-in-trade",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "63",
+    "Header": "0",
+    "Value": "9.0500",
+    "fld_desc": "Profit after Interest but before Exceptional Items",
+    "fld_type": "5.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "22",
+    "Header": "0",
+    "Value": "9.0500",
+    "fld_desc": "Profit (+)/ Loss (-) from Ordinary Activities before Tax",
+    "fld_type": "7.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "23",
+    "Header": "1",
+    "Value": "3.2300",
+    "fld_desc": "Tax",
+    "fld_type": "8.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "5.4390",
+    "fld_desc": "Current tax",
+    "fld_type": "8.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-2.2120",
+    "fld_desc": "Deferred tax",
+    "fld_type": "8.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "25",
+    "Header": "0",
+    "Value": "9.0500",
+    "fld_desc": "Net Profit (+)/ Loss (-) from Ordinary Activities after Tax",
+    "fld_type": "9.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "28",
+    "Header": "0",
+    "Value": "12.2800",
+    "fld_desc": "Net Profit",
+    "fld_type": "13.0500",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.5200",
+    "fld_desc": "Basic EPS for continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Basic for discontinued & continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.5200",
+    "fld_desc": "Diluted EPS for continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Diluted for discontinued & continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   }
+  ],
+  "542446|129.00": [
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "Audited",
+    "fld_desc": "Type",
+    "fld_type": "0.1000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "01-Jan-26",
+    "fld_desc": "Date Begin",
+    "fld_type": "0.2000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "31-Mar-26",
+    "fld_desc": "Date End",
+    "fld_type": "0.3000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "3",
+    "Header": "0",
+    "Value": "163.5700",
+    "fld_desc": "Net Sales/Revenue From Operations",
+    "fld_type": "1.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "9",
+    "Header": "0",
+    "Value": "0.2400",
+    "fld_desc": "Other Income",
+    "fld_type": "2.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "10",
+    "Header": "0",
+    "Value": "163.8100",
+    "fld_desc": "Total Income",
+    "fld_type": "3.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "16",
+    "Header": "1",
+    "Value": "-85.8500",
+    "fld_desc": "Expenditure",
+    "fld_type": "4.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-78.8020",
+    "fld_desc": "Cost of Materials Consumed",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-3.5800",
+    "fld_desc": "Depreciation and amortisation expense",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-0.9040",
+    "fld_desc": "Employee benefit expense",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-0.1640",
+    "fld_desc": "Finance Costs",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-2.4020",
+    "fld_desc": "Other Expenses",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Purchases of stock-in-trade",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "63",
+    "Header": "0",
+    "Value": "77.9600",
+    "fld_desc": "Profit after Interest but before Exceptional Items",
+    "fld_type": "5.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "22",
+    "Header": "0",
+    "Value": "77.9600",
+    "fld_desc": "Profit (+)/ Loss (-) from Ordinary Activities before Tax",
+    "fld_type": "7.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "23",
+    "Header": "1",
+    "Value": "-20.7100",
+    "fld_desc": "Tax",
+    "fld_type": "8.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-1.5270",
+    "fld_desc": "Current tax",
+    "fld_type": "8.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-19.1820",
+    "fld_desc": "Deferred tax",
+    "fld_type": "8.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "25",
+    "Header": "0",
+    "Value": "57.2500",
+    "fld_desc": "Net Profit (+)/ Loss (-) from Ordinary Activities after Tax",
+    "fld_type": "9.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "28",
+    "Header": "0",
+    "Value": "57.2500",
+    "fld_desc": "Net Profit",
+    "fld_type": "13.0500",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "2.0300",
+    "fld_desc": "Basic EPS for continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Basic for discontinued & continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "2.0300",
+    "fld_desc": "Diluted EPS for continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Diluted for discontinued & continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   }
+  ],
+  "542446|130.00": [
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "Un-Audited",
+    "fld_desc": "Type",
+    "fld_type": "0.1000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "01-Apr-26",
+    "fld_desc": "Date Begin",
+    "fld_type": "0.2000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "2",
+    "Value": "30-Jun-26",
+    "fld_desc": "Date End",
+    "fld_type": "0.3000",
+    "type": ""
+   },
+   {
+    "Fld_SequenceID": "3",
+    "Header": "0",
+    "Value": "43.5200",
+    "fld_desc": "Net Sales/Revenue From Operations",
+    "fld_type": "1.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "9",
+    "Header": "0",
+    "Value": "0.7900",
+    "fld_desc": "Other Income",
+    "fld_type": "2.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "10",
+    "Header": "0",
+    "Value": "44.3100",
+    "fld_desc": "Total Income",
+    "fld_type": "3.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "16",
+    "Header": "1",
+    "Value": "-32.8500",
+    "fld_desc": "Expenditure",
+    "fld_type": "4.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Changes in inventories of finished goods, work-in-progress and stock-in-trade",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-27.5400",
+    "fld_desc": "Cost of Materials Consumed",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-3.9810",
+    "fld_desc": "Depreciation and amortisation expense",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-0.0740",
+    "fld_desc": "Employee benefit expense",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-0.1730",
+    "fld_desc": "Finance Costs",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "-1.0810",
+    "fld_desc": "Other Expenses",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Purchases of stock-in-trade",
+    "fld_type": "4.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "63",
+    "Header": "0",
+    "Value": "11.4600",
+    "fld_desc": "Profit after Interest but before Exceptional Items",
+    "fld_type": "5.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "22",
+    "Header": "0",
+    "Value": "11.4600",
+    "fld_desc": "Profit (+)/ Loss (-) from Ordinary Activities before Tax",
+    "fld_type": "7.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "23",
+    "Header": "1",
+    "Value": "0.9100",
+    "fld_desc": "Tax",
+    "fld_type": "8.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Current tax",
+    "fld_type": "8.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.9070",
+    "fld_desc": "Deferred tax",
+    "fld_type": "8.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "25",
+    "Header": "0",
+    "Value": "11.4600",
+    "fld_desc": "Net Profit (+)/ Loss (-) from Ordinary Activities after Tax",
+    "fld_type": "9.0000",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "28",
+    "Header": "0",
+    "Value": "12.3700",
+    "fld_desc": "Net Profit",
+    "fld_type": "13.0500",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.4500",
+    "fld_desc": "Basic EPS for continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Basic for discontinued & continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.4500",
+    "fld_desc": "Diluted EPS for continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   },
+   {
+    "Fld_SequenceID": "0",
+    "Header": "0",
+    "Value": "0.0000",
+    "fld_desc": "Diluted for discontinued & continuing operation",
+    "fld_type": "24.0010",
+    "type": "Type1_Sh3_IND_AS"
+   }
+  ]
+ },
+ "get_results_summary": {
+  "542446": {
+   "col1": "(in Cr.)",
+   "col2": "Jun-26",
+   "col3": "Mar-26",
+   "col4": "FY25-26",
+   "resultinCr": [
+    {
+     "title": "Revenue",
+     "v1": "4.35",
+     "v2": "16.36",
+     "v3": "21.21"
+    },
+    {
+     "title": "Net Profit",
+     "v1": "1.24",
+     "v2": "5.73",
+     "v3": "8.07"
+    },
+    {
+     "title": "EPS",
+     "v1": "0.45",
+     "v2": "2.03",
+     "v3": "3.01"
+    },
+    {
+     "title": "Cash EPS",
+     "v1": "0.00",
+     "v2": "2.23",
+     "v3": "3.49"
+    },
+    {
+     "title": "OPM %",
+     "v1": "35.87",
+     "v2": "49.95",
+     "v3": "57.42"
+    },
+    {
+     "title": "NPM %",
+     "v1": "28.42",
+     "v2": "35.00",
+     "v3": "38.06"
+    }
+   ],
+   "resultinM": [
+    {
+     "title": "Revenue",
+     "v1": "43.52",
+     "v2": "163.57",
+     "v3": "212.05"
+    },
+    {
+     "title": "Net Profit",
+     "v1": "12.37",
+     "v2": "57.25",
+     "v3": "80.70"
+    },
+    {
+     "title": "EPS",
+     "v1": "0.45",
+     "v2": "2.03",
+     "v3": "3.01"
+    },
+    {
+     "title": "Cash EPS",
+     "v1": "0.00",
+     "v2": "2.23",
+     "v3": "3.49"
+    },
+    {
+     "title": "OPM %",
+     "v1": "35.87",
+     "v2": "49.95",
+     "v3": "57.42"
+    },
+    {
+     "title": "NPM %",
+     "v1": "28.42",
+     "v2": "35.00",
+     "v3": "38.06"
+    }
+   ],
+   "resultinS": [
+    {
+     "FY": "FY25-26",
+     "LFY": "https://www.bseindia.com/corporates/results.aspx?Code=542446&Company=Jonjua-Overseas-Ltd&qtr=129.50&RType=",
+     "LLQ": "https://www.bseindia.com/corporates/results.aspx?Code=542446&Company=Jonjua-Overseas-Ltd&qtr=130.00&RType=",
+     "LQ": "Jun-26",
+     "LSQ": "https://www.bseindia.com/corporates/results.aspx?Code=542446&Company=Jonjua-Overseas-Ltd&qtr=129.00&RType=",
+     "SQ": "Mar-26"
+    }
+   ]
+  }
+ }
+}

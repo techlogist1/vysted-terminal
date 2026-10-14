@@ -1,0 +1,3 @@
+CMD: pytest -v test_b3_runtime_tool_args.py::test_stringified_screener_criteria_is_yielded_as_a_list (candidate sha 1006c6da694ede5776c3dabbd27b305aeb56b5ad, sidecar/tests)
+---MATCHED LINES---
+tests/test_b3_runtime_tool_args.py::test_stringified_screener_criteria_is_yielded_as_a_list PASSED [ 19%]

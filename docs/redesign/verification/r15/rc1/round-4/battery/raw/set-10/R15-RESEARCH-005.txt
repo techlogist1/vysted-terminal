@@ -1,0 +1,15 @@
+Repro: pinned test (register's own live 60s+ Ollama repro is impractical to redo per-entry;
+following the ci_pinned convention for a code-verified timeout+labeling fix).
+
+$ cd sidecar && .venv/bin/python -m pytest tests/test_research_synthesis_timeout.py -q
+....                                                                     [100%]
+4 passed, 1 warning in 3.21s
+
+Code trace: deep.py:94 SYNTHESIS_TIMEOUT_REASON="synthesis_timeout", :97 SYNTHESIS_TIMEOUT_NOTE
+(user-facing sentence). iter.py:442,721,1246 set the note whenever `synthesized` is False.
+agent_tools/deep_research.py:425-427: `if deep.SYNTHESIS_TIMEOUT_NOTE in (out.get("note") or ""):
+out["degraded_reason"] = deep.SYNTHESIS_TIMEOUT_REASON`.
+
+Verdict: ci_pinned (tests/test_research_synthesis_timeout.py). The specific defect (silent floor
+with no degraded_reason on a 60s local-lane synthesis timeout) is now wired end to end and the
+pinned test asserts exactly that (`out["execution"]["degraded_reason"] == deep.SYNTHESIS_TIMEOUT_REASON`).

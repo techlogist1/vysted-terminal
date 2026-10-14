@@ -1,0 +1,11 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Source re-check.
+sidecar/services/agent_runtime.py:170-174 (system instruction):
+  "awaiting_user_review means it is STAGED for the user's review — say you proposed it, never
+   claim it is done..."
+Line 1489: 'Staged for your review, not applied yet: ' notice text (matches batch-5's certified
+live capture "Staged for your review, not applied yet: set_chart_symbol BDL").
+Line 1721: result status "awaiting_user_review" set on the host-action gate; line 3184/3219
+guard tool_call results with that status and re-assert the instruction.
+
+VERDICT: holds. The runtime's system instruction + the staged-notice text are both present and
+match the certified live capture; awaiting_user_review results are guarded, not narrated as done.

@@ -1,0 +1,66 @@
+CATALOG 56
+  add_chart_drawing read_only=False kind=host_action
+  add_to_watchlist read_only=False kind=host_action
+  analyst_history read_only=True kind=read_handler
+  analyst_individual read_only=True kind=read_handler
+  arrange_layout read_only=False kind=host_action
+  ask_user read_only=True kind=per_invocation
+  backtest_summary read_only=True kind=read_handler
+  close_panel read_only=False kind=host_action
+  compare_symbols read_only=True kind=read_handler
+  compute_greeks read_only=True kind=read_handler
+  corporate_actions read_only=True kind=read_handler
+  corporate_announcements read_only=True kind=read_handler
+  earnings_call_transcript read_only=True kind=read_handler
+  earnings_estimates read_only=True kind=read_handler
+  earnings_history read_only=True kind=read_handler
+  earnings_upcoming read_only=True kind=read_handler
+  exchange_deals read_only=True kind=read_handler
+  financial_statements read_only=True kind=read_handler
+  focus_panel read_only=False kind=host_action
+  fundamentals read_only=True kind=read_handler
+  get_portfolio read_only=True kind=per_invocation
+  get_terminal_state read_only=True kind=per_invocation
+  macro_search read_only=True kind=read_handler
+  macro_series read_only=True kind=read_handler
+  market_overview read_only=True kind=read_handler
+  news read_only=True kind=read_handler
+  open_company_overview read_only=False kind=host_action
+  open_panel read_only=False kind=host_action
+  option_chain read_only=True kind=read_handler
+  portfolio_add_position read_only=False kind=host_action
+  portfolio_delete_position read_only=False kind=host_action
+  portfolio_update_position read_only=False kind=host_action
+  price_bond read_only=True kind=read_handler
+  price_data read_only=True kind=read_handler
+  price_option read_only=True kind=read_handler
+  price_target_history read_only=True kind=read_handler
+  publish_brief read_only=False kind=host_action
+  read_notes read_only=True kind=per_invocation
+  remove_from_watchlist read_only=False kind=host_action
+  research read_only=True kind=read_handler
+  resolve_symbol read_only=True kind=read_handler
+  run_custom_backtest read_only=True kind=read_handler
+  save_layout read_only=False kind=host_action
+  save_screen read_only=False kind=host_action
+  screener_run read_only=True kind=read_handler
+  sec_filing_content read_only=True kind=read_handler
+  sec_filings_list read_only=True kind=read_handler
+  sec_insider_transactions read_only=True kind=read_handler
+  set_chart_indicators read_only=False kind=host_action
+  set_chart_symbol read_only=False kind=host_action
+  set_region read_only=False kind=host_action
+  shareholding_pattern read_only=True kind=read_handler
+  web_search read_only=True kind=read_handler
+  write_note read_only=False kind=host_action
+  write_screener_filters read_only=False kind=host_action
+  yield_curve_value read_only=True kind=read_handler
+TOOL_SCHEMAS 56
+Traceback (most recent call last):
+  File "<stdin>", line 8, in <module>
+TypeError: '<' not supported between instances of 'NoneType' and 'NoneType'
+TOOL_SCHEMAS_KEYS ['add_chart_drawing', 'add_to_watchlist', 'analyst_history', 'analyst_individual', 'arrange_layout', 'ask_user', 'backtest_summary', 'close_panel', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'focus_panel', 'fundamentals', 'get_portfolio', 'get_terminal_state', 'macro_search', 'macro_series', 'market_overview', 'news', 'open_company_overview', 'open_panel', 'option_chain', 'portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position', 'price_bond', 'price_data', 'price_option', 'price_target_history', 'publish_brief', 'read_notes', 'remove_from_watchlist', 'research', 'resolve_symbol', 'run_custom_backtest', 'save_layout', 'save_screen', 'screener_run', 'sec_filing_content', 'sec_filings_list', 'sec_insider_transactions', 'set_chart_indicators', 'set_chart_symbol', 'set_region', 'shareholding_pattern', 'web_search', 'write_note', 'write_screener_filters', 'yield_curve_value']
+KNOWN_TOOL_IDS 56 ['add_chart_drawing', 'add_to_watchlist', 'analyst_history', 'analyst_individual', 'arrange_layout', 'ask_user', 'backtest_summary', 'close_panel', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'focus_panel', 'fundamentals', 'get_portfolio', 'get_terminal_state', 'macro_search', 'macro_series', 'market_overview', 'news', 'open_company_overview', 'open_panel', 'option_chain', 'portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position', 'price_bond', 'price_data', 'price_option', 'price_target_history', 'publish_brief', 'read_notes', 'remove_from_watchlist', 'research', 'resolve_symbol', 'run_custom_backtest', 'save_layout', 'save_screen', 'screener_run', 'sec_filing_content', 'sec_filings_list', 'sec_insider_transactions', 'set_chart_indicators', 'set_chart_symbol', 'set_region', 'shareholding_pattern', 'web_search', 'write_note', 'write_screener_filters', 'yield_curve_value']
+MCP_CAPS 32 ['analyst_history', 'analyst_individual', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'fundamentals', 'macro_search', 'macro_series', 'market_overview', 'news', 'option_chain', 'price_bond', 'price_data', 'price_option', 'price_target_history', 'research', 'resolve_symbol', 'run_custom_backtest', 'screener_run', 'sec_filing_content', 'sec_filings_list', 'sec_insider_transactions', 'shareholding_pattern', 'web_search', 'yield_curve_value']
+mcp_server attrs ['API_KEY_HEADER', 'Any', 'FastAPI', 'FastMCP', 'FunctionTool', 'ToolAnnotations', 'agent_tools', 'annotations', 'bind_app', 'get_http_headers', 'get_mcp_server', 'get_streamable_http_app', 'httpx', 'json', 'logging', 'mcp_capabilities', 'os', 'protocol_version', 'quote', 'tool_count']
+MCP_SERVER_TOOLS via list_tools 40 ['analyst_history', 'analyst_individual', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'fundamentals', 'get_workspace', 'invoke_agent', 'list_agents', 'list_runs', 'list_workflows', 'list_workspaces', 'macro_search', 'macro_series', 'market_overview', 'news', 'option_chain', 'price_bond', 'price_data', 'price_option', 'price_target_history', 'research', 'resolve_symbol', 'run_custom_backtest', 'run_workflow', 'save_workflow', 'screener_run', 'sec_filing_content', 'sec_filings_list', 'sec_insider_transactions', 'shareholding_pattern', 'web_search', 'yield_curve_value']

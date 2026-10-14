@@ -1,0 +1,74 @@
+[
+  {
+    "raw_id": "DAT-S1-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds as stated. corporate_disclosures.get_shareholding gates every lane on bundled-master membership only (symbol_resolver.is_nse_symbol/is_bse_symbol = dict lookups into the shipped nse_instruments.json/bse_instruments.json), and DHOOTTRANS (listed 2026-08-17) is in neither master, whose only 'Dhoot' row is the unrelated DHOOTIN; results calendar fails the same way via nse_provider._require_nse. Quote/fundamentals go through yfinance with no master gate, so they resolve. A new listing with a INR 32,500 cr market cap therefore gets no shareholding, announcements or results calendar until the masters are regenerated, and the D68 ownership cross-check that depends on get_shareholding is skipped along with them (see DAT-S1-2).",
+    "evidence": "sidecar/services/corporate_disclosures.py:382-393, sidecar/services/symbol_resolver.py:403-415, sidecar/services/nse_provider.py:352-359, sidecar/services/resolver_masters/nse_instruments.json + bse_instruments.json (0 hits for DHOOTTRANS; bse has DHOOTIN only)",
+    "evidence_checked": "Re-ran all three GETs against :52152 on 2026-09-23T01:3xZ (stack healthy, v0.8.0); opened the resolver gate and grepped the bundled masters.",
+    "repro_check": "curl 127.0.0.1:52152/disclosures/shareholding?symbol=DHOOTTRANS -> HTTP 502 \"'DHOOTTRANS' is not a known NSE/BSE instrument\"; /disclosures/announcements same; /disclosures/results -> 502 \"nse_direct: 'DHOOTTRANS' is not a known NSE instrument\"; grep -c DHOOTTRANS resolver_masters/*.json -> 0 in every file."
+  },
+  {
+    "raw_id": "DAT-S1-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The value gap is real (held_percent_insiders 39.935% vs SEBI promoter group 82.78%), and the finding's 'if surfaced as promoter holding' condition is met: the screener labels this field 'Insider/promoter holding (frac)' and ships a 'High insider/promoter holding' preset filtering on it (> 0.4, so this stock falls just under the cut despite 82.78% promoter ownership). The correction concerns the mechanism and scope. The equity-overview panel labels the field honestly as 'Insiders'. The app has a D68 cross-check that flags exactly this insiders-vs-promoter gap (research/semantics.py:571-576), but it only runs when corporate_disclosures.get_shareholding succeeds, so for this stock it is silently skipped because of DAT-S1-1. The fix is to relabel the screener field and to raise the cross-check's absence as a flag rather than skipping it without a word. Yahoo's per-holder roster was not independently inspected, so the claim that 'the BC Asia stake was bucketed as institutional' rests on the 0.005pp arithmetic match, not on a direct look.",
+    "evidence": "src/modules/screener/CriterionGroupEditor.tsx:51, src/modules/screener/ScreenerCriteriaBuilder.tsx:57, src/modules/screener/ScreenerPresets.tsx:109-112, src/modules/equity-overview/EquityOverviewPanel.tsx:141, sidecar/services/research/semantics.py:470-505, sidecar/services/research/semantics.py:555-576, sidecar/services/ownership_check.py:1-35, sidecar/services/yfinance_provider.py:398",
+    "evidence_checked": "Fresh GET /fundamentals/DHOOTTRANS on :52152 (held_percent_insiders 0.39935002, held_percent_institutions 0.53816, unchanged); yfinance .info heldPercentInsiders 0.39935002 from the sidecar venv; read the ownership cross-check and the frontend labels.",
+    "repro_check": "curl 127.0.0.1:52152/fundamentals/DHOOTTRANS | jq .held_percent_insiders -> 0.39935002; the screener criterion labelled 'Insider/promoter holding' reads this field; the pack's promoter group is 82.78% (screener.in + chittorgarh agree)."
+  },
+  {
+    "raw_id": "DAT-S1-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Real: the app's eps (19.41 on 19-Sep, 19.46 now) is not trailing-twelve-month on any basis, and pe_ratio is built on it (Yahoo trailingPE, 84.95 now). The mechanism in the finding is wrong, though. The number is not Groww's stale quarter; it is Yahoo's FY26 full-year EPS, FY26 PAT 3,966.54M / 204.548M current (post-IPO) shares = 19.39, which Yahoo's annual statement shows with the current share count back-filled as 'Diluted Average Shares' for FY24-FY26. yfinance_provider passes info.trailingEps through with status 'ok'. It matches neither the filed basis (TTM of filed consolidated EPS = 24.40 - 5.97 + 7.04 = 25.47, re-read from the filed PDF) nor the pack's current-count TTM (21.17 = the app's own net_income_ttm / shares_outstanding). The smallest fix is to derive eps from net_income_ttm / shares_outstanding, or to flag it when it diverges from that quotient.",
+    "evidence": "sidecar/services/yfinance_provider.py:375 (eps=info.trailingEps), sidecar/services/yfinance_provider.py:366 (pe_ratio=info.trailingPE), sidecar/services/yfinance_provider.py:392-394, sidecar/services/earnings_quality.py:108-121 (only checks reported-vs-normalized, not this seam), https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf (fetched 2026-09-23T01:34:46Z; consolidated EPS row: Q1 FY27 7.04, Q4 FY26 5.72, Q1 FY26 5.97, FY26 24.40)",
+    "evidence_checked": "Fresh GET /fundamentals/DHOOTTRANS on :52152 (eps 19.46, pe 84.95, net_income_ttm 4,330,310,144, shares 204,548,057); yfinance Ticker('DHOOTTRANS.NS').income_stmt from the sidecar venv (FY26 Diluted EPS 19.3917, Diluted Average Shares 204,548,100 for FY24-FY26); re-fetched and text-extracted the filed Q1 FY27 results PDF.",
+    "repro_check": "python: 4330310144/204548057 = 21.17 vs app eps 19.46; yfinance income_stmt FY26 Diluted EPS = 19.39 = 3,966.54M/204.548M; filed PDF consolidated EPS TTM = 25.47. The app's eps matches FY26 annual, not TTM."
+  },
+  {
+    "raw_id": "DAT-S1-4",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The 17.9% reconciles exactly with the filing: it is per-share earnings growth, filed consolidated basic/diluted EPS Q1 FY27 7.04 vs Q1 FY26 5.97 = +17.92%. That makes it a definitional difference (EPS growth vs PAT growth), not a wrong value; the diff omitted EPS from the bases it tried. The two diverge because Q1 FY26's weighted share count was restated for the Dec-2025 split and the Mar-2026 2:3 bonus plus the pre-IPO infusion (filed note 7). The app maps Yahoo earningsGrowth, which is EPS-based; Yahoo's PAT-based earningsQuarterlyGrowth reads 0.378, matching the press release's 37.8%. At most there is a residual low-grade label nit: company_narrative labels it 'Earnings growth (quarterly YoY)' without saying 'per share'. That is not a data defect.",
+    "evidence": "sidecar/services/yfinance_provider.py:396 (earnings_growth=info.earningsGrowth), sidecar/services/company_narrative.py:303, https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf (fetched 2026-09-23T01:34:46Z; consolidated EPS row 7.04 / 5.72 / 5.97 / 24.40 and note 7 on the sub-division + 2:3 bonus with Ind AS 33 restatement)",
+    "evidence_checked": "Re-fetched the filed results PDF (the one pack-source re-fetch) and extracted its consolidated EPS table and note 7; yfinance .info from the sidecar venv (earningsGrowth 0.179, earningsQuarterlyGrowth 0.378); fresh GET /fundamentals/DHOOTTRANS (earnings_growth 0.179, growth_basis mrq_yoy).",
+    "repro_check": "7.04/5.97 - 1 = 0.1792 == app earnings_growth 0.179; yfinance info earningsQuarterlyGrowth = 0.378 (the PAT figure the finding expected)."
+  },
+  {
+    "raw_id": "DAT-S1-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real, with a corrected framing. field_meta.as_of is by design the yfinance info fetch time (FieldMeta docstring; _served_field_meta stamps one fetched_at on every field), so it is not mislabelled so much as the payload has no reporting-period date for any value. The genuine defect is what that hides. eps is FY26 annual (DAT-S1-3), book_value is 2026-03-31 (DAT-S1-6), revenue and net income are TTM to 2026-06-30, and nothing in the payload or UI knows the listing date, so the '52w' range printed in the equity panel covers 33 days with its low on listing day and carries no caveat. The smallest fix is a per-field period on the fields that have one, plus a short-history flag on 52w when the first trade falls within the last 365 days.",
+    "evidence": "sidecar/models/fundamentals.py:19-42 (as_of documented as the info fetch time), sidecar/services/yfinance_provider.py:188-213 and 311 (single fetched_at stamped on every field), sidecar/services/yfinance_provider.py:377-378, src/modules/equity-overview/EquityOverviewPanel.tsx:1025-1028 (52w rendered bare); grep for listing_date/firstTradeDate/'since listing' across sidecar/services, sidecar/routers and src/modules -> no hits",
+    "evidence_checked": "Fresh GET /fundamentals/DHOOTTRANS on :52152: every field_meta entry carries as_of 2026-09-23T01:33:10.998209+00:00; read the FieldMeta model and the provenance builder; grepped for any short-listing awareness.",
+    "repro_check": "curl 127.0.0.1:52152/fundamentals/DHOOTTRANS | jq '[.field_meta[].as_of]|unique' -> one timestamp; fifty_two_week_low 1131.0 with no date, although it is the listing-day low (BSE HighLow API per the pack, dated 2026-08-17)."
+  },
+  {
+    "raw_id": "DAT-S1-6",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The app's book_value reconstructs exactly from the filing: consolidated equity at 2026-03-31 = paid-up 376.91M + other equity 23,966.51M = 24,343.42M, over the 188.455M shares outstanding then (376.91M / FV 2), = INR 129.17. The finding divided by the post-IPO count (204.5M), which is why it got 119.01. So this is the last FILED book value per share, dated before the 2026-08-13 IPO allotment. Against the pack's non-filed Groww post-money estimate (187.48, medium confidence; screener and BSE leave it blank), that is as-of skew, which the diff rules say is never called wrong. The resulting P/B (12.3) is price over last-filed book, as is standard until the Q2 FY27 balance sheet. The missing date on the field is already captured by DAT-S1-5.",
+    "evidence": "sidecar/services/yfinance_provider.py:372 (book_value=info.bookValue), https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf (fetched 2026-09-23T01:34:46Z; consolidated 'Paid up equity share capital 376.91' and 'Other equity 23,966.51' for FY26)",
+    "evidence_checked": "Re-fetched filed results PDF; yfinance balance_sheet from the sidecar venv (Common Stock Equity 2026-03-31 = 24,343,420,000); fresh GET /fundamentals/DHOOTTRANS (book_value 129.173).",
+    "repro_check": "24,343.42M / (376.91M/2 = 188.455M) = 129.17 == app book_value 129.173."
+  },
+  {
+    "raw_id": "DAT-S1-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real gap, with the scope corrected. roe is null because Yahoo does not publish returnOnEquity for this listing, and there is no derivation fallback. roce is not a stock-specific blank: the Fundamentals contract has no ROCE field at all (models/fundamentals.py and types/data.ts carry roe/roa only; no roce anywhere in sidecar/services), so ROCE is absent for every stock. That is a product-wide gap against the screener.in benchmark. Medium stands; outside values exist but disagree among themselves (24.0 / 26.2 / 16.29 for ROE), so any derived figure must state its equity basis.",
+    "evidence": "sidecar/models/fundamentals.py:81 (roe only), types/data.ts:107, sidecar/services/yfinance_provider.py:381 (roe=info.returnOnEquity); grep 'roce' across sidecar/services -> no field",
+    "evidence_checked": "Fresh GET /fundamentals/DHOOTTRANS (roe null, field_meta.roe status 'unavailable', no roce key); read the model and the TS mirror.",
+    "repro_check": "curl 127.0.0.1:52152/fundamentals/DHOOTTRANS | jq '.roe, has(\"roce\")' -> null, false; grep -n roce sidecar/models/fundamentals.py -> nothing."
+  },
+  {
+    "raw_id": "DAT-S1-8",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds at low. yfinance omits dividendRate/dividendYield for a never-paid scrip, and the app renders that as 'unavailable - provider did not publish this field' rather than a confirmed 0. That is literally true, but it collapses 'no dividend' into 'unknown' when BSE's empty corporate-action tables establish the zero. It changes no decision.",
+    "evidence": "sidecar/services/yfinance_provider.py:348-351 and 373-374, sidecar/services/yfinance_provider.py:188-213 (null -> 'unavailable' with _NULL_FIELD_REASON)",
+    "evidence_checked": "Fresh GET /fundamentals/DHOOTTRANS (dividend_yield/dividend_per_share/dividend_per_share_ttm null, field_meta status 'unavailable'); read the mapping. BSE CorporateAction API not re-fetched (one-source re-fetch budget spent on the results PDF); the pack's empty-table claim is taken as stated.",
+    "repro_check": "curl 127.0.0.1:52152/fundamentals/DHOOTTRANS | jq '.dividend_yield, .field_meta.dividend_yield.reason' -> null, 'provider did not publish this field'."
+  }
+]

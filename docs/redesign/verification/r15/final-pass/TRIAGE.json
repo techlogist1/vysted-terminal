@@ -1,0 +1,899 @@
+{
+ "admitted": [
+  {
+   "id": "R15-FINAL-001",
+   "severity": "critical",
+   "area": "ui-panels",
+   "title": "A bare-ticker portfolio lot is re-priced against a different listing when the session region changes: INFY 20 @ Rs1,500 shows -$29,779.20 (-99.26%) under region US, and the CSV export carries it",
+   "finding_keys": [
+    "maintainer:2"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-002",
+   "severity": "high",
+   "area": "data-smallcaps",
+   "title": "NSE SME GSTL (Globesecure Technologies) is stamped with BSE GSTL Globalspace Technologies' ISIN INE632W01016 / scrip 540654, so its results calendar, announcements, corporate actions and shareholding split merge a different company's BSE filings",
+   "finding_keys": [
+    "investor:5"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-003",
+   "severity": "high",
+   "area": "data-smallcaps",
+   "title": "After the exchange-filed overlay replaces EPS, P/E stays on the provider EPS the payload says is not served (SUNRAJDI P/E 155.5 beside served EPS 0.23 at 12.44; true ~54), the flag reason quotes a third implied P/E 141.1, and the copilot tells the user the 155.5 'is indeed right'",
+   "finding_keys": [
+    "investor:3",
+    "investor:9"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-004",
+   "severity": "high",
+   "area": "research-search",
+   "title": "Deep brief for FOCUS (Focus Lighting and Fixtures) states unrelated common-word headlines (Flydubai pilot podcast 'Focus on flying', European shares 'focus on inflation data') as the company's own sentiment and strategy",
+   "finding_keys": [
+    "investor:12"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-005",
+   "severity": "high",
+   "area": "data-smallcaps",
+   "title": "Every NSE Emerge (SME) listing has no fundamentals: /fundamentals 404s telling the user to check the symbol, and income/balance return empty 200s with no reason (YASHOPTICS, SUMAX, QUALIANCE, GANESHIN, VOLERCAR)",
+   "finding_keys": [
+    "investor:2"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-006",
+   "severity": "high",
+   "area": "ui-panels",
+   "title": "Portfolio quote fan-out wedges the sidecar: per-symbol /quotes GETs abort at the 30 s client budget, the in-flight guard releases on the abort while the server keeps working, and each tick re-requests every symbol (0/100 resolved over 210 s; RELIANCE quote >40 s on the same sidecar)",
+   "finding_keys": [
+    "drive-portfolio-notes:1"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-007",
+   "severity": "high",
+   "area": "agent-chat",
+   "title": "With the Portfolio panel closed, get_portfolio stamps every non-crypto holding with the session region's currency, so a USD AAPL lot is served to the agent as currency INR and the copilot states 'AAPL - 2 shares, cost basis Rs190'",
+   "finding_keys": [
+    "drive-portfolio-notes:2"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-008",
+   "severity": "high",
+   "area": "lifecycle",
+   "title": "A corrupt SQLite store is never quarantined: a corrupt data_cache.db (pure cache) fails sidecar startup on every launch, and a corrupt custom_agents.db / delegate_runs.db / plugins.db 500s every route of that store until the file is deleted by hand",
+   "finding_keys": [
+    "FI-FINAL-CORRUPT-CACHE-BRICKS-BOOT",
+    "maintainer:5"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-009",
+   "severity": "medium",
+   "area": "data-smallcaps",
+   "title": "AMAL (NSE, the default IN bind) serves market_cap and shares_outstanding unavailable while the same ISIN on BSE (AMAL.BO) serves both in the same sidecar",
+   "finding_keys": [
+    "investor:1"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-010",
+   "severity": "medium",
+   "area": "data-smallcaps",
+   "title": "SIFY analyst revenue estimate (USD-sized 191.7M) is labelled revenue_currency INR, a ~64x understatement against Sify's quarterly revenue INR 12,352 M, and the Earnings estimate grid renders it",
+   "finding_keys": [
+    "investor:4"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-011",
+   "severity": "medium",
+   "area": "data-smallcaps",
+   "title": "Symbol autocomplete never offers the BSE company of a same-ticker collision: 'Zeal Aqua', 'Sanathnagar Enterprises', ZEAL.BO and SEL.BO return only the NSE namesake or nothing, though /resolve binds the BSE company",
+   "finding_keys": [
+    "investor:6"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-012",
+   "severity": "medium",
+   "area": "data-smallcaps",
+   "title": "RELIANCE.BO earnings history is two quarters stale against the NSE listing of the same company (latest 2025-12-31 vs 2026-06-30) and its analyst consensus differs (36 vs 26 analysts), with no staleness or listing-basis note",
+   "finding_keys": [
+    "investor:7"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-013",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "'Should I buy Amal Ltd?' on gpt-4o-mini gets a buy lean justified by an industry P/E comparison no tool fetched",
+   "finding_keys": [
+    "investor:10"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-014",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "Ollama lane: a tool call leaked as a Python-literal dict (None/True/False) is not rescued; the raw call blob is shown as the assistant reply",
+   "finding_keys": [
+    "maintainer:1",
+    "battery3-agent022-local-text-toolcall"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-015",
+   "severity": "medium",
+   "area": "release",
+   "title": "THIRD_PARTY_NOTICES.md lists the wrong version for 56 of 121 main-sidecar Python components because transitive deps are unpinned and the bundle ships what pip resolved at build time",
+   "finding_keys": [
+    "maintainer:7"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-016",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "arrange_layout custom reports success ('Arranged sec_filings_list' / 'Arranged your panels') when no panel token resolves and the layout is unchanged",
+   "finding_keys": [
+    "drive-panels-layouts:nd-1"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-017",
+   "severity": "medium",
+   "area": "ui-panels",
+   "title": "A holding whose symbol answers 404 raises the transport-failure banner 'Couldn't refresh live quotes' with a Retry that can never succeed, and the 404 is re-requested every 5 s",
+   "finding_keys": [
+    "drive-portfolio-notes:3"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-018",
+   "severity": "medium",
+   "area": "research-search",
+   "title": "With the ULTRA slider one user turn fans out into N sequential full ULTRA heavy runs (4 research calls -> ~19 min, ~$1.25, each brief replacing the last)",
+   "finding_keys": [
+    "drive-research-briefs:3"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-019",
+   "severity": "medium",
+   "area": "research-search",
+   "title": "Settings SearXNG card tells a user whose Docker/OrbStack is installed but stopped that Docker 'isn't available' and to install it, ignoring docker.cli_present/daemon_running and the sidecar's 'start Docker/OrbStack' detail",
+   "finding_keys": [
+    "drive-settings-plugins:searxng-daemon-down-install-copy"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-020",
+   "severity": "medium",
+   "area": "research-search",
+   "title": "Keyless web search: the Brave engine (impersonated fetch) gets HTTP 429 while a plain-UA curl from the same host gets 200 in the same minute, so keyless web_search returns zero rows on this network",
+   "finding_keys": [
+    "battery2-brave-impersonated-fetch-429"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-021",
+   "severity": "medium",
+   "area": "docs",
+   "title": "docs/SIDECAR_API.md ('the contract') documents 20 of 111 live routes and states an allow-all-origins CORS posture, a 501 macro hook and stub routers that the running sidecar contradicts",
+   "finding_keys": [
+    "F-DOCS-001"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-022",
+   "severity": "medium",
+   "area": "docs",
+   "title": "R12_HAND_TESTING_GUIDE.md, the only hand-testing guide, walks an order-placement 'safety showcase', a brokers plugin and a paper portfolio removed by D81",
+   "finding_keys": [
+    "F-DOCS-002"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-023",
+   "severity": "medium",
+   "area": "release",
+   "title": "RELEASE_RUNBOOK.md step 1 tells the operator to merge the superseded worktree-agent-r15-version-0.9.0 branch although the 0.9.0 bump is already in the sha",
+   "finding_keys": [
+    "F-DOCS-004"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-024",
+   "severity": "low",
+   "area": "data-smallcaps",
+   "title": "Ownership witness flags a near-agreeing institutions figure with a false reason: Yahoo 0.00% vs filed 0.03% (AMAL) is flagged 'disagrees ... beyond 3pp'",
+   "finding_keys": [
+    "investor:8"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-025",
+   "severity": "low",
+   "area": "research-search",
+   "title": "DEEP research overran its 180 s wall budget by 79 s (259 s) on the local lane: the final synthesis call is not boxed by the remaining wall",
+   "finding_keys": [
+    "investor:11"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-026",
+   "severity": "low",
+   "area": "ui-panels",
+   "title": "Screener freshness line prints unrounded float seconds ('quotes 41.64699196815491s ago')",
+   "finding_keys": [
+    "maintainer:3"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-027",
+   "severity": "low",
+   "area": "ui-panels",
+   "title": "News titles keep raw HTML entities: the News Feed shows 'F&amp;O Talk: ...' literally (and the agent news tool gets the same)",
+   "finding_keys": [
+    "maintainer:4"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-028",
+   "severity": "low",
+   "area": "lifecycle",
+   "title": "A bundle sidecar that cannot bind its port dies with SIGABRT (exit 134, Fatal Python error _enter_buffered_busy on the stdin watchdog) instead of a clean non-zero exit",
+   "finding_keys": [
+    "maintainer:6"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-029",
+   "severity": "low",
+   "area": "platform",
+   "title": "transform.code size caps are bypassed by sum(list, start): a 25-character expression builds an uncapped list (8.3 GB peak RSS) and keeps running after the 5 s timeout",
+   "finding_keys": [
+    "maintainer:8"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-030",
+   "severity": "low",
+   "area": "agent-chat",
+   "title": "write_note files a note under the literal company name ('COCHIN SHIPYARD') instead of the ticker, so the symbol's note view (COCHINSHIP) stays empty",
+   "finding_keys": [
+    "drive-composer-chat:nd-1"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-031",
+   "severity": "low",
+   "area": "lifecycle",
+   "title": "delete_workspace leaves <name>.vysted-workspace.bak behind, so a later corrupt-file recovery of a same-named workspace resurrects the deleted workspace's content",
+   "finding_keys": [
+    "drive-panels-layouts:nd-2"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-032",
+   "severity": "low",
+   "area": "ui-panels",
+   "title": "A local-model narrative written with markdown-bold headers (**TAKE** / **BULL** ...) collapses to a flat summary + insights; the five typed fields come back empty",
+   "finding_keys": [
+    "drive-panels-layouts:reg-1"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-033",
+   "severity": "low",
+   "area": "ui-panels",
+   "title": "A whitespace-only Avg cost saves the holding at cost basis 0, and a hex quantity '0x10' saves as 16",
+   "finding_keys": [
+    "drive-portfolio-notes:4"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-034",
+   "severity": "low",
+   "area": "ui-panels",
+   "title": "Brief header reads 'web + structured data' directly above the 'Structured data only - no web sources found' banner on a filings-only brief",
+   "finding_keys": [
+    "drive-research-briefs:2"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-035",
+   "severity": "low",
+   "area": "docs",
+   "title": "MCP_INTEGRATION.md names 25 tools; the live MCP surface lists 39",
+   "finding_keys": [
+    "F-DOCS-003"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-036",
+   "severity": "low",
+   "area": "docs",
+   "title": "CURRENT_STATE.md cites a missing build report, the deleted monte_carlo.py and an absent ConnectCard.tsx, and reports 0.8.0 and 619 vitest / 942 pytest",
+   "finding_keys": [
+    "F-DOCS-005"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-037",
+   "severity": "low",
+   "area": "release",
+   "title": "RELEASE_RUNBOOK.md's 'verbatim' ci-local block differs from package.json ci-local",
+   "finding_keys": [
+    "F-DOCS-006"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-FINAL-038",
+   "severity": "low",
+   "area": "platform",
+   "title": "MCP discovery file advertises protocol 2025-06-18 while /mcp/status reports 2025-11-25; the Rust sync comment points at a constant that does not exist",
+   "finding_keys": [
+    "F-DOCS-008"
+   ],
+   "existing": false,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-AGENT-027",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "humanize() classifies by HTTP status alone, so users get a next step that cannot work: OpenAI no-credit 429 and free-model shared-pool 429 say 'wait a minute', invalid Gemini/xAI keys (400), invalid model ids (400) and context overflow (400/413) say 'try again', a stopped Ollama says 'check your network'",
+   "finding_keys": [
+    "FI-FINAL-HANG-NETWORK-COPY",
+    "drive-research-briefs:att-agent027",
+    "drive-failure-inducer:att-agent027-groq413"
+   ],
+   "existing": true,
+   "prior_failures": 2
+  },
+  {
+   "id": "R15-CODE-PLATFORM-072",
+   "severity": "medium",
+   "area": "data-smallcaps",
+   "title": "Data-source description is hand-maintained in marketplace.ts, disconnected from provider_registry and the plugin contract, and has already drifted (yfinance entry lists 3 keys vs 7 served; nse_direct/nse/bse/ccxt have no entry); adding a source needs host edits in two languages",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 1
+  },
+  {
+   "id": "R15-LEAD-060",
+   "severity": "medium",
+   "area": "research-search",
+   "title": "Verifier verdict text wrapped in underscore emphasis (_UNVERIFIED_ / __UNVERIFIED__) parses as AGREE",
+   "finding_keys": [
+    "drive-research-briefs:att-lead060"
+   ],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-061",
+   "severity": "medium",
+   "area": "research-search",
+   "title": "strip_model_bibliography misses common bibliography heading variants, so a model-written source list survives beside the verified one",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-062",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "A Gemini free-tier per-minute 429 (RESOURCE_EXHAUSTED ... retry in Ns) is shown as \"out of credit or quota. Add credit or check your plan\"",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-063",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "historyForSend drops the oldest turns once the thread passes 60k chars with no notice to the user or the model",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-064",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "20-F ownership lane returns not_applicable with 0 holders for ADRs whose 20-F has a holders table (IBN, HDB)",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-065",
+   "severity": "medium",
+   "area": "research-search",
+   "title": "FAST research web-only branch (no instrument resolves) awaits _web_round without a time box; only the resolved branch uses asyncio.wait_for",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-066",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "write_screener_filters with only the documented OR/nested group tree is rejected: schema requires criteria",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-067",
+   "severity": "medium",
+   "area": "ui-panels",
+   "title": "Macro search failure renders as an empty \"No matching series\": the store catches every error and stores []; keyless FRED search is a 502 with an actionable message",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-068",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "Settings privacy copy over-promises: \"Nothing leaves this machine except calls you make to providers you configure\" while keyless lanes (Yahoo, NSE/BSE, DDG) call out without configuration",
+   "finding_keys": [
+    "drive-settings-plugins:privacy-copy-overpromise"
+   ],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-069",
+   "severity": "medium",
+   "area": "data-smallcaps",
+   "title": "Screener formula validate accepts a boolean operand in a comparison (\"roe > (pe_ratio < 15)\", \"(pe_ratio > 3) > 0.5\") and coerces it",
+   "finding_keys": [
+    "drive-screener:att-1"
+   ],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-070",
+   "severity": "medium",
+   "area": "ui-panels",
+   "title": "Analyst ratings swallow a Yahoo rate-limit into an empty 200 list that reads as no coverage",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-071",
+   "severity": "medium",
+   "area": "ui-panels",
+   "title": "A Yahoo rate-limit on earnings history is swallowed as an empty history and cached for 24 h",
+   "finding_keys": [
+    "drive-failure-inducer:att-lead071-outage-cached-empty"
+   ],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-072",
+   "severity": "medium",
+   "area": "research-search",
+   "title": "Heavy/ULTRA brief stopped by its spend ceiling publishes note=None, and the cross-check keeps spending after the breach",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-073",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "The latest round's tool results are never elided by _fit_to_window, so a multi-result round leaves the answer below the 1/8 reserve",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-074",
+   "severity": "medium",
+   "area": "ui-panels",
+   "title": "Scheduled and MCP-run workflows run with no event sink: action.notify_desktop reports notified:true but nothing is shown",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-075",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "Editing a custom agent silently clears its default_model on save (customSpecToSummary sets defaultModel: null)",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-076",
+   "severity": "medium",
+   "area": "ui-panels",
+   "title": "A partially throttled screen shows \"No rows matched - loosen a threshold / Reset filters\" although most symbols were never evaluated",
+   "finding_keys": [
+    "drive-screener:att-2"
+   ],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-077",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "A focused SEC Filings panel publishes identifier, not symbol, so the agent context names the wrong symbol",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-078",
+   "severity": "medium",
+   "area": "research-search",
+   "title": "Flaky test_research_fast::test_fast_web_round_runs_alongside_a_time_boxed_fan_out: an unstubbed earnings-quality leg makes it timing-dependent",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-079",
+   "severity": "medium",
+   "area": "agent-chat",
+   "title": "ReasoningSplitter releases a held reasoning echo in full when an answer follows it (provisional, shard evidence only)",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-080",
+   "severity": "medium",
+   "area": "ui-panels",
+   "title": "Agent/MCP compute_greeks and price_option return QuantLib-unit vega/theta/rho unlabelled; the model restated them as per-unit values",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-081",
+   "severity": "medium",
+   "area": "data-smallcaps",
+   "title": "sp500 screen serves S&P 500 member PTC as PTC India Limited (INR) from a fundamentals row written before the LEAD-044 fix; no migration purges it",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-082",
+   "severity": "medium",
+   "area": "ui-panels",
+   "title": "Screener top-K round-robin gives currency-less rows their own group slot, so a null-market-cap row displaces a real one",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-083",
+   "severity": "medium",
+   "area": "ui-panels",
+   "title": "Earnings drill-down As-of chip shows the client fetch clock and ignores the envelope server as_of",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LIFECYCLE-024",
+   "severity": "medium",
+   "area": "lifecycle",
+   "title": "No persistent store records a schema version (user_version 0 on all 8 SQLite DBs; no top-level workspace blob version) and nothing backs up the data dir before a new build touches it, so the first non-additive schema change will crash or silently drop data",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 1
+  },
+  {
+   "id": "R15-RESEARCH-022",
+   "severity": "medium",
+   "area": "research-search",
+   "title": "A 200-status CAPTCHA/block page from a keyless engine is recorded as a healthy empty answer and resets that engine's circuit breaker, so a blocking engine is never benched and an all-blocked search reports 'found nothing' instead of 'rate-limited'",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 2
+  },
+  {
+   "id": "R15-LEAD-122",
+   "severity": "medium",
+   "area": "lifecycle",
+   "title": "Screener 'Export CSV' writes the file but shows no saved path, toast or error (the result of downloadCsv is discarded)",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  },
+  {
+   "id": "R15-LEAD-124",
+   "severity": "medium",
+   "area": "lifecycle",
+   "title": "sec-edgar-mcp is killed while still extracting on a cold or busy launch (~91 s) and /sec routes return 501 for the whole session",
+   "finding_keys": [],
+   "existing": true,
+   "prior_failures": 0
+  }
+ ],
+ "refuted": [
+  {
+   "key": "investor:env-1",
+   "reason": "Environment, not a product defect (R1b): OpenRouter free-pool 404/429 and DeepSeek 402 (unfunded) were each answered with humanized provider errors; probes recorded in scenarios/AC-1.md:20-23.",
+   "evidence": "docs/redesign/verification/r15/final-pass/scenarios/AC-1.md"
+  },
+  {
+   "key": "investor:kl-2",
+   "reason": "Local-model prose claim ('brief contains news') with no figure: outside the R4 figure class, and under R1b model prose not rendered as data; the structured card is correct.",
+   "evidence": "docs/redesign/verification/r15/final-pass/raw/investor/rs1-ollama-normal.jsonl"
+  },
+  {
+   "key": "investor:kl-3",
+   "reason": "Local-model invented ambiguity question with no figure: outside the R4 class; R1b model prose, the resolve result (KPITTECH) is correct and nothing renders it as data.",
+   "evidence": "docs/redesign/verification/r15/final-pass/raw/investor/kpit-ollama.log"
+  },
+  {
+   "key": "investor:kl-4",
+   "reason": "Local-model misreading of an ok tool result in prose, no figure: outside the R4 class; R1b model prose, not rendered as data.",
+   "evidence": "docs/redesign/verification/r15/final-pass/raw/investor/ac1/ac1-ollama-p4-conflict.log"
+  }
+ ],
+ "duplicates": [
+  {
+   "key": "investor:9",
+   "of": "R15-FINAL-003"
+  },
+  {
+   "key": "maintainer:5",
+   "of": "R15-FINAL-008"
+  },
+  {
+   "key": "battery3-agent022-local-text-toolcall",
+   "of": "R15-FINAL-014"
+  },
+  {
+   "key": "drive-research-briefs:1",
+   "of": "R15-LEAD-134"
+  },
+  {
+   "key": "F-DOCS-007",
+   "of": "R15-LEAD-129"
+  }
+ ],
+ "attached": [
+  {
+   "key": "maintainer:att-ls1-coldboot",
+   "id": "R15-LEAD-123"
+  },
+  {
+   "key": "maintainer:att-ac5-origin",
+   "id": "R15-CODE-AGENT-001"
+  },
+  {
+   "key": "investor:att-ds1-bareamal",
+   "id": "R15-DATA-002"
+  },
+  {
+   "key": "maintainer:att-ui3-foreign",
+   "id": "R15-UI-090"
+  },
+  {
+   "key": "investor:att-rs4-decisions41",
+   "id": "DECISIONS 4.1 (rc1-battery-4:1, FR-070 FAST budget)"
+  },
+  {
+   "key": "maintainer:att-ls3-openbbkill",
+   "id": "R15-DATA-061"
+  },
+  {
+   "key": "drive-research-briefs:att-lead060",
+   "id": "R15-LEAD-060"
+  },
+  {
+   "key": "drive-research-briefs:att-research043",
+   "id": "R15-RESEARCH-043"
+  },
+  {
+   "key": "drive-research-briefs:att-lead128",
+   "id": "R15-LEAD-128"
+  },
+  {
+   "key": "drive-research-briefs:att-agent027",
+   "id": "R15-AGENT-027"
+  },
+  {
+   "key": "drive-screener:att-1",
+   "id": "R15-LEAD-069"
+  },
+  {
+   "key": "drive-screener:att-2",
+   "id": "R15-LEAD-076"
+  },
+  {
+   "key": "drive-panels-layouts:att-news-reliance",
+   "id": "R15-DATA-030"
+  },
+  {
+   "key": "drive-panels-layouts:att-sec-in-502",
+   "id": "R15-DATA-061"
+  },
+  {
+   "key": "drive-settings-plugins:import-fontsize-only-toast",
+   "id": "R15-LEAD-089"
+  },
+  {
+   "key": "drive-settings-plugins:privacy-copy-overpromise",
+   "id": "R15-LEAD-068"
+  },
+  {
+   "key": "drive-onboarding-stranger:att-keychain-denied",
+   "id": "R15-UI-044"
+  },
+  {
+   "key": "drive-onboarding-stranger:att-ollama-unreachable-start-copy",
+   "id": "R15-LEAD-133"
+  },
+  {
+   "key": "drive-failure-inducer:att-agent027-groq413",
+   "id": "R15-AGENT-027"
+  },
+  {
+   "key": "drive-failure-inducer:att-lead071-outage-cached-empty",
+   "id": "R15-LEAD-071"
+  },
+  {
+   "key": "FI-FINAL-HANG-NETWORK-COPY",
+   "id": "R15-AGENT-027"
+  },
+  {
+   "key": "F-DOCS-009",
+   "id": "R15-DOCS-003"
+  },
+  {
+   "key": "drive-research-briefs:4",
+   "id": "DECISIONS 4.1 (rc1-battery-4:1, FR-070 FAST budget)"
+  }
+ ],
+ "known_limitation": [
+  {
+   "key": "investor:kl-1",
+   "class_entry": "R15-LEAD-037"
+  },
+  {
+   "key": "drive-composer-chat:kl-1",
+   "class_entry": "R15-LEAD-037"
+  },
+  {
+   "key": "drive-composer-chat:kl-2",
+   "class_entry": "R15-LEAD-030"
+  },
+  {
+   "key": "drive-research-briefs:kl-1",
+   "class_entry": "R15-LEAD-030"
+  },
+  {
+   "key": "drive-screener:kl-1",
+   "class_entry": "R15-LEAD-030"
+  },
+  {
+   "key": "battery1-known-limitation-agent033-bdl-figures",
+   "class_entry": "R15-LEAD-030"
+  },
+  {
+   "key": "maintainer:kl-1",
+   "class_entry": "R15-LEAD-038"
+  }
+ ],
+ "needs_gui": [
+  {
+   "key": "drive-composer-chat:gui-1",
+   "reason": "arrange_layout compare apply needs a mounted dockview; jsdom half honest (NEEDS_GUI.md)"
+  },
+  {
+   "key": "drive-composer-chat:gui-2",
+   "reason": "composer collapse ladder paint at real dock widths (NEEDS_GUI.md)"
+  },
+  {
+   "key": "drive-research-briefs:ng-1",
+   "reason": "BriefPanel favicon onError / export paint need the rig (NEEDS_GUI.md)"
+  },
+  {
+   "key": "drive-onboarding-stranger:gui-links-pull-keychain",
+   "reason": "external links, live model download and keychain denial need a real window/native dialog (NEEDS_GUI.md)"
+  },
+  {
+   "key": "R15-UI-084",
+   "reason": "R5 operator-attended list; maximize paint needs a real window (1 prior gui-round not_certified)"
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  36.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_06e39713d8324b0bac23b8a3ab9ec2bd", "name": "price_data", "input": {"symbol": "AAPL"}}
+[  36.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_06e39713d8324b0bac23b8a3ab9ec2bd", "name": "price_data", "ok": true, "error": null}
+[  46.6s] heartbeat: {"kind": "heartbeat"}
+[  56.6s] heartbeat: {"kind": "heartbeat"}
+[  75.9s] heartbeat: {"kind": "heartbeat"}
+[  77.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_f7cb1f2a333847c18dd650605a6e606b", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+[  79.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_f7cb1f2a333847c18dd650605a6e606b", "name": "fundamentals", "ok": true, "error": null}
+[  89.3s] heartbeat: {"kind": "heartbeat"}
+[  99.3s] heartbeat: {"kind": "heartbeat"}
+[ 109.6s] done: {"kind": "done", "usage": {"input_tokens": 9655, "output_tokens": 32, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The price_data tool returned historical bar data for AAPL, but it did not include the market capitalization of AAPL.
+
+To get the market capitalization, I should have called the fundamentals tool instead. Here is what the fundamentals tool returns:
+
+The market capitalization of AAPL is USD 4.90T. The result came from the fundamentals tool, which used data provided by yfinance.
+
+=== ok · 109.6s · events {'heartbeat': 8, 'tool_use': 2, 'tool_result': 2, 'delta': 82, 'done': 1} · usage in=9655 out=32 · est $0.00000 · llama3.1:8b

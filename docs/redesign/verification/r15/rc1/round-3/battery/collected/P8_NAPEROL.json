@@ -1,0 +1,5126 @@
+{
+ "slot": "P8",
+ "symbol": "NAPEROL",
+ "manifest_name": "Naperol Investments Ltd",
+ "exchange": "BSE",
+ "bse_code": "500298",
+ "collected_at": "2026-09-26T21:37:22+0530",
+ "sidecar": "http://127.0.0.1:52313",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52313/resolve?q=NAPEROL",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "NAPEROL",
+    "region": "IN",
+    "resolved": {
+     "symbol": "NAPEROL",
+     "name": "Naperol Investments Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "NAPEROL.BO",
+     "confidence": 1.0,
+     "isin": "INE585A01020",
+     "bse_code": "500298",
+     "industry": "Investment Company",
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "X",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "NAPEROL",
+      "name": "Naperol Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "NAPEROL.BO",
+      "confidence": 1.0,
+      "isin": "INE585A01020",
+      "bse_code": "500298",
+      "industry": "Investment Company",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52313/resolve?q=Naperol+Investments+Ltd",
+   "status": 200,
+   "elapsed_ms": 669,
+   "body": {
+    "ok": true,
+    "query": "Naperol Investments Ltd",
+    "region": "IN",
+    "resolved": {
+     "symbol": "NAPEROL",
+     "name": "Naperol Investments Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "NAPEROL.BO",
+     "confidence": 1.0,
+     "isin": "INE585A01020",
+     "bse_code": "500298",
+     "industry": "Investment Company",
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "X",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "NAPEROL",
+      "name": "Naperol Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "NAPEROL.BO",
+      "confidence": 1.0,
+      "isin": "INE585A01020",
+      "bse_code": "500298",
+      "industry": "Investment Company",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "RAPIDIN",
+      "name": "Rapid Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "RAPIDIN.BO",
+      "confidence": 0.8182,
+      "isin": "INE154M01012",
+      "bse_code": "501351",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "SHARPINV",
+      "name": "Sharp Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SHARPINV.BO",
+      "confidence": 0.8182,
+      "isin": "INE909D01026",
+      "bse_code": "538212",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 1.0
+     },
+     {
+      "symbol": "HERCULES",
+      "name": "Hercules Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "HERCULES.BO",
+      "confidence": 0.8085,
+      "isin": "INE688E01024",
+      "bse_code": "505720",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 1.0
+     },
+     {
+      "symbol": "SALEM",
+      "name": "Salem Erode Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SALEM.BO",
+      "confidence": 0.8,
+      "isin": "INE894E01028",
+      "bse_code": "540181",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 1.0
+     },
+     {
+      "symbol": "HEALINV",
+      "name": "Healthy Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "HEALINV.BO",
+      "confidence": 0.7826,
+      "isin": "INE160N01017",
+      "bse_code": "503689",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52313/resolve?q=500298",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "500298",
+    "region": "IN",
+    "resolved": {
+     "symbol": "NAPEROL",
+     "name": "Naperol Investments Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "NAPEROL.BO",
+     "confidence": 1.0,
+     "isin": "INE585A01020",
+     "bse_code": "500298",
+     "industry": "Investment Company",
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "X",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "NAPEROL",
+      "name": "Naperol Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "NAPEROL.BO",
+      "confidence": 1.0,
+      "isin": "INE585A01020",
+      "bse_code": "500298",
+      "industry": "Investment Company",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52313/quotes/NAPEROL?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 600,
+   "body": {
+    "symbol": "NAPEROL",
+    "price": 640.2,
+    "change": 2.050000000000068,
+    "change_percent": 0.3212410875186192,
+    "volume": 459.0,
+    "open": 638.0,
+    "high": 647.7,
+    "low": 630.3,
+    "prev_close": 638.15,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-25T00:00:00Z",
+    "provider": "bse",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52313/fundamentals/NAPEROL",
+   "status": 200,
+   "elapsed_ms": 7884,
+   "body": {
+    "symbol": "NAPEROL.BO",
+    "name": "Naperol Investments Limited",
+    "sector": "Financial Services",
+    "industry": "Investment Company",
+    "sector_source": "resolver",
+    "currency": "INR",
+    "financial_currency": null,
+    "ratio_price": 640.2,
+    "market_cap": 3679229440.0,
+    "pe_ratio": 34.017006,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 0.40118387,
+    "price_to_sales": 11.166573,
+    "ev_to_ebitda": 31.873,
+    "book_value": 1595.777,
+    "dividend_yield": 0.0304,
+    "dividend_per_share": 19.48,
+    "eps": 18.79,
+    "beta": 0.423,
+    "fifty_two_week_high": 990.0,
+    "fifty_two_week_low": 490.1,
+    "fifty_two_week_change": -0.30035084,
+    "fifty_two_week_high_date": "2025-10-23",
+    "fifty_two_week_low_date": "2026-03-30",
+    "listing_date": null,
+    "first_trade_date": "2002-07-01",
+    "forward_pe_fiscal_year": null,
+    "roe": 0.011772373513484686,
+    "roa": null,
+    "gross_margin": 0.42156,
+    "operating_margin": 0.01864,
+    "profit_margin": 0.32761002,
+    "debt_to_equity": 0.0,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": 0.012088867081016247,
+    "basis": "standalone",
+    "revenue_ttm": 329460000.0,
+    "net_income_ttm": 107950000.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 5747000.0,
+    "revenue_growth": 1.9290362565850634,
+    "earnings_growth": 1.3461538461538463,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.7304,
+    "held_percent_institutions": 0.0,
+    "dividend_per_share_ttm": 19.48,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector_source": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ratio_price": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:50:50+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:50:50+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:50:50+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:50:50+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:50:50+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:50:50+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:50:50+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:50:50+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_yield": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:50:50+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "beta": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:50:50+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "listing_date": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "first_trade_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe_fiscal_year": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "net income (TTM) / stockholders equity"
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "total debt / stockholders equity"
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roce": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "annual EBIT / (total assets - current liabilities)"
+     },
+     "basis": {
+      "status": "ok",
+      "provider": "exchange-filings",
+      "as_of": "2026-09-26T16:07:08.298541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "held_percent_insiders": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_institutions": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": "yfinance institutions 0.00% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: 1.77%) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:07:01.931464+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52313/fundamentals/NAPEROL/income",
+   "status": 200,
+   "elapsed_ms": 296,
+   "body": {
+    "symbol": "NAPEROL.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2026-03-31": 266814000.0,
+       "2025-03-31": 195606000.0,
+       "2024-03-31": 19109000.0,
+       "2023-03-31": 18915000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2026-03-31": 266814000.0,
+       "2025-03-31": 195606000.0,
+       "2024-03-31": 19109000.0,
+       "2023-03-31": 18915000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cost_of_revenue",
+      "values": {
+       "2026-03-31": 129032000.0,
+       "2025-03-31": 54629000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 1810827000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gross_profit",
+      "values": {
+       "2026-03-31": 137782000.0,
+       "2025-03-31": 140977000.0,
+       "2024-03-31": 19109000.0,
+       "2023-03-31": 1953908000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "rent_and_landing_fees",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 5530000.0
+      }
+     },
+     {
+      "label": "general_and_administrative_expense",
+      "values": {
+       "2026-03-31": 6537000.0,
+       "2025-03-31": 11241000.0,
+       "2024-03-31": 3959000.0,
+       "2023-03-31": 2228000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "selling_and_marketing_expense",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 16055000.0
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2026-03-31": 6537000.0,
+       "2025-03-31": null,
+       "2024-03-31": 3959000.0,
+       "2023-03-31": 2228000.0,
+       "2022-03-31": 94311000.0
+      }
+     },
+     {
+      "label": "depreciation_income_statement",
+      "values": {
+       "2026-03-31": 57000.0,
+       "2025-03-31": 21000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 191535000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "amortization",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 1994000.0
+      }
+     },
+     {
+      "label": "depreciation_and_amortization_in_income_statement",
+      "values": {
+       "2026-03-31": 57000.0,
+       "2025-03-31": 21000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 191535000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_operating_expenses",
+      "values": {
+       "2026-03-31": 4444000.0,
+       "2025-03-31": 4032000.0,
+       "2024-03-31": 2435000.0,
+       "2023-03-31": 4225000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "operating_expense",
+      "values": {
+       "2026-03-31": 26915000.0,
+       "2025-03-31": 29456000.0,
+       "2024-03-31": 25300000.0,
+       "2023-03-31": 21308000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "operating_income",
+      "values": {
+       "2026-03-31": 110867000.0,
+       "2025-03-31": 111521000.0,
+       "2024-03-31": -6191000.0,
+       "2023-03-31": -2393000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_income_non_operating",
+      "values": {
+       "2026-03-31": 88000.0,
+       "2025-03-31": null,
+       "2024-03-31": 95000.0,
+       "2023-03-31": 14000.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "interest_expense_non_operating",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 62213000.0,
+       "2022-03-31": 28101000.0
+      }
+     },
+     {
+      "label": "net_non_operating_interest_income_expense",
+      "values": {
+       "2026-03-31": 88000.0,
+       "2025-03-31": null,
+       "2024-03-31": 95000.0,
+       "2023-03-31": 14000.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "restructuring_and_mergern_acquisition",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": -3733744000.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "impairment_of_capital_assets",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "write_off",
+      "values": {
+       "2026-03-31": 423000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_special_charges",
+      "values": {
+       "2026-03-31": 41000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": -29563000.0,
+       "2022-03-31": -45000000.0
+      }
+     },
+     {
+      "label": "special_income_charges",
+      "values": {
+       "2026-03-31": -464000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 3763307000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_operating_income_expenses",
+      "values": {
+       "2026-03-31": 738000.0,
+       "2025-03-31": 5677000.0,
+       "2024-03-31": 95000.0,
+       "2023-03-31": 14000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2026-03-31": 111141000.0,
+       "2025-03-31": 117198000.0,
+       "2024-03-31": -6096000.0,
+       "2023-03-31": 3760928000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2026-03-31": 4250000.0,
+       "2025-03-31": 11655000.0,
+       "2024-03-31": -2441000.0,
+       "2023-03-31": 8421000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2026-03-31": 106891000.0,
+       "2025-03-31": 105543000.0,
+       "2024-03-31": -3655000.0,
+       "2023-03-31": 3752507000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_discontinuous_operations",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 44384000.0
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2026-03-31": 106891000.0,
+       "2025-03-31": 105543000.0,
+       "2024-03-31": -3655000.0,
+       "2023-03-31": 3752507000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "minority_interests",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2026-03-31": 106891000.0,
+       "2025-03-31": 105543000.0,
+       "2024-03-31": -3655000.0,
+       "2023-03-31": 3752507000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "otherunder_preferred_stock_dividend",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2026-03-31": 106891000.0,
+       "2025-03-31": 105543000.0,
+       "2024-03-31": -3655000.0,
+       "2023-03-31": 3752507000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2026-03-31": 106891000.0,
+       "2025-03-31": 105543000.0,
+       "2024-03-31": -3655000.0,
+       "2023-03-31": 3752507000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2026-03-31": 18.6,
+       "2025-03-31": 18.36,
+       "2024-03-31": -0.64,
+       "2023-03-31": 652.95,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2026-03-31": 18.6,
+       "2025-03-31": 18.36,
+       "2024-03-31": -0.64,
+       "2023-03-31": 652.95,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2026-03-31": 5747000.0,
+       "2025-03-31": 5747000.0,
+       "2024-03-31": 5747000.0,
+       "2023-03-31": 5747000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2026-03-31": 5747000.0,
+       "2025-03-31": 5747000.0,
+       "2024-03-31": 5710938.0,
+       "2023-03-31": 5747000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "rent_expense_supplemental",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 5530000.0
+      }
+     },
+     {
+      "label": "total_expenses",
+      "values": {
+       "2026-03-31": 155947000.0,
+       "2025-03-31": 84085000.0,
+       "2024-03-31": 25300000.0,
+       "2023-03-31": 21308000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2026-03-31": 106891000.0,
+       "2025-03-31": 105543000.0,
+       "2024-03-31": -3655000.0,
+       "2023-03-31": 3752507000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2026-03-31": 107337256.772928,
+       "2025-03-31": 105543000.0,
+       "2024-03-31": -3655000.0,
+       "2023-03-31": -2373673.240487,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_income",
+      "values": {
+       "2026-03-31": 88000.0,
+       "2025-03-31": 5677000.0,
+       "2024-03-31": 95000.0,
+       "2023-03-31": 14000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_expense",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 62213000.0,
+       "2022-03-31": 28101000.0
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2026-03-31": 88000.0,
+       "2025-03-31": null,
+       "2024-03-31": 95000.0,
+       "2023-03-31": 14000.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "ebit",
+      "values": {
+       "2026-03-31": 110867000.0,
+       "2025-03-31": 111521000.0,
+       "2024-03-31": -6191000.0,
+       "2023-03-31": -2393000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "ebitda",
+      "values": {
+       "2026-03-31": 110924000.0,
+       "2025-03-31": 111542000.0,
+       "2024-03-31": -6191000.0,
+       "2023-03-31": -2393000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "reconciled_cost_of_revenue",
+      "values": {
+       "2026-03-31": 129032000.0,
+       "2025-03-31": 54629000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 1810827000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2026-03-31": 57000.0,
+       "2025-03-31": 21000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2026-03-31": 106891000.0,
+       "2025-03-31": 105543000.0,
+       "2024-03-31": -3655000.0,
+       "2023-03-31": 3752507000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2026-03-31": -464000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 3763307000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2026-03-31": -464000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 3763307000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "normalized_ebitda",
+      "values": {
+       "2026-03-31": 111388000.0,
+       "2025-03-31": 111542000.0,
+       "2024-03-31": -6191000.0,
+       "2023-03-31": -3765700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2026-03-31": 0.03824,
+       "2025-03-31": 0.099447,
+       "2024-03-31": 0.3,
+       "2023-03-31": 0.002239,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2026-03-31": -17743.227072,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 8426326.759513,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52313/fundamentals/NAPEROL/balance",
+   "status": 200,
+   "elapsed_ms": 452,
+   "body": {
+    "symbol": "NAPEROL.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_financial",
+      "values": {
+       "2026-03-31": 8558000.0,
+       "2025-03-31": 33716000.0,
+       "2024-03-31": 9205000.0,
+       "2023-03-31": 41000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_equivalents",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 5291000.0
+      }
+     },
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2026-03-31": 8558000.0,
+       "2025-03-31": 33716000.0,
+       "2024-03-31": 9205000.0,
+       "2023-03-31": 41000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "short_term_investments",
+      "values": {
+       "2026-03-31": 70983000.0,
+       "2025-03-31": 44456000.0,
+       "2024-03-31": 20809000.0,
+       "2023-03-31": 15362000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_cash_equivalents_and_short_term_investments",
+      "values": {
+       "2026-03-31": 79541000.0,
+       "2025-03-31": 64462000.0,
+       "2024-03-31": 30014000.0,
+       "2023-03-31": 15403000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gross_accounts_receivable",
+      "values": {
+       "2026-03-31": 74062000.0,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 10000000.0,
+       "2022-03-31": 197636000.0
+      }
+     },
+     {
+      "label": "allowance_for_doubtful_accounts_receivable",
+      "values": {
+       "2026-03-31": -70000.0,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": -8872000.0
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2026-03-31": 73992000.0,
+       "2025-03-31": 40986000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 10000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_receivables",
+      "values": {
+       "2026-03-31": 273000.0,
+       "2025-03-31": 4617000.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 6636000.0
+      }
+     },
+     {
+      "label": "raw_materials",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 272704000.0
+      }
+     },
+     {
+      "label": "finished_goods",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 19722000.0
+      }
+     },
+     {
+      "label": "inventories",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 292426000.0
+      }
+     },
+     {
+      "label": "prepaid_assets",
+      "values": {
+       "2026-03-31": 56020000.0,
+       "2025-03-31": null,
+       "2024-03-31": 23761000.0,
+       "2023-03-31": 300000.0,
+       "2022-03-31": 55499000.0
+      }
+     },
+     {
+      "label": "restricted_cash",
+      "values": {
+       "2026-03-31": 4228000.0,
+       "2025-03-31": 9093000.0,
+       "2024-03-31": 5848000.0,
+       "2023-03-31": 6344000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "assets_held_for_sale_current",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 1556000.0
+      }
+     },
+     {
+      "label": "hedging_assets_current",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "other_current_assets",
+      "values": {
+       "2026-03-31": 56020000.0,
+       "2025-03-31": 5024000.0,
+       "2024-03-31": 23761000.0,
+       "2023-03-31": 55481000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_current_assets",
+      "values": {
+       "2026-03-31": 214054000.0,
+       "2025-03-31": 124182000.0,
+       "2024-03-31": 59623000.0,
+       "2023-03-31": 32047000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "properties",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "land_and_improvements",
+      "values": {
+       "2026-03-31": 329000.0,
+       "2025-03-31": 329000.0,
+       "2024-03-31": 329000.0,
+       "2023-03-31": 329000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "buildings_and_improvements",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": 100834000.0
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2026-03-31": 166000.0,
+       "2025-03-31": 141000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_properties",
+      "values": {
+       "2026-03-31": 417000.0,
+       "2025-03-31": 449000.0,
+       "2024-03-31": 329000.0,
+       "2023-03-31": 3264116000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 45702000.0
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2026-03-31": 495000.0,
+       "2025-03-31": 449000.0,
+       "2024-03-31": 329000.0,
+       "2023-03-31": 329000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2026-03-31": -78000.0,
+       "2025-03-31": -21000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2026-03-31": 417000.0,
+       "2025-03-31": 449000.0,
+       "2024-03-31": 329000.0,
+       "2023-03-31": 329000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_intangible_assets",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 4514000.0
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 4514000.0
+      }
+     },
+     {
+      "label": "investment_properties",
+      "values": {
+       "2026-03-31": 260000.0,
+       "2025-03-31": 260000.0,
+       "2024-03-31": 260000.0,
+       "2023-03-31": 260000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investmentsin_subsidiariesat_cost",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 2650000.0
+      }
+     },
+     {
+      "label": "long_term_equity_investment",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 2650000.0
+      }
+     },
+     {
+      "label": "available_for_sale_securities",
+      "values": {
+       "2026-03-31": 8883534000.0,
+       "2025-03-31": 11866475000.0,
+       "2024-03-31": 10626430000.0,
+       "2023-03-31": 5452777000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investmentin_financial_assets",
+      "values": {
+       "2026-03-31": 8883534000.0,
+       "2025-03-31": 11866475000.0,
+       "2024-03-31": 10626430000.0,
+       "2023-03-31": 5452777000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "financial_assets",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 27179000.0
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_assets",
+      "values": {
+       "2026-03-31": 29692000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 10969000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_prepaid_assets",
+      "values": {
+       "2026-03-31": 62592000.0,
+       "2025-03-31": 56389000.0,
+       "2024-03-31": 93158000.0,
+       "2023-03-31": 91569000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_current_assets",
+      "values": {
+       "2026-03-31": 6133000.0,
+       "2025-03-31": 5200000.0,
+       "2024-03-31": null,
+       "2023-03-31": 8640000.0,
+       "2022-03-31": 24502000.0
+      }
+     },
+     {
+      "label": "total_non_current_assets",
+      "values": {
+       "2026-03-31": 8982628000.0,
+       "2025-03-31": 11928773000.0,
+       "2024-03-31": 10720177000.0,
+       "2023-03-31": 5555904000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2026-03-31": 9196682000.0,
+       "2025-03-31": 12052955000.0,
+       "2024-03-31": 10779800000.0,
+       "2023-03-31": 5587951000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accounts_payable",
+      "values": {
+       "2026-03-31": 14676000.0,
+       "2025-03-31": 7150000.0,
+       "2024-03-31": 1814000.0,
+       "2023-03-31": 4528000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_tax_payable",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 2776000.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "dividends_payable",
+      "values": {
+       "2026-03-31": 2907000.0,
+       "2025-03-31": 4915000.0,
+       "2024-03-31": 5848000.0,
+       "2023-03-31": 6344000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_payable",
+      "values": {
+       "2026-03-31": 7637000.0,
+       "2025-03-31": null,
+       "2024-03-31": 31639000.0,
+       "2023-03-31": 3795000.0,
+       "2022-03-31": 79447000.0
+      }
+     },
+     {
+      "label": "payables",
+      "values": {
+       "2026-03-31": 25220000.0,
+       "2025-03-31": 7150000.0,
+       "2024-03-31": 39301000.0,
+       "2023-03-31": 14667000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_provisions",
+      "values": {
+       "2026-03-31": 325000.0,
+       "2025-03-31": 171000.0,
+       "2024-03-31": 249000.0,
+       "2023-03-31": 12685000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "pensionand_other_post_retirement_benefit_plans_current",
+      "values": {
+       "2026-03-31": 325000.0,
+       "2025-03-31": 171000.0,
+       "2024-03-31": 249000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 803029000.0
+      }
+     },
+     {
+      "label": "current_capital_lease_obligation",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "current_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 803029000.0
+      }
+     },
+     {
+      "label": "current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "other_current_liabilities",
+      "values": {
+       "2026-03-31": 1525000.0,
+       "2025-03-31": 5238000.0,
+       "2024-03-31": 322000.0,
+       "2023-03-31": 27046000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_liabilities",
+      "values": {
+       "2026-03-31": 25682000.0,
+       "2025-03-31": 18426000.0,
+       "2024-03-31": 39550000.0,
+       "2023-03-31": 14667000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_provisions",
+      "values": {
+       "2026-03-31": 1821000.0,
+       "2025-03-31": 1944000.0,
+       "2024-03-31": 3773000.0,
+       "2023-03-31": 31645000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 137708000.0
+      }
+     },
+     {
+      "label": "long_term_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 137708000.0
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 396976000.0,
+       "2024-03-31": 188944000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_pension_and_other_postretirement_benefit_plans",
+      "values": {
+       "2026-03-31": 1821000.0,
+       "2025-03-31": null,
+       "2024-03-31": 3773000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": 32347000.0
+      }
+     },
+     {
+      "label": "derivative_product_liabilities",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "other_non_current_liabilities",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": -18000.0
+      }
+     },
+     {
+      "label": "total_non_current_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 1821000.0,
+       "2025-03-31": 398920000.0,
+       "2024-03-31": 192717000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 27503000.0,
+       "2025-03-31": 417346000.0,
+       "2024-03-31": 232267000.0,
+       "2023-03-31": 14667000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2026-03-31": 57470000.0,
+       "2025-03-31": 57470000.0,
+       "2024-03-31": 57470000.0,
+       "2023-03-31": 57470000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2026-03-31": 57470000.0,
+       "2025-03-31": 57470000.0,
+       "2024-03-31": 57470000.0,
+       "2023-03-31": 57470000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "additional_paid_in_capital",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 2000.0
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2026-03-31": 4558720000.0,
+       "2025-03-31": 4468782000.0,
+       "2024-03-31": 4414840000.0,
+       "2023-03-31": 4424308000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_equity_interest",
+      "values": {
+       "2026-03-31": 9111709000.0,
+       "2025-03-31": 11578139000.0,
+       "2024-03-31": 10490063000.0,
+       "2023-03-31": 9047112000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2026-03-31": 9169179000.0,
+       "2025-03-31": 11635609000.0,
+       "2024-03-31": 10547533000.0,
+       "2023-03-31": 5573284000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2026-03-31": 9169179000.0,
+       "2025-03-31": 11635609000.0,
+       "2024-03-31": 10547533000.0,
+       "2023-03-31": 5573284000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2026-03-31": 9169179000.0,
+       "2025-03-31": 11635609000.0,
+       "2024-03-31": 10547533000.0,
+       "2023-03-31": 5573284000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2026-03-31": 9169179000.0,
+       "2025-03-31": 11635609000.0,
+       "2024-03-31": 10547533000.0,
+       "2023-03-31": 5573284000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_lease_obligations",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2026-03-31": 9169179000.0,
+       "2025-03-31": 11635609000.0,
+       "2024-03-31": 10547533000.0,
+       "2023-03-31": 5573284000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "working_capital",
+      "values": {
+       "2026-03-31": 188372000.0,
+       "2025-03-31": 105756000.0,
+       "2024-03-31": 20073000.0,
+       "2023-03-31": 17380000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2026-03-31": 9169179000.0,
+       "2025-03-31": 11635609000.0,
+       "2024-03-31": 10547533000.0,
+       "2023-03-31": 5573284000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2026-03-31": 9169179000.0,
+       "2025-03-31": 11635609000.0,
+       "2024-03-31": 10547533000.0,
+       "2023-03-31": 5573284000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 940737000.0
+      }
+     },
+     {
+      "label": "net_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 74628000.0,
+       "2022-03-31": 935839000.0
+      }
+     },
+     {
+      "label": "share_issued",
+      "values": {
+       "2026-03-31": 5747000.0,
+       "2025-03-31": 5747000.0,
+       "2024-03-31": 5747000.0,
+       "2023-03-31": 5747000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "ordinary_shares_number",
+      "values": {
+       "2026-03-31": 5747000.0,
+       "2025-03-31": 5747000.0,
+       "2024-03-31": 5747000.0,
+       "2023-03-31": 5747000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "treasury_shares_number",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52313/fundamentals/NAPEROL/cashflow",
+   "status": 200,
+   "elapsed_ms": 419,
+   "body": {
+    "symbol": "NAPEROL.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2026-03-31": 111182000.0,
+       "2025-03-31": 117198000.0,
+       "2024-03-31": -6096000.0,
+       "2023-03-31": 3760928000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gain_loss_on_sale_of_ppe",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 3000.0
+      }
+     },
+     {
+      "label": "net_foreign_currency_exchange_gain_loss",
+      "values": {
+       "2026-03-31": -190000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 125000.0
+      }
+     },
+     {
+      "label": "gain_loss_on_investment_securities",
+      "values": {
+       "2026-03-31": -118959000.0,
+       "2025-03-31": -124733000.0,
+       "2024-03-31": -9049000.0,
+       "2023-03-31": -8855000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "depreciation",
+      "values": {
+       "2026-03-31": 57000.0,
+       "2025-03-31": 21000.0,
+       "2024-03-31": null,
+       "2023-03-31": 191535000.0,
+       "2022-03-31": 172371000.0
+      }
+     },
+     {
+      "label": "amortization_cash_flow",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 1994000.0
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2026-03-31": 57000.0,
+       "2025-03-31": 21000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "provisionand_write_offof_assets",
+      "values": {
+       "2026-03-31": 70000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 2042000.0
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2026-03-31": -933000.0,
+       "2025-03-31": -5200000.0,
+       "2024-03-31": -95000.0,
+       "2023-03-31": -3733758000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2026-03-31": -33076000.0,
+       "2025-03-31": -40986000.0,
+       "2024-03-31": 10000000.0,
+       "2023-03-31": -10000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_inventory",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": -121507000.0
+      }
+     },
+     {
+      "label": "change_in_payable",
+      "values": {
+       "2026-03-31": 7527000.0,
+       "2025-03-31": 5336000.0,
+       "2024-03-31": -2712000.0,
+       "2023-03-31": 3342000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_assets",
+      "values": {
+       "2026-03-31": -46652000.0,
+       "2025-03-31": 14120000.0,
+       "2024-03-31": -23761000.0,
+       "2023-03-31": 6636000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_liabilities",
+      "values": {
+       "2026-03-31": 4630000.0,
+       "2025-03-31": -25449000.0,
+       "2024-03-31": 46908000.0,
+       "2023-03-31": -2781000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2026-03-31": -67197000.0,
+       "2025-03-31": -48723000.0,
+       "2024-03-31": 34369000.0,
+       "2023-03-31": -2803000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "taxes_refund_paid",
+      "values": {
+       "2026-03-31": -10644000.0,
+       "2025-03-31": 27193000.0,
+       "2024-03-31": -8215000.0,
+       "2023-03-31": -1039000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2026-03-31": -86614000.0,
+       "2025-03-31": -34244000.0,
+       "2024-03-31": 10914000.0,
+       "2023-03-31": 14473000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2026-03-31": -25000.0,
+       "2025-03-31": -141000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "sale_of_ppe",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 10000.0
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2026-03-31": -25000.0,
+       "2025-03-31": -141000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "purchase_of_investment",
+      "values": {
+       "2026-03-31": -137500000.0,
+       "2025-03-31": -130000000.0,
+       "2024-03-31": -4600000.0,
+       "2023-03-31": -4196000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "sale_of_investment",
+      "values": {
+       "2026-03-31": 102000000.0,
+       "2025-03-31": 122673000.0,
+       "2024-03-31": 300000.0,
+       "2023-03-31": 10569000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_investment_purchase_and_sale",
+      "values": {
+       "2026-03-31": -35500000.0,
+       "2025-03-31": -7327000.0,
+       "2024-03-31": -4300000.0,
+       "2023-03-31": 6373000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "dividends_received_cfi",
+      "values": {
+       "2026-03-31": 114222000.0,
+       "2025-03-31": 122124000.0,
+       "2024-03-31": 7902000.0,
+       "2023-03-31": 7999000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_received_cfi",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 0.0,
+       "2024-03-31": 95000.0,
+       "2023-03-31": 14000.0,
+       "2022-03-31": 52755000.0
+      }
+     },
+     {
+      "label": "net_other_investing_changes",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 496000.0,
+       "2023-03-31": 105000.0,
+       "2022-03-31": 18553000.0
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2026-03-31": 78697000.0,
+       "2025-03-31": 114656000.0,
+       "2024-03-31": 3997000.0,
+       "2023-03-31": 14191000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_issuance",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 146250000.0
+      }
+     },
+     {
+      "label": "long_term_debt_payments",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": -380363000.0
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": -234113000.0
+      }
+     },
+     {
+      "label": "short_term_debt_payments",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": -93333000.0
+      }
+     },
+     {
+      "label": "net_short_term_debt_issuance",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": -93333000.0
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": -327446000.0
+      }
+     },
+     {
+      "label": "common_stock_dividend_paid",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": -6243000.0,
+       "2023-03-31": -28840000.0,
+       "2022-03-31": -72299000.0
+      }
+     },
+     {
+      "label": "cash_dividends_paid",
+      "values": {
+       "2026-03-31": -17241000.0,
+       "2025-03-31": -55901000.0,
+       "2024-03-31": -5747000.0,
+       "2023-03-31": -28840000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_paid_cff",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": -90658000.0
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2026-03-31": -17241000.0,
+       "2025-03-31": -55901000.0,
+       "2024-03-31": -5747000.0,
+       "2023-03-31": -28840000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2026-03-31": -25158000.0,
+       "2025-03-31": 24511000.0,
+       "2024-03-31": 9164000.0,
+       "2023-03-31": -176000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2026-03-31": 33716000.0,
+       "2025-03-31": 9205000.0,
+       "2024-03-31": 41000.0,
+       "2023-03-31": 4898000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_cash_adjustment_outside_changein_cash",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": -4681000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2026-03-31": 8558000.0,
+       "2025-03-31": 33716000.0,
+       "2024-03-31": 9205000.0,
+       "2023-03-31": 41000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2026-03-31": -25000.0,
+       "2025-03-31": -141000.0,
+       "2024-03-31": null,
+       "2023-03-31": -59904000.0,
+       "2022-03-31": -175096000.0
+      }
+     },
+     {
+      "label": "issuance_of_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 146250000.0
+      }
+     },
+     {
+      "label": "repayment_of_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": -380363000.0
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2026-03-31": -86639000.0,
+       "2025-03-31": -34385000.0,
+       "2024-03-31": 10914000.0,
+       "2023-03-31": 14473000.0,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52313/fundamentals/NAPEROL/ratings",
+   "status": 200,
+   "elapsed_ms": 272,
+   "body": {
+    "symbol": "NAPEROL.BO",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance",
+    "as_of": "2026-09-26T16:07:14.588078Z"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=NAPEROL",
+   "status": 200,
+   "elapsed_ms": 3539,
+   "body": {
+    "symbol": "NAPEROL",
+    "count": 104,
+    "patterns": [
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2026-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 1.76,
+      "dii_percent": 0.01,
+      "institutions_percent": 1.77,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.47,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-07-21",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/500298_2172026162454_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2026-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 1.76,
+      "dii_percent": 0.01,
+      "institutions_percent": 1.77,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.47,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-04-20",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/500298_204202619532_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2025-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 1.76,
+      "dii_percent": 0.02,
+      "institutions_percent": 1.78,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.46,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-01-21",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/500298_2112026124816_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2025-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 1.76,
+      "dii_percent": 0.02,
+      "institutions_percent": 1.78,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.46,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-10-21",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/500298_21102025211054_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2025-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 1.76,
+      "dii_percent": 0.02,
+      "institutions_percent": 1.78,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.46,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-07-21",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/500298_2172025135222_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2025-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 1.98,
+      "dii_percent": 0.02,
+      "institutions_percent": 2.0,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.24,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-04-17",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1742025173116_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2024-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 1.98,
+      "dii_percent": 0.02,
+      "institutions_percent": 2.0,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.24,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-01-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_2012025122222_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2024-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 1.91,
+      "dii_percent": 0.02,
+      "institutions_percent": 1.93,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.3,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-10-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1810202417519_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2024-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 0.67,
+      "dii_percent": 0.01,
+      "institutions_percent": 0.68,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.55,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-07-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1972024153455_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2024-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 0.0,
+      "dii_percent": 0.01,
+      "institutions_percent": 0.01,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.23,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-04-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1942024122946_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2023-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 0.0,
+      "dii_percent": 0.01,
+      "institutions_percent": 0.01,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.23,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-01-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_161202417639_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2023-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 0.07,
+      "dii_percent": 0.01,
+      "institutions_percent": 0.08,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.15,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-10-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_20102023191236_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2023-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 0.0,
+      "dii_percent": 0.01,
+      "institutions_percent": 0.01,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.22,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-07-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_2072023144720_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2023-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 0.0,
+      "dii_percent": 0.01,
+      "institutions_percent": 0.01,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.22,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-04-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_2042023161432_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2022-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 0.0,
+      "dii_percent": 0.27,
+      "institutions_percent": 0.27,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.97,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-01-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_2012023122540_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2022-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": 0.0,
+      "dii_percent": 0.27,
+      "institutions_percent": 0.27,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.97,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-10-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_20102022125720_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2022-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.25,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.99,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-07-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_187202216548_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2022-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.25,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.99,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_284202221025_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2022-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.25,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.99,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-04-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_2042022131420_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2021-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.25,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.99,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-01-13",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1312022172449_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2021-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.25,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.99,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-10-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1910202116829_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2021-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.07,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.17,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-07-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_167202117242_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2021-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.03,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.2,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-04-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_2042021125629_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2020-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 70.76,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.03,
+      "public_percent": 29.24,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.2,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-01-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1912021142426_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2020-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-10-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_16102020164226_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2020-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-07-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_207202012489_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2020-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-05-02",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1520201353_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2019-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_2112020181935_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2019-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-10-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_18102019191123_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2019-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-07-22",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_207201918114_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2019-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-04-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1042019175942_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2018-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-01-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1512019162446_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2018-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-10-08",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_8102018173540_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2018-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-07-11",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1172018163713_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2018-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-04-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1942018174513_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2017-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-01-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_161201816234_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2017-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-10-11",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_11102017161935_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2017-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-07-14",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1472017122848_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2017-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-04-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1042017152029_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2016-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-01-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_1012017144048_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2016-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-10-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_10102016142511_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2016-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-07-13",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/500298_137201616565_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2016-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-04-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2015-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2015-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2015-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2015-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2014-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2014-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2014-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2014-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2013-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2013-11-29",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2013-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2013-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2013-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2012-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2012-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2012-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2012-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2011-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2011-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2011-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2011-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2010-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2010-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2010-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2010-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2009-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2009-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2009-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2009-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2008-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2008-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2008-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2008-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2007-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2007-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2007-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2007-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2006-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2006-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2006-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2006-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2005-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2005-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2005-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2005-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2004-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2004-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2004-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2004-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2003-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2003-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2003-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2003-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2002-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2002-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2002-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2002-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2001-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2001-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2001-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "NAPEROL",
+      "quarter_end": "2001-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     }
+    ],
+    "coverage": "covered",
+    "note": null,
+    "provider": null,
+    "major_shareholders": [],
+    "source_url": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=NAPEROL&limit=25",
+   "status": 200,
+   "elapsed_ms": 539,
+   "body": {
+    "symbol": "NAPEROL",
+    "exchange": null,
+    "count": 25,
+    "announcements": [
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/d0b4f29f-f755-47ee-8bad-6a59ccf37482.pdf",
+      "ts": "2026-09-24T18:21:23.723000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/558a6c28-50b0-45a2-8657-924f522f160b.pdf",
+      "ts": "2026-09-16T20:13:32.707000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Summary Of Proceedings Of The 72Nd Annual General Meeting Of The Company",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e76bc0bc-c565-4b79-9afb-ee7fce53f741.pdf",
+      "ts": "2026-09-16T18:45:20.110000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3122159f-58ac-4751-bb4d-05779b0a018f.pdf",
+      "ts": "2026-09-16T18:40:51.107000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b620000c-1ba6-452d-bc90-4d851a306041.pdf",
+      "ts": "2026-08-24T18:46:57.080000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Intimation Under Regulation 30 Of SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/79cb141b-06bf-4fe2-82ab-3c0e492bb762.pdf",
+      "ts": "2026-08-21T17:45:16.100000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/cbae19fa-58f5-4e25-8b0f-7747c32930f4.pdf",
+      "ts": "2026-08-21T17:41:38.290000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Notice Of 72Nd Annual General Meeting Along With Annual Report For FY 2025-26",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7f4e37e6-2127-4ab8-b555-1b23cc4221ff.pdf",
+      "ts": "2026-08-21T17:36:51.277000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e63e4221-975a-40d8-a71c-9dd8b7883a08.pdf",
+      "ts": "2026-08-20T16:30:40.833000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8999470a-7feb-4ae6-9b26-506d99295231.pdf",
+      "ts": "2026-08-05T13:21:04.603000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c3e9f933-2cf9-45d2-a73c-1f0b57e7e44a.pdf",
+      "ts": "2026-08-03T20:22:10.453000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Resignation of Company Secretary / Compliance Officer",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/93136df7-7a3e-4350-8b85-3db449da73b7.pdf",
+      "ts": "2026-08-03T20:19:50.637000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Resignation of Chief Financial Officer (CFO)",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/799338e9-139b-4f72-9a7e-2c36eb50ee3c.pdf",
+      "ts": "2026-08-03T20:18:15.477000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Fixation Of Date Of Annual General Meeting Of The Company",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/21ed35da-b057-4890-8fad-a90832f0c568.pdf",
+      "ts": "2026-08-03T20:15:27.257000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Record Date For Dividend To Be Declared In AGM",
+      "category": "Corp. Action",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/50b4265b-86db-467b-bb55-44627c1a17a5.pdf",
+      "ts": "2026-08-03T20:11:44.337000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Corporate Action - Book Closure For Purpose Of AGM",
+      "category": "Corp. Action",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0a542348-082d-4478-9d3b-baab4eef5cc6.pdf",
+      "ts": "2026-08-03T20:09:13.623000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Unaudited Financial Results For Quarter Ended June 30, 2026",
+      "category": "Result",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/2ee51460-986b-448e-bc7a-7d1910b96fd7.pdf",
+      "ts": "2026-08-03T20:06:06.157000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for Outcome Of Board Meeting Of The Company",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ceb16006-9491-4ddd-909e-28973cd9ff84.pdf",
+      "ts": "2026-08-03T20:02:08.610000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Approval Of Unaudited Financial Results For Quarter Ended June 30, 2026",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bbf141c5-b4ae-4f16-8122-02d21ccbadf6.pdf",
+      "ts": "2026-07-29T17:15:25.787000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d7347111-c1bb-4b5a-bc22-59fb990886fd.pdf",
+      "ts": "2026-07-07T17:37:49.650000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0fa14c97-6ab5-437b-940b-810536aa69b2.pdf",
+      "ts": "2026-06-26T12:58:03.057000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b9bc6cb1-57cb-446a-ad7a-09e8aa576b87.pdf",
+      "ts": "2026-05-28T15:22:57.517000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Compliances-Reg.24(A)-Annual Secretarial Compliance",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0eeab8a6-8a7a-4c5d-b013-1a26a1daf8b2.pdf",
+      "ts": "2026-05-25T17:30:55.580000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9a56c0c6-a7d9-406b-8e73-3dba751d3689.pdf",
+      "ts": "2026-05-01T21:27:05.337000+05:30"
+     },
+     {
+      "symbol": "NAPEROL",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4a045a60-048c-4dd3-804b-a0db4b746a2a.pdf",
+      "ts": "2026-04-30T19:53:43.390000+05:30"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {},
+    "windows": {
+     "BSE": {
+      "window_start": "2026-04-30",
+      "window_end": "2026-09-26"
+     }
+    },
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52313/disclosures/results?symbol=NAPEROL",
+   "status": 200,
+   "elapsed_ms": 271,
+   "body": {
+    "symbol": "NAPEROL",
+    "count": 10,
+    "events": [
+     {
+      "symbol": "NAPEROL",
+      "company": "Naperol Investments Limited",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-08-03",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "NAPEROL",
+      "company": "Naperol Investments Limited",
+      "purpose": "Dividend",
+      "description": null,
+      "date": "2026-04-30",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "NAPEROL",
+      "company": "Naperol Investments Limited",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-04-30",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "NAPEROL",
+      "company": "Naperol Investments Limited",
+      "purpose": "Dividend",
+      "description": null,
+      "date": "2026-02-25",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "NAPEROL",
+      "company": "Naperol Investments Limited",
+      "purpose": "General",
+      "description": null,
+      "date": "2026-02-25",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "NAPEROL",
+      "company": "Naperol Investments Limited",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-02-06",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "NAPEROL",
+      "company": "Naperol Investments Limited",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-11-03",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "NAPEROL",
+      "company": "Naperol Investments Limited",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-07-29",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "NAPEROL",
+      "company": "Naperol Investments Limited",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-05-06",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "NAPEROL",
+      "company": "Naperol Investments Limited",
+      "purpose": "Dividend",
+      "description": null,
+      "date": "2025-03-21",
+      "exchange": "BSE"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {},
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

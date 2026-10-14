@@ -1,0 +1,64 @@
+## First-launch terms (src/modules/safety/DisclaimerFlow.tsx:28-35 at 01d6920a)
+const TOS_BODY = `Vysted Terminal is a data and analysis tool. It does not provide investment advice and is not a registered broker-dealer or investment adviser.
+
+By continuing you acknowledge:
+
+- Vysted has no brokerage connection. It cannot place, route or simulate orders.
+- Market data may be delayed, incomplete or wrong. Check anything you rely on against the source.
+- AI-generated analysis can be wrong. You remain solely responsible for your own decisions.
+- Vysted Terminal is source-available under PolyForm Strict 1.0.0 (noncommercial use) or a commercial license — see LICENSING.md.`;
+
+## Settings section titles (src/components/SettingsPanel.tsx)
+460:        title="AI Providers"
+1348:        title="Research"
+1422:        title="Region & locale"
+1543:        title="Keybindings"
+1666:        title="Advanced"
+1701:        title="Integrations"
+1763:        title="Layouts"
+1884:        title="Command palette"
+1919:        title="Modules"
+2097:        title="Export / Import"
+2194:        title="Diagnostics"
+2236:      <SubsectionHeader id="settings-about" title="About" />
+
+## Settings: every line matching trad|broker|order placement|paper|simulat
+1423:        hint="Number formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses."
+
+## Copilot prompt (sidecar/agents/copilot.json) trading sentence
+Vysted has no brokerage connection; if asked to trade, say so and offer to research or track it.\n\nVoice: clear, warm, concise, research-lab calm — not retail-app hype.
+## agent_runtime.py:173-175
+    "no brokerage connection: you cannot place, stage or simulate trades. If "
+    "the user asks to buy or sell, say so plainly and offer to research it or "
+    "to track the holding in their local portfolio (portfolio_add_position).\n"
+
+## src/modules dirs
+agent-builder
+analyst-ratings
+backtest
+chart
+chat
+earnings
+equity-overview
+macro
+marketplace
+news
+node-editor
+notes
+platform
+plugin-manager
+portfolio
+quant
+research
+safety
+screener
+sec
+watchlist
+index.ts
+panel-context-publishers.test.tsx
+## plugins dir
+example
+openbb-mcp
+vysted-lenses
+vysted-news
+yfinance

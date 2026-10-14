@@ -1,0 +1,41 @@
+}
+
+/** Normalize a quote's currency for bucketing ("usd " → "USD"; absent → ""). */
+function currencyKey(quote: Quote | null): string {
+  return (quote?.currency ?? "").trim().toUpperCase();
+}
+
+/** Join positions to quotes and compute per-position + portfolio-level metrics. */
+export function buildPortfolioSummary(
+  positions: Position[],
+  quotes: Map<string, Quote>,
+): PortfolioSummary {
+  const partials = positions.map((position) => {
+    const quote = quotes.get(position.symbol.toUpperCase()) ?? null;
+    const costValue = position.cost_basis * position.quantity;
+    const marketValue = quote !== null ? quote.price * position.quantity : null;
+    const pnl = marketValue !== null ? marketValue - costValue : null;
+    // P&L% is undefined for a zero cost basis (vested shares / RSUs are a valid
+    // cost_basis=0 case) — return null so the UI shows "—" rather than a
+    // misleading "+0.00%" on a real gain (hunt-state-logic).
+    const pnlPercent = pnl !== null && costValue !== 0 ? (pnl / costValue) * 100 : null;
+    return { position, quote, costValue, marketValue, pnl, pnlPercent };
+  });
+
+  const totalCost = partials.reduce((sum, row) => sum + row.costValue, 0);
+  // Resolved cost = cost of the positions whose quote resolved — the only cost
+  // that can legitimately back the resolved P&L numerator.
+  const resolvedCost = partials.reduce(
+    (sum, row) => sum + (row.marketValue !== null ? row.costValue : 0),
+    0,
+  );
+  const totalMarketValue = partials.reduce((sum, row) => sum + (row.marketValue ?? 0), 0);
+  const totalPnl = partials.reduce((sum, row) => sum + (row.pnl ?? 0), 0);
+  const totalPnlPercent = resolvedCost !== 0 ? (totalPnl / resolvedCost) * 100 : 0;
+
+  // Per-currency buckets (D57) — resolved positions only, keyed by the QUOTE's
+  // currency (positions are entered in the listing currency; the quote is the
+  // instrument-truth for what unit the numbers are in).
+  const buckets = new Map<string, CurrencySubtotal>();
+  for (const row of partials) {
+    if (row.marketValue === null) {

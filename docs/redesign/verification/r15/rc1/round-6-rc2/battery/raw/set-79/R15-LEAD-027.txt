@@ -1,0 +1,5 @@
+CMD: grep -n 'no two empty-query rows share a panelId' src/store/command-palette.test.ts; grep -n 'suggested:chart\|Open Chart' src/store/command-palette.ts src/modules/chart/index.ts
+278:  it("no two empty-query rows share a panelId", () => {
+src/modules/chart/index.ts:26:      // command-palette "Open Chart" and `ensureChartOpen` retarget the existing
+src/modules/chart/index.ts:38:      title: "Open Chart",
+EXIT=0

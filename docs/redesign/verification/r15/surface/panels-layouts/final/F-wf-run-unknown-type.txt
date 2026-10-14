@@ -1,0 +1,8 @@
+POST(SSE) /workflow/run
+status=200
+{"spec": {"id": "wf-r15-panels", "name": "R15 quote->compare", "version": 1, "updatedAt": 1790133114888, "nodes": [{"id": "q", "type": "data.fetch_quote", "position": {"x": 0, "y": 0}, "config": {"symbol": "RELIANCE"}}, {"id": "j", "type": "transform.json_path", "position": {"x": 200, "y": 0}, "config": {"path": "price"}}, {"id": "c", "type": "logic.compare", "position": {"x": 400, "y": 0}, "config": {"op": "gt", "b": 1000}}, {"id": "u", "type": "data.not_a_node", "position": {"x": 0, "y": 0}, "config": {}}], "edges": [{"id": "e1", "sourceNode": "q", "sourcePort": "quote", "targetNode": "j", "targetPort": "input"}, {"id": "e2", "sourceNode": "j", "sourcePort": "value", "targetNode": "c", "targetPort": "a"}]}, "inputs": {}}
+---
+data: {"kind":"run-start","runId":"2680243b-7a03-4411-a01f-b07411fac1c8","startedAt":1791025544921}
+
+data: {"kind":"run-error","runId":"2680243b-7a03-4411-a01f-b07411fac1c8","message":"node 'u' uses unregistered type 'data.not_a_node'; registered: ['action.log', 'action.notify_desktop', 'action.webhook', 'ai.agent_invoke', 'analysis.screener_query', 'compute.indicator', 'data.fetch_analyst_history', 'data.fetch_earnings_calendar', 'data.fetch_earnings_history', 'data.fetch_history', 'data.fetch_insider_transactions', 'data.fetch_macro_series', 'data.fetch_price_target_history', 'data.fetch_quote', 'data.fetch_sec_filing', 'flow.sleep', 'logic.branch', 'logic.compare', 'quant.compute_greeks', 'quant.price_bond', 'quant.price_option', 'quant.yield_curve', 'transform.code', 'transform.json_path']","durationMs":0.0}
+

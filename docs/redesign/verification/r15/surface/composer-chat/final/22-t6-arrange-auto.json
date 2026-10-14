@@ -1,0 +1,86 @@
+{
+  "prompt": "Arrange my workspace to compare Cochin Shipyard and Bharat Dynamics side by side",
+  "autonomy": "auto",
+  "elapsed_s": 39.522,
+  "stopped": false,
+  "messages": [
+    {
+      "id": "9d3d1088-290e-4911-9f1a-904d93a5ff0c",
+      "role": "user",
+      "content": "Arrange my workspace to compare Cochin Shipyard and Bharat Dynamics side by side",
+      "createdAt": 1791024183959
+    },
+    {
+      "id": "11632a53-18cb-4226-b50b-a45f30ef2f4e",
+      "role": "assistant",
+      "content": "I was unable to arrange your workspace for a comparison between Cochin Shipyard and Bharat Dynamics.",
+      "agentId": "copilot",
+      "providerId": "ollama",
+      "modelId": null,
+      "pending": false,
+      "createdAt": 1791024183959,
+      "toolSteps": [
+        "Couldn't apply: Arrange the compare layout — the layout has not mounted"
+      ],
+      "roundBoundaryPending": false,
+      "usage": {
+        "inputTokens": 1800,
+        "outputTokens": 21
+      },
+      "contextWindow": 16384,
+      "spendUsd": 0
+    }
+  ],
+  "proposed": [
+    {
+      "name": "arrange_layout",
+      "input": {
+        "pattern": "compare",
+        "symbol": "",
+        "symbols": [
+          "COCHINSHIP.NS",
+          "BDL"
+        ]
+      },
+      "kind": "panel",
+      "title": "Arrange the compare layout",
+      "status": "pending",
+      "detail": "the layout has not mounted",
+      "toolCallId": "call_c962f3b56e414de0bd83d97a6f9d214a"
+    }
+  ],
+  "notices": {
+    "errorFrames": {},
+    "notices": {},
+    "compactions": {}
+  },
+  "before": {
+    "watchlist": [
+      "^NSEI",
+      "RELIANCE.NS",
+      "TCS.NS",
+      "HDFCBANK.NS"
+    ],
+    "notes": {
+      "g": "",
+      "s": {}
+    }
+  },
+  "after": {
+    "watchlist": [
+      "^NSEI",
+      "RELIANCE.NS",
+      "TCS.NS",
+      "HDFCBANK.NS"
+    ],
+    "notes": {
+      "g": "",
+      "s": {}
+    },
+    "screener": {
+      "formula": "",
+      "criteria": "[{\"field\":\"pe_ratio\",\"operator\":\"lt\",\"value\":20},{\"field\":\"market_cap\",\"operator\":\"gt\",\"value\":100000000000},{\"field\":\"sector\",\"operator\":\"eq\",\"value\":\"Technology\"}]"
+    }
+  },
+  "domText": "Arrange my workspace to comp…YouArrange my workspace to compare Cochin Shipyard and Bharat Dynamics side by sideVysted Copilot▸Worked · 1 stepI was unable to arrange your workspace for a comparison between Cochin Shipyard and Bharat Dynamics.1,821 tok · ~$0.001 proposed change — review before they applyAccept allReject allArrange the compare layout− Layout: the current cockpit+ Layout: compare (COCHINSHIP.NS vs BDL)Couldn’t apply: the layout has not mounted — try again.Context 1,821 / 16,384 tokens (11%)NormalDeepUltraLlama3.1 8B"
+}

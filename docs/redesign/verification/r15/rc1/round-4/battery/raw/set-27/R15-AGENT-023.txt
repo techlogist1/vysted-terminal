@@ -1,0 +1,22 @@
+=== R15-AGENT-023: unattended workflow schedule fires action.webhook (part 1: setup) ===
+-- register webhook URL for ref b5hook --
+{"refs":["b5hook"]}
+-- GET /workflow/webhooks (must list refs only, never URL) --
+{"refs":["b5hook"]}
+-- save workflow spec: data.fetch_quote AAPL -> action.webhook --
+{"id":"b5-wf","name":"b5 unattended test","description":null,"version":1,"nodes":[{"id":"n1","type":"data.fetch_quote","position":{"x":0.0,"y":0.0},"config":{"symbol":"AAPL"}},{"id":"n2","type":"action.webhook","position":{"x":100.0,"y":0.0},"config":{"secret_ref":"b5hook"}}],"edges":[{"id":"e1","sourceNode":"n1","sourcePort":"quote","targetNode":"n2","targetPort":"value"}],"updatedAt":1790456025316}
+-- attempt schedule with everyMinutes=1 (must 422, MIN_INTERVAL_MINUTES=5) --
+{"detail":[{"type":"greater_than_equal","loc":["body","trigger","interval","everyMinutes"],"msg":"Input should be greater than or equal to 5","input":1,"ctx":{"ge":5}}]}
+HTTP:422
+
+-- create real schedule everyMinutes=5 --
+{"id":"sch-8a7b3059de1e","workflowId":"b5-wf","trigger":{"kind":"interval","everyMinutes":5},"enabled":true,"createdAt":1790456025333,"lastFiredAt":null,"lastSeen":null,"lastStatus":null,"lastDetail":null}
+-- GET /workflow/schedules right after creation --
+[{"id":"sch-8a7b3059de1e","workflowId":"b5-wf","trigger":{"kind":"interval","everyMinutes":5},"enabled":true,"createdAt":1790456025333,"lastFiredAt":null,"lastSeen":null,"lastStatus":null,"lastDetail":null}]
+Sun Sep 27 02:23:45 IST 2026
+
+-- second fire confirmation (waited ~11 min total) --
+02:34:00.905758 second webhook hit: {"workflow":"b5 unattended test","node":"n2","value":{"symbol":"AAPL",...}}
+GET /workflow/schedules at 02:34:28: lastFiredAt=1790456639980 (02:34:00 epoch ms), lastStatus="ok"
+Second fire is 4m59s after the first (02:29:01 -> 02:34:00), matching the certified "fired unattended... and
+again [~5 min later], never in between" pattern exactly.

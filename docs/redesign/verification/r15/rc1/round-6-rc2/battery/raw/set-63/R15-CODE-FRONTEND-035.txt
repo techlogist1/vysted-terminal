@@ -1,0 +1,21 @@
+CMD: git grep -nE 'addPosition|updatePosition|deletePosition' -- src (non-test) at candidate
+EXIT=1 (1 = none left; the dead seams were removed, host-actions uses addHolding/removeHolding)
+
+src/lib/host-actions.ts:674:  const s = usePortfoliosStore.getState();
+src/lib/host-actions.ts:680:  return usePortfoliosStore.getState().portfolios.find((p) => p.id === id);
+src/lib/host-actions.ts:1913:      const added = usePortfoliosStore.getState().addHolding(portfolio.id, {
+src/lib/host-actions.ts:1951:      const store = usePortfoliosStore.getState();
+src/lib/host-actions.ts:1988:      usePortfoliosStore.getState().removeHolding(portfolio.id, preImage.holdingId);
+src/lib/host-actions.ts:1992:      const store = usePortfoliosStore.getState();
+
+write_note path (host-actions.ts:1851-1856):
+      const notes = useNotesStore.getState();
+      const current = notes.noteFor(scope);
+      if (append) {
+        notes.appendSymbolNote(scope, text);
+      } else {
+        notes.setSymbolNote(scope, text);
+      }
+
+pinned test:
+src/lib/host-actions.test.ts:1357:  it("write_note append with a trailing-whitespace addendum equals appendSymbolNote", () => {

@@ -1,0 +1,66 @@
+{
+ "Table": [
+  {
+   "DEAL_DATE": "23 Sep 2026",
+   "SCRIP_CODE": 539091,
+   "scripname": "CCDL",
+   "CLIENT_NAME": "METROCITY HEART CARE AND CRITICAL CARE PRIVATE LIMITED",
+   "TRANSACTION_TYPE": "B",
+   "QUANTITY": 4805268.0,
+   "PRICE": 1.13
+  },
+  {
+   "DEAL_DATE": "23 Sep 2026",
+   "SCRIP_CODE": 539091,
+   "scripname": "CCDL",
+   "CLIENT_NAME": "METROCITY HEART CARE AND CRITICAL CARE PRIVATE LIMITED",
+   "TRANSACTION_TYPE": "S",
+   "QUANTITY": 3435813.0,
+   "PRICE": 1.14
+  },
+  {
+   "DEAL_DATE": "22 Sep 2026",
+   "SCRIP_CODE": 539091,
+   "scripname": "CCDL",
+   "CLIENT_NAME": "METROCITY HEART CARE AND CRITICAL CARE PRIVATE LIMITED",
+   "TRANSACTION_TYPE": "S",
+   "QUANTITY": 39030268.0,
+   "PRICE": 1.01
+  },
+  {
+   "DEAL_DATE": "22 Sep 2026",
+   "SCRIP_CODE": 539091,
+   "scripname": "CCDL",
+   "CLIENT_NAME": "PLASTOMATIC PACKAGING PRIVATE LIMITED",
+   "TRANSACTION_TYPE": "B",
+   "QUANTITY": 30500000.0,
+   "PRICE": 0.99
+  },
+  {
+   "DEAL_DATE": "22 Sep 2026",
+   "SCRIP_CODE": 539091,
+   "scripname": "CCDL",
+   "CLIENT_NAME": "METROCITY HEART CARE AND CRITICAL CARE PRIVATE LIMITED",
+   "TRANSACTION_TYPE": "B",
+   "QUANTITY": 5811194.0,
+   "PRICE": 1.05
+  },
+  {
+   "DEAL_DATE": "22 Sep 2026",
+   "SCRIP_CODE": 539091,
+   "scripname": "CCDL",
+   "CLIENT_NAME": "PLASTOMATIC PACKAGING PRIVATE LIMITED",
+   "TRANSACTION_TYPE": "S",
+   "QUANTITY": 207025.0,
+   "PRICE": 1.09
+  }
+ ],
+ "Table1": [
+  {
+   "SCRIP_CD": 539091,
+   "ScripName": "CCDL",
+   "URL": "https://www.bseindia.com/stock-share-price/consecutive-commodities-ltd/ccdl/539091/",
+   "NSUrl": "https://www.bseindia.com/stock-share-price/consecutive-commodities-ltd/ccdl/539091/"
+  }
+ ]
+}

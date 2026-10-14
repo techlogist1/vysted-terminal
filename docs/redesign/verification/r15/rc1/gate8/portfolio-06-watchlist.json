@@ -1,0 +1,84 @@
+{
+  "seed": [
+    {
+      "symbol": "SPY",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "QQQ",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "BTC/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "ETH/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "NVDA",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "AAPL",
+      "assetClass": "equity"
+    }
+  ],
+  "afterAdd": [
+    {
+      "symbol": "SPY",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "QQQ",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "BTC/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "ETH/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "NVDA",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "AAPL",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "RELIANCE",
+      "assetClass": "equity"
+    }
+  ],
+  "afterRemove": [
+    {
+      "symbol": "SPY",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "BTC/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "ETH/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "NVDA",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "AAPL",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "RELIANCE",
+      "assetClass": "equity"
+    }
+  ]
+}

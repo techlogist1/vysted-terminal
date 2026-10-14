@@ -1,0 +1,26 @@
+# R15-CODE-DATA-005 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C/sidecar"; grep -rnE 'def is_applicable|def _is_blocked|def is_block_error|def is_india_target|is_india_listing' services | head -20
+--- output ---
+services/research/range_check.py:46:from services.witness import is_block_error, is_india_listing
+services/research/range_check.py:128:is_applicable = is_india_listing
+Binary file services/research/__pycache__/range_check.cpython-313.pyc matches
+services/research/relevance.py:598:def is_india_target(target: ResearchTarget | None) -> bool:
+services/market_cap_witness.py:46:from services.witness import is_india_listing
+services/market_cap_witness.py:100:is_applicable = is_india_listing
+services/witness.py:9:``is_india_listing`` reads the RESOLVED listing, never bare-ticker membership in
+services/witness.py:19:def is_india_listing(listing: object) -> bool:
+services/witness.py:24:def is_block_error(exc: BaseException) -> bool:
+services/witness.py:35:__all__ = ["is_block_error", "is_india_listing"]
+Binary file services/__pycache__/exchange_financials.cpython-313.pyc matches
+Binary file services/__pycache__/market_cap_witness.cpython-313.pyc matches
+Binary file services/__pycache__/witness.cpython-313.pyc matches
+Binary file services/__pycache__/ownership_check.cpython-313.pyc matches
+Binary file services/__pycache__/dividend_actions.cpython-313.pyc matches
+services/dividend_actions.py:33:from services.witness import is_block_error, is_india_listing
+services/dividend_actions.py:60:def is_applicable(symbol: str) -> bool:
+services/dividend_actions.py:65:    :func:`services.witness.is_india_listing`) whose bare ticker is in an India
+services/dividend_actions.py:69:    if not is_india_listing(symbol):
+services/ownership_check.py:47:from services.witness import is_block_error, is_india_listing
+
+EXIT=0 (0.3s)

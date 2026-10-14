@@ -1,0 +1,7 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b4_023.py
+missing-arg call: {"jsonrpc": "2.0", "id": 2, "result": {"content": [{"type": "text", "text": "{\"ok\":false,\"error\":\"missing or non-string query\"}"}], "structuredContent": {"ok": false, "error": "missing or non-string query"}, "isError": false}}
+bad-input call result isError: True {"jsonrpc": "2.0", "id": 2, "result": {"content": [{"type": "text", "text": "tool 'price_data' raised: correctness gate: empty series for 'ZZZNOTASYMBOL999' from 'yfinance'"}], "isError": true}}
+unknown tool: {"jsonrpc": "2.0", "id": 2, "result": {"content": [{"type": "text", "text": "Unknown tool: 'nonexistent_tool_x'"}], "isError": true}}
+
+exit=0

@@ -1,0 +1,1 @@
+{"available":false,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52698/mcp","lastToolCallOk":false,"lastError":"ProviderError: MCP server 'openbb-mcp' failed to open: ConnectError('All connection attempts failed')"}

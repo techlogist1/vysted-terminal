@@ -1,0 +1,33 @@
+COMMAND: vite ssr bundle (scratch config) of candidate PluginRuntime + marketplace store disable/enable on real catalog plugin vysted-lenses (fake host attach/detach), run with node. Panel handleToggle (PluginManagerPanel.tsx:172-179) calls marketplace.enable/disable; the rendered click path is pinned by vitest PluginManagerPanel.test 'toggling an active plugin off persists enabled:false and detaches it'.
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import { PluginRuntime } from "<cand>/src/lib/plugin-runtime";
+import { usePluginsStore } from "<cand>/src/store/plugins";
+import { useMarketplaceStore } from "<cand>/src/store/marketplace";
+import { CATALOG_BY_ID } from "<cand>/src/lib/marketplace";
+const id = "vysted-lenses";
+const detached: string[] = [];
+const runtime = new PluginRuntime({ hostVersion: "0.9.0", host: { attach: async () => {}, detach: async (p: string) => { detached.push(p); } } } as any);
+usePluginsStore.getState().attachRuntime(runtime);
+await runtime.loadPlugin(CATALOG_BY_ID[id].discovered);
+console.log("loaded: state =", runtime.getPlugin(id)?.state, "err=", JSON.stringify(runtime.getPlugin(id)?.errorMessage), "| enabled cfg =", (await runtime.readConfig(id))?.enabled);
+const mk = useMarketplaceStore.getState();
+try { await mk.disable(id); } catch (e: any) { console.log("disable threw:", e.message); }
+console.log("after marketplace.disable (the Plugin Manager toggle path): state =", runtime.getPlugin(id)?.state, "| persisted enabled =", (await runtime.readConfig(id))?.enabled, "| host.detach calls =", JSON.stringify(detached));
+try { await mk.enable(id); } catch (e: any) { console.log("enable threw:", e.message); }
+console.log("after marketplace.enable: state =", runtime.getPlugin(id)?.state, "| persisted enabled =", (await runtime.readConfig(id))?.enabled);
+--- output ---
+loaded: state = active err= undefined | enabled cfg = true
+after marketplace.disable (the Plugin Manager toggle path): state = stopped | persisted enabled = false | host.detach calls = ["vysted-lenses"]
+after marketplace.enable: state = active | persisted enabled = true
+EXIT=0
+  async function handleToggle(nextEnabled: boolean) {
+    if (!runtime || !plugin.instance || pending) {
+      return;
+    }
+    setPending(true);
+    try {
+      const marketplace = useMarketplaceStore.getState();
+      await (nextEnabled ? marketplace.enable : marketplace.disable)(plugin.manifest.id);
+    } finally {
+      setPending(false);

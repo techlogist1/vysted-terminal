@@ -1,0 +1,157 @@
+[
+ {
+  "key": "rc1-vshard-5:1",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-055",
+  "title": "SMR.BO (BSE SME, first_trade 2026-06-08, the entry's own DAT-S2-8 pin) returns listing_date null + fifty_two_week_change -0.068, so the overview shows a 52w label and a 1Y-change row for a 16-week-old listing",
+  "repro": "curl -s http://127.0.0.1:52605/fundamentals/SMR  (own sidecar at 81fbfe91) -> listing_date None, fifty_two_week_change -0.068",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py",
+   "src/modules/equity-overview/EquityOverviewPanel.tsx",
+   "src/modules/equity-overview/metrics.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:2",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-061",
+  "title": "An unknown .NS/.BO symbol at an intraday timeframe is told 'India is EOD only' (reason in_eod_only) instead of unknown symbol; history.py treats any .NS/.BO suffix as a known Indian listing",
+  "repro": "curl -s 'http://127.0.0.1:52605/history/QQZZFAKE.NS?timeframe=5m' and '.../QQZZFAKE.BO?timeframe=5m' -> reason in_eod_only while is_nse_symbol/is_bse_symbol are False; also /history/XYZ%2FABC -> 502 provider_error for an upstream HTTP 404",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/routers/history.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-LEAD-026",
+  "title": "A suffixed unknown symbol (QQZZFAKE.NS / .BO) at 1d returns reason null instead of unknown_symbol; _is_unknown_symbol exempts every suffixed symbol (documented residual still marked fixed)",
+  "repro": "curl -s http://127.0.0.1:52605/history/QQZZFAKE.NS (and .BO) -> reason null; bare /history/ZZZZNOTREAL -> unknown_symbol (literal holds)",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/routers/history.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:4",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-DOCS-018",
+  "title": "CURRENT_STATE.md:337-340 says fundamentals still hit yfinance first, but provider_registry ranks openbb-mcp 10 ahead of yfinance 50 for fundamentals/statements/analyst and /health reports 'openbb-mcp (yfinance fallback)'",
+  "repro": "sed -n 337,340p docs/CURRENT_STATE.md; sed -n 140,158p sidecar/services/provider_registry.py; curl -s http://127.0.0.1:52605/health",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "docs/CURRENT_STATE.md",
+   "sidecar/services/provider_registry.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:5",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-CODE-PLATFORM-013",
+  "title": "resetToDefaultLayout() calls setEnabledMap({}), wiping every plugin:<id> flag, so a plugin disabled in plugins.db reappears in enabledModules/enabledCommands/enabledPanels after a factory layout reset; the two stores still have an unsynced writer",
+  "repro": "scratch extract of 81fbfe91 (git archive + linked node_modules): vitest run src/store/vs5-reset-drift.test.ts -> 'enabled map after reset: {}', 'enabled module ids after reset: [\"plugin:vysted-news\"]' AssertionError",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "src/store/workspace.ts",
+   "src/lib/plugin-bootstrap.ts",
+   "src/store/modules.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:6",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-CODE-PLATFORM-017",
+  "title": "The code-node inspector's mathjs syntax check + live preview still disagree with the canonical server evaluator (nested ternary 2 vs parse error, round(1.005,2) 1.01 vs 1.0, mod/!/implicit-mult/pi/true/log/exp/sign accepted then fail on run, a**2 rejected but runs), no shared parity fixture, and node-registry.ts:183/189-190 still say evaluation is client-side mathjs",
+  "repro": "server: sidecar/.venv python evaluate_code over scratchpad/vs5-017-cases.json; editor: vitest compileCodeExpression/evaluateCodeExpression over the same file; diff in shard-5.md",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "src/modules/node-editor/code-node.ts",
+   "src/modules/node-editor/code-node-inspector.tsx",
+   "src/modules/node-editor/node-registry.ts",
+   "sidecar/services/workflow_nodes/code_node.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:7",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-AGENT-083",
+  "title": "External MCP save_workflow persists and overwrites a user's saved workflow with no confirmation, while spec.md:329/:783 call the external MCP surface read-only; the 8 hand-written tools carry no readOnlyHint",
+  "repro": "fastmcp Client http://127.0.0.1:52605/mcp/ call save_workflow(vs5-probe) then again with name 'OVERWRITTEN by external client' -> stored workflow overwritten",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/services/mcp_server.py",
+   "specs/"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-068",
+  "title": "Earnings drill-down 'As of' chip renders the client fetchedAt, not the server as_of, so a 24h-cached surprises envelope reads as current",
+  "repro": "read EarningsCalendarPanel.tsx:447-457 vs /fundamentals/MSFT/earnings/surprises as_of",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "src/modules/earnings/EarningsCalendarPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:9",
+  "kind": "new_defect",
+  "severity": "high",
+  "register_id": "R15-RESEARCH-028",
+  "title": "Research query 'KPIT Technologies — latest quarterly results' is resolved to BSOFT (Birlasoft, former_name KPIT) at score 1.00 with no disambiguation although KPITTECH is a candidate; the brief is published for the wrong company",
+  "repro": "MCP research {query:'KPIT Technologies — latest quarterly results'} -> brief symbol BSOFT; curl -s 'http://127.0.0.1:52605/resolve?q=KPIT' -> BSOFT only",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/services/symbol_resolver.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:10",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-RESEARCH-028",
+  "title": "web.detail handed to the model says 'add an Exa key / local SearXNG' while SearXNG is running (degraded)",
+  "repro": "MCP web_search while /search/searxng/status = degraded -> detail text suggests setting up SearXNG",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/services/search/"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:11",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-RESEARCH-004",
+  "title": "test_search_exports.py rglob('*.py') from sidecar/ also scans .venv (24,960 files) so a site-packages hit can count as the second-file caller; base.py:109 docstring still offers preferredDomains that nothing consumes",
+  "repro": "read sidecar/tests/test_search_exports.py; find sidecar -name '*.py' | wc -l",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "sidecar/tests/test_search_exports.py",
+   "sidecar/services/search/base.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-5:12",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DOCS-004",
+  "title": "CLAUDE.md Frontend gotcha + Visual verification describe a zinc + cool-indigo palette, but tokens.css/globals.css/VYSTED_DESIGN.md at the candidate are the pure-neutral + peach #fab283 system (CLAUDE.md is Tier-1; report only)",
+  "repro": "grep -n 'fab283' styles/tokens.css; grep -n 'cool-indigo' CLAUDE.md",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+  "suspected_files": [
+   "CLAUDE.md",
+   "styles/tokens.css"
+  ]
+ }
+]

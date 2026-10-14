@@ -1,0 +1,37 @@
+[
+  {
+    "key": "rc1-fix-r1-triage:1",
+    "kind": "register_note",
+    "severity": "medium",
+    "register_id": "R15-LEAD-037",
+    "title": "New instance of the value-only-grounding class (DECISIONS 4.11): llama3.1:8b labels a historical price_data bar low (ELCIDIN 2026-07-31 low 110,095) as the 52-week low and states the current price 103,800 is 'above' it",
+    "repro": "rc1-scenarios:1 (ollama-sk3-elcidin-v2.jsonl): price_data ELCIDIN range 1y ok; the stated 110,095 is the 2026-07-31 bar's low inside the payload, while the min low over all 111 bars (and the last 90) is 102,210. Known limitation, blocked_tier4; no fix round.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/fix-r1/triage/elcidin-1y-summary.json",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py"
+    ]
+  },
+  {
+    "key": "rc1-fix-r1-triage:2",
+    "kind": "environment",
+    "severity": "n/a",
+    "register_id": null,
+    "title": "Battery coverage gap: set-28 (batch-7/W4-research-funnel) was run against 12 nonexistent ids; the 12 real ids in battery/INDEX.md:81 were never re-verified this battery",
+    "repro": "battery/INDEX.md:81 lists R15-DATA-075, R15-RESEARCH-019/020/021/022/023/024/026/033/038, R15-UI-038, R15-UI-092 for batch-7/W4; set-28.md checked R15-RESEARCH-044..066 instead; no set-*.md mentions R15-RESEARCH-019. Harness data defect; re-run set-28 with the INDEX ids.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/battery/set-28.md",
+    "suspected_files": []
+  },
+  {
+    "key": "rc1-fix-r1-triage:3",
+    "kind": "register_note",
+    "severity": "low",
+    "register_id": "R15-LEAD-030",
+    "title": "New instance of the hallucinated-tool-result-citation class (DECISIONS 4.9): llama3.1:8b states Zomato price/high/low/% figures with only get_terminal_state (no price fields) ok behind them",
+    "repro": "rc1-drive-onboarding-stranger:1 (keyless profile, candidate 4c6dfe8c, vy.py invoke copilot 'hi, I just installed this. what can you do, and how is Zomato stock doing today?' --provider ollama --model llama3.1:8b): one ok get_terminal_state call; assistant text states ZOMATO.NS 130.05 / high 132.50 / low 128.60 / +2.35% attributed to 'my research'. Known limitation, blocked_tier4; no fix round.",
+    "evidence_file": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/A1-keyless-zomato-rc1-r2.stdout.txt",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py",
+      "sidecar/services/figure_grounding.py"
+    ]
+  }
+]

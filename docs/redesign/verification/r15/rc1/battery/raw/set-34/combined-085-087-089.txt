@@ -1,0 +1,28 @@
+=== AGENT-085 source ===
+696:          // citations behind the latest answer.
+=== AGENT-087 source ===
+/**
+ * Agent-mode store — the current four-mode intent (FR-003).
+ *
+ * Holds the active mode (Ask / Edit / Build / Delegate). The mode is shown in
+ * the agent surface and switchable by keyboard (⌥1–⌥4). It rides the workspace
+ * blob so a cockpit reopens in the mode the user left it in. The read-only vs
+ * mutating enforcement is server-side (the sidecar filters Ask to read-only
+ * tools); this store is the frontend's display + dispatch state.
+ */
+
+-- keybindings alt+3/4 --
+32: * key last — e.g. `"mod+k"`, `"alt+1"`, `"mod+enter"`, `"mod+shift+p"`.
+76:  // Build on alt+1-4) described bindings the shipped handler no longer has.
+78:    keys: "alt+1",
+85:    keys: "alt+2",
+433: * elsewhere. `"alt+1"` → `"⌥1"` (mac) / `"Alt+1"`. Pure + SSR-safe.
+=== AGENT-089 source ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/planner.py:265:PLAN_ACTIONS: tuple[str, ...] = (
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/planner.py:284:    :data:`PLAN_ACTIONS`; ``args`` are best-effort (a caller validates against the
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/planner.py:323:    actions = ", ".join(PLAN_ACTIONS)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/planner.py:351:        if action not in PLAN_ACTIONS:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/planner.py:419:    "PLAN_ACTIONS",
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/agent_runtime.py:74:_STAGEABLE_PLAN_ACTIONS = frozenset(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/agent_runtime.py:151:    "open, close, or focus panels (open_panel / close_panel / focus_panel — "
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/agent_runtime.py:1733:                {**step.to_dict(), "staged": step.action in _STAGEABLE_PLAN_ACTIONS}

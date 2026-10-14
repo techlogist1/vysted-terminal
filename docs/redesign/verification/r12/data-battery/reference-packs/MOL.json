@@ -1,0 +1,194 @@
+{
+  "meta": {
+    "ticker": "MOL",
+    "exchange_scope": "BOTH (NSE + BSE)",
+    "research_date": "2026-07-10",
+    "market_last_closed": "2026-07-09",
+    "researcher": "independent web-only pass (screener.in primary, cross-checked against groww.in, and against the company's own audited BSE/NSE filing PDF for the Q4/FY26 results dated 14-May-2026, fetched directly from meghmani.com)",
+    "hard_rule_followed": "no localhost/Vysted API touched; all figures from live public web sources and one primary-source PDF fetched during this session"
+  },
+  "identity": {
+    "legal_name": "Meghmani Organics Limited",
+    "isin": "INE0CT101020",
+    "isin_confidence_note": "IMPORTANT ENTITY TRAP: there are TWO distinct 'Meghmani Organics' ISINs in circulation. The pre-2021 company (ISIN INE974H01013, old BSE code 532865) was the ORIGINAL Meghmani Organics Ltd. Under a 2021 NCLT-sanctioned Composite Scheme of Arrangement, that original company amalgamated into Meghmani Finechem Limited, with 'Meghmani Organochem Limited' as the resulting/demerged entity; Meghmani Organochem was subsequently renamed Meghmani Organics Limited and is the company that trades TODAY as NSE:MOL / BSE:543331, ISIN INE0CT101020, CIN L24299GJ2019PLC110321 (CIN year 2019 confirms it is the newer corporate shell). screener.in in fact lists the old entity separately under ticker MEGH with the label '(Merged)'. This pack is entirely about the CURRENT trading entity (MOL / 543331 / INE0CT101020) — confirmed via upstox.com, marketscreener.com, and cross-referenced against the company's own filing letterhead (Scrip Code 543331, Symbol MOL).",
+    "bse_code": "543331",
+    "nse_symbol": "MOL",
+    "cin": "L24299GJ2019PLC110321",
+    "face_value_per_share_inr": 1.0,
+    "sources": [
+      "https://www.screener.in/company/MOL/consolidated/",
+      "https://upstox.com/stocks/meghmani-organics-limited-share-price/INE0CT101020/",
+      "https://meghmani.com/wp-content/uploads/2026/05/unaudited-financial-results-31-03-2026.pdf (primary source, board outcome letter + audited results, dated 14-May-2026)"
+    ]
+  },
+  "price_and_market_cap": {
+    "as_of": "2026-07-09",
+    "latest_close_inr": 46.40,
+    "latest_close_basis": "NSE/BSE close, 09-Jul-2026 (screener.in shows 46.4; groww.in shows 46.39, previous close 45.98, day range 45.96-46.90) — the two sources agree to within one paisa.",
+    "market_cap_inr_cr": 1175,
+    "market_cap_range_across_sources": "screener.in: Rs 1,178 Cr; groww.in: Rs 1,171 Cr. ~0.6% spread, immaterial — both consistent with ~25.43 Cr shares outstanding at the ~Rs46.4 close (25.43 x 46.4 = Rs 1,180 Cr, within rounding of both).",
+    "shares_outstanding_approx_cr": 25.43,
+    "shares_outstanding_basis": "Derived from the company's own audited FY26 filing: paid-up equity share capital Rs 2,543.14 Lakhs at face value Re 1/share = 25,43,14,000 shares = 25.43 Cr shares (constant across standalone and consolidated statements, and across the prior FY25 column too — no share issuance during the year).",
+    "sources": [
+      "https://www.screener.in/company/MOL/consolidated/",
+      "https://groww.in/stocks/meghmani-organochem-ltd",
+      "https://meghmani.com/wp-content/uploads/2026/05/unaudited-financial-results-31-03-2026.pdf"
+    ]
+  },
+  "valuation": {
+    "pe_ttm": 41.0,
+    "pe_ttm_basis": "screener.in: 41.0; groww.in: 40.75. Consistent with price(46.4)/EPS-TTM(1.13) = 41.06.",
+    "eps_ttm_inr": 1.13,
+    "eps_ttm_basis": "Consolidated (owners' share), FY2026 full year (Apr-2025 to Mar-2026) diluted EPS = Rs 1.13, taken directly from the company's audited consolidated financial results filed with BSE/NSE on 14-May-2026 (Statement row XVI). Because Q1 FY27 (Apr-Jun 2026) had not yet been reported as of the research date, TTM = the FY26 full year exactly. Independently matches groww.in's stated EPS(TTM) of Rs 1.13 exactly, and is consistent with screener's implied EPS (price/PE = 46.4/41.0 = 1.13).",
+    "book_value_per_share_inr": 60.7,
+    "book_value_basis": "Consolidated. screener.in: 60.7; groww.in: 60.74. Independently recomputed from the primary filing: Total Consolidated Equity as at 31-Mar-2026 = Rs 1,54,478.04 Lakhs (Rs 1,544.78 Cr) / 25.43 Cr shares = Rs 60.75/share — matches both secondary sources almost exactly.",
+    "book_value_standalone_note": "Standalone (parent-only, excludes subsidiaries) book value is materially higher at ~Rs 69.14/share (Total Standalone Equity Rs 1,758.32 Cr / 25.43 Cr shares), because the loss-making subsidiaries (Meghmani Crop Nutrition, Kilburn Chemicals) drag down consolidated equity. All headline figures in this pack use CONSOLIDATED unless stated otherwise, matching screener.in/groww.in convention.",
+    "roe_latest_fy_pct": 1.88,
+    "roe_note": "screener.in (consolidated): 1.88%. groww.in (consolidated): 1.86%. Independently recomputed: consolidated FY26 net profit attributable to owners (Rs 28.74 Cr) / consolidated closing equity (Rs 1,544.78 Cr) = 1.86% — matches. This is a very low ROE because consolidated FY26 profit is thin (subsidiaries lost money); the STANDALONE (parent-only) ROE is far higher at ~7.1-7.4% (standalone net profit Rs 125.26 Cr / standalone equity ~Rs 1,695-1,758 Cr), underscoring that group structure materially depresses reported group profitability versus the parent's actual operating performance.",
+    "sources": [
+      "https://www.screener.in/company/MOL/consolidated/",
+      "https://groww.in/stocks/meghmani-organochem-ltd",
+      "https://meghmani.com/wp-content/uploads/2026/05/unaudited-financial-results-31-03-2026.pdf"
+    ]
+  },
+  "52_week": {
+    "high_inr": 106.3,
+    "low_inr": 36.5,
+    "as_of": "2026-07-09",
+    "agreement": "screener.in shows 106 / 36.4 (rounded to 1 decimal differently); groww.in shows 106.30 / 36.50. Treated as agreeing (sub-1% rounding spread).",
+    "drawdown_from_52w_high_pct": -56.35,
+    "drawdown_calc": "(46.40 - 106.30) / 106.30 = -56.35%",
+    "price_change_52w_pct": null,
+    "price_change_52w_disagreement_note": "Sources materially DISAGREE and no single authoritative same-day figure was found — reporting the range rather than silently picking one. A late-June-2026-dated aggregator snippet (business-standard-style content) cited a 1-year decline of -42.18%. A separate tickertape.in-derived snippet, referencing the same late-June-2026 window, cited -49.51% and -49.3% for '1-year return'. These two clusters differ by ~7-17 points and could not be reconciled from search snippets alone (likely different exact anchor dates, or one using 6-month change mislabeled as 1-year, or dividend-adjusted vs raw price return). No 52-week price-change percentage is asserted as a single fact in this pack; treat the true value as being in the wide band of roughly -42% to -50% as of late June/early July 2026, pending a direct historical-price lookup.",
+    "sources": [
+      "https://www.screener.in/company/MOL/consolidated/",
+      "https://groww.in/stocks/meghmani-organochem-ltd"
+    ]
+  },
+  "dividends": {
+    "face_value_inr": 1.0,
+    "dividend_yield_pct": 0.0,
+    "dividend_yield_basis": "screener.in and groww.in both show 0.00% — no dividend paid in the trailing 12 months.",
+    "paid_trailing_12_months": [],
+    "paid_ttm_total_inr": 0.0,
+    "last_actual_dividend_paid": {
+      "type": "Final dividend (FY2023)",
+      "amount_per_share_inr": 1.40,
+      "ex_date": "2023-06-20",
+      "record_date": "2023-06-20",
+      "declared": "2023-04-29",
+      "note": "Outside the trailing-12-month window (research date 2026-07-10). trendlyne.com's corporate-action history and indmoney.com's dividend history both independently confirm this was the LAST dividend of any kind — nothing declared or paid in FY2024, FY2025, or FY2026 to date."
+    },
+    "declared_unpaid": [],
+    "declared_unpaid_note": "One low-quality aggregator source (freepressjournal.in, echoed by univest.in) claimed the board 'recommended a dividend of Rs 1.20 per equity share' alongside the Q4 FY26 results on 14-May-2026. This claim is EXPLICITLY NOT CORROBORATED: (a) trendlyne.com's dedicated corporate-actions history for MOL/543331 shows no dividend for 2025 or 2026 at all; (b) the company's own primary board-outcome letter to BSE/NSE dated 14-May-2026 (fetched directly as a PDF from meghmani.com) makes NO mention of any dividend recommendation anywhere in its text; (c) the same freepressjournal/univest articles also stated a Q4 FY26 consolidated net profit of Rs 30.8 Cr on Rs 481.6 Cr revenue, which directly CONTRADICTS the audited filing's Rs 8.03 Cr net profit on Rs 474.34 Cr revenue (confirmed independently via screener.in AND via line-by-line reconstruction of the primary PDF's consolidated P&L). Given this source has at least one other independently-falsifiable factual error in the same article, the Rs 1.20/share dividend claim is treated as UNRELIABLE and is NOT included as a declared-unpaid dividend in this pack.",
+    "sources": [
+      "https://trendlyne.com/equity/corporate-actions/MOL/635675/meghmani-organics-ltd/",
+      "https://www.indmoney.com/stocks/dividend/meghmani-organics-ltd-dividend",
+      "https://www.screener.in/company/MOL/consolidated/",
+      "https://meghmani.com/wp-content/uploads/2026/05/unaudited-financial-results-31-03-2026.pdf"
+    ]
+  },
+  "quarterly_results": {
+    "basis": "Consolidated (owners' share of profit), Rs Crore — figures cross-verified between screener.in's quarterly table and a line-by-line read of the company's own audited financial-results PDF filed with BSE/NSE on 14-May-2026 (an exact match to the rupee on both revenue and net profit).",
+    "latest_reported_quarter": {
+      "period_label": "Q4 FY26 (Jan-Mar 2026)",
+      "revenue_inr_cr": 474.34,
+      "net_profit_inr_cr": 8.03,
+      "eps_inr": 0.32
+    },
+    "same_quarter_prior_year": {
+      "period_label": "Q4 FY25 (Jan-Mar 2025)",
+      "revenue_inr_cr": 553.46,
+      "net_profit_inr_cr": 19.82,
+      "eps_inr": 0.78,
+      "cross_check": "screener.in's quarterly table and the primary audited PDF (Statement row IX, 'Net Profit attributable to Owners of the Company', and row I 'Revenue from operations') agree to the rupee: Rs 47,433.94 Lakhs revenue / Rs 803.12 Lakhs net profit for Q4FY26, and Rs 55,346.12 Lakhs / Rs 1,981.74 Lakhs for Q4FY25."
+    },
+    "revenue_growth_yoy_mrq_pct": -14.30,
+    "revenue_growth_yoy_mrq_calc": "(474.34 - 553.46) / 553.46 = -14.30%",
+    "earnings_growth_yoy_mrq_pct": -59.48,
+    "earnings_growth_yoy_mrq_calc": "(8.03 - 19.82) / 19.82 = -59.48%",
+    "standalone_basis_for_comparison": {
+      "note": "STANDALONE (parent company only, excludes subsidiaries) tells a materially different and better story than consolidated for the same quarter — worth flagging since a naive scrape could conflate the two bases.",
+      "q4_fy26_revenue_inr_cr": 456.62,
+      "q4_fy26_net_profit_inr_cr": 19.54,
+      "q4_fy26_eps_inr": 0.77,
+      "q4_fy25_revenue_inr_cr": 502.10,
+      "q4_fy25_net_profit_inr_cr": 33.97,
+      "q4_fy25_eps_inr": 1.34,
+      "revenue_growth_yoy_pct": -9.06,
+      "earnings_growth_yoy_pct": -42.48,
+      "source": "Company's own audited standalone financial results PDF, Statement [A], row I and row IX/XIV."
+    },
+    "full_year_fy26_context": {
+      "consolidated_revenue_inr_cr": 2173.96,
+      "consolidated_net_profit_inr_cr": 28.74,
+      "consolidated_net_profit_fy25_inr_cr": -10.60,
+      "consolidated_note": "FY26 consolidated net profit of Rs 28.74 Cr represents a return to profitability from a Rs 10.60 Cr consolidated net LOSS in FY25 — matches scanx.trade's and a tickertape-linked aggregator's independently reported 'net profit Rs 28.74 crore... against net loss of Rs 10.60 crore' framing exactly.",
+      "standalone_revenue_inr_cr": 2091.81,
+      "standalone_net_profit_inr_cr": 125.26,
+      "standalone_net_profit_fy25_inr_cr": 66.42,
+      "standalone_note": "Standalone FY26 net profit of Rs 125.26 Cr, up ~89% YoY from Rs 66.42 Cr in FY25 — matches an independently-sourced press summary (scanx.trade) of '+89% YoY' almost exactly."
+    },
+    "note_on_next_quarter": "As of the research date (2026-07-10), Q1 FY27 (Apr-Jun 2026) results had not yet been published (SEBI LODR gives listed companies 45 days from quarter-end, i.e. until roughly mid-August 2026). Q4 FY26 (Mar-2026), reported 14-May-2026, correctly remains the latest reported quarter.",
+    "sources": [
+      "https://www.screener.in/company/MOL/consolidated/",
+      "https://meghmani.com/wp-content/uploads/2026/05/unaudited-financial-results-31-03-2026.pdf",
+      "https://scanx.trade/stock-market-news/companies/meghmani-organics-reports-strong-fy26-standalone-performance-board-approves-subsidiary-amalgamation-scheme/40299396"
+    ]
+  },
+  "shareholding": {
+    "as_of": "2026-03-31",
+    "promoter_holding_pct": 48.95,
+    "fii_pct": 1.34,
+    "dii_pct": 0.0,
+    "public_pct": 49.66,
+    "number_of_shareholders": 134841,
+    "sources": ["https://www.screener.in/company/MOL/consolidated/"]
+  },
+  "corporate_structure_note": {
+    "note": "Meghmani Organics Limited's board approved a Scheme of Amalgamation on 4-Apr-2026 to merge two of its own wholly-owned subsidiaries — Kilburn Chemicals Limited and Meghmani Crop Nutrition Limited — into the parent, with an appointed date of 1-Jan-2026. Shareholders approved this via postal ballot/NCLT-convened meetings in June 2026 (99.99% approval reported). As of the FY26 audited results (14-May-2026), the Scheme had NOT yet become effective (pending NCLT sanction), so no accounting effect of the merger is reflected in the FY26 numbers in this pack. This is a live corporate-action item worth tracking for subsequent quarters, as it will simplify/change the standalone-vs-consolidated split reported here once effective.",
+    "sources": [
+      "https://meghmani.com/wp-content/uploads/2026/05/unaudited-financial-results-31-03-2026.pdf",
+      "https://www.tipranks.com/news/company-announcements/meghmani-organics-shareholders-clear-amalgamation-of-two-wholly-owned-subsidiaries"
+    ]
+  },
+  "figures": [
+    {"metric": "Legal name", "value": "Meghmani Organics Limited", "basis": "n/a", "as_of": "current", "source": "Company's own BSE/NSE filing letterhead, meghmani.com"},
+    {"metric": "ISIN", "value": "INE0CT101020", "basis": "n/a", "as_of": "current", "source": "upstox.com; marketscreener.com; distinct from the OLD/merged entity's ISIN INE974H01013"},
+    {"metric": "BSE code", "value": "543331", "basis": "n/a", "as_of": "current", "source": "screener.in; company's own filing letterhead"},
+    {"metric": "NSE symbol", "value": "MOL", "basis": "n/a", "as_of": "current", "source": "screener.in; nseindia.com; company's own filing letterhead"},
+    {"metric": "CIN", "value": "L24299GJ2019PLC110321", "basis": "n/a", "as_of": "current", "source": "company's own filing letterhead/footer"},
+    {"metric": "Latest closing price", "value": "Rs 46.40", "basis": "NSE/BSE close", "as_of": "2026-07-09", "source": "screener.in (46.4); groww.in (46.39) — agree"},
+    {"metric": "Market capitalization", "value": "≈Rs 1,171-1,178 Cr", "basis": "current price x ~25.43 Cr shares", "as_of": "2026-07-09", "source": "screener.in (1,178 Cr); groww.in (1,171 Cr)"},
+    {"metric": "P/E (TTM)", "value": "41.0 (screener) / 40.75 (groww)", "basis": "consolidated", "as_of": "2026-07-09", "source": "screener.in; groww.in"},
+    {"metric": "EPS (TTM)", "value": "Rs 1.13", "basis": "consolidated, FY2026 full year (Apr-2025 to Mar-2026)", "as_of": "FY ended 2026-03-31", "source": "company's audited consolidated filing (row XVI); matches groww.in exactly"},
+    {"metric": "52-week high", "value": "Rs 106.30", "basis": "NSE/BSE", "as_of": "trailing 52 weeks to 2026-07-09", "source": "groww.in (106.30); screener.in (rounded 106)"},
+    {"metric": "52-week low", "value": "Rs 36.50", "basis": "NSE/BSE", "as_of": "trailing 52 weeks to 2026-07-09", "source": "groww.in (36.50); screener.in (rounded 36.4)"},
+    {"metric": "Drawdown from 52w high", "value": "-56.35%", "basis": "(close - 52wHigh)/52wHigh", "as_of": "2026-07-09", "source": "computed: (46.40-106.30)/106.30"},
+    {"metric": "52-week price change", "value": "disputed: approx -42% to -50% (range, not resolved to a single figure)", "basis": "close-to-close, 1 year, exact anchor dates unclear", "as_of": "as of late June/early July 2026 per differing aggregator snippets", "source": "one aggregator cluster: -42.18%; a separate tickertape.in-linked cluster: -49.3%/-49.51%; genuinely conflicting, not silently resolved"},
+    {"metric": "Dividend paid (trailing 12 months)", "value": "Rs 0.00/share (none paid)", "basis": "per share, TTM to research date", "as_of": "TTM to 2026-07-10", "source": "screener.in and groww.in both show 0.00% yield; trendlyne.com corporate-action history confirms last payout was FY2023 (ex-date 20-Jun-2023, Rs 1.40/share)"},
+    {"metric": "Dividend declared, unpaid", "value": "None confirmed (an unverified Rs 1.20/share claim from a low-quality aggregator was investigated and discarded — see dividends.declared_unpaid_note)", "basis": "per share", "as_of": "as of 2026-07-10", "source": "trendlyne.com corporate actions (silent on any FY26 dividend); company's own primary board-outcome letter (silent on any dividend)"},
+    {"metric": "Face value", "value": "Rs 1.00", "basis": "per share", "as_of": "current", "source": "screener.in; groww.in; company's own filing (paid-up equity share capital note)"},
+    {"metric": "Dividend yield", "value": "0.00%", "basis": "trailing dividend / current price", "as_of": "2026-07-09", "source": "screener.in; groww.in"},
+    {"metric": "Latest reported quarter revenue", "value": "Rs 474.34 Cr (Q4 FY26, Jan-Mar 2026)", "basis": "consolidated, MRQ", "as_of": "quarter ended 2026-03-31", "source": "screener.in; matches company's own audited filing PDF exactly"},
+    {"metric": "Latest reported quarter net profit", "value": "Rs 8.03 Cr (Q4 FY26, Jan-Mar 2026)", "basis": "consolidated (owners' share), MRQ", "as_of": "quarter ended 2026-03-31", "source": "screener.in; matches company's own audited filing PDF exactly"},
+    {"metric": "Same quarter prior year revenue", "value": "Rs 553.46 Cr (Q4 FY25, Jan-Mar 2025)", "basis": "consolidated", "as_of": "quarter ended 2025-03-31", "source": "screener.in; company's own audited filing PDF"},
+    {"metric": "Same quarter prior year net profit", "value": "Rs 19.82 Cr (Q4 FY25, Jan-Mar 2025)", "basis": "consolidated (owners' share)", "as_of": "quarter ended 2025-03-31", "source": "screener.in; company's own audited filing PDF"},
+    {"metric": "Revenue growth YoY (MRQ)", "value": "-14.30%", "basis": "(474.34-553.46)/553.46", "as_of": "Q4 FY26 vs Q4 FY25", "source": "computed from screener.in/primary filing"},
+    {"metric": "Earnings growth YoY (MRQ)", "value": "-59.48%", "basis": "(8.03-19.82)/19.82", "as_of": "Q4 FY26 vs Q4 FY25", "source": "computed from screener.in/primary filing"},
+    {"metric": "ROE (latest FY)", "value": "1.88% (screener) / 1.86% (groww)", "basis": "consolidated, FY ended Mar-2026", "as_of": "FY ended 2026-03-31", "source": "screener.in; groww.in; independently recomputed as 1.86% from primary filing equity"},
+    {"metric": "Book value per share", "value": "Rs 60.70 (screener) / Rs 60.74 (groww)", "basis": "consolidated", "as_of": "FY ended 2026-03-31", "source": "screener.in; groww.in; independently recomputed as Rs 60.75 from primary filing"},
+    {"metric": "Promoter holding", "value": "48.95%", "basis": "consolidated shareholding pattern", "as_of": "quarter ended 2026-03-31", "source": "screener.in"}
+  ],
+  "notes": [
+    "ENTITY TRAP (high-severity): 'Meghmani Organics Ltd' has TWO ISINs in the wild. The pre-2021 entity (ISIN INE974H01013, old BSE 532865) amalgamated/demerged in 2021; the surviving/renamed entity trading TODAY is NSE:MOL / BSE:543331 / ISIN INE0CT101020 / CIN L24299GJ2019PLC110321. screener.in itself lists the old entity separately as ticker 'MEGH' labelled '(Merged)'. An initial WebFetch of screener.in/company/MEGH/ returned entirely STALE data (a Dec-2020-vintage quarterly result, price Rs 138, mcap Rs 3,516 Cr) — that page/ticker was the wrong, defunct entity and was discarded in favor of screener.in/company/MOL/, which returned current (09-Jul-2026) data.",
+    "A PRIMARY SOURCE (the company's own audited Q4/FY26 results PDF, filed with BSE/NSE on 14-May-2026 and fetched directly from meghmani.com) was used to cross-verify screener.in's quarterly figures line-by-line. They match to the rupee on both revenue and net profit for Q4 FY26 and Q4 FY25 (consolidated), which is a strong confidence signal for the quarterly-results section of this pack.",
+    "Two low-quality secondary aggregators (freepressjournal.in and univest.in) independently reported Q4 FY26 consolidated figures of Rs 481.6 Cr revenue / Rs 30.8 Cr net profit (+66.5% YoY) and a claimed Rs 1.20/share dividend recommendation. ALL of these figures directly contradict the audited primary-source filing (Rs 474.34 Cr revenue / Rs 8.03 Cr net profit) and are NOT corroborated by any dividend/corporate-action tracker. These aggregator figures are DISCARDED as unreliable rather than silently blended in; flagged here per the ground-truth-pack instruction to note disagreements rather than pick silently.",
+    "CONSOLIDATED vs STANDALONE materially diverge for MOL and this is a genuine feature of the business, not a data error: standalone (parent-only) FY26 net profit is Rs 125.26 Cr (ROE ~7.1-7.4%), while consolidated (group, including loss-making subsidiaries Meghmani Crop Nutrition and Kilburn Chemicals) FY26 net profit is only Rs 28.74 Cr (ROE ~1.86-1.88%). All headline figures in this pack default to CONSOLIDATED (matching screener.in/groww.in convention) with standalone figures included alongside for context.",
+    "Price and market cap were cross-checked across 2 independent live sources (screener.in and groww.in); both agree closely on price (Rs 46.40 vs Rs 46.39) and market cap (Rs 1,178 Cr vs Rs 1,171 Cr, ~0.6% spread) — not a material disagreement.",
+    "52-week price change % (1-year return) could NOT be resolved to a single confident figure: search-derived snippets from different aggregator families gave -42.18% in one cluster and -49.3%/-49.51% in another, for what appear to be similar (but not verified-identical) reference dates in late June 2026. This is reported as an open range rather than silently resolved — flagged for a follow-up direct historical-price lookup if precision is required.",
+    "A live corporate action is in flight: Kilburn Chemicals Limited and Meghmani Crop Nutrition Limited (both wholly-owned subsidiaries) are being amalgamated INTO Meghmani Organics Limited via an NCLT scheme (board-approved 4-Apr-2026, appointed date 1-Jan-2026, shareholder approval ~June 2026, NCLT sanction pending as of the FY26 results date). This will likely collapse much of the standalone/consolidated gap described above once effective — worth re-checking in a future data pull.",
+    "No dividend was paid in the trailing 12 months (last actual payout was the FY2023 final dividend of Rs 1.40/share, ex-date 20-Jun-2023); dividend yield is 0.00% per both cross-checked sources. Face value is Re 1 per share.",
+    "As of the research date (2026-07-10), Q1 FY27 (Apr-Jun 2026) results had not yet been published; Q4 FY26 (quarter ended 31-Mar-2026, reported 14-May-2026) is correctly the latest reported quarter used throughout this pack."
+  ]
+}

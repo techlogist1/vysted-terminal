@@ -1,0 +1,14 @@
+# R15-CODE-DATA-022 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:31:31+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from models.fundamentals import FieldMeta
+for s in ('unavaliable','ok','unavailable'):
+    try: print(repr(s),'->',FieldMeta(status=s).status)
+    except Exception as e: print(repr(s),'-> REJECTED',type(e).__name__, str(e).splitlines()[0])
+PY
+--- output ---
+'unavaliable' -> REJECTED ValidationError 1 validation error for FieldMeta
+'ok' -> ok
+'unavailable' -> unavailable
+
+EXIT=0 (0.1s)

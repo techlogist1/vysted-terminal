@@ -1,0 +1,39 @@
+# R15-DATA-020 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:26:30+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN' 'http://127.0.0.1:52861/disclosures/announcements?symbol=HDFCBANK' | python3 -c "import sys,json,collections;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);a=d['announcements'];print('count',len(a),collections.Counter(x.get('exchange') for x in a));[print(x.get('exchange'),x.get('ts','')[:16],(x.get('headline') or '')[:90]) for x in a[:12]];print(t[i:])"
+[exit 0] [2.03s]
+count 50 Counter({'NSE': 39, 'BSE': 11})
+NSE 2026-10-01T18:23 HDFC Bank Limited has informed the Exchange regarding Change in Director(s) of the company
+BSE 2026-10-01T18:19 Announcement under Regulation 30 (LODR)-Change in Directorate
+NSE 2026-09-30T20:36 HDFC Bank Limited has informed the Exchange about change in Management
+NSE 2026-09-29T12:12 Newspaper publication regarding special window for transfer and dematerialization of physi
+NSE 2026-09-25T12:19 HDFC Bank Limited has informed the Exchange regarding Allotment of 1897180   Shares.
+BSE 2026-09-22T10:46 Board Meeting Intimation for Approval Of The Unaudited Standalone And Consolidated Financi
+NSE 2026-09-16T15:02 HDFC Bank Limited has informed the Exchange regarding Allotment of 2521106  Shares.
+NSE 2026-09-12T16:24 HDFC Bank Limited has informed regarding Disclosure of material information
+BSE 2026-09-12T16:19 Disclosure Under Regulation 30 Of The SEBI (Listing Obligations And Disclosure Requirement
+NSE 2026-09-11T23:30 HDFC Bank Limited has informed the Exchange about General Updates
+NSE 2026-09-10T18:09 HDFC Bank Limited has informed the Exchange about Schedule of meet
+NSE 2026-09-06T21:54 HDFC Bank Limited has informed the Exchange regarding 'Grant of stock options under Employ
+
+[http 200 2.014632s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN' 'http://127.0.0.1:52861/disclosures/announcements?symbol=RELIANCE' | python3 -c "import sys,json,collections;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);a=d['announcements'];print('count',len(a),collections.Counter(x.get('exchange') for x in a));[print(x.get('exchange'),x.get('ts','')[:16],(x.get('headline') or '')[:90]) for x in a[:12]];print(t[i:])"
+[exit 0] [0.84s]
+count 50 Counter({'NSE': 45, 'BSE': 5})
+NSE 2026-10-01T15:02 We wish to inform that the Company has today allotted 13,00,000 Unsecured, Redeemable, Non
+NSE 2026-09-30T17:19 Reliance Industries Limited has informed the Exchange regarding the Trading Window closure
+NSE 2026-09-25T22:49 Reliance Industries Limited has informed the Exchange about Credit Rating
+BSE 2026-09-25T22:13 Announcement under Regulation 30 (LODR)-Credit Rating
+NSE 2026-09-24T19:24 This is further to the disclosure dated September 21, 2026 made by the Company. We wish to
+NSE 2026-09-23T18:51 This is further to the disclosure dated September 17, 2026 made by the Company. We wish to
+NSE 2026-09-21T19:11 This is further to the disclosure dated September 16, 2026 made by the Company. We wish to
+NSE 2026-09-21T19:05 Please note that the Company executives will be participating in the Institutional Investo
+NSE 2026-09-17T19:50 This is further to the disclosure dated September 11, 2026 made by the Company. We wish to
+NSE 2026-09-17T19:40 Please note that the Company executives will be participating in the Institutional Investo
+NSE 2026-09-16T17:45 Please note that the Company executives will be participating in the Institutional Investo
+NSE 2026-09-16T15:48 We wish to inform that the Company has today allotted 12,00,000 Unsecured, Redeemable, Non
+
+[http 200 0.817088s]
+

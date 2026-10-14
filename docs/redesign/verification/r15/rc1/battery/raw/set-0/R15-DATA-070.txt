@@ -1,0 +1,4 @@
+parse_struct_time(None) = None
+parse_struct_time(malformed) = None
+parse_iso(None) = None
+parse_iso(not-a-date) = None

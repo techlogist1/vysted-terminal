@@ -1,0 +1,4 @@
+# probe at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52357
+CMD: curl -s -m 100  http://127.0.0.1:52357/disclosures/shareholding?symbol=AAPL
+{"symbol":"AAPL","count":0,"patterns":[],"coverage":"not_applicable","note":"AAPL is not an NSE/BSE instrument; Indian exchange disclosures do not apply; its 20-F holders could not be read (MCP server 'sec-edgar-mcp' failed to open: ConnectError('All connection attempts failed'))","provider":null,"major_shareholders":[],"source_url":null}
+@@HTTP 200 time 0.000737

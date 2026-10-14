@@ -1,0 +1,7 @@
+CMD: curl -sS -m 20 'http://127.0.0.1:52362/history/BTC%2FUSDT?range=1mo&asset_class=crypto'
+bars: 30
+CMD: curl -sS -m 20 'http://127.0.0.1:52362/history/BTC%2FUSDT?range=1y&asset_class=crypto'
+bars: 365
+CMD: curl -sS -m 20 'http://127.0.0.1:52362/history/BTC%2FUSDT?range=5y&asset_class=crypto'
+bars: 1826
+EXIT: 0

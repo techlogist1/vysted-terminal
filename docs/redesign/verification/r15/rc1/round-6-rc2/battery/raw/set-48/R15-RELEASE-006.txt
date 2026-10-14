@@ -1,0 +1,32 @@
+# R15-RELEASE-006 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:40:12Z, sidecar :52348
+# kind=sh
+# command:
+#   export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$HOME/.cargo/bin:$PATH
+#   echo '$ literal per-sidecar staleness blocks left in smoke-test-sidecars.mjs?'
+#   grep -n 'extraFiles: \[join(ROOT, "scripts", "ensure-' scripts/smoke-test-sidecars.mjs || echo "none"
+#   grep -n "assertAllFresh\|_assertAllFresh" scripts/smoke-test-sidecars.mjs scripts/sidecar-specs.mjs scripts/ensure-all-sidecars.mjs | head
+#   echo '$ gate and builder read the SAME stale opts from SIDECAR_SPECS'
+#   node --input-type=module -e '
+#   import { SIDECAR_SPECS, assertAllFresh } from "./scripts/sidecar-specs.mjs";
+#   for (const s of SIDECAR_SPECS) console.log(s.name, "stale.extraFiles:", (s.stale?.extraFiles||[]).map(f=>f.split("/").slice(-2).join("/")), "excludeDirs:", (s.stale?.excludeDirs||[]).length);
+#   try { assertAllFresh(); console.log("assertAllFresh over fresh candidate binaries: passes"); } catch(e){ console.log("assertAllFresh threw:", String(e.message).slice(0,200)); }
+#   '
+#   echo '$ ensure scripts use buildSidecar(spec) which calls isStale(spec.stale)'; grep -n "isStale\|assertFresh" scripts/sidecar-specs.mjs
+# output:
+$ literal per-sidecar staleness blocks left in smoke-test-sidecars.mjs?
+none
+scripts/smoke-test-sidecars.mjs:88:import { SIDECAR_SPECS, assertAllFresh, binaryPath, targetTriple } from "./sidecar-specs.mjs";
+scripts/smoke-test-sidecars.mjs:930:function _assertAllFresh(triple) {
+scripts/smoke-test-sidecars.mjs:931:  assertAllFresh(triple);
+scripts/smoke-test-sidecars.mjs:946:  _assertAllFresh(triple);
+scripts/sidecar-specs.mjs:211:export function assertAllFresh(triple = targetTriple()) {
+$ gate and builder read the SAME stale opts from SIDECAR_SPECS
+vysted-sidecar stale.extraFiles: [] excludeDirs: 0
+vysted-openbb-mcp-sidecar stale.extraFiles: [] excludeDirs: 0
+vysted-sec-edgar-mcp-sidecar stale.extraFiles: [] excludeDirs: 0
+assertAllFresh over fresh candidate binaries: passes
+$ ensure scripts use buildSidecar(spec) which calls isStale(spec.stale)
+20:import { assertFresh, isStale } from "./sidecar-staleness.mjs";
+213:    assertFresh(binaryPath(spec.name, triple), spec.stale.dirs, spec.stale.opts);
+251:  const stale = present && isStale(outPath, spec.stale.dirs, spec.stale.opts);
+# exit=0

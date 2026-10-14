@@ -1,0 +1,17 @@
+=== DATA-065 repro: SPY 1mo freshness ===
+CMD: curl -s http://127.0.0.1:52364/history/SPY?timeframe=1mo
+symbol SPY provider yfinance freshness eod
+last bar {'timestamp': '2026-09-01T00:00:00-04:00', 'open': 762.010009765625, 'high': 775.1400146484375, 'low': 749.5999755859375, 'close': 771.3499755859375, 'volume': 797886856.0}
+
+=== DATA-065 repro: RELIANCE.NS 1wk freshness ===
+CMD: curl -s http://127.0.0.1:52364/history/RELIANCE.NS?timeframe=1wk
+symbol RELIANCE provider nse_direct freshness eod
+last bar {'timestamp': '2026-09-21T00:00:00Z', 'open': 1234.1, 'high': 1252.8, 'low': 1210.5, 'close': 1226.0, 'volume': 56106172.0}
+
+=== DATA-065 fresh case: TCS.NS 1mo freshness ===
+symbol TCS provider nse_direct freshness eod
+last bar {'timestamp': '2026-09-01T00:00:00Z', 'open': 2355.0, 'high': 2372.0, 'low': 2038.1, 'close': 2082.0, 'volume': 54253876.0}
+
+=== DATA-065 fresh case: AAPL 1wk freshness ===
+symbol AAPL provider yfinance freshness eod
+last bar {'timestamp': '2026-09-21T00:00:00-04:00', 'open': 335.2799987792969, 'high': 345.3399963378906, 'low': 333.04998779296875, 'close': 341.07000732421875, 'volume': 191702787.0}

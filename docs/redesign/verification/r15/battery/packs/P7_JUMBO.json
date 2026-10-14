@@ -1,0 +1,249 @@
+{
+  "slot": "P7",
+  "symbol": "JUMBO",
+  "name": "Jumbo Bag Ltd",
+  "exchange": "BSE",
+  "collected_at": "2026-09-19",
+  "fetch_note": "Outside-truth pack actually pulled 2026-09-23 (session-2 resume); per-field as_of dates below are the source's own as-of, not this fetch date. Top-level collected_at is pinned to 2026-09-19 per PROMPT_data_s2.md's PACK spec so this pack lines up with the in-app collected/<slot>_<symbol>.json snapshot date.",
+  "identity": {
+    "legal_name": {
+      "value": "Jumbo Bag Limited",
+      "unit": "text",
+      "as_of": "2026-07-30",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=64e3126e-2c55-47d5-8201-dd24c2391b80.pdf",
+      "note": "CIN L36991TN1990PLC019944 shown on the AGM-outcome letterhead footer; BSE trading name is 'Jumbo Bag Ltd'."
+    },
+    "former_names": {
+      "value": null,
+      "unit": "text",
+      "as_of": null,
+      "source_url": null,
+      "note": "WORLD_GAP: no rename found in screener.in or the BSE header/announcement pages reviewed. Not independently confirmed as 'never renamed' -- just not found."
+    },
+    "isin": {
+      "value": "INE699D01015",
+      "unit": "text",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078"
+    },
+    "bse_code": {
+      "value": "516078",
+      "unit": "text",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078"
+    },
+    "nse_symbol": {
+      "value": "absent",
+      "unit": "text",
+      "as_of": "2026-09-23",
+      "source_url": "https://www.screener.in/company/516078/",
+      "note": "No NSE badge/link on the screener header -- only a BSE:516078 link. Matches manifest.master_presence.nse = 'absent'."
+    },
+    "board": {
+      "value": "mainboard (inferred)",
+      "unit": "text",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+      "note": "Inferred, not directly labelled: 6-digit legacy BSE code, 36th AGM (listed since ~1990), no SME-board flag anywhere in the fetched header/trading JSON. BSE's own 'Group' field is inconsistent across its APIs (see traps) so this is not a hard field."
+    },
+    "sector": {
+      "value": "Industrials",
+      "unit": "text",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078"
+    },
+    "industry": {
+      "value": "Packaging (BSE IndustryNew: Capital Goods > Industrial Products > Packaging)",
+      "unit": "text",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078"
+    },
+    "listing_date": {
+      "value": null,
+      "unit": "date",
+      "as_of": null,
+      "source_url": null,
+      "note": "WORLD_GAP: not located within the sources checked (screener summary, BSE header/trading JSON). Company incorporated 1990 per screener 'About'; that is not the listing date."
+    }
+  },
+  "price": {
+    "last_close": {
+      "value": 88.58,
+      "unit": "INR",
+      "date": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=516078&seriesid="
+    }
+  },
+  "market_cap": {
+    "value": 74.17,
+    "unit": "INR crore",
+    "as_of": "2026-09-22",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?scripcode=516078&flag=1",
+    "note": "BSE MktCapFull = 74.17 Cr; free-float MktCapFF = 39.23 Cr. screener.in top-ratio shows 74.1 Cr same day -- these two agree."
+  },
+  "pe_ttm": {
+    "value": null,
+    "unit": "x",
+    "as_of": "2026-09-22/23",
+    "source_url": "https://www.screener.in/company/516078/ ; https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+    "note": "SOURCE DISAGREEMENT (recorded, not smoothed): screener.in top-ratio Stock P/E = 7.07 (TTM-EPS basis, computed off last 4 quarters). BSE ComHeadernew field PE = 6.37 (basis/period not disclosed by BSE's own field). Both are legitimate outside sources reporting different numbers for the same day -- exactly the kind of derived-ratio divergence manifest.hostile_traits calls out for this name."
+  },
+  "pe_ttm_screener": { "value": 7.07, "unit": "x", "as_of": "2026-09-23", "source_url": "https://www.screener.in/company/516078/" },
+  "pe_ttm_bse": { "value": 6.37, "unit": "x", "as_of": "2026-09-22", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078" },
+  "pb": {
+    "value": null,
+    "unit": "x",
+    "as_of": "2026-09-22/23",
+    "source_url": "https://www.screener.in/company/516078/ ; https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+    "note": "SOURCE DISAGREEMENT: computed from screener's own Current Price / Book Value (88.6 / 57.0) = 1.55x. BSE ComHeadernew field PB = 2.14x directly. ~38% apart -- flag, do not average."
+  },
+  "pb_computed_screener": { "value": 1.55, "unit": "x", "as_of": "2026-09-23", "source_url": "https://www.screener.in/company/516078/", "note": "computed = Current Price 88.6 / Book Value 57.0, not a field screener prints directly" },
+  "pb_bse": { "value": 2.14, "unit": "x", "as_of": "2026-09-22", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078" },
+  "roe": {
+    "value": null,
+    "unit": "%",
+    "as_of": "2026-09-22/23",
+    "source_url": "https://www.screener.in/company/516078/ ; https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+    "note": "SOURCE DISAGREEMENT, large: screener top-ratio ROE = 14.2% (also shown as 'Last Year: 14%' in its Return-on-Equity 3/5/10yr table). BSE ComHeadernew field ROE = 33.58%. >2x apart -- consistent with manifest's warning that this name's derived ratios are source/basis-dependent (82% 5y profit CAGR vs 6.81% 5y sales CAGR means margin-driven profit growth, and ROE swings hugely with the EPS/equity-base window each source uses)."
+  },
+  "roe_screener": { "value": 14.2, "unit": "%", "as_of": "2026-09-23", "source_url": "https://www.screener.in/company/516078/" },
+  "roe_bse": { "value": 33.58, "unit": "%", "as_of": "2026-09-22", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078" },
+  "roce": {
+    "value": 14.6,
+    "unit": "%",
+    "as_of": "2026-09-23",
+    "source_url": "https://www.screener.in/company/516078/"
+  },
+  "debt_to_equity": {
+    "value": 0.85,
+    "unit": "x",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/516078/",
+    "note": "Computed, not a field screener prints directly: FY Mar-2026 balance sheet Borrowings 41 Cr / (Equity Capital 9 Cr + Reserves 39 Cr = 48 Cr) = 0.85x. Screener's own figures are whole-crore-rounded, so this carries rounding noise (+/- a few points)."
+  },
+  "revenue_ttm": {
+    "value": 130.02,
+    "unit": "INR crore",
+    "as_of": "TTM to Jun 2026 (quarters Sep25+Dec25+Mar26+Jun26)",
+    "source_url": "https://www.screener.in/company/516078/",
+    "note": "Computed by summing the last 4 quarterly Sales rows (31.45+28.53+26.96+43.08); matches screener's own meta-description figure 'Revenue: 130 Cr' exactly."
+  },
+  "net_profit_ttm": {
+    "value": 11.63,
+    "unit": "INR crore",
+    "as_of": "TTM to Jun 2026",
+    "source_url": "https://www.screener.in/company/516078/",
+    "note": "Computed: 3.11+1.76+1.22+5.54 = 11.63 Cr; matches screener meta-description 'Profit: 11.6 Cr'."
+  },
+  "revenue_growth_yoy": {
+    "value": 1,
+    "unit": "% (TTM, standalone -- see consolidated_vs_standalone note)",
+    "as_of": "2026-09-23",
+    "source_url": "https://www.screener.in/company/516078/",
+    "note": "screener's 'Compounded Sales Growth' box: TTM = 1%, 5yr = 7% (matches manifest hostile_traits '6.81%/5y' closely), 3yr = 2%, 10yr = 3%. The Jun-2026 quarter alone spiked to Sales 43.08 Cr vs Jun-2025's 30.64 Cr (+40% YoY for that single quarter) -- the flat TTM% vs the spiky latest-quarter% is itself worth diffing against separately if the app reports a single-quarter YoY number."
+  },
+  "eps_ttm": {
+    "value": 13.89,
+    "unit": "INR",
+    "as_of": "TTM to Jun 2026",
+    "source_url": "https://www.screener.in/company/516078/ ; https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+    "note": "Computed by summing last 4 quarterly EPS rows (3.71+2.10+1.46+6.62=13.89); CONFIRMS against BSE ComHeadernew field EPS='13.90' independently -- the one ratio where the two sources agree almost exactly, which makes the PE/PB/ROE divergence above a basis-of-computation issue, not a data-quality issue."
+  },
+  "book_value_per_share": {
+    "value": 57.0,
+    "unit": "INR",
+    "as_of": "2026-09-23",
+    "source_url": "https://www.screener.in/company/516078/"
+  },
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/516078/ ; https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+    "note": "Both sources agree: 10.00."
+  },
+  "dividend": {
+    "last_declared_per_share": {
+      "value": null,
+      "unit": "INR",
+      "record_or_ex_date": null,
+      "as_of": "2026-07-30",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=64e3126e-2c55-47d5-8201-dd24c2391b80.pdf",
+      "note": "WORLD_GAP for the exact INR/share figure and record/ex date. What IS confirmed (read the actual AGM-outcome PDF, quoted): 36th AGM held 30 Jul 2026, Item No. 3 on the agenda was 'To declare a Dividend on equity shares for the financial year ended 31st March, 2026' -- the outcome letter states the item was voted on but does not itself state the per-share amount. screener's annual P&L table shows a 'Dividend Payout %' of 8% for FY Mar-2026 (the first non-zero year in its visible 11-year history; all prior years show 0%), which corroborates a real distribution but does not give INR/share. Neither the AGM outcome PDF nor the two board-meeting PDFs fetched state the rupee figure; would require the FY2026 Annual Report / Board's Report or a dedicated BSE dividend-corpaction filing not resolved within this session's tool budget."
+    },
+    "paid_trailing_12m_per_share": {
+      "value": 0.0,
+      "unit": "INR",
+      "as_of": "2026-09-23",
+      "source_url": "https://www.screener.in/company/516078/",
+      "note": "TRAP, recorded not smoothed: screener's top-ratio 'Dividend Yield' shows 0.00% at the current price, which would normally imply zero trailing dividend -- but this directly contradicts the same page's own P&L table showing an 8% FY2026 dividend payout ratio (see last_declared_per_share note) and the 30-Jul-2026 AGM having just approved a dividend. Read literally the Dividend Yield card has not yet been refreshed to reflect the newly declared/paid FY26 dividend, OR the dividend approved at AGM has not actually been paid out yet as of this fetch. An automated pipeline reading only the top-ratio card would wrongly report 'no dividend' for a year one was in fact declared."
+    },
+    "yield": {
+      "value": 0.0,
+      "unit": "%",
+      "as_of": "2026-09-23",
+      "source_url": "https://www.screener.in/company/516078/",
+      "note": "Same figure/caveat as paid_trailing_12m_per_share above."
+    }
+  },
+  "week52": {
+    "high": { "value": 105, "unit": "INR", "as_of": null, "source_url": "https://www.screener.in/company/516078/", "note": "screener's free summary card gives only the combined 52-week range, no per-leg date. WORLD_GAP: separate as-of date for the high not found." },
+    "low": { "value": 49.1, "unit": "INR", "as_of": null, "source_url": "https://www.screener.in/company/516078/", "note": "Same gap as the high -- no per-leg date on the free page. Combined range (105 / 49.1) exactly matches manifest.reference.range_52w_inr, confirming the same underlying screener feed as the manifest's own 2026-09-18 reference row." }
+  },
+  "shareholding": {
+    "quarter": "Jun 2026",
+    "promoter_pct": { "value": 42.77, "unit": "%", "as_of": "Jun 2026", "source_url": "https://www.screener.in/company/516078/" },
+    "fii_pct": { "value": null, "unit": "%", "as_of": null, "source_url": null, "note": "WORLD_GAP: screener shows no separate FII row for this stock in either its quarterly (Promoters/Public only) or yearly (Promoters/DIIs/Public) shareholding tables. Cannot determine whether FII holding is genuinely ~0 or simply folded into 'Public' by the source -- do not assume 0%." },
+    "dii_pct": { "value": 0.0, "unit": "%", "as_of": "Jun 2026", "source_url": "https://www.screener.in/company/516078/", "note": "From the YEARLY table's last column (Jun 2026), which does break out a DIIs row (0.00%, unchanged since Mar 2021). The QUARTERLY table does not carry a DII row at all -- if the app's shareholding view is quarter-granular it may not have anywhere to source a DII% from screener at that cadence." },
+    "public_pct": { "value": 57.23, "unit": "%", "as_of": "Jun 2026", "source_url": "https://www.screener.in/company/516078/" },
+    "pledged_pct_of_promoter": { "value": null, "unit": "%", "as_of": null, "source_url": null, "note": "WORLD_GAP, explicitly called out by PROMPT_data_s2.md as the single most gameable number for an Indian small-cap: not shown on screener.in's free-tier shareholding card (no pledge % anywhere on the fetched page); screener's login-gated 'Corporate actions' page (/company/actions/1661/) 302-redirected to /register/; the BSE shareholding-pattern API endpoint shape was not successfully resolved within this session's curl/tool budget (several plausible endpoint names tried, all 302'd or empty). Recorded as a genuine gap, not asserted as zero." }
+  },
+  "corporate_actions_2026": [
+    {
+      "date": "2026-07-30",
+      "action": "36th AGM: adopted FY Mar-2026 accounts, re-appointed director Shri G. S. Srinivas (retiring by rotation), DECLARED a dividend on equity shares for FY ended 31 Mar 2026 (exact INR/share not stated in this filing -- see dividend.last_declared_per_share), revised statutory auditor remuneration.",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=64e3126e-2c55-47d5-8201-dd24c2391b80.pdf",
+      "verified": "PDF opened and read directly (not scraped-text-only); quoted ITEM NO. 03 confirms the dividend-declaration resolution."
+    },
+    {
+      "date": "2026-07-30",
+      "action": "Board approved Q1 FY2026-27 unaudited results and appointed Shri G. A. Darshan as an Additional Director w.e.f. 30 Jul 2026.",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=dd36ae46-855c-412e-85ad-ea5fc76a0dbb.pdf",
+      "verified": "Not opened directly -- headline/summary taken from screener.in's scraped announcement text only."
+    }
+  ],
+  "latest_results": {
+    "quarter": "Q1 FY2026-27 (Jun 2026)",
+    "filing_date": "2026-07-30",
+    "source_url": "https://www.screener.in/company/516078/",
+    "note": "Board Meeting Outcome for Q1 FY2026-27 results, approved with limited review report, per screener's scraped announcement list."
+  },
+  "last_3_announcements": [
+    { "date": "2026-07-31", "headline": "Scrutiniser's report on 36th AGM remote e-voting: all four ordinary resolutions passed (30 Jul 2026)", "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=e231bbb0-5ec2-4ee6-baf5-3de236542654.pdf" },
+    { "date": "2026-07-30", "headline": "Outcome of 36th AGM held 30 Jul 2026 -- accounts adopted, director re-appointed, dividend declared (Item 3), auditor remuneration revised", "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=64e3126e-2c55-47d5-8201-dd24c2391b80.pdf" },
+    { "date": "2026-07-30", "headline": "Appointment of G. A. Darshan as Additional Director; Board approved Q1 FY2026-27 unaudited results", "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=dd36ae46-855c-412e-85ad-ea5fc76a0dbb.pdf" }
+  ],
+  "consolidated_vs_standalone": {
+    "note": "No 'Consolidated' tab/toggle or the word 'Consolidated' appears anywhere on the fetched screener.in page -- every figure in this pack (Sales, Net Profit, ratios) is screener's STANDALONE view, consistent with a single-entity nano-cap disclosing no subsidiaries. BSE's ComHeadernew JSON separately carries a full set of Con* fields (ConEPS, ConPE, ConPB, ConROE, etc.) that are all 0/null for this scrip, corroborating no consolidated financials exist to report.",
+    "source_url": "https://www.screener.in/company/516078/ ; https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078"
+  },
+  "traps": [
+    "Ticker 'JUMBO' is a common English word / brand term -- any pipeline doing keyword search instead of exact-symbol lookup will pull in unrelated 'jumbo' results (jumbo loans, jumbo mortgages, other Jumbo-branded companies) before it finds this nano-cap FIBC-bag maker.",
+    "BSE-ONLY listing, no NSE symbol at all. A pipeline that defaults to an NSE-first data source (common for Indian-equity tooling) will find nothing for this name and may wrongly conclude it is unlisted or delisted.",
+    "BSE flags it under Enhanced Surveillance Measure (EMSText: 'ESM :Stage 1' in the getScripHeaderData feed) -- a risk signal absent from plain OHLC/quote feeds; a pipeline that only ingests price/ratio fields will silently drop this.",
+    "Derived-ratio source divergence is LARGE and real, not noise: PE 7.07 (screener) vs 6.37 (BSE header); P/B 1.55x computed (screener fields) vs 2.14x (BSE header) -- 38% apart; ROE 14.2% (screener) vs 33.58% (BSE header) -- more than 2x apart. EPS is the one figure that DOES reconcile almost exactly (13.89 vs 13.90), so the divergence is a basis/period difference in the other ratios' inputs (equity base, price snapshot moment, or single-year vs blended-year denominators), not a data-entry error on either side. This is exactly the trap manifest.hostile_traits calls out (82.2% 5y profit CAGR vs 6.81% 5y sales CAGR makes every derived ratio source-dependent).",
+    "Thin trading: same-day BSE StockTrading feed shows total traded quantity of only 1,483 shares and turnover of Rs 1.32 lakh for the whole session -- LTP on a nano-cap this illiquid can gap sharply on a single small order; treating it as a stable 'fair value' input is risky.",
+    "Revenue is a blend of two different businesses -- FIBC bag manufacturing AND acting as IOCL's Del-Credere Associate/Consignment Stockiest for polymer trading (screener 'About' + 'Key Points' text) -- and the page exposes 'Close Segments' / 'Product Segments' toggle buttons on the quarterly table that were not expanded in this pass, so the blended 'Sales' TTM figure (130 Cr) is not itself segment-split in this pack.",
+    "Internal inconsistency on screener's OWN page: annual P&L table shows FY2026 'Dividend Payout %' = 8% (first non-zero year in the visible 11-year history) while the top-ratio summary card shows 'Dividend Yield' = 0.00% -- a pipeline reading only the top-ratio card would wrongly conclude no dividend was paid for FY2026.",
+    "BSE's StockTrading feed carries an 'ExDate' field reading '17 Sep 2014' -- over a decade stale -- despite the company having approved a fresh dividend at its Jul-2026 AGM. A naive consumer treating that field as 'last dividend ex-date' will badly misdate the company's most recent corporate action.",
+    "BSE's own APIs disagree with each other on the trading 'Group' label: ComHeadernew returns Group='XT' / Grp_Index='XT' for this scrip, while manifest.json (curated separately) records 'group X'. Not resolved which is authoritative; recorded as-is from the live fetch rather than silently normalized to match the manifest."
+  ],
+  "world_gaps": [
+    "Exact FY2026 declared dividend per share (INR) and its record/ex date -- AGM approved the resolution (confirmed by reading the actual outcome PDF) but no source checked states the rupee figure.",
+    "pledged_pct_of_promoter -- not on screener's free tier; BSE shareholding-pattern API endpoint not resolved within budget; genuinely could not reach, not asserted as zero.",
+    "FII holding as an independently disclosed line item -- screener does not carry a separate FII row for this stock at all (see shareholding.fii_pct note); this may be a field that genuinely does not exist for this scrip at screener's disclosure granularity, not merely one we couldn't reach.",
+    "Listing date on BSE -- not located in the sources checked.",
+    "Former name / rename history -- none found, not independently confirmed as never-renamed.",
+    "Per-leg as-of dates for the 52-week high and low individually (only the combined range has a source)."
+  ]
+}

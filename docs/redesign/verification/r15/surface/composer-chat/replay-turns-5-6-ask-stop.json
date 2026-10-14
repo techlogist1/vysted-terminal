@@ -1,0 +1,83 @@
+[
+  {
+    "file": "composer-chat/15-ask-autonomy-chart.jsonl",
+    "frontendEvents": {
+      "tool_use": 1,
+      "delta": 59,
+      "done": 1
+    },
+    "transportErrors": [],
+    "hostActionsApplied": [
+      {
+        "name": "set_chart_symbol",
+        "toolCallId": "",
+        "label": "Loaded BDL into the chart",
+        "threw": null,
+        "ack": "applied"
+      }
+    ],
+    "notices": [],
+    "briefPanel": {
+      "phase": "empty"
+    },
+    "chatTextChars": 213
+  },
+  {
+    "file": "composer-chat/16-multiturn-t6-arrange.jsonl",
+    "frontendEvents": {
+      "tool_use": 1,
+      "delta": 41,
+      "done": 1
+    },
+    "transportErrors": [],
+    "hostActionsApplied": [
+      {
+        "name": "arrange_layout",
+        "toolCallId": "",
+        "label": null,
+        "threw": null,
+        "ack": "failed"
+      }
+    ],
+    "notices": [],
+    "briefPanel": {
+      "phase": "empty"
+    },
+    "chatTextChars": 222
+  },
+  {
+    "file": "composer-chat/14-multiturn-t5-screen.jsonl",
+    "frontendEvents": {
+      "tool_use": 1,
+      "delta": 144,
+      "done": 1
+    },
+    "transportErrors": [],
+    "hostActionsApplied": [],
+    "notices": [],
+    "briefPanel": {
+      "phase": "empty"
+    },
+    "chatTextChars": 567
+  },
+  {
+    "file": "composer-chat/40-stop-midstream.jsonl",
+    "frontendEvents": {
+      "tool_use": 1,
+      "research_step": 3
+    },
+    "transportErrors": [],
+    "hostActionsApplied": [],
+    "notices": [
+      {
+        "detail": "Your active model — ollama/llama3.1:8b · IterResearch (evolving report)",
+        "status": "ok",
+        "rendersAsChip": false
+      }
+    ],
+    "briefPanel": {
+      "phase": "in_flight"
+    },
+    "chatTextChars": 0
+  }
+]

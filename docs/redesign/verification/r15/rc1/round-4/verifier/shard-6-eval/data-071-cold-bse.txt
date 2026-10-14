@@ -1,0 +1,4 @@
+BSE-direct TANFACIND.BO bars 8 partial True coverage_start 2026-09-16
+REGISTRY TANFACIND.BO provider yfinance bars 246 partial False first 2025-09-25 00:00:00+05:30
+BSE-direct ANDHRAPET.BO bars 24 partial True coverage_start 2026-08-22
+REGISTRY ANDHRAPET.BO provider yfinance bars 246 partial False first 2025-09-25 00:00:00+05:30

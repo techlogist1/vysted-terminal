@@ -1,0 +1,684 @@
+{
+ "ok": true,
+ "query": "Raymond Lifestyle",
+ "resolved": {
+  "ok": true,
+  "query": "Raymond Lifestyle",
+  "region": "IN",
+  "status": "bound",
+  "reason": "score 1.00 >= accept at band 4",
+  "resolved": {
+   "symbol": "RAYMONDLSL",
+   "name": "Raymond Lifestyle Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "RAYMONDLSL.NS",
+   "confidence": 1.0,
+   "isin": "INE02ID01020",
+   "bse_code": "544240",
+   "industry": "Textiles / Other Textile Products",
+   "former_name": null,
+   "board": "mainboard",
+   "exchange_group": "A",
+   "face_value": 2.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "RAYMONDLSL",
+    "name": "Raymond Lifestyle Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "RAYMONDLSL.NS",
+    "confidence": 1.0,
+    "isin": "INE02ID01020",
+    "bse_code": "544240",
+    "industry": "Textiles / Other Textile Products",
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "A",
+    "face_value": 2.0
+   },
+   {
+    "symbol": "RAYMOND",
+    "name": "Raymond Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "RAYMOND.NS",
+    "confidence": 0.6875,
+    "isin": "INE301A01014",
+    "bse_code": "500330",
+    "industry": "Specialty Industrial Machinery",
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "A",
+    "face_value": 10.0
+   },
+   {
+    "symbol": "HASJUICE",
+    "name": "Has Lifestyle Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HASJUICE.BO",
+    "confidence": 0.6471,
+    "isin": "INE888Q01016",
+    "bse_code": "780014",
+    "industry": null,
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "IP",
+    "face_value": 10.0
+   },
+   {
+    "symbol": "RIYAASAT",
+    "name": "Riyaasat Lifestyle Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "RIYAASAT.BO",
+    "confidence": 0.6154,
+    "isin": "INE0KYI01012",
+    "bse_code": "544804",
+    "industry": null,
+    "former_name": null,
+    "board": "SME",
+    "exchange_group": "M",
+    "face_value": 10.0
+   },
+   {
+    "symbol": "ADVLIFE",
+    "name": "Advance Lifestyles Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ADVLIFE.BO",
+    "confidence": 0.6154,
+    "isin": "INE900E01015",
+    "bse_code": "521048",
+    "industry": null,
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "X",
+    "face_value": 10.0
+   },
+   {
+    "symbol": "ELAND",
+    "name": "E-Land Apparel Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "ELAND.BO",
+    "confidence": 0.594,
+    "isin": "INE311H01018",
+    "bse_code": "532820",
+    "industry": null,
+    "former_name": "Mudra Lifestyle Limited",
+    "board": "mainboard",
+    "exchange_group": "X",
+    "face_value": 10.0
+   }
+  ]
+ },
+ "symbol": "RAYMONDLSL",
+ "structured": {
+  "price": {
+   "ok": false,
+   "provider": null,
+   "error": "price timed out after 6s \u2014 dropped",
+   "reason": "provider_error"
+  },
+  "fundamentals": {
+   "ok": false,
+   "provider": null,
+   "error": "fundamentals timed out after 6s \u2014 dropped",
+   "reason": "provider_error"
+  },
+  "derived": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "drawdown_from_high": {
+     "value": null,
+     "label": "Below 52-week high",
+     "basis": "vs 52w high",
+     "formula": "(52w high - price) / 52w high",
+     "unit": "fraction"
+    },
+    "fifty_two_week_change": {
+     "value": null,
+     "label": "52-week price change (Yahoo)",
+     "basis": "trailing 52 weeks",
+     "unit": "fraction"
+    },
+    "dividend_yield": {
+     "value": null,
+     "label": "Dividend yield",
+     "basis": "fraction of price",
+     "unit": "fraction"
+    },
+    "dividend_per_share": {
+     "value": null,
+     "label": "Dividend per share",
+     "basis": "per share, listing currency",
+     "unit": "currency"
+    },
+    "revenue_growth": {
+     "value": null,
+     "label": "Revenue growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction"
+    },
+    "earnings_growth": {
+     "value": null,
+     "label": "Earnings growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction"
+    },
+    "market_cap": {
+     "value": null,
+     "label": "Market cap",
+     "basis": "provider market cap",
+     "unit": "currency"
+    },
+    "conflicts": []
+   }
+  },
+  "news": {
+   "ok": true,
+   "provider": null,
+   "data": []
+  },
+  "filings": {
+   "ok": true,
+   "provider": "nse+bse",
+   "data": {
+    "symbol": "RAYMONDLSL",
+    "exchange": null,
+    "coverage": "covered",
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "count": 20,
+    "announcements": [
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "NSE",
+      "headline": "Raymond Lifestyle Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+      "category": "Trading Window",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_25092026120308_RLLWindowClosureIntimationSigned.pdf",
+      "ts": "2026-09-25T12:03:20+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "NSE",
+      "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_23092026183614_RLLInvestorConferenceIntimationSigned.pdf",
+      "ts": "2026-09-23T18:36:29+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "BSE",
+      "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/2ad85572-9d20-4460-9598-f06c106768c6.pdf",
+      "ts": "2026-09-23T18:33:47.520000+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "BSE",
+      "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d6e8f6f0-3f91-41f7-8055-be5c94cfff68.pdf",
+      "ts": "2026-09-23T15:58:28.537000+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "NSE",
+      "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_15092026183941_RLLSEintimationInvestormeet.pdf",
+      "ts": "2026-09-15T18:39:56+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "BSE",
+      "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/6e9f9884-452f-4ff8-a237-892611aa1484.pdf",
+      "ts": "2026-09-15T18:37:46.077000+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "NSE",
+      "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_11092026215426_RLLSEintimationInvestormeet.pdf",
+      "ts": "2026-09-11T21:55:37+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "BSE",
+      "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/87911799-cdbb-4380-a6f5-5fe04aa17b15.pdf",
+      "ts": "2026-09-11T21:55:22.003000+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "NSE",
+      "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_31082026182111_SE_intimation_-_Investor_meet_SD.pdf",
+      "ts": "2026-08-31T18:21:31+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "BSE",
+      "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/92886d79-06f6-4f2f-ab21-66f605faefdc.pdf",
+      "ts": "2026-08-31T17:45:19.940000+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "BSE",
+      "headline": "Disclosures under Reg. 31(1) and 31(2) of SEBI (SAST) Regulations, 2011.",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/AA091B52_73E8_40E1_8DB6_7B3FB3238E4C_103237.pdf",
+      "ts": "2026-08-21T10:32:44.217000+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Earnings Call Transcript",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/76354c7e-8762-4b9e-bd56-622c4c67a901.pdf",
+      "ts": "2026-08-07T12:51:55.670000+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "NSE",
+      "headline": "Raymond Lifestyle Limited has informed the Exchange about Transcript",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_07082026124049_RLLSEIntimationTranscriptFinal.pdf",
+      "ts": "2026-08-07T12:41:51+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "NSE",
+      "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_06082026184539_RLLInvestorConferencesigned.pdf",
+      "ts": "2026-08-06T18:45:51+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "BSE",
+      "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0cb96af0-0b21-49d8-adf4-a81e566a4e85.pdf",
+      "ts": "2026-08-06T18:45:03.967000+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "NSE",
+      "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_05082026174516_RLLSEintimationInvestormeetsd.pdf",
+      "ts": "2026-08-05T17:46:14+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "BSE",
+      "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/fc5283c7-b6c1-4f2b-b2b2-91ea5c0f806f.pdf",
+      "ts": "2026-08-05T17:41:56.040000+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "NSE",
+      "headline": "Raymond Lifestyle Limited has informed the Exchange about Link of Recording",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_03082026221908_RLLSEintimationsigned.pdf",
+      "ts": "2026-08-03T22:20:33+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "NSE",
+      "headline": "Raymond Lifestyle Limited has informed the Exchange about Copy of Newspaper Publication",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_02082026234411_RLLSEintimation.pdf",
+      "ts": "2026-08-02T23:46:46+05:30"
+     },
+     {
+      "symbol": "RAYMONDLSL",
+      "exchange": "NSE",
+      "headline": "Raymond Lifestyle Limited has informed the Exchange about Investor Presentation",
+      "category": "Investor Presentation",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_31072026220520_RLLInvestorPPTJune2026signed.pdf",
+      "ts": "2026-07-31T22:06:44+05:30"
+     }
+    ]
+   }
+  },
+  "source_floor": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "cited": 0,
+    "floor": 3
+   },
+   "note": "0 sources (below 3)"
+  }
+ },
+ "web": {
+  "available": false,
+  "citations": [],
+  "results": [],
+  "reason": "timeout",
+  "note": "Web search did not answer within 8s \u2014 structured data only"
+ },
+ "suggested_layout": "research-cockpit",
+ "suggested_indicators": [
+  "ma",
+  "volume",
+  "rsi",
+  "macd"
+ ],
+ "execution_loop": "fast",
+ "depth": "normal",
+ "execution": {
+  "run_id": "235abad27f3b414b92f260b871ddda7e",
+  "requested_depth": "normal",
+  "loop": "fast",
+  "backend": null,
+  "started_at": 1791020698.7791529,
+  "finished_at": 1791020707.317197,
+  "degraded_reason": null
+ },
+ "brief": {
+  "query": "Raymond Lifestyle",
+  "symbol": "RAYMONDLSL",
+  "mode": "fast",
+  "depth": "quick",
+  "execution": {
+   "run_id": "235abad27f3b414b92f260b871ddda7e",
+   "requested_depth": "normal",
+   "loop": "fast",
+   "backend": null,
+   "started_at": 1791020698.7791529,
+   "finished_at": 1791020707.317197,
+   "degraded_reason": null
+  },
+  "markdown": "",
+  "sources": [],
+  "structured": {
+   "price": {
+    "ok": false,
+    "provider": null,
+    "error": "price timed out after 6s \u2014 dropped",
+    "reason": "provider_error"
+   },
+   "fundamentals": {
+    "ok": false,
+    "provider": null,
+    "error": "fundamentals timed out after 6s \u2014 dropped",
+    "reason": "provider_error"
+   },
+   "derived": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "drawdown_from_high": {
+      "value": null,
+      "label": "Below 52-week high",
+      "basis": "vs 52w high",
+      "formula": "(52w high - price) / 52w high",
+      "unit": "fraction"
+     },
+     "fifty_two_week_change": {
+      "value": null,
+      "label": "52-week price change (Yahoo)",
+      "basis": "trailing 52 weeks",
+      "unit": "fraction"
+     },
+     "dividend_yield": {
+      "value": null,
+      "label": "Dividend yield",
+      "basis": "fraction of price",
+      "unit": "fraction"
+     },
+     "dividend_per_share": {
+      "value": null,
+      "label": "Dividend per share",
+      "basis": "per share, listing currency",
+      "unit": "currency"
+     },
+     "revenue_growth": {
+      "value": null,
+      "label": "Revenue growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction"
+     },
+     "earnings_growth": {
+      "value": null,
+      "label": "Earnings growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction"
+     },
+     "market_cap": {
+      "value": null,
+      "label": "Market cap",
+      "basis": "provider market cap",
+      "unit": "currency"
+     },
+     "conflicts": []
+    }
+   },
+   "news": {
+    "ok": true,
+    "provider": null,
+    "data": []
+   },
+   "filings": {
+    "ok": true,
+    "provider": "nse+bse",
+    "data": {
+     "symbol": "RAYMONDLSL",
+     "exchange": null,
+     "coverage": "covered",
+     "sources": [
+      "NSE",
+      "BSE"
+     ],
+     "errors": {},
+     "count": 20,
+     "announcements": [
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "NSE",
+       "headline": "Raymond Lifestyle Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+       "category": "Trading Window",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_25092026120308_RLLWindowClosureIntimationSigned.pdf",
+       "ts": "2026-09-25T12:03:20+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "NSE",
+       "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_23092026183614_RLLInvestorConferenceIntimationSigned.pdf",
+       "ts": "2026-09-23T18:36:29+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "BSE",
+       "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/2ad85572-9d20-4460-9598-f06c106768c6.pdf",
+       "ts": "2026-09-23T18:33:47.520000+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "BSE",
+       "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d6e8f6f0-3f91-41f7-8055-be5c94cfff68.pdf",
+       "ts": "2026-09-23T15:58:28.537000+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "NSE",
+       "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_15092026183941_RLLSEintimationInvestormeet.pdf",
+       "ts": "2026-09-15T18:39:56+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "BSE",
+       "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/6e9f9884-452f-4ff8-a237-892611aa1484.pdf",
+       "ts": "2026-09-15T18:37:46.077000+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "NSE",
+       "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_11092026215426_RLLSEintimationInvestormeet.pdf",
+       "ts": "2026-09-11T21:55:37+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "BSE",
+       "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/87911799-cdbb-4380-a6f5-5fe04aa17b15.pdf",
+       "ts": "2026-09-11T21:55:22.003000+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "NSE",
+       "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_31082026182111_SE_intimation_-_Investor_meet_SD.pdf",
+       "ts": "2026-08-31T18:21:31+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "BSE",
+       "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/92886d79-06f6-4f2f-ab21-66f605faefdc.pdf",
+       "ts": "2026-08-31T17:45:19.940000+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "BSE",
+       "headline": "Disclosures under Reg. 31(1) and 31(2) of SEBI (SAST) Regulations, 2011.",
+       "category": "Insider Trading / SAST",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/AA091B52_73E8_40E1_8DB6_7B3FB3238E4C_103237.pdf",
+       "ts": "2026-08-21T10:32:44.217000+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Earnings Call Transcript",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/76354c7e-8762-4b9e-bd56-622c4c67a901.pdf",
+       "ts": "2026-08-07T12:51:55.670000+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "NSE",
+       "headline": "Raymond Lifestyle Limited has informed the Exchange about Transcript",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_07082026124049_RLLSEIntimationTranscriptFinal.pdf",
+       "ts": "2026-08-07T12:41:51+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "NSE",
+       "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_06082026184539_RLLInvestorConferencesigned.pdf",
+       "ts": "2026-08-06T18:45:51+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "BSE",
+       "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0cb96af0-0b21-49d8-adf4-a81e566a4e85.pdf",
+       "ts": "2026-08-06T18:45:03.967000+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "NSE",
+       "headline": "Raymond Lifestyle Limited has informed the Exchange about Schedule of meet",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_05082026174516_RLLSEintimationInvestormeetsd.pdf",
+       "ts": "2026-08-05T17:46:14+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "BSE",
+       "headline": "Announcement Under Regulation 30 (LODR)-Analyst / Investor Meet",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/fc5283c7-b6c1-4f2b-b2b2-91ea5c0f806f.pdf",
+       "ts": "2026-08-05T17:41:56.040000+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "NSE",
+       "headline": "Raymond Lifestyle Limited has informed the Exchange about Link of Recording",
+       "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_03082026221908_RLLSEintimationsigned.pdf",
+       "ts": "2026-08-03T22:20:33+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "NSE",
+       "headline": "Raymond Lifestyle Limited has informed the Exchange about Copy of Newspaper Publication",
+       "category": "Copy of Newspaper Publication",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_02082026234411_RLLSEintimation.pdf",
+       "ts": "2026-08-02T23:46:46+05:30"
+      },
+      {
+       "symbol": "RAYMONDLSL",
+       "exchange": "NSE",
+       "headline": "Raymond Lifestyle Limited has informed the Exchange about Investor Presentation",
+       "category": "Investor Presentation",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/RLL_31072026220520_RLLInvestorPPTJune2026signed.pdf",
+       "ts": "2026-07-31T22:06:44+05:30"
+      }
+     ]
+    }
+   },
+   "source_floor": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "cited": 0,
+     "floor": 3
+    },
+    "note": "0 sources (below 3)"
+   }
+  },
+  "cost": null,
+  "web_available": false,
+  "note": "Web search did not answer within 8s \u2014 structured data only",
+  "web_reason": "timeout",
+  "backend": null
+ }
+}

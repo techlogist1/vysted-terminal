@@ -1,0 +1,16 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p035.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+from services.research import iter as it
+CAP=it._REPORT_CHAR_CAP
+facts="\n".join(f"- Fact {i}: revenue grew {i}% [{i}]" for i in range(1,30))
+body=(f"## Facts established\n{facts}\n## Open questions\n"+"- still open?\n"*150+"## Dead ends\n"+"- BSE search empty, do not retry\n"*150+"## Planned next\n"+"- look up the latest concall transcript\n"*150)
+r=it._Report(task="q",body=body).render()
+print("len(body)",len(body),"cap",CAP,"len(rendered)",len(r))
+print("all facts kept whole:",facts in r)
+print("Planned next kept:","## Planned next" in r,"| Dead ends text dropped:","do not retry" not in r)
+--- output ---
+len(body) 14048 cap 6000 len(rendered) 5977
+all facts kept whole: True
+Planned next kept: True | Dead ends text dropped: True
+EXIT=0

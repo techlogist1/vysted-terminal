@@ -1,0 +1,17 @@
+# R15-CODE-FRONTEND-014 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:12+0530
+
+$ git merge-base --is-ancestor c81d879 HEAD && echo 'closure c81d879 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure c81d879 NOT an ancestor'
+[exit 0] [0.02s]
+closure c81d879 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-FRONTEND-014\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+
+
+$ (cwd final-cand) grep -n "write_note honours\|save_layout" src/lib/host-actions.test.ts | head -4
+72:        "save_layout",
+1341:  it("write_note honours the catalog-documented args: 'global' is General, mode defaults to append", () => {
+1376:  it("save_layout without a name updates the active saved layout", async () => {
+1381:      expect(describeHostAction("save_layout", {}).title).toBe('Update the saved layout "My desk"');
+[exit 0]

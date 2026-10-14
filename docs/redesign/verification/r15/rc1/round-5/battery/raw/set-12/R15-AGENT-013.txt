@@ -1,0 +1,1 @@
+R15-AGENT-013: vitest run src/lib/delegate-runs.test.ts (part of the combined 5-file run) -> included in the 90 passing tests. See vitest-chat-runs.txt (grep 'delegate-runs').

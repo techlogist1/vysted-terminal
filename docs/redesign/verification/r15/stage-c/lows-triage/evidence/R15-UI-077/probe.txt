@@ -1,0 +1,6 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9
+cmd: cd <scratch>/sidecar && ./.venv/bin/python -c 'bootstrap_curve(YieldCurveRequest(valuation_date=2026-05-16, instruments=[3M depo, 10Y swap 0.05, 10Y swap 0.051], sample_count=10))'
+=> RuntimeError more than one instrument with pillar May 18th, 2036
+code: sidecar/routers/quant.py:68-71  try: return await run_quant(yield_curve.bootstrap_curve, req) / except ValueError -> 400  (RuntimeError unmapped)
+code: src/modules/quant/YieldCurvePanel.tsx:149-160 validationError checks only finite tenor >= 1; no duplicate-pillar check
+code: sidecar/app.py:348 only @app.exception_handler(ProviderError); CORSMiddleware at :337

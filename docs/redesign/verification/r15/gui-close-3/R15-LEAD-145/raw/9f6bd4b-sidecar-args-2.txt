@@ -1,0 +1,1 @@
+vysted-sidecar --port 53846 --data-dir /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-close-3-upgrade-run

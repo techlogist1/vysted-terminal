@@ -1,0 +1,27 @@
+=== R15-DATA-090: corrupt-with-backup quarantine+restore (correct repro: save v1, save v2 to create .bak, corrupt v2, GET) ===
+-- save v1 --
+{"status":"saved","name":"b5v-ws"}
+-- save v2 (this creates .bak = v1) --
+{"status":"saved","name":"b5v-ws"}
+-- files before corruption --
+.rw-r--r--@ 12 lokavyasingh 27 Sep 02:19 b5v-ws.vysted-workspace
+.rw-r--r--@ 12 lokavyasingh 27 Sep 02:19 b5v-ws.vysted-workspace.bak
+-- corrupt the live file (truncate) --
+-- list BEFORE any GET (glob-only, should show b5v-ws) --
+["b5v-ws"]
+-- GET (should quarantine v2, restore+serve v1) --
+{"v":1}
+HTTP:200
+
+-- files after GET --
+.rw-r--r--@ 12 lokavyasingh 27 Sep 02:19 b5v-ws.vysted-workspace
+.rw-r--r--@ 12 lokavyasingh 27 Sep 02:19 b5v-ws.vysted-workspace.bak
+.rw-r--r--@  7 lokavyasingh 27 Sep 02:19 b5v-ws.vysted-workspace.corrupt-1790455760320
+-- .bak still parseable? --
+{
+  "v": 1
+}
+-- POST a non-dict body (list instead of object) -> expect 422 --
+{"detail":[{"type":"dict_type","loc":["body","workspace"],"msg":"Input should be a valid dictionary","input":[1,2,3]}]}
+HTTP:422
+

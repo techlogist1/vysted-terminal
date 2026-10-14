@@ -1,0 +1,344 @@
+{
+ "IN": {
+  "raw": {
+   "AAPL": {
+    "status": 200,
+    "body": {
+     "symbol": "AAPL",
+     "price": 333.69000244140625,
+     "change": 2.8901024414062704,
+     "change_percent": 0.8736708933123227,
+     "volume": 33245500,
+     "open": null,
+     "high": null,
+     "low": null,
+     "prev_close": null,
+     "currency": "USD",
+     "market_state": null,
+     "timestamp": "2026-10-02T20:00:01Z",
+     "provider": "yfinance",
+     "freshness": "eod"
+    }
+   },
+   "INFY": {
+    "status": 200,
+    "body": {
+     "symbol": "INFY",
+     "price": 1035,
+     "change": 40.89999999999998,
+     "change_percent": 4.114274217885523,
+     "volume": 15166446,
+     "open": 1010,
+     "high": 1035,
+     "low": 999.15,
+     "prev_close": 994.1,
+     "currency": "INR",
+     "market_state": "CLOSED",
+     "timestamp": "2026-10-01T00:00:00Z",
+     "provider": "nse_direct",
+     "freshness": "eod"
+    }
+   },
+   "TCS": {
+    "status": 200,
+    "body": {
+     "symbol": "TCS",
+     "price": 2075,
+     "change": 24.40000000000009,
+     "change_percent": 1.1898956403004044,
+     "volume": 3428501,
+     "open": 2052.6,
+     "high": 2093.9,
+     "low": 2045.1,
+     "prev_close": 2050.6,
+     "currency": "INR",
+     "market_state": "CLOSED",
+     "timestamp": "2026-10-01T00:00:00Z",
+     "provider": "nse_direct",
+     "freshness": "eod"
+    }
+   },
+   "ZZZNOTREAL": {
+    "status": 404,
+    "body": {
+     "detail": "The data provider has no data for this symbol or series — check the symbol.",
+     "code": "not_found",
+     "action": "Check the symbol or series id."
+    }
+   }
+  },
+  "rows": [
+   [
+    "Symbol",
+    "Qty",
+    "Avg cost",
+    "Price",
+    "Mkt val",
+    "P&L",
+    "Wt",
+    ""
+   ],
+   [
+    "AAPL",
+    "10",
+    "₹180.00",
+    "—",
+    "—",
+    "—",
+    "—",
+    ""
+   ],
+   [
+    "INFYEODWeekend",
+    "20",
+    "₹1,500.00",
+    "₹1,035.00",
+    "₹20,700.00",
+    "-₹9,300.00 (-31.00%)",
+    "66.6%",
+    ""
+   ],
+   [
+    "TCSEODWeekend",
+    "5",
+    "₹3,500.00",
+    "₹2,075.00",
+    "₹10,375.00",
+    "-₹7,125.00 (-40.71%)",
+    "33.4%",
+    ""
+   ],
+   [
+    "ZZZNOTREAL",
+    "1",
+    "₹10.00",
+    "—",
+    "—",
+    "—",
+    "—",
+    ""
+   ]
+  ],
+  "text": "FP · 4SymbolQuantityAvg cost / shareClassEquityCryptoNoteAddMarket value: ₹31,075.00·Total P&L: -₹16,425.00 (-34.58%)·Concentration: 66.6%·2 without a live quote·as of Oct 1, 2026, 5:30 AMRiskComputing risk metrics…Couldn't refresh live quotes — values shown without market data.RetrySymbolQtyAvg costPriceMkt valP&LWtAAPL10₹180.00————INFYEODWeekend20₹1,500.00₹1,035.00₹20,700.00-₹9,300.00 (-31.00%)66.6%TCSEODWeekend5₹3,500.00₹2,075.00₹10,375.00-₹7,125.00 (-40.71%)33.4%ZZZNOTREAL1₹10.00————",
+  "csv": "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note\nAAPL,10,180,equity,,,,,,,\nINFY,20,1500,equity,INR,1035,20700,-9300,-31,66.61,\nTCS,5,3500,equity,INR,2075,10375,-7125,-40.714285714285715,33.39,\nZZZNOTREAL,1,10,equity,,,,,,,",
+  "panelContext": {
+   "portfolio": {
+    "source": "portfolio",
+    "kind": "snapshot",
+    "payload": {
+     "positionCount": 4,
+     "totalValue": 31075,
+     "totalValueNote": "excludes AAPL, ZZZNOTREAL (no live quote)",
+     "activePortfolioId": "p1",
+     "activePortfolioName": "FP",
+     "holdings": [
+      {
+       "id": "h0",
+       "symbol": "AAPL",
+       "quantity": 10,
+       "costBasis": 180,
+       "assetClass": "equity",
+       "currency": "INR",
+       "marketValue": null,
+       "pnl": null
+      },
+      {
+       "id": "h1",
+       "symbol": "INFY",
+       "quantity": 20,
+       "costBasis": 1500,
+       "assetClass": "equity",
+       "currency": "INR",
+       "marketValue": 20700,
+       "pnl": -9300
+      },
+      {
+       "id": "h2",
+       "symbol": "TCS",
+       "quantity": 5,
+       "costBasis": 3500,
+       "assetClass": "equity",
+       "currency": "INR",
+       "marketValue": 10375,
+       "pnl": -7125
+      },
+      {
+       "id": "h3",
+       "symbol": "ZZZNOTREAL",
+       "quantity": 1,
+       "costBasis": 10,
+       "assetClass": "equity",
+       "currency": "INR",
+       "marketValue": null,
+       "pnl": null
+      }
+     ]
+    },
+    "emittedAt": 1791020510227
+   }
+  }
+ },
+ "US": {
+  "raw": {
+   "AAPL": {
+    "status": 429,
+    "body": {
+     "detail": "The data provider is throttled right now — try again shortly.",
+     "code": "rate_limited",
+     "action": "Wait a minute, then retry."
+    }
+   },
+   "INFY": {
+    "status": 200,
+    "body": {
+     "symbol": "INFY",
+     "price": 11.039999961853027,
+     "change": -0.28640003814697224,
+     "change_percent": -2.528606072070316,
+     "volume": 19592500,
+     "open": null,
+     "high": null,
+     "low": null,
+     "prev_close": null,
+     "currency": "USD",
+     "market_state": null,
+     "timestamp": "2026-10-02T20:00:02Z",
+     "provider": "yfinance",
+     "freshness": "eod"
+    }
+   },
+   "TCS": {
+    "status": 200,
+    "body": {
+     "symbol": "TCS",
+     "price": 2075,
+     "change": 24.40000000000009,
+     "change_percent": 1.1898956403004044,
+     "volume": 3428501,
+     "open": 2052.6,
+     "high": 2093.9,
+     "low": 2045.1,
+     "prev_close": 2050.6,
+     "currency": "INR",
+     "market_state": "CLOSED",
+     "timestamp": "2026-10-01T00:00:00Z",
+     "provider": "nse_direct",
+     "freshness": "eod"
+    }
+   },
+   "ZZZNOTREAL": {
+    "status": 429,
+    "body": {
+     "detail": "The data provider is throttled right now — try again shortly.",
+     "code": "rate_limited",
+     "action": "Wait a minute, then retry."
+    }
+   }
+  },
+  "rows": [
+   [
+    "Symbol",
+    "Qty",
+    "Avg cost",
+    "Price",
+    "Mkt val",
+    "P&L",
+    ""
+   ],
+   [
+    "AAPLEOD",
+    "10",
+    "$180.00",
+    "$333.69",
+    "$3,336.90",
+    "+$1,536.90 (+85.38%)",
+    ""
+   ],
+   [
+    "INFYEOD",
+    "20",
+    "$1,500.00",
+    "$11.04",
+    "$220.80",
+    "-$29,779.20 (-99.26%)",
+    ""
+   ],
+   [
+    "TCSEODWeekend",
+    "5",
+    "₹3,500.00",
+    "₹2,075.00",
+    "₹10,375.00",
+    "-₹7,125.00 (-40.71%)",
+    ""
+   ],
+   [
+    "ZZZNOTREAL",
+    "1",
+    "$10.00",
+    "—",
+    "—",
+    "—",
+    ""
+   ]
+  ],
+  "text": "FP · 4SymbolQuantityAvg cost / shareClassEquityCryptoNoteAddMarket value: $3,557.70 + ₹10,375.00·Total P&L: -$28,242.30 (-88.81%) + -₹7,125.00 (-40.71%)·mixed currencies — totals per currency·1 without a live quote·as of Oct 1, 2026, 5:30 AMRiskUSDComputing risk metrics…INRComputing risk metrics…Couldn't refresh live quotes — values shown without market data.RetrySymbolQtyAvg costPriceMkt valP&LAAPLEOD10$180.00$333.69$3,336.90+$1,536.90 (+85.38%)INFYEOD20$1,500.00$11.04$220.80-$29,779.20 (-99.26%)TCSEODWeekend5₹3,500.00₹2,075.00₹10,375.00-₹7,125.00 (-40.71%)ZZZNOTREAL1$10.00———",
+  "csv": "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note\nAAPL,10,180,equity,USD,333.69000244140625,3336.9000244140625,1536.9000244140625,85.38333468967014,,\nINFY,20,1500,equity,USD,11.039999961853027,220.79999923706055,-29779.20000076294,-99.26400000254313,,\nTCS,5,3500,equity,INR,2075,10375,-7125,-40.714285714285715,,\nZZZNOTREAL,1,10,equity,,,,,,,",
+  "panelContext": {
+   "portfolio": {
+    "source": "portfolio",
+    "kind": "snapshot",
+    "payload": {
+     "positionCount": 4,
+     "totalValue": null,
+     "totalValueNote": "holdings span multiple currencies (USD, INR) — no cross-currency total; read per-holding values",
+     "activePortfolioId": "p1",
+     "activePortfolioName": "FP",
+     "holdings": [
+      {
+       "id": "h0",
+       "symbol": "AAPL",
+       "quantity": 10,
+       "costBasis": 180,
+       "assetClass": "equity",
+       "currency": "USD",
+       "marketValue": 3336.9000244140625,
+       "pnl": 1536.9000244140625
+      },
+      {
+       "id": "h1",
+       "symbol": "INFY",
+       "quantity": 20,
+       "costBasis": 1500,
+       "assetClass": "equity",
+       "currency": "USD",
+       "marketValue": 220.79999923706055,
+       "pnl": -29779.20000076294
+      },
+      {
+       "id": "h2",
+       "symbol": "TCS",
+       "quantity": 5,
+       "costBasis": 3500,
+       "assetClass": "equity",
+       "currency": "INR",
+       "marketValue": 10375,
+       "pnl": -7125
+      },
+      {
+       "id": "h3",
+       "symbol": "ZZZNOTREAL",
+       "quantity": 1,
+       "costBasis": 10,
+       "assetClass": "equity",
+       "currency": "USD",
+       "marketValue": null,
+       "pnl": null
+      }
+     ]
+    },
+    "emittedAt": 1791020513363
+   }
+  }
+ }
+}

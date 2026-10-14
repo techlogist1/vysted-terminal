@@ -1,0 +1,52 @@
+=== R15-UI-044 (blocked_tier4): DisclaimerFlow hydrate catch ===
+  const ackFirstLaunchTos = useSafetyStore((s) => s.ackFirstLaunchTos);
+  const [busy, setBusy] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [ackError, setAckError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      await refreshFirstLaunchAck();
+      setHydrated(true);
+    })();
+  }, [refreshFirstLaunchAck]);
+
+  const handleAck = useCallback(async () => {
+    setBusy(true);
+    setAckError(null);
+    try {
+      await ackFirstLaunchTos();
+    } catch (err: unknown) {
+      setAckError(
+        err instanceof Error
+          ? err.message
+          : "Could not save acknowledgement — check your OS keychain permissions.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }, [ackFirstLaunchTos]);
+
+  if (!hydrated || firstLaunchTosAcked) {
+    return null;
+  }
+
+  return (
+    <Dialog open>
+      <DialogContent
+        data-testid="first-launch-tos-dialog"
+        className="bg-charcoal-900 border-charcoal-700"
+        showCloseButton={false}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>Welcome to Vysted</DialogTitle>
+          <DialogDescription>Please review the terms before you start.</DialogDescription>
+        </DialogHeader>
+        <pre
+          className={
+            "text-charcoal-400 text-caption max-h-64 overflow-y-auto leading-snug whitespace-pre-wrap" /* tokens-ok: TOS-body scroll cap — layout */
+          }
+        >
+          {TOS_BODY}

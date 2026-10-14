@@ -1,0 +1,22 @@
+# R15-RESEARCH-042 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:31:38+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import inspect
+from services.agent_tools import deep_research as d
+print(inspect.signature(d._stamp_source_floor))
+for n in (0,2,3):
+    out={'ok':True,'markdown':'# brief','sources':[{'url':f'https://s{i}.example/x','title':'t'} for i in range(n)],'source_count':n,'structured':{'x':1}}
+    r=d._stamp_source_floor(out); r=r if r is not None else out
+    import json; print(n,'sources -> fields mentioning below:', {k:v for k,v in r.items() if 'below' in json.dumps(v)}.keys(), [v for k,v in r.items() if k!='markdown' and 'below' in json.dumps(v)], '| md tail:', r.get('markdown','')[-60:].replace(chr(10),' '))
+PY
+grep -n 'source_floor' "$C/sidecar/services/research/fast.py" | head -3; grep -rn 'def test_below_floor_mark' "$C/sidecar/tests/" | head -2
+--- output ---
+(out: 'dict[str, Any]') -> 'None'
+0 sources -> fields mentioning below: dict_keys(['markdown', 'structured']) [{'x': 1, 'source_floor': {'ok': True, 'provider': 'derived', 'data': {'cited': 0, 'floor': 3}, 'note': '0 sources (below 3)'}}] | md tail: # brief  _Cited: 0 sources (below 3)._
+2 sources -> fields mentioning below: dict_keys(['markdown', 'structured']) [{'x': 1, 'source_floor': {'ok': True, 'provider': 'derived', 'data': {'cited': 2, 'floor': 3}, 'note': '2 sources (below 3)'}}] | md tail: # brief  _Cited: 2 sources (below 3)._
+3 sources -> fields mentioning below: dict_keys([]) [] | md tail: # brief
+30:from .depth import source_floor_leg
+722:    structured["source_floor"] = source_floor_leg(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/tests/test_research_fast.py:168:def test_below_floor_marker() -> None:
+
+EXIT=0 (0.4s)

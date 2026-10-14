@@ -1,0 +1,2 @@
+AAPL bars_returned: 90 bars_available: 127 window_start: 2026-05-19T00:00:00-04:00 ok: True
+RELIANCE bars_returned: 26 bars_available: 26 window_start: 2026-08-20T00:00:00+00:00 ok: True

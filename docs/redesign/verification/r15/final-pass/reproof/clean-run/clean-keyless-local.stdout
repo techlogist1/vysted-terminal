@@ -1,0 +1,12 @@
+lock acquired 20:11:17 after 0 tries
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_4ce1cf084bdd41689b96c1bf686e3b02", "name": "price_data", "input": {"asset_class": "equity", "range": "1mo", "symbol": "AAPL", "timeframe": "1d"}}
+[  25.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_4ce1cf084bdd41689b96c1bf686e3b02", "name": "price_data", "ok": true, "error": null}
+[  35.0s] heartbeat: {"kind": "heartbeat"}
+[  36.7s] done: {"kind": "done", "usage": {"input_tokens": 3480, "output_tokens": 13, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of AAPL is $333.69.
+
+=== ok · 36.7s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 12, 'done': 1} · usage in=3480 out=13 · est $0.00000 · llama3.1:8b

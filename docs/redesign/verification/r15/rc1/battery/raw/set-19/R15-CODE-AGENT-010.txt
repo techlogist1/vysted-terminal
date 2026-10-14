@@ -1,0 +1,45 @@
+=== cancel again on cancelled run ===
+HTTP/1.1 409 Conflict
+date: Fri, 25 Sep 2026 00:27:57 GMT
+server: uvicorn
+content-length: 92
+content-type: application/json
+vary: Origin
+
+{"detail":"run '70bef01bf105419c95a04cdfa358cd34' is cancelled; it cannot become cancelled"}
+=== resume on cancelled run ===
+HTTP/1.1 200 OK
+date: Fri, 25 Sep 2026 00:27:57 GMT
+server: uvicorn
+content-length: 16
+content-type: application/json
+vary: Origin
+
+{"resumed":true}
+=== answer on cancelled run (not paused) ===
+HTTP/1.1 409 Conflict
+date: Fri, 25 Sep 2026 00:27:57 GMT
+server: uvicorn
+content-length: 68
+content-type: application/json
+vary: Origin
+
+{"detail":"run '70bef01bf105419c95a04cdfa358cd34' is still running"}
+=== nonexistent run -> 404 ===
+HTTP/1.1 404 Not Found
+date: Fri, 25 Sep 2026 00:27:57 GMT
+server: uvicorn
+content-length: 40
+content-type: application/json
+vary: Origin
+
+{"detail":"unknown run: 'doesnotexist'"}status= running
+=== resume on an already-running run -> expect 409 ===
+HTTP/1.1 409 Conflict
+date: Fri, 25 Sep 2026 00:28:24 GMT
+server: uvicorn
+content-length: 68
+content-type: application/json
+vary: Origin
+
+{"detail":"run '70bef01bf105419c95a04cdfa358cd34' is still running"}

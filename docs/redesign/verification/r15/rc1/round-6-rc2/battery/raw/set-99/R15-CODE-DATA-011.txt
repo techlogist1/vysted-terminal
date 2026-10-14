@@ -1,0 +1,12 @@
+ace7dd76 candidate; COMMAND: grep + live GET (all 3 original blocks now route through routers/_cached.cached)
+grep-exit=1 (1 = none left in fundamentals router)
+37:from routers._cached import cached as _cached
+190:    statement, _ = await _cached(
+204:    statement, _ = await _cached(
+218:    statement, _ = await _cached(
+230:    rating, as_of = await _cached(
+GET /fundamentals/AAPL/ratings HTTP=200
+GET /fundamentals/AAPL/ratings/history HTTP=200
+GET /fundamentals/AAPL/ratings/individual HTTP=200
+GET /fundamentals/AAPL/ratings/price-target-history HTTP=200
+EXIT=0

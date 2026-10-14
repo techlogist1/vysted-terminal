@@ -1,0 +1,32 @@
+### 15:30:37 openbb-mcp(:52821, my worker 26575) before kill
+Connection to 127.0.0.1 port 52821 [tcp/*] succeeded!
+52821 open
+{"detail":"provider is required for a series id"} -> 422 0.001874s
+{"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."} -> 429 0.660121s
+### baseline legacy openbb path
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."} -> 502 0.010160s
+### 15:30:56 kill my openbb-mcp worker 26575 (+ its stdin sleep 26576) with 2 requests in flight
+in-flight macro oecd: {"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."} -> 502 0.011298s
+in-flight income NVDA: {"symbol":"NVDA","periods":[],"lines":[],"provider":"yfinance","gaps":[]} -> 200 60.896283s
+26575 gone
+52821 closed
+after-kill macro oecd: {"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."} -> 502 0.025049s
+after-kill fundamentals AAPL: {"symbol":"AAPL","name":"Apple Inc.","sector":"Technology","industry":"Consumer Electronics","sector_source":"yfinance","currency":"USD","financial_currency":null,"ratio_price":333.69,"market_cap":4869931925504.0,"pe_ratio":37.876274,"forward_pe":34.821583,"peg_ratio":2.706,"price_to_book":45.338314
+after-kill health: 200
+### 15:33:22 kill my main-clean sidecar worker 26587 (:52820) with an SSE chat (blackhole upstream) and a fundamentals call in flight
+in-flight chat SSE:  -> 200 exit_ok curl_rc=28 
+in-flight income META: {"symbol":"META.BO","periods":["2026-03-31","2025-03-31","2024-03-31","2023-03-31"],"lines":[{"label":"Tax Effect Of Unusual Items","values":{"2026-03-31":-546538.38039,"2025-03-31":0.0,"2024-03-31":0.0,"2023-03-31":-194080.353982}},{"label":"Tax Rate For Calcs","values":{"2026-03-31":0.009538,"2025 
+26587 gone
+52820 closed
+orphans of 26587 (ppid=26587 or ppid=1 same binary path): 
+main-data :52825 health unaffected: 200
+(correction: the 15:33:22 block above was NOT mid-request — both curls ran in the foreground before the kill; chat SSE got 200 + no frame and curl hit its own 60 s cap against the blackhole upstream; the META call returned META.BO statements. The kill itself: 26587 gone, port closed, no children.)
+### 15:33:48 kill my main-vy sidecar worker 32537 (:52398) with an SSE chat in flight (blackhole upstream holding it)
+in-flight chat SSE:  -> 200 curl_rc=28 
+32537 still alive
+52398 closed
+children left: 
+### 15:35:49 kill -9 my bundle sidecar (bootloader 53395, worker child 53409) on :52829 with an SSE chat in flight
+in-flight chat SSE after SIGKILL:  -> 200 curl_rc=18  (client returned 0s after kill)
+bootloader 53395 alive: no; port: closed
+=== ls3k END

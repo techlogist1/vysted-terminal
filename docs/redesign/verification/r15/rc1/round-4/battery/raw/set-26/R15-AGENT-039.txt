@@ -1,0 +1,35 @@
+=== AGENT-039 (fake-provider in-process: openrouter plan pre-pass parks 'planned' with a 3-step plan; start_run executes it to done, activity carries the staged watchlist add) ===
+{
+  "status_after_launch": "planned",
+  "plan_goal": "Compare NVDA and AMD, add NVDA to my watchlist, and set the chart to NVDA.",
+  "plan_steps": [
+    {
+      "action": "research",
+      "args": {
+        "query": "NVDA vs AMD"
+      },
+      "rationale": "compare the two",
+      "staged": false
+    },
+    {
+      "action": "add_to_watchlist",
+      "args": {
+        "symbol": "NVDA"
+      },
+      "rationale": "save NVDA",
+      "staged": true
+    },
+    {
+      "action": "set_chart_symbol",
+      "args": {
+        "symbol": "NVDA"
+      },
+      "rationale": "chart NVDA",
+      "staged": true
+    }
+  ],
+  "status_after_start": "done",
+  "activity_rows": [
+    "tool='add_to_watchlist' status='ok' summary='{\"ok\": true, \"status\": \"awaiting_user_review\", \"staged_for_review\": true, \"note\": \"Staged in the user\\'s review queue \\\\u2014 applies ONLY after they accept it. Tell the user you proposed this change fo'"
+  ]
+}

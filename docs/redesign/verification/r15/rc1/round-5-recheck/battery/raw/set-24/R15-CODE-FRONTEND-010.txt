@@ -1,0 +1,32 @@
+COMMAND: grep -n "R15-CODE-FRONTEND-010" src/lib/host-actions.test.ts
+CONTEXT: pinned test names the id directly. Not executed (no-vitest-suite rule).
+1356:  it("write_screener_filters writes the recipe and run:true runs it once (R15-CODE-FRONTEND-010)", () => {
+
+  it("write_screener_filters writes the recipe and run:true runs it once (R15-CODE-FRONTEND-010)", () => {
+    useScreenerStore.getState().__resetForTests();
+    // Only the network-backed run is stubbed; applyFilters is the real store's.
+    // `__resetForTests` only resets data fields (a plain `set()` merge), so a
+    // `setState({ runScreener })` override here would otherwise leak into every
+    // later test in this file (R15-AGENT-096's own tests need the REAL
+    // runScreener to see their fetch calls) — restore it below.
+    const realRunScreener = useScreenerStore.getState().runScreener;
+    const runScreener = vi.fn(async () => null);
+    useScreenerStore.setState({ runScreener });
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    const input = {
+      criteria: [{ field: "roe", operator: "gt", value: 0.18 }],
+      universe: "india-all",
+      formula: "roe > 0.18 and pe_ratio < 30",
+    };
+    expect(applyHostAction("write_screener_filters", input)).toMatch(/review and Run$/);
+    expect(runScreener).not.toHaveBeenCalled();
+    const label = applyHostAction("write_screener_filters", { ...input, run: true });
+    expect(label).toMatch(/running$/);
+    expect(runScreener).toHaveBeenCalledTimes(1);
+    const s = useScreenerStore.getState();
+    expect(s.criteria).toEqual([{ field: "roe", operator: "gt", value: 0.18 }]);
+    expect(s.universe).toBe("india-all");
+    expect(s.formula).toBe("roe > 0.18 and pe_ratio < 30");
+
+EXIT: 0
+VERDICT: ci_pinned -- src/lib/host-actions.test.ts:1356 it("write_screener_filters writes the recipe and run:true runs it once (R15-CODE-FRONTEND-010)")

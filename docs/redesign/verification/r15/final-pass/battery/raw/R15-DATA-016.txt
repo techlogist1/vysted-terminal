@@ -1,0 +1,30 @@
+# R15-DATA-016 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:18:24+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/fundamentals/DAL' | grep -oE '"fifty_two_week[^,]*|no trades[^"]*|\[http.*'
+[exit 0] [5.70s]
+"fifty_two_week_high":null
+"fifty_two_week_low":null
+"fifty_two_week_change":0.0
+"fifty_two_week_high_date":"2025-10-03"
+"fifty_two_week_low_date":"2025-10-03"
+"fifty_two_week_high":{"status":"withheld"
+no trades in 52 weeks (last trade 2025-03-12); withheld
+"fifty_two_week_low":{"status":"withheld"
+no trades in 52 weeks (last trade 2025-03-12); withheld
+"fifty_two_week_change":{"status":"ok"
+"fifty_two_week_high_date":{"status":"ok"
+"fifty_two_week_low_date":{"status":"ok"
+[http 200 5.693434s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/history/DAL?range=1y' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);print('bars',len(d.get('bars',[])),'provider',d.get('provider'),'reason',d.get('reason'),t[i:])"
+[exit 0] [2.13s]
+bars 0 provider none reason None 
+[http 200 2.109360s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/history/DAL?range=5y' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);b=d.get('bars',[]);print('bars',len(b),'last',b[-1] if b else None,t[i:])"
+[exit 0] [4.09s]
+bars 33 last {'timestamp': '2023-12-07T00:00:00+05:30', 'open': 46.58000183105469, 'high': 46.58000183105469, 'low': 46.58000183105469, 'close': 46.58000183105469, 'volume': 25.0} 
+[http 200 4.074944s]
+

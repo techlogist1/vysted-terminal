@@ -1,0 +1,253 @@
+[
+  {
+    "idea_id": "forensic-1",
+    "name": "Gatekeeper Exit Tape",
+    "one_liner": "A local append-only tape of exchange filings for owned/watched names that classifies auditor, CFO, CS and independent-director exits with no LLM, notifies only on clusters or mid-term auditor exits, and on open quotes the stated reason from the resignation letter with its page.",
+    "on_floor_list": false,
+    "rides_on": [
+      "SUBSTRATE 'the Tape' (new sidecar/services/filings_tape.py; sqlite events/cursor/signals modelled on sidecar/services/runs_store.py:55,94; 4th warm loop beside sidecar/services/fundamentals_warm.py:403-430, lifespan sidecar/app.py:127-130,142; wake-time window = max(30d, now - last_swept_at) replacing the constant at sidecar/services/corporate_disclosures.py:88,140)",
+      "sidecar/services/corporate_disclosures.py:161-178 (SUBCATNAME dropped whenever CATEGORYNAME exists, :166)",
+      "sidecar/services/corporate_disclosures.py:180-195 (submission vs dissemination timestamps collapse to first key present)",
+      "sidecar/models/announcements.py:28-41 (Announcement has no subcategory / dual-timestamp slot; not Tier-1)",
+      "sidecar/tests/fixtures/bse/ann_sub_category_get_data.json row 0 (SUBCATNAME, News_submission_dt, DissemDT, TimeDiff, CRITICALNEWS, Fld_Attachsize all present upstream)",
+      "sidecar/services/search/extract.py:436,65 (PDF lane; 1-3 page letters sit inside the 60-page cap)",
+      "src/lib/desktop-notification.ts:1-25,56 + sidecar/services/workflow_nodes/builtin.py:325 (OS notification bridge, workflow-only today)",
+      "sidecar/services/agent_runtime.py:376 (terminal preamble: unseen signals become the agent's opening line)"
+    ],
+    "new_parts": [
+      "filings_tape store + sweep with per-symbol cursor",
+      "versioned SUBCATNAME+headline classifier table with a visible 'unclassified' bucket and a fixture-pinned test",
+      "window parameter on the BSE announcements fetch",
+      "subcategory / ts_submitted / ts_disseminated on Announcement (+ types/data.ts mirror)",
+      "second intent source for the notification bridge",
+      "gatekeeper timeline card"
+    ],
+    "jarvis_axis": [
+      "watching",
+      "initiative",
+      "receipts"
+    ],
+    "size": "S-M (Tape M once; this idea S on top)",
+    "risk": "Alert fatigue from routine board churn: only cluster and mid-term rules may notify; single routine exits land silently on the timeline. SUBCATNAME vocabulary drift; NSE-only SME names get a coarser tape and must say so."
+  },
+  {
+    "idea_id": "forensic-2",
+    "name": "The Filing Clock",
+    "one_liner": "Measure the filer's behaviour, not just its numbers: days from quarter-end to results across quarters, Friday-night filings, rescheduled board meetings, corrigenda and late shareholding submissions, shown as a series with every timestamp linked to the exchange filing. Zero LLM.",
+    "on_floor_list": false,
+    "rides_on": [
+      "SUBSTRATE 'the Tape' (new sidecar/services/filings_tape.py; sqlite events/cursor/signals modelled on sidecar/services/runs_store.py:55,94; 4th warm loop beside sidecar/services/fundamentals_warm.py:403-430, lifespan sidecar/app.py:127-130,142; wake-time window = max(30d, now - last_swept_at) replacing the constant at sidecar/services/corporate_disclosures.py:88,140)",
+      "sidecar/services/research/disclosures.py:45-48 (results-headline patterns)",
+      "sidecar/services/corporate_disclosures.py:99 (_ist), :335 (get_results_calendar), :180-195 (News_submission_dt vs DissemDT gap dropped today)",
+      "sidecar/models/announcements.py:59-71 (ResultsEvent), :122 (shareholding submission_date)",
+      "sidecar/services/bse_provider.py:572 (SHP index filing_date_time)",
+      "types/brief.ts:72-89 (BriefDerivedValue with formula + basis renders in the existing metric-card grid)"
+    ],
+    "new_parts": [
+      "~150-line derivation module over Tape timestamps",
+      "one header chip + hover listing the underlying filings",
+      "statutory-deadline constants block with source comment",
+      "Tape history depth beyond 30 days (needs the window param)"
+    ],
+    "jarvis_axis": [
+      "watching",
+      "receipts"
+    ],
+    "size": "S",
+    "risk": "Over-reading noise: one late filing means nothing. Show the series, colour only a monotonic 3+ quarter drift, never emit a score."
+  },
+  {
+    "idea_id": "forensic-3",
+    "name": "Cap-Table X-ray",
+    "one_liner": "Parse the named holders, significant beneficial owners and three-way encumbrance / warrant / lock-in flags out of the SEBI shareholding XBRL the app already downloads (82 of 83 concepts are discarded today), diff them quarter on quarter, and remember holder names across every company the user has researched.",
+    "on_floor_list": false,
+    "rides_on": [
+      "sidecar/services/bse_provider.py:672-691 (per-quarter XBRL already fetched), :594 (single concept read), :596-603 (six summary categories), :744 (multi-member contexts skipped)",
+      "sidecar/services/bse_provider.py:694-759 (parse_shp_xbrl), :703-716 (already absorbs a silent fraction-vs-percent schema change), :823-850 (parsed-summary cache), :592 (_MAX_SHP_XBRL_PARSES = 8)",
+      "sidecar/models/announcements.py:82-138 (ShareholdingPattern, additive extension + TS mirror)",
+      "src/modules/research/brief-blocks.tsx (BriefBody typed blocks)",
+      "live probe this session: 509470_872026152119_SHP.xml, HTTP 200, 126,455 bytes, 83 distinct in-bse-shp concepts",
+      "census/OPPORTUNITY_LEDGER.md OPP-8 / WLD-T-8 (pledge series is the ledger's named missing input)"
+    ],
+    "new_parts": [
+      "parser extension for named-holder, SBO, encumbrance, warrant and lock-in rows",
+      "one-time cache schema bump",
+      "holder-name normaliser whose matches are always displayed as fuzzy",
+      "quarter-on-quarter name diff table block",
+      "local holder_name -> [(symbol, quarter, pct)] co-occurrence table built only from names the user touched",
+      "pledge 4-quarter derivative once the numeric concept is confirmed on a pledged filer"
+    ],
+    "jarvis_axis": [
+      "memory",
+      "receipts"
+    ],
+    "size": "M",
+    "risk": "False identity: two unrelated entities with the same name string. Never assert sameness; show both filings and say 'same name string'. Numeric pledged-share concept names were not observed (the probed filer declares no encumbrance) and need one probe before build. BSE-only lane."
+  },
+  {
+    "idea_id": "forensic-4",
+    "name": "Cheap-Paper Calendar",
+    "one_liner": "When a company allots preferential shares or warrants, read the allottee list, price and lock-in dates from the filing once, have the user accept them through the diff gate, then raise the unlock at T-30 / T-7 with the filing page attached: the micro-cap supply-overhang event, given a date.",
+    "on_floor_list": false,
+    "rides_on": [
+      "SUBSTRATE 'the Tape' (new sidecar/services/filings_tape.py; sqlite events/cursor/signals modelled on sidecar/services/runs_store.py:55,94; 4th warm loop beside sidecar/services/fundamentals_warm.py:403-430, lifespan sidecar/app.py:127-130,142; wake-time window = max(30d, now - last_swept_at) replacing the constant at sidecar/services/corporate_disclosures.py:88,140)",
+      "sidecar/services/run_manager.py:237 (launch_run: durable detached run, BudgetGuard-bounded)",
+      "src/store/proposed-changes.ts:64,92 (existing proposed-changes diff gate; extraction is accepted by a human once)",
+      "sidecar/services/search/extract.py:436 (PDF lane), :398-407 (scanned-pages honesty note)",
+      "SHP XBRL lock-in / warrant flags from forensic-3 as a free cross-check on open calendar entries"
+    ],
+    "new_parts": [
+      "extraction prompt + schema {allottee, category, shares, price, allotment_date, lock_in_until} stored per tranche",
+      "calendar table on the Tape",
+      "one proposed-change kind",
+      "supply-events strip on the portfolio panel",
+      "stale-entry flag when the XBRL flags disagree"
+    ],
+    "jarvis_axis": [
+      "memory",
+      "initiative",
+      "receipts"
+    ],
+    "size": "M",
+    "risk": "Multi-tranche allotments and partly-paid warrants make the lock-in date plural: store per-tranche rows, never collapse. Scanned allotment letters degrade to 'could not read - enter manually'. The date is always read from the filing, never computed from an ICDR rule."
+  },
+  {
+    "idea_id": "forensic-5",
+    "name": "Accounts Linter with reasoned suppressions",
+    "one_liner": "Classic forensic checks as rule ids with their inputs shown (CFO/PAT, receivable and inventory days, other-income share, cash vs book tax, CWIP ageing, profit without sales) instead of a score; the user suppresses a finding with a written reason and the level accepted, and the rule re-fires quoting that reason when the gap widens past it.",
+    "on_floor_list": true,
+    "rides_on": [
+      "sidecar/services/earnings_quality.py:1-40 + growth_check.py, ownership_check.py, research/range_check.py (flag-never-pick cross-checks with a basis note)",
+      "sidecar/services/provider_registry.py:495-509 (statement seams)",
+      "sidecar/services/screener_formula.py:441,563 (no-eval expression grammar), :476 (_field_value resolver seam)",
+      "Tape signals table (suppress_reason, suppress_level)",
+      "sidecar/services/agent_tools/catalog.py (read_handler capability auto-projects to TOOL_SCHEMAS, allow-list and MCP)",
+      "census/OPPORTUNITY_LEDGER.md OPP-8 (same need, delivered as inspectable rules rather than a score) and WLD-T-4 (shared blocker)"
+    ],
+    "new_parts": [
+      "rule format + ~10 starter rules",
+      "statement-field resolver for the existing grammar",
+      "lint block in the brief",
+      "suppression UI with reason + accepted level",
+      "lint_accounts catalog capability"
+    ],
+    "jarvis_axis": [
+      "memory",
+      "receipts"
+    ],
+    "size": "M (blocked on statement depth)",
+    "risk": "'no-data' on exactly the BSE-only nano-caps this seat cares about, because multi-year statements are thin and not agent-reachable (WLD-T-4). A rule with missing inputs must report no-data, never pass. Do not ship ahead of statement depth."
+  },
+  {
+    "idea_id": "forensic-6",
+    "name": "Kill-Criteria Compiler",
+    "one_liner": "The user writes exit rules in prose in Notes ('sell if pledge crosses 25%, if the auditor changes, if results slip past 45 days'); one LLM call proposes machine-checkable tripwires from a closed rule menu as a diff; after acceptance they are evaluated deterministically by the sweep, and a firing quotes the user's own sentence beside the filing.",
+    "on_floor_list": true,
+    "rides_on": [
+      "SUBSTRATE 'the Tape' (new sidecar/services/filings_tape.py; sqlite events/cursor/signals modelled on sidecar/services/runs_store.py:55,94; 4th warm loop beside sidecar/services/fundamentals_warm.py:403-430, lifespan sidecar/app.py:127-130,142; wake-time window = max(30d, now - last_swept_at) replacing the constant at sidecar/services/corporate_disclosures.py:88,140)",
+      "sidecar/services/agent_tools/catalog.py:1373-1395 (write_note exists; there is NO read capability: the agent cannot read the user's thesis)",
+      "src/lib/host-actions.ts:1176-1191 (write_note executor), :999 (terminal snapshot carries only notesChars)",
+      "src/store/notes.ts:8-15 (NotesBundle general / bySymbol)",
+      "src/store/proposed-changes.ts:64,92 (diff gate)",
+      "src/lib/brief-claims.ts:1-14 + sidecar/services/agent_runtime.py:344 (claims-ledger precedent: remember what was said, reconcile openly)",
+      "census/OPPORTUNITY_LEDGER.md OPP-1 (thesis watcher) with the LLM removed from evaluation"
+    ],
+    "new_parts": [
+      "read_note local tool (read-only, scope-keyed like write_note)",
+      "compile prompt that can only select + parameterise rule ids and must carry source_sentence",
+      "tripwire rows on the Tape",
+      "'my rules' section on the symbol note with armed vs reminder states"
+    ],
+    "jarvis_axis": [
+      "memory",
+      "initiative",
+      "receipts"
+    ],
+    "size": "S-M",
+    "risk": "False comfort: a user believes an uncheckable sentence is armed. Sentences outside the menu are kept as visible reminders, and armed vs reminder must be unmistakable in the UI."
+  },
+  {
+    "idea_id": "forensic-7",
+    "name": "Evidence Locker",
+    "one_liner": "Every PDF the agent reads is stored locally under its sha256 with fetch time and page map; citations carry page + hash and open the local copy at the page; a re-visit whose hash differs raises 'the document changed under you'; and a section-seek reader finally reaches the back of a 250-page annual report.",
+    "on_floor_list": true,
+    "rides_on": [
+      "sidecar/services/search/extract.py:506,534 (pages_used computed then lost), :65 (_PDF_MAX_PAGES = 60), :68 (_PDF_KEEP_PAGES = 6): related-party, contingent-liability and auditor-report pages of an AR are structurally unreachable today",
+      "types/brief.ts:230-248 (BriefSource has no page / hash / fetchedAt)",
+      "src/lib/export-artifact.ts:1-10 (exports tree + atomic-write precedent under the data dir)",
+      "sidecar/services/search/extract.py:398-407 (scanned-pages honesty note must reach the chip)",
+      "Tape event klass = document_replaced",
+      "census/OPPORTUNITY_LEDGER.md OPP-12 (lineage) extended down to page + hash"
+    ],
+    "new_parts": [
+      "content-addressed locker store with LRU cap and pin-if-cited",
+      "optional page / sha256 / fetchedAt on BriefSource",
+      "section-seek deep-read mode (find heading, read +/-4 pages) that leaves the global cap and research latency unchanged",
+      "hash compare on re-visit",
+      "citation chip that opens the local copy at the page"
+    ],
+    "jarvis_axis": [
+      "receipts",
+      "memory"
+    ],
+    "size": "M",
+    "risk": "Disk growth (a few GB a year for a heavy user): budget the cap on day one, this is lifecycle question L5. Scanned micro-cap ARs are stored faithfully and still unreadable: the chip must say 'stored, not machine-readable'."
+  },
+  {
+    "idea_id": "forensic-8",
+    "name": "Annual-Report Redline",
+    "one_liner": "git diff for the notes to accounts: locate the auditor's report, related-party note and contingent liabilities in this year's and last year's AR, produce deterministic text hunks first, let the LLM only label materiality while quoting both sides verbatim, and show both pages side by side.",
+    "on_floor_list": false,
+    "rides_on": [
+      "forensic-7 (section-seek reader + locker; both ARs arrive as attachment_url on the BSE lane)",
+      "sidecar/services/research/citecheck.py:216 (ensure_citation_integrity: verbatim-quote enforcement precedent)",
+      "sidecar/services/run_manager.py:237 (durable Delegate run with resumable checkpoint: minutes-long, survives a closed lid)",
+      "sidecar/services/search/extract.py:414 (_layout_retry for table-heavy notes)",
+      "src/modules/research/brief-blocks.tsx (typed diff block in BriefBody)"
+    ],
+    "new_parts": [
+      "section locator by heading regex with a 'section not found - open PDF at notes index' fallback",
+      "difflib hunk generator",
+      "materiality-label prompt",
+      "diff block",
+      "run recipe; ship three sections first (auditor's report, RPT, contingent liabilities)"
+    ],
+    "jarvis_axis": [
+      "receipts",
+      "memory"
+    ],
+    "size": "L whole; M held to three sections on top of forensic-7",
+    "risk": "Scanned ARs and fused table cells produce garbage hunks that look like findings. Gate: any pages_empty inside a section makes that section 'unreadable', full stop."
+  },
+  {
+    "idea_id": "forensic-9",
+    "name": "Red-Flag Rule Packs",
+    "one_liner": "Detection-as-code for governance (the Sigma/YARA of Indian small-caps): small readable rule files describing event sequences over the Tape, each citing the regulator order it was distilled from, shipped as data plugins, evaluated privately on the user's machine against the user's holdings, outputting 'steps matched' with a filing per step and never a verdict.",
+    "on_floor_list": false,
+    "rides_on": [
+      "SUBSTRATE 'the Tape' (new sidecar/services/filings_tape.py; sqlite events/cursor/signals modelled on sidecar/services/runs_store.py:55,94; 4th warm loop beside sidecar/services/fundamentals_warm.py:403-430, lifespan sidecar/app.py:127-130,142; wake-time window = max(30d, now - last_swept_at) replacing the constant at sidecar/services/corporate_disclosures.py:88,140)",
+      "sidecar/services/screener_formula.py:441 (no-eval expression grammar reused for rule conditions)",
+      "sidecar/services/nse_symbol_change.py:245,323 (rename lane becomes a Tape class for the 'renamed into a fad' step)",
+      "types/plugin.ts:60,75-76 (contributesData used as-is: NO contract change, which would be Tier-4)",
+      "src/lib/marketplace.ts (install / enable lifecycle)",
+      "one engine, three rule families: event sequences (this), statement rules (forensic-5), user tripwires (forensic-6)"
+    ],
+    "new_parts": [
+      "rule schema {id, title, steps[{klass|expr, within_days}], min_match, citations[], severity} + validator",
+      "windowed sequence matcher over events",
+      "pack loader",
+      "'matched rules' block with per-step receipts",
+      "first-party starter pack of ~12 rules, each citing a primary order or filing, reviewed line by line by the operator",
+      "rules/ lint in CI (schema + citation present + a fixture that fires)",
+      "contribution guide"
+    ],
+    "jarvis_axis": [
+      "watching",
+      "memory",
+      "receipts",
+      "initiative"
+    ],
+    "size": "M (engine S-M once the Tape exists; the starter pack is careful writing, not code)",
+    "risk": "A rule reads as an accusation. Rules must be phrased as observable sequences, cite primary documents, output steps matched, and never name a verdict. Event-class vocabulary changes must be additive or community packs break."
+  }
+]

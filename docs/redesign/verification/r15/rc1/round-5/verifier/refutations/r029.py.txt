@@ -1,0 +1,33 @@
+from services.research.citecheck import strip_model_bibliography, strip_invalid_markers
+kaynes = """## Kaynes Technology (KAYNES.NS)
+
+Revenue grew 29% year on year [1]. Earnings growth: -0.4% (TTM, [n] 1). Order book stands at Rs 6,000 cr [2].
+
+**Merged Sources**
+1. NSE filing - Q1 results
+2. Moneycontrol - Kaynes order book
+3. Economic Times - EMS sector
+4. Business Standard
+5. Screener.in
+6. Trendlyne
+7. Company annual report
+
+References:
+[n] 1. NSE filing ([n] 9)
+[n] 2. Moneycontrol
+[n] 7. Annual report ([n] 9)
+
+The outlook remains constructive [3].
+"""
+out, n = strip_model_bibliography(kaynes)
+out, m = strip_invalid_markers(out, 3)
+print("OWN-REPRO removed:", n, "out-of-range:", m)
+print(out)
+print("SURVIVES Merged Sources:", "Merged Sources" in out, "| References:", "References" in out, "| [n]:", "[n]" in out, "| constructive kept:", "constructive" in out)
+hal = "NVDA revenue rose [1].\n\n### Sources\n1. Reuters\n2. SEC 10-Q\n"
+o,k = strip_model_bibliography(hal); print("### Sources removed", k, "survives:", "Reuters" in o)
+body = "NVDA grew revenue 94% [1]. Margins expanded [2].\n\n"
+for head in ["## Citations", "**Sources cited:**", "## Source List", "## Key sources", "Further reading:", "## References", "Sources:"]:
+    md = body + head + "\n1. Reuters - NVDA Q2\n2. SEC 10-Q\n3. Blog post\n4. Extra source\n"
+    o, k = strip_model_bibliography(md)
+    print(f"FRESH {head!r}: removed={k} list_survives={'Extra source' in o}")

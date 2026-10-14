@@ -1,0 +1,2 @@
+fresh-case totalReturn: 0.0
+trades: [('buy', 20, 110.0, 0.0)]

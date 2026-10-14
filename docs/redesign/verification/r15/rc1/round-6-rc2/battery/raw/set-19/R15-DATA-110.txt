@@ -1,0 +1,7 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ bash /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b2_sp.sh
+exit=0
+http=200 t=0.602811
+{'universe': 'sp500', 'evaluated_count': 478, 'skipped_count': 25, 'result_count': 191, 'matched_count': 191, 'duration_ms': 596.7239580349997, 'partial': False, 'coverage': 'screened 478 of 503 — 25 unavailable', 'throttled': False}
+rows 191
+skipped 0

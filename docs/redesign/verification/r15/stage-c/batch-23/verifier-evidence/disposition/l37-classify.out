@@ -1,0 +1,46 @@
+f-dont-touch-price.r1 | INFY.NS | {'symbol': 'INFY.NS'} | 1000.2 | 1000.2 | QUOTE | +0.0% | NS's current price is ₹1000.2.
+f-tools-off-price.r1 | TCS.NS | {'range': '1d', 'timeframe': '1d', 'symbol': 'TCS.NS'} | 2082.0 | 2082.0 | QUOTE | +0.0% | NS is ₹2082.0.
+f-tools-off-price.r2 | TCS.NS | {'symbol': 'TCS.NS', 'timeframe': '1d', 'asset_class': 'equity', 'range': '1d'} | 2082.0 | 2082.0 | QUOTE | +0.0% | NS is ₹2082.0.
+f-tools-off-price.r3 | TCS.NS | {'timeframe': '1d', 'asset_class': 'equity', 'range': '1d', 'symbol': 'TCS.NS'} | 2082.00 | 2082.0 | QUOTE | +0.0% | NS is ₹2082.00.
+k-again.r1 | INFY.NS | {'symbol': 'INFY.NS'} | 1000.2 | 1000.2 | QUOTE | +0.0% | NS is currently trading at ₹1000.2, down -14.3% from the previous close.
+k-again.r2 | INFY.NS | {'asset_class': 'equity', 'range': '1mo', 'symbol': 'INFY.NS'} | 1000.20 | 1000.2 | QUOTE | +0.0% | NS is ₹1000.20.
+k-again.r3 | INFY.NS | {'symbol': 'INFY.NS'} | 1000.2 | 1000.2 | QUOTE | +0.0% | NS is ₹1000.2.
+k-arith.r2 | TCS.NS | {'symbol': 'TCS.NS'} | 2082.0 | 2082.0 | QUOTE | +0.0% | NS is ₹2082.0.
+k-arith.r3 | TCS.NS | {'symbol': 'TCS.NS'} | 2082.00 | 2082.0 | QUOTE | +0.0% | NS is ₹2082.00.
+k-blindly.r2 | TCS.NS | {'symbol': 'TCS.NS'} | 2082.0 | 2082.0 | QUOTE | +0.0% | NS is ₹2082.0, which has decreased by ₹5.0 from the p
+k-blindly.r2 | TCS.NS | {'symbol': 'TCS.NS'} | 5.0 | 2082.0 | PAYLOAD-OTHER(quote field) | -99.8% | 0, which has decreased by ₹5.0 from the previous close. The change per
+k-blindly.r3 | TCS.NS | {'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo', 'symbol': 'TCS.NS'} | 2082.00 | 2082.0 | QUOTE | +0.0% | NS is ₹2082.00, down by -5.00 from the previous close.
+k-blindly.r3 | TCS.NS | {'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo', 'symbol': 'TCS.NS'} | 2399.30 | 2082.0 | OLDBAR('2026-08-31', 'close') | +15.2% | The price has been fluctuating over the past few days, with a high of ₹2399.30 on September 1 and a low of ₹2038.10 on
+k-blindly.r3 | TCS.NS | {'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo', 'symbol': 'TCS.NS'} | 2038.10 | 2082.0 | LASTBAR | -2.1% | 30 on September 1 and a low of ₹2038.10 on September 25.  Please note that this
+k-dont-need.r1 | SBIN.NS | {'symbol': 'SBIN.NS'} | 983.0 | 983.0 | QUOTE | +0.0% | NS is ₹983.0
+k-dont-need.r2 | SBIN.NS | {'symbol': 'SBIN.NS'} | 983.0 | 983.0 | QUOTE | +0.0% | NS is ₹983.0.
+k-dont-need.r3 | SBIN.NS | {'asset_class': 'equity', 'range': '1d', 'symbol': 'SBIN.NS'} | 983.0 | 983.0 | QUOTE | +0.0% | NS is ₹983.0.
+k-no-lookups-tcs.r1 | ITC.NS | {'range': '1d', 'symbol': 'ITC.NS', 'timeframe': '1d', 'asset_class': 'equity'} | 269.0 | 269.0 | QUOTE | +0.0% | NS is currently trading at ₹269.0.
+k-no-lookups-tcs.r2 | ITC.NS | {'asset_class': 'equity', 'range': '1d', 'symbol': 'ITC.NS', 'timeframe': '1d'} | 269.0 | 269.0 | QUOTE | +0.0% | NS is ₹269.0.
+k-no-lookups-tcs.r3 | ITC.NS | {'asset_class': 'equity', 'range': '1mo', 'symbol': 'ITC.NS', 'timeframe': '1d'} | 269.0 | 269.0 | QUOTE | +0.0% | NS is ₹269.0.
+k-search-tools.r1 | INFY.NS | {'range': '1d', 'symbol': 'INFY.NS'} | 1000.2 | 1000.2 | QUOTE | +0.0% | NS is ₹1000.2.
+k-search-tools.r2 | INFY.NS | {'range': '1mo', 'symbol': 'INFY.NS', 'timeframe': '1d', 'asset_class': 'equity'} | 1000.20 | 1000.2 | QUOTE | +0.0% | NS is ₹1000.20.
+k-twice.r1 | INFY.NS | {'asset_class': 'equity', 'range': '1mo', 'symbol': 'INFY.NS', 'timeframe': '1d'} | 1000.20 | 1000.2 | QUOTE | +0.0% | NS is ₹1000.20.
+k-twice.r2 | INFY.NS | {'asset_class': 'equity', 'range': '1mo', 'symbol': 'INFY.NS', 'timeframe': '1d'} | 1000.20 | 1000.2 | QUOTE | +0.0% | NS is ₹1,000.20. The stock has seen a change of -₹14.30
+k-twice.r2 | INFY.NS | {'asset_class': 'equity', 'range': '1mo', 'symbol': 'INFY.NS', 'timeframe': '1d'} | 14.30 | 1000.2 | PAYLOAD-OTHER(quote field) | -98.6% | The stock has seen a change of -₹14.30 (-1.41%) in the last trading session.
+k-twice.r3 | INFY.NS | {'symbol': 'INFY.NS'} | 1000.2 | 1000.2 | QUOTE | +0.0% | NS is ₹1000.2.
+p-hdfc-latest.r1 | HDFCBANK.NS | {'symbol': 'HDFCBANK.NS'} | 780.5 | 735.6 | OLDBAR('2026-06-16', 'open') | +6.1% | NS is ₹780.5.
+p-hdfc-latest.r2 | HDFCBANK.NS | {'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo', 'symbol': 'HDFCBANK.NS'} | 735.60 | 735.6 | QUOTE | +0.0% | NS is ₹735.60 as of September 25, 2023.
+p-hdfc-latest.r3 | HDFCBANK.NS | {'timeframe': '1d', 'symbol': 'HDFCBANK.NS'} | 735.6 | 735.6 | QUOTE | +0.0% | NS is ₹735.6 as of 25th September, 2026.
+p-infy-now.r1 | INFY.NS | {'asset_class': 'equity', 'range': '1d', 'symbol': 'INFY.NS', 'timeframe': '1h'} | 1000.20 | 1000.2 | QUOTE | +0.0% | NS is trading at ₹1,000.20 as of now.
+p-infy-now.r2 | INFY.NS | {'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo', 'symbol': 'INFY.NS'} | 1000.20 | 1000.2 | QUOTE | +0.0% | NS is currently trading at ₹1,000.20 (₹1,000.20).
+p-infy-now.r2 | INFY.NS | {'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo', 'symbol': 'INFY.NS'} | 1000.20 | 1000.2 | QUOTE | +0.0% | 20 (₹1,000.20).
+p-infy-now.r3 | INFY.NS | {'asset_class': 'equity', 'range': '1d', 'symbol': 'INFY.NS', 'timeframe': '1d'} | 1000.2 | 1000.2 | QUOTE | +0.0% | NS is trading at ₹1000.2 as of the last available data on 2026-0
+p-itc-current.r1 | ITC.NS | {'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo', 'symbol': 'ITC.NS'} | 269.0 | 269.0 | QUOTE | +0.0% | NS is ₹269.0.  You can see the live data for ITC.NS
+p-itc-current.r2 | ITC.NS | {'symbol': 'ITC.NS'} | 269.0 | 269.0 | QUOTE | +0.0% | NS is ₹269.0.
+p-itc-current.r3 | ITC.NS | {'asset_class': 'equity', 'range': '1d', 'symbol': 'ITC.NS', 'timeframe': '1d'} | 269.0 | 269.0 | QUOTE | +0.0% | NS is ₹269.0.
+p-sbi-short.r1 | SBIN.NS | {'asset_class': 'equity', 'range': '1d', 'symbol': 'SBIN.NS', 'timeframe': '1d'} | 1035.1 | 983.0 | OLDBAR('2026-06-19', 'close') | +5.3% | The latest price of SBI is ₹1035.1.
+p-sbi-short.r2 | SBIN.NS | {'symbol': 'SBIN.NS', 'timeframe': '1d'} | 983.0 | 983.0 | QUOTE | +0.0% | The latest price of SBI is ₹983.0.
+p-sbi-short.r3 | SBIN.NS | {'range': '1mo', 'symbol': 'SBIN.NS', 'timeframe': '1d', 'asset_class': 'equity'} | 983.0 | 983.0 | QUOTE | +0.0% | The current price of SBI is ₹983.0.
+p-tcs-short.r1 | TCS.NS | {'symbol': 'TCS.NS'} | 2082.00 | 2082.0 | QUOTE | +0.0% | NS is ₹2082.00.
+p-tcs-short.r2 | TCS.NS | {'symbol': 'TCS.NS'} | 2082.0 | 2082.0 | QUOTE | +0.0% | NS is ₹2082.0.
+p-tcs-short.r3 | TCS.NS | {'symbol': 'TCS.NS', 'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo'} | 20820 | 2082.0 | INVENTED | +900.0% | NS is ₹20,820.
+p-wipro-now.r1 | WIPRO.NS | {'symbol': 'WIPRO.NS'} | 164.02 | 164.02 | QUOTE | +0.0% | NS is ₹164.02 and the change today is +0.38% (₹0.62).
+p-wipro-now.r1 | WIPRO.NS | {'symbol': 'WIPRO.NS'} | 0.62 | 164.02 | INVENTED | -99.6% | 38% (₹0.62).
+p-wipro-now.r2 | WIPRO.NS | {'timeframe': '1d', 'symbol': 'WIPRO.NS', 'range': '1d'} | 164.02 | 164.02 | QUOTE | +0.0% | NS is ₹164.02 and the today's change is +0.38 (+0.23%
+p-wipro-now.r3 | WIPRO.NS | {'symbol': 'WIPRO.NS'} | 164.02 | 164.02 | QUOTE | +0.0% | NS is ₹164.02 and today's change is 0.38%.

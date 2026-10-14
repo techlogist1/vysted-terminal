@@ -1,0 +1,18 @@
+COMMAND (in-process, candidate sidecar venv, sha 1006c6da): built a fake yfinance Ticker whose
+get_history_metadata() returns {} (no regularMarketTime) and whose history(period="5d",
+interval="1d") returns an EMPTY DataFrame -- exactly the register's "no-time, no-history" case --
+and called services.yfinance_provider._quote_time(fake_ticker) directly:
+
+  cd <cand>/sidecar && ./.venv/bin/python3 test_lead023.py
+
+OUTPUT:
+ProviderError (handled type): Yahoo returned a price with no trade time
+
+VERDICT: holds.
+_quote_time now has the terminal case (yfinance_provider.py:553-562): metadata time missing AND
+5d daily history empty raises a typed ProviderError with a named reason, instead of
+bars.index[-1] IndexError-ing on an empty frame. The call site (line 525-528) catches Exception
+broadly and turns it into a provider error the registry falls through on -- so this no longer
+crashes the request; it degrades to the next provider. Functionally different from the register's
+suggested "price with unknown as-of" resolution, but the actual defect (an unhandled raise through
+the caller) is gone: same repro, no bare IndexError, a named/typed failure instead.

@@ -1,0 +1,9 @@
+[ 115.5s] tool_use research {"query": "Mazagon Dock Shipbuilders \u2014 order book and margins", "depth": "deep"}
+[ 116.8s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin b9e44fac482b4fba9fc7e627af9013fe depth=deep query=Mazagon Dock Shipbuilders \u2014 order book and margins", "latency_ms": null, "status": "ok", "index": 1, "_t": 116.85}
+[ 116.8s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "Your active model \u2014 ollama/llama3.1:8b \u00b7 IterResearch (evolving report)", "latency_ms": null, "status": "ok", "index": 2, "_t": 116.85}
+[ 139.0s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "round 1: seeded 3 sub-question(s) (planning rides round 2)", "latency_ms": 0, "status": "ok", "index": 3, "_t": 139.0}
+
+=== TEXT ===
+
+
+=== client_stopped 170.0s kinds={'tool_use': 1, 'research_step': 3} usage={}

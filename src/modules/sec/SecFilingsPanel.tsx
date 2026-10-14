@@ -12,11 +12,14 @@
  * writes the data through `useSecStore`.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { cn } from "@/lib/utils";
-import { selectFilings, useSecStore } from "@/store/sec";
+import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
+import { EMPTY_FILINGS, filingsKey, useSecStore } from "@/store/sec";
+import { usePanelContextBus } from "@/store/panel-context";
 
 import type { Filing, FilingFormType } from "../../../types/sec";
 
@@ -36,39 +39,61 @@ const FORM_FILTER_OPTIONS: Array<{ value: FilingFormType | "all"; label: string 
 
 export function SecFilingsPanel() {
   const activeIdentifier = useSecStore((s) => s.activeIdentifier);
-  const filingsByIdentifier = useSecStore((s) => s.filingsByIdentifier);
   const setActiveIdentifier = useSecStore((s) => s.setActiveIdentifier);
   const loadFilings = useSecStore((s) => s.loadFilings);
   const filingsStatus = useSecStore((s) => s.filingsStatus);
   const filingsError = useSecStore((s) => s.filingsError);
   const activeAccession = useSecStore((s) => s.activeAccession);
   const setActiveAccession = useSecStore((s) => s.setActiveAccession);
+  const searchResults = useSecStore((s) => s.searchResults);
+  const searchStatus = useSecStore((s) => s.searchStatus);
+  const searchError = useSecStore((s) => s.searchError);
+  const searchCompanies = useSecStore((s) => s.searchCompanies);
+  const clearSearch = useSecStore((s) => s.clearSearch);
 
   const [draftSymbol, setDraftSymbol] = useState("AAPL");
   const [formFilter, setFormFilter] = useState<FilingFormType | "all">("all");
   const [tab, setTab] = useState<Tab>("filings");
 
-  // Initial load — default symbol = AAPL so populated-state screenshots
-  // capture real data on first mount.
-  useEffect(() => {
-    if (!activeIdentifier) {
-      setActiveIdentifier("AAPL");
-      void loadFilings("AAPL", undefined);
-    }
-    // Intentional: run once on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // --- symbol-field autocomplete (R15-UI-032) --------------------------------
+  const [acOpen, setAcOpen] = useState(false);
+  const acSeqRef = useRef(0);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const filings = useMemo(() => {
-    void filingsByIdentifier; // subscribe
-    return selectFilings(activeIdentifier, formFilter === "all" ? undefined : formFilter);
-  }, [filingsByIdentifier, activeIdentifier, formFilter]);
+  // Once the user picks a symbol / form, the auto-retry default loader goes
+  // inert so it never fights an explicit choice (even on a reconnect re-fire
+  // after a failed default load, where `activeIdentifier` may already be set).
+  const userInteractedRef = useRef(false);
+
+  // Initial load — default symbol = AAPL so populated-state screenshots
+  // capture real data on first mount. Auto-retries on a cold-boot sidecar bind
+  // (and re-arms on reconnect) so a panel mounted before the sidecar was ready
+  // self-heals. `loadFilings` swallows its error into store state — re-throw the
+  // kept original error so the hook retries only a not-ready engine.
+  const loadDefault = useCallback(async () => {
+    if (userInteractedRef.current) {
+      return;
+    }
+    setActiveIdentifier("AAPL");
+    await loadFilings("AAPL", undefined);
+    if (useSecStore.getState().filingsStatus === "error") {
+      throw useSecStore.getState().filingsCause;
+    }
+  }, [loadFilings, setActiveIdentifier]);
+  useRetryOnSidecarReady(loadDefault, []);
+
+  const filings = useSecStore((s) => {
+    if (!activeIdentifier) return EMPTY_FILINGS;
+    const key = filingsKey(activeIdentifier, formFilter === "all" ? undefined : formFilter);
+    return s.filingsByIdentifier[key] ?? EMPTY_FILINGS;
+  });
 
   const submitSymbol = useCallback(
     (event?: React.FormEvent<HTMLFormElement>) => {
       event?.preventDefault();
       const symbol = draftSymbol.trim();
       if (!symbol) return;
+      userInteractedRef.current = true;
       setActiveIdentifier(symbol);
       setActiveAccession(null);
       void loadFilings(symbol, formFilter === "all" ? undefined : formFilter);
@@ -76,8 +101,44 @@ export function SecFilingsPanel() {
     [draftSymbol, formFilter, loadFilings, setActiveIdentifier, setActiveAccession],
   );
 
+  // Debounced company-name autocomplete — mirrors the EquityOverviewPanel
+  // pattern: a sequence id discards an out-of-order response, and the
+  // dropdown only (re)opens while the input still owns focus.
+  useEffect(() => {
+    const q = draftSymbol.trim();
+    const seq = ++acSeqRef.current;
+    const handle = setTimeout(() => {
+      if (seq !== acSeqRef.current) return;
+      if (q.length < 1) {
+        clearSearch();
+        setAcOpen(false);
+        return;
+      }
+      void searchCompanies(q).then(() => {
+        if (seq !== acSeqRef.current) return;
+        setAcOpen(document.activeElement === inputRef.current);
+      });
+    }, 200);
+    return () => clearTimeout(handle);
+  }, [draftSymbol, searchCompanies, clearSearch]);
+
+  const pickCompany = useCallback(
+    (row: { cik: string; name: string; ticker: string | null }) => {
+      const symbol = row.ticker ?? row.cik;
+      setDraftSymbol(symbol);
+      setAcOpen(false);
+      clearSearch();
+      userInteractedRef.current = true;
+      setActiveIdentifier(symbol);
+      setActiveAccession(null);
+      void loadFilings(symbol, formFilter === "all" ? undefined : formFilter);
+    },
+    [formFilter, loadFilings, setActiveIdentifier, setActiveAccession, clearSearch],
+  );
+
   const onPickForm = useCallback(
     (value: FilingFormType | "all") => {
+      userInteractedRef.current = true;
       setFormFilter(value);
       if (activeIdentifier) {
         void loadFilings(activeIdentifier, value === "all" ? undefined : value);
@@ -100,35 +161,101 @@ export function SecFilingsPanel() {
 
   const hasOpenFiling = activeAccession !== null;
 
+  // R15-AGENT-053: publish the active identifier + tab so the copilot can
+  // see what's on screen; the identifier is also clickable → the chart.
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "sec-filings",
+      kind: "snapshot",
+      payload: {
+        identifier: activeIdentifier,
+        // The context provider reads `symbol` for "this" (R15-LEAD-077).
+        symbol: activeIdentifier,
+        formFilter,
+        tab,
+        filingCount: filings.filings.length,
+      },
+      emittedAt: Date.now(),
+    });
+  }, [publishPanelContext, activeIdentifier, formFilter, tab, filings.filings.length]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("sec-filings");
+    };
+  }, [unregisterPanelContext]);
+
   return (
     <div
       data-testid="sec-filings-panel"
-      className="bg-charcoal-900 text-charcoal-100 flex h-full w-full flex-col text-xs"
+      className="bg-charcoal-900 text-charcoal-100 text-caption flex h-full w-full flex-col"
     >
       <header className="border-charcoal-700 flex flex-wrap items-end gap-2 border-b px-3 py-2">
         <form onSubmit={submitSymbol} className="flex items-end gap-2">
-          <label className="flex flex-col gap-0.5">
-            <span className="text-charcoal-400 text-[10px] uppercase">Symbol / CIK</span>
+          <label className="relative flex flex-col gap-1">
+            <span className="text-charcoal-500 text-micro">Symbol / CIK</span>
             <input
+              ref={inputRef}
               type="text"
               value={draftSymbol}
               onChange={(e) => setDraftSymbol(e.target.value)}
-              className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 w-32 rounded-md border px-2 py-1 font-mono text-xs uppercase"
+              onFocus={() => setAcOpen(searchResults.length > 0)}
+              onBlur={() => setTimeout(() => setAcOpen(false), 120)}
+              className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 w-32 border px-3 uppercase outline-none"
               placeholder="AAPL"
+              autoComplete="off"
               data-testid="sec-symbol-input"
             />
+            {acOpen && searchResults.length > 0 && (
+              <ul
+                role="listbox"
+                data-testid="sec-symbol-suggestions"
+                className="border-charcoal-700 bg-charcoal-900 absolute top-full left-0 z-20 mt-1 max-h-56 w-64 overflow-y-auto border shadow-lg" /* tokens-ok: dropdown scroll cap — layout, not rhythm */
+              >
+                {searchResults.map((row) => (
+                  <li key={row.cik}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={false}
+                      // A blur fires before the click otherwise discards it —
+                      // onMouseDown beats onBlur in the event order.
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        pickCompany(row);
+                      }}
+                      className="hover:bg-charcoal-800 text-caption flex w-full flex-col items-start gap-0.5 px-2 py-1 text-left normal-case"
+                    >
+                      <span className="text-charcoal-100">{row.name}</span>
+                      <span className="text-charcoal-500 text-micro">{row.ticker ?? row.cik}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </label>
-          <Button size="xs" variant="outline" type="submit" data-testid="sec-symbol-submit">
+          <Button size="sm" variant="outline" type="submit" data-testid="sec-symbol-submit">
             Load
           </Button>
         </form>
 
-        <label className="flex flex-col gap-0.5">
-          <span className="text-charcoal-400 text-[10px] uppercase">Form</span>
+        {/* R15-UI-015: a failed company search used to leave the dropdown
+            simply not opening, indistinguishable from "no match" — say why. */}
+        {searchStatus === "error" && searchError ? (
+          <p className="text-negative text-micro w-full basis-full" data-testid="sec-search-error">
+            Company search unavailable: {searchError}
+          </p>
+        ) : null}
+
+        <label className="flex flex-col gap-1">
+          <span className="text-charcoal-500 text-micro">Form</span>
           <select
             value={formFilter}
             onChange={(e) => onPickForm(e.target.value as FilingFormType | "all")}
-            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-md border px-2 py-1 text-xs"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 border px-3 outline-none"
             data-testid="sec-form-filter"
           >
             {FORM_FILTER_OPTIONS.map((opt) => (
@@ -148,19 +275,58 @@ export function SecFilingsPanel() {
           </TabButton>
         </nav>
 
-        <span className="text-charcoal-400 ml-2 text-[10px]">
-          {filings.company_name || activeIdentifier || ""}
+        <span className="text-charcoal-400 text-micro ml-2">
+          {activeIdentifier ? (
+            <button
+              type="button"
+              className="text-charcoal-400 hover:text-charcoal-100 hover:underline"
+              title={`Load ${activeIdentifier} into the chart`}
+              onClick={() => loadSymbolIntoChart(activeIdentifier)}
+              data-testid={`sec-symbol-${activeIdentifier}`}
+            >
+              {filings.company_name || activeIdentifier}
+            </button>
+          ) : (
+            ""
+          )}
           {filings.filings.length > 0 && <> · {filings.filings.length} filings</>}
         </span>
       </header>
 
       {filingsError && (
-        <p className="px-3 py-2 text-[11px] text-red-400" data-testid="sec-filings-error">
-          {filingsError}
-        </p>
+        <div
+          className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2"
+          data-testid="sec-filings-error"
+        >
+          <span className="text-negative text-caption">
+            Could not load filings — {filingsError}
+          </span>
+          <Button
+            size="xs"
+            variant="ghost"
+            className="text-charcoal-300 hover:text-charcoal-100 shrink-0"
+            onClick={() =>
+              activeIdentifier &&
+              void loadFilings(activeIdentifier, formFilter === "all" ? undefined : formFilter)
+            }
+            disabled={!activeIdentifier}
+          >
+            Retry
+          </Button>
+        </div>
       )}
       {filingsStatus === "loading" && filings.filings.length === 0 && (
-        <p className="text-charcoal-400 px-3 py-2 text-xs">Loading filings…</p>
+        // Row-shaped pulse skeleton for the filings fetch window — never a bare
+        // prose line standing in for the table.
+        <div className="flex animate-pulse flex-col px-3 py-2" data-testid="sec-filings-skeleton">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="border-charcoal-800 flex gap-6 border-b px-3 py-2">
+              <div className="bg-charcoal-800 h-3 w-16 rounded-none" />
+              <div className="bg-charcoal-800 h-3 w-1/3 rounded-none" />
+              <div className="bg-charcoal-800 ml-auto h-3 w-24 rounded-none" />
+            </div>
+          ))}
+        </div>
       )}
 
       <div className="min-h-0 flex-1">
@@ -173,6 +339,7 @@ export function SecFilingsPanel() {
         )}
         {tab === "filings" && hasOpenFiling && (
           <FilingViewer
+            key={activeAccession ?? "empty"}
             accession={activeAccession}
             identifier={activeIdentifier}
             onClose={onCloseViewer}
@@ -200,8 +367,8 @@ function TabButton({ value, active, onClick, children }: TabButtonProps) {
       data-testid={`sec-tab-${value}`}
       onClick={onClick}
       className={cn(
-        "rounded-md px-2 py-1 text-xs",
-        active ? "bg-charcoal-700 text-charcoal-50" : "text-charcoal-300 hover:bg-charcoal-800",
+        "rounded-control text-caption px-2 py-1",
+        active ? "bg-charcoal-700 text-lume" : "text-charcoal-300 hover:bg-charcoal-800",
       )}
     >
       {children}

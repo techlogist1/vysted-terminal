@@ -1,0 +1,52 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_de3a7bd02499455d8592b96e7ca3858a", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+{"kind": "tool_result", "tool_call_id": "call_de3a7bd02499455d8592b96e7ca3858a", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "90"}
+{"kind": "delta", "text": " trillion"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "USD"}
+{"kind": "delta", "text": "),"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " around"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "466"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "82"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "USD"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " returned"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " figures"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " fundamentals"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " y"}
+{"kind": "delta", "text": "finance"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5905, "output_tokens": 45, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

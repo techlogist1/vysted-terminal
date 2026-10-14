@@ -1,0 +1,43 @@
+CMD: grep -n "R15-AGENT-055" src/lib/layout-templates.test.ts (candidate 949c3c9f)
+Frontend-only layout-template/menu-mode mapping logic; no sidecar endpoint. Certified via pinned vitest.
+537:describe("one plan per template id (R15-AGENT-055)", () => {
+552:  // R15-AGENT-055: the menu modes used to be keyed by the AGENT template ids
+describe("one plan per template id (R15-AGENT-055)", () => {
+  const templates = Object.entries(templateCatalog).filter(([id]) => !id.startsWith("_")) as [
+    LayoutTemplate,
+    { panels: string[] },
+  ][];
+
+  it("planLayout places exactly the panels layout_templates.json lists (the catalog's source)", () => {
+    expect([...LAYOUT_TEMPLATE_IDS].sort()).toEqual(templates.map(([id]) => id).sort());
+    for (const [id, entry] of templates) {
+      expect(planLayout(id).panels.map((p) => p.id)).toEqual(
+        entry.panels.map((role) => resolvePanelToken(role)!.id),
+      );
+    }
+  });
+
+  // R15-AGENT-055: the menu modes used to be keyed by the AGENT template ids
+  // (research-cockpit, single-focus, macro-scan, compare) even though their
+  // panel sets differ from `planLayout` of the same id — one id, two
+  // different layouts. The menu payloads are now the mode's OWN ids
+  // (fundamental/technical/macro/compare-desk), disjoint from
+  // `LAYOUT_TEMPLATE_IDS`, so this test uses the new ids and the reason is
+  // the mechanism above.
+  it("every native-menu payload maps to exactly one mode plan, cleared then tiled", () => {
+    const expected: Record<string, string[]> = {
+      fundamental: ["chart", "equity-overview", "brief"],
+      technical: ["chart", "watchlist", "news"],
+      macro: ["macro", "chart", "screener-panel"],
+      "compare-desk": ["chart", "equity-overview"],
+    };
+    expect(Object.keys(MENU_PAYLOAD_TO_MODE).sort()).toEqual(Object.keys(expected).sort());
+    expect(new Set(Object.values(MENU_PAYLOAD_TO_MODE)).size).toBe(4);
+    for (const [payload, ids] of Object.entries(expected)) {
+      const added: string[] = [];
+      const api = {
+        panels: [],
+        clear: vi.fn(),
+        getPanel: () => undefined,
+        addPanel: vi.fn(({ id }: { id: string }) => added.push(id)),
+        hasMaximizedGroup: () => false,

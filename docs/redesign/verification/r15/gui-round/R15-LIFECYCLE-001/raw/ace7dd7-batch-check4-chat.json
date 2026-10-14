@@ -1,0 +1,11 @@
+[
+ {"cmd":"click","x":230,"y":768},
+ {"cmd":"wait","seconds":0.5},
+ {"cmd":"type","text":"What moved NVDA today?"},
+ {"cmd":"key","combo":"return"},
+ {"cmd":"wait","seconds":5},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/ace7dd7-33-launchC-chat-after-kill.png"},
+ {"cmd":"click","x":515,"y":148},
+ {"cmd":"wait","seconds":4},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/ace7dd7-34-launchC-portfolio-after-kill.png"}
+]

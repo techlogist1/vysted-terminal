@@ -1,0 +1,7 @@
+# R15-CROSS-PLATFORM-008 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'set_var\|remove_var' src-tauri/src || echo "no hits"
+--- output ---
+src-tauri/src/lib.rs:361:/// `Command` (never the process-wide env: `set_var` while GTK/WebKit threads
+
+EXIT=0 (0.0s)

@@ -1,0 +1,26 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " look"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " what"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " locally"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " bid"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " W"}
+{"kind": "delta", "text": "IP"}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "434"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "35"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2740, "output_tokens": 25, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

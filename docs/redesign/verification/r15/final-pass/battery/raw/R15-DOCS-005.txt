@@ -1,0 +1,9 @@
+# R15-DOCS-005 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; echo "registered: $(sed -n '/export const vystedModules/,/^];/p' src/modules/index.ts | grep -c 'Module,')"; grep -n 'shipped in 0.9.0\|## 4. Module Catalog' docs/BLUEPRINT.md | cut -c1-240; echo "~38 count: $(grep -c '~38' docs/BLUEPRINT.md)"
+--- output ---
+registered: 20
+238:## 4. Module Catalog (20 shipped in 0.9.0; the full list below is the v1.0 roadmap, ~37 modules)
+~38 count: 0
+
+EXIT=0 (0.0s)

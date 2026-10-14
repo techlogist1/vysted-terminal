@@ -1,0 +1,10 @@
+CMD: sidecar/.venv/bin/python3 battery13_data009_010.py (in-process, candidate 1006c6da)
+EXIT: 0
+N=1: curve points = 200
+N=2: curve points = 200
+N=4: curve points = 200
+PASS DATA-009: curve points independent of symbol count (one point per date)
+engine sortino=6.3521 textbook=6.3521
+PASS DATA-010: sortino matches textbook downside-deviation formula
+degenerate identical-losses sortino=6.4807
+PASS DATA-010b: identical-loss case no longer reads 0.00

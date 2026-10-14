@@ -1,0 +1,6 @@
+TOOL resolved: null
+ROUTER resolved: null
+EQUAL: True
+TOOL confidences: [0.6857, 0.6667, 0.6486, 0.6471, 0.6471, 0.7778]
+ROUTER confidences: [0.6857, 0.6667, 0.6486, 0.6471, 0.6471, 0.7778]
+CANDIDATES EQUAL: True

@@ -1,0 +1,12 @@
+# R15-AGENT-048 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:06+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+rm -f $B/out/R15-AGENT-048.txt $B/out/R15-RESEARCH-014.txt; "$IP" $B/sc/p17c.py > $B/out/p17c.log 2>&1; echo "script exit $?"; cat $B/out/R15-AGENT-048.txt 2>/dev/null || tail -20 $B/out/p17c.log
+--- output ---
+script exit 0
+COMMAND: OpenAIProvider()._resolve_tool_events with 5 schema-invalid price_data calls, oneshot.complete_with_usage stubbed (scratch p17c.py)
+EXIT: 0
+OUTPUT:
+5 failing calls -> oneshot repair calls made=2 timeouts=[30.0, 30.0] repairs ledger len=2 (usage entries=[10, 10])
+resolved inputs: [['__vysted_invalid_args__'], ['__vysted_invalid_args__'], ['__vysted_invalid_args__'], ['__vysted_invalid_args__'], ['__vysted_invalid_args__']]
+
+EXIT=0 (1.5s)

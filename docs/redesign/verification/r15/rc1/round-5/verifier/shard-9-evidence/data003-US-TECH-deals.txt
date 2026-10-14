@@ -1,0 +1,3 @@
+### 16:48:42 curl -H X-Vysted-Region: US http://127.0.0.1:52609/disclosures/deals?symbol=TECH&kind=bulk
+{"symbol":"TECH","kind":"bulk","count":0,"deals":[],"sources":[],"errors":{},"coverage":"not_applicable","note":"TECH is not an NSE/BSE instrument; Indian exchange disclosures do not apply"}
+HTTP 200 0.001435s

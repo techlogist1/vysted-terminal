@@ -1,0 +1,628 @@
+{
+  "collected_at": "2026-09-19",
+  "status": "complete",
+  "slot": "P5",
+  "symbol": "CSL",
+  "collector_notes": "Outside-truth pack for P5 (Continental Securities Ltd, BSE 538868). The session's WebSearch budget (200/200) was already exhausted when this task started, so every source below was reached by direct WebFetch against known URL patterns. bseindia.com returned HTTP 403, moneycontrol.com was unreachable, zaubacorp.com returned HTTP 403, in.investing.com returned 404 - so NO exchange-hosted page was opened. HOWEVER, three genuine primary filings were obtained as PDFs from the company's own investor pages and parsed locally with pypdf (real text layer, not OCR): the Q1 FY2026-27 results + limited review report, the SEBI Reg-31 shareholding pattern as on 30-Jun-2026, and the FY2025-26 Annual Report (97 pages). Those are the authority for every identity, shareholding, capital-structure and corporate-action field here; aggregators are used only for market price and ratios, where they disagree with each other and are recorded as a spread. Local extracts: scratchpad QR.txt, SHP.txt, AR26.txt.",
+
+  "identity": {
+    "legal_name": {
+      "value": "Continental Securities Limited",
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "note": "As printed in the FY2025-26 Annual Report corporate-information page and on the Q1 FY27 filing letterhead."
+    },
+    "former_names": {
+      "value": null,
+      "rename_date": null,
+      "as_of": "2026-09-19",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "note": "No rename found. The FY2025-26 Annual Report contains no change-of-name disclosure and the CIN (L67120RJ1990PLC005371) carries the 1990 incorporation year unchanged. Recorded as 'none found', NOT as a verified negative - no MCA/RoC name-history record was opened (zaubacorp 403)."
+    },
+    "cin": {
+      "value": "L67120RJ1990PLC005371",
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "note": "L=listed, 67120=NBFC/other financial service activities, RJ=Rajasthan, 1990=incorporation. The Q1 FY27 results PDF prints it as 'L67120RT1990PLC005371' - 'RT' is a text-layer artifact in that PDF; 'RJ' is correct and appears on the shareholding-pattern covering letter and in the Annual Report."
+    },
+    "isin": {
+      "value": "INE183Q01020",
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "quote": "Shares of company are listed on Bombay Stock Exchange and its scrip code is 538868 and ISIN No. INE183Q01020.",
+      "note": "Confirmed from the company's own Annual Report - an OUTSIDE source, independent of the app's bundled bse_instruments.json which carries the same ISIN."
+    },
+    "bse_code": {
+      "value": "538868",
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf"
+    },
+    "bse_scrip_id": {
+      "value": "CSL",
+      "as_of": "2026-07-29",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/financial_quarterly-pdf/712777-Quaterly-Results-30-6-2026.pdf",
+      "quote": "Scrip Code: 538868; Scrip I.D.: CSL"
+    },
+    "nse_symbol": {
+      "value": null,
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "note": "NOT listed on NSE. The Annual Report names only BSE: 'Shares of company are listed on Bombay Stock Exchange'. A terminal that returns an NSE quote for CSL has invented it."
+    },
+    "board": {
+      "value": "mainboard",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/538868/",
+      "note": "BSE group X (illiquid mainboard), per the run's battery manifest master row. NOT an SME/MT scrip. Listed since well before the SME platforms existed (incorporated 1990, RBI NBFC CoR 1998)."
+    },
+    "sector": {
+      "value": "Financials",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/538868/",
+      "disagreement": "Tickertape classifies it 'Financials | Investment Banking & Brokerage' (https://www.tickertape.in/stocks/continental-securities-CSL, as_of 2026-09-18), which is WRONG - see traps.name_lies_about_the_business. Groww says 'Non-Banking Finance Company (NBFC)'. INDmoney says 'Finance (Small Cap)'."
+    },
+    "industry": {
+      "value": "Non-Banking Financial Company (NBFC) - retail lending: MSME business loans, loans against property, gold loans, plus mutual fund distribution",
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "note": "Screener's business line: 'CSL is in the business of providing MSME business loans, loans against property, loans against gold items, and mutual fund distribution services. The company mainly provides financial services to rural and semi-urban area.'"
+    },
+    "rbi_registration": {
+      "value": "Registered under section 45-IA of the Reserve Bank of India Act, 1934; Certificate of Registration held and valid through FY2025-26. Registration date shown in the Annual Report as 03rd March 1998. Not a Core Investment Company (CIC). Operates under RBI Scale Based Regulation.",
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "note": "CoR number itself not printed in the extractable text - see world_gaps.rbi_cor_number."
+    },
+    "listing_date": {
+      "value": null,
+      "gap": "world_gaps.listing_date_unreached"
+    },
+    "registered_office": {
+      "value": "Flat No. 301, Metro Plaza, Gopalbari, Jaipur, Rajasthan 302001",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.continentalsecuritiesltd.com/"
+    },
+    "registrar_and_transfer_agent": {
+      "value": "Beetal Financial Computer Services Pvt. Ltd.",
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf"
+    },
+    "statutory_auditor": {
+      "value": "M/s R. P. Khandelwal & Associates, Chartered Accountants, Jaipur (Firm Registration No. 001795C)",
+      "as_of": "2026-07-29",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/financial_quarterly-pdf/712777-Quaterly-Results-30-6-2026.pdf",
+      "note": "Q1 FY27 limited review report UDIN 26071002JWTHHZ1851, membership no. 071002."
+    },
+    "board_of_directors": {
+      "value": [
+        { "name": "Rajesh Khuteta", "designation": "Managing Director & Chairman", "din": "00167672" },
+        { "name": "Mahima Khuteta", "designation": "Executive Director" },
+        { "name": "Yash Khuteta", "designation": "Non-Executive Non-Independent Director" },
+        { "name": "Annu Sharma Khandelwal", "designation": "Non-Executive Independent Director" },
+        { "name": "Anant Sharma", "designation": "Non-Executive Independent Director" }
+      ],
+      "company_secretary": "Pravita Khandelwal (Company Secretary and Compliance Officer)",
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "note": "DINs appearing in the report: 00167672, 07562588, 08245957, 09519474, 10804110. Only Rajesh Khuteta's DIN could be tied to a name with certainty from the extracted text."
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 24.2,
+      "unit": "INR",
+      "date": "2026-09-18",
+      "source_url": "https://www.screener.in/company/538868/",
+      "disagreement": "Four sources for the SAME 2026-09-18 close: screener.in 24.2; INDmoney 24.23 (+0.18, +0.75%); Groww 24.23 (+0.18, +0.75%); Tickertape 24.00. Spread 24.00-24.23 (~1%). Recorded unreconciled."
+    },
+    "prev_close_implied": {
+      "value": 24.05,
+      "unit": "INR",
+      "as_of": "2026-09-17",
+      "source_url": "https://www.indmoney.com/stocks/continental-securities-ltd-share-price",
+      "note": "Derived from INDmoney's 24.23 close and +0.18 change. Labelled derived, not a quoted field."
+    }
+  },
+
+  "market_cap": {
+    "value": 76.9,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/538868/",
+    "disagreement": "screener.in 76.9 cr; Tickertape 76.94 cr; INDmoney 76.37 cr; Groww 76 cr.",
+    "note": "MECHANISM FOUND: 24.2 x 3,17,53,000 fully-diluted shares = 76.84 cr, which is what screener/Tickertape print. 24.2 x 3,04,53,000 shares actually issued as at 31-Mar-2026 and 30-Jun-2026 = 73.70 cr. So the published market caps are all on the POST-warrant-conversion share count while the published book value per share is on the PRE-conversion count - see traps.share_count_moved_after_last_balance_sheet."
+  },
+
+  "pe_ttm": {
+    "value": 32.1,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/538868/",
+    "basis": "market cap (diluted share count) / TTM net profit 2.40 cr = 32.02",
+    "disagreement": "FOUR different published PEs for the same day: screener.in 32.1; Tickertape 35.29; Groww 31.64; INDmoney 29.69. INDmoney's 29.69 = price 24.2 / EPS 0.81 (basic count). Screener's 32.1 = diluted mcap / TTM profit. The two conventions cannot both be right and screener publishes BOTH inputs (EPS 0.81 AND PE 32.1) on the same page, which are mutually inconsistent (24.2/0.81 = 29.88). Recorded unreconciled - this is the intended diff target."
+  },
+
+  "pb": {
+    "value": 2.84,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/538868/",
+    "basis": "price 24.2 / book value per share 8.52",
+    "disagreement": "screener.in 2.84; Tickertape 2.96; Groww 2.73 (on its own BV 8.82); INDmoney 1.77. INDmoney's 1.77 implies a book value per share of ~13.69, which matches NO share count on any reported net worth and could not be reconciled against the filed balance sheet - treated as an outlier, not averaged."
+  },
+
+  "book_value_per_share": {
+    "value": 8.52,
+    "unit": "INR",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/538868/",
+    "basis": "net worth (equity capital 6.09 cr + reserves 19.87 cr = 25.96 cr) / 3,04,53,000 shares = 8.52",
+    "disagreement": "Groww prints 8.82. On the post-conversion 3,17,53,000 share count the same net worth gives 8.18. All three are defensible depending on the share count chosen; none is labelled with its denominator by its publisher."
+  },
+
+  "face_value": {
+    "value": 2.0,
+    "unit": "INR",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/financial_quarterly-pdf/712777-Quaterly-Results-30-6-2026.pdf",
+    "quote": "Face value per share (amount in INR) 2.00",
+    "note": "Reduced from INR 10 by a 1:5 sub-division; Tickertape dates the split 2023-03-20. The Annual Report confirms the sub-division happened ('...having a face value 2/- Rs. each during the year after Sub-division of shares') without restating the date."
+  },
+
+  "shares_outstanding": {
+    "issued_as_at_2026_06_30": {
+      "value": 30453000,
+      "unit": "shares",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/shareholding-pdf/498400-Shareholding-Pattern-as-on-30th-June-2026.pdf"
+    },
+    "fully_diluted_as_at_2026_06_30": {
+      "value": 31753000,
+      "unit": "shares",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/shareholding-pdf/498400-Shareholding-Pattern-as-on-30th-June-2026.pdf",
+      "note": "= 30,453,000 issued + 1,300,000 shares underlying outstanding convertible warrants."
+    },
+    "current_best_estimate": {
+      "value": 31753000,
+      "unit": "shares",
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "quote": "The remaining 13,00,000 warrants are converted into equity shares during the financial year 2026-27... As on the date of this Report, there are no outstanding warrants of the Company.",
+      "confidence": "medium-high - the Annual Report states the conversion as done, but no post-conversion shareholding pattern or Reg-31 filing has been filed yet (the next one is due for the quarter ending 30-Sep-2026), so the new issued-capital figure is not yet confirmed by a filed return."
+    },
+    "paid_up_capital": {
+      "value": 6.0906,
+      "unit": "INR crore",
+      "as_of": "2026-03-31",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "quote": "Issued, Subscribed, and Paid-up Share Capital of Rs.6,09,06,000, comprising 3,04,53,000 equity shares of Rs.2 each"
+    },
+    "authorised_capital": {
+      "value": 10.0,
+      "unit": "INR crore",
+      "as_of": "2026-03-31",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "note": "Rs.10,00,00,000 divided into 5,00,00,000 shares of Rs.2 each."
+    }
+  },
+
+  "roe": {
+    "value": 10.12,
+    "unit": "percent",
+    "as_of": "2026-03-31",
+    "basis": "FY2025-26 (last year)",
+    "source_url": "https://www.screener.in/company/538868/",
+    "disagreement": "screener.in 10.1% last year / 9.35% 3-yr avg / 9% 5-yr / 8% 10-yr; INDmoney 10.12%; Groww 8.44% (basis unstated). Screener's own ratios table prints the FY26 figure as 10.12%."
+  },
+
+  "roce": {
+    "value": 13.6,
+    "unit": "percent",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/538868/",
+    "note": "INDmoney prints the same 13.6. For an NBFC, ROCE is a weak measure (borrowings are raw material); no source flags this."
+  },
+
+  "debt_to_equity": {
+    "value": 0.007,
+    "unit": "x",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/538868/",
+    "basis": "DERIVED: borrowings 0.19 cr / net worth 25.96 cr. No source published a D/E figure directly.",
+    "note": "screener.in Pros: 'Company is almost debt free.' Unusual for an NBFC - the book is funded by equity and warrant proceeds, not borrowings."
+  },
+
+  "revenue_ttm": {
+    "value": 4.22,
+    "unit": "INR crore",
+    "as_of": "2026-06-30",
+    "basis": "trailing twelve months to Q1 FY2026-27 (Sep-2025 + Dec-2025 + Mar-2026 + Jun-2026 quarters)",
+    "source_url": "https://www.screener.in/company/538868/",
+    "note": "DEFINITION HAZARD: for this NBFC 'Revenue' = Interest Income. The Q1 FY27 filing separates 'Revenue from operations / Interest Income' INR 118.22 lakh from 'Total income' INR 118.50 lakh (the difference is Other Operating Income INR 0.28 lakh). Screener's quarterly 'Revenue' row (1.18 cr for Jun-2026) tracks INTEREST INCOME, not total income. FY2025-26 audited: interest income 393.80 lakh, total income 394.40 lakh."
+  },
+
+  "net_profit_ttm": {
+    "value": 2.4,
+    "unit": "INR crore",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/538868/",
+    "note": "Cross-checks against the primary filing: FY2025-26 PAT INR 219.02 lakh = 2.19 cr; Q1 FY27 PAT INR 70.02 lakh = 0.70 cr."
+  },
+
+  "revenue_growth_yoy": {
+    "value": 38.7,
+    "unit": "percent",
+    "basis": "DERIVED: FY2025-26 revenue 3.94 cr vs FY2024-25 2.84 cr, on screener's annual series (audited FY26 total income INR 394.40 lakh per the Q1 FY27 comparative column)",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/538868/",
+    "disagreement": "screener.in prints 'TTM sales growth 37%'; Groww prints 'Revenue growth Value 1Y (TTM) +31%'. Quarter-on-quarter YoY from the filing: Q1 FY27 interest income 118.22 lakh vs Q1 FY26 90.69 lakh = +30.4%. Three different growth numbers depending on the window - recorded, not smoothed."
+  },
+
+  "eps_ttm": {
+    "value": 0.81,
+    "unit": "INR",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/538868/",
+    "disagreement": "screener.in 0.81; Tickertape 0.78; Groww 0.76. Primary filing basic EPS: Q1 FY27 0.23, Q4 FY26 0.19, Q1 FY26 0.17, FY26 full year 0.72 (diluted FY26 0.72; Q1 FY26 diluted 0.16 vs basic 0.17)."
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": 0.05,
+      "unit": "INR per share",
+      "percent_of_face_value": 2.5,
+      "for_financial_year": "2025-26",
+      "board_recommendation_date": "2026-05-08",
+      "record_date": "2026-09-21",
+      "book_closure": "2026-09-22 to 2026-09-28 (both dates inclusive)",
+      "agm_approval_date": "2026-09-28",
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "quote": "The Record date fixed for determining the entitlement of Members to dividend for the financial year ended March 31, 2026, if approved at the AGM is Monday, September 21, 2026.",
+      "note": "AS AT THIS PACK'S COLLECTION DATE (2026-09-19) THIS DIVIDEND IS NOT YET APPROVED OR PAID - it is subject to shareholder approval at the AGM on 2026-09-28, and the record date (2026-09-21) is two days in the future. Tickertape lists it as an 'Upcoming Dividend Rs.0.05, Ex-date September 21, 2026' (ex-date vs record date not reconciled - see world_gaps.ex_date_vs_record_date)."
+    },
+    "paid_trailing_12m_per_share": {
+      "value": 0.05,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.tickertape.in/stocks/continental-securities-CSL",
+      "note": "The FY2024-25 dividend of Rs.0.05, ex-date 2025-09-15 per Tickertape. Screener's payout ratios corroborate a Rs.0.05 dividend in both FY25 (9.87% of EPS 0.51) and FY26 (6.95% of EPS 0.72)."
+    },
+    "yield": {
+      "value": 0.21,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/538868/",
+      "disagreement": "screener.in 0.21%; Groww 0.20%; Tickertape 0.20%; INDmoney 0% with the note 'Last Dividend Rs.0.05 per share (declared May 8, 2026)' - INDmoney prints a zero yield while simultaneously printing a non-zero dividend, an internal contradiction on one page."
+    }
+  },
+
+  "week52": {
+    "high": {
+      "value": 24.8,
+      "unit": "INR",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/538868/",
+      "note": "Agreed by all four aggregators (screener rounds to 24.8; INDmoney/Groww/Tickertape print 24.80). Date of the high not collected - see world_gaps.week52_dates."
+    },
+    "low": {
+      "value": 10.86,
+      "unit": "INR",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.indmoney.com/stocks/continental-securities-ltd-share-price",
+      "note": "Agreed by INDmoney, Groww and Tickertape at 10.86; screener rounds to 10.9. The stock is within ~2.4% of its 52-week high and has more than doubled off the low - screener prints a 1-year price CAGR of 47%."
+    }
+  },
+
+  "shareholding": {
+    "quarter": "Q1 FY2026-27 - as on 30 June 2026 (LATEST FILED)",
+    "filed_date": "2026-07-21",
+    "filed_under": "Reg. 31(1)(b) of SEBI (LODR) Regulations, 2015",
+    "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/shareholding-pdf/498400-Shareholding-Pattern-as-on-30th-June-2026.pdf",
+    "total_shares": 30453000,
+    "total_shares_fully_diluted": 31753000,
+    "promoter_pct": {
+      "basic": 37.6537,
+      "fully_diluted": 40.2062,
+      "shares_basic": 11466686,
+      "shares_fully_diluted": 12766686,
+      "no_of_promoter_entities": 15,
+      "note": "CRITICAL: these are two views of ONE filing (column VIII 'as a % of A+B+C2' vs column XII 'assuming full conversion'). Every aggregator publishes 40.21% as the current promoter holding. See traps.basic_vs_diluted_faked_as_promoter_buying."
+    },
+    "fii_pct": {
+      "value": 0.0,
+      "note": "Zero. Foreign Portfolio Investors Category I and II, FDI, foreign VC, sovereign wealth funds - all nil. Any non-zero FII value for this scrip is wrong."
+    },
+    "dii_pct": {
+      "value": 0.0,
+      "note": "Zero. Mutual funds, banks, insurance companies, AIFs, provident/pension funds, NBFCs - all nil. Institutions (Domestic) sub-total (B)(1) = 0."
+    },
+    "public_pct": {
+      "basic": 62.3463,
+      "fully_diluted": 59.7938,
+      "shares": 18986314,
+      "no_of_public_shareholders": 11413
+    },
+    "government_pct": { "value": 0.0 },
+    "non_promoter_non_public_pct": { "value": 0.0, "note": "No DRs, no employee benefit trusts." },
+    "pledged_pct_of_promoter": {
+      "value": 0.0,
+      "note": "ZERO promoter shares pledged or encumbered. Confirmed twice in the same filing: (a) Table II 'Number of Shares pledged (XV)' = 0 and 'Total Number of Shares encumbered' = 0 for every promoter entity and for the promoter sub-total; (b) the cover declaration answers 'Whether any shares held by promoters are pledge or otherwise encumbered?' = No."
+    },
+    "encumbered_public_shares": {
+      "value": 425293,
+      "pct_of_public": 2.24,
+      "pct_of_total": 1.3966,
+      "note": "All encumbrance in this company sits in PUBLIC hands, not promoter hands - 150,673 shares among small resident individuals and 274,500 among large resident individuals, plus 120 in an HUF. A pipeline that reports 'shares pledged' without the holder category would invert who is levered."
+    },
+    "locked_in_shares": {
+      "promoter": { "value": 3150000, "pct_of_promoter_holding": 27.4709 },
+      "public": { "value": 654311, "pct_of_public_holding": 3.4462 },
+      "total": { "value": 3804311, "pct_of_total": 12.4924 },
+      "note": "Lock-in is the residue of the preferential warrant issue. Vachi Commercial LLP 2,650,000 locked (100% of its holding); Rajesh Khuteta HUF 500,000 locked (44.6668%); Diptanshu Gupta (public) 654,311 locked (100%)."
+    },
+    "shares_in_physical_form": {
+      "value": 80500,
+      "pct_of_total": 0.264,
+      "note": "DERIVED: 30,453,000 issued less 30,372,500 held in dematerialised form. Corroborated by the 2026-09-04 announcement of a special window for transfer and dematerialisation of physical securities."
+    },
+    "promoter_and_promoter_group_detail": [
+      { "name": "Vachi Commercial Llp", "entity_type": "PROMOTER GROUP", "pan": "AASFV4787B", "shares": 2650000, "pct_basic": 8.7019, "warrants": 1300000, "shares_fully_diluted": 3950000, "pct_fully_diluted": 12.4398, "locked_in": 2650000 },
+      { "name": "Rajesh Khuteta", "entity_type": "PROMOTER GROUP", "pan": "ACRPK7254P", "shares": 1766375, "pct_basic": 5.8003 },
+      { "name": "Sunidhi Khuteta", "entity_type": "PROMOTER GROUP", "pan": "CYHPK6073Q", "shares": 1141525, "pct_basic": 3.7485 },
+      { "name": "Rajesh Khuteta Huf", "entity_type": "PROMOTER GROUP", "pan": "AAKHR4070D", "shares": 1119400, "pct_basic": 3.6758, "locked_in": 500000 },
+      { "name": "Hemlata Khuteta", "entity_type": "PROMOTER GROUP", "pan": "ADBPK0860E", "shares": 1032640, "pct_basic": 3.3909 },
+      { "name": "Mahima Khuteta", "entity_type": "PROMOTER GROUP", "pan": "FOBPK9839F", "shares": 924465, "pct_basic": 3.0357 },
+      { "name": "Raj Khuteta", "entity_type": "PROMOTER GROUP", "pan": "ALNPK8743L", "shares": 721535, "pct_basic": 2.3693 },
+      { "name": "Yash Khuteta", "entity_type": "PROMOTER", "pan": "KKFPK0131K", "shares": 684424, "pct_basic": 2.2475, "note": "The ONLY entity in the filing typed 'PROMOTER' rather than 'PROMOTER GROUP'. Also a Non-Executive Non-Independent Director. Subject of the 2026-09-12 insider-trading disclosure - see traps.seventy_percent_phantom." },
+      { "name": "Vikrant Khandelwal", "entity_type": "PROMOTER GROUP", "pan": "ACBPK4740N", "shares": 640000, "pct_basic": 2.1016 },
+      { "name": "Madan Lal Khandelwal", "entity_type": "PROMOTER GROUP", "pan": "ABQPK1533K", "shares": 352000, "pct_basic": 1.1559 },
+      { "name": "Navneet Khandelwal", "entity_type": "PROMOTER GROUP", "pan": "ACBPK5062D", "shares": 313000, "pct_basic": 1.0278 },
+      { "name": "Radhika Khandelwal", "entity_type": "PROMOTER GROUP", "pan": "ACWPK8541N", "shares": 59500, "pct_basic": 0.1954 },
+      { "name": "Orchid Securities Private Limited", "entity_type": "PROMOTER GROUP", "pan": "AAACO2154Q", "shares": 47087, "pct_basic": 0.1546 },
+      { "name": "Hemant Gupta", "entity_type": "PROMOTER GROUP", "pan": "AMOPG2025R", "shares": 10070, "pct_basic": 0.0331 },
+      { "name": "Shyam Lal Khuteta Huf", "entity_type": "PROMOTER GROUP", "pan": "AAQHS0049M", "shares": 4665, "pct_basic": 0.0153 }
+    ],
+    "notable_public_holders": [
+      { "name": "Taarush Tradecom Llp", "pan": "AAPFT8734P", "shares": 1701109, "pct_basic": 5.586 },
+      { "name": "Raahityaa Enterprises Llp", "pan": "ABAFR6671H", "shares": 1609989, "pct_basic": 5.2868 },
+      { "name": "Aahwaanith Tradecom Llp", "pan": "ABQFA6014R", "shares": 1603875, "pct_basic": 5.2667 },
+      { "name": "Satiny Constructions Limited", "pan": "AABCB6582E", "shares": 1000000, "pct_basic": 3.2837 },
+      { "name": "Diptanshu Gupta", "pan": "AJZPG1929J", "shares": 654311, "pct_basic": 2.1486, "locked_in": 654311 }
+    ],
+    "concentration_note": "Three LLPs classified as PUBLIC hold 4,914,973 shares = 16.14% between them, each just above the 5% disclosure threshold. Combined with the 37.65% promoter block, ~53.8% of the company sits in 18 hands while the 'public' float percentage reads 62.35%. A free-float calculation that trusts the promoter/public split alone overstates tradeable float substantially.",
+    "screener_reported_series": {
+      "Dec 2023": { "promoter": 42.93, "public": 57.08, "shareholders": 2982 },
+      "Mar 2024": { "promoter": 41.4, "public": 58.6, "shareholders": 10615 },
+      "Jun 2024": { "promoter": 41.35, "public": 58.66, "shareholders": 11248 },
+      "Sep 2024": { "promoter": 41.35, "public": 58.64, "shareholders": 14278 },
+      "Dec 2024": { "promoter": 41.35, "public": 58.64, "shareholders": 14164 },
+      "Mar 2025": { "promoter": 41.35, "public": 58.64, "shareholders": 13374 },
+      "Jun 2025": { "promoter": 38.83, "public": 61.18, "shareholders": 12917 },
+      "Sep 2025": { "promoter": 36.08, "public": 63.94, "shareholders": 12739 },
+      "Dec 2025": { "promoter": 37.49, "public": 62.51, "shareholders": 12262 },
+      "Mar 2026": { "promoter": 37.66, "public": 62.34, "shareholders": 11656 },
+      "Jun 2026": { "promoter": 37.66, "public": 62.34, "shareholders": 11428 },
+      "Jul 2026": { "promoter": 40.21, "public": 59.79, "shareholders": 11384 },
+      "source_url": "https://www.screener.in/company/538868/",
+      "note": "Reproduced as screener publishes it. The 'Jul 2026' column is NOT a filed quarter - see traps.basic_vs_diluted_faked_as_promoter_buying. Note also that screener's Mar-2026 promoter 37.66% equals its Jun-2026 37.66% exactly, and its Jun-2026 shareholder count (11,428) differs from the filed 30-Jun-2026 count (11,413)."
+    }
+  },
+
+  "corporate_actions_2026": [
+    {
+      "action": "Preferential issue of convertible warrants (FY2024-25)",
+      "detail": "55,00,000 convertible warrants issued on a preferential basis at INR 21 per warrant (face value INR 2 + premium INR 19).",
+      "as_of": "FY2024-25",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf"
+    },
+    {
+      "action": "Warrant conversion tranche 1 (FY2025-26)",
+      "detail": "42,00,000 warrants converted and allotted as equity shares to both promoters and non-promoters. Paid-up capital rose to INR 6,09,06,000 / 3,04,53,000 shares. Matches screener's equity-capital move from 5.25 cr (Mar-2025) to 6.09 cr (Mar-2026).",
+      "as_of": "FY2025-26",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf"
+    },
+    {
+      "action": "Warrant conversion tranche 2 (FY2026-27) - SHARE COUNT CHANGING EVENT",
+      "detail": "The remaining 13,00,000 warrants converted into equity during FY2026-27; the Board's Report (signed ~2026-08-20/21) states 'As on the date of this Report, there are no outstanding warrants of the Company.' These warrants were outstanding and held by promoter-group entity Vachi Commercial LLP as at 30-Jun-2026. Implied post-conversion share count 3,17,53,000.",
+      "as_of": "2026-08-20",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "confirmation_status": "Stated in the Annual Report; NOT yet visible in a filed shareholding pattern (next Reg-31 filing due for the quarter ending 30-Sep-2026)."
+    },
+    {
+      "action": "Final dividend FY2025-26",
+      "detail": "INR 0.05 per equity share (2.50% on FV INR 2). Recommended by the Board 2026-05-08. Record date Monday 2026-09-21. Register of Members / Share Transfer Books closed Tuesday 2026-09-22 to Monday 2026-09-28 (both inclusive). Subject to approval at the AGM.",
+      "as_of": "2026-09-21",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf"
+    },
+    {
+      "action": "Annual General Meeting",
+      "detail": "AGM on Monday 2026-09-28 at 2:00 PM via VC/OAVM. E-voting (CDSL) from 2026-09-25 10:00 AM to 2026-09-27 5:00 PM. Cut-off date for voting entitlement 2026-09-21. Notice dispatched 2026-09-02.",
+      "as_of": "2026-09-28",
+      "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf"
+    },
+    {
+      "action": "Special window for dematerialisation of physical securities",
+      "detail": "Newspaper publication regarding the opening of another special window for transfer and dematerialisation of physical securities. Relevant because 80,500 shares (0.264%) remain in physical form.",
+      "as_of": "2026-09-04",
+      "source_url": "https://www.screener.in/company/538868/"
+    },
+    {
+      "action": "Stock split 1:5 (historic, pre-2026)",
+      "detail": "Face value sub-divided from INR 10 to INR 2. Tickertape dates it 2023-03-20. All pre-split prices are 5x the post-split basis.",
+      "as_of": "2023-03-20",
+      "source_url": "https://www.tickertape.in/stocks/continental-securities-CSL",
+      "confidence": "medium - the Annual Report confirms a sub-division occurred but does not restate the date; only Tickertape supplied a date and it was not cross-checked against an exchange corporate-action record (BSE 403)."
+    }
+  ],
+
+  "latest_results": {
+    "quarter": "Q1 FY2026-27, quarter ended 30 June 2026",
+    "filing_date": "2026-07-29",
+    "board_meeting": "Wednesday, 29 July 2026, 03:30 PM to 04:00 PM IST",
+    "audit_status": "Un-audited, with a limited review report by R. P. Khandelwal & Associates",
+    "basis": "STANDALONE",
+    "units_as_printed": "INR in lakhs",
+    "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/financial_quarterly-pdf/712777-Quaterly-Results-30-6-2026.pdf",
+    "figures_inr_lakhs": {
+      "interest_income": { "q1_fy27": 118.22, "q4_fy26": 106.74, "q1_fy26": 90.69, "fy26": 393.8 },
+      "other_operating_income": { "q1_fy27": 0.28, "q4_fy26": 0.28, "fy26": 0.6 },
+      "total_income": { "q1_fy27": 118.5, "q1_fy26": 90.69, "fy26": 394.4 },
+      "employee_benefits_expense": { "q1_fy27": 9.77, "q4_fy26": 10.56, "q1_fy26": 9.06, "fy26": 38.41 },
+      "finance_cost": { "q1_fy27": 0.49, "q4_fy26": 0.47, "q1_fy26": 0.52, "fy26": 7.02 },
+      "depreciation_and_amortisation": { "q1_fy27": 2.13, "q4_fy26": 3.18, "q1_fy26": 3.06, "fy26": 12.55 },
+      "other_expenses": { "q1_fy27": 12.79, "q4_fy26": 15.99, "q1_fy26": 13.7, "fy26": 46.16 },
+      "total_expenses": { "q1_fy27": 25.17, "q4_fy26": 30.19, "q1_fy26": 26.34, "fy26": 104.13 },
+      "profit_before_tax": { "q1_fy27": 93.32, "q4_fy26": 76.83, "q1_fy26": 64.35, "fy26": 290.26 },
+      "current_tax": { "q1_fy27": 23.29, "q4_fy26": 21.11, "q1_fy26": 16.2, "fy26": 72.52 },
+      "deferred_tax": { "q4_fy26": -1.28, "fy26": -1.28 },
+      "total_tax_expense": { "q1_fy27": 23.29, "q4_fy26": 19.83, "q1_fy26": 16.2, "fy26": 71.24 },
+      "profit_after_tax": { "q1_fy27": 70.02, "q4_fy26": 57.0, "q1_fy26": 48.15, "fy26": 219.02 },
+      "total_comprehensive_income": { "q1_fy27": 70.03, "q4_fy26": 57.0, "q1_fy26": 48.15, "fy26": 219.03 },
+      "other_comprehensive_income": { "value": 0, "note": "Nil in every period presented." },
+      "eps_basic_inr": { "q1_fy27": 0.23, "q4_fy26": 0.19, "q1_fy26": 0.17, "fy26": 0.72 },
+      "eps_diluted_inr": { "q1_fy27": 0.23, "q4_fy26": 0.19, "q1_fy26": 0.16, "fy26": 0.72 },
+      "face_value_inr": 2.0
+    },
+    "notes_to_results": "Non-Banking Financial Company registered with RBI, operating under Scale Based Regulation. Prepared under Ind AS (s.133, Companies Act 2013). SINGLE reportable segment; all activities carried out within India (Ind AS 108). Previous periods regrouped/reclassified for comparability. Signed by Rajesh Khuteta, Managing Director, DIN 00167672, dated 29-07-2026.",
+    "quarterly_history_screener_inr_crore": {
+      "source_url": "https://www.screener.in/company/538868/",
+      "revenue": { "Jun 2023": 0.37, "Sep 2023": 0.39, "Dec 2023": 0.4, "Mar 2024": 0.43, "Jun 2024": 0.65, "Sep 2024": 0.65, "Dec 2024": 0.8, "Mar 2025": 0.73, "Jun 2025": 0.91, "Sep 2025": 0.96, "Dec 2025": 1.01, "Mar 2026": 1.07, "Jun 2026": 1.18 },
+      "net_profit": { "Jun 2023": 0.17, "Sep 2023": 0.18, "Dec 2023": 0.21, "Mar 2024": 0.2, "Jun 2024": 0.35, "Sep 2024": 0.37, "Dec 2024": 0.43, "Mar 2025": 0.32, "Jun 2025": 0.48, "Sep 2025": 0.55, "Dec 2025": 0.58, "Mar 2026": 0.57, "Jun 2026": 0.7 },
+      "reconciliation": "Screener's Jun-2026 revenue 1.18 cr matches the filing's INTEREST INCOME 118.22 lakh, not total income 118.50 lakh. Screener's Jun-2025 net profit 0.48 cr matches 48.15 lakh. Screener's Mar-2026 net profit 0.57 cr matches Q4 57.00 lakh. The annual FY26 figures (revenue 3.94 cr, PAT 2.19 cr) match 394.40 and 219.02 lakh. Screener's ingestion of this company's numbers is arithmetically sound; its DERIVED ratios are where it breaks."
+    },
+    "annual_history_screener_inr_crore": {
+      "source_url": "https://www.screener.in/company/538868/",
+      "revenue": { "Mar 2015": 0.42, "Mar 2016": 0.33, "Mar 2017": 0.4, "Mar 2018": 0.43, "Mar 2019": 0.41, "Mar 2020": 0.59, "Mar 2021": 0.82, "Mar 2022": 1.05, "Mar 2023": 1.25, "Mar 2024": 1.58, "Mar 2025": 2.84, "Mar 2026": 3.94, "TTM": 4.22 },
+      "net_profit": { "Mar 2015": 0.01, "Mar 2016": 0.05, "Mar 2017": 0.1, "Mar 2018": 0.02, "Mar 2019": 0.06, "Mar 2020": 0.23, "Mar 2021": 0.35, "Mar 2022": 0.53, "Mar 2023": 0.63, "Mar 2024": 0.76, "Mar 2025": 1.33, "Mar 2026": 2.19, "TTM": 2.4 },
+      "eps_inr": { "Mar 2015": 0.01, "Mar 2016": 0.03, "Mar 2017": 0.06, "Mar 2018": 0.01, "Mar 2019": 0.04, "Mar 2020": 0.14, "Mar 2021": 0.16, "Mar 2022": 0.25, "Mar 2023": 0.3, "Mar 2024": 0.31, "Mar 2025": 0.51, "Mar 2026": 0.72, "TTM": 0.81 },
+      "dividend_payout_pct": { "Mar 2025": 9.87, "Mar 2026": 6.95, "earlier_years": 0.0 }
+    },
+    "balance_sheet_screener_inr_crore_mar_2026": {
+      "source_url": "https://www.screener.in/company/538868/",
+      "equity_capital": 6.09,
+      "reserves": 19.87,
+      "borrowing": 0.19,
+      "other_liabilities": 1.09,
+      "total_liabilities": 27.24,
+      "fixed_assets": 0.27,
+      "investments": 0.2,
+      "other_assets": 26.77,
+      "total_assets": 27.24,
+      "note": "'Other Assets' 26.77 cr is the loan book - screener has no NBFC-specific schema for this company, so advances are not shown as advances."
+    },
+    "cash_flow_screener_inr_crore": {
+      "source_url": "https://www.screener.in/company/538868/",
+      "cash_from_operating": { "Mar 2024": -3.53, "Mar 2025": -3.98, "Mar 2026": -5.96 },
+      "cash_from_financing": { "Mar 2024": 3.59, "Mar 2025": 4.35, "Mar 2026": 6.29 },
+      "free_cash_flow": { "Mar 2024": -3.49, "Mar 2025": -4.31, "Mar 2026": -5.98 },
+      "note": "Persistently negative operating cash flow funded by financing inflows. For a LENDER this is normal (loans disbursed are an operating outflow, warrant/equity proceeds are a financing inflow) - but a generic screen that flags 'negative FCF for 3 straight years' as a red flag will mis-rate every growing NBFC. FY26 financing inflow 6.29 cr is broadly the 42,00,000 warrant conversion at INR 21."
+    }
+  },
+
+  "last_3_announcements": [
+    {
+      "date": "2026-09-12",
+      "headline": "Disclosure Under Regulation 7(2) Of SEBI (Prohibition Of Insider Trading) Regulations, 2015",
+      "screener_summary_as_published": "Promoter group disclosure: Yash Khuteta acquired 21,000 shares via open market, taking holding to 70.23%.",
+      "url": "https://www.screener.in/company/538868/",
+      "note": "The underlying BSE announcement PDF could not be opened (bseindia.com returns HTTP 403 from this environment); the headline and summary are quoted as screener.in renders them. The '70.23%' is irreconcilable with the filed shareholding - see traps.seventy_percent_phantom."
+    },
+    {
+      "date": "2026-09-12",
+      "headline": "Disclosures under Reg. 29(1) & 29(2) of SEBI (SAST) Regulations, 2011",
+      "screener_summary_as_published": "Promoter group member acquired 21,000 shares on 10-09-2026 through open market. Disclosure for Yash Khuteta & PACs.",
+      "url": "https://www.screener.in/company/538868/",
+      "note": "Two separate Reg-29 filings appear under the same date. A SAST Reg-29 trigger normally implies crossing a 5% band, which sits oddly with a 21,000-share (0.069% of capital) purchase by a holder at 2.2475%."
+    },
+    {
+      "date": "2026-09-08",
+      "headline": "Announcement Under Regulation 30",
+      "screener_summary_as_published": "Company plans expansion in gold loans, mutual funds, Jaipur branches, and future equity fund raising.",
+      "url": "https://www.screener.in/company/538868/"
+    },
+    {
+      "date": "2026-09-04",
+      "headline": "Announcement Under Regulation 30 (LODR) - Newspaper Publication",
+      "screener_summary_as_published": "Newspaper advertisement regarding the opening of another special window for transfer and dematerialization of physical securities.",
+      "url": "https://www.screener.in/company/538868/"
+    }
+  ],
+
+  "consolidated_vs_standalone": {
+    "value": "STANDALONE ONLY - no consolidated financials exist",
+    "as_of": "2026-07-29",
+    "source_url": "https://www.continentalsecuritiesltd.com/public/uploads/financial_quarterly-pdf/712777-Quaterly-Results-30-6-2026.pdf",
+    "evidence": "The Q1 FY27 covering letter says 'Please find enclosed, the Un-audited standalone financial results along with limited review report thereon'. The notes state 'The company is operating in a single reportable segment... All activities are carried out within India' per Ind AS 108. No subsidiary, associate or joint venture is disclosed, and the Annual Report records no downstream investment ('The company neither have any Foreign Direct Investment (FDI) nor invested as any Downstream Investment in any other company in India').",
+    "note": "screener.in exposes a /consolidated/ URL for this scrip that renders a page with empty price and market-cap placeholders. A crawler that treats the existence of that URL as evidence that consolidated figures exist will produce a blank or a phantom second basis for a company that has only ever reported standalone."
+  },
+
+  "traps": {
+    "lakh_vs_crore_scale": "The PRIMARY filing is denominated 'INR in lakhs' - Q1 FY27 profit after tax reads 70.02, meaning INR 70.02 lakh = INR 0.70 crore. Aggregators restate to crore. A pipeline that ingests the filing PDF and assumes crore (the more common Indian reporting unit for larger companies) overstates every figure by 100x: a INR 2.19 crore FY26 profit becomes INR 219 crore, which would exceed the company's INR 77 crore market cap by 3x and imply a PE of 0.35. This is the single highest-value scale trap in this name because BOTH units are plausible for an Indian issuer and only the header line disambiguates.",
+
+    "share_count_moved_after_last_balance_sheet": "Shares issued were 3,04,53,000 at 31-Mar-2026 AND at 30-Jun-2026. The final 13,00,000 convertible warrants converted during FY2026-27, and the Board's Report (signed ~2026-08-20) states there are now no outstanding warrants - implying 3,17,53,000 shares today. No filed shareholding pattern yet reflects this (the next Reg-31 return is due for the quarter ending 30-Sep-2026). Consequence: the correct denominator for a per-share figure DEPENDS ON THE DATE, and the published data does not label which one it used. Market caps published on 2026-09-18 (76.37-76.94 cr) all imply the POST-conversion count; book value per share (8.52) implies the PRE-conversion count. Any tool that divides a published market cap by a published book value per share is mixing two different companies.",
+
+    "basic_vs_diluted_faked_as_promoter_buying": "screener.in publishes 'Jun 2026: Promoters 37.66%' and 'Jul 2026: Promoters 40.21%' as two consecutive periods, and prints as a headline Pro: 'Promoter holding has increased by 2.55% over last quarter.' Both numbers come from the SAME filing - the shareholding pattern as on 30-Jun-2026 - where 37.6537% is column VIII (as a % of A+B+C2) and 40.2062% is column XII (assuming full conversion of convertible securities). 40.2062 - 37.6537 = 2.5525, exactly the '2.55%' screener attributes to promoter buying. NO promoter purchase occurred between those two 'quarters'; there is no July shareholding filing at all. INDmoney, Groww and Tickertape all carry the 40.21% figure labelled 'Aug 2026'. A terminal that surfaces 'promoter holding increased 2.55% last quarter' as a bullish signal is repeating a denominator change as an insider-buying event.",
+
+    "tickertape_inverts_promoter_and_public": "Tickertape prints 'Promoter Holding: 59.79%' and 'Retail & Others: 40.21%'. The filed pattern is the exact opposite: promoter & promoter group 37.6537% basic / 40.2062% diluted, public 62.3463% basic / 59.7938% diluted. Tickertape has assigned the PUBLIC diluted figure to promoters and the PROMOTER diluted figure to retail. Every other source (screener, INDmoney, Groww) says promoters hold 40.21%. Consequence: a research agent that samples Tickertape concludes the promoters hold a controlling ~60% stake when they hold ~40%; the direction of the last year's promoter-stake change also inverts.",
+
+    "seventy_percent_phantom": "The 2026-09-12 Reg 7(2) insider-trading disclosure is summarised on screener.in as 'Yash Khuteta acquired 21,000 shares via open market, taking holding to 70.23%.' The filed shareholding pattern as on 30-Jun-2026 shows Yash Khuteta holding 684,424 shares = 2.2475% of capital, and the ENTIRE promoter group at 37.65% basic / 40.21% diluted. 21,000 shares is 0.069% of the 3.04 crore share capital. No arithmetic takes a 2.25% holder to 70.23% on a 21,000-share purchase, and no single shareholder in the filing holds anything close to 70%. The 70.23% is therefore either a misparsed field from the Reg 7(2) form (which reports pre- and post-transaction holdings in both shares and percentages, plus percentages of the traded lot) or a hallucinated summary. BOTH readings are recorded with their as-of dates and NOT reconciled; the filing is the authority. This is the highest-severity diff target in this pack: a money-relevant control figure off by ~31x, published as prose next to a real filing date.",
+
+    "five_sources_five_ratio_sets": "For the SAME closing date (2026-09-18) the reachable aggregators publish: PE 29.69 (INDmoney) / 31.64 (Groww) / 32.1 (screener) / 35.29 (Tickertape); PB 1.77 (INDmoney) / 2.73 (Groww) / 2.84 (screener) / 2.96 (Tickertape); EPS 0.76 (Groww) / 0.78 (Tickertape) / 0.81 (screener); ROE 8.44% (Groww) / 10.1% (screener) / 10.12% (INDmoney); book value 8.52 (screener) / 8.82 (Groww); market cap 76 / 76.37 / 76.9 / 76.94 crore. Most of the spread is explained by the share-count ambiguity above, but INDmoney's PB of 1.77 could not be reconciled to any share count on any reported net worth. No source labels its denominator. A terminal that displays ONE of these as 'the' PE with no provenance is asserting a precision that does not exist at this market cap.",
+
+    "name_lies_about_the_business": "'Continental SECURITIES Limited' with BSE scrip ID 'CSL' is an RBI-registered NBFC making MSME business loans, loans against property and gold loans in rural and semi-urban Rajasthan, plus mutual-fund distribution. It is not a broker and not an investment bank. Tickertape classifies it 'Financials | Investment Banking & Brokerage'; the CIN's 67120 code and the RBI CoR both say NBFC lending. A sector screen, a peer-set builder or a comparable-multiples table keyed on the name or on Tickertape's taxonomy will put it beside brokerages whose PE, PB and ROE conventions are unrelated to a lender's.",
+
+    "ticker_collision_three_continents": "CSL resolves to at least four distinct listed entities: (a) this company on BSE 538868; (b) Carlisle Companies Inc (NYSE:CSL), which is present in the app's own us_instruments.json; (c) CSL Limited (ASX:CSL), one of Australia's largest companies by market cap and by far the most-covered 'CSL' in world financial media; (d) historically The Container Store Group (NYSE:TCS/CSL coverage). Both sides of the US/India collision live INSIDE the product's bundled masters. A market cap of ~USD 100bn+ (CSL Ltd) versus ~INR 77 crore (~USD 9m) is a ~10,000x error if the wrong entity is resolved, and the currency differs too.",
+
+    "pre_split_prices": "Face value was sub-divided 1:5 from INR 10 to INR 2 (Tickertape dates it 2023-03-20). Archived quotes, screenshots and pre-2023 news carry prices 5x the current basis. Screener's own EPS series appears correctly restated (Mar-2023 EPS 0.30 on the post-split count), but a chart or news snippet sourced from before March 2023 without adjustment will show an apparent ~80% price collapse that never happened.",
+
+    "nbfc_revenue_definition": "'Revenue' for this issuer has three defensible readings in one filing: Interest Income (INR 118.22 lakh for Q1 FY27), Total Income (INR 118.50 lakh, adding Other Operating Income), and screener's 'Financing Profit' line (INR 95 lakh, i.e. revenue net of expenses, which screener presents where an operating-profit row would sit for a non-financial). Screener's 'Revenue' row tracks INTEREST INCOME. At INR 4.22 crore TTM, a 0.6 lakh definitional difference is immaterial, but the SHAPE of the trap is not: the same page shows a 'Financing Margin' of 77.96% which a naive reader will compare against an operating margin from a manufacturer.",
+
+    "zero_institutional_holding_is_real": "FII, FPI (Cat I and II), mutual funds, banks, insurers, AIFs, pension and provident funds, and every other institutional line in the 30-Jun-2026 filing are all EXACTLY zero. This is a genuine value, not missing data. A UI that renders an absent institutional block as '-' or omits the section is indistinguishable from one that failed to fetch it; a screen that imputes a sector-median FII holding will invent foreign ownership in a company that has none.",
+
+    "float_is_smaller_than_the_public_percentage": "The 62.35% 'public' holding includes three LLPs (Taarush Tradecom, Raahityaa Enterprises, Aahwaanith Tradecom) holding 16.14% between them, each parked just above the 5% disclosure line, plus Satiny Constructions Ltd at 3.28% and one locked-in individual at 2.15%. Real free float is materially below the headline public percentage, which matters at a INR 77 crore cap in BSE group X (illiquid).",
+
+    "encumbrance_sits_with_the_public_not_the_promoter": "Promoter pledge is exactly ZERO (confirmed in Table II and in the cover declaration). The 425,293 encumbered shares in this company are all PUBLIC holdings. A pipeline that reports a single 'shares pledged' number without the holder category would imply promoter leverage where there is none - the opposite of the usual Indian small-cap red flag.",
+
+    "dividend_is_announced_but_not_yet_paid": "As at this pack's collection date (2026-09-19) the FY2025-26 dividend of INR 0.05 is recommended but NOT approved: the AGM is 2026-09-28 and the record date 2026-09-21 is two days in the future. Screener shows a 0.21% yield, Groww and Tickertape 0.20%, INDmoney 0% - while INDmoney simultaneously prints 'Last Dividend Rs.0.05 per share (declared May 8, 2026)' on the same page. A 'dividend yield' shown without the approval status conflates a board recommendation with cash received.",
+
+    "related_surname_concentration": "The statutory auditor is R. P. Khandelwal & Associates (Jaipur); the Company Secretary and Compliance Officer is Pravita Khandelwal; the promoter group includes Madan Lal Khandelwal, Navneet Khandelwal, Radhika Khandelwal and Vikrant Khandelwal (4.47% combined); and an independent director is named Annu Sharma Khandelwal. Recorded as a verifiable observation from the filings, NOT as an assertion of any relationship or impropriety - surnames are common. Noted because a governance-screening agent will surface it and should be made to cite the filing rather than infer.",
+
+    "stale_master_risk_is_low_here_but_group_x_is_not": "Unlike several battery names, CSL IS present in the app's bundled BSE master (538868 / CSL / group X / INE183Q01020 / Active) and the ISIN matches the company's own Annual Report exactly. The hazard in this name is not resolution failure but group X illiquidity plus the US collision: a resolver that falls back to the US master on a miss, or that prefers a higher-liquidity match, lands on Carlisle Companies."
+  },
+
+  "world_gaps": {
+    "listing_date_unreached": "The original BSE listing date was not found in ANY reachable source. The Annual Report confirms the shares are listed on BSE and not suspended but gives no listing date; bseindia.com (the authority for this field) returns HTTP 403 from this environment. This is a field that EXISTS in the world and was merely unreachable - not a field that does not exist.",
+    "week52_dates": "The 52-week high (INR 24.80) and low (INR 10.86) values are agreed by three aggregators, but none published the DATES on which they occurred and no exchange page was reachable to supply them.",
+    "rbi_cor_number": "The RBI Certificate of Registration NUMBER is not in the extractable text of the FY2025-26 Annual Report. The report confirms registration under s.45-IA of the RBI Act 1934 is held and valid, and shows a date of 03rd March 1998 associated with RBI registration; the CoR number itself was not reached.",
+    "ex_date_vs_record_date": "The Annual Report gives a RECORD DATE of 2026-09-21 for the FY26 dividend. Tickertape publishes 2026-09-21 as the EX-DATE. Under T+1 settlement the ex-date and record date typically coincide or the ex-date falls one day earlier; the two labels were NOT reconciled because no exchange corporate-action record was reachable. Both recorded as published.",
+    "bse_official_figures_unreached": "No BSE-hosted value appears anywhere in this pack. bseindia.com returned HTTP 403 on both the quote page and by extension the announcement PDFs; moneycontrol.com was unreachable from this environment; zaubacorp.com returned HTTP 403; in.investing.com returned 404. Every 'exchange filing' in this pack is the COMPANY'S OWN COPY hosted on continentalsecuritiesltd.com - authentic (signed, digitally timestamped, addressed to BSE) but not independently mirrored from the exchange.",
+    "underlying_announcement_pdfs_unopened": "The 2026-09-12 Reg 7(2) and Reg 29 disclosures - the source of the disputed 70.23% figure - were read only as screener.in's rendered headline and AI summary. The actual filings sit on bseindia.com (403) and are not on the company's website, which hosts only results, annual reports, shareholding patterns and governance filings. The 70.23% therefore could NOT be traced to primary text; it is recorded as a conflict, not adjudicated.",
+    "credit_rating": "No credit rating found for this issuer in any reachable source. For an NBFC with INR 0.19 crore of borrowings this is plausibly a field that genuinely does not exist (no rated debt) rather than one that was unreachable - but that was not confirmed.",
+    "concalls_transcripts_guidance": "None exist. screener.in lists no concall entries. At a INR 77 crore market cap with zero institutional holding there is no analyst coverage, no guidance, and no consensus estimate to diff against. Any 'analyst target price' or 'consensus estimate' shown for this scrip is fabricated.",
+    "promoter_group_relationships": "The filing lists 15 promoter-group entities with PANs but does not state the family relationships between the Khuteta and Khandelwal members, nor the beneficial ownership behind Vachi Commercial LLP and Orchid Securities Pvt Ltd. Table V (significant beneficial owners) is present in the filing but its data rows are EMPTY in the extracted text - so SBO disclosure could not be read.",
+    "shareholding_pattern_post_conversion": "No shareholding pattern reflecting the final 13,00,000 warrant conversion has been filed yet. The post-conversion promoter percentage is therefore NOT knowable from a filed return as at 2026-09-19; only the Annual Report's narrative statement that the conversion happened is available."
+  },
+
+  "sources": [
+    { "url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf", "authority": "primary - company Annual Report FY2025-26, 97 pages, parsed locally with pypdf", "used_for": "ISIN, CIN, listing exchange, capital structure and warrant history, dividend record date, AGM and book-closure dates, RTA, auditor, board, RBI registration" },
+    { "url": "https://www.continentalsecuritiesltd.com/public/uploads/shareholding-pdf/498400-Shareholding-Pattern-as-on-30th-June-2026.pdf", "authority": "primary - SEBI Reg-31(1)(b) filing addressed to BSE, digitally signed 2026-07-21 16:32:46 +05:30, parsed locally with pypdf", "used_for": "every shareholding figure, share counts, warrants outstanding, pledge and lock-in, demat vs physical, promoter-entity detail" },
+    { "url": "https://www.continentalsecuritiesltd.com/public/uploads/financial_quarterly-pdf/712777-Quaterly-Results-30-6-2026.pdf", "authority": "primary - Q1 FY2026-27 un-audited standalone results + limited review report, board-approved 2026-07-29, parsed locally with pypdf", "used_for": "all Q1 FY27 and FY26 financials, the 'INR in lakhs' unit header, standalone basis, single-segment note, face value, EPS" },
+    { "url": "https://www.continentalsecuritiesltd.com/", "authority": "primary - company website", "used_for": "CIN, registered office, business description, investor-page index" },
+    { "url": "https://www.screener.in/company/538868/", "authority": "aggregator", "used_for": "price, market cap, PE, PB, book value, ROE/ROCE, historical quarterly/annual/balance-sheet/cash-flow series, shareholding series, announcements list, Pros/Cons" },
+    { "url": "https://www.screener.in/company/538868/consolidated/", "authority": "aggregator", "used_for": "testing whether a consolidated basis exists (it does not; the page renders empty placeholders)" },
+    { "url": "https://www.indmoney.com/stocks/continental-securities-ltd-share-price", "authority": "aggregator", "used_for": "second opinion on price, market cap, PE, PB, ROE, dividend, 52-week range" },
+    { "url": "https://groww.in/stocks/continental-securities-ltd", "authority": "aggregator", "used_for": "third opinion on PE, PB, book value, EPS, ROE, face value, dividend yield" },
+    { "url": "https://www.tickertape.in/stocks/continental-securities-CSL", "authority": "aggregator", "used_for": "fourth opinion on ratios; the 1:5 split date; dividend ex-dates; and the inverted promoter/public labels recorded as a trap" }
+  ],
+
+  "unreachable_sources": [
+    { "url": "https://www.bseindia.com/stock-share-price/continental-securities-ltd/csl/538868/", "result": "HTTP 403 Forbidden" },
+    { "url": "https://www.moneycontrol.com/india/stockpricequote/finance-investments/continentalsecurities/CS16", "result": "unreachable from this environment" },
+    { "url": "https://www.zaubacorp.com/company/CONTINENTAL-SECURITIES-LIMITED/L67120RJ1990PLC005371", "result": "HTTP 403 Forbidden" },
+    { "url": "https://in.investing.com/equities/continental-securities", "result": "HTTP 404 Not Found" },
+    { "note": "WebSearch was unavailable for the whole of this task - the session had already consumed its 200-call budget before the task began. No search-driven discovery of additional sources (Trendlyne, Tijori, MarketsMojo, Economic Times) was possible; those hosts require an internal numeric id in the URL that could not be guessed." }
+  ]
+}

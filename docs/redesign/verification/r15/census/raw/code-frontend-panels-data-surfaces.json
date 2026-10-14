@@ -1,0 +1,152 @@
+[
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-1",
+    "title": "Notes editor never re-reads the store for the focused scope: an agent write_note (or a workspace load) into the open note is invisible and is overwritten by the user's next keystroke",
+    "severity": "critical",
+    "area": "ui",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "Open Notes focused on RELIANCE (scope chip). Ask the agent to 'add this to my RELIANCE note' -> host-actions.ts:1176-1191 write_note sets bySymbol.RELIANCE = current+text and openPanel('notes') (already open). The editor still shows the old body: the store->editor effect at NotesPanel.tsx:141-148 early-returns because prevScopeRef.current === scope. Type one character -> onUpdate handler (153-164) captures the editor's (stale) markdown -> 600 ms later setSymbolNote('RELIANCE', staleBody + char) (168-178) replaces the agent's text in the store and persistNoteMd writes the same to disk. The chat said 'Appended to the RELIANCE note'; the text is gone. Same path for loadWorkspace (workspace.ts:346 fromBundle) when the focused scope is unchanged.",
+    "evidence": "src/modules/notes/NotesPanel.tsx:139-148, src/modules/notes/NotesPanel.tsx:150-178, src/lib/host-actions.ts:1176-1191, src/store/notes.ts:58-65, src/store/notes.ts:91-96, src/lib/workspace.ts:346",
+    "notes": "Information hiding / two sources of truth (APOSD #3): the Tiptap document and useNotesStore both claim to own the note body, and the only reconciliation is a scope-change edge trigger. Any writer other than the editor (agent write_note, workspace load, a future sync) races the editor and loses. Data loss of agent- or file-sourced note content with a false success message. Smallest fix: make the store authoritative - subscribe to noteFor(scope) and, when it differs from the last value the editor itself wrote (track lastWrittenRef), setContent(storeValue, {emitUpdate:false}); write-back only diffs originating from the editor."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-2",
+    "title": "Notes debounced save drops edits: clearing a note is never persisted (it resurrects), and typing within 600 ms of a scope switch or panel close is lost",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "(a) Select-all + Delete in a note -> getMarkdown() returns \"\" (proved: scratch tiptap snippet prints empty md -> \"\") -> editorMarkdown \"\" and debouncedMd \"\" -> NotesPanel.tsx:169 `if (!debouncedMd && !editorMarkdown) return;` -> store and .md never updated; switch scope and back (or relaunch) and the old note returns. (b) Type 'abc' in AAPL, click the MSFT chip within 600 ms -> scope effect calls setContent(md) which EMITS an update (Tiptap 3.25 setContent emitUpdate defaults true, node_modules/@tiptap/core/src/commands/setContent.ts:51; proved: 1 update event) -> editorMarkdown becomes MSFT's body, the debounce timer restarts, AAPL's last edit burst is never written. (c) Close the Notes tab within 600 ms of typing -> useDebounce cleanup clears the timer; no flush on unmount.",
+    "evidence": "src/modules/notes/NotesPanel.tsx:45-52, src/modules/notes/NotesPanel.tsx:141-148, src/modules/notes/NotesPanel.tsx:166-178, node_modules/@tiptap/core/src/commands/setContent.ts:51",
+    "notes": "Temporal decomposition + define-errors-out (APOSD #9): the save is keyed to whatever `scope` is current when the timer fires, not the scope the edit was made in, and the empty-guard (meant to skip the initial mount) also swallows a legitimate empty save. Consequence: users cannot delete a note and lose recent typing on fast navigation. Fix: capture {scope, md} at update time, flush the pending write synchronously on scope change / unmount, setContent(..., {emitUpdate:false}) for programmatic loads, and replace the empty-guard with an 'editor has emitted a user update' flag."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-3",
+    "title": "Chart drawings are keyed only by panel id - a trendline drawn on RELIANCE is painted at the same price on every other symbol and timeframe, and after relaunch on SPY (symbol/timeframe/indicators are not persisted at all)",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "Load RELIANCE, draw a horizontal line at the 2450 close. Type TCS + Load. The line stays attached (drawings selector at ChartPanel.tsx:298 is byPanel['chart']; the chart is a singleton so panelId is always 'chart', index.ts:30) and renders at 2450 on TCS's price scale. Relaunch: workspace restores chartDrawings (workspace.ts:53) but not the symbol, so the chart opens on SPY 1d (ChartPanel.tsx:80-81, 259-261 local useState) with the RELIANCE line on it. DrawingSpec has no symbol or timeframe field (types/drawings.ts:80-100).",
+    "evidence": "types/drawings.ts:80-114, src/modules/chart/ChartPanel.tsx:80-81, src/modules/chart/ChartPanel.tsx:259-262, src/modules/chart/ChartPanel.tsx:298, src/modules/chart/index.ts:24-30, src/store/chart-drawings.ts:62-66, src/lib/workspace.ts:48-56",
+    "notes": "Information hiding / wrong key (APOSD #3): the type contract (types/drawings.ts:81-83, 105-110) was designed for non-singleton multi-chart panels; the singleton decision (index.ts:24-30) silently turned 'per panel' into 'global', and nothing ties an annotation to the instrument it annotates. A user-authored support/resistance level shown on the wrong instrument is misleading price-relevant chrome; the unpersisted symbol also breaks CLAUDE.md's 'persisted UI state rides the workspace blob' rule for the chart's most important state. Fix: key drawings by `${symbol}` (store symbol+timeframe on DrawingSpec, filter in the selector) and persist {symbol, timeframe, indicators, compare} in SerializedWorkspace with an autosave subscription."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-4",
+    "title": "Cmd-K ticker pick does nothing to the chart: the palette writes the opt-in chart-sync bus (default off, no peer possible for a singleton chart) while the chart only obeys chart-command - four stores now hold 'the chart symbol'",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "Default settings. Cmd-K, type RELIANCE, pick the Tickers row -> CommandPalette.tsx:384 (and :200 for recents) calls useChartSyncBus.setSymbol('palette', sym) and closes. ChartPanel consumes chart-sync symbol only when syncSubscriptions.symbol is true (ChartPanel.tsx:761-764) and DEFAULT_SUBS.symbol is false (chart-sync.ts:66). Nothing else subscribes to chart-sync.symbol (grep: ChartPanel, CommandPalette, dev-mcp-bridge only). The pick has no effect. ChartPanel.tsx:775-777 claims the command channel fixed 'a command-palette symbol pick' - the palette never uses it.",
+    "evidence": "src/components/CommandPalette.tsx:162, src/components/CommandPalette.tsx:198-201, src/components/CommandPalette.tsx:384, src/store/chart-sync.ts:66, src/modules/chart/ChartPanel.tsx:314-325, src/modules/chart/ChartPanel.tsx:761-799, src/modules/chart/index.ts:30, src/lib/host-actions.ts:259-265",
+    "notes": "Information leakage (APOSD #4): the chart's symbol exists in local state, chart-command.activeSymbol (reportActiveSymbol :798), chart-sync.symbol and the panel-context snapshot (:886-896); each caller picked a different inbox. Because the chart is now a singleton, the whole sync bus (crosshair/range/symbol + the Sync popover, :1327-1342) has no possible peer and is dead UI whose only live effect is to make Cmd-K work if the user happens to enable 'symbol'. Fix: route the palette through loadSymbolIntoChart (host-actions.ts:259) and delete the chart-sync bus + Sync menu (or re-scope it to real multi-chart when that ships)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-5",
+    "title": "Chart's window-level keydown deletes the selected drawing on ANY Backspace/Delete in the app - including typing in the chat composer or symbol box - and ignores the lock",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "Draw a trendline, click its chip in the drawings inspector (selectedDrawingId set, ChartPanel.tsx:1070-1072). Click into the agent chat composer (or the chart's own Symbol input) and press Backspace to fix a typo -> window keydown handler (689-703) removes the drawing; no check of event.target / isContentEditable / defaultPrevented. A drawing marked locked (onToggleLock :1074-1079) is deleted the same way.",
+    "evidence": "src/modules/chart/ChartPanel.tsx:689-703, src/modules/chart/ChartPanel.tsx:1070-1079",
+    "notes": "Obviousness / special-general mixture (APOSD #16): a panel-scoped shortcut installed as a global listener. Silent destruction of user work from an unrelated panel; the `locked` flag reads as protection but is never consulted. Fix: bail when event.target is an input/textarea/contentEditable or outside the chart container (containerRef.current.contains), and skip locked drawings."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-6",
+    "title": "Drawing tools cannot place what the user clicks: every anchor snaps to the bar CLOSE, clicks past the last bar commit invisible drawings, Text always reads 'label', and Lock is a dead control",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "(a) Arm Horizontal line, click at a wick high -> handleChartClick uses seriesData.close whenever the crosshair is over a bar (ChartPanel.tsx:644-647); coordinateToPrice (648-652) runs only off-bar, so a level can only ever sit on a close. (b) Arm Trendline, click twice in the empty area right of the last bar -> param.time is not a number -> time:null (643) -> spec committed and listed in the inspector, but TrendlineRenderer returns early on a null x (renderers.ts:34-38): an invisible drawing. (c) Text tool: kindOptions fixed to {text:'label'} (669); no UI edits kindOptions/label anywhere (grep), so every text annotation says 'label'. (d) Lock toggles `locked` (1074-1079) but nothing reads it - there is no drag/edit to lock against and delete ignores it.",
+    "evidence": "src/modules/chart/ChartPanel.tsx:632-676, src/modules/chart/ChartPanel.tsx:1074-1079, src/modules/chart/ChartPanel.tsx:1552-1564, src/modules/chart/drawings/renderers.ts:32-44, src/modules/chart/drawings/renderers.ts:280-303, types/drawings.ts:93-96",
+    "notes": "Strategic vs tactical (APOSD #1): ten renderers were shipped against a type contract (points, kindOptions, locked, label) whose input side was never built - the renderers are tested in isolation (drawings.test.ts) while the click path that feeds them is special-cased. Consequence: the drawing toolset advertised in the Draw popover is largely unusable for real analysis. Fix: resolve price with coordinateToPrice(param.point.y) always (optionally a magnet toggle), use timeScale().coordinateToTime / logical index for off-bar clicks, add an inline text prompt for Text, and either implement drag-edit + honour `locked` or delete the Lock control."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-7",
+    "title": "Previous symbol's indicators stay drawn over the new symbol while loading and permanently after an indicator error; Parabolic SAR is classified against whatever candles happen to be cached",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "Chart AAPL with SMA + RSI. Load RELIANCE whose indicator call fails (or any 5xx/timeout) -> the catch (ChartPanel.tsx:579-589) sets the error chip but never calls clearIndicatorSeries, so AAPL's SMA line (~190) remains on RELIANCE's candle pane (~2450) and autoscale compresses the candles; AAPL's RSI pane stays labelled RSI under the RELIANCE chart. During every normal load the same stale lines show until the response. Separately renderParabolicSar (454-492) reads candleDataRef, which is only refreshed when the /history call resolves (376-399); if /indicators resolves first the SAR dots are placed/coloured against the PREVIOUS symbol's closes (or dropped), and are never recomputed when candles arrive.",
+    "evidence": "src/modules/chart/ChartPanel.tsx:364-419, src/modules/chart/ChartPanel.tsx:422-446, src/modules/chart/ChartPanel.tsx:454-492, src/modules/chart/ChartPanel.tsx:559-602",
+    "notes": "Temporal decomposition (APOSD #8 better-together): price and indicator rendering are two independent effects racing on shared refs, although indicators are meaningless without their candles. Consequence: another instrument's overlay values presented on the current chart. Fix: clear indicator series at the start of each load and in the catch; render indicators only after the matching candle set is committed (gate on a loaded {symbol,timeframe} key, or fetch both in one effect)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-8",
+    "title": "Chart accepts arbitrary indicator keys from the agent command channel; one unknown key makes the sidecar reject the whole request so ALL indicators fail",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "Agent emits set_chart_indicators {indicators:['rsi','bollinger_bands']} (the catalog schema has items:{type:string} with no enum, sidecar/services/agent_tools/catalog.py ~1033) -> host-actions.ts:892-902 -> ChartPanel.tsx:807-812 setSelected(new Set(cmd.indicators)) unvalidated -> fetchIndicators joins all keys -> `curl '127.0.0.1:52152/indicators/AAPL?indicators=rsi,bogus'` returns {\"detail\":\"Unknown indicator(s): bogus...\"}; the chip row shows the raw key 'bollinger_bands' (label fallback :1448) plus an error, and RSI does not render either. host-actions returns 'Set indicators: rsi, bollinger_bands' as success.",
+    "evidence": "src/modules/chart/ChartPanel.tsx:805-820, src/modules/chart/ChartPanel.tsx:1447-1448, src/modules/chart/api.ts:22-33, src/lib/host-actions.ts:892-902, sidecar/services/agent_tools/catalog.py:1033",
+    "notes": "Validate at the system boundary / define errors out (APOSD #9): the INDICATOR_CATALOG (indicators.ts, 50 keys, parity with the sidecar verified 50/50) is the frontend's authority but the command path bypasses it. Fix: filter cmd.indicators through indicatorByKey (map aliases), report dropped keys back so the host action narrates honestly; and/or add the SUPPORTED_INDICATORS enum to the catalog schema."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-9",
+    "title": "Crypto is second-class across the data surfaces: 2 of the 6 default watchlist rows (BTC/USDT, ETH/USDT) open a 404 Equity Overview on click, and the chart can never chart a crypto pair",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "Watchlist default entries include BTC/USDT and ETH/USDT (store/symbols.ts:24-25). Click the BTC/USDT row -> WatchlistPanel.tsx:475-478 openCompanyOverview(row.entry.symbol) drops entry.assetClass -> overview calls /quotes/BTC%2FUSDT and /fundamentals/BTC%2FUSDT -> both `{\"detail\":\"Not Found\"}` (verified on the isolated sidecar; Starlette decodes %2F so the path route never matches). Typing BTC/USDT into the chart -> sidecarApi.history(symbol, timeframe) with asset_class defaulted to equity (ChartPanel.tsx:372, 974) -> /history/BTC%2FUSDT -> 404; fetchIndicators' assetClass parameter (api.ts:26) is never supplied by any caller. /crypto/history exists (sidecar-client.ts:290) but the chart never uses it.",
+    "evidence": "src/modules/watchlist/WatchlistPanel.tsx:470-481, src/modules/watchlist/api.ts:30-63, src/modules/chart/ChartPanel.tsx:372, src/modules/chart/ChartPanel.tsx:974, src/modules/chart/api.ts:22-33, src/lib/sidecar-client.ts:271-291, src/store/symbols.ts:17-27",
+    "notes": "Information hiding (APOSD #3): asset class is known at the watchlist row but not part of the symbol identity passed between panels, so every consumer re-guesses 'equity'. Consequence: default-state dead clicks and an unchartable asset class the watchlist advertises. Fix: carry {symbol, assetClass} through openCompanyOverview/loadSymbolIntoChart (route crypto rows to the chart via cryptoHistory, not the equity overview), and send slash symbols as a query param rather than a path segment."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-10",
+    "title": "Notes slash/wikilink menus are broken: 'Task List' throws TypeError (extension not registered), neither menu is keyboard-operable, and [[wikilinks]] are plain text despite the documented click-to-chart",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "(a) Type '/', click 'Task List' -> slash-commands.ts:46 editor.chain().focus().toggleTaskList() -> TypeError 'toggleTaskList is not a function' (proved in a scratch jsdom snippet with StarterKit + Markdown: typeof ed.commands.toggleTaskList === 'undefined'); StarterKit 3 has no TaskList and NotesPanel.tsx:115-126 never registers one (it typechecks only via @tiptap/extension-list's module augmentation). (b) Type '/' then ArrowDown/Enter -> onKeyDown handles only Escape (SlashCommandExtension.ts:75-81, WikiLinkExtension.ts:101-107) so Enter inserts a newline; slashActiveIdx/wikiActiveIdx move only on mouse hover (NotesPanel.tsx:369, 406). (c) WikiLinkExtension.ts:5-8 promises a clickable mark firing loadSymbolIntoChart; insertWikiLink (42-48) inserts the literal text '[[SYM]]' with no mark or handler.",
+    "evidence": "src/modules/notes/slash-commands.ts:43-47, src/modules/notes/NotesPanel.tsx:113-126, src/modules/notes/NotesPanel.tsx:345-417, src/modules/notes/SlashCommandExtension.ts:75-84, src/modules/notes/WikiLinkExtension.ts:1-15, src/modules/notes/WikiLinkExtension.ts:41-48, src/modules/notes/WikiLinkExtension.ts:101-107",
+    "notes": "Comments that lie / obviousness (APOSD #11, #16): the headers describe an 'Obsidian-grade' editor the code does not implement, and the only editor test (notes.test.ts:243-244) checks construction, not commands. Fix: register TaskList+TaskItem (or drop the item), handle ArrowUp/ArrowDown/Enter in both onKeyDown hooks by calling the menu's command with the active item, and implement the wikilink as a Mark with a click handler to loadSymbolIntoChart (or correct the doc)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-11",
+    "title": "Notes toolbar Link button relies on window.prompt, which the macOS Tauri webview does not implement - the control silently does nothing in the desktop app",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "Desktop app: select text in a note, click the Link toolbar button -> NotesToolbar.tsx:146 window.prompt(...) -> WKWebView only shows a prompt if the host's WKUIDelegate implements webView:runJavaScriptTextInputPanelWithPrompt:...; wry 0.55.1 (the version in src-tauri/Cargo.lock:6464-6465) implements only windowWillClose, runOpenPanelWithParameters, requestMediaCapturePermission and createWebViewWithConfiguration (~/.cargo/registry/.../wry-0.55.1/src/wkwebview/class/wry_web_view_ui_delegate.rs:64-141), so prompt returns null -> line 147 treats it as 'cancelled'. Needs one live click to confirm.",
+    "evidence": "src/modules/notes/NotesToolbar.tsx:144-153, src-tauri/Cargo.lock:6464-6465, ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wry-0.55.1/src/wkwebview/class/wry_web_view_ui_delegate.rs:64-141",
+    "notes": "Different layer, different abstraction (APOSD #6): a browser-only primitive used inside a desktop webview; NotesPanel.tsx:14-16 already knows the WKWebView blocks browser downloads and routes exports through Rust, but the toolbar did not apply the same knowledge. Fix: an inline URL input popover (same pattern as SymbolChipInput) instead of window.prompt."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-12",
+    "title": "Every mouse move and pan re-renders the entire 1,585-line ChartPanel: it subscribes to the sync bus's crosshair/visibleRange objects unconditionally and broadcasts on every move, with no peer chart to receive them",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "Move the mouse across the chart -> onCrosshair (ChartPanel.tsx:852-855) -> setCrosshair creates a new {time, source, seq} object per event (chart-sync.ts:73-76) -> ChartPanel's own selector `useChartSyncBus(s => s.crosshair)` (:323) changes identity -> full component re-render (toolbar ladder, chips, inspector) at pointer-event rate, even though syncSubscriptions.crosshair is false and the chart is a singleton (index.ts:30). Same for every visible-range change while panning (:857-866 -> :324).",
+    "evidence": "src/modules/chart/ChartPanel.tsx:321-325, src/modules/chart/ChartPanel.tsx:846-872, src/store/chart-sync.ts:73-80, src/modules/chart/index.ts:30",
+    "notes": "Performance as design (APOSD #18) + pass-through state: broadcast payloads are selected as React state instead of being read in a store subscription callback. Consequence: jank on the most interactive surface, worse with drawings/indicators. Fix: move the three subscriber effects to useChartSyncBus.subscribe (no re-render), and only broadcast when some other panel is subscribed - or delete the bus (see COD-4)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-13",
+    "title": "Watchlist add/remove flow is racy: rows are a fetch-time snapshot so an added symbol is missing and a removed one reappears until the next poll, Enter can add a stale autocomplete candidate, and polling never backs off",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "(a) While a /quotes poll is in flight, add NVDA -> refresh() re-created, effect calls it, inFlightRef true -> returns (WatchlistPanel.tsx:196-198); the in-flight result for the OLD entries list lands via setRows (203) and the table renders `rows`, not `entries` (470-472) -> NVDA absent for up to one more 5 s cycle (removed symbols reappear the same way). (b) Type 'TCS' quickly and press Enter -> handleAdd picks candidates[acActive] (236-238) whose list may still be the 140 ms-debounced result for 'TC' -> autocomplete for TC ranks 'TC' (Token Cat Ltd, US) first (verified on the isolated sidecar) -> wrong ticker tracked; fetchSymbolCandidates drops the response's `query` field that would detect this (symbol-autocomplete.ts:46-51). (c) After an error the 5 s interval keeps firing forever, also while the panel is hidden.",
+    "evidence": "src/modules/watchlist/WatchlistPanel.tsx:147, src/modules/watchlist/WatchlistPanel.tsx:195-245, src/modules/watchlist/WatchlistPanel.tsx:470-481, src/lib/symbol-autocomplete.ts:36-55, src/lib/symbol-autocomplete.ts:61-90",
+    "notes": "Information hiding / derived state (APOSD #3): the panel stores a joined copy of the entry list instead of joining entries with a quote map at render. Fix: keep a Map<symbol, Quote> in state and render entries.map(e => ({entry: e, quote: map.get(e.symbol)})); accept a candidate on Enter only when candidates were fetched for the current draft (keep and compare `query`); back off / pause polling on error and when the tab is hidden."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-14",
+    "title": "Dead modules masquerade as features: indicator-presets.ts and fuzzy.ts have tests but no consumers, and notes-persistence's .md mirror is write-only with an unused exportNoteMd",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "grep -rn 'indicator-presets\\|presetFor' src -> only its own test; its header says 'the chart panel seeds the indicator multi-select from these presets' (indicator-presets.ts:4-5) while ChartPanel starts with an empty Set (ChartPanel.tsx:262). grep 'fuzzyRank\\|fuzzyScore' src -> only fuzzy.ts/fuzzy.test.ts; its header says the palette uses it and points to a JSX helper in CommandPalette.tsx that no longer exists (palette uses cmdk ranking, CommandPalette.tsx:30). exportNoteMd (notes-persistence.ts:80-98) has no caller; the per-note .md files written by persistNoteMd are never read by any code path (grep), and agent write_note never updates them.",
+    "evidence": "src/lib/indicator-presets.ts:1-89, src/lib/fuzzy.ts:1-24, src/modules/notes/notes-persistence.ts:55-98, src/modules/chart/ChartPanel.tsx:262, src/components/CommandPalette.tsx:30",
+    "notes": "Comments describe non-obvious / modifying existing code (APOSD #11, #14): ~350 LOC plus tests keep FR-031 / preset / SC-032 claims looking satisfied in an audit while the behaviour does not exist; the .md mirror is a second copy of note truth that silently diverges (write_note, cleared notes). Fix: either wire presetFor into first chart load per asset class, or delete it; delete fuzzy.ts; delete exportNoteMd and either read the .md mirror on restore or stop writing it."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-15",
+    "title": "Comparison overlay and indicator styling mislead: '%' normalizes only the overlay (onto a hidden left scale), overlay data skips the de-dup invariant the candles rely on, and two single-line overlays get the same colour",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "frontend-panels-data-surfaces",
+    "repro": "(a) Compare INFY with % on: the overlay is (close/close0-1)*100 on priceScaleId 'left' (ChartPanel.tsx:950-953) while the candles stay absolute on the right; CHART_THEME configures only rightPriceScale (108-121), so the % axis is not shown and the two independently auto-scaled series cannot be compared for relative performance. (b) toComparisonLineData (187-206) sorts but does not de-duplicate timestamps, unlike toCandlestickData/toLineData whose comment (143-146) says providers emit duplicates; lightweight-charts' dev build asserts on repeated times, and the series added at :945 before setData throws is never assigned to comparisonSeriesRef, so it leaks. (c) renderIndicators colours by lineIndex (519), so SMA + EMA (one line each) are both INDICATOR_COLORS[0] (#ededed).",
+    "evidence": "src/modules/chart/ChartPanel.tsx:108-121, src/modules/chart/ChartPanel.tsx:143-206, src/modules/chart/ChartPanel.tsx:494-529, src/modules/chart/ChartPanel.tsx:936-958, src/lib/chart-theme.ts:67-73",
+    "notes": "Repetition with divergent invariants (APOSD #15 consistency): three hand-rolled ISO->chart-time converters (toCandlestickData, toLineData, toComparisonLineData, plus renderParabolicSar) each re-decide sorting/dedupe. Fix: one toSeriesPoints helper used everywhere; normalize both series (or put candles in % mode too) and show the left scale; colour by running series index across indicators, not by line index."
+  }
+]

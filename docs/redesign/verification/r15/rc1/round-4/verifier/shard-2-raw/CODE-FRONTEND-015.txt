@@ -1,0 +1,64 @@
+sha: 68d5573aff9a579af084dcbb124843f2aecff6e8 (read-only copy of worktree src at scratchpad/vs2/fe)
+$ ./node_modules/.bin/vitest run src/modules/earnings/VS2FE015.test.tsx
+
+import { earningsModule } from "./index";
+
+describe("vshard-2 fresh case (R15-CODE-FRONTEND-015): does the focused Earnings Calendar's bus key equal its dockview id?", () => {
+  it("focus source id (dockview panel id) vs the key the panel publishes under", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce(UPCOMING_SAMPLE);
+    render(<EarningsCalendarPanel />);
+    await waitFor(() => {
+      expect(Object.keys(usePanelContextBus.getState().lastEventBySource).length).toBeGreaterThan(0);
+    });
+    // PanelHost sets focusedSource = dockview panel.id, and workspace.ts adds the panel with spec.id
+    const dockviewId = (earningsModule as { panels?: { id: string }[] }).panels?.[0]?.id ?? null;
+    const published = Object.keys(usePanelContextBus.getState().lastEventBySource);
+    expect({ dockviewId, published }).toEqual({ dockviewId, published: [dockviewId] });
+  });
+});
+--- output
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs2/fe
+
+ ❯ src/modules/earnings/VS2FE015.test.tsx (1 test | 1 failed) 57ms
+     × focus source id (dockview panel id) vs the key the panel publishes under 56ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/modules/earnings/VS2FE015.test.tsx > vshard-2 fresh case (R15-CODE-FRONTEND-015): does the focused Earnings Calendar's bus key equal its dockview id? > focus source id (dockview panel id) vs the key the panel publishes under
+AssertionError: expected { …(2) } to deeply equal { …(2) }
+
+- Expected
++ Received
+
+  {
+    "dockviewId": "earnings-calendar",
+    "published": [
+-     "earnings-calendar",
++     "earnings",
+    ],
+  }
+
+ ❯ src/modules/earnings/VS2FE015.test.tsx:146:39
+    144|     const dockviewId = (earningsModule as { panels?: { id: string }[] …
+    145|     const published = Object.keys(usePanelContextBus.getState().lastEv…
+    146|     expect({ dockviewId, published }).toEqual({ dockviewId, published:…
+       |                                       ^
+    147|   });
+    148| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  05:22:36
+   Duration  1.13s (transform 163ms, setup 63ms, import 413ms, tests 57ms, environment 438ms)
+
+--- code: publish keys vs dockview ids at 68d5573
+src/modules/screener/ScreenerPanel.tsx:216:      source: "screener",
+src/modules/earnings/EarningsCalendarPanel.tsx:178:      source: "earnings",
+src/modules/earnings/index.ts:20:      id: "earnings-calendar",
+src/modules/screener/index.ts:20:      id: "screener-panel",
+286:          usePanelContextBus.getState().setFocusedSource(panel?.id ?? null);
+144:        api.addPanel({ id: spec.id, component: spec.component, title: spec.title, position }),

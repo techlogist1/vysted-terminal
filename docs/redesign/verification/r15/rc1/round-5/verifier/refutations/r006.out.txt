@@ -1,0 +1,3 @@
+A literal: 5 slow verdicts (3s each), fast extract: wall=2.0s elapsed=2.00s claims=5 verdicts=['unverified', 'unverified', 'unverified', 'unverified', 'unverified']
+B fresh: slow extract (5s), fast verdicts: wall=0.5s elapsed=5.01s claims=5 verdicts=['unverified', 'unverified', 'unverified', 'unverified', 'unverified']
+C fresh: slow extract 4s + slow verdicts 3s: wall=2.0s elapsed=4.01s claims=5 verdicts=['unverified', 'unverified', 'unverified', 'unverified', 'unverified']

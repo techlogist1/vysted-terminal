@@ -1,0 +1,14 @@
+COMMAND (1): grep -rn "addPosition\|updatePosition\|deletePosition" src --include="*.ts" --include="*.tsx" | grep -v ".test.ts"
+COMMAND (2): grep -n "export.*addPosition\|export.*updatePosition\|export.*deletePosition\|export.*refresh" src/store/portfolios.ts
+CONTEXT: the register's own repro for this id IS a grep ("grep the tree for
+importers of addPosition/updatePosition/deletePosition/refresh from
+@/store/portfolios: only src/store/portfolios.test.ts and a vi.fn() mock in
+src/modules/panel-context-publishers.test.tsx"). Re-run live against the
+candidate source tree (not the diff).
+--- grep 1 output ---
+(no matches)
+--- grep 2 output ---
+(no matches -- the dead client no longer exists in portfolios.ts at all, stronger than the original 'no importer' finding)
+
+EXIT: 0 (both greps ran to completion)
+VERDICT: holds -- live grep on candidate 949c3c9f: addPosition/updatePosition/deletePosition/refresh do not exist anywhere in src/ (removed entirely, not just import-orphaned); the real host-action apply path uses addHolding/updateHolding/removeHolding (see R15-CODE-FRONTEND-012 pinned test).

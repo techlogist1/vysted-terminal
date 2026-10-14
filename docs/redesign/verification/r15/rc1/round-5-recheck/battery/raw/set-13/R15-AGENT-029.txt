@@ -1,0 +1,18 @@
+Probe: no live browser/vitest execution this shard (no GUI; role forbids running vitest/pytest
+suites). Read the pinned committed test + the source it exercises at the candidate SHA.
+
+Pinned test: src/modules/chat/streaming.test.ts:318
+  "a sidecar that is not ready reaches onError once; the call does not reject" — mocks
+  getSidecarBaseUrl to reject with "The data engine did not become ready in time.", calls
+  streamChat, and asserts the promise RESOLVES (not rejects) with onError called exactly once
+  carrying that message, and fetch never called. This is the register's exact failure mode
+  (SidecarError rejecting streamAgentInvocation/streamChat OUTSIDE the try, unhandled after
+  `void handleSend(text)`).
+
+Verdict basis: ci_pinned — the register's repro requires forcing the shared readiness probe
+into a rejected state at the right moment in a live Composer session, not independently
+reproducible via curl (this is pure frontend promise-handling logic, no backend call is ever
+issued — `fetch never called` is literally the assertion). The pinned test's title and
+assertion shape match the register's repro and batch-4's certification ("onError once with
+'The data engine did not become ready in time.' for both streamAgentInvocation and streamChat,
+and no rejection.") verbatim. The heavy lane's vitest run is the actual execution of record.

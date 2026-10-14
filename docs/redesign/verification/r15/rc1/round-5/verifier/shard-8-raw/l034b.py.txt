@@ -1,0 +1,21 @@
+import sys,asyncio; sys.path.insert(0,'.')
+from models.fundamentals import Fundamentals
+from models.market import Quote, OHLCVSeries, OHLCVBar
+from services import correctness_gate as cg, provider_registry as pr, yfinance_provider as yp
+from datetime import datetime, UTC
+for req in ["INSPIRE","SKP","RULKA","THESL"]:
+    f=Fundamentals(symbol=f"{req}-SM.NS", name=req, market_cap=1e9, provider="yfinance")
+    try: cg.validate_fundamentals(f, req, "IN"); print("validate_fundamentals",req,"vs",f.symbol,"PASS")
+    except Exception as e: print("validate_fundamentals",req,"FAIL",e)
+    s=OHLCVSeries(symbol=f"{req}-SM.NS",timeframe="1d",bars=[OHLCVBar(timestamp=datetime(2026,9,24,tzinfo=UTC),open=10,high=11,low=9,close=10.5,volume=100)],provider="yfinance")
+    try: cg.validate_series(s, req, "IN"); print("validate_series",req,"PASS")
+    except Exception as e: print("validate_series",req,"FAIL",e)
+# registry path with a fake yfinance fundamentals (Yahoo is throttling)
+async def fake(symbol,*a,**k): return Fundamentals(symbol=yp._yahoo_symbol(symbol), name="fake", market_cap=5e8, pe_ratio=12.0, provider="yfinance")
+yp.get_fundamentals=fake
+async def m():
+    for s in ["SKP","RULKA"]:
+        try:
+            r=await pr.get_fundamentals(s); print("registry get_fundamentals",s,"->",r.symbol,r.name)
+        except Exception as e: print("registry",s,"EXC",type(e).__name__,str(e)[:200])
+asyncio.run(m())

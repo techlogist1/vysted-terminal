@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_58058c76a5404c4a965ebd80ab8623c9", "name": "financial_statements", "input": {"statement": "income", "period": "annual", "symbol": "SIFY.US"}}
+[  25.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_58058c76a5404c4a965ebd80ab8623c9", "name": "financial_statements", "ok": true, "error": null}
+[  30.6s] done: {"kind": "done", "usage": {"input_tokens": 2896, "output_tokens": 80, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Since the terminal's data does not include SIFY.US' TTM revenue in USD, I am unable to provide this information. The terminal's data only includes the fact that the reporting currency for SIFY.US is unknown, which makes it incorrect to state any values in a specific currency.
+
+However, if you need the latest annual income statement for SIFY.US, I can help with that.
+
+=== ok · 30.6s · events {'heartbeat': 2, 'tool_use': 1, 'tool_result': 1, 'delta': 80, 'done': 1} · usage in=2896 out=80 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,12 @@
+[
+ {
+  "key": "rc1-drive-screener:1",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "Under AUTO autonomy, write_screener_filters is dispatched (ok:true, status:dispatched) but llama3.1:8b narrates it as still awaiting the user's manual accept, contradicting the system prompt's explicit anti-pattern",
+  "repro": "python3 scripts/r15/vy.py invoke copilot 'Set up a screener on the NSE full market: P/E below 20, ROE above 15% and debt to equity under 0.5, then run it.' --port 52322 --provider ollama --model llama3.1:8b --autonomy auto --out 06b-agent-screen-llama-auto.jsonl. Tool call write_screener_filters returns ok:true (agent_runtime.py's AUTO-mode host-action stub reports status:'dispatched', note 'Dispatched to the panel — verify with get_terminal_state before claiming completion'). The model's final text instead says: 'The screener filters have been sent to the panel for review. I will wait for your confirmation or rejection of these criteria before proceeding.' copilot.json's system prompt explicitly forbids this exact framing: 'do NOT tell the user to confirm it in the proposal bar when auto-apply dispatched it.' Reproduced consistently — a first run at --autonomy ask (default) correctly said 'proposed... for review' (06-agent-screen-llama.jsonl), so the model can distinguish modes correctly at least once; the AUTO-mode run inverted it.",
+  "evidence_file": "docs/redesign/verification/r15/surface/screener/rc1/round-4/06b-agent-screen-llama-auto.jsonl",
+  "suspected_files": ["sidecar/agents/copilot.json", "sidecar/services/agent_runtime.py"]
+ }
+]

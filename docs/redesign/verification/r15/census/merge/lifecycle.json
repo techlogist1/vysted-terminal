@@ -1,0 +1,959 @@
+{
+ "entries": [
+  {
+   "id": "R15-LIFECYCLE-001",
+   "title": "Every launch freezes the app's main event loop for the whole MCP bind window (about 25 s warm, 34 s+ cold, up to 90 s), and the data sidecar is not even spawned until both MCP binds return",
+   "severity": "high",
+   "area": "lifecycle",
+   "subsystem": "rust-core",
+   "files": [
+    "src-tauri/src/lib.rs",
+    "src-tauri/src/openbb_mcp.rs",
+    "sidecar/services/openbb_mcp_provider.py",
+    "src/lib/sidecar-client.ts"
+   ],
+   "repro": "Cold launch of the packaged app (after a reboot, no warm _MEI dirs). setup() spawns the openbb-mcp and sec-edgar-mcp supervisors, joins both inline (each waits up to 45 s x 2 attempts), and only then calls start_main_sidecar. The window is built but the main event loop is blocked for the whole join. Measured by the code's own comments: 34.2 s / 33.6 s cold, 13.6 s / 24.6 s warm. A child that overruns is killed and its env var removed, so a late bind is lost for the session (/sec -> 501).",
+   "evidence": "src-tauri/src/lib.rs:66-83, src-tauri/src/lib.rs:472-493 (spawn, join, then start_main_sidecar), src-tauri/src/openbb_mcp.rs:149-171 (supervisor consumes the full budget; timeout kills the child and removes the env var), tauri app.rs:1414-1417 + 2513-2526 (setup hook runs inside the RuntimeRunEvent::Ready callback on the main thread), src/lib/sidecar-client.ts:105-110 (frontend documents the effect), scripts/ensure-openbb-mcp-sidecar.mjs:172 + scripts/ensure-sec-edgar-mcp-sidecar.mjs:152 (--onefile still), docs/redesign/DECISIONS.md D76; refuters: COD-rust-core-1 admitted high, INT-deferred-0-1 admitted_with_correction high (mechanism corrected to a main-thread freeze, not a live-but-disconnected UI)",
+   "root_cause": "The joins that make MCP env vars settle before the sidecar reads them sit inside Tauri's setup() closure, which runs on the main thread inside the event loop's Ready callback. The join only needs to precede the sidecar SPAWN, not the event loop. The --onedir fix that would remove per-launch extraction was never taken.",
+   "fix_shape": "Move both MCP joins AND start_main_sidecar into one background thread (start_main_sidecar takes &AppHandle instead of &App) and return from setup() immediately; resolve MCP ports late in the sidecar (a port file or Tauri command instead of an env var read once at import in openbb_mcp_provider.py:131-141) so a late MCP bind attaches instead of being lost. Pin with a Rust test that setup() returns within a small bound with stub supervisors that sleep, and a sidecar test that a late-written MCP port is picked up. The --onedir conversion is the separate, Tier-1 (tauri.conf.json externalBin) follow-up for the operator.",
+   "defect_class": "boot-blocking-join",
+   "raw_ids": [
+    "COD-rust-core-1",
+    "INT-deferred-0-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-002",
+   "title": "A layout-level restore failure discards ALL non-layout state (portfolio holdings, watchlist, notes, settings, research memory) and the next autosave overwrites the user's blob; the scheduled trading-panel removal triggers it deterministically for any user whose last autosave had a broker panel docked",
+   "severity": "high",
+   "area": "lifecycle",
+   "subsystem": "workspace-layout",
+   "files": [
+    "src/lib/workspace.ts",
+    "src/components/PanelHost.tsx",
+    "src/app/page.tsx",
+    "sidecar/services/workspace_store.py"
+   ],
+   "repro": "Scratch vitest: register every first-party module except broker-connect (the post-removal build) and stub the autosave GET to return a historical blob whose layout holds broker-connect + broker-order-entry -> restoreLastSessionOrDefault returns false, api.fromJSON is called 0 times, the default layout is applied, deserializeWorkspace never runs, and the page/PanelHost autosave subscriptions then persist default stores over __autosave__. Same outcome from any renamed component id, a late-registering plugin panel, an api.fromJSON throw (it aborts before the other 15 store restores) or a failed GET.",
+   "evidence": "src/lib/workspace.ts:512-515 (unknown-component skip returns before deserializeWorkspace, applies default without api.clear()), src/lib/workspace.ts:262-270 (layout restored FIRST; a throw aborts every later slice), src/lib/workspace.ts:522-533, src/lib/workspace.ts:417-433 (loadWorkspace has no unknown-component guard at all), src/components/PanelHost.tsx:180-193, src/app/page.tsx:108-181, src/modules/broker-connect/index.ts:51; docs/redesign/verification/r15/census/code/evidence/workspace-layout-repro.test.ts.txt (repro #2); $ISO/seat-l4-upgrade/evidence/workspace-upgrade-vitest.txt (GATE lines). Refuters: COD-workspace-layout-4 admitted high; LIFE-L4-UPGRADE-1 admitted_with_correction high (the measured blob carried 0 holdings and empty notes, so the measured loss was one watchlist symbol + prefs; holdings loss is inferred for a blob that combines holdings with a docked broker panel, and the trigger is deterministic once the removal ships)",
+   "root_cause": "Restore order makes user data hostage to the most fragile step: dockview fromJSON (and the unknown-component gate) runs before, and gates, every non-layout slice, and autosave is not gated on a successful restore.",
+   "fix_shape": "In deserializeWorkspace restore the non-layout slices first (or in a finally), call it from the skip path too, and strip unknown panel ids from the serialized layout (restoring the rest) instead of abandoning the whole blob; move the unknown-component guard inside deserializeWorkspace so loadWorkspace gets it too; have workspace_store keep one .bak on overwrite. Ship it WITH the trading-removal change. Pin with a vitest feeding a blob containing an unregistered broker panel plus holdings/notes/watchlist and asserting every non-layout slice is restored and no default-state POST is issued.",
+   "defect_class": "restore-discards-user-state",
+   "raw_ids": [
+    "COD-workspace-layout-4",
+    "LIFE-L4-UPGRADE-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-003",
+   "title": "Autosave is neither gated on restore nor serialized: every launch fires a burst of PARTIAL full-blob POSTs mid-restore, and the last one drops researchSymbol and the research-memory archive",
+   "severity": "high",
+   "area": "lifecycle",
+   "subsystem": "workspace-layout",
+   "files": [
+    "src/lib/workspace.ts",
+    "src/app/page.tsx",
+    "src/components/PanelHost.tsx"
+   ],
+   "repro": "pnpm exec vitest run on docs/redesign/verification/r15/census/code/evidence/workspace-layout-repro.test.ts.txt (copied into src/lib/*.test.ts; passed 2/2): with the page.tsx subscriptions installed, deserializeWorkspace(blob) issues more than one POST during the restore; POST[0] has 0 holdings; the LAST POST has no researchSymbol and researchSpaces.byName == {} although the blob carried both. Launch -> read -> quit with no further autosave trigger => research memory wiped on disk.",
+   "evidence": "src/app/page.tsx:108-181 (10 subscriptions live from mount, each `void autosaveLayout()`), src/app/page.tsx:171-172 (false 'autosaveLayout is debounced' comment), src/lib/workspace.ts:541-556 (no restore gate, no debounce, no single-flight), src/lib/workspace.ts:351-370 (researchSpaces.replaceAll / setResearchSymbol run after the last subscribed store), src/components/PanelHost.tsx:147,164-166 (stated intent: autosave only after restore), src/lib/sidecar-client.ts:125-127 (up-to-120 s pre-restore window), sidecar/services/workspace_store.py:72-79 (last-writer-wins); refuter admitted high (a later full autosave repairs the disk copy, so loss needs a session with no further trigger)",
+   "root_cause": "Temporal coupling held by a comment: the restore-then-autosave ordering lives in PanelHost's private timer while ten store subscriptions call autosaveLayout directly from mount, and buildWorkspacePayload runs synchronously inside each call.",
+   "fix_shape": "A module flag restoreSettled (set in restoreLastSessionOrDefault's finally) that makes autosaveLayout a no-op until then, plus trailing-edge debounce and single-flight INSIDE autosaveLayout; delete PanelHost's private timer and fix the page.tsx comment. Pin with the existing repro test inverted: zero POSTs during restore, and the first POST after restore carries researchSymbol and the research archive.",
+   "defect_class": "autosave-restore-race",
+   "raw_ids": [
+    "COD-workspace-layout-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-004",
+   "title": "Exchange payload field drift is served as fabricated data: a renamed open/high/low/volume field yields open=high=low=close candles with zero volume under the exchange's own provider label, and the correctness gate passes them",
+   "severity": "high",
+   "area": "data",
+   "subsystem": "market-data-providers-1",
+   "files": [
+    "sidecar/services/nse_provider.py",
+    "sidecar/services/bse_provider.py",
+    "sidecar/services/correctness_gate.py",
+    "sidecar/models/market.py"
+   ],
+   "repro": "In-process (harness/parser_drift.py): take one real NSE historicalOR window for RELIANCE (8-22 Sep, 10 rows), rename CH_OPENING_PRICE / CH_TRADE_HIGH_PRICE / CH_TRADE_LOW_PRICE / CH_TOT_TRADED_QTY, stub nse_provider._get_json to return it, call provider_registry.get_history('RELIANCE.NS','1d','1mo') -> served with provider nse_direct, 10/10 bars flat (open=high=low=close), 10/10 volume 0.0. Renaming the close field instead -> honest ProviderError and fall-through.",
+   "evidence": "docs/redesign/verification/r15/lifecycle/L2-rot/30-parser-drift.txt (A0-A4), sidecar/services/nse_provider.py:405-409 ('or close' / 'or 0.0'), sidecar/services/bse_provider.py:240-244 (same pattern), sidecar/services/correctness_gate.py:118-140 (checks only non-empty bars, last close > 0, symbol match); refuter admitted high (latent: needs an upstream rename that has not happened yet; when it does it is wrong money-relevant data shown as true)",
+   "root_cause": "The parsers substitute close for a missing open/high/low and 0.0 for a missing volume (only close is required), and validate_series has no shape check that would catch a whole series of flat zero-volume bars.",
+   "fix_shape": "Treat a missing O/H/L/V key as a parse failure (raise ProviderError so the registry falls through) or map it to None with optional OHLCVBar fields; additionally make validate_series reject a series where every bar is flat and zero-volume. Pin with a parametrized test per exchange parser that renames each of O/H/L/V in a captured payload and asserts ProviderError / fall-through, never flat bars.",
+   "defect_class": "silent-default-fabrication",
+   "raw_ids": [
+    "LIFE-L2-ROT-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-005",
+   "title": "When the openbb-mcp child dies, /fundamentals 500s and the research SSE stream ends mid-run with no done/error frame, while /openbb-mcp/status still reports available with no lastError",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "mcp-servers",
+   "files": [
+    "sidecar/services/mcp_client.py",
+    "sidecar/services/openbb_mcp_provider.py",
+    "sidecar/services/provider_registry.py",
+    "src/modules/chat/streaming.ts"
+   ],
+   "repro": "Kill the openbb-mcp child on its configured port -> GET /openbb-mcp/status {available:true,lastError:null}; GET /fundamentals/MAZDOCK and /fundamentals/KPITTECH -> 500; a research prompt on /agents/copilot/invoke is cut at 63.8 s right after 'pulling market data for MAZDOCK' with no done/error frame (uvicorn 'ASGI callable returned without completing response'; traceback httpx.ConnectError -> CancelledError via cancel scope -> RuntimeError 'Attempted to exit cancel scope in a different task'). /quotes still 200 via nse_direct; restarting the child restores 200s.",
+   "evidence": "docs/redesign/verification/r15/surface/research-briefs/35-openbb-mcp-down-stream-dies.txt, docs/redesign/verification/r15/surface/research-briefs/34-staleack-run2-rerun.jsonl, sidecar/services/mcp_client.py:102-119 (except Exception around _open cannot catch the anyio CancelledError; exit_stack.aclose() in another task), sidecar/services/openbb_mcp_provider.py:147-157 ('available' = endpoint configured, never liveness), :239-248 (maps Exception, not BaseException, to ProviderError), sidecar/services/provider_registry.py:410 (fallback catches ProviderError only), src/modules/chat/streaming.ts:225-249 (clean EOF breaks without onError); refuter admitted_with_correction high (escape is a BaseException from the streamable-http open; UI end state NEEDS-GUI)",
+   "root_cause": "A failed streamable-http MCP open raises an anyio CancelledError / cancel-scope RuntimeError (BaseException) that bypasses every `except Exception`, so it neither becomes a ProviderError (no registry fall-through, lastError stays null) nor stays inside the request task; it tears down the whole agent stream.",
+   "fix_shape": "In mcp_client._open/_call_tool, run the open in its own task/cancel scope and convert a connect failure (including the anyio cancellation it produces) to ProviderError, set available=false + lastError; make 'available' a liveness result; have streaming.ts treat EOF without a done frame as an error. Pin with a test that points the MCP client at a closed port and asserts get_fundamentals falls through to the next provider and the agent SSE ends with an error or done frame.",
+   "defect_class": "dead-child-poisons-request",
+   "raw_ids": [
+    "SURF-RESEARCH-BRIEFS-13"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "agent-chat",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-006",
+   "title": "A retired research model turns a research request into a blank turn: every research step reports 'ok', the HTTP 404 reaches only the model, and Settings offers two already-retired slugs marked price-verified",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "files": [
+    "sidecar/services/agent_tools/deep_research.py",
+    "sidecar/services/research/sonar.py",
+    "src/store/search-settings.ts",
+    "src/components/SettingsPanel.tsx"
+   ],
+   "repro": "Settings > Research > pick 'OpenAI o3 Deep Research' (or send X-Vysted-Research-Models=normal=openai/o3-deep-research,...). vy.py invoke researcher 'Research Reliance Industries (RELIANCE, NSE): latest quarter results and outlook. Use only the research tool.' --provider openrouter --model nvidia/nemotron-3-super-120b-a12b:free --tier tier_b --port 52226 -> 5 research tool calls, 10 research_step frames all status 'ok', each tool result 'The hosted research model request failed with HTTP 404.', stream ends done/tool_calls with ZERO assistant text and no error frame. Live catalog 23 Sep: openai/o4-mini-deep-research, openai/o3-deep-research and perplexity/sonar-reasoning are absent from https://openrouter.ai/api/v1/models.",
+   "evidence": "docs/redesign/verification/r15/lifecycle/L2-rot/22-retired-research-model.*, 23-retired-research-model.jsonl + .stdout.txt, 24-pinned-slug-catalog-check.txt, src/store/search-settings.ts:112-161 (priceVerified: true on both retired slugs at :144-153), src/components/SettingsPanel.tsx:1003-1007 (static option list), sidecar/services/research/sonar.py:49-55, sidecar/services/agent_tools/deep_research.py:682 (step emitted 'ok' before the call), :505-523 + :723-724 (no 404 branch; ok:false tool result only), src/store/chat-history.ts:213-219; contrast the chat lane's honest 404 at sidecar/services/llm/errors.py:173-180; refuter admitted high",
+   "root_cause": "The research lane has its own HTTP error table with no 404 case, emits the engine step as 'ok' before calling the model, and never turns an ok:false tool result into a stream-visible step or error frame; model pins are a static list with no check against the live catalog the app already fetches.",
+   "fix_shape": "Add 404 -> 'The research model <slug> is no longer available on OpenRouter - pick another in Settings > Research' to _research_model_http_error; emit an error research_step on ok:false; badge Settings research options absent from (or expiring in) the live /llm/models catalog and drop the two retired slugs now. Pin with a test that stubs a 404 from the hosted research model and asserts an error research_step + a user-visible message, and a unit test that every static research option is present in a recorded catalog snapshot.",
+   "defect_class": "upstream-rot-silent",
+   "raw_ids": [
+    "LIFE-L2-ROT-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-007",
+   "title": "Opened from Finder/Dock, the macOS app cannot find an installed Docker/OrbStack: SearXNG setup says 'docker CLI not found - install Docker Desktop or OrbStack' to users who have it, and search stays keyless",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "files": [
+    "sidecar/services/searxng_manager.py",
+    "src-tauri/src/lib.rs",
+    "src/components/SettingsPanel.tsx"
+   ],
+   "repro": "Boot the sidecar with the PATH launchd gives a GUI app (PATH=/usr/bin:/bin:/usr/sbin:/sbin) on a Mac with OrbStack installed and running (/usr/local/bin/docker -> OrbStack, vysted-searxng serving :8888) -> GET /search/searxng/status = {state:'not_installed_docker', detail:'docker CLI not found - install Docker Desktop or OrbStack', docker.cli_present:false}; Settings renders 'Docker not found' + 'Install Docker first' with no Set up action. Invisible in dev because a terminal launch inherits a shell PATH.",
+   "evidence": "docs/redesign/verification/r15/lifecycle/L1-stranger/http-log.jsonl D02, docs/redesign/verification/r15/lifecycle/L1-stranger.md section 4, sidecar/services/searxng_manager.py:137-144,362,420 (bare 'docker' exec; FileNotFoundError -> 127 -> cli_present=False), src/components/SettingsPanel.tsx:743-744,874-884, src-tauri/src/lib.rs:206-213 (sidecar spawned with args only; no PATH handling anywhere in src-tauri/src or sidecar/); refuter admitted high (macOS-only; the Finder launch itself is NEEDS-GUI, the sidecar behaviour under that PATH is measured)",
+   "root_cause": "_run_docker resolves a bare 'docker' through PATH, and a Finder/Dock-launched .app gets launchd's minimal PATH, which contains none of /usr/local/bin, /opt/homebrew/bin, ~/.orbstack/bin.",
+   "fix_shape": "Resolve the docker binary once: PATH first, then the known install locations (/usr/local/bin, /opt/homebrew/bin, ~/.orbstack/bin, /Applications/Docker.app/Contents/Resources/bin), and use the absolute path for every call. Pin with a test that runs detect() with PATH=/usr/bin:/bin and a fake docker in a probed location, asserting cli_present=true.",
+   "defect_class": "gui-launch-env",
+   "raw_ids": [
+    "LIFE-L1-STRANGER-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-008",
+   "title": "No diagnostics exist and a shipped build persists no log at all: every Rust, sidecar and MCP line goes to process stdout (no console at all on a Windows release build), so a user with a problem has nothing to hand a maintainer",
+   "severity": "high",
+   "area": "lifecycle",
+   "subsystem": "rust-core",
+   "files": [
+    "src-tauri/src/lib.rs",
+    "src-tauri/src/openbb_mcp.rs",
+    "src-tauri/Cargo.toml",
+    "sidecar/main.py",
+    "src/components/SettingsPanel.tsx"
+   ],
+   "repro": "grep -rniE 'diagnostic|support.?bundle|bug.?report|export.*log|collect.*logs' src sidecar src-tauri/src -> no mechanism. find ~/Library/Logs, the data dir and ~/.vysted-terminal for *log* -> only audit_log.db. `log show` over the 19-Sep 0.8.0 boot (which provably ran: mcp-endpoint.json written 06:31:43) -> 0 lines of the app's own [sidecar]/[vysted]/uvicorn output.",
+   "evidence": "src-tauri/src/lib.rs:225-238 (sidecar stdout/stderr re-printed via println!/eprintln! only), src-tauri/src/openbb_mcp.rs:125-136 (same for MCP children), src-tauri/Cargo.toml:25 (no tauri-plugin-log), sidecar/main.py:142 (uvicorn log_level only; no basicConfig/dictConfig/FileHandler in sidecar/), src-tauri/src/main.rs:1 (windows_subsystem='windows': no console even from a terminal), src/components/SettingsPanel.tsx:1875-1880 (version string is the only diagnostic UI), docs/BLUEPRINT.md:315 vs README.md:5; $ISO/seat-l3-diagnostics/evidence/unified-log-19sep.txt, status-endpoints.txt, canary-drive.txt (0 of 7 BYOK canaries reached the log; URL query strings, symbols and tracebacks do); refuter admitted_with_correction high",
+   "root_cause": "Diagnosability was never designed: output is a side effect of println! drains and uvicorn defaults, and the no-telemetry posture removed the crash signal with no local, user-controlled replacement.",
+   "fix_shape": "A size-capped rotating log file under <data-dir>/logs written by the Rust drain (a file sink beside the println!, no new plugin required), a Python logging config that timestamps service warnings into the same stream, and a Settings 'Copy diagnostics' action bundling version + the status-endpoint JSON + a redacted log tail (query strings, symbols, prompt/brief/note text, public IP) shown to the user before sending. Pin with a Rust test that a drained line lands in the log file and a test that the redactor strips a canary query string and key.",
+   "defect_class": "no-diagnostics",
+   "raw_ids": [
+    "LIFE-L3-DIAGNOSTICS-1"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-LIFECYCLE-009",
+   "title": "A v0.8.0-tag user's tracked portfolio does not survive the upgrade: holdings stay in portfolio.db, but the current panel never reads them and shows 'This portfolio is empty'",
+   "severity": "high",
+   "area": "lifecycle",
+   "subsystem": "portfolio",
+   "files": [
+    "src/lib/workspace.ts",
+    "src/store/portfolios.ts",
+    "src/modules/portfolio/api.ts",
+    "sidecar/services/portfolio_db.py"
+   ],
+   "repro": "git archive v0.8.0 sidecar -> the tag's own portfolio_db.create_position x3 (RELIANCE.NS x10 @2890.55, TCS.NS x5, BTC/USDT x0.05) into an empty data dir -> boot current source on it (:52228) -> GET /portfolio/positions returns all 3 rows -> scratch vitest drives the current frontend: restoreLastSessionOrDefault (no __autosave__) -> portfolios store 'Portfolio:0'; PortfolioPanel -> 'This portfolio is empty ... Add your first holding'; loadWorkspace('my-desk') -> still empty. 0 fetches to /portfolio/positions.",
+   "evidence": "$ISO/seat-l4-upgrade/evidence/v080tag-frontend-vitest.txt, $ISO/seat-l4-upgrade/evidence/v080tag-reads.txt, git show v0.8.0:src/modules/portfolio/PortfolioPanel.tsx:55 + v0.8.0:src/modules/portfolio/api.ts:15,46,51,56, commit 12862d3 ('Drops the dead sidecar CRUD', no data step), src/lib/workspace.ts:286-289, src/store/portfolios.ts:112-114, src/modules/portfolio/api.ts:4-5, src/modules/portfolio/PortfolioPanel.tsx:817, src/lib/host-actions.ts:1254-1259,1321-1340; related fork R15-CODE-PLATFORM-021 (COD-portfolio-3) - this entry is the upgrade consequence, measured; refuter admitted high (affected population today = tag builders; no binary release)",
+   "root_cause": "Commit 12862d3 moved holdings from the sidecar SQLite ledger into the workspace blob with no import step, and restore keeps the empty seeded portfolio when a blob has no portfolios key.",
+   "fix_shape": "A one-time import on restore: when the blob has no portfolios key and GET /portfolio/positions is non-empty, seed the default portfolio from those rows (symbol/quantity/cost_basis/asset_class/note) and mark the import in the blob; then retire the SQLite ledger per R15-CODE-PLATFORM-021. Pin with a vitest that stubs a positions response + a portfolios-less blob and asserts the holdings appear once (idempotent on a second restore).",
+   "defect_class": "upgrade-data-orphaned",
+   "raw_ids": [
+    "LIFE-L4-UPGRADE-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-010",
+   "title": "A sidecar spawn failure is indistinguishable from a slow boot: the documented SidecarPort==0 'disconnected' sentinel is honoured nowhere, so a missing or denied binary ends in a 120 s blind spinner and a message that names nothing",
+   "severity": "medium",
+   "area": "lifecycle",
+   "subsystem": "rust-core",
+   "files": [
+    "src-tauri/src/lib.rs",
+    "src/lib/sidecar-client.ts"
+   ],
+   "repro": "Rename the bundled sidecar binary and launch -> get_sidecar_port still returns the picked live-looking port; the frontend probes /health for 120 s and then shows 'The data engine did not become ready in time.' The real cause is only on stderr (which a packaged app never shows; see the diagnostics entry).",
+   "evidence": "src-tauri/src/lib.rs:440-441 (SidecarPort managed once, before the spawn), src-tauri/src/lib.rs:206-222 (every spawn-failure arm eprintln!s and returns without updating state), src-tauri/src/lib.rs:201-204,272-279 (doc: '0 means no sidecar bound ... the frontend treats that as disconnected'), src/lib/sidecar-client.ts:96-98 (port interpolated with no zero check), src/lib/sidecar-client.ts:124-141 (120_000 ms deadline, generic SidecarError(503)); port-0 half also observed in COD-error-layer-12 (folded into R15-LIFECYCLE-027); docs/research/phase-10/hunt-rust-tauri.md BUG 3 (reported, unfixed); refuter admitted medium",
+   "root_cause": "The sentinel exists only in prose: no producer sets it on failure and no consumer tests it; SidecarPort is a bare u16 set before the spawn.",
+   "fix_shape": "Replace SidecarPort(u16) with a SidecarStatus { port, state: Starting|Ready|Failed(reason) } set from start_main_sidecar's failure arms and the port-wait thread; the renderer short-circuits on Failed and renders the reason. Pin with a Rust unit test that a spawn-failure arm yields Failed(reason) and a vitest that a Failed status throws immediately with the reason instead of probing.",
+   "defect_class": "unhonoured-sentinel",
+   "raw_ids": [
+    "COD-rust-core-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-011",
+   "title": "sidecarStatus is a one-shot boot latch: nothing re-probes, so the header stays green 'Connected' over a dead engine, boot-time 'error' has no retry short of reload, and the retry hook's 're-arm on reconnect' fires at most once per app lifetime",
+   "severity": "medium",
+   "area": "lifecycle",
+   "subsystem": "error-layer",
+   "files": [
+    "src/store/app.ts",
+    "src/app/page.tsx",
+    "src/lib/sidecar-client.ts",
+    "src/lib/use-sidecar-retry.ts",
+    "src/components/StatusChrome.tsx"
+   ],
+   "repro": "grep -rn 'connectSidecar\\|sidecarStatus:' src plugins -> the only caller is src/app/page.tsx:52 (mount effect), the only writers src/store/app.ts:25,29,32. Kill the sidecar after boot -> the chip keeps bg-positive 'Connected' while every panel and the chat fail with 'Load failed'. Let boot hit the 120 s budget -> status 'error' with no control that calls connectSidecar again.",
+   "evidence": "src/store/app.ts:24-34, src/app/page.tsx:45-52, src/lib/use-sidecar-retry.ts:19-22,113-135, src/components/StatusChrome.tsx:88-106,173,203-210,217-220, src-tauri/src/lib.rs:226-238 (child Terminated event dropped); refuter admitted medium",
+   "root_cause": "The status is written only by the boot-time connect; no heartbeat, focus re-probe, or failure-path write exists, while two consumers were designed against a live status.",
+   "fix_shape": "Make the error layer the writer: sidecarGet/consumeSseStream set sidecarStatus='error' (and null readyPromise) on a connection-level failure and 'connected' on any success; add click-to-reconnect on the chip calling connectSidecar(); optionally a 15-30 s /health heartbeat. Pin with a vitest that a connection-refused sidecarGet flips status to 'error' and a later success flips it back and re-runs a hooked load.",
+   "defect_class": "status-latch",
+   "raw_ids": [
+    "COD-error-layer-14"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-012",
+   "title": "'Durable' Delegate runs are row-deep: no startup reconciliation and a checkpoint written only at exit, so a restart leaves zombie `running` rows and a hard kill leaves a run that cannot be resumed",
+   "severity": "medium",
+   "area": "lifecycle",
+   "subsystem": "runs-durable-delegate",
+   "files": [
+    "sidecar/services/run_manager.py",
+    "sidecar/services/runs_store.py",
+    "sidecar/app.py"
+   ],
+   "repro": "Launch a run, call run_manager.shutdown() (what the lifespan does) -> the row stays status=running forever. On a crash / kill -9 / power loss the row is running with checkpoint_json NULL -> POST /runs/{id}/resume -> 404 'no checkpoint to resume from'. A webview that outlived the sidecar shows a forever-pulsing row with frozen cost.",
+   "evidence": "sidecar/services/run_manager.py:185-192,210-218 (checkpoint only on terminal exits; CancelledError path writes no status), :421-438 (shutdown), sidecar/app.py:136-155 (no startup sweep; the 'FIRST' comment at :149 is wrong), sidecar/services/runs_store.py:6-8; refuter admitted medium",
+   "root_cause": "Durability covers only the terminal row write; nothing reconciles 'running' rows at startup and the checkpoint is not written per round.",
+   "fix_shape": "At lifespan startup: UPDATE runs SET status='error', detail='interrupted by sidecar restart' WHERE status='running'; write the checkpoint inside _on_round_usage (which already writes cost). Pin with a test that inserts a running row, runs the startup hook, and asserts status=error; and a test that a run cancelled mid-round has a non-null checkpoint and resumes.",
+   "defect_class": "durability-row-deep",
+   "raw_ids": [
+    "COD-runs-durable-delegate-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-013",
+   "title": "Delegate resume drops the user's provider/model and silently runs on the agent default (live: Ollama swapped llama3.1:8b for Qwen2.5 7B), and the paused/answer state is unreachable",
+   "severity": "medium",
+   "area": "agent",
+   "subsystem": "runs-durable-delegate",
+   "files": [
+    "sidecar/services/run_manager.py",
+    "sidecar/routers/runs.py",
+    "sidecar/services/runs_store.py"
+   ],
+   "repro": "Launch a delegate run with ollama llama3.1:8b and max_tokens 2000 -> error 'token ceiling 2000 reached (10126 used)' -> POST /runs/{id}/resume -> Ollama log 07:46:58 loads 'Qwen2.5 7B Instruct' (evicting llama). POST /runs/{B}/answer on any run -> 409 'not awaiting an answer'; no code path ever pauses a run.",
+   "evidence": "docs/redesign/verification/r15/surface/composer-chat/30-delegate-launch.txt, docs/redesign/verification/r15/surface/composer-chat/31-delegate-lifecycle.txt, sidecar/services/run_manager.py:260-269 (launch persists options+region only), :301 (pause_run: no caller outside tests), :402-407 (resume spawns with provider=None, model=None), sidecar/routers/runs.py:127-130; CROSS-CLUSTER: live confirmation of the same defects already merged as R15-AGENT-035 (COD-runs-durable-delegate-2) and R15-CODE-AGENT-011 (COD-runs-durable-delegate-10) - fold into those at register build; refuter admitted medium",
+   "root_cause": "The run row never persists provider/model, the resume route takes none, and pause_run has no production caller.",
+   "fix_shape": "Persist provider/model on the run row at launch and pass them on resume; wire pause_run to an ask_user tool or remove the paused/answer UI. Pin with a test that launch -> resume invokes the agent with the launch-time provider/model.",
+   "defect_class": "resume-loses-config",
+   "raw_ids": [
+    "SURF-COMPOSER-CHAT-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-014",
+   "title": "A malformed or missing agent JSON silently shrinks the roster: warning log only (nothing at all for a missing agents dir), HTTP 200, no runtime surface",
+   "severity": "medium",
+   "area": "agent",
+   "subsystem": "agent-runtime",
+   "files": [
+    "sidecar/services/agent_runtime.py",
+    "sidecar/routers/agents.py",
+    "scripts/smoke-test-sidecars.mjs"
+   ],
+   "repro": "Schema-violate any file in sidecar/agents/ (e.g. a defaultProvider the enum omits) -> _discover_specs logs 'agent <file>: schema violation ...' and continues; _specs is built once at import. GET /agents returns 200 with 12 entries instead of 13. A missing agents dir returns {} with no log at all (the packaged-app 'agents/ silently unavailable for 3 releases' shape).",
+   "evidence": "sidecar/services/agent_runtime.py:237-238 (missing dir -> {} silently), :250, :256, :280 (built once at import), sidecar/routers/agents.py:68, sidecar/tests/test_agent_runtime.py:95 (CI count is the only detector); refuter admitted medium",
+   "root_cause": "Partial-load resilience with no report: skipped files and their reasons are discarded after a log line, and the packaged app has no log (see R15-LIFECYCLE-008).",
+   "fix_shape": "Keep the skipped filenames + reasons in a module-level list and expose them on GET /agents (and /health) as a `degraded` field; log an ERROR when the agents dir is missing; have the smoke test assert /agents count > 0 and degraded == []. Pin with a test that drops a bad agent JSON into a temp agents dir and asserts the degraded field names it.",
+   "defect_class": "silent-partial-load",
+   "raw_ids": [
+    "COD-agent-runtime-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-015",
+   "title": "Backtest run history is in-memory and capped at 32, so a restart or the 33rd run makes backtest_summary forget a run the user is still looking at, and the documented 'newest first' list order is wrong",
+   "severity": "medium",
+   "area": "lifecycle",
+   "subsystem": "backtest",
+   "files": [
+    "sidecar/services/backtest_store.py",
+    "sidecar/routers/backtest.py"
+   ],
+   "repro": "Put three results; backtest_store.list_runs() returns them oldest-first (and get() reorders by LRU) while the route documents 'newest first'. Restart the sidecar or run a 33rd backtest -> backtest_summary(run_id=<older run>) returns 'no cached backtest with run_id=...', so the Strategy Critic cannot critique a run still on screen.",
+   "evidence": "sidecar/services/backtest_store.py:23 (DEFAULT_CAPACITY = 32), :31 (plain OrderedDict, no disk), :41-48, sidecar/routers/backtest.py:176; refuter admitted medium (in-memory was a disclosed v0.5.0 choice; the Critic consequence stands)",
+   "root_cause": "Results live only in a 32-entry process-memory LRU; list() returns OrderedDict order.",
+   "fix_shape": "Write results as JSON under <data-dir>/backtests keyed by run_id (load on miss), and return the list newest-first. Pin with a test that a result survives a store re-instantiation and that list order is newest-first after a get().",
+   "defect_class": "memory-only-state",
+   "raw_ids": [
+    "COD-backtest-10"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-016",
+   "title": "Kill-switch halt state lives only in process memory: a sidecar restart silently un-halts, and reset leaves adapters latched read-only while status says not fired",
+   "severity": "medium",
+   "area": "lifecycle",
+   "subsystem": "safety-audit",
+   "files": [
+    "sidecar/services/kill_switch.py",
+    "sidecar/services/broker_base.py",
+    "sidecar/routers/safety.py",
+    "src-tauri/src/kill_switch.rs"
+   ],
+   "repro": "Fire the switch, restart the sidecar -> GET /safety/kill-switch/status -> fired:false with no acknowledgement and no audit row. Separately: fire -> reset -> status fired:false, but every adapter still raises 'adapter is in read-only mode' because _on_kill_switch latched _read_only and reset() never broadcasts.",
+   "evidence": "sidecar/services/kill_switch.py:54-56 (three instance attrs), :146-152 (reset touches only the bus), :198 (per-process singleton), sidecar/routers/safety.py:129-131, sidecar/services/broker_base.py:103,251,345,441; related audit gap R15-CODE-PLATFORM-008 (COD-safety-audit-5); refuter admitted medium, noting the kill switch gates ONLY broker order placement, so the whole mechanism goes with the 23 Sep trading removal",
+   "root_cause": "Fired state is not derived from the durable append-only audit store, and reset does not undo the adapter latch.",
+   "fix_shape": "OPERATOR DECISION FIRST (tier4, §6.5): if the trading removal deletes the kill switch with order placement, close this with it; otherwise derive fired state at boot from the last kill-switch audit row (after R15-CODE-PLATFORM-008 adds that row) and broadcast reset to un-latch adapters. Pin with a test that fire -> new KillSwitch instance -> status fired:true.",
+   "defect_class": "memory-only-state",
+   "raw_ids": [
+    "COD-safety-audit-6"
+   ],
+   "tier4": true,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-LIFECYCLE-017",
+   "title": "Screener enrichment swallows every exception as 'field missing' at DEBUG and stalls its own progress bar on failure, so a broken adapter looks like a slow upstream",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "screener",
+   "files": [
+    "sidecar/services/screener.py"
+   ],
+   "repro": "An adapter bug that raises AttributeError inside get_fundamentals during phase E -> every survivor reports missing_field:<f>, nothing above DEBUG is logged, and 'enriching fundamentals n/m' freezes because emit is reached only on the success path.",
+   "evidence": "sidecar/services/screener.py:984-993 (except (TimeoutError, Exception); DEBUG log; failure branch increments done without emit); refuter admitted medium",
+   "root_cause": "A catch-all except (TimeoutError is already an Exception) conflates expected upstream failures with code bugs, and progress emission lives only on the success path.",
+   "fix_shape": "Catch (TimeoutError, ProviderError) for the expected cases, log anything else at WARNING, and move done += 1 / emit(...) into a finally. Pin with a test whose stub adapter raises AttributeError and asserts a WARNING plus progress reaching m/m.",
+   "defect_class": "swallowed-exception",
+   "raw_ids": [
+    "COD-screener-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-018",
+   "title": "The web_search hot path documented as an 'instant in-process read, no network probe' awaits a full docker derivation (up to one ~15 s docker-version timeout on a wedged daemon) on the first search of every process, and a concurrent first search reads a stale None",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "files": [
+    "sidecar/services/agent_tools/web_search.py",
+    "sidecar/services/searxng_manager.py",
+    "sidecar/app.py"
+   ],
+   "repro": "Code read: web_search.py:88 calls manager.ready_base_url_detected(), whose first call per process awaits refresh() -> detect() ('docker version', 15 s budget) + docker inspect + docker port + a 5 s health probe. _hot_path_detected is set True BEFORE the await, so a concurrent first search floors to keyless while the derivation is in flight.",
+   "evidence": "sidecar/services/agent_tools/web_search.py:10-13,85-88 (both comments promise no probe), sidecar/services/searxng_manager.py:91,97,337-353,412-446 (derivation), :348-349 (flag set before await), :361-371 (code 124 -> early return bounds the stall); refuter admitted_with_correction medium ('tens of seconds' overstated; at most one ~15 s timeout)",
+   "root_cause": "A lazy one-shot derivation was put on the hot path while the comments describe the intended eager design.",
+   "fix_shape": "Run the one-shot derivation in the app lifespan startup (background) and keep the hot path on the pure ready_base_url() read; if it must stay lazy, set the flag after the await under self._lock. Correct both comments. Pin with a test that web_search's first call performs no subprocess when the lifespan derivation has run.",
+   "defect_class": "hot-path-probe",
+   "raw_ids": [
+    "COD-research-retrieval-relevance-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-019",
+   "title": "One failed rename-master fetch at boot turns the NSE rename lane off for the rest of the IST day, silently: a renamed scrip answers with its dead identity and its current ticker resolves to an unrelated US company",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "resolver",
+   "files": [
+    "sidecar/services/nse_symbol_change.py",
+    "sidecar/routers/resolve.py",
+    "sidecar/services/symbol_resolver.py"
+   ],
+   "repro": "Clean profile boot on :52225: log 'nse_symbol_change: request failed ()' then 'no file and no recent cache - rename lane is a no-op' (the URL answered 200 in 1.35 s a minute later). GET /resolve?q=GUJGASLTD -> 'Gujarat Gas Limited', former_name null; GET /resolve?q=GUJENERGY -> needs_disambiguation led by US 'UR-ENERGY INC'. Same query on a sidecar whose fetch succeeded -> GUJENERGY with 'renamed ... effective 2026-07-01'. Further /resolve calls never retry until IST midnight (mock-transport proof: attempts stays 1).",
+   "evidence": "docs/redesign/verification/r15/lifecycle/L1-stranger/http-log.jsonl R01,R02, lifecycle/L1-stranger/sidecar-log-nonrequest.txt, lifecycle/L1-stranger/rename-gate-proof.txt, sidecar/services/nse_symbol_change.py:379-382,417-427,430-437,450-451, sidecar/routers/resolve.py:91,140, sidecar/services/symbol_resolver.py:793-799; refuter admitted medium",
+   "root_cause": "_refresh_guarded stamps _refreshed_on = today in a finally regardless of outcome, so a failure counts as today's refresh; the warning logs str(exc), which is empty for httpx timeouts.",
+   "fix_shape": "Set _refreshed_on only on success or a successful stale-cache hydrate; retry a failure with bounded backoff; log type(exc).__name__; expose rename_lane: unavailable on /resolve while the map is empty. Pin with a mock-transport test: first fetch ConnectTimeout, second schedule_refresh after the backoff -> attempts == 2 and the map loaded.",
+   "defect_class": "failure-cached-as-success",
+   "raw_ids": [
+    "LIFE-L1-STRANGER-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-020",
+   "title": "At boot the sidecar starts a US-only S&P 500 warm loop every ~40 s whatever the region, spending the shared Yahoo circuit on 506 US symbols on an India-first install",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "screener",
+   "files": [
+    "sidecar/services/screener.py",
+    "sidecar/app.py"
+   ],
+   "repro": "Clean keyless IN profile on :52225, no user requests for ~5 min: /system/provider-health yahoo open at t=27 s (throttles 16), 4 opens by 357 s; log 'screener warm: rate-limited' backoff 64 -> 110 -> 227 s. At T+11 min POST /screener/run {universe:'sp500'} -> evaluated 0, skipped 506 'rate_limited'; POST {universe:'nifty50'} (the IN default) cold -> 44.8 s. Confound: other isolated sidecars on the same IP and the India warm worker were also on Yahoo, so the circuit timing is not attributable to this loop alone; the region-blindness and boot-time start stand on the code.",
+   "evidence": "docs/redesign/verification/r15/lifecycle/L1-stranger/idle-boot-sampler.jsonl, lifecycle/L1-stranger/sidecar-log-nonrequest.txt, lifecycle/L1-stranger/http-log.jsonl P00-P04, sidecar/app.py:127-134, sidecar/services/screener.py:107-110,147-148,1208,1295 (_WARM_UNIVERSES = ('sp500',)); refuter admitted medium",
+   "root_cause": "_WARM_UNIVERSES is a constant ('sp500',) and start_warm_precompute runs unconditionally in the lifespan, on the same circuit user requests use.",
+   "fix_shape": "Warm the region's default universe (nifty50 for IN), start the first cycle after a grace period or the first UI request, and keep background warming from opening the circuit user requests share (a separate budget or a lower-priority weight). Pin with a test that an IN-region start_warm_precompute schedules nifty50, not sp500.",
+   "defect_class": "region-blind-background",
+   "raw_ids": [
+    "LIFE-L1-STRANGER-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-021",
+   "title": "A dead or moved NSE endpoint is invisible: /health keeps naming nse_direct as primary, provider-health tracks only Yahoo, and an .NS chart silently switches to BSE bars (last-bar volume 10.7M -> 0.56M)",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "market-data-providers-1",
+   "files": [
+    "sidecar/services/provider_registry.py",
+    "sidecar/services/nse_provider.py",
+    "sidecar/services/provider_health.py",
+    "src/components/StatusChrome.tsx"
+   ],
+   "repro": "Own sidecar :52226 behind a loopback proxy refusing *.nseindia.com: GET /quotes/RELIANCE.NS -> provider bse; GET /history/RELIANCE.NS?range=3mo -> provider bse, last-bar volume 560,999 vs 10,684,376; GET /health byte-identical to base; GET /system/provider-health -> yahoo only. Same with the NSE API path moved (404): /health unchanged, one WARNING per request, retried every call.",
+   "evidence": "docs/redesign/verification/r15/lifecycle/L2-rot/http-log.jsonl (profiles base/deadhost/moved, tags Q1/Y1/H1/H2/P1), sidecar/services/provider_registry.py:362-364 (per-request WARNING, no counter), :552-570 (/health from importability), sidecar/services/nse_provider.py:139-146 (available = curl_cffi imports), :323-341 (breaker counts 401/403 only), sidecar/services/provider_health.py:49 (YAHOO only), src/modules/chart/ChartPanel.tsx:1420-1421; refuter admitted medium (the per-surface 'via bse' chip does flip)",
+   "root_cause": "Provider availability is importability, not liveness; fall-throughs are logged but never counted, and provider_health tracks one family.",
+   "fix_shape": "Count fall-throughs per (provider, model_key) in _resolve_sync/_resolve_async, expose them on /system/provider-health, derive /health's primary from recent success, and show one quiet chrome notice ('NSE data unreachable - serving BSE') above a threshold. Pin with a test that N consecutive nse_direct ProviderErrors surface on /system/provider-health.",
+   "defect_class": "upstream-rot-silent",
+   "raw_ids": [
+    "LIFE-L2-ROT-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-022",
+   "title": "A moved NSE bhavcopy archive path is read as a week of holidays: every past weekday's 404 is cached as an empty 'holiday' marker with no log, the UDiFF-primary 404 never tries the live legacy fallback, and the IN EOD freshness lane silently dies",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "market-data-providers-1",
+   "files": [
+    "sidecar/services/nse_bhavcopy.py",
+    "sidecar/services/nse_symbol_change.py",
+    "sidecar/services/fundamentals_warm.py"
+   ],
+   "repro": "In-process on a fresh cache: UDiFF and legacy URLs moved -> fetch_latest() makes 6 requests, all 404 -> None, cache now holds {'empty': true} for 22, 21, 18, 17, 16 Sep. Only the primary moved -> 'missing' returned before the legacy sec_bhavdata_full fallback (200 / 2,921 rows for 22 Sep) is ever requested. The only signal is 'no bhavcopy found within 7 days'; the live 'moved' sidecar logged nothing. The symbol-change master fails the same way (404 -> 30-day stale 'network down' -> inert).",
+   "evidence": "docs/redesign/verification/r15/lifecycle/L2-rot/30-parser-drift.txt (C1-C3, D1), sidecar/services/nse_bhavcopy.py:101 (7-day TTL), :345-348 (any 404 -> 'missing', no log, before the fallback), :388-394 (past-date missing -> _EMPTY_MARKER), sidecar/services/fundamentals_warm.py:254-265, sidecar/services/nse_symbol_change.py:380-386,418-426; refuter admitted_with_correction medium (poisoning is bounded by the 7-day TTL; sharper: the fallback is never tried on a primary 404)",
+   "root_cause": "404 is overloaded as 'holiday or not yet published', so an endpoint move is indistinguishable from a holiday and is cached as one; a primary 404 short-circuits the fallback.",
+   "fix_shape": "Try the legacy fallback on a primary 404; only write the holiday marker when the date is on the NSE holiday calendar (or the next trading day's file exists); log a WARNING naming the URL after N consecutive non-holiday weekday 404s. Pin with a test where the primary 404s and the fallback returns rows -> fetch_latest returns the fallback data and no empty marker is written.",
+   "defect_class": "upstream-rot-silent",
+   "raw_ids": [
+    "LIFE-L2-ROT-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-023",
+   "title": "No React error boundary anywhere: one panel's render throw blanks the whole cockpit (portfolio and chat included) with no message or recovery, and the stack goes to a console a release build cannot open",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "files": [
+    "src/components/PanelHost.tsx",
+    "src/main.tsx"
+   ],
+   "repro": "Design (NEEDS-GUI to show visually): src/main.tsx:17 createRoot(...).render(<StrictMode><Page/></StrictMode>) passes no onUncaughtError/onCaughtError; grep -rn 'componentDidCatch|ErrorBoundary' src -> 0 non-test hits; dockview portals every panel into the same root. React's documented default: 'if your application throws an error during rendering, React will remove its UI from the screen' (https://react.dev/reference/react/Component). A relaunch restores the same autosave and can re-crash.",
+   "evidence": "src/main.tsx:17-21, src/components/PanelHost.tsx (DockviewReact components={components}, no per-panel wrapper), src-tauri/Cargo.toml:25 (no devtools); refuter admitted medium",
+   "root_cause": "No error boundary is installed at the panel host or root, so any render throw unmounts the entire tree.",
+   "fix_shape": "Wrap each dockview panel component (at PanelHost's component map) in an error boundary rendering 'this panel crashed - reload panel / copy error', and pass onUncaughtError to createRoot to write the stack to the diagnostics log. Pin with a vitest mounting PanelHost with a throwing panel and asserting sibling panels still render.",
+   "defect_class": "no-crash-containment",
+   "raw_ids": [
+    "LIFE-L3-DIAGNOSTICS-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-024",
+   "title": "No persistent store records a schema version (user_version 0 on all 8 SQLite DBs; no top-level workspace blob version) and nothing backs up the data dir before a new build touches it, so the first non-additive schema change will crash or silently drop data",
+   "severity": "medium",
+   "area": "lifecycle",
+   "subsystem": "workspace-layout",
+   "files": [
+    "sidecar/services/portfolio_db.py",
+    "sidecar/services/agents_store.py",
+    "sidecar/services/workflow_store.py",
+    "sidecar/services/data_cache.py",
+    "sidecar/services/fundamentals_store.py",
+    "sidecar/services/runs_store.py",
+    "sidecar/services/plugins_store.py",
+    "sidecar/models/audit_log.py",
+    "src/lib/workspace.ts"
+   ],
+   "repro": "Copy the 19-Sep 0.8.0 data dir, boot current source on it, sqlite3 <db> 'PRAGMA user_version' for audit_log, custom_agents, data_cache, delegate_runs, fundamentals_cache, plugins, portfolio, workflows -> 0 for every one, before and after boot. Clean today only because 0.8.0 -> HEAD changed no schema. 2,678 screener:* rows orphaned in data_cache since 5142aa1.",
+   "evidence": "$ISO/seat-l4-upgrade/evidence/pre-boot-schema.txt + post-boot-schema.txt, additive guards only at sidecar/services/fundamentals_store.py:172-182, sidecar/services/runs_store.py:94-102, sidecar/services/plugins_store.py:53-67; CREATE-IF-NOT-EXISTS only at sidecar/services/portfolio_db.py:26-35, agents_store.py:23 ('no schema migrations'), workflow_store.py:26-34, data_cache.py:59-65, models/audit_log.py:21; src/lib/workspace.ts:174 (only MODEL_OVERRIDES_VERSION); refuter admitted medium",
+   "root_cause": "Each store hand-rolls 'add a nullable column' guards; there is no version marker, migration chain, pre-upgrade backup or downgrade detection.",
+   "fix_shape": "One shared sidecar helper migrate(conn, steps) keyed on PRAGMA user_version used by all 8 stores (audit_log's append-only triggers untouched); a top-level schemaVersion on SerializedWorkspace with a migrate chain in deserializeWorkspace; a one-time copy of the data dir to backups/<old-version>/ when the stored app version differs from the running one. Pin with a test that a store at user_version 0 is migrated to N and a second boot is a no-op.",
+   "defect_class": "no-schema-versioning",
+   "raw_ids": [
+    "LIFE-L4-UPGRADE-2"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-LIFECYCLE-025",
+   "title": "A custom agent saved on the v0.8.0 tag silently loses its 'macro' tool: the id was renamed with no alias or row migration, every adapter drops unknown ids without a log, and re-saving the agent 422s",
+   "severity": "medium",
+   "area": "agent",
+   "subsystem": "agent-runtime",
+   "files": [
+    "sidecar/models/custom_agent.py",
+    "sidecar/services/agent_tools/schemas.py",
+    "sidecar/services/agent_tools/catalog.py",
+    "sidecar/services/agent_runtime.py"
+   ],
+   "repro": "The tag's agents_store.create_agent(custom:macro-hawk, tools=['price_data','macro','news']) -> boot current source -> GET /custom-agents returns the tools unchanged -> schemas.openai_tools(spec.tools) -> ['price_data','news'] ('macro' not in TOOL_SCHEMAS) -> PUT /custom-agents/custom:macro-hawk with the same tools -> 422 \"unknown tool ids: ['macro']\". The system prompt still says 'Always check the macro series first'.",
+   "evidence": "$ISO/seat-l4-upgrade/evidence/v080tag-agent-tools.txt, git show v0.8.0:sidecar/models/custom_agent.py:30-38, commit 0e248f9 (ids now macro_series/macro_search), sidecar/services/agent_tools/schemas.py:50-51 (_known() filters silently), sidecar/models/custom_agent.py:55-63, sidecar/services/agent_tools/catalog.py:94-96 (Capability.aliases has no reader); distinct from COD-frontend-panels-agent-shell-2 (builder strip); refuter admitted medium",
+   "root_cause": "Persisted tool ids have no version and no alias resolution, and _known() drops unknown ids without a signal.",
+   "fix_shape": "Resolve persisted ids through Capability.aliases (add 'macro' -> macro_series) in the custom-agent validator and in _known(); make _known() log and emit a one-time 'tool X is no longer available' notice for anything unresolved. Pin with a test that a stored agent with 'macro' gets macro_series in its tool schemas and PUTs cleanly.",
+   "defect_class": "upgrade-data-orphaned",
+   "raw_ids": [
+    "LIFE-L4-UPGRADE-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-026",
+   "title": "Under light realistic load the sidecar burns ~60% of a CPU core continuously, 99% of it on the event-loop thread and mostly between requests (a clean idle sidecar sits at 0-0.8%)",
+   "severity": "medium",
+   "area": "lifecycle",
+   "subsystem": "market-data-providers-1",
+   "files": [
+    "sidecar/app.py",
+    "sidecar/services/fundamentals_warm.py",
+    "sidecar/services/provider_registry.py"
+   ],
+   "repro": "L6 soak (source sidecar :52229, copy of the operator data dir, region IN, keyless, soak.py: 8 cheap GETs per 60 s cycle, portfolio CRUD every 10th, one free-model invoke every 15th). ps -p <pid> -o etime,utime,time: 8:10.43 CPU at etime 13:41 -> 10:53.62 at 18:13 = 163 s CPU in 272 s wall (60%), 92% user; ps -M puts 10:49.65 of 10:53.62 on the main (asyncio loop) thread; requests fill ~60 s of the window, so >=100 s of CPU fell between them.",
+   "evidence": "docs/redesign/verification/r15/lifecycle/L6-longsession.md section 5, <scratch>/vysted-iso/soak/soak-mem.jsonl, docs/redesign/verification/r15/lifecycle/L1-stranger/idle-boot-sampler.jsonl (baseline), sidecar/app.py:127-134 (lifespan starts screener warm, fundamentals_warm, nse_symbol_change refresh), sidecar/services/fundamentals_warm.py:199,301,373, sidecar/main.py:142; partial contributor found by the refuter: sidecar/services/provider_registry.py:406-407 calls sync provider functions on the loop inside async routes (fundamentals.py:89, quotes.py:53/65); refuter admitted medium (subsystem assignment provisional until profiled)",
+   "root_cause": "unknown (no profiler attached in the census stage); sync provider calls on the loop explain request-time CPU only.",
+   "fix_shape": "First `py-spy dump`/`sample <pid> 10` of the loop thread during an idle gap to attribute; then move the hot path off the loop (asyncio.to_thread for the sync provider calls in provider_registry and any spinning background loop). Pin with a soak assertion that idle-between-cycles loop CPU stays under a bound (e.g. < 5% over 5 min).",
+   "defect_class": "loop-cpu-burn",
+   "raw_ids": [
+    "LIFE-L6-LONGSESSION-1"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-LIFECYCLE-027",
+   "title": "No timeout or AbortSignal anywhere in the shared sidecar client: one hung /health probe holds the shared readyPromise past its 120 s budget, a hung route is an eternal spinner, and the boot-time plugin path fetches every plugin's config twice, serially, with no ceiling",
+   "severity": "low",
+   "area": "lifecycle",
+   "subsystem": "error-layer",
+   "files": [
+    "src/lib/sidecar-client.ts",
+    "src/lib/plugin-bootstrap.ts",
+    "src/lib/plugin-runtime.ts"
+   ],
+   "repro": "Design: resolveAndAwaitReady awaits fetch('/health') with no signal and checks the deadline only after it settles; sidecarGet/sidecarPost take no signal. Point the host at a socket that accepts but never answers -> bootstrapPlugins never resolves (the plugin layer stalls; app startup does not, since bootstrap is fire-and-forget). installed+enabled plugins get persistence.load twice (bootstrap then loadPlugin), serially.",
+   "evidence": "src/lib/sidecar-client.ts:125-144,154-158,194-196,226-234, src/lib/plugin-bootstrap.ts:90-97,252-271, src/lib/plugin-runtime.ts:218-232; contrast plugins/openbb-mcp/index.ts:90-92 (AbortController + 2 s); refuters: COD-error-layer-12 admitted low, COD-plugins-11 admitted_with_correction low (fire-and-forget, 5 loaded rows, loopback). The port-0 half of COD-error-layer-12 is R15-LIFECYCLE-010.",
+   "root_cause": "The shared client has no timeout primitive, and plugin bootstrap re-derives state loadPlugin re-fetches.",
+   "fix_shape": "signal: AbortSignal.timeout(5_000) on the health probe; an optional signal param with a generous default timeout on sidecarGet/sidecarPost; pass the already-loaded PluginPersistedConfig into loadPlugin. Pin with a vitest that a never-resolving fetch mock makes resolveAndAwaitReady reject by the deadline.",
+   "defect_class": "unbounded-wait",
+   "raw_ids": [
+    "COD-error-layer-12",
+    "COD-plugins-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-028",
+   "title": "The debounced layout autosave has no flush on close, so a rearrange followed by quit within 1.5 s is lost",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "files": [
+    "src/components/PanelHost.tsx",
+    "src/lib/workspace.ts"
+   ],
+   "repro": "Drag a panel to a new split, press Cmd+Q within 1.5 s -> the 1500 ms timer never fires and nothing flushes: grep -rn 'beforeunload|visibilitychange|pagehide|CloseRequested' src src-tauri/src returns nothing; cleanup clears the timer instead of running it.",
+   "evidence": "src/components/PanelHost.tsx:12-13,187-193,200-210; refuter admitted low",
+   "root_cause": "Debounce without a flush path.",
+   "fix_shape": "Keep a pending flag; on cleanup and on pagehide / Tauri onCloseRequested, call autosaveLayout() immediately (fetch keepalive:true). Fold into the autosave single-flight/debounce move of R15-LIFECYCLE-003. Pin with a vitest that unmounting PanelHost with a pending change issues the POST.",
+   "defect_class": "debounce-no-flush",
+   "raw_ids": [
+    "COD-frontend-panels-shell-chrome-10"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-029",
+   "title": "PanelHost restores the saved layout as soon as first-party modules register, before plugin modules exist, so any plugin panel in the saved layout deterministically trips the restore-failure path (latent: no bundled plugin contributes panels yet)",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "files": [
+    "src/components/PanelHost.tsx",
+    "src/app/page.tsx",
+    "src/lib/plugin-bootstrap.ts"
+   ],
+   "repro": "page.tsx:50 registers first-party modules synchronously; bootstrapPlugins appends plugin modules only after awaiting persistence + loadPlugin. PanelHost's gate is modules.length === 0, so restoreLastSessionOrDefault runs first; a saved plugin panel -> layoutReferencesUnknownComponent -> default layout (R15-LIFECYCLE-002) on every launch.",
+   "evidence": "src/app/page.tsx:50,85-92, src/components/PanelHost.tsx:121-126,214-226, src/lib/plugin-bootstrap.ts:220-270, src/lib/workspace.ts:509-514; refuter admitted low (every surviving plugin sets contributesPanels:false)",
+   "root_cause": "'modules registered' is used as a proxy for 'all panel components known'.",
+   "fix_shape": "Gate the restore on a pluginsReady flag set when bootstrapPlugins resolves (with a timeout fallback). Pin with a vitest that a saved layout containing a plugin panel restores intact when the plugin registers asynchronously.",
+   "defect_class": "restore-before-ready",
+   "raw_ids": [
+    "COD-frontend-panels-shell-chrome-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-030",
+   "title": "The India boot seed runs twice, concurrently, from two unrelated code paths (lifespan _boot_seed and _sweep_loop's first cycle)",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "fundamentals-profile",
+   "files": [
+    "sidecar/services/fundamentals_warm.py"
+   ],
+   "repro": "Design: on an IN-region boot start_warm_fundamentals schedules _boot_seed() AND _sweep_loop runs seed_india_store() on its first cycle behind a local `seeded` flag; the 5k-row build and seed-pack load run twice.",
+   "evidence": "sidecar/services/fundamentals_warm.py:107-152, :197-208, :416-424; refuter admitted_with_correction low (idempotent NULL-fills, off-loop, invisible duplicated boot work)",
+   "root_cause": "Duplicated ownership of one boot step.",
+   "fix_shape": "Delete the `seeded` flag and the seed call from _sweep_loop; start_warm_fundamentals owns it. Pin with a test counting seed_india_store calls on an IN boot == 1.",
+   "defect_class": "duplicated-boot-work",
+   "raw_ids": [
+    "COD-fundamentals-profile-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-031",
+   "title": "The India boot-seed task handle is discarded, so shutdown cannot cancel it, and the no-leaked-tasks test runs in the US region where the branch never fires",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "fundamentals-profile",
+   "files": [
+    "sidecar/services/fundamentals_warm.py",
+    "sidecar/tests/test_fundamentals_warm.py"
+   ],
+   "repro": "Design: loop.create_task(_boot_seed()) is never stored; stop_warm_fundamentals cancels only _sweep_task/_crawl_task/_bhavcopy_task; test_start_stop_clean_no_leaked_tasks runs with region US, so the IN branch is never entered.",
+   "evidence": "sidecar/services/fundamentals_warm.py:416-424, :433-444, sidecar/tests/test_fundamentals_warm.py:288-302; refuter admitted_with_correction low",
+   "root_cause": "An untracked detached task, with a test structurally blind to it.",
+   "fix_shape": "Store it as _seed_task, include it in the cancel list, and monkeypatch region 'IN' in the leak test.",
+   "defect_class": "untracked-task",
+   "raw_ids": [
+    "COD-fundamentals-profile-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-032",
+   "title": "The fundamentals crawl cycle gathers without return_exceptions and writes to the store outside the per-symbol guard, so one sqlite write error aborts the cycle and reports fetched=0 at DEBUG",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "fundamentals-profile",
+   "files": [
+    "sidecar/services/fundamentals_warm.py"
+   ],
+   "repro": "Design: a sqlite failure in upsert_info (:362, outside the try at :344-361) propagates out of _one, aborts asyncio.gather (:366) and leaves siblings' exceptions unretrieved; _crawl_loop logs at DEBUG with fetched=0.",
+   "evidence": "sidecar/services/fundamentals_warm.py:344-366, :378-384; refuter admitted_with_correction low (sqlite write failure is rare)",
+   "root_cause": "The one call that can fail for an unrelated reason sits outside the per-symbol try.",
+   "fix_shape": "Move the upsert inside the try and pass return_exceptions=True; log a cycle failure at WARNING. Pin with a test whose store raises on one symbol and asserts the others are counted.",
+   "defect_class": "swallowed-exception",
+   "raw_ids": [
+    "COD-fundamentals-profile-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-033",
+   "title": "Verification-rig mutation endpoints (POST /system/provider-health/trip and /reset) ship ungated in the production sidecar and can open the Yahoo breaker for the whole process",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "market-data-providers-2",
+   "files": [
+    "sidecar/routers/system.py"
+   ],
+   "repro": "POST http://127.0.0.1:<port>/system/provider-health/trip {\"weight\": 3.0} -> Yahoo circuit opens process-wide -> screener/quotes/history degrade to stale/seed until the breaker half-opens.",
+   "evidence": "sidecar/routers/system.py:215-224, :227-233; refuter admitted_with_correction low (every loopback route is equally unauthenticated; self-heals)",
+   "root_cause": "Test-rig affordances baked into a production surface.",
+   "fix_shape": "Gate both POST routes on an env flag the rig sets (VYSTED_RIG_HOOKS=1), 404 otherwise. Pin with a router test that the routes 404 without the flag.",
+   "defect_class": "rig-in-prod",
+   "raw_ids": [
+    "COD-market-data-providers-2-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-034",
+   "title": "The SearXNG one-click setup task has no exception boundary (write_settings OSError kills it mid-PULLING with no reason) and the module's logger is declared but never used",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "files": [
+    "sidecar/services/searxng_manager.py"
+   ],
+   "repro": "Code read: begin_setup fires asyncio.create_task(self.setup()); setup() catches only CancelledError; write_settings (:531) can raise OSError while its sibling pick_port is guarded; grep -n '_log' shows the logger at :62 is never called in the 656-line module.",
+   "evidence": "sidecar/services/searxng_manager.py:62, :227-240, :483-493, :531-536; refuter admitted_with_correction low (trigger is an unwritable/full data dir)",
+   "root_cause": "One unguarded step in a guarded sequence; no logging anywhere in the state machine.",
+   "fix_shape": "Wrap _setup_locked's body in `except Exception as exc: self._set(STATE_ERROR, reason=...); _log.exception(...)` and log every docker non-zero exit. Pin with a test where write_settings raises OSError and the status reports error with a reason.",
+   "defect_class": "swallowed-exception",
+   "raw_ids": [
+    "COD-research-retrieval-relevance-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-035",
+   "title": "The managed-SearXNG error state is sticky for the process: a container the user fixes by hand is bypassed (search stays keyless) until they press Retry or restart",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "files": [
+    "sidecar/services/searxng_manager.py"
+   ],
+   "repro": "Code read: refresh() returns the snapshot untouched whenever state == STATE_ERROR, before any docker probe; a user whose setup failed and who then runs `docker start vysted-searxng` keeps state=error, ready_base_url() None, and web_search floors to keyless.",
+   "evidence": "sidecar/services/searxng_manager.py:333, :403-414, :604-607, sidecar/services/agent_tools/web_search.py:88; Retry CTA exists at src/components/SettingsPanel.tsx:866-867,916-920; refuter admitted_with_correction low ('forever' refuted)",
+   "root_cause": "The error is stored AS the state rather than alongside it.",
+   "fix_shape": "Carry a last_error field on the snapshot and let refresh() re-derive the state. Pin with a test: state error + a healthy container -> refresh() -> ready with last_error still reported.",
+   "defect_class": "sticky-error-state",
+   "raw_ids": [
+    "COD-research-retrieval-relevance-13"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-036",
+   "title": "A garbled bundled resolver master 500s every /resolve call, contradicting the docstring's 'missing/garbled degrades to {}'",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "resolver",
+   "files": [
+    "sidecar/services/symbol_resolver.py"
+   ],
+   "repro": "A corrupt bundled JSON makes json.load raise JSONDecodeError, which the except tuple (FileNotFoundError, ModuleNotFoundError) misses; lru_cache never caches the raise, and the resolve router has no try/except -> GET /resolve 500 on every call.",
+   "evidence": "sidecar/services/symbol_resolver.py:266, :313, :373-374, sidecar/routers/resolve.py:93; refuter admitted_with_correction low (the realistic trigger is caught by PyInstaller's own archive check first)",
+   "root_cause": "The degrade invariant is held by a docstring, not by the except tuple.",
+   "fix_shape": "Add ValueError and OSError to the except at :374. Pin with a test that patches the master loader to raise JSONDecodeError and asserts /resolve returns a no-match, not 500.",
+   "defect_class": "swallowed-exception",
+   "raw_ids": [
+    "COD-resolver-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-LIFECYCLE-037",
+   "title": "mcp-endpoint.json is written on bind but never removed, so it advertises the previous session's port through the whole boot window and forever after a failed boot",
+   "severity": "low",
+   "area": "lifecycle",
+   "subsystem": "rust-core",
+   "files": [
+    "src-tauri/src/lib.rs"
+   ],
+   "repro": "Launch, quit, relaunch: for the first up-to-90 s of the new boot (and forever if the sidecar never binds) <data-dir>/mcp-endpoint.json names the previous run's port; an external MCP client gets connection-refused.",
+   "evidence": "src-tauri/src/lib.rs:159, :182-193 (only writer; doc comment claims no stale file), :248-268, :507-518 (exit handler does not remove it); refuter admitted_with_correction low (the orphan amplifier COD-rust-core-2 was refuted)",
+   "root_cause": "Write-only discovery file with no invalidation.",
+   "fix_shape": "std::fs::remove_file at the top of start_main_sidecar and on RunEvent::Exit. Pin with a Rust test that start_main_sidecar removes a pre-existing file before the spawn.",
+   "defect_class": "discovery-file-trust",
+   "raw_ids": [
+    "COD-rust-core-6"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-LIFECYCLE-038",
+   "title": "A bare TCP connect is logged as 'Python sidecar healthy' and used to publish the MCP discovery file",
+   "severity": "low",
+   "area": "lifecycle",
+   "subsystem": "rust-core",
+   "files": [
+    "src-tauri/src/lib.rs",
+    "src-tauri/src/openbb_mcp.rs"
+   ],
+   "repro": "Design: wait_for_port_timeout returns true for any process accepting on 127.0.0.1:<port>; pick_free_port drops the listener before the child binds, and the port is picked before the up-to-90 s MCP join, so a foreign listener in that window makes the core publish its address.",
+   "evidence": "src-tauri/src/lib.rs:30-33, :46-55, :260-265, :440, src-tauri/src/openbb_mcp.rs:178, docs/research/phase-10/hunt-rust-tauri.md BUG 5; refuter admitted_with_correction low (frontend gates on its own GET /health, so only the log line and discovery file are affected)",
+   "root_cause": "The evidence (a TCP handshake) cannot support the conclusion the caller states.",
+   "fix_shape": "Replace the bare connect with a GET /health matching a known field before logging healthy / writing the discovery file. Pin with a Rust test that a plain TCP listener does not pass the check.",
+   "defect_class": "discovery-file-trust",
+   "raw_ids": [
+    "COD-rust-core-8"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-LIFECYCLE-039",
+   "title": "The smoke-test PID ledger is a fixed-path multi-writer file with an unconditional clear: a concurrent run's pre-flight tree-kills the other run's live sidecars and interleaved writes lose rows",
+   "severity": "low",
+   "area": "release",
+   "subsystem": "scripts-build",
+   "files": [
+    "scripts/smoke-test-sidecars.mjs"
+   ],
+   "repro": "Run two smoke tests concurrently on one host (pnpm ci-local plus a manual node scripts/smoke-test-sidecars.mjs): run B's pre-flight sees A's live, marker-matched children, tree-kills them, then _writeState([]) -> run A fails spuriously; RMW interleaving plus a hard kill of A leaves an orphan the next pre-flight cannot see.",
+   "evidence": "scripts/smoke-test-sidecars.mjs:118-119, :122-150, :160-189, :323; refuter admitted_with_correction low (consequence corrected to a spurious failure of the other run)",
+   "root_cause": "One shared mutable ledger for independent runs.",
+   "fix_shape": "Name the ledger per run (live-children-<node pid>.json) and have the pre-flight glob the dir, reaping only files whose owning node PID is dead. Pin with a script test that two ledgers coexist and pre-flight leaves the live-owner file alone.",
+   "defect_class": "shared-mutable-ledger",
+   "raw_ids": [
+    "COD-scripts-build-8"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-LIFECYCLE-040",
+   "title": "The Tauri-Rust MCP spawn (the Windows deadlock fix) has never been exercised inside a launched packaged app; CI builds the bundle and smoke-tests the raw binaries, but no packaged cold boot is recorded",
+   "severity": "low",
+   "area": "release",
+   "subsystem": "rust-core",
+   "files": [
+    "docs/redesign/DECISIONS.md",
+    "scripts/smoke-test-sidecars.mjs"
+   ],
+   "repro": "design: CI builds the three PyInstaller binaries, smoke-tests that they bind (smoke-test-sidecars.mjs:809-820) and runs pnpm tauri build, but no repo evidence exists of a launched packaged app spawning the MCP children through app.shell().sidecar() (D80 / D65 evidence is dev binaries and dev-mode backtests).",
+   "evidence": "src-tauri/src/openbb_mcp.rs:1-13, scripts/smoke-test-sidecars.mjs:809-820, docs/redesign/DECISIONS.md D65, D80, BLOCKERS.md:159-177,513-516; refuter admitted_with_correction low (part (a), 'not a root-cause fix', refuted: the Popen spawn path is removed; only the packaged-launch verification gap stands)",
+   "root_cause": "The release checklist has no step that launches the packaged bundle.",
+   "fix_shape": "Run one packaged-app cold boot on each platform (launch the built bundle, check /openbb-mcp/status and /sec/status bind) and record it in DECISIONS.md; add it to the release gate docs. Adding it to CI would touch .github/workflows (Tier-1) - operator's call.",
+   "defect_class": "release-verification-gap",
+   "raw_ids": [
+    "INT-deferred-0-2"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  }
+ ],
+ "rejections": []
+}

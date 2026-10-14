@@ -1,0 +1,28 @@
+# R15-RELEASE-005 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:36+0530
+
+$ git merge-base --is-ancestor 9985b00e HEAD && echo 'closure 9985b00e is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 9985b00e NOT an ancestor'
+[exit 0] [0.02s]
+closure 9985b00e is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-RELEASE-005\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+scripts/sidecar-staleness.mjs:40:// bundled `.json.gz` fundamentals seeds never triggered a rebuild (R15-RELEASE-005).
+scripts/sidecar-staleness.test.mjs:79:  it("counts any bundled data kind, e.g. a regenerated .json.gz seed (R15-RELEASE-005)", () => {
+
+
+$ grep -n 'json\|gz\|ext' scripts/sidecar-staleness.mjs | cut -c1-200 | head -12
+[exit 0] [0.01s]
+7:// `tauri.conf.json`'s `beforeBuildCommand` runs `ensure-all-sidecars` WITHOUT
+39:// litter. An allow-list of extensions silently missed new data kinds: the
+40:// bundled `.json.gz` fundamentals seeds never triggered a rebuild (R15-RELEASE-005).
+75: * Newest source mtime (ms) across `sourceDirs` plus any `extraFiles`
+79:export function newestSourceMtime(sourceDirs, { excludeDirs = [], extraFiles = [] } = {}) {
+83:  for (const f of extraFiles) {
+88:      /* missing extra file contributes nothing */
+
+
+$ (scratch fixture: binary mtime 2026-01-01, src/seed.json.gz mtime 2026-02-01) node -e "import('/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/scripts/sidecar-staleness.mjs').then(m=>{console.log('json.gz newer than binary -> isStale', m.isStale('/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/r005/bin',['/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/r005/src']));})"
+json.gz newer than binary -> isStale true
+$ (binary touched to 2026-03-01, newer than the seed) same command
+json.gz newer than binary -> isStale false

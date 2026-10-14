@@ -1,0 +1,7 @@
+
+=== ASSISTANT TEXT ===
+The current price of **Amal Limited (AMAL)** is **₹674.40**. It has seen a decrease of ₹13.25, or approximately **1.93%**, in its latest trading session. 
+
+Would you like to take a closer look at any specific metrics or historical performance?
+
+=== ok · 5.8s · events {'tool_use': 2, 'tool_result': 2, 'delta': 63, 'done': 1} · usage in=11148 out=63 · est $0.00171 · gpt-4o-mini

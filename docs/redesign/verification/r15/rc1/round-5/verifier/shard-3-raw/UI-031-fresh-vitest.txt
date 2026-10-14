@@ -1,0 +1,41 @@
+# UI-031 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/modules/equity-overview/vs3-fresh.test.tsx
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+ ✓ src/modules/equity-overview/vs3-fresh.test.tsx > vs3 fresh UI-031 > A: three commands, loads settle in reverse; a superseded REJECTION never shows and the agent context names only the newest 101ms
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  16:49:10
+   Duration  1.29s (transform 151ms, setup 79ms, import 419ms, tests 102ms, environment 572ms)
+
+## test source (appended part)
+describe("vs3 fresh UI-031", () => {
+  it("A: three commands, loads settle in reverse; a superseded REJECTION never shows and the agent context names only the newest", async () => {
+    const pending: Record<string, { res: (v: EquityOverview) => void; rej: (e: unknown) => void }> = {};
+    mockLoad.mockImplementation(
+      (symbol: string) => new Promise((res, rej) => (pending[symbol] = { res, rej })),
+    );
+    render(<EquityOverviewPanel />);
+    for (const symbol of ["MSFT", "INFY.NS", "NVDA"]) {
+      await act(async () => {
+        useEquityCommandStore.getState().loadSymbol(symbol);
+      });
+      await flushCommandTick();
+    }
+    await act(async () => {
+      pending["NVDA"]!.res(overview({ symbol: "NVDA", fundamentals: fundamentals({ name: "NVIDIA Corp" }) }));
+    });
+    expect(screen.getByText("NVIDIA Corp")).toBeInTheDocument();
+    await act(async () => {
+      pending["INFY.NS"]!.rej(new SidecarError(502, "infy upstream down"));
+    });
+    await act(async () => {
+      pending["MSFT"]!.res(overview({ symbol: "MSFT", fundamentals: fundamentals({ name: "Microsoft" }) }));
+    });
+    expect(screen.getByText("NVIDIA Corp")).toBeInTheDocument();
+    expect(screen.queryByText("Microsoft")).toBeNull();
+    expect(screen.queryByText(/infy upstream down/)).toBeNull();
+    const events = Object.values(usePanelContextBus.getState().lastEventBySource);
+    const tickers = events.map((e) => (e.payload as { ticker?: string }).ticker).filter(Boolean);
+    expect(tickers).toContain("NVDA");
+    expect(tickers).not.toContain("MSFT");
+  });
+});

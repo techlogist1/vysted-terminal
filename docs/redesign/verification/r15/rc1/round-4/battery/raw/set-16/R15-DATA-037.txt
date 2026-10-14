@@ -1,0 +1,10 @@
+=== BTC/USDT range=1mo asset_class=crypto ===
+bars: 30 first: {'timestamp': '2026-08-28T00:00:00Z', 'open': 80249.59, 'high': 81478.87, 'low': 76888.0, 'close': 77845.87, 'volume': 19756.43646} last: {'timestamp': '2026-09-26T00:00:00Z', 'open': 84100.0, 'high': 84336.96, 'low': 83798.0, 'close': 84164.0, 'volume': 6762.45961}
+=== BTC/USDT range=1y asset_class=crypto ===
+bars: 365 first: {'timestamp': '2025-09-27T00:00:00Z', 'open': 109643.46, 'high': 109743.91, 'low': 109064.4, 'close': 109635.85, 'volume': 5501.78643} last: {'timestamp': '2026-09-26T00:00:00Z', 'open': 84100.0, 'high': 84336.96, 'low': 83798.0, 'close': 84163.99, 'volume': 6762.46758}
+=== BTC/USDT range=5y asset_class=crypto ===
+bars: 1826 first: {'timestamp': '2021-09-27T00:00:00Z', 'open': 43160.9, 'high': 44350.0, 'low': 42098.0, 'close': 42147.35, 'volume': 39776.84383} last: {'timestamp': '2026-09-26T00:00:00Z', 'open': 84100.0, 'high': 84336.96, 'low': 83798.0, 'close': 84164.0, 'volume': 6762.46904}
+=== ETH/USDT 1h over 1mo asset_class=crypto ===
+bars: 30
+=== ETH/USDT timeframe=1h over 1mo asset_class=crypto (corrected param) ===
+bars: 720

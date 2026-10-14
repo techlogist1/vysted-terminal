@@ -1,0 +1,8 @@
+# R15-CODE-DATA-019 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:23+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+echo "\$ POST /screener/run (group or)"; curl -s -m 100 -X POST "$H/screener/run" -H 'content-type: application/json' -d '{"universe":"custom","custom_symbols":["AAPL","MSFT"],"criteria":[],"group":{"combinator":"or","criteria":[{"field":"market_cap","operator":"gt","value":1000}]},"limit":5}' | python3 -c "import sys,json;d=json.load(sys.stdin);r=d.get('rows') or [];print('rows',len(r),'matched_criteria in any row:',any('matched_criteria' in x for x in r),'row0 keys',list(r[0].keys()) if r else None)"
+--- output ---
+$ POST /screener/run (group or)
+rows 1 matched_criteria in any row: False row0 keys ['symbol', 'name', 'sector', 'industry', 'market_cap', 'pe_ratio', 'forward_pe', 'peg_ratio', 'price_to_book', 'dividend_yield', 'roe', 'debt_to_equity', 'price', 'change_percent_1d', 'volume', 'currency', 'data_basis', 'data_as_of']
+
+EXIT=0 (2.9s)

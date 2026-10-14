@@ -1,0 +1,193 @@
+=== llm-providers.test.ts:42-70 ===
+describe("orderedProviders (R15-UI-087)", () => {
+  it("puts the preference order first and keeps unnamed providers in catalog order", () => {
+    const ids = orderedProviders(DEFAULT_PROVIDERS, ["groq", "anthropic"]).map((p) => p.id);
+    const rest = DEFAULT_PROVIDERS.map((p) => p.id).filter(
+      (id) => id !== "groq" && id !== "anthropic",
+    );
+    expect(ids).toEqual(["groq", "anthropic", ...rest]);
+  });
+});
+=== settings.test.ts:199-230 ===
+  it("R15-UI-087: provider order, start layout and palette options round-trip; garbled values keep the current ones", () => {
+    const store = useSettingsStore.getState();
+    store.setProviderOrder(["groq", "anthropic"]);
+    store.setStartLayout("Morning scan");
+    store.setPaletteShowRecents(false);
+    store.setPaletteSymbolScope("watchlist");
+    const bundle = settingsBundle();
+    resetSettingsStoreForTests();
+    useSettingsStore.getState().setAll(bundle);
+    let s = useSettingsStore.getState();
+    expect(s.providerOrder).toEqual(["groq", "anthropic"]);
+    expect(s.startLayout).toBe("Morning scan");
+    expect(s.paletteShowRecents).toBe(false);
+    expect(s.paletteSymbolScope).toBe("watchlist");
+
+    // Unknown ids are dropped (and duplicates collapse); an unusable value
+    // keeps the current preference rather than resetting it.
+    useSettingsStore.getState().setAll({
+      providerOrder: ["nope", "openai", "openai"],
+      startLayout: 7,
+      paletteSymbolScope: "everything",
+    } as never);
+    s = useSettingsStore.getState();
+    expect(s.providerOrder).toEqual(["openai"]);
+    expect(s.startLayout).toBe("Morning scan");
+    expect(s.paletteSymbolScope).toBe("watchlist");
+    useSettingsStore.getState().setAll({ providerOrder: "groq" } as never);
+    expect(useSettingsStore.getState().providerOrder).toEqual(["openai"]);
+  });
+
+  it("toBundle / settingsBundle snapshot the current preferences", () => {
+    useSettingsStore.getState().setDefaultAgentId("buffett");
+=== SettingsPanel.test.tsx:278-310 ===
+  // R9 killed an UNREAD preference-order group; R15-UI-087 rebuilt it with its
+  // consumer (the chat's provider fallback), so the order control is live now.
+  it("the provider fallback order is live: the arrows reorder the rows and the store (R15-UI-087)", () => {
+    render(<SettingsPanel />);
+    const before = useSettingsStore.getState().providerOrder;
+    const second = useLLMProvidersStore.getState().providers.find((p) => p.id === before[1])!;
+    fireEvent.click(screen.getByRole("button", { name: `Move ${second.label} up` }));
+    expect(useSettingsStore.getState().providerOrder.slice(0, 2)).toEqual([before[1], before[0]]);
+    expect(screen.getByRole("button", { name: `Move ${second.label} up` })).toBeDisabled();
+  });
+
+  it("the dead Interface section is gone — no region, no nav chip, no knobs (R9 kill)", () => {
+    render(<SettingsPanel />);
+    expect(screen.queryByRole("region", { name: "Interface" })).toBeNull();
+    const nav = screen.getByRole("navigation", { name: "Settings sections" });
+    expect(within(nav).queryByRole("button", { name: "Interface" })).toBeNull();
+    // The written-never-read knobs died with it (defect V6 + friends).
+    expect(screen.queryByLabelText("Accent intensity")).toBeNull();
+    expect(screen.queryByLabelText("Density")).toBeNull();
+    expect(screen.queryByRole("switch", { name: "Show recent commands" })).toBeNull();
+    expect(screen.queryByRole("switch", { name: "Scope to the focused panel first" })).toBeNull();
+    expect(screen.queryByText(/Starter cockpit/)).toBeNull();
+  });
+
+  it("picking a default agent applies it to the active chat lens", () => {
+    render(<SettingsPanel />);
+    fireEvent.change(screen.getByLabelText("Default agent"), { target: { value: "" } });
+    expect(useSettingsStore.getState().defaultAgentId).toBeNull();
+  });
+
+  // ---- Export / Import (FR-037/FR-038/SC-010) ----
+
+  it("export produces a bundle without secret values", () => {
+=== CommandPalette.test.tsx:183-210 ===
+    expect(within(remappedRow).getByText("⇧⌘S")).toBeInTheDocument();
+  });
+
+  // R15-UI-087 (FR-038): the two palette preferences change what it shows.
+  it("paletteShowRecents: on, a recent pick leads the empty palette; off, the Recent group is gone", () => {
+    useCommandPalette.setState({ open: true, recents: ["panel:test-panel"] });
+    render(<CommandPalette />);
+    expect(screen.getByText("Recent")).toBeInTheDocument();
+    expect(document.querySelector("[cmdk-item]")?.textContent).toContain("Reportable Panel");
+
+    cleanup();
+    useSettingsStore.getState().setPaletteShowRecents(false);
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    expect(screen.queryByText("Recent")).not.toBeInTheDocument();
+    expect(document.querySelector("[cmdk-item]")?.textContent).not.toContain("Reportable Panel");
+  });
+
+  it("paletteSymbolScope: all adds resolver tickers; watchlist searches the watchlist only", () => {
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Ask anything/i), { target: { value: "route" } });
+    expect(screen.getByText("Tickers")).toBeInTheDocument();
+    expect(screen.getByText("Route Mobile")).toBeInTheDocument();
+
+    cleanup();
+    useSettingsStore.getState().setPaletteSymbolScope("watchlist");
+    useCommandPalette.setState({ open: true });
+=== PanelHost.test.tsx:50-90 ===
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+});
+
+/**
+ * R15-UI-087 (FR-038): the "Start with" preference. The launch restore has
+ * already applied the last session; a named start layout then loads over it
+ * through the ordinary layout loader.
+ */
+describe("start layout", () => {
+  const api = {} as Parameters<typeof applyStartLayout>[0];
+
+  beforeEach(() => {
+    resetSettingsStoreForTests();
+    loadWorkspaceMock.mockReset();
+    useWorkspaceStore.setState({ dockviewApi: api } as never);
+  });
+
+  it("last session (the default) loads nothing over the restored session", async () => {
+    await applyStartLayout(api);
+    expect(loadWorkspaceMock).not.toHaveBeenCalled();
+  });
+
+  it("a named start layout loads that layout", async () => {
+    useSettingsStore.getState().setStartLayout("Morning scan");
+    await applyStartLayout(api);
+    expect(loadWorkspaceMock).toHaveBeenCalledWith("Morning scan");
+  });
+
+  it("a missing start layout keeps the last session and does not throw", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    loadWorkspaceMock.mockRejectedValueOnce(
+      new Error('Could not load workspace "Gone" (HTTP 404).'),
+    );
+    useSettingsStore.getState().setStartLayout("Gone");
+    await expect(applyStartLayout(api)).resolves.toBeUndefined();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('start layout "Gone" did not load'),
+      expect.any(Error),
+    );
+  });
+=== ChatSidebar.test.tsx:880-920 ===
+    fireEvent.change(input, { target: { value: "hello" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(screen.getByText(/Something went wrong — boom/)).toBeInTheDocument(),
+    );
+    expect(screen.queryByRole("button", { name: "Details" })).toBeNull();
+  });
+
+  // R15-UI-087 (FR-038, D-B11-7): a provider failure before any answer text
+  // falls back to the next configured provider in the preference order.
+  it("a first-provider auth failure is answered by the next configured provider, and the notice names both", async () => {
+    streamAgentInvocationMock
+      .mockImplementationOnce(async (_id, _payload, handlers) => {
+        handlers.onEvent({
+          kind: "error",
+          message: "The Anthropic API key was rejected — check it in Settings.",
+          code: "auth",
+        });
+      })
+      .mockImplementationOnce(async (_id, _payload, handlers) => {
+        handlers.onEvent({ kind: "delta", text: "The market is up 0.4% today." });
+        handlers.onEvent({ kind: "done" });
+      });
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "how is SPY doing" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(screen.getByText("The market is up 0.4% today.")).toBeInTheDocument(),
+    );
+    expect(streamAgentInvocationMock).toHaveBeenCalledTimes(2);
+    const calls = streamAgentInvocationMock.mock.calls.map(
+      (call) => call[1] as { provider: string; apiKey?: string },
+    );
+    expect(calls.map((c) => c.provider)).toEqual(["anthropic", "openai"]);
+    expect(calls[1].apiKey).toBe("sk-cached");
+    const assistant = useChatHistoryStore.getState().messages.find((m) => m.role === "assistant")!;
+    expect(assistant.error).toBeFalsy();
+    const notices = useMessageNoticesStore.getState().notices[assistant.id] ?? [];
+    expect(notices).toHaveLength(1);
+    expect(notices[0]).toMatch(/Anthropic could not answer: .*Retried with OpenAI\./);
+--- sidecar PROVIDER_FAILURE_CODES ---
+278:        "insufficient_credit",
+469:            code="provider_5xx",

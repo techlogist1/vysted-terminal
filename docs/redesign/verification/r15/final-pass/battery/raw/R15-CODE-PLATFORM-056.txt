@@ -1,0 +1,11 @@
+# R15-CODE-PLATFORM-056 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'unwrap_or(None)\|migrated = \|fn migrate_with_erroring_reader_leaves_unmigrated_and_retries\|mod dev' src-tauri/src/keychain.rs
+--- output ---
+110:mod dev_keystore {
+201:        let mut migrated = 0u32;
+216:        store.migrated = failed.is_empty();
+428:    mod dev {
+487:        fn migrate_with_erroring_reader_leaves_unmigrated_and_retries() {
+
+EXIT=0 (0.0s)

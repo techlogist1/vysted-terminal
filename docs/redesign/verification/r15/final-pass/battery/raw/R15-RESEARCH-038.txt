@@ -1,0 +1,11 @@
+# R15-RESEARCH-038 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:30:13+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p038.py 2>&1 | grep -v Warning
+--- output ---
+ATTEMPTS_PER_ENGINE 2 FAIL_THRESHOLD 2 COOLDOWN 45.0
+search1 raised: keyless web search has no engine available right now — DuckDuckGo: unreachable; 
+after 1 failed search: engine_calls 2 state closed failures 1
+search2 raised: keyless web search has no engine available right now — DuckDuckGo: unreachable; 
+after 2 failed searches: state open
+
+EXIT=0 (9.1s)

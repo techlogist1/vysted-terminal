@@ -1,0 +1,11 @@
+ENTRY: R15-AGENT-032 -- ci_pinned
+Repro is frontend-only (ChatSidebar transcript vs proposed-changes store timing); no sidecar API surface. Battery lane does not run vitest (heavy lane owns it). Verified the pinned test still exists and targets the exact certified string.
+--- grep test file ---
+229:  it("offers every first-party agent (by display name) in the plus menu's persona drill", () => {
+240:  it("the persona row always shows the display name, never a raw agent id", () => {
+252:  it("replaces the old depth escalation with the segmented three-stop pill (no toggle button)", () => {
+267:  it("the depth pill sets the store and the depth rides the invocation options", async () => {
+282:  it("the plus menu's Mode rows switch Agent ↔ Delegate", () => {
+788:        expect(assistantSteps().some((s) => s.startsWith("Couldn't apply: Open Flux"))).toBe(true),
+--- grep source still writes Applied: synchronously before async accept ---
+304:    return `Applied: ${title}`;

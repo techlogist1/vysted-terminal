@@ -1,0 +1,20 @@
+=== R15-LIFECYCLE-021 ===
+-- /system/provider-health --
+{"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":1.0,"consecutive_opens":0,"opens_total":15,"throttles_total":110.0},"fallthroughs":[]}
+-- /quotes/RELIANCE.NS --
+{"symbol":"RELIANCE","price":1226.0,"change":6.7999999999999545,"change_percent":0.5577427821522273,"volume":13138735.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+-- source: fall-through counter --
+24:declaration table and the same preference-order fallthrough.
+361:def _resolve_sync(
+375:    ``accept`` gates completeness exactly as in :func:`_resolve_async`: a valid
+419:        provider_health.record_fallthrough(provider_id, model_key, str(exc))
+422:async def _resolve_async(
+453:    Provenance is left untouched (see :func:`_resolve_sync`)."""
+516:    return _resolve_sync("quote", asset_class, eff, validate, symbol)
+532:    return _resolve_sync(
+555:    return await _resolve_async(
+618:        await _resolve_async(
+634:        await _resolve_async(
+650:        await _resolve_async(
+663:    return await _resolve_async(
+674:    return await _resolve_async("macro_series", None, None, None, series_id, provider)

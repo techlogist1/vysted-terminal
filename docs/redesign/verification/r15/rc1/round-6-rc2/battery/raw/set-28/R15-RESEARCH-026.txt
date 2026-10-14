@@ -1,0 +1,14 @@
+COMMAND: vite build --ssr (scratch config) of deriveMetrics from candidate src/modules/research/brief-blocks.tsx, then node p026-out/p026.mjs (candidate ace7dd76, nothing written in the worktree)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import { deriveMetrics } from "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/modules/research/brief-blocks";
+const mk=(cur:any)=>({price:{ok:false},fundamentals:{ok:true,provider:"p",data:{symbol:"ZZZ",market_cap:4.48e12,currency:cur,sector:"x"}}} as any);
+for (const cur of [undefined,"USD","INR"]) {
+  const m:any=deriveMetrics(mk(cur));
+  console.log("currency="+String(cur), JSON.stringify((m?.items??[]).filter((i:any)=>/market cap/i.test(i.label))));
+}
+--- output ---
+currency=undefined [{"label":"Market cap","value":"4.48T · currency unknown"}]
+currency=USD [{"label":"Market cap","value":"$4.48T"}]
+currency=INR [{"label":"Market cap","value":"₹4.48T"}]
+EXIT=0

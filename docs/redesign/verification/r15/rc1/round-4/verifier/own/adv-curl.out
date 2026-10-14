@@ -1,0 +1,121 @@
+HEAD 68d5573aff9a579af084dcbb124843f2aecff6e8  date 2026-09-27T00:31:47Z
+
+### -H X-Vysted-Region: US http://127.0.0.1:52312/disclosures/shareholding?symbol=AMAL
+{"symbol":"AMAL","count":104,"patterns":[{"symbol":"AMAL","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":71.35,"fii_percent":0.0,"dii_percent":0.03,"institutions_percent":0.03,"public_percent":28.65,"public_basis":"incl. institutions","public_non_institutional_percent":28.62,"employee_trusts_percent":null,"submission_date":"2026-07-05","xbrl_url":"https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/506597_57202695344_SP.html","source":"BSE","split_source":null,"split_as_of":null,"split_basis":"derived","promoter_pledged_percent":0.0,"promoter_pledge_basis":"filed"},{"symbol":"AMAL","quarter_end":"2026-03-31","quarter_basis":null,"promoter_percent":71.35,"fii_percent":0.0,"dii_percent":0.02,"institutions_percent":0.02,"public_percent":28.65,"public_basis":"incl. institutions","public_non_institutional_percent":28.64,"employee_trusts_percent":null,"submission_date":"2026-04-09","xbrl_url":"https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/506597_94202614185_SP.html","source":"BSE","split_source":null,"split_as_of":null,"split_basis":"derived","promoter_pledged_percent":0.0,"promoter_pledge_basis":"filed"},{"symbol":"AMAL","quarter_end":"2025-12-31","quarter_basis":null,"promoter_percent":71.35,"fii_percent":0.0,"dii_percent":0.02,"institutions_percent":0.02,"public_percent":28.65,"public_basis":"incl. institutions","public_non_institutional_percent":28.64,"employee_trusts_percent":null,"submission_date":"2026-01-15","xbrl_url":"https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/506597_1512026175853_SP.html","source":"BSE","split_source":null,"split_as_of":null,"split_basis":"derived","promoter_pledged_percent":0.0,"promoter_pledge_basis":"filed"},{"symbol":"AMAL","quarter_end":"2025-09-30","quarter_basis":null,"promoter_percent":71.35,"fii_percent":0.0,"dii_percent":0.02,"institutions_percent":0.02,"public_percent":28.65,"public_basis":"incl. institutions","public_non_institutional_percent":28.64,"employee_trusts_percent":null,"submission_date":"2025-10-11","xbrl_url":"https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/506597_1110202511311_SP.html","source":"BSE","split_source":null,"split_as_of":null,"split_basis":"derived","promoter_pledged_percent":0.0,"promoter_pledge_basis":"filed"},{"symbol":"AMAL","quarter_end":"2025-06-30","quarter_basis":null,"promoter_percent":71.35,"fii_percent":0.0,"dii_percent":0.02,"institutions_percent":0.02,"public_percent":28.65,"public_basis":"incl. institutions","public_non_institutional_percent":28.64,"emp
+
+### -H X-Vysted-Region: US http://127.0.0.1:52312/disclosures/announcements?symbol=AMAL&limit=25
+{"symbol":"AMAL","exchange":null,"count":21,"announcements":[{"symbol":"AMAL","exchange":"BSE","headline":"Closure of Trading Window","category":"Insider Trading / SAST","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachLive/e85ba6f5-286f-442e-8b64-198596f75ead.pdf","ts":"2026-09-25T14:52:14.917000+05:30"},{"symbol":"AMAL","exchange":"BSE","headline":"Board Meeting Intimation for Meeting Of The Board Of Directors And Closure Of Trading Window","category":"Board Meeting","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachLive/a367018d-c66e-47bf-b42a-d997b07a5a0e.pdf","ts":"2026-09-25T14:47:31.283000+05:30"},{"symbol":"AMAL","exchange":"BSE","headline":"Speech Of Chairman / Video Recording / Presentation","category":"AGM/EGM","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/143b2177-5969-412c-9f50-eb7d2aea3554.pdf","ts":"2026-08-20T16:07:26.060000+05:30"},{"symbol":"AMAL","exchange":"BSE","headline":"Shareholder Meeting / Postal Ballot-Scrutinizer''s Report","category":"AGM/EGM","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/f2eb83b8-561b-437b-be85-3b7ca2f9ee98.pdf","ts":"2026-08-14T14:36:23.693000+05:30"},{"symbol":"AMAL","exchange":"BSE","headline":"Shareholder Meeting / Postal Ballot-Outcome of AGM","category":"AGM/EGM","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/d5556caa-4228-4566-a382-2b0491ae7cd9.pdf","ts":"2026-08-14T14:34:25.880000+05:30"},{"symbol":"AMAL","exchange":"BSE","headline":"Announcement under Regulation 30 (LODR)-Newspaper Publication","category":"Company Update","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/7737b5ae-ce5e-4205-b287-76c1fcd82f7c.pdf","ts":"2026-08-03T15:24:18.550000+05:30"},{"symbol":"AMAL","exchange":"BSE","headline":"Reg. 34 (1) Annual Report.","category":"Others","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/9f893d4f-0fe7-4f71-8c3b-ffd7e1788671.pdf","ts":"2026-07-22T19:09:31.230000+05:30"},{"symbol":"AMAL","exchange":"BSE","headline":"Outcome Of The Board Meeting","category":"Result","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/f6a21eb9-8b78-4620-8213-11f4280bf629.pdf","ts":"2026-07-17T13:43:31.340000+05:30"},{"symbol":"AMAL","exchange":"BSE","headline":"Board Meeting Outcome for Outcome Of The Board Meeting","category":"Board Meeting","attachment_url":"https://www.bseindia.com/xml-data/corpfiling/AttachHis/6701b3e1-1686-418f-
+
+### -H X-Vysted-Region: US http://127.0.0.1:52312/resolve?q=AMAL
+{"ok":true,"query":"AMAL","region":"US","resolved":{"symbol":"AMAL","name":"Amalgamated Financial Corp.","exchange":"US","region":"US","asset_class":"equity","yahoo_symbol":"AMAL","confidence":1.0,"isin":"US0226711010","bse_code":null,"industry":null,"former_name":null,"board":null,"exchange_group":null,"face_value":null},"needs_disambiguation":false,"candidates":[{"symbol":"AMAL","name":"Amalgamated Financial Corp.","exchange":"US","region":"US","asset_class":"equity","yahoo_symbol":"AMAL","confidence":1.0,"isin":"US0226711010","bse_code":null,"industry":null,"former_name":null,"board":null,"exchange_group":null,"face_value":null},{"symbol":"AMAL","name":"Amal Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"AMAL.NS","confidence":1.0,"isin":"INE841D01013","bse_code":"506597","industry":null,"former_name":null,"board":"mainboard","exchange_group":"B","face_value":10.0},{"symbol":"AMAL","name":"Amal Ltd","exchange":"BSE","region":"IN","asset_class":"equity","yahoo_symbol":"AMAL.BO","confidence":1.0,"isin":"INE841D01013","bse_code":"506597","industry":null,"former_name":null,"board":"mainboard","exchange_group":"B","face_value":10.0}],"rename_lane":"available"}
+[HTTP 200 2.289763s]
+
+
+### http://127.0.0.1:52312/history/HDFC.NS?range=1y
+{"symbol":"HDFC.NS","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":null,"partial":false,"coverage_start":null}
+[HTTP 200 2.290016s]
+
+
+### http://127.0.0.1:52312/indicators/HDFC.NS?indicators=rsi
+{"symbol":"HDFC.NS","timeframe":"1d","provider":"none","indicators":[],"volume_profile":null}
+[HTTP 200 1.094528s]
+
+
+### http://127.0.0.1:52312/fundamentals/ELCIDIN
+{"symbol":"ELCIDIN.NS","name":"Elcid Investments Limited","sector":"Financial Services","industry":"Investment Company","sector_source":"resolver","currency":"INR","financial_currency":null,"ratio_price":103800.0,"market_cap":null,"pe_ratio":null,"forward_pe":null,"peg_ratio":null,"price_to_book":0.23935114,"price_to_sales":null,"ev_to_ebitda":18.766,"book_value":433672.47,"dividend_yield":0.00024084778420038535,"dividend_per_share":null,"eps":null,"beta":-20934.227,"fifty_two_week_high":137000.0,"fifty_two_week_low":102210.0,"fifty_two_week_change":-0.22409636,"fifty_two_week_high_date":"2026-04-20","fifty_two_week_low_date":"2026-09-15","listing_date":"2026-04-20","first_trade_date":"2026-04-20","forward_pe_fiscal_year":null,"roe":null,"roa":null,"gross_margin":0.99796,"operating_margin":0.98775,"profit_margin":0.82733,"debt_to_equity":null,"current_ratio":null,"quick_ratio":null,"roce":null,"basis":null,"revenue_ttm":1153875968.0,"net_income_ttm":954636992.0,"free_cash_flow":null,"shares_outstanding":null,"revenue_growth":-0.202,"earnings_growth":-0.185,"growth_basis":"mrq_yoy","held_percent_insiders":0.84566003,"held_percent_institutions":0.0,"dividend_per_share_ttm":25.0,"revenue_growth_computed":null,"earnings_growth_computed":null,"growth_computed_quarters":null,"field_meta":{"name":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:31:59.707981+00:00","reason":null,"label":null,"basis_note":null},"sector":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:31:59.707981+00:00","reason":null,"label":null,"basis_note":null},"industry":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:31:59.707981+00:00","reason":null,"label":null,"basis_note":null},"sector_source":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:31:59.707981+00:00","reason":null,"label":null,"basis_note":null},"currency":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:31:59.707981+00:00","reason":null,"label":null,"basis_note":null},"ratio_price":{"status":"ok","provider":"yfinance","as_of":"2026-09-25T09:58:58+00:00","reason":null,"label":null,"basis_note":null},"market_cap":{"status":"unavailable","provider":"yfinance","as_of":"2026-09-25T09:58:58+00:00","reason":"provider did not publish this field","label":null,"basis_note":null},"pe_ratio":{"status":"unavailable","provider":"yfinance","as_of":"2026-09-25T09:58:58+00:00","reason":"provider did not publish this field","label":null,"basis_note":null},"forward_pe":{"status":"unavailab
+
+### http://127.0.0.1:52312/fundamentals/NDTV
+{"symbol":"NDTV.NS","name":"New Delhi Television Limited","sector":"Communication Services","industry":"Broadcasting","sector_source":"resolver","currency":"INR","financial_currency":null,"ratio_price":70.08,"market_cap":7906756608.0,"pe_ratio":null,"forward_pe":null,"peg_ratio":null,"price_to_book":6.164673,"price_to_sales":1.470018,"ev_to_ebitda":-3.688,"book_value":11.368,"dividend_yield":0.0,"dividend_per_share":null,"eps":-33.18,"beta":0.783,"fifty_two_week_high":121.14,"fifty_two_week_low":58.75,"fifty_two_week_change":-0.40148604,"fifty_two_week_high_date":"2025-09-25","fifty_two_week_low_date":"2026-03-30","listing_date":"2004-05-19","first_trade_date":"2004-05-19","forward_pe_fiscal_year":null,"roe":-2.6029595958335934,"roa":null,"gross_margin":0.119610004,"operating_margin":-0.66220003,"profit_margin":-0.62071997,"debt_to_equity":1.99402,"current_ratio":null,"quick_ratio":null,"roce":-0.7506051273599967,"basis":"consolidated","revenue_ttm":5378679808.0,"net_income_ttm":-3338660096.0,"free_cash_flow":null,"shares_outstanding":112824717.0,"revenue_growth":0.0889921040408732,"earnings_growth":-0.1599886331344132,"growth_basis":"mrq_yoy","held_percent_insiders":0.72814006,"held_percent_institutions":0.0,"dividend_per_share_ttm":0.0,"revenue_growth_computed":null,"earnings_growth_computed":null,"growth_computed_quarters":null,"field_meta":{"name":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:32:12.296454+00:00","reason":null,"label":null,"basis_note":null},"sector":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:32:12.296454+00:00","reason":null,"label":null,"basis_note":null},"industry":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:32:12.296454+00:00","reason":null,"label":null,"basis_note":null},"sector_source":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:32:12.296454+00:00","reason":null,"label":null,"basis_note":null},"currency":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:32:12.296454+00:00","reason":null,"label":null,"basis_note":null},"ratio_price":{"status":"ok","provider":"yfinance","as_of":"2026-09-25T10:00:01+00:00","reason":null,"label":null,"basis_note":null},"market_cap":{"status":"ok","provider":"yfinance","as_of":"2026-09-25T10:00:01+00:00","reason":null,"label":null,"basis_note":null},"pe_ratio":{"status":"unavailable","provider":"yfinance","as_of":"2026-09-27T00:32:12.296454+00:00","reason":"P/E not meaningful for a loss-making company (negative EPS)","label":null,
+
+### http://127.0.0.1:52312/fundamentals/TCS.NS
+{"symbol":"TCS.NS","name":"Tata Consultancy Services Limited","sector":"Technology","industry":"Information Technology / Computers - Software & Consulting","sector_source":"resolver","currency":"INR","financial_currency":null,"ratio_price":2082.0,"market_cap":7532857786368.0,"pe_ratio":15.128615,"forward_pe":12.802493,"peg_ratio":2.7306,"price_to_book":6.8709693,"price_to_sales":2.7306912,"ev_to_ebitda":10.0,"book_value":303.014,"dividend_yield":0.031200000000000002,"dividend_per_share":65.0,"eps":137.64,"beta":0.166,"fifty_two_week_high":3350.0,"fifty_two_week_low":1976.8,"fifty_two_week_change":-0.28110218,"fifty_two_week_high_date":"2026-02-03","fifty_two_week_low_date":"2026-07-01","listing_date":"2004-08-25","first_trade_date":"2002-08-12","forward_pe_fiscal_year":"2027-03-31","roe":0.47743,"roa":0.24479,"gross_margin":0.40389,"operating_margin":0.23963,"profit_margin":0.18052,"debt_to_equity":0.10211,"current_ratio":2.276,"quick_ratio":2.045,"roce":0.5492762930395693,"basis":"consolidated","revenue_ttm":2758590000000.0,"net_income_ttm":497990000000.0,"free_cash_flow":397165002752.0,"shares_outstanding":3618087518.0,"revenue_growth":0.13931932468433247,"earnings_growth":0.04615987460815047,"growth_basis":"mrq_yoy","held_percent_insiders":0.71794,"held_percent_institutions":0.17551,"dividend_per_share_ttm":111.0,"revenue_growth_computed":null,"earnings_growth_computed":null,"growth_computed_quarters":null,"field_meta":{"name":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:32:32.258213+00:00","reason":null,"label":null,"basis_note":null},"sector":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:32:32.258213+00:00","reason":null,"label":null,"basis_note":null},"industry":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:32:32.258213+00:00","reason":null,"label":null,"basis_note":null},"sector_source":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:32:32.258213+00:00","reason":null,"label":null,"basis_note":null},"currency":{"status":"ok","provider":"yfinance","as_of":"2026-09-27T00:32:32.258213+00:00","reason":null,"label":null,"basis_note":null},"ratio_price":{"status":"ok","provider":"yfinance","as_of":"2026-09-25T09:45:00+00:00","reason":null,"label":null,"basis_note":null},"market_cap":{"status":"ok","provider":"yfinance","as_of":"2026-09-25T09:45:00+00:00","reason":null,"label":null,"basis_note":null},"pe_ratio":{"status":"ok","provider":"yfinance","as_of":"2026-09-25T09:45:00+00:00","reason":null,"label
+
+### http://127.0.0.1:52312/quotes/BHP.AX
+{"symbol":"BHP.AX","price":60.720001220703125,"change":-0.2999992370605469,"change_percent":-0.49164083056373936,"volume":6511835.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"AUD","market_state":null,"timestamp":"2026-09-25T06:13:02Z","provider":"yfinance","freshness":"eod"}
+[HTTP 200 0.379343s]
+
+
+### http://127.0.0.1:52312/quotes/0700.HK
+{"symbol":"0700.HK","price":436.6000061035156,"change":-1.79998779296875,"change_percent":-0.4105811628714953,"volume":9113746.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"HKD","market_state":null,"timestamp":"2026-09-25T08:08:12Z","provider":"yfinance","freshness":"eod"}
+[HTTP 200 0.821248s]
+
+
+### http://127.0.0.1:52312/quotes/7203.T
+{"symbol":"7203.T","price":2989.5,"change":11.5,"change_percent":0.38616521155137673,"volume":21084000.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"JPY","market_state":null,"timestamp":"2026-09-25T06:30:00Z","provider":"yfinance","freshness":"eod"}
+[HTTP 200 0.509182s]
+
+
+### http://127.0.0.1:52312/quotes/VOD.L
+{"symbol":"VOD.L","price":125.80000305175781,"change":0.5000030517578153,"change_percent":0.3990447340445453,"volume":52512523.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"GBp","market_state":null,"timestamp":"2026-09-25T16:18:24Z","provider":"yfinance","freshness":"eod"}
+[HTTP 200 0.498939s]
+
+
+### http://127.0.0.1:52312/quotes/2222.SR
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+[HTTP 404 2.032891s]
+
+
+### http://127.0.0.1:52312/quotes/SAP.F
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+[HTTP 404 2.564553s]
+
+
+### http://127.0.0.1:52312/quotes/GGAL.BA
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+[HTTP 404 1.671844s]
+
+
+### http://127.0.0.1:52312/quotes/ICON?asset_class=equity
+{"symbol":"ICON","price":64.45,"change":0.0,"change_percent":0.0,"volume":1200.0,"open":64.45,"high":64.45,"low":64.45,"prev_close":63.06,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-24T00:00:00Z","provider":"bse","freshness":"eod"}
+[HTTP 200 2.000236s]
+
+
+### http://127.0.0.1:52312/quotes/AMAL?asset_class=equity
+{"symbol":"AMAL","price":674.4,"change":-13.25,"change_percent":-1.926852323129499,"volume":13368.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+[HTTP 200 5.029946s]
+
+
+### http://127.0.0.1:52312/quotes/ELCIDIN?asset_class=equity
+{"symbol":"ELCIDIN","price":103800.0,"change":-1030.0,"change_percent":-0.9825431651244874,"volume":8.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+[HTTP 200 6.404017s]
+
+
+### http://127.0.0.1:52312/quotes/INFY.BO
+{"symbol":"INFY","price":1000.95,"change":-8.149999999999977,"change_percent":-0.8076503815280921,"volume":8.12,"open":1000.0,"high":1003.6,"low":991.75,"prev_close":1009.1,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}
+[HTTP 200 0.754745s]
+
+
+### http://127.0.0.1:52312/quotes/INFY.NS
+{"symbol":"INFY","price":1000.2,"change":-14.299999999999955,"change_percent":-1.4095613602759935,"volume":10240700.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+[HTTP 200 9.752433s]
+
+
+### http://127.0.0.1:52312/earnings/RDY/estimates
+{"symbol":"RDY","fiscal_period":null,"eps_estimate_mean":null,"eps_estimate_median":null,"eps_estimate_high":null,"eps_estimate_low":null,"eps_estimate_stddev":null,"estimate_analyst_count":null,"revenue_estimate_mean":84513956800.0,"revenue_estimate_median":null,"revenue_estimate_high":86000000000.0,"revenue_estimate_low":83116000000.0,"revenue_analyst_count":5,"currency":"USD","revenue_currency":"INR","provider":"yfinance","as_of":"2026-09-27T00:33:22.915606Z"}
+[HTTP 200 3.036317s]
+
+
+### http://127.0.0.1:52312/earnings/TM/estimates
+{"symbol":"TM","fiscal_period":null,"eps_estimate_mean":null,"eps_estimate_median":null,"eps_estimate_high":null,"eps_estimate_low":null,"eps_estimate_stddev":null,"estimate_analyst_count":1,"revenue_estimate_mean":13345378533800.0,"revenue_estimate_median":null,"revenue_estimate_high":14070000000000.0,"revenue_estimate_low":12863000000000.0,"revenue_analyst_count":9,"currency":"USD","revenue_currency":"JPY","provider":"yfinance","as_of":"2026-09-27T00:33:24.839143Z"}
+[HTTP 200 1.913094s]
+
+
+### http://127.0.0.1:52312/earnings/SONY/estimates
+{"symbol":"SONY","fiscal_period":null,"eps_estimate_mean":null,"eps_estimate_median":null,"eps_estimate_high":null,"eps_estimate_low":null,"eps_estimate_stddev":null,"estimate_analyst_count":1,"revenue_estimate_mean":3153763366770.0,"revenue_estimate_median":null,"revenue_estimate_high":3325900000000.0,"revenue_estimate_low":3040688221520.0,"revenue_analyst_count":11,"currency":"USD","revenue_currency":"JPY","provider":"yfinance","as_of":"2026-09-27T00:33:27.409324Z"}
+[HTTP 200 2.560984s]
+
+
+### http://127.0.0.1:52312/macro/DGS10?provider=fred
+{"detail":"FRED needs a free API key for macro data. Get one at fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, and reload — or switch the series provider to ECB, IMF, or World Bank, which need no key.","code":"provider_error","action":"Retry, or try again later."}
+[HTTP 502 0.001463s]
+
+
+### http://127.0.0.1:52312/quotes/ZZZZNOTREAL
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+[HTTP 404 1.753602s]
+
+
+### http://127.0.0.1:52312/macro/GDP
+{"detail":"provider is required for a series id"}
+[HTTP 422 0.000923s]
+

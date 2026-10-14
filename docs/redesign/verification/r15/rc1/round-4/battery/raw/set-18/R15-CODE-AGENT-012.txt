@@ -1,0 +1,19 @@
+=== R15-CODE-AGENT-012 probe (candidate 1006c6da) ===
+import asyncio, sys
+sys.path.insert(0, ".")
+from services.mcp_server import get_mcp_server
+
+async def main():
+    mcp = get_mcp_server()
+    t = await mcp.get_tool("invoke_agent")
+    schema = t.parameters
+    print("invoke_agent input schema properties:", list(schema.get("properties", {}).keys()))
+    print("has api_key property:", "api_key" in schema.get("properties", {}))
+
+asyncio.run(main())
+OUTPUT:
+invoke_agent input schema properties: ['agent_id', 'prompt']
+has api_key property: False
+
+Code: invoke_agent(agent_id, prompt) at mcp_server.py:194 -- no api_key param; key read server-side from get_http_headers().get(API_KEY_HEADER) at :206.
+VERDICT: holds. FastMCP tools/list schema for invoke_agent has no api_key property.

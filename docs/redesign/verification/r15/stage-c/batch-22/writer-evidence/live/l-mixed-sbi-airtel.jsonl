@@ -1,0 +1,36 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_76614c42d7ce4533b4795113683ac473", "name": "price_data", "input": {"asset_class": "equity", "range": "1mo", "symbol": "SBIN.ZZ", "timeframe": "1d"}}
+{"kind": "tool_use", "tool_call_id": "call_b1a19637164c44369d23f68cf049001a", "name": "price_data", "input": {"asset_class": "equity", "range": "1mo", "symbol": "BHARTIARTL.NS", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_76614c42d7ce4533b4795113683ac473", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'SBIN.ZZ' from 'yfinance'"}
+{"kind": "heartbeat"}
+{"kind": "tool_result", "tool_call_id": "call_b1a19637164c44369d23f68cf049001a", "name": "price_data", "ok": false, "error": "timeout"}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "BI"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "SB"}
+{"kind": "delta", "text": "IN"}
+{"kind": "delta", "text": ".Z"}
+{"kind": "delta", "text": "Z"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " our"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": " had"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " correctness"}
+{"kind": "delta", "text": " gate"}
+{"kind": "delta", "text": " error"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The price_data tool returned no data for this in this turn."}
+{"kind": "done", "usage": {"input_tokens": 2959, "output_tokens": 41, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

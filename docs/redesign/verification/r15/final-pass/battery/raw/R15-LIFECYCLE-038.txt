@@ -1,0 +1,10 @@
+# R15-LIFECYCLE-038 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'fn plain_tcp_listener_is_not_healthy\|fn sidecar_healthy\|GET /health HTTP\|did not answer /health' src-tauri/src/lib.rs | head
+--- output ---
+129:fn sidecar_healthy(port: u16) -> bool {
+139:    let request = "GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n";
+473:                "[vysted] port {port} accepted a connection but did not answer /health \
+970:    fn plain_tcp_listener_is_not_healthy() {
+
+EXIT=0 (0.0s)

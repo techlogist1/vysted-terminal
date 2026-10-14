@@ -1,39 +1,22 @@
 import type { VystedModule } from "@/lib/module-registry";
 
-import { ChatSidebar } from "./ChatSidebar";
-
 /**
- * Chat sidebar module — streaming AI assistant with agent picker, slash
- * commands, and a panel-context badge.
+ * Chat module — the agent surface.
  *
- * Phase 3, Teammate A. Slots into the first-launch layout per
- * BLUEPRINT §5.1 on the right side (~25% width). Custom Agent Builder
- * agents (Teammate C) appear in the picker once their endpoint is wired.
+ * FR-001: the agent is the shell's dominant, resizable LEFT COLUMN (mounted by
+ * `AgentDock` → `ChatSidebar`), NOT a dockview panel. It is therefore the one
+ * module that contributes NO dockview panel/command/component: registering it as
+ * a panel produced a second, identical agent surface ("AI Assistant") alongside
+ * the shell column. Removing the registration means the agent surface is ONE
+ * coherent thing, and any stale persisted "chat-sidebar" panel resolves to an
+ * unknown component on restore → the boot path cleanly falls back to the default
+ * cockpit (see `restoreLastSessionOrDefault`). The command palette's "Ask AI"
+ * row reveals this dock and routes the query via the agent-command bus.
  */
 export const chatModule: VystedModule = {
   id: "chat",
   title: "AI Assistant",
-  panels: [
-    {
-      id: "chat",
-      title: "AI Assistant",
-      icon: "sparkles",
-      component: "chat-sidebar",
-      singleton: true,
-      defaultSize: { w: 3, h: 12 },
-    },
-  ],
-  commands: [
-    {
-      id: "chat.open",
-      trigger: "ask",
-      title: "Open AI Assistant",
-      description: "Streaming chat with first-party agents and BYOK providers",
-      icon: "sparkles",
-      opensPanel: "chat",
-    },
-  ],
-  panelComponents: {
-    "chat-sidebar": ChatSidebar,
-  },
+  panels: [],
+  commands: [],
+  panelComponents: {},
 };

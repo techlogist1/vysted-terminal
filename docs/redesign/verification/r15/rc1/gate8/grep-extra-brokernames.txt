@@ -1,0 +1,20 @@
+sidecar/services/news_provider.py:12:  (``livemint.com/rss/news``), and the Zerodha Pulse aggregator
+sidecar/services/news_provider.py:13:  (``pulse.zerodha.com``). (Moneycontrol dropped first-party RSS and Business
+sidecar/services/news_provider.py:89:    ("Zerodha Pulse", "https://pulse.zerodha.com/feed.php"),
+sidecar/services/resolver_masters/regenerate_bse_master.py:138:    ``20`` (DHAN-RE, INE680A20011). An RE is a short-lived entitlement, not the
+sidecar/services/resolver_masters/india_sector_map.json:2419:   "symbol": "ANGELONE",
+sidecar/services/resolver_masters/india_sector_map.json:43846:   "symbol": "DHAN-RE",
+sidecar/tests/test_analyst_tools.py:113:    The Phase 6 plan guarantees no agent tool can place an order. The
+sidecar/tests/test_plugins.py:270:    _write_legacy_db("vysted-kite")
+sidecar/tests/test_plugins.py:271:    response = client.get("/plugins/vysted-kite/config")
+sidecar/tests/test_b5_market_resolver.py:64:    """R15-DATA-057: 'Dhanalakshmi Bank' ranked the expired DHAN-RE line first."""
+sidecar/tests/test_b5_market_resolver.py:68:    assert "DHAN-RE" not in symbols
+sidecar/tests/test_b5_market_resolver.py:73:    fix does not make DHAN-RE a BSE equity."""
+sidecar/tests/test_b5_market_resolver.py:79:            re_row = ["750942", "DHAN-RE", "Dhanlaxmi Bank Ltd", "R", "INE680A20011", "Active"]
+sidecar/tests/test_b5_market_resolver.py:84:    assert not symbol_resolver.is_bse_symbol("DHAN-RE")
+sidecar/tests/test_b5_market_resolver.py:103:            record("750942", "DHAN-RE", "R", "INE680A20011"),
+sidecar/tests/test_no_trading_surface.py:146:    "kiteconnect",
+src/components/DataBadges.test.tsx:30:    render(<ProvenanceBadge provider="kite" prefix="PAPER" synthetic />);
+src/lib/format.ts:278:  kite: "Kite",
+src/lib/format.ts:279:  upstox: "Upstox",
+src/lib/format.ts:280:  dhan: "Dhan",

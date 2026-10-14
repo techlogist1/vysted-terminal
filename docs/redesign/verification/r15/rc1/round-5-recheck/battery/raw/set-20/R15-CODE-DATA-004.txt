@@ -1,0 +1,6 @@
+CMD: curl -s http://127.0.0.1:52344/screener/default-universe -H 'X-Vysted-Region: IN'
+{"universe":"nifty50"}
+CMD: curl -s http://127.0.0.1:52344/screener/default-universe -H 'X-Vysted-Region: US'
+{"universe":"sp500"}
+CMD: curl -s http://127.0.0.1:52344/screener/default-universe (no header)
+{"universe":"nifty50"}

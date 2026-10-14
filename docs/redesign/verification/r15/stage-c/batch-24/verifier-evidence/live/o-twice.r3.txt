@@ -1,0 +1,19 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  26.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_34d6ccb0c3684cefacbdb98ef19b160e", "name": "price_data", "input": {"asset_class": "equity", "range": "1y", "symbol": "HDFCBANK.NS", "timeframe": "1d"}}
+[  36.9s] heartbeat: {"kind": "heartbeat"}
+[  41.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_34d6ccb0c3684cefacbdb98ef19b160e", "name": "price_data", "ok": false, "error": "timeout"}
+[  46.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_81400d63b6834cbfaca5abe1a6c5ae9d", "name": "price_data", "input": {"asset_class": "equity", "range": "1y", "symbol": "HDFCBANK.NS", "timeframe": "1d"}}
+[  56.3s] heartbeat: {"kind": "heartbeat"}
+[  58.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_81400d63b6834cbfaca5abe1a6c5ae9d", "name": "price_data", "ok": true, "error": null}
+[  68.2s] heartbeat: {"kind": "heartbeat"}
+[  78.2s] heartbeat: {"kind": "heartbeat"}
+[  88.2s] heartbeat: {"kind": "heartbeat"}
+[  90.3s] done: {"kind": "done", "usage": {"input_tokens": 6927, "output_tokens": 16, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+It seems that the price data for HDFCBANK.NS couldn't be retrieved within the allotted time. Let me try again.
+
+HDFCBANK.NS is currently trading at ₹774.65.
+
+=== ok · 90.3s · events {'heartbeat': 7, 'tool_use': 2, 'tool_result': 2, 'delta': 42, 'done': 1} · usage in=6927 out=16 · est $0.00000 · llama3.1:8b

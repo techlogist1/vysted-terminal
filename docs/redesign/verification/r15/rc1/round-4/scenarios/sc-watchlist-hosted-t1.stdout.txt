@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+It appears there are currently no symbols on your watchlist. Would you like to add some?
+
+=== ok · 2.9s · events {'tool_use': 2, 'tool_result': 2, 'delta': 20, 'done': 1} · usage in=10474 out=20 · est $0.00158 · gpt-4o-mini

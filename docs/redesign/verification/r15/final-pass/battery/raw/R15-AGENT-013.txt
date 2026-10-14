@@ -1,0 +1,16 @@
+# R15-AGENT-013 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:55:49+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+echo '$ POST /agents/copilot/runs (ollama llama3.1:8b, wall 300s, explanatory P/E prompt, as rc2)'
+R=$(curl -s -m 30 -X POST "$H/agents/copilot/runs" -H 'content-type: application/json' -d '{"prompt":"What is a P/E ratio, and why might NVDA have a high one? Answer in about 150 words of plain prose.","provider":"ollama","model":"llama3.1:8b","budget":{"max_wall_seconds":300}}'); echo "$R"
+RID=$(echo "$R" | python3 -c "import sys,json;print(json.load(sys.stdin)['run_id'])"); python3 $B/pollrun.py $RID 320 "Just explain it generally in about 200 words; no tools or data needed."
+grep -n "def test_run_output_is_returned_untruncated_by_get_run" "$C/sidecar/tests/test_run_manager.py"
+--- output ---
+$ POST /agents/copilot/runs (ollama llama3.1:8b, wall 300s, explanatory P/E prompt, as rc2)
+{"run_id":"c8d4fe56073744769d415a39c8986a36"}
+{"status": "done", "provider": "ollama", "model": "llama3.1:8b", "cost": {"tokens": 8531, "spend_usd": 0.0, "steps": 2}, "detail": "completed"}
+answer_len 801
+answer_start: The P/E ratio, or price-to-earnings ratio, is a common metric used to evaluate the value of a stock. It's calculated by dividing the current market price of the
+answer_end:  fields may contribute to investor optimism, driving up demand for its shares.  Let me check NVDA's current P/E ratio by fetching data from a reliable source...
+742:async def test_run_output_is_returned_untruncated_by_get_run(
+
+EXIT=0 (54.3s)

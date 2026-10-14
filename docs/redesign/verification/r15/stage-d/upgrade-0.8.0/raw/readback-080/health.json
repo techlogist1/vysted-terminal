@@ -1,0 +1,12 @@
+{
+    "providers": {
+        "crypto": "ccxt (bybit, binance, kraken, coinbase)",
+        "equity": "yfinance",
+        "fundamentals": "yfinance",
+        "macro": "unavailable",
+        "openbb-mcp": "unavailable"
+    },
+    "service": "vysted-sidecar",
+    "status": "ok",
+    "version": "0.8.0"
+}

@@ -1,0 +1,11 @@
+# R15-CODE-PLATFORM-048 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n "R15-CODE-PLATFORM-048\|'<0.9.0' is rejected\|a '<' required version is always false" src/lib/plugin-runtime.test.ts; grep -rn 'const cleaned = version.trim().replace' src/lib/*.ts
+--- output ---
+553:  // R15-CODE-PLATFORM-048: "<0.9.0" used to have its "<" silently stripped by
+558:  it("'<0.9.0' is rejected as unsupported, not parsed as '>=0.9.0'", async () => {
+611:  // R15-CODE-PLATFORM-048: "<" is an unsupported range operator, always false
+613:  it("a '<' required version is always false, on either side of it", () => {
+src/lib/plugin-runtime.ts:139:  const cleaned = version.trim().replace(/^[\^~>=\s]+/, "");
+
+EXIT=0 (0.0s)

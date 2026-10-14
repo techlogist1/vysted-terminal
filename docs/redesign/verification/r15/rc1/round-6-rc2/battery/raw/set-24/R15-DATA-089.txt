@@ -1,0 +1,21 @@
+RAW (candidate ace7dd76) ci_pinned-by-source-probe: client removed; same pinned test as FRONTEND-012
+head: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ sed -n 1210,1223p src/lib/host-actions.test.ts
+  it("add/update/delete write only the store — no sidecar ledger call (R15-CODE-FRONTEND-012)", async () => {
+    await applyHostActionAsync("portfolio_add_position", {
+      symbol: "TCS",
+      quantity: 5,
+      cost_basis: 2500,
+    });
+    const id = activeHoldings()[0].id;
+    await applyHostActionAsync("portfolio_update_position", { position_id: id, quantity: 7 });
+    expect(activeHoldings()[0].quantity).toBe(7);
+    await applyHostActionAsync("portfolio_delete_position", { position_id: id });
+    expect(activeHoldings()).toHaveLength(0);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+exit=0
+$ grep -rn 'syncPositionToSidecar\|sidecarPositionId\|portfolioUrl' src | head; echo grep-exit-$?
+grep-exit-0
+exit=0

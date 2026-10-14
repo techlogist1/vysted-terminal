@@ -1,0 +1,227 @@
+[
+  {
+    "raw_id": "DAT-P13-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real. No board/segment field exists on any in-app identity surface: the resolver reads the BSE group column (symbol_resolver.py:298) but discards it (`_group` at :338/:484/:750), and the wire payload (routers/resolve.py:27-43) has no board key. Downgraded to low for this slot: ELCIDIN is mainboard (BSE group B), so the missing label changes no decision here. It matters for SME names (lot sizes), where the same gap should be scored.",
+    "evidence": "sidecar/services/symbol_resolver.py:282-301, sidecar/services/symbol_resolver.py:484, sidecar/routers/resolve.py:27-43",
+    "evidence_checked": "Opened the resolver master loader and the payload projection. Read the collected /resolve bodies: no board key.",
+    "repro_check": "curl -s '127.0.0.1:52152/resolve?q=503681' shows keys symbol..former_name and no board/group (collected 19-Sep; same code at HEAD)."
+  },
+  {
+    "raw_id": "DAT-P13-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The sector is not available anywhere in-app for ELCIDIN. The bundled india_sector_map.json record has sector: null and industry_raw: null. /resolve has no sector key. The 23-Sep /fundamentals re-run returns sector: \"\" while field_meta.sector.status is 'ok', which mislabels an empty string as a good value. yfinance_provider.py:362 passes info.get('sector') through unchecked.",
+    "evidence": "sidecar/services/resolver_masters/india_sector_map.json (ELCIDIN record), sidecar/services/yfinance_provider.py:362, sidecar/routers/resolve.py:27-43",
+    "evidence_checked": "Read the sector-map record for ELCIDIN. curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance: sector '' with status ok.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq '.sector, .field_meta.sector' -> \"\" and {status: ok}"
+  },
+  {
+    "raw_id": "DAT-P13-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds as stated. /resolve derives industry from india_sector_map.json industry_raw, falling back to sector (symbol_resolver.py:887-894). Both are null for ELCIDIN, so the app shows industry: null. /fundamentals also returns industry: \"\" labelled status 'ok'. The pack's classification is well sourced: BSE ISubGroup 'Investment Company', and screener shows Financial Services > Finance > Investment Company.",
+    "evidence": "sidecar/services/symbol_resolver.py:853-905, sidecar/services/resolver_masters/india_sector_map.json (ELCIDIN: industry_raw null, sector null), sidecar/services/yfinance_provider.py:363",
+    "evidence_checked": "Opened the enrichment join and the sector-map record. curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance: industry ''.",
+    "repro_check": "curl -s '127.0.0.1:52152/resolve?q=ELCIDIN' -> resolved.industry null (19-Sep collected; the map is unchanged at HEAD)."
+  },
+  {
+    "raw_id": "DAT-P13-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Partly wrong. The day's OHLC is in-app: GET /history/ELCIDIN?timeframe=1d returns the 2026-09-18 bar as open 109735, high 109735, low 103820, close 105130 (nse_direct). That matches the pack's NSE day range (low 103820, high 109735) exactly. Only the Quote model has no open/high/low/prev_close fields (models/market.py:14-29), so a quote strip cannot show a day range without the chart. The BSE-basis range is not shown because the app prices off NSE. Downgraded to low.",
+    "evidence": "sidecar/models/market.py:14-39",
+    "evidence_checked": "Opened the Quote and OHLCVBar models. Re-ran /history against :52152 on 23-Sep.",
+    "repro_check": "curl -s '127.0.0.1:52152/history/ELCIDIN?timeframe=1d&range=1y' -> bar 2026-09-18 {open 109735, high 109735, low 103820, close 105130}"
+  },
+  {
+    "raw_id": "DAT-P13-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "The 23-Sep re-run still returns market_cap: null with field_meta status 'unavailable', reason 'provider did not publish this field' (yfinance). The app has both ingredients: a price of 105130 from /quotes, and shares_outstanding 200000 in the bundled india_sector_map.json record. It even has nse_bhavcopy.derive_market_cap (nse_bhavcopy.py:402), which only the screener warm crawler uses (fundamentals_warm.py:285). The research witness leg never substitutes a missing provider market cap (semantics.py:804-809 returns empty when market_cap is None). So the overview blank is real, with a cheap fix: price x master share count, labelled as derived.",
+    "evidence": "sidecar/services/yfinance_provider.py:365, sidecar/services/nse_bhavcopy.py:402-406, sidecar/services/fundamentals_warm.py:283-287, sidecar/services/research/semantics.py:787-809",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance. Opened the market-cap derivation and witness code, and read the sector-map shares for ELCIDIN. Did not check whether the screener store row carries a derived mcap for ELCIDIN.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .market_cap -> null (status unavailable)"
+  },
+  {
+    "raw_id": "DAT-P13-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "The 23-Sep re-run still returns pe_ratio: null with field_meta status 'unavailable', reason 'provider did not publish this field' (yfinance). The same is true of eps. The field is a labelled gap, but the world has P/E 22.0 (consolidated) and the app has net_income_ttm plus price, so it stays a real gap at medium.",
+    "evidence": "sidecar/services/yfinance_provider.py:366, sidecar/services/yfinance_provider.py:375",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .pe_ratio -> null"
+  },
+  {
+    "raw_id": "DAT-P13-7",
+    "verdict": "refuted",
+    "severity_final": "medium",
+    "reason": "The 19-Sep blank came from a transient Yahoo timeout (collected 'fundamentals' call: HTTP 502, 'curl: (28) Operation timed out after 30004 ms'), which the route surfaces as an honest 502 (routers/fundamentals.py:103-117). Re-run on 23-Sep returns HTTP 200 in 1.5s with this field populated and matching the pack's consolidated value, so the claimed persistent blank does not hold. The residual resilience gap is that both fundamentals lanes (openbb-mcp, then yfinance, provider_registry.py:473-495) come from Yahoo, so one Yahoo timeout blanks the whole overview. That gap belongs to the provider-chain finding, not to this field. Re-run value: price_to_book 0.24211821, against the pack's 0.242 (consolidated).",
+    "evidence": "sidecar/routers/fundamentals.py:88-117, sidecar/services/provider_registry.py:473-495, sidecar/services/yfinance_provider.py:358-394",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .price_to_book -> 0.24211821"
+  },
+  {
+    "raw_id": "DAT-P13-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "The 23-Sep re-run still returns roe: null with field_meta status 'unavailable', reason 'provider did not publish this field' (yfinance). The world value (1.23%) exists on screener, so the blank holds.",
+    "evidence": "sidecar/services/yfinance_provider.py:358-394",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .roe -> null"
+  },
+  {
+    "raw_id": "DAT-P13-9",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The Fundamentals model has no ROCE field at all (fields at models/fundamentals.py:46-102 include roe and roa but no roce), so ELCIDIN's ROCE (1.45%, screener) cannot appear on the /fundamentals surface.",
+    "evidence": "sidecar/models/fundamentals.py:46-102",
+    "evidence_checked": "Opened the Fundamentals model. curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance: no roce key.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq 'has(\"roce\")' -> false"
+  },
+  {
+    "raw_id": "DAT-P13-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "The 23-Sep re-run still returns debt_to_equity: null with field_meta status 'unavailable', reason 'provider did not publish this field' (yfinance). Outside truth is 0.0 (debt-free NBFC, screener consolidated). A blank is not a zero, so the gap holds.",
+    "evidence": "sidecar/services/yfinance_provider.py:355-356",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .debt_to_equity -> null"
+  },
+  {
+    "raw_id": "DAT-P13-11",
+    "verdict": "refuted",
+    "severity_final": "medium",
+    "reason": "The 19-Sep blank came from a transient Yahoo timeout (collected 'fundamentals' call: HTTP 502, 'curl: (28) Operation timed out after 30004 ms'), which the route surfaces as an honest 502 (routers/fundamentals.py:103-117). Re-run on 23-Sep returns HTTP 200 in 1.5s with this field populated and matching the pack's consolidated value, so the claimed persistent blank does not hold. The residual resilience gap is that both fundamentals lanes (openbb-mcp, then yfinance, provider_registry.py:473-495) come from Yahoo, so one Yahoo timeout blanks the whole overview. That gap belongs to the provider-chain finding, not to this field. Re-run value: revenue_ttm 1153875968 INR (Rs 115.4 Cr), against the pack's consolidated TTM of Rs 115 Cr.",
+    "evidence": "sidecar/routers/fundamentals.py:88-117, sidecar/services/provider_registry.py:473-495, sidecar/services/yfinance_provider.py:358-394",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .revenue_ttm -> 1153875968.0"
+  },
+  {
+    "raw_id": "DAT-P13-12",
+    "verdict": "refuted",
+    "severity_final": "medium",
+    "reason": "The 19-Sep blank came from a transient Yahoo timeout (collected 'fundamentals' call: HTTP 502, 'curl: (28) Operation timed out after 30004 ms'), which the route surfaces as an honest 502 (routers/fundamentals.py:103-117). Re-run on 23-Sep returns HTTP 200 in 1.5s with this field populated and matching the pack's consolidated value, so the claimed persistent blank does not hold. The residual resilience gap is that both fundamentals lanes (openbb-mcp, then yfinance, provider_registry.py:473-495) come from Yahoo, so one Yahoo timeout blanks the whole overview. That gap belongs to the provider-chain finding, not to this field. Re-run value: net_income_ttm 954636992 INR (Rs 95.5 Cr), against the pack's consolidated TTM of Rs 95 Cr.",
+    "evidence": "sidecar/routers/fundamentals.py:88-117, sidecar/services/provider_registry.py:473-495, sidecar/services/yfinance_provider.py:358-394",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .net_income_ttm -> 954636992.0"
+  },
+  {
+    "raw_id": "DAT-P13-13",
+    "verdict": "refuted",
+    "severity_final": "medium",
+    "reason": "The 19-Sep blank came from a transient Yahoo timeout (collected 'fundamentals' call: HTTP 502, 'curl: (28) Operation timed out after 30004 ms'), which the route surfaces as an honest 502 (routers/fundamentals.py:103-117). Re-run on 23-Sep returns HTTP 200 in 1.5s with this field populated and matching the pack's consolidated value, so the claimed persistent blank does not hold. The residual resilience gap is that both fundamentals lanes (openbb-mcp, then yfinance, provider_registry.py:473-495) come from Yahoo, so one Yahoo timeout blanks the whole overview. That gap belongs to the provider-chain finding, not to this field. Re-run value: revenue_growth -0.202 with growth_basis 'mrq_yoy', a labelled basis (models/fundamentals.py:102). The pack's own consolidated quarterly alternate is -20.7%. Its headline of -36.5% is FY-on-FY, so the gap is a definitional difference, not a blank or a mismatch.",
+    "evidence": "sidecar/routers/fundamentals.py:88-117, sidecar/services/provider_registry.py:473-495, sidecar/services/yfinance_provider.py:358-394, sidecar/models/fundamentals.py:102",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq '.revenue_growth, .growth_basis' -> -0.202, \"mrq_yoy\""
+  },
+  {
+    "raw_id": "DAT-P13-14",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "The 23-Sep re-run still returns eps: null with field_meta status 'unavailable', reason 'provider did not publish this field' (yfinance). The pack's value is 4773.5 TTM (consolidated). The app has net_income_ttm and the master share count (200000), yet shows no EPS.",
+    "evidence": "sidecar/services/yfinance_provider.py:375",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .eps -> null"
+  },
+  {
+    "raw_id": "DAT-P13-15",
+    "verdict": "refuted",
+    "severity_final": "medium",
+    "reason": "The 19-Sep blank came from a transient Yahoo timeout (collected 'fundamentals' call: HTTP 502, 'curl: (28) Operation timed out after 30004 ms'), which the route surfaces as an honest 502 (routers/fundamentals.py:103-117). Re-run on 23-Sep returns HTTP 200 in 1.5s with this field populated and matching the pack's consolidated value, so the claimed persistent blank does not hold. The residual resilience gap is that both fundamentals lanes (openbb-mcp, then yfinance, provider_registry.py:473-495) come from Yahoo, so one Yahoo timeout blanks the whole overview. That gap belongs to the provider-chain finding, not to this field. Re-run value: book_value 433672.47, which matches the pack's consolidated BVPS of 433672.47 exactly.",
+    "evidence": "sidecar/routers/fundamentals.py:88-117, sidecar/services/provider_registry.py:473-495, sidecar/services/yfinance_provider.py:358-394",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .book_value -> 433672.47"
+  },
+  {
+    "raw_id": "DAT-P13-16",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real. No equity face_value field exists in the Fundamentals model (models/fundamentals.py:46-102). The only face_value in the sidecar is the bond-pricing schema (agent_tools/catalog.py:792). Downgraded to low: face value (Rs 10) changes no decision on its own for this name, which has had no split or bonus in 11+ years. Its uses are reading dividends as a % of FV and spotting splits.",
+    "evidence": "sidecar/models/fundamentals.py:46-102, sidecar/services/agent_tools/catalog.py:792",
+    "evidence_checked": "Opened the model and grepped face_value across sidecar models, services and routers.",
+    "repro_check": "grep -rn face_value sidecar/models sidecar/services sidecar/routers -> bond schema only"
+  },
+  {
+    "raw_id": "DAT-P13-17",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "The 23-Sep re-run still returns dividend_per_share: null with field_meta status 'unavailable', reason 'provider did not publish this field' (yfinance). The only other dividend lane (dividend_actions._select_declared, dividend_actions.py:109-131) deliberately surfaces only a dividend whose record date is still in the future. The Rs 25 final dividend (ex/record 2026-07-24) is past, so it is never surfaced. No corporate-actions route exists (openapi path list on :52152), so the last declared dividend is absent in-app.",
+    "evidence": "sidecar/services/yfinance_provider.py:374, sidecar/services/dividend_actions.py:109-139",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance. Opened dividend_actions and listed the :52152 openapi paths (no corporate-actions route).",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .dividend_per_share -> null; curl -s 127.0.0.1:52152/openapi.json paths -> no corporate-actions route"
+  },
+  {
+    "raw_id": "DAT-P13-18",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds on the /fundamentals surface. dividend_per_share_ttm is null in the 23-Sep re-run. By design it is computed downstream in the research derived leg (yfinance_provider.py:168-175), so the overview never carries it. I did not run a research invoke to see whether the derived leg computes Rs 25 or double-counts to Rs 50. That is the pack's trap and the right follow-up check.",
+    "evidence": "sidecar/services/yfinance_provider.py:168-196",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance. Research derived leg not exercised (LLM-backed; not needed to confirm the overview blank).",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .dividend_per_share_ttm -> null"
+  },
+  {
+    "raw_id": "DAT-P13-19",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "The 23-Sep re-run still returns dividend_yield: null with field_meta status 'unavailable', reason 'provider did not publish this field' (yfinance). The world value is about 0.024% (Rs 25 / Rs 105130). It is tiny but real, and the app leaves it blank rather than showing it or deriving it.",
+    "evidence": "sidecar/services/yfinance_provider.py:343-347, sidecar/services/yfinance_provider.py:373",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq .dividend_yield -> null"
+  },
+  {
+    "raw_id": "DAT-P13-20",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Not blank, but wrong in a different way. The 19-Sep blank was the transient Yahoo timeout. On 23-Sep /fundamentals returns fifty_two_week_high 137000 (status ok), with no exchange or window label. That value is the max of the NSE series, which starts 2026-04-20 (NSE listing; first /history bar has high 137000). BSE, re-fetched 2026-09-23T01:20:55Z, shows the true 52-week high as 144500 on 17/10/2025. The app's '52-week' high is about 5 months of NSE data, 5.2% below the real one. Same mechanism as DAT-P13-21; the smaller gap keeps this at medium.",
+    "evidence": "sidecar/services/yfinance_provider.py:377, sidecar/models/fundamentals.py:77, https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=503681",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance. Re-ran /history (first bar 2026-04-20, max high 137000). Re-fetched the pack's BSE HighLow source at 2026-09-23T01:20:55Z: Fifty2WkHigh_adj 144500.00 (17/10/2025).",
+    "repro_check": "curl BSE HighLow (UA + Referer) -> {\"Fifty2WkHigh_adj\":\"144500.00\",\"Fifty2WkHigh_adjDt\":\" (17/10/2025)\"}; app fifty_two_week_high 137000.0"
+  },
+  {
+    "raw_id": "DAT-P13-21",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Corrected from 'blank' to 'wrong value shown as true'. On 23-Sep /fundamentals returns fifty_two_week_low 102210 with field_meta status 'ok'. That is the min of the NSE series since the 2026-04-20 listing (the /history min bar is 2026-09-15, low 102210). The real 52-week low is 87003 on 2026-04-02 on BSE, confirmed by re-fetching BSE HighLow at 2026-09-23T01:20:55Z. The app's figure is 17.5% too high. At a price of 105000, the stock looks 2.7% above its 52-week low when it is really 20.7% above. That is a money-relevant misread of range position with no basis or window label, so upgraded to high.",
+    "evidence": "sidecar/services/yfinance_provider.py:378, sidecar/models/fundamentals.py:78, https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=503681",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance. Re-ran /history?timeframe=1d&range=1y: 108 bars from 2026-04-20, min low 102210. Re-fetched BSE HighLow at 2026-09-23T01:20:55Z: Fifty2WkLow_adj 87003.00 (02/04/2026).",
+    "repro_check": "curl BSE HighLow -> {\"Fifty2WkLow_adj\":\"87003.00\",\"Fifty2WkLow_adjDt\":\" (02/04/2026)\"}; app fifty_two_week_low 102210.0 (status ok)"
+  },
+  {
+    "raw_id": "DAT-P13-22",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The sidecar has no corporate-actions route (the :52152 openapi path list has none). The NSE corporate-actions feed (nse_provider.get_corporate_actions, nse_provider.py:617-627) is used only by dividend_actions to surface a future-dated declared dividend, so the past Rs 25 final dividend (ex 2026-07-24) never appears. One caveat: only the dividend row of the pack's three is a capital corporate action. The re-lodgement window and the Risk Management Committee are announcement-feed items.",
+    "evidence": "sidecar/services/nse_provider.py:617-627, sidecar/services/dividend_actions.py:109-139",
+    "evidence_checked": "Grepped all consumers of get_corporate_actions (dividend_actions.py only) and listed openapi paths on :52152.",
+    "repro_check": "curl -s 127.0.0.1:52152/openapi.json | jq '.paths|keys' -> no corporate-actions/dividends path"
+  },
+  {
+    "raw_id": "DAT-P13-23",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Reproduced on 23-Sep: /disclosures/results?symbol=ELCIDIN returns count 0. Mechanism: the results calendar is NSE-event-calendar only (corporate_disclosures.py:335-356 calls nse_provider.get_results_calendar, nse_provider.py:597-603) with no BSE lane. The Q1 FY27 results (13 Aug 2026) and board-meeting intimation (5 Aug) are on BSE, so a scrip with a thin NSE history shows no results at all.",
+    "evidence": "sidecar/routers/disclosures.py:74-92, sidecar/services/corporate_disclosures.py:335-356, sidecar/services/nse_provider.py:597-603",
+    "evidence_checked": "Opened the route, the service and the NSE fetcher. Re-ran the GET against :52152 on 23-Sep.",
+    "repro_check": "curl -s '127.0.0.1:52152/disclosures/results?symbol=ELCIDIN' -> {\"count\":0,\"events\":[]}"
+  },
+  {
+    "raw_id": "DAT-P13-24",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real, but the mechanism is wrong. The 25-row limit is not the cause. The BSE lane requests only a 30-day window (_BSE_ANN_WINDOW_DAYS = 30, corporate_disclosures.py:88, used at :140), so the 2026-08-14 item is before the cutoff. The Q1 results filing (13 Aug) and board-meeting outcome are cut off the same way. The NSE lane contributed no rows (sources NSE+BSE, errors {}, both items BSE). Also confirmed: attachment URLs are hardcoded to AttachLive (corporate_disclosures.py:84), which the pack reports 404s for this filer.",
+    "evidence": "sidecar/services/corporate_disclosures.py:84-88, sidecar/services/corporate_disclosures.py:131-158",
+    "evidence_checked": "Opened the BSE announcements fetcher. Re-ran the GET against :52152 on 23-Sep: same 2 rows.",
+    "repro_check": "curl -s '127.0.0.1:52152/disclosures/announcements?symbol=ELCIDIN&limit=25' -> count 2 (2026-09-18, 2026-09-04); 2026-08-14 absent (older than 30-day window)"
+  },
+  {
+    "raw_id": "DAT-P13-25",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real, with a narrower gap than stated. With /fundamentals answering again, the app's values can be identified as consolidated: book_value 433672.47, P/B 0.242 and revenue_ttm Rs 115.4 Cr all match screener's consolidated page, not standalone (301137 / 0.35 / Rs 94 Cr). So the basis can be established. What is missing is that the payload never says so: the Fundamentals model has no basis field, and the grep for consolidated/standalone in models plus yfinance_provider found nothing relevant. For a name where the two bases diverge 21-44%, the unlabelled basis is a real trust gap.",
+    "evidence": "sidecar/models/fundamentals.py:46-102, sidecar/services/yfinance_provider.py:358-394",
+    "evidence_checked": "curl -s 'http://127.0.0.1:52152/fundamentals/ELCIDIN' at 2026-09-23T01:18:58Z -> HTTP 200 in 1.5s, provider yfinance. Compared the returned values to the pack's consolidated and standalone figures, and grepped models/services for a basis label.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ELCIDIN | jq '.book_value,.price_to_book' -> 433672.47, 0.242 (consolidated); no basis key in the payload"
+  }
+]

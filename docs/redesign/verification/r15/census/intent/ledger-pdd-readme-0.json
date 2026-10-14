@@ -1,0 +1,452 @@
+[
+  {
+    "pid": "INT-PD-1",
+    "promise": "The Product Design Decisions doc is RATIFIED for the R4 session-3 build; every teammate obeys it so the result is ONE coherent look, not six interpretations.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md:3-4 still self-declares RATIFIED; docs/redesign/R9_DESIGN_SYSTEM.md:1-11 installs a different authority chain ('This file supersedes R8_PROPORTION_LAW.md sec1-2'; external authority governs); docs/redesign/VYSTED_DESIGN.md:17-20 ('This file is the binding contract').",
+    "gap": "The doc is only HALF retired: sec1-sec7 (color/scale/type) are superseded, while sec8 + sec11-sec16 (EmptyState, DataTable, editor, composer, palette patterns) are still the live authority and are cited by shipped code (styles/tokens.css:21, src/app/globals.css:39+231, src/components/DataTable.tsx, src/modules/chat/SuggestionChips.tsx, src/modules/notes/NotesToolbar.tsx, src/store/workspace.ts). Nothing on the doc says which half is dead.",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-2",
+    "promise": "When the design doc and the reference screenshots disagree, the screenshot wins and the doc gets corrected.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "The governance rule survives verbatim in the successor: docs/redesign/R9_DESIGN_SYSTEM.md:4-7 ('conformance is judged by side-by-side screenshot comparison by a fresh-context verifier -- never by the implementing agent'); reference corpus moved to docs/redesign/references/DESIGN-opencode.ai.md + docs/redesign/references/r9/.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-3",
+    "promise": "When the design doc and a UI-rigor skill default disagree, the design doc wins (skills supply execution rigor, never taste).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "docs/redesign/R9_DESIGN_SYSTEM.md:3-7 inverts the precedence: 'R8's proportion law was self-graded and its own taste passed things a trained eye rejects. R9 anchors every visual decision to EXTERNAL authority: Refactoring UI's principles govern ideology, Linear / Cursor / Claude desktop are the reference truth'.",
+    "gap": "The PDD's 'this doc wins over the skill' clause is the exact rule R9 reversed; the PDD does not say so.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md:1-11"
+  },
+  {
+    "pid": "INT-PD-4",
+    "promise": "The redesigned app must read as warm near-black with no blue, replacing the prior cold-zinc OKLCH hue 264 + cool-indigo accent (#7e88e8).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:29-45 -- the ramp is PURE NEUTRAL (R=G=B: #0a0a0a .. #ededed), explicitly 'ZERO warm/brown cast, zero blue' (styles/tokens.css:4-6); src/app/globals.css:135-137 'Flat pure-neutral field'.",
+    "gap": "The 'no blue' half IS delivered (zero blue anywhere); the 'warm' half was deliberately reversed to neutral, not restored to cold-zinc.",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-5",
+    "promise": "The redesigned app uses a single muted amber accent, not the prior cool-indigo.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:54 --color-amber-400: #fab283 (OpenCode peach), not #d89a4e amber; DECISIONS.md:45 (D28) pins the peach.",
+    "gap": "The PRINCIPLE (one scarce non-indigo accent) is delivered -- only 6 amber-* call sites in src/+plugins/ (src/components/StatusChrome.tsx:264, src/modules/chat/AgentsRail.tsx:96+134, src/modules/node-editor/workflow-run-overlay.tsx:243+260) plus 3 rules in src/app/globals.css:201,208,222. Only the HUE was dropped.",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-6",
+    "promise": "Controls must 'breathe' at comfortable sizing (composer, pills, header) instead of the prior shrunken scale (h-8/12px composer, 9.6px pills, h-9 header).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "DECISIONS.md:43 (D26) deletes the R4 --spacing-N regime entirely; docs/redesign/R9_DESIGN_SYSTEM.md:66+ ('Controls -- one ladder') sets chrome h-6 24px / inputs h-7 28px / form controls h-8 32px, i.e. the OPPOSITE of the PDD's sm32/md40/lg48 + 'No h-7/h-8 chrome buttons' (PRODUCT_DESIGN_DECISIONS.md:312-313).",
+    "gap": "R9 found the R4 shrink was a token bug (halved --spacing-N), not a taste choice; the 'grow everything' remedy was replaced by 'restore standard Tailwind semantics'. The PDD's sizing table is now actively wrong guidance.",
+    "decision_ref": "DECISIONS.md:43 (D26); docs/redesign/R9_DESIGN_SYSTEM.md:13-42,66+"
+  },
+  {
+    "pid": "INT-PD-7",
+    "promise": "The design language is renamed 'Warm Graphite' (formerly 'Cold Instrument'); the words clay, espresso, and warm instrument must not appear anywhere in it.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md intro",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "The design language is now named R6 'Pure Black' (styles/tokens.css:1, src/app/globals.css:3, docs/redesign/VYSTED_DESIGN.md:19-20), not 'Warm Graphite'.",
+    "gap": "Two residues of the banned/retired vocabulary survive in shipped source: src/app/globals.css:231 calls the live type scale 'the Warm Graphite type scale', and src/modules/chart/ichimoku-cloud-primitive.ts:8 says 'negative-clay fill' ('clay' is the word the PDD:20-21 banned as colliding with the stale-code grep gate).",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-8",
+    "promise": "The deep background reads warm near-black with no blue, matching measured reference values (Perplexity #181614, Cursor #121108, R-B >= +4).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a70",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:29-45 + :4-10 -- pure-neutral R=G=B ramp (#0a0a0a well, #161616 panel, #242424 inset), single peach accent #fab283 (styles/tokens.css:54); none of the measured Perplexity/Cursor warm values are in the token file.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-9",
+    "promise": "The panel/card surface color is warm graphite, approximately #1a1814.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a70",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:29-45 + :4-10 -- pure-neutral R=G=B ramp (#0a0a0a well, #161616 panel, #242424 inset), single peach accent #fab283 (styles/tokens.css:54); none of the measured Perplexity/Cursor warm values are in the token file.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-10",
+    "promise": "Raised input/card surfaces are warm and clearly delineated from the panel background (#43413d / #453e35).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a70",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:29-45 + :4-10 -- pure-neutral R=G=B ramp (#0a0a0a well, #161616 panel, #242424 inset), single peach accent #fab283 (styles/tokens.css:54); none of the measured Perplexity/Cursor warm values are in the token file.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-11",
+    "promise": "The only saturated accent color in the app is a single muted amber, modeled on Cursor's dominant #c08030 cluster.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a70",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:29-45 + :4-10 -- pure-neutral R=G=B ramp (#0a0a0a well, #161616 panel, #242424 inset), single peach accent #fab283 (styles/tokens.css:54); none of the measured Perplexity/Cursor warm values are in the token file.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-12",
+    "promise": "The Warm Graphite neutral ramp uses OKLCH hue approximately 70-80, chroma <= 0.008, with perceptually-even steps, and every value is warm (R >= G >= B).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:29-32 -- 'PURE NEUTRAL gray ramp (R=G=B, #0a0a0a..#ededed)', i.e. chroma 0 and NO hue, not OKLCH hue 70-80 / chroma <=0.008 / R>=G>=B.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-13",
+    "promise": "The charcoal-* token names stay unchanged across the reskin so the ~92 files referencing them require zero code edits -- only the token values change.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "styles/tokens.css:12-19 states the invariant explicitly ('token NAMES are kept from the retired systems ... so the ~92 files that reference them as Tailwind classes re-skin with ZERO edits -- only the VALUES changed'); live count: 88 files under src/ + plugins/ + styles/ reference charcoal-*. The R6 reskin changed only the hex values in styles/tokens.css:33-45.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-14",
+    "promise": "Token charcoal-950 = #0e0d0b, used for the app root well (deepest surface).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:33 -- --color-charcoal-950: #0a0a0a (promised #0e0d0b). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-15",
+    "promise": "Token charcoal-925 = #131210, used for the header fascia and tab strip.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:34 -- --color-charcoal-925: #101010 (promised #131210). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-16",
+    "promise": "Token charcoal-900 = #1a1814, used for the panel/card surface (the anchor color).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:35 -- --color-charcoal-900: #161616 (promised #1a1814). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-17",
+    "promise": "Token charcoal-875 = #211e19, used for popover / active-tab / hover surfaces.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:36 -- --color-charcoal-875: #1d1d1d (promised #211e19). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-18",
+    "promise": "Token charcoal-850 = #29251f, used for raised inset surfaces (input fill, node background).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:37 -- --color-charcoal-850: #242424 (promised #29251f). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-19",
+    "promise": "Token charcoal-800 = #312c25, used for muted/secondary surfaces.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:38 -- --color-charcoal-800: #2b2b2b (promised #312c25). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-20",
+    "promise": "Token charcoal-700 = #39332b, used for borders, inputs, and dividers.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:39 -- --color-charcoal-700: #353535 (promised #39332b). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-21",
+    "promise": "Token charcoal-600 = #4a443a, used for strong borders and disabled-state foreground.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:40 -- --color-charcoal-600: #484848 (promised #4a443a). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-22",
+    "promise": "Token charcoal-500 = #79736a, the tertiary text color for faint labels, kbd hints, and process/meta lines.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:41 -- --color-charcoal-500: #8a8a8a (promised #79736a). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-23",
+    "promise": "Token charcoal-400 = #a8a095, the secondary/muted-foreground text color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:42 -- --color-charcoal-400: #a8a8a8 (promised #a8a095). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-24",
+    "promise": "Token charcoal-300 = #d3cec5, a secondary-bright text color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:43 -- --color-charcoal-300: #cccccc (promised #d3cec5). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-25",
+    "promise": "Token charcoal-200 = #e9e4dc, a bright secondary / chart text color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:44 -- --color-charcoal-200: #e2e2e2 (promised #e9e4dc). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-26",
+    "promise": "Token charcoal-100 = #f5f2ec, the primary text/foreground color (warm near-white).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:45 -- --color-charcoal-100: #ededed (promised #f5f2ec). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-27",
+    "promise": "Token lume = #f7f5f0, the peak near-white used for active-tab text and peak readouts.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:68 -- --color-lume: #f7f7f7 (promised #f7f5f0). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-28",
+    "promise": "Tokens brass-* and sage-* are aligned to the Warm Graphite ramp as quiet secondary neutrals.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a71",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "styles/tokens.css:58-64 (brass-* = neutral-gray secondaries 'aligned to the neutral ramp') and :70-74 (sage-* = 'secondary data series, never compete with the accent'). The role -- quiet secondary neutrals aligned to whatever the ramp is -- held across the reskin.",
+    "gap": "Values follow the R6 neutral ramp, not the Warm Graphite ramp the promise names.",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-29",
+    "promise": "The accent ramp uses OKLCH hue approximately 65-75 (amber/gold), restrained -- never neon, never pure orange.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:47-56 -- the accent is OpenCode's warm PEACH #fab283, not an OKLCH 65-75 amber/gold modeled on #c08030; DECISIONS.md:45 (D28).",
+    "gap": "The restraint clause ('never neon, never pure orange') is delivered; the specified hue band is not.",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-30",
+    "promise": "The accent color is used on at most ~5% of pixels and on at most one or two interactive elements at a time.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "Scarcity verified at the call-site level (pixel measurement needs a GUI, forbidden in this run): only 6 amber-* occurrences across 4 files in src/+plugins/ (src/components/StatusChrome.tsx:264, src/modules/chat/AgentsRail.tsx:96,134, src/modules/node-editor/workflow-run-overlay.tsx:243,260) plus 3 CSS rules (src/app/globals.css:201 .hud-active, :208 .node-active, :222 .stream-cursor). All five roles are live-agent activity; styles/tokens.css:47-51 states the one-role doctrine.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-31",
+    "promise": "The accent color is never used as a background wash, a gradient, or a glow.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "Zero radial/conic gradients and zero blurred shadows anywhere (grep over src/ + styles/: no shadow-(md|lg|xl|2xl), no drop-shadow, no blur-). The only gradients in src/app/globals.css:398-399 are mask-image fade-outs, not fills. Accent appears as a 1px border (globals.css:201,208), a 2px bar (:222) and one 10%-alpha chip tint on a RUNNING node (src/modules/node-editor/workflow-run-overlay.tsx:243) -- the 'faint tint' the promise's own sec2 permits.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-32",
+    "promise": "Token amber-200 = #f0d8ac, used for faint tint / selection fill.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:52 -- --color-amber-200: #fddcc4 (promised #f0d8ac). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-33",
+    "promise": "Token amber-300 = #e9bd80, used for hover-bright state and accent text on dark surfaces.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:53 -- --color-amber-300: #fcc9a6 (promised #e9bd80). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-34",
+    "promise": "Token amber-400 = #d89a4e, the brand/primary/default accent color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:54 -- --color-amber-400: #fab283 (promised #d89a4e). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-35",
+    "promise": "Token amber-500 = #c0802f, used for pressed/active-sash/selected states (matches Cursor's fill).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:55 -- --color-amber-500: #e89a68 (promised #c0802f). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-36",
+    "promise": "Token amber-600 = #875720, used for deep borders and dense accent usage.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:56 -- --color-amber-600: #b9744a (promised #875720). The ROLE the promise assigns to the token is unchanged; only the value was re-skinned.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  },
+  {
+    "pid": "INT-PD-37",
+    "promise": "Per FR-030, the amber/charcoal token values, globals.css's --accent-rgb (and every fallback hex), and chart-theme.ts's ACCENT_CORAL* constants + chart neutrals must all change together in one commit, or the chart canvas visually drifts from the chrome.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "Two of the three lockstep surfaces are on R6: styles/tokens.css:52-56 (amber peach) and src/lib/chart-theme.ts:21-47 (neutral chart palette mirroring charcoal-*, ACCENT_CORAL=#cccccc, with the name-vs-role note at :13-18). src/app/globals.css:55 sets --accent-rgb: 120 120 120 -- deliberately neutral per its own comment :51-54 and docs/redesign/VYSTED_DESIGN.md:350.",
+    "gap": "'and every fallback hex' was NOT done: 27 var(--color-*, #hex) fallbacks in src/app/globals.css still carry RETIRED R4 Warm Graphite values (e.g. :201,:208,:222 var(--color-amber-400, #d89a4e); :346 var(--color-charcoal-900, #1a1814); :349 var(--color-lume, #f7f5f0)), plus 17 non-color fallbacks frozen at R4 values (:244,:251 --font-weight-heading, 590 vs token 700; :304 --radius-panel, 0.375rem vs token 0; :255 --text-panel-title, 0.9375rem vs token 0.8125rem). This directly contradicts src/app/globals.css:18-20, which claims 'Fallbacks use NEUTRAL values so a missing token degrades to the same neutral gray -- never warm, never blue'.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-38",
+    "promise": "Signal colors are unchanged and are the only other saturated colors in the app, reserved for P&L only: positive #3fbf6f, negative #e5544b, warning #e0a13a.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "styles/tokens.css:79-83 (positive #3fbf6f, negative #e5544b, warning #e0a13a) and src/lib/chart-theme.ts:34-38 carry the identical three values -- unchanged across two full reskins.",
+    "gap": "The 'only other saturated colors' clause now has one recorded exception: the research depth-heat family (styles/tokens.css:90-92, --color-depth-ultra #f08a4b), added deliberately by DECISIONS.md:45 (D28).",
+    "decision_ref": "DECISIONS.md:45 (D28)"
+  },
+  {
+    "pid": "INT-PD-39",
+    "promise": "The warning color stays visibly yellower than the brand amber and appears only as a labelled badge (e.g. STALE/PAPER), so it never reads as the accent color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a72",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "Yellower-than-brand holds (#e0a13a vs the peach #fab283, styles/tokens.css:83 vs :54) and the documented meaning is still 'stale data' (src/components/DataBadges.tsx:17).",
+    "gap": "'appears only as a labelled badge (STALE/PAPER)' is not true in shipped code: warning is now a general caution tone on unlabelled and unrelated surfaces -- a bare pulsing status dot (src/components/StatusChrome.tsx:208 'bg-warning animate-pulse'), a budget bar fill (src/modules/chat/AgentsRail.tsx:134), a no-data glyph (src/modules/chart/ChartPanel.tsx:1385), plain notice text (src/modules/screener/ScreenerPanel.tsx:241,427), plugin lifecycle states (src/components/PluginManagerPanel.tsx:136,138,256), 'Docker not found' and keybinding conflicts (src/components/SettingsPanel.tsx:744,1466,1482).",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-40",
+    "promise": "The ambient radial-gradient glow behind the body in globals.css is removed entirely -- the canvas renders as a flat warm field with no ambient glow.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a73",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/app/globals.css:135-144 -- the body rule is 'Flat pure-neutral field. No ambient glow, no grain, no vignette, no gradient' and sets background-image: none. Zero radial-gradient in the file.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-41",
+    "promise": "The only allowed shadow-like effects are a 1px hard accent border, the inset active-tab tick, and a quiet 1px bezel with no blur.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a73",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "1px hard accent border: src/app/globals.css:201 (.hud-active) and :208 (.node-active), both 'box-shadow: 0 0 0 1px' (zero blur). Inset active-tab tick: :378 'box-shadow: inset 0 -2px 0'. The bezel went FURTHER than promised -- src/app/globals.css:58-60 removes the shadow primitive entirely ('No shadow/glow primitive of ANY kind').",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-42",
+    "promise": "No box-shadow/filter/drop-shadow with blur radius greater than 1px is used as a halo or bloom anywhere, no gradient is used as ambient light/fill on chrome/cards/canvas, and nothing is named glow/halo/bloom/neon/ambient.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a73",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "grep over src/ (*.tsx,*.ts,*.css): zero matches for shadow-(md|lg|xl|2xl), drop-shadow, blur-. Every box-shadow in src/app/globals.css (:201,:208,:378) has a 0px blur radius; :500,:517 set --xy-controls-box-shadow/box-shadow to none. The only gradients (:398-399) are mask-image fades. The retired '.node-glow' name is gone (:205-206 records the replacement).",
+    "gap": "Residual name-level noise only, in comments/domain words: src/app/globals.css:206 names the retired .node-glow, and 'ambient' survives as a DOMAIN word (src/store/chat-history.ts:6, src/store/research-spaces.ts:194 'ambient copilot turns'), never as a visual effect.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-43",
+    "promise": "Text hierarchy is expressed only via weight, opacity, and spacing -- never via color -- and the UI shows three visibly distinct text tiers.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "Three distinct tiers DO exist and are used at scale: charcoal-100 primary (261 call sites), charcoal-400 secondary (239), charcoal-500 tertiary (199) across src/+plugins/; styles/tokens.css:41-45 assigns the roles.",
+    "gap": "The 'NEVER via color' clause was deliberately reversed: docs/redesign/R9_DESIGN_SYSTEM.md:44+ (sec2, D27) makes hierarchy below 16px 'weight (400/500/700) + color, never size'. The PDD contradicts itself on this point -- its own sec4 table (PRODUCT_DESIGN_DECISIONS.md:117-121) defines the three tiers BY color token.",
+    "decision_ref": "DECISIONS.md:44 (D27); docs/redesign/R9_DESIGN_SYSTEM.md:44+"
+  },
+  {
+    "pid": "INT-PD-44",
+    "promise": "The primary text tier is charcoal-100 (#f5f2ec) at weight 400-510, used for content such as brief prose, answers, prices, and headings.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "Role delivered: styles/tokens.css:45 charcoal-100 is 'PRIMARY text / foreground', 261 call sites. Values dropped: the hex is #ededed (not #f5f2ec) and the weights are 400/500/700 (styles/tokens.css:122-124), not 400-510.",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach). Weights: DECISIONS.md:44 (D27)."
+  },
+  {
+    "pid": "INT-PD-45",
+    "promise": "The secondary text tier is charcoal-300/400 at weight 400, used for supporting labels, table secondaries, and descriptions.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "styles/tokens.css:42-43 -- charcoal-400 'SECONDARY text -- muted foreground' (239 call sites) and charcoal-300 'secondary-bright text' (132 call sites), at --font-weight-body 400 (styles/tokens.css:122). Role and weight both intact; only the hexes were re-skinned (#a8a8a8 / #cccccc).",
+    "gap": "",
+    "decision_ref": "R6 'Pure Black' supersedes the R4 Warm Graphite palette: styles/tokens.css:1-26 (R6 header + 'names are historical, not literal'), docs/redesign/R9_DESIGN_SYSTEM.md:79 ('The R6 Pure Black doctrine stands'), docs/redesign/VYSTED_DESIGN.md:8-20 (binding contract: pure-neutral #0a0a0a, peach accent #fab283), DECISIONS.md:45 (D28 pins amber-400=#fab283 as the brand peach)."
+  }
+]

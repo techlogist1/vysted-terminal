@@ -1,0 +1,128 @@
+{"kind": "tool_use", "tool_call_id": "call_67bad504808d471a8b744ce478d6d026", "name": "resolve_symbol", "input": {"query": "DAL"}}
+{"kind": "tool_result", "tool_call_id": "call_67bad504808d471a8b744ce478d6d026", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_404dbc6dc78b405eb4b5d8e595f7fc1e", "name": "fundamentals", "input": {"symbol": "DAL"}}
+{"kind": "tool_use", "tool_call_id": "call_964af54aa25642c88e4614b1f97a902c", "name": "fundamentals", "input": {"symbol": "DAL"}}
+{"kind": "tool_result", "tool_call_id": "call_404dbc6dc78b405eb4b5d8e595f7fc1e", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_964af54aa25642c88e4614b1f97a902c", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "delta", "text": "DAL"}
+{"kind": "delta", "text": " refers"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " two"}
+{"kind": "delta", "text": " different"}
+{"kind": "delta", "text": " companies"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Delta"}
+{"kind": "delta", "text": " Air"}
+{"kind": "delta", "text": " Lines"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Inc"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "DAL"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " major"}
+{"kind": "delta", "text": " U"}
+{"kind": "delta", "text": ".S"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " airline"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Dynamic"}
+{"kind": "delta", "text": " Arch"}
+{"kind": "delta", "text": "istr"}
+{"kind": "delta", "text": "uct"}
+{"kind": "delta", "text": "ures"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "DAL"}
+{"kind": "delta", "text": ".B"}
+{"kind": "delta", "text": "O"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " services"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " listed"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Since"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " asked"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " net"}
+{"kind": "delta", "text": " income"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " gathered"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Dynamic"}
+{"kind": "delta", "text": " Arch"}
+{"kind": "delta", "text": "istr"}
+{"kind": "delta", "text": "uct"}
+{"kind": "delta", "text": "ures"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Revenue"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "TT"}
+{"kind": "delta", "text": "M"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "97"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Net"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "TT"}
+{"kind": "delta", "text": "M"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "02"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " interested"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " Delta"}
+{"kind": "delta", "text": " Air"}
+{"kind": "delta", "text": " Lines"}
+{"kind": "delta", "text": "'"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 17735, "output_tokens": 122, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.023498}

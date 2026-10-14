@@ -1,0 +1,5 @@
+RuntimeError -> code internal | message The terminal hit an internal error. | detail RuntimeError: runs_store: database connection is closed
+ValueError -> code internal | message The terminal hit an internal error. | detail ValueError: could not parse depth 'ultra2'
+TypeError -> code internal | message The terminal hit an internal error. | detail TypeError: invoke_agent() got an unexpected keyword argument 'research_depth'
+KeyError -> code internal | message The terminal hit an internal error. | detail KeyError: 'connect_args'
+humanize(httpx.ConnectError) -> network | Could not reach the AI provider — check your network.

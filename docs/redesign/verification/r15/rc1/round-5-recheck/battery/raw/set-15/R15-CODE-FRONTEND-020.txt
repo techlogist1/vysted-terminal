@@ -1,0 +1,22 @@
+command: sed -n '331,370p' src/modules/agent-builder/agent-builder.test.tsx
+exit: 0
+output:
+  it("case not written against: a tool id the sidecar lists but the fallback array lacks is selectable", async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.endsWith("/custom-agents/tool-ids")) {
+        return new Response(JSON.stringify(["brand_new_tool"]), { status: 200 });
+      }
+      return new Response(JSON.stringify([]), { status: 200 });
+    });
+    render(<AgentBuilderPanel />);
+    await screen.findByText("New custom agent");
+
+    const button = await screen.findByRole("button", { name: "brand_new_tool" });
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(button);
+    expect(button).toHaveAttribute("aria-pressed", "true");
+  });
+});
+
+verdict: ci_pinned -- src/modules/agent-builder/agent-builder.test.tsx:331 'case not written against: a tool id the sidecar lists but the fallback array lacks is selectable' (fresh case beyond KNOWN_TOOL_IDS, proving the render no longer asserts against its own constants).

@@ -1,0 +1,4 @@
+--- live concurrency probe on own sidecar :52362 ---
+CMD: 16 concurrent cold /resolve + /resolve/autocomplete requests with unique queries, timing an unrelated /quotes/AAPL under the storm
+unrelated /quotes/AAPL under storm: 1.803109s
+all 16 concurrent resolves finished, total wall: 4.647233009338379s

@@ -1,0 +1,9 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: curl -s 'localhost:52344/resolve?q=GUJGASLTD' | head -c 700; echo; curl -s 'localhost:52344/resolve/autocomplete?q=GUJGAS' | head -c 800; /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/ip.sh -c "
+import asyncio
+from services import symbol_resolver as s
+r=s.autocomplete('GUJGAS','IN'); print([ (c.symbol,getattr(c,'former_name',None),getattr(c,'isin',None)) for c in r][:5])"
+{"ok":true,"query":"GUJGASLTD","region":"IN","resolved":{"symbol":"GUJENERGY","name":"GUJARAT ENERGY LIMITED","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"GUJENERGY.NS","confidence":1.0,"isin":"INE844O01030","bse_code":"539336","industry":null,"former_name":"GUJGASLTD","board":"mainboard","exchange_group":"A","face_value":2.0,"rename":{"renamed_from":"GUJGASLTD","renamed_to":"GUJENERGY","effective_date":"2026-07-01","note":"GUJGASLTD was renamed to GUJENERGY on NSE (effective 2026-07-01); the resolver answers the current symbol."}},"needs_disambiguation":false,"candidates":[{"symbol":"GUJENERGY","name":"GUJARAT ENERGY LIMITED","exchange":"NSE","region":"IN","asset_cl
+{"query":"GUJGAS","region":"IN","candidates":[]}[]
+
+exit=0

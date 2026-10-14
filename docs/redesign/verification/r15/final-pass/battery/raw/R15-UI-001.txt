@@ -1,0 +1,14 @@
+# R15-UI-001 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:50+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'agent write_note into the open note\|scope switch inside the debounce window' src/modules/notes/NotesPanel.test.tsx; grep -n 'flush' src/modules/notes/NotesPanel.tsx | head -5
+--- output ---
+50:  it("shows an agent write_note into the open note, and the next keystroke keeps it", async () => {
+70:  it("a scope switch inside the debounce window saves each scope's own text", async () => {
+10: *   A user edit captures `{scope, md}` and a debounced flush writes exactly that
+11: *   scope (flushed early on scope switch and unmount, so a pending save never
+158:  const flush = useCallback(() => {
+186:      timerRef.current = setTimeout(flush, SAVE_DEBOUNCE_MS);
+192:  }, [editor, flush]);
+
+EXIT=0 (0.0s)

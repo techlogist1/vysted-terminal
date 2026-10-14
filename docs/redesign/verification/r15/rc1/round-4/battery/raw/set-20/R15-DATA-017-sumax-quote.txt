@@ -1,0 +1,2 @@
+curl -s --max-time 20 'http://127.0.0.1:52352/quotes/SUMAX'
+{"symbol":"SUMAX","price":109.15,"change":0.6500000000000057,"change_percent":0.5990783410138302,"volume":40800.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}EXIT:0

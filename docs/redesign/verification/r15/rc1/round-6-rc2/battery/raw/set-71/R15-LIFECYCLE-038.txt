@@ -1,0 +1,23 @@
+# probe at ace7dd76 (candidate worktree /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand)
+$ grep -n 'fn plain_tcp_listener_is_not_healthy\|fn wait_for_health\|/health\|wait_for_port' src-tauri/src/lib.rs | head -30
+116:pub(crate) fn wait_for_port_timeout(port: u16, timeout_secs: u64) -> bool {
+127:/// Whether `127.0.0.1:port` answers `GET /health` as the Vysted sidecar. A bare
+139:    let request = "GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n";
+175:/// cold bind real headroom. This is near-free: `wait_for_port_with_retries`
+197:pub(crate) fn wait_for_port_with_retries(
+204:        if wait_for_port_timeout(port, per_attempt_secs) {
+296:/// `{dataDir}/exports/...`; the sidecar `/health` does NOT expose this, so the
+449:        let bound = wait_for_port_with_retries(
+461:        // The bind proves a listener, not that it is ours: confirm `/health`
+466:                "[vysted] port {port} accepted a connection but did not answer /health \
+791:        pick_free_port, sidecar_healthy, terminated_reason, wait_for_port_timeout,
+792:        wait_for_port_with_retries, write_bytes_atomic, write_text_atomic, SidecarPhase,
+963:    fn plain_tcp_listener_is_not_healthy() {
+1066:    fn wait_for_port_returns_true_immediately_when_bound() {
+1072:        assert!(wait_for_port_timeout(port, 1));
+1081:    fn wait_for_port_with_retries_short_circuits_without_invoking_on_retry() {
+1087:        let ok = wait_for_port_with_retries(port, 1, 3, |_, _| {
+1095:    fn wait_for_port_with_retries_exhausts_attempts_and_reports_each_retry() {
+1102:        let ok = wait_for_port_with_retries(free_port, 0, 3, |attempt, total| {
+1145:        let ok = wait_for_port_with_retries(free_port, 0, attempts, |_, _| {
+EXIT=0

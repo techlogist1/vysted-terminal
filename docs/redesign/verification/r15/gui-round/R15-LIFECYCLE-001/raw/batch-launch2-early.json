@@ -1,0 +1,7 @@
+[
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/9368c62-05-launch2-boot-early.png"},
+ {"cmd":"wait","seconds":4},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/9368c62-06-launch2-boot-6s.png"},
+ {"cmd":"wait","seconds":6},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/9368c62-07-launch2-boot-12s.png"}
+]

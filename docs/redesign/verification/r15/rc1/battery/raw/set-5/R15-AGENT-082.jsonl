@@ -1,0 +1,64 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_292c24d34ff146f18e3791aaaad34a7f", "name": "web_search", "input": {"query": "France capital", "category": "general", "num_results": 5}}
+{"kind": "tool_result", "tool_call_id": "call_292c24d34ff146f18e3791aaaad34a7f", "name": "web_search", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " knowledge"}
+{"kind": "delta", "text": " database"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " France"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " call"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " live"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": ":"}
+{"kind": "tool_use", "tool_call_id": "call_08bfd5bf73c74198b5db7723a91b5664", "name": "web_search", "input": {"category": "general", "num_results": 5, "query": "France capital"}}
+{"kind": "tool_result", "tool_call_id": "call_08bfd5bf73c74198b5db7723a91b5664", "name": "web_search", "ok": true, "error": null}
+{"kind": "delta", "text": "Unfortunately"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " France"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " live"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " topic"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 3108, "output_tokens": 27, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

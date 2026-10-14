@@ -1,0 +1,22 @@
+CMD: sed -n '110,122p' sidecar/models/fundamentals.py
+    #: ISO date the 52-week high/low each actually traded at (R15-DATA-055),
+    #: from the 1-year daily history's argmax(High)/argmin(Low) — Yahoo's
+    #: scalar ``fiftyTwoWeekHigh``/``Low`` carry no date of their own.
+    fifty_two_week_high_date: str | None = None
+    fifty_two_week_low_date: str | None = None
+    #: ISO exchange listing date (R15-DATA-055, D-B10-7): the NSE master's DATE
+    #: OF LISTING for an NSE listing, else ``None``. A listing younger than 52
+    #: weeks still reports a ``fifty_two_week_*`` pair (Yahoo backfills it from
+    #: the shorter history it has); this field lets the panel relabel that
+    #: range "since listing" instead of "52w".
+    listing_date: str | None = None
+    #: ISO date of the first bar Yahoo holds (``firstTradeDateMilliseconds``) —
+    #: the start of its data, not the listing (NAPEROL: 2002-07-01).
+
+CMD: curl -s 'http://127.0.0.1:52361/fundamentals/ELCIDIN' -H 'X-Vysted-Region: IN'
+symbol = ELCIDIN.NS
+fifty_two_week_high = 137000.0
+fifty_two_week_low = 102210.0
+fifty_two_week_high_date = 2026-04-20
+fifty_two_week_low_date = 2026-09-15
+listing_date = 2026-04-20

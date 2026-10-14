@@ -1,0 +1,23 @@
+Probe: no live browser/vitest execution this shard (no GUI; role forbids running vitest/pytest
+suites). Read the pinned committed tests + the source they exercise at the candidate SHA.
+
+Pinned tests, both in src/modules/chat/streaming.test.ts:
+  :330 "a consumer throw surfaces its own message once, not 'unparseable SSE frame'" — an
+    onEvent handler that throws "enqueueChange blew up" on a delta frame; asserts onError
+    receives exactly that message, not a relabelled "unparseable SSE frame: ...".
+  :349 "a raw-chat stream that closes without done calls onError once" — a stream that ends
+    (reader.read() done) after only a delta frame, no terminal done/error frame; asserts
+    onError fires once with STREAM_ENDED_EARLY ("The stream ended before the answer
+    finished.").
+  :357 "an agent-invocation stream that closes without done calls onError once" — same EOF-
+    without-done shape on streamAgentInvocation; same STREAM_ENDED_EARLY assertion. This is
+    the register's own "case not written against" (EOF without done on an agent invocation).
+
+Verdict basis: ci_pinned — both halves of this entry (consumer-throw mislabelling, and a
+stream ending without a terminal frame leaving the message/run/brief stuck forever) are pure
+SSE-consumer logic with no backend call to curl independently; the pinned tests' titles and
+assertions match the register's stated defect and batch-4's certification verbatim ("A consumer
+throw reaches onError as 'consumer blew up' (not 'unparseable SSE frame')." and "EOF without
+done on an agent invocation (the case not written against): onError once with 'The stream
+ended before the answer finished.'"). The heavy lane's vitest run is the actual execution of
+record for this entry.

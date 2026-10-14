@@ -1,0 +1,6 @@
+sidecar/services/screener.py:52::func:`start_warm_precompute` only ARMS the warm loop (R15-LIFECYCLE-020): no
+sidecar/services/screener.py:121:    return _DEFAULT_UNIVERSE_BY_REGION.get(resolved, "sp500")
+sidecar/services/screener.py:1310:#: The armed loop's interval — ``None`` until :func:`start_warm_precompute`.
+sidecar/services/screener.py:1313:_warm_universe: ScreenerUniverseId = "sp500"
+sidecar/services/screener.py:1417:def start_warm_precompute(interval: float = _WARM_INTERVAL_SECONDS) -> None:
+sidecar/services/screener.py:1443:    "start_warm_precompute",

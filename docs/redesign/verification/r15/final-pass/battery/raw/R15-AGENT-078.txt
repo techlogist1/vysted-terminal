@@ -1,0 +1,8 @@
+# R15-AGENT-078 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; echo "requestAnimationFrame count: $(grep -c 'requestAnimationFrame' src/lib/layout-templates.ts)"; grep -n 'R15-AGENT-078' src/lib/layout-templates.test.ts src/lib/layout-templates.ts | head -5
+--- output ---
+requestAnimationFrame count: 0
+src/lib/layout-templates.test.ts:269:describe("appliers run synchronously (R15-AGENT-078)", () => {
+
+EXIT=0 (0.0s)

@@ -1,0 +1,5 @@
+candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98 -- live GET http://127.0.0.1:52341/fundamentals/<SYM>.NS
+RELIANCE: basis=consolidated field_meta.basis={'status': 'ok', 'provider': 'exchange-filings', 'as_of': '2026-09-27T08:31:58.089276+00:00', 'reason': None, 'label': None, 'basis_note': None}
+CREST: basis=consolidated field_meta.basis={'status': 'ok', 'provider': 'exchange-filings', 'as_of': '2026-09-27T08:31:59.216077+00:00', 'reason': None, 'label': None, 'basis_note': None}
+AMAL: basis=None field_meta.basis={'status': 'unavailable', 'provider': 'exchange-filings', 'as_of': '2026-09-27T08:32:11.222227+00:00', 'reason': 'no NSE/BSE filing states a basis', 'label': None, 'basis_note': None}
+ELCIDIN: basis=None field_meta.basis={'status': 'unavailable', 'provider': 'exchange-filings', 'as_of': '2026-09-27T08:32:22.656087+00:00', 'reason': 'no NSE/BSE filing states a basis', 'label': None, 'basis_note': None}

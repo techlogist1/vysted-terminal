@@ -1,0 +1,6 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ grep -n 'R15-UI-045' src/modules/screener/*.test.tsx | head; grep -n 'defaultValueFor\|keepValue\|R15-UI-045' src/modules/screener/ScreenerCriteriaBuilder.tsx src/modules/screener/CriterionGroupEditor.tsx | head
+exit=0
+src/modules/screener/ScreenerCriteriaBuilder.test.tsx:71:  it("R15-UI-045: an operator change carries the typed threshold through", () => {
+src/modules/screener/ScreenerCriteriaBuilder.test.tsx:93:  it("R15-UI-045: the nested-group editor keeps the value across an operator change too", () => {
+src/modules/screener/CriterionGroupEditor.tsx:131:/** R15-UI-045: an operator change carries the typed threshold through —

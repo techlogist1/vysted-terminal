@@ -1,0 +1,19 @@
+== chart 30m SPY ==
+bars: 286 provider: yfinance freshness: eod
+== chart 30m RELIANCE.NS ==
+bars: 286 provider: yfinance freshness: eod
+== freshness SPY 1mo ==
+last bar ts: 2026-09-01T00:00:00-04:00 freshness: eod
+== freshness AAPL 1mo ==
+last bar ts: 2026-09-01T00:00:00-04:00 freshness: eod
+== freshness RELIANCE.NS 1wk ==
+last bar ts: 2026-09-21T00:00:00Z freshness: eod
+== freshness RELIANCE.NS 1mo ==
+last bar ts: 2026-09-01T00:00:00Z freshness: eod
+== sec sections AAPL 10-K ==
+n sections: 0
+== sec insider AAPL ==
+n transactions: 9 issuer: Apple Inc.
+ - {'accession': '0001140361-26-037584', 'reporter_name': '', 'reporter_cik': '', 'issuer_cik': '0000320193', 'issuer_name': 'Apple Inc.', 'issuer_symbol': None, 'form_type': '4', 'transaction_date': '2026-09-24', 'direction': None, 'shares': None, 'price_per_share': None, 'transaction_value': None, 'transaction_code': '', 'reporter_title': None}
+ - {'accession': '0001140361-26-037020', 'reporter_name': '', 'reporter_cik': '', 'issuer_cik': '0000320193', 'issuer_name': 'Apple Inc.', 'issuer_symbol': None, 'form_type': '4', 'transaction_date': '2026-09-17', 'direction': None, 'shares': None, 'price_per_share': None, 'transaction_value': None, 'transaction_code': '', 'reporter_title': None}
+ - {'accession': '0001140361-26-036226', 'reporter_name': '', 'reporter_cik': '', 'issuer_cik': '0000320193', 'issuer_name': 'Apple Inc.', 'issuer_symbol': None, 'form_type': '4', 'transaction_date': '2026-09-10', 'direction': None, 'shares': None, 'price_per_share': None, 'transaction_value': None, 'transaction_code': '', 'reporter_title': None}

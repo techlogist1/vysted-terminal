@@ -1,0 +1,6 @@
+TEST1 FIRST_COMPLETED timings: {
+  "node-start:A": 0.0,
+  "node-start:B": 0.0,
+  "node-start:C": 0.1
+}
+TEST2 timeout: elapsed=1.00s kinds=[('run-start', None), ('node-start', 'A'), ('node-error', 'A'), ('run-error', None)]

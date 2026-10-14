@@ -1,0 +1,18 @@
+=== R15-LEAD-045 live repro: in-process fetch_quotes_batch against candidate's own sidecar/.venv (yahoo_batch_provider.py) ===
+import sys, asyncio
+sys.path.insert(0, ".")
+from services import yahoo_batch_provider as ybp
+
+SYMS = ["AAPL","MSFT","GOOGL","AMZN","NVDA","META","TSLA","BRK-B","JPM","V",
+        "UNH","JNJ","WMT","PG","XOM","HD"]
+
+async def main():
+    rows, failures = await ybp.fetch_quotes_batch(SYMS)
+    print("rows returned:", len(rows))
+    print("failures:", failures)
+    print("sample keys:", list(rows.keys())[:5])
+asyncio.run(main())
+--- output ---
+rows returned: 16
+failures: {}
+sample keys: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA']

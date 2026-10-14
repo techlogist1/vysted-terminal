@@ -1,0 +1,19 @@
+# R15-CODE-PLATFORM-065 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:51+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import sys; sys.path.insert(0, "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb3/sc")
+from wf import *
+code,txt,ev=run([node("a","action.log",message="x")],[edge("e1","a","message","ghost","value")])
+print("$ POST /workflow/run dangling edge HTTP",code,txt[:300]); [print(e) for t,e in ev]
+code,txt,ev=run([node("a","example.plugin-node")],[])
+print("$ POST /workflow/run unregistered node type HTTP",code,txt[:300]); [print(str(e)[:700]) for t,e in ev]
+PY
+--- output ---
+$ POST /workflow/run dangling edge HTTP 200 
+{'kind': 'run-start', 'runId': '7155166e-0a6b-48aa-bfb5-0d4dd95843c3', 'startedAt': 1791030411354}
+{'kind': 'run-error', 'runId': '7155166e-0a6b-48aa-bfb5-0d4dd95843c3', 'message': "edge e1 references unknown target node 'ghost'", 'durationMs': 0.0}
+$ POST /workflow/run unregistered node type HTTP 200 
+{'kind': 'run-start', 'runId': 'b4198b97-499e-4868-b1e4-5c341a1f8ff5', 'startedAt': 1791030411359}
+{'kind': 'run-error', 'runId': 'b4198b97-499e-4868-b1e4-5c341a1f8ff5', 'message': "node 'a' uses unregistered type 'example.plugin-node'; registered: ['action.log', 'action.notify_desktop', 'action.webhook', 'ai.agent_invoke', 'analysis.screener_query', 'compute.indicator', 'data.fetch_analyst_history', 'data.fetch_earnings_calendar', 'data.fetch_earnings_history', 'data.fetch_history', 'data.fetch_insider_transactions', 'data.fetch_macro_series', 'data.fetch_price_target_history', 'data.fetch_quote', 'data.fetch_sec_filing', 'flow.sleep', 'logic.branch', 'logic.compare', 'quant.compute_greeks', 'quant.price_bond', 'quant.price_option', 'quant.yield_curve', 'transform.code', 'transform.json_
+
+EXIT=0 (0.2s)

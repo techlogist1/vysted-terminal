@@ -1,0 +1,4 @@
+COMMAND: python -c SearxngBackend(stub 40-row client).search(numResults=3)
+EXIT: 0
+OUTPUT:
+results=3 citations=3

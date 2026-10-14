@@ -1,0 +1,5 @@
+ace7dd76 candidate venv, cwd sidecar
+COMMAND: priority_note on an UNRANKED list [general, sec.gov, reuters]
+EXIT: 0
+OUTPUT:
+Citation preference — when several sources support a claim, cite the most authoritative: primary record (exchange/regulator/filings/IR): [2]; tier-1 press: [3].

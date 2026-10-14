@@ -1,0 +1,100 @@
+72:function normalizeHolding(raw: unknown): Holding | null {
+73-  if (!raw || typeof raw !== "object") {
+74-    return null;
+75-  }
+76-  const h = raw as Record<string, unknown>;
+77-  const symbol = typeof h.symbol === "string" ? h.symbol.trim().toUpperCase() : "";
+78-  if (symbol === "") {
+79-    return null;
+80-  }
+81-  const quantity = Number(h.quantity);
+82-  const costBasis = Number(h.costBasis);
+83-  if (
+84-    !(Number.isFinite(quantity) && quantity > 0 && Number.isFinite(costBasis) && costBasis >= 0)
+85-  ) {
+86-    return null;
+87-  }
+88-  const note = typeof h.note === "string" && h.note.trim() !== "" ? h.note.trim() : undefined;
+89-  return {
+90-    id: typeof h.id === "string" && h.id !== "" ? h.id : genId("h"),
+91-    symbol,
+92-    quantity,
+93-    costBasis,
+94-    assetClass: h.assetClass === "crypto" ? "crypto" : "equity",
+95-    note,
+96-  };
+97-}
+98-
+99-interface PortfoliosState {
+100-  portfolios: Portfolio[];
+101-  activeId: string;
+102-  /** Create a new empty portfolio, make it active, and return its id. */
+72:function normalizeHolding(raw: unknown): Holding | null {
+161:    const holding = normalizeHolding({ ...input, id: genId("h") });
+174:    const next = normalizeHolding({ ...input, id: holdingId });
+--- addHolding/updateHolding return type ---
+        const fresh = makeEmptyPortfolio();
+        return { portfolios: [fresh], activeId: fresh.id };
+      }
+      const activeId = state.activeId === id ? remaining[0].id : state.activeId;
+      return { portfolios: remaining, activeId };
+    }),
+
+  setActive: (id) =>
+    set((state) => (state.portfolios.some((p) => p.id === id) ? { activeId: id } : state)),
+
+  addHolding: (portfolioId, input) => {
+    const holding = normalizeHolding({ ...input, id: genId("h") });
+    if (!holding) {
+      return null;
+    }
+    set((state) => ({
+      portfolios: state.portfolios.map((p) =>
+        p.id === portfolioId ? { ...p, holdings: [...p.holdings, holding] } : p,
+      ),
+    }));
+    return holding.id;
+  },
+
+  updateHolding: (portfolioId, holdingId, input) => {
+    const next = normalizeHolding({ ...input, id: holdingId });
+    const target = get()
+      .portfolios.find((p) => p.id === portfolioId)
+      ?.holdings.some((h) => h.id === holdingId);
+    if (!next || !target) {
+      return false;
+    }
+    set((state) => ({
+      portfolios: state.portfolios.map((p) =>
+        p.id === portfolioId
+          ? { ...p, holdings: p.holdings.map((h) => (h.id === holdingId ? next : h)) }
+          : p,
+      ),
+    }));
+    return true;
+  },
+
+118:  setAll: (portfolios: Portfolio[], activeId?: string) => void;
+198:  setAll: (portfolios, activeId) =>
+226:  usePortfoliosStore.getState().setAll(
+      ),
+    })),
+
+  setAll: (portfolios, activeId) =>
+    set(() => {
+      const cleaned: Portfolio[] = (Array.isArray(portfolios) ? portfolios : [])
+        .filter((p) => p && typeof p === "object")
+        .map((p) => ({
+          id: typeof p.id === "string" && p.id !== "" ? p.id : genId("pf"),
+          name:
+            typeof p.name === "string" && p.name.trim() !== ""
+              ? p.name.trim()
+              : DEFAULT_PORTFOLIO_NAME,
+          holdings: (Array.isArray(p.holdings) ? p.holdings : [])
+            .map(normalizeHolding)
+            .filter((h): h is Holding => h !== null),
+        }));
+      if (cleaned.length === 0) {
+        const fresh = makeEmptyPortfolio(DEFAULT_PORTFOLIO_NAME, DEFAULT_PORTFOLIO_ID);
+        return { portfolios: [fresh], activeId: fresh.id };
+      }

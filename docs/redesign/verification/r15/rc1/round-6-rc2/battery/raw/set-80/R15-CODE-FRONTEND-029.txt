@@ -1,0 +1,4 @@
+# R15-CODE-FRONTEND-029 at ace7dd76 (pinned test existence + source check; vitest not run, heavy lane owns)
+$ grep -n -F 'appears' src/components/CommandPalette.test.tsx
+289:  it("custom agent added while open appears", () => {
+exit=0

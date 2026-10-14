@@ -1,0 +1,10 @@
+{
+ "tool_call_id": "call_787ca3b3b41c45728c18c3eb504fb1af",
+ "name": "portfolio_add_position",
+ "input": {
+  "purchased_at": "2023-12-01",
+  "symbol": "TCS",
+  "quantity": 5,
+  "cost_basis": 3500
+ }
+}

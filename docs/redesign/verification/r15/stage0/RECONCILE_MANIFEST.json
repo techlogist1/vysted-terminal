@@ -1,0 +1,3904 @@
+{
+ "generated": "2026-09-23",
+ "scout_model": "claude-opus-5-5 (Opus 5.5)",
+ "repo_head_at_scout": "b18b6d4",
+ "read_only": true,
+ "scope_change_overlay": {
+  "note": "Operator SCOPE CHANGE 23 Sep 03:46 IST: trading is out of the product. Items below touch the removal surface; they are flagged so no census effort is spent on code being deleted.",
+  "code_subsystems_on_removed_surface": {
+   "brokers-adapters": "entire partition is broker adapters/routes/panels/plugins/orders store -> 15 raw findings adjudicate \"removed with the feature\"; do NOT launch its refute",
+   "safety-audit": "kill switch, audit log, OrderConfirmationDialog, DisclaimerFlow -> check what each gates first; order-only parts go, the rest stay; refute only the surviving findings after the removal",
+   "host-actions-proposed-changes": "critique PENDING; holds the order proposal/review path plus non-order proposed changes -> run the critique AFTER the removal batch, on what survives",
+   "portfolio": "stays (tracked portfolio); but its partition lists sidecar/services/agent_tools/broker_portfolio.py -> verify whether that tool is broker-only"
+  },
+  "raw_findings_keyword_candidates": 59,
+  "raw_findings_keyword_note": "59 raw findings match broker|kite|order|paper|kill-switch|audit_orders|propose_order|margin (crude regex, includes false positives like sort order); 15 are all of code-brokers-adapters and 13 of 14 are code-safety-audit. Adjudicate each one in the register.",
+  "pending_items_to_rescope": [
+   "agent-behaviour probe: drop the propose_order/paper-trade/audit_orders checks; prove that no order tool exists instead",
+   "seat-* drives: skip broker panels and paper trading (PROMPT_wave2 SEAT text still says \"portfolio (paper)\" and \"paper-trade\")",
+   "route-fuzzer: order/kill-switch routes it was told to avoid are being deleted; re-run after removal",
+   "licence-audit: prompt still frames AGPL + commercial dual licence; header step (3) moves to PolyForm Strict 1.0.0"
+  ]
+ },
+ "section1_worktrees": {
+  "rows": [
+   {
+    "branch": "worktree-agent-a0f66b3235af400e6",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-a3b89d4c77edd3d2e",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-a4050617afe66bc3d",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-a4ad1b49cee7ce8f5",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-a5ae5375cc836dbf9",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-a9141cf82965b0f93",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-a9213be4d0e8eacb7",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-a9dffdd47629cfa40",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-aa9cf4277720b8972",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-aad46a7311f3a2d1d",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-abde4703b4971c624",
+    "sha": "32b7a5d",
+    "subject": "fix(r12): 52w-range card treats zero-filled bounds as provider absence \u2014 no fabricated 0-0 render",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 85,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-aca67059c0f509aec",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-ad884fe79fe84332f",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-ad9616945f3d5052b",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-ae06c3598f33ae85a",
+    "sha": "1609474",
+    "subject": "docs(r12): Gate 5 disposition table \u2014 33 entries, 28 pinned-RESOLVED, 3 NOT-A-DEFECT, 2 pin gaps closed by worktree-agent-pins merge",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 96,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-ae2d27cf756bf0462",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-ae4a8098f17ac2413",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-agent-bhav",
+    "sha": "1bbdaf7",
+    "subject": "feat(r11): NSE UDiFF bhavcopy fetcher \u2014 one-request whole-NSE EOD closes (D54)",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 121,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/agent-bhav",
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-design",
+    "sha": "876fde3",
+    "subject": "feat(design): apply R4 Cold Instrument design language via token re-value",
+    "merged_into_004": false,
+    "ahead_of_004": 1,
+    "behind_004": 648,
+    "commits_ahead": [
+     "876fde3 feat(design): apply R4 Cold Instrument design language via token re-value"
+    ],
+    "files_ahead": [
+     "src/app/globals.css    | 285 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------------------------",
+     "src/lib/chart-theme.ts |  86 ++++++++++++++++++++++++++-------------------------",
+     "src/lib/motion.ts      |  74 ++++++++++++++++++++++++++++++++++++++++++++",
+     "styles/tokens.css      | 264 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------"
+    ],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "superseded: 3483aa1 re-applied R4 Cold Instrument on 004 (later re-valued to zinc+indigo); src/lib/motion.ts on 004"
+   },
+   {
+    "branch": "worktree-agent-fe",
+    "sha": "73192e4",
+    "subject": "fix(gates): lint-clean readiness hook, tokens-ok icon justifications, prettier pass",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 117,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/agent-fe",
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-fixa",
+    "sha": "77e7834",
+    "subject": "fix(disclosures): broaden BSE split-enrich guard to any exception (R13 hardening)",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 32,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/agent-a5ae5375cc836dbf9",
+    "uncommitted": [
+     " M docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-fixb",
+    "sha": "f9a1eec",
+    "subject": "fix(research): 52w-range circularity guard + symmetric mcap-witness wording (R13 hardening D-1/D-2)",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 32,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-fixc",
+    "sha": "34d88c7",
+    "subject": "feat(fundamentals): additive identity_note cross-check on REST surface",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 35,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-growth",
+    "sha": "a6c6770",
+    "subject": "feat(r12): D66 growth cross-check \u2014 quarterly-statement YoY vs provider scalars",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 95,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/agent-growth",
+    "uncommitted": [
+     " M docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-hardening",
+    "sha": "088fe32",
+    "subject": "fix(r12): scrub unknown invoke options + alias depth so a stray key can't crash the round",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 81,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-identity",
+    "sha": "85b049a",
+    "subject": "feat(resolver): identity cross-check \u2014 provider vs canonical name conflict (R12/D67)",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 94,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/agent-ae06c3598f33ae85a",
+    "uncommitted": [
+     " M docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-jarvis",
+    "sha": "ad8ca23",
+    "subject": "feat(agent): self-consistency across turns \u2014 client-side claims ledger (R13 JARVIS D3)",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 44,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/agent-ad9616945f3d5052b",
+    "uncommitted": [
+     "?? node_modules"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-lastfix",
+    "sha": "66f0cbc",
+    "subject": "fix(disclosures,resolver): 100x historical SHP split corruption + ISIN-leak on collision candidates",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 21,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-narrative",
+    "sha": "f5332a1",
+    "subject": "fix(fundamentals): canonicalize a model-typo'd symbol before giving up (R12)",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 94,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-notes",
+    "sha": "0a078ce",
+    "subject": "feat(notes): Tiptap editor with slash/wikilink menus, atomic persistence, and sharing (FR-121/SC-032)",
+    "merged_into_004": false,
+    "ahead_of_004": 1,
+    "behind_004": 648,
+    "commits_ahead": [
+     "0a078ce feat(notes): Tiptap editor with slash/wikilink menus, atomic persistence, and sharing (FR-121/SC-032)"
+    ],
+    "files_ahead": [
+     "package.json                               |  13 +++",
+     "pnpm-lock.yaml                             | 736 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+     "src-tauri/src/lib.rs                       |  35 ++++++++",
+     "src/lib/module-registry.test.ts            |   2 +",
+     "src/lib/workspace.test.ts                  |   3 +",
+     "src/lib/workspace.ts                       |  14 +++",
+     "src/modules/index.ts                       |   2 +",
+     "src/modules/notes/NotesPanel.tsx           | 448 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+     "src/modules/notes/SlashCommandExtension.ts |  85 ++++++++++++++++++",
+     "src/modules/notes/WikiLinkExtension.ts     | 111 +++++++++++++++++++++++",
+     "src/modules/notes/index.ts                 |  38 ++++++++",
+     "src/modules/notes/notes-persistence.ts     | 100 +++++++++++++++++++++",
+     "src/modules/notes/notes.test.ts            | 238 ++++++++++++++++++++++++++++++++++++++++++++++++",
+     "src/modules/notes/slash-commands.ts        |  69 ++++++++++++++",
+     "src/store/notes.ts                         |  92 +++++++++++++++++++"
+    ],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/agent-adcb22a54601b720f",
+    "uncommitted": [
+     " M .specify/extensions.yml",
+     " M .specify/extensions/agent-context/README.md",
+     " M .specify/extensions/git/README.md",
+     " M .specify/extensions/git/commands/speckit.git.commit.md",
+     " M .specify/extensions/git/commands/speckit.git.feature.md",
+     " M .specify/extensions/git/commands/speckit.git.initialize.md",
+     " M .specify/extensions/git/commands/speckit.git.remote.md",
+     " M .specify/extensions/git/commands/speckit.git.validate.md",
+     " M .specify/init-options.json",
+     " M .specify/integration.json",
+     " M .specify/memory/constitution.md",
+     " M .specify/templates/checklist-template.md",
+     " M .specify/templates/constitution-template.md",
+     " M .specify/templates/plan-template.md",
+     " M .specify/templates/spec-template.md",
+     " M .specify/templates/tasks-template.md",
+     " M .specify/workflows/workflow-registry.json",
+     " M CLAUDE.md",
+     " M README.md",
+     " M docs/CURRENT_STATE.md",
+     " M docs/README.md",
+     " M docs/research/redesign/REFERENCE_SYNTHESIS.md",
+     " M docs/research/redesign/REF_cursor.md",
+     " M docs/research/redesign/REF_fincept.md",
+     " M docs/research/redesign/REF_landscape.md",
+     " M docs/research/redesign/REF_mcp.md",
+     " M docs/research/redesign/REF_openbb.md",
+     " M specs/001-agent-native-redesign/spec.md"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "superseded: Tiptap notes on 004 via 0fe8674 + 5629f9c (src/modules/notes/*, src/store/notes.ts present)"
+   },
+   {
+    "branch": "worktree-agent-palette",
+    "sha": "a2b3a21",
+    "subject": "feat(palette): rebuild CommandPalette with cmdk (FR-120/SC-031)",
+    "merged_into_004": false,
+    "ahead_of_004": 1,
+    "behind_004": 648,
+    "commits_ahead": [
+     "a2b3a21 feat(palette): rebuild CommandPalette with cmdk (FR-120/SC-031)"
+    ],
+    "files_ahead": [
+     "package.json                      |   1 +",
+     "pnpm-lock.yaml                    |  21 +++++++++",
+     "src/components/CommandPalette.tsx | 392 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------------------------",
+     "src/modules/chat/ChatSidebar.tsx  |  13 ++++++",
+     "src/store/chat-pending.ts         |  34 ++++++++++++++",
+     "src/store/command-palette.test.ts | 287 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+     "src/store/command-palette.ts      | 257 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----"
+    ],
+    "origin": "differs (origin 71bf9b4: +201 / local +1; origin merged into 004: yes)",
+    "worktree_dir": ".claude/worktrees/agent-a47228f53658c48ac",
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "superseded: cmdk palette on 004 via bbb15ec; origin/worktree-agent-palette (201 newer) already merged"
+   },
+   {
+    "branch": "worktree-agent-panel",
+    "sha": "ac694ea",
+    "subject": "feat(research): tier conflict presentation by nature, surface derived facts generically (R13)",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 45,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-pushguard",
+    "sha": "13ce4c9",
+    "subject": "feat(guard): pre-push secrets + stray-capture guard",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 12,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": ".claude/worktrees/wf_6871fdb3-621-10",
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "merged into 004 via 2d99cda (R15 pushguard)"
+   },
+   {
+    "branch": "worktree-agent-r10-errors",
+    "sha": "68875b6",
+    "subject": "fix(r10-errors): address all adversarial review findings \u2014 reblocker + 5 majors",
+    "merged_into_004": false,
+    "ahead_of_004": 3,
+    "behind_004": 648,
+    "commits_ahead": [
+     "68875b6 fix(r10-errors): address all adversarial review findings \u2014 reblocker + 5 majors",
+     "9aaa64f feat(e11): remove Tradesa V2 plugin and all references",
+     "6a24124 feat(errors): add humanizer + extend LLMErrorEvent with action/detail/code"
+    ],
+    "files_ahead": [
+     "docs/redesign/R10_TRACK_ERRORS_REPORT.md                     | 136 ++++++++++++++++++++++++++++++",
+     "plugins/tradesa-v2/components/BrainDecisionsPanel.test.tsx   |  72 ----------------",
+     "plugins/tradesa-v2/components/BrainDecisionsPanel.tsx        | 244 -----------------------------------------------------",
+     "plugins/tradesa-v2/components/HealthPanel.test.tsx           |  75 -----------------",
+     "plugins/tradesa-v2/components/HealthPanel.tsx                | 181 ---------------------------------------",
+     "plugins/tradesa-v2/components/MetaAgentsPanel.test.tsx       | 103 -----------------------",
+     "plugins/tradesa-v2/components/MetaAgentsPanel.tsx            | 307 ------------------------------------------------------------------",
+     "plugins/tradesa-v2/components/PanelFetchError.tsx            |  40 ---------",
+     "plugins/tradesa-v2/components/PositionsPanel.test.tsx        |  86 -------------------",
+     "plugins/tradesa-v2/components/PositionsPanel.tsx             | 135 -----------------------------",
+     "plugins/tradesa-v2/components/SentinelPanel.test.tsx         |  67 ---------------",
+     "plugins/tradesa-v2/components/SentinelPanel.tsx              | 126 ----------------------------",
+     "plugins/tradesa-v2/components/SettingsPanel.test.tsx         | 100 ----------------------",
+     "plugins/tradesa-v2/components/SettingsPanel.tsx              | 220 ------------------------------------------------",
+     "plugins/tradesa-v2/components/TradeHistoryPanel.test.tsx     |  79 -----------------",
+     "plugins/tradesa-v2/components/TradeHistoryPanel.tsx          | 281 -------------------------------------------------------------",
+     "plugins/tradesa-v2/components/TradesaBotStatusStrip.test.tsx |  87 -------------------",
+     "plugins/tradesa-v2/components/TradesaBotStatusStrip.tsx      |  89 --------------------",
+     "plugins/tradesa-v2/components/TradesaSettingsDialog.test.tsx | 122 ---------------------------",
+     "plugins/tradesa-v2/components/TradesaSettingsDialog.tsx      | 216 -----------------------------------------------",
+     "plugins/tradesa-v2/components/_PanelShell.tsx                | 196 -------------------------------------------",
+     "plugins/tradesa-v2/components/_test-helpers.ts               | 300 -----------------------------------------------------------------",
+     "plugins/tradesa-v2/components/_utils.ts                      | 198 -------------------------------------------",
+     "plugins/tradesa-v2/connection.ts                             | 281 -------------------------------------------------------------",
+     "plugins/tradesa-v2/index.ts                                  | 373 ---------------------------------------------------------------------------------",
+     "plugins/tradesa-v2/manifest.json                             |  10 ---",
+     "plugins/tradesa-v2/panels.ts                                 |  55 ------------",
+     "plugins/tradesa-v2/store.ts                                  | 293 ---------------------------------------------------------------",
+     "plugins/tradesa-v2/tradesa-v2.test.ts                        | 286 --------------------------------------------------------------",
+     "plugins/tradesa-v2/useTradesaConnectionState.ts              |  72 ----------------",
+     "sidecar/app.py                                               |  16 ++--",
+     "sidecar/main.py                                              |   5 +-",
+     "sidecar/models/llm.py                                        |  13 ++-",
+     "sidecar/models/tradesa_v2.py                                 | 356 -----------------------------------------------------------------------------",
+     "sidecar/requirements.txt                                     |  10 +--",
+     "sidecar/routers/tradesa_v2.py                                | 448 -------------------------------------------------------------------------------------------------",
+     "sidecar/services/agent_tools/registry_v0_6_5.py              |  33 +++-----",
+     "sidecar/services/errors.py                                   | 281 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-",
+     "sidecar/services/llm/anthropic.py                            |   7 +-",
+     "sidecar/services/llm/gemini.py                               |   7 +-",
+     "sidecar/services/llm/groq.py                                 |   7 +-",
+     "sidecar/services/llm/ollama.py                               |  17 +++-",
+     "sidecar/services/llm/openai.py                               |   7 +-",
+     "sidecar/services/macro/fred_provider.py                      |   4 +-",
+     "sidecar/services/tradesa_v2_provider.py                      | 537 --------------------------------------------------------------------------------------------------------------------",
+     "sidecar/tests/test_errors.py                                 | 253 +++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+     "sidecar/tests/test_llm_anthropic.py                          |  67 +++++++++++++++",
+     "sidecar/tests/test_llm_gemini.py                             |  36 ++++++++",
+     "sidecar/tests/test_llm_groq.py                               |  40 +++++++++",
+     "sidecar/tests/test_llm_ollama.py                             |  44 ++++++++++",
+     "sidecar/tests/test_llm_openai.py                             |  43 ++++++++++",
+     "sidecar/tests/test_macro_providers.py                        |   3 +-",
+     "sidecar/tests/test_no_tradesa.py                             | 180 +++++++++++++++++++++++++++++++++++++++",
+     "sidecar/tests/test_tradesa_v2_provider.py                    | 575 ----------------------------------------------------------------------------------------------------------------------------",
+     "sidecar/tests/test_tradesa_v2_router.py                      | 606 -----------------------------------------------------------------------------------------------------------------------------------",
+     "src/lib/keychain.ts                                          |  97 +++++++++++++++++++++",
+     "src/lib/marketplace.test.ts                                  |  56 +++++++++++++",
+     "src/lib/marketplace.ts                                       | 263 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+     "src/lib/plugin-bootstrap.test.ts                             |  46 ++++++++++",
+     "src/lib/plugin-bootstrap.ts                                  |   9 +-",
+     "src/modules/node-editor/NodeEditorPanel.test.tsx             |   9 +-",
+     "src/modules/node-editor/node-palette.test.tsx                |  11 +--",
+     "src/modules/node-editor/node-registry.test.ts                |   9 +-",
+     "types/marketplace.ts                                         |  82 ++++++++++++++++++",
+     "types/tradesa_v2.ts                                          | 463 ----------------------------------------------------------------------------------------------------"
+    ],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/wf_3d774b10-8d4-6",
+    "uncommitted": [
+     " M docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "superseded: b81456c re-did E9 humanizer on current main; 183c52f + 6848580 finished Tradesa removal"
+   },
+   {
+    "branch": "worktree-agent-r10-fedata",
+    "sha": "ed64c9d",
+    "subject": "fix(r10/fe-data): address adversarial review \u2014 SSE parser, abort race, honest errors, freshness tiers, portfolio client, regression pins",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 170,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "differs (origin 8c328fb: +1 / local +0; origin merged into 004: yes)",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-r10-frontend",
+    "sha": "4d783ba",
+    "subject": "feat(actions): purchased_at maps onto the ledger's opened_at on portfolio writes",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 166,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-r10-resolve",
+    "sha": "59bcf4f",
+    "subject": "test(region): pin the R10 IN-first defaults in the middleware tests",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 168,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "differs (origin d5acca9: +2 / local +0; origin merged into 004: yes)",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-r10-runtime",
+    "sha": "80d9cf2",
+    "subject": "feat(r10): per-tool dispatch timeouts + the three regression-armor suites (E7 dead)",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 167,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-r10-screener",
+    "sha": "6a3a8e8",
+    "subject": "test(screener): agent step-sink bridge + india universe route checks; honest-partial note on the unary run docstring",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 168,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "differs (origin a5e368e: +1 / local +0; origin merged into 004: yes)",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-r8-composer",
+    "sha": "bd949a7",
+    "subject": "docs(r8): composer track report \u2014 per-deliverable pointers, collapse-ladder spec, rig verification list",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 303,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/r8-composer",
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-r8-proportion",
+    "sha": "72425f9",
+    "subject": "docs(proportion): R8 track-D report \u2014 per-surface changes, width matrix, formatter test counts, manual-check list",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 299,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/r8-proportion",
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-r8-research",
+    "sha": "cefb31b",
+    "subject": "test(research): R8 regression suite + track report",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 300,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/r8-research",
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-r8-seams",
+    "sha": "b19b92a",
+    "subject": "docs(r8): track E (agent seams) report \u2014 parity, open_panel symbol, grounded narration",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 302,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/r8-seams",
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-r8-settings",
+    "sha": "897d7ca",
+    "subject": "docs(r8): settings-truth track report \u2014 routing matrix, migration, header contract",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 304,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/r8-settings",
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-res",
+    "sha": "e9041f2",
+    "subject": "fix(data): india_sector_map hygiene \u2014 honest coverage, industry_raw migration, shares backfill (D59)",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 119,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-research",
+    "sha": "a1e06a7",
+    "subject": "refactor(research): collapse to ONE research model with in-place \"go deeper\" (FR-115/SC-028)",
+    "merged_into_004": false,
+    "ahead_of_004": 1,
+    "behind_004": 491,
+    "commits_ahead": [
+     "a1e06a7 refactor(research): collapse to ONE research model with in-place \"go deeper\" (FR-115/SC-028)"
+    ],
+    "files_ahead": [
+     "sidecar/agents/copilot.json                     |   3 +--",
+     "sidecar/services/agent_runtime.py               |  33 +++++++++++++++++++-----------",
+     "sidecar/services/agent_tools/catalog.py         |  94 +++++++++++++++++++++++++++++++++++++++++++------------------------------------------",
+     "sidecar/services/agent_tools/deep_research.py   | 159 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------------------------------",
+     "sidecar/services/agent_tools/registry_v0_6_0.py |   9 +++++----",
+     "sidecar/services/agent_tools/research.py        |  80 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------",
+     "sidecar/services/planner.py                     |   5 ++---",
+     "sidecar/tests/test_agent_runtime.py             |  20 ++++++++++++++++++",
+     "sidecar/tests/test_planner.py                   |   7 +++++--",
+     "sidecar/tests/test_research_tools.py            | 160 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----------------------------------------------------------------------",
+     "sidecar/tests/test_tool_loop_e2e.py             |   8 ++++----",
+     "src/lib/host-actions.ts                         |  27 +++++++++++++++++++++++--",
+     "src/modules/chat/ChatSidebar.test.tsx           |  13 +++++-------",
+     "src/modules/chat/ChatSidebar.tsx                |  72 ++++++++++++++++++++++++++++++++---------------------------------",
+     "src/modules/chat/slash-commands.test.ts         |  20 ++++++++++++------",
+     "src/modules/chat/slash-commands.ts              |  26 ++++++------------------",
+     "src/modules/research/BriefPanel.tsx             |  82 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---",
+     "src/store/agent-command.test.ts                 |  36 +++++++++++++++++++++++++++++++++",
+     "src/store/agent-command.ts                      |  43 +++++++++++++++++++++++++++++++++++++++",
+     "types/brief.ts                                  |  18 +++++++++++++++--"
+    ],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "superseded: same change landed as f97a3fe (identical subject, re-based)"
+   },
+   {
+    "branch": "worktree-agent-retrieval",
+    "sha": "9aeea79",
+    "subject": "style(retrieval): ruff format the R13 additions",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 62,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/agent-a3b89d4c77edd3d2e",
+    "uncommitted": [
+     " M docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-rig",
+    "sha": "c5f4baf",
+    "subject": "feat(rig): durable GUI rig with presence safety built in",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 12,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/wf_6871fdb3-621-11",
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "merged into 004 via 0290aaa (R15 rig)"
+   },
+   {
+    "branch": "worktree-agent-screener-perf",
+    "sha": "1afd04d",
+    "subject": "perf(screener): Yahoo v7 batch fast path + itemized skip ledger + warm precompute",
+    "merged_into_004": false,
+    "ahead_of_004": 1,
+    "behind_004": 648,
+    "commits_ahead": [
+     "1afd04d perf(screener): Yahoo v7 batch fast path + itemized skip ledger + warm precompute"
+    ],
+    "files_ahead": [
+     "sidecar/app.py                             |  16 +++++",
+     "sidecar/models/screener.py                 |  30 +++++++++",
+     "sidecar/services/screener.py               | 498 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------",
+     "sidecar/services/yahoo_batch_provider.py   | 440 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+     "sidecar/tests/test_screener.py             |  19 +++++-",
+     "sidecar/tests/test_screener_batch.py       | 287 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+     "sidecar/tests/test_yahoo_batch_provider.py | 329 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+     "types/screener.ts                          |  24 ++++++++"
+    ],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "superseded: 72117f7 (Yahoo v7 batch fast path) + 4079c41 on 004"
+   },
+   {
+    "branch": "worktree-agent-searxfloor",
+    "sha": "efba663",
+    "subject": "fix(sidecar): cross-check keyless floor on up-but-empty SearXNG",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 46,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-sem",
+    "sha": "3a123d9",
+    "subject": "fix(r11): D55 growth-basis truth + D56 dividend TTM cross-check (sidecar)",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 121,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-smokefix",
+    "sha": "2e0e0c6",
+    "subject": "fix(scripts): make smoke-test-sidecars.mjs attended-safe",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 19,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-spine",
+    "sha": "cf83b5e",
+    "subject": "fix(registry): never serve an all-null fundamentals shell as success",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 64,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/agent-ae4a8098f17ac2413",
+    "uncommitted": [
+     " M docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-wireup",
+    "sha": "7ec8618",
+    "subject": "feat(research): wire ownership_check + dividend_actions into snapshot_structured (R13)",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 49,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-agent-witness",
+    "sha": "43a4554",
+    "subject": "feat(semantics): conflict nature \u2014 definitional_expected vs data_conflict",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 64,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "same",
+    "worktree_dir": ".claude/worktrees/agent-a4050617afe66bc3d",
+    "uncommitted": [
+     " M docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-wf_3d774b10-8d4-1",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-wf_3d774b10-8d4-10",
+    "sha": "68875b6",
+    "subject": "fix(r10-errors): address all adversarial review findings \u2014 reblocker + 5 majors",
+    "merged_into_004": false,
+    "ahead_of_004": 3,
+    "behind_004": 648,
+    "commits_ahead": [
+     "68875b6 fix(r10-errors): address all adversarial review findings \u2014 reblocker + 5 majors",
+     "9aaa64f feat(e11): remove Tradesa V2 plugin and all references",
+     "6a24124 feat(errors): add humanizer + extend LLMErrorEvent with action/detail/code"
+    ],
+    "files_ahead": [
+     "docs/redesign/R10_TRACK_ERRORS_REPORT.md                     | 136 ++++++++++++++++++++++++++++++",
+     "plugins/tradesa-v2/components/BrainDecisionsPanel.test.tsx   |  72 ----------------",
+     "plugins/tradesa-v2/components/BrainDecisionsPanel.tsx        | 244 -----------------------------------------------------",
+     "plugins/tradesa-v2/components/HealthPanel.test.tsx           |  75 -----------------",
+     "plugins/tradesa-v2/components/HealthPanel.tsx                | 181 ---------------------------------------",
+     "plugins/tradesa-v2/components/MetaAgentsPanel.test.tsx       | 103 -----------------------",
+     "plugins/tradesa-v2/components/MetaAgentsPanel.tsx            | 307 ------------------------------------------------------------------",
+     "plugins/tradesa-v2/components/PanelFetchError.tsx            |  40 ---------",
+     "plugins/tradesa-v2/components/PositionsPanel.test.tsx        |  86 -------------------",
+     "plugins/tradesa-v2/components/PositionsPanel.tsx             | 135 -----------------------------",
+     "plugins/tradesa-v2/components/SentinelPanel.test.tsx         |  67 ---------------",
+     "plugins/tradesa-v2/components/SentinelPanel.tsx              | 126 ----------------------------",
+     "plugins/tradesa-v2/components/SettingsPanel.test.tsx         | 100 ----------------------",
+     "plugins/tradesa-v2/components/SettingsPanel.tsx              | 220 ------------------------------------------------",
+     "plugins/tradesa-v2/components/TradeHistoryPanel.test.tsx     |  79 -----------------",
+     "plugins/tradesa-v2/components/TradeHistoryPanel.tsx          | 281 -------------------------------------------------------------",
+     "plugins/tradesa-v2/components/TradesaBotStatusStrip.test.tsx |  87 -------------------",
+     "plugins/tradesa-v2/components/TradesaBotStatusStrip.tsx      |  89 --------------------",
+     "plugins/tradesa-v2/components/TradesaSettingsDialog.test.tsx | 122 ---------------------------",
+     "plugins/tradesa-v2/components/TradesaSettingsDialog.tsx      | 216 -----------------------------------------------",
+     "plugins/tradesa-v2/components/_PanelShell.tsx                | 196 -------------------------------------------",
+     "plugins/tradesa-v2/components/_test-helpers.ts               | 300 -----------------------------------------------------------------",
+     "plugins/tradesa-v2/components/_utils.ts                      | 198 -------------------------------------------",
+     "plugins/tradesa-v2/connection.ts                             | 281 -------------------------------------------------------------",
+     "plugins/tradesa-v2/index.ts                                  | 373 ---------------------------------------------------------------------------------",
+     "plugins/tradesa-v2/manifest.json                             |  10 ---",
+     "plugins/tradesa-v2/panels.ts                                 |  55 ------------",
+     "plugins/tradesa-v2/store.ts                                  | 293 ---------------------------------------------------------------",
+     "plugins/tradesa-v2/tradesa-v2.test.ts                        | 286 --------------------------------------------------------------",
+     "plugins/tradesa-v2/useTradesaConnectionState.ts              |  72 ----------------",
+     "sidecar/app.py                                               |  16 ++--",
+     "sidecar/main.py                                              |   5 +-",
+     "sidecar/models/llm.py                                        |  13 ++-",
+     "sidecar/models/tradesa_v2.py                                 | 356 -----------------------------------------------------------------------------",
+     "sidecar/requirements.txt                                     |  10 +--",
+     "sidecar/routers/tradesa_v2.py                                | 448 -------------------------------------------------------------------------------------------------",
+     "sidecar/services/agent_tools/registry_v0_6_5.py              |  33 +++-----",
+     "sidecar/services/errors.py                                   | 281 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-",
+     "sidecar/services/llm/anthropic.py                            |   7 +-",
+     "sidecar/services/llm/gemini.py                               |   7 +-",
+     "sidecar/services/llm/groq.py                                 |   7 +-",
+     "sidecar/services/llm/ollama.py                               |  17 +++-",
+     "sidecar/services/llm/openai.py                               |   7 +-",
+     "sidecar/services/macro/fred_provider.py                      |   4 +-",
+     "sidecar/services/tradesa_v2_provider.py                      | 537 --------------------------------------------------------------------------------------------------------------------",
+     "sidecar/tests/test_errors.py                                 | 253 +++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+     "sidecar/tests/test_llm_anthropic.py                          |  67 +++++++++++++++",
+     "sidecar/tests/test_llm_gemini.py                             |  36 ++++++++",
+     "sidecar/tests/test_llm_groq.py                               |  40 +++++++++",
+     "sidecar/tests/test_llm_ollama.py                             |  44 ++++++++++",
+     "sidecar/tests/test_llm_openai.py                             |  43 ++++++++++",
+     "sidecar/tests/test_macro_providers.py                        |   3 +-",
+     "sidecar/tests/test_no_tradesa.py                             | 180 +++++++++++++++++++++++++++++++++++++++",
+     "sidecar/tests/test_tradesa_v2_provider.py                    | 575 ----------------------------------------------------------------------------------------------------------------------------",
+     "sidecar/tests/test_tradesa_v2_router.py                      | 606 -----------------------------------------------------------------------------------------------------------------------------------",
+     "src/lib/keychain.ts                                          |  97 +++++++++++++++++++++",
+     "src/lib/marketplace.test.ts                                  |  56 +++++++++++++",
+     "src/lib/marketplace.ts                                       | 263 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++",
+     "src/lib/plugin-bootstrap.test.ts                             |  46 ++++++++++",
+     "src/lib/plugin-bootstrap.ts                                  |   9 +-",
+     "src/modules/node-editor/NodeEditorPanel.test.tsx             |   9 +-",
+     "src/modules/node-editor/node-palette.test.tsx                |  11 +--",
+     "src/modules/node-editor/node-registry.test.ts                |   9 +-",
+     "types/marketplace.ts                                         |  82 ++++++++++++++++++",
+     "types/tradesa_v2.ts                                          | 463 ----------------------------------------------------------------------------------------------------"
+    ],
+    "origin": "none",
+    "worktree_dir": ".claude/worktrees/wf_3d774b10-8d4-10",
+    "uncommitted": [
+     " M docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "same 3 commits as worktree-agent-r10-errors; superseded by b81456c + 183c52f + 6848580"
+   },
+   {
+    "branch": "worktree-wf_3d774b10-8d4-13",
+    "sha": "8c328fb",
+    "subject": "fix(r10/fe-data): address round-2 adversarial review \u2014 integration snippets, doc revert, notes trim",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 169,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": ".claude/worktrees/wf_3d774b10-8d4-13",
+    "uncommitted": [
+     " M src/store/portfolios.ts",
+     "?? src/store/portfolios.test.ts"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "fully merged into 004; nothing ahead"
+   },
+   {
+    "branch": "worktree-wf_3d774b10-8d4-14",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-wf_3d774b10-8d4-15",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-wf_3d774b10-8d4-17",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-wf_3d774b10-8d4-2",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-wf_3d774b10-8d4-3",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-wf_3d774b10-8d4-4",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-wf_3d774b10-8d4-5",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-wf_3d774b10-8d4-6",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-wf_6871fdb3-621-10",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "worktree-wf_6871fdb3-621-11",
+    "sha": "cfcf5be",
+    "subject": "docs(spec): amend redesign spec \u2014 plugin marketplace as the primary extensibility model",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 648,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "none",
+    "worktree_dir": null,
+    "uncommitted": [],
+    "recommendation": "DISCARD",
+    "reason": "empty stale-base stub at cfcf5be; nothing ahead of 004"
+   },
+   {
+    "branch": "(detached d5acca9)",
+    "sha": "d5acca9",
+    "subject": "fix(resolver): review minors \u2014 comment truth, signature deviation note, never-silent deep fallback",
+    "merged_into_004": true,
+    "ahead_of_004": 0,
+    "behind_004": 166,
+    "commits_ahead": [],
+    "files_ahead": [],
+    "origin": "n/a",
+    "worktree_dir": ".claude/worktrees/wf_3d774b10-8d4-17",
+    "uncommitted": [
+     " M docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json"
+    ],
+    "recommendation": "DISCARD",
+    "reason": "detached HEAD d5acca9 is an ancestor of 004 (merged); only dirt is the kill-switch benchmark capture"
+   }
+  ],
+  "prune_candidates": [],
+  "registered": 22
+ },
+ "section2": {
+  "l8_disagreements": [
+   "HEAD: task says HEAD b41617b == origin; at scout time HEAD is b18b6d4 (lead commit \"session 2 start ... $8 spend cap, scope + routing changes recorded\"), one commit above b41617b.",
+   "Merge commit for pushguard: task/L8 context says both pushguard and rig merged in 0290aaa; disk says pushguard merged via 2d99cda, rig via 0290aaa. Both are ancestors of 004.",
+   "Raw findings total: L8 says 417 in 36 files; disk has 419 in 36 files (0 invalid, 0 duplicate raw_id). code-error-layer.json (15:41) and surface/seat-us evidence (15:48) have mtimes after the pause started.",
+   "Intent: L8 says 11 ledgers landed; disk has 11 files, but only 6 are fully verified (blueprint-48/144/192/240, pdd-readme-0/45); 4 are partial (deferred-0 10/42, spec-90 5/45, spec-135 16/45 entries, spec-180 7/41) and deferred-84 is an unverified 40-entry skeleton. blueprint-144 and blueprint-240 have complete ledgers but no raw/intent-*.json.",
+   "World: L8 says \"all research + 3 COMPARE docs landed\". All three COMPARE docs are IN PROGRESS stubs (377 B, 380 B, 1,252 B; the harness ones say \"(none yet)\"). world/investor-asks-forums.md is a 1,649 B header-only stub (OPPORTUNITY_LEDGER itself records it as STUB).",
+   "Packs: L8 says 18/24 landed. 18 slotted files exist, but P3_CHTR.json is a 385 B \"in-progress\" stub, and P18_ONC and S3_VERTEX self-report status in-progress/in_progress. Fully complete: 15.",
+   "Lifecycle: L8 says L5-bounds.md landed; the file (2,086 B) says \"Status: IN PROGRESS\", holds only section 1 (measurements), and raw/lifecycle-L5-bounds.json does not exist.",
+   "Ideation: L8 says bloomberg landed; disk has bloomberg.json (9 ideas) but no bloomberg.md. journalist.md without json matches L8.",
+   "Surface: L8 lists funnel-thematic as partial evidence; its two run files are 0 bytes and EVIDENCE.md ends at \"## Runs (appended as they complete)\", so it is effectively empty. L8 lists funnel-microcap as an empty dir; no such dir exists.",
+   "Partition: L8 uses 31 ids from census/CODE_PARTITION.json; stage0/SUBSYSTEM_PARTITION.json has 29 (one market-data-providers instead of -1/-2/-3). CODE_PARTITION.json is the one the code tags used."
+  ],
+  "code": {
+   "partition": "census/CODE_PARTITION.json (31 ids)",
+   "done_critique_and_raw": [
+    "resolver",
+    "fundamentals-profile",
+    "disclosures-witnesses",
+    "research-retrieval-relevance",
+    "research-extraction-synthesis",
+    "research-depth-iter-deep",
+    "agent-runtime",
+    "agent-tools-catalog-ledger",
+    "screener",
+    "backtest",
+    "portfolio",
+    "plugins",
+    "runs-durable-delegate",
+    "mcp-servers",
+    "rust-core",
+    "frontend-panels-agent-shell",
+    "workspace-layout",
+    "scripts-build",
+    "safety-audit",
+    "market-data-providers-1",
+    "market-data-providers-2",
+    "market-data-providers-3",
+    "macro-quant",
+    "brokers-adapters"
+   ],
+   "partial_raw_only": [
+    "llm-adapters",
+    "error-layer"
+   ],
+   "pending_not_started": [
+    "frontend-stores",
+    "frontend-panels-data-surfaces",
+    "frontend-panels-shell-chrome",
+    "host-actions-proposed-changes",
+    "workflow-engine"
+   ],
+   "refutes_landed": 0,
+   "refute_dir": "census/refute/ (empty)",
+   "evidence": [
+    "census/code/evidence/workspace-layout-repro.test.ts.txt (5,489 B)",
+    "census/code/evidence/zz-r15-proof.test.ts.txt (3,840 B)"
+   ]
+  },
+  "raw_findings": {
+   "files": [
+    {
+     "file": "census/raw/code-agent-runtime.json",
+     "bytes": 22908,
+     "findings": 15,
+     "severity": {
+      "high": 4,
+      "medium": 10,
+      "low": 1
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-agent-tools-catalog-ledger.json",
+     "bytes": 20037,
+     "findings": 15,
+     "severity": {
+      "critical": 1,
+      "high": 3,
+      "medium": 9,
+      "low": 2
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-backtest.json",
+     "bytes": 23328,
+     "findings": 16,
+     "severity": {
+      "critical": 2,
+      "high": 5,
+      "medium": 3,
+      "low": 6
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-brokers-adapters.json",
+     "bytes": 26027,
+     "findings": 15,
+     "severity": {
+      "critical": 1,
+      "high": 7,
+      "medium": 7
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-disclosures-witnesses.json",
+     "bytes": 17631,
+     "findings": 13,
+     "severity": {
+      "high": 4,
+      "critical": 1,
+      "medium": 5,
+      "low": 3
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-error-layer.json",
+     "bytes": 29174,
+     "findings": 15,
+     "severity": {
+      "medium": 10,
+      "low": 5
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-frontend-panels-agent-shell.json",
+     "bytes": 22877,
+     "findings": 15,
+     "severity": {
+      "high": 6,
+      "medium": 8,
+      "low": 1
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-fundamentals-profile.json",
+     "bytes": 21105,
+     "findings": 15,
+     "severity": {
+      "high": 5,
+      "medium": 10
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-llm-adapters.json",
+     "bytes": 21138,
+     "findings": 13,
+     "severity": {
+      "high": 4,
+      "medium": 7,
+      "low": 2
+     },
+     "extra_fields": [
+      "verdict"
+     ],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-macro-quant.json",
+     "bytes": 23093,
+     "findings": 15,
+     "severity": {
+      "critical": 2,
+      "high": 5,
+      "medium": 8
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-market-data-providers-1.json",
+     "bytes": 25881,
+     "findings": 16,
+     "severity": {
+      "critical": 1,
+      "high": 9,
+      "medium": 6
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-market-data-providers-2.json",
+     "bytes": 21057,
+     "findings": 14,
+     "severity": {
+      "critical": 1,
+      "high": 3,
+      "medium": 10
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-market-data-providers-3.json",
+     "bytes": 17728,
+     "findings": 10,
+     "severity": {
+      "critical": 1,
+      "high": 3,
+      "medium": 5,
+      "low": 1
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-mcp-servers.json",
+     "bytes": 23032,
+     "findings": 13,
+     "severity": {
+      "high": 3,
+      "medium": 8,
+      "low": 2
+     },
+     "extra_fields": [
+      "notes_confidence"
+     ],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-plugins.json",
+     "bytes": 20691,
+     "findings": 14,
+     "severity": {
+      "high": 4,
+      "medium": 8,
+      "low": 2
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-portfolio.json",
+     "bytes": 23275,
+     "findings": 15,
+     "severity": {
+      "critical": 1,
+      "high": 4,
+      "medium": 6,
+      "low": 4
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-research-depth-iter-deep.json",
+     "bytes": 19261,
+     "findings": 14,
+     "severity": {
+      "critical": 1,
+      "high": 4,
+      "medium": 7,
+      "low": 2
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-research-extraction-synthesis.json",
+     "bytes": 23062,
+     "findings": 12,
+     "severity": {
+      "critical": 1,
+      "high": 3,
+      "medium": 6,
+      "low": 2
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-research-retrieval-relevance.json",
+     "bytes": 27516,
+     "findings": 15,
+     "severity": {
+      "high": 5,
+      "medium": 8,
+      "low": 2
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-resolver.json",
+     "bytes": 16705,
+     "findings": 11,
+     "severity": {
+      "critical": 1,
+      "high": 2,
+      "medium": 7,
+      "low": 1
+     },
+     "extra_fields": [
+      "notes_confidence"
+     ],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-runs-durable-delegate.json",
+     "bytes": 20385,
+     "findings": 14,
+     "severity": {
+      "high": 2,
+      "medium": 10,
+      "low": 2
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-rust-core.json",
+     "bytes": 25357,
+     "findings": 15,
+     "severity": {
+      "high": 5,
+      "medium": 7,
+      "low": 3
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-safety-audit.json",
+     "bytes": 22560,
+     "findings": 14,
+     "severity": {
+      "high": 3,
+      "medium": 10,
+      "low": 1
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-screener.json",
+     "bytes": 21174,
+     "findings": 15,
+     "severity": {
+      "critical": 1,
+      "high": 4,
+      "medium": 9,
+      "low": 1
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-scripts-build.json",
+     "bytes": 23887,
+     "findings": 14,
+     "severity": {
+      "high": 2,
+      "medium": 7,
+      "low": 5
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/code-workspace-layout.json",
+     "bytes": 22518,
+     "findings": 14,
+     "severity": {
+      "critical": 1,
+      "high": 4,
+      "medium": 7,
+      "low": 2
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/intent-blueprint-192.json",
+     "bytes": 12585,
+     "findings": 7,
+     "severity": {
+      "high": 3,
+      "medium": 3,
+      "low": 1
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/intent-blueprint-48.json",
+     "bytes": 12817,
+     "findings": 7,
+     "severity": {
+      "high": 2,
+      "medium": 4,
+      "low": 1
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/intent-deferred-0.json",
+     "bytes": 1665,
+     "findings": 1,
+     "severity": {
+      "high": 1
+     },
+     "extra_fields": [
+      "pid"
+     ],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/intent-pdd-readme-0.json",
+     "bytes": 6654,
+     "findings": 3,
+     "severity": {
+      "medium": 2,
+      "low": 1
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/intent-pdd-readme-45.json",
+     "bytes": 14388,
+     "findings": 10,
+     "severity": {
+      "high": 1,
+      "medium": 5,
+      "low": 4
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/intent-spec-135.json",
+     "bytes": 7119,
+     "findings": 5,
+     "severity": {
+      "medium": 3,
+      "high": 1,
+      "low": 1
+     },
+     "extra_fields": [
+      "pid"
+     ],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/intent-spec-180.json",
+     "bytes": 2,
+     "findings": 0,
+     "severity": {},
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/intent-spec-90.json",
+     "bytes": 4366,
+     "findings": 4,
+     "severity": {
+      "medium": 3,
+      "high": 1
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/seat-us.json",
+     "bytes": 1088,
+     "findings": 1,
+     "severity": {
+      "medium": 1
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    },
+    {
+     "file": "census/raw/world-table-stakes.json",
+     "bytes": 25447,
+     "findings": 14,
+     "severity": {
+      "critical": 1,
+      "high": 8,
+      "medium": 5
+     },
+     "extra_fields": [],
+     "missing_fields": []
+    }
+   ],
+   "by_severity": {
+    "high": 120,
+    "medium": 224,
+    "low": 58,
+    "critical": 17
+   },
+   "by_family": {
+    "code": 367,
+    "intent": 37,
+    "seat": 1,
+    "world": 14
+   },
+   "total": 419
+  },
+  "intent": {
+   "chunks": 23,
+   "promises": 1032,
+   "sources": {
+    "blueprint": 333,
+    "spec": 221,
+    "pdd-readme": 354,
+    "deferred": 124
+   },
+   "done": [
+    "blueprint-48",
+    "blueprint-192",
+    "pdd-readme-0",
+    "pdd-readme-45"
+   ],
+   "partial": {
+    "blueprint-144": "ledger 48/48 verified; raw/intent-blueprint-144.json MISSING",
+    "blueprint-240": "ledger 48/48 verified; raw/intent-blueprint-240.json MISSING",
+    "deferred-0": "ledger 10/42 verified (32 entries have no status); raw 1 finding",
+    "spec-90": "ledger 5/45 verified (40 status=null); raw 4 findings",
+    "spec-135": "ledger holds 16/45 entries (INT-SP-136..151), all verified; raw 5 findings",
+    "spec-180": "ledger 7/41 verified (34 status=pending); raw file is [] (0 findings)",
+    "deferred-84": "ledger is a 40-entry skeleton, 0/40 verified (all status=pending); no raw"
+   },
+   "pending": [
+    "blueprint-0",
+    "blueprint-96",
+    "blueprint-288",
+    "spec-0",
+    "spec-45",
+    "pdd-readme-90",
+    "pdd-readme-135",
+    "pdd-readme-180",
+    "pdd-readme-225",
+    "pdd-readme-270",
+    "pdd-readme-315",
+    "deferred-42"
+   ],
+   "promise_ledger": "MISSING"
+  },
+  "world": {
+   "research": {
+    "perplexity-screener.md": 45487,
+    "openbb-kite-mcp.md": 65478,
+    "fey-tijori-trendlyne.md": 49059,
+    "harness-context.md": 36374,
+    "harness-tools.md": 45401,
+    "agent-native-ux.md": 11938,
+    "investor-asks-forums.md": "1649 (STUB)"
+   },
+   "compare": {
+    "harness-context-COMPARE.md": "377 (stub)",
+    "harness-tools-COMPARE.md": "380 (stub)",
+    "agent-native-ux-COMPARE.md": "1252 (stub)"
+   },
+   "opportunity_ledger": "census/OPPORTUNITY_LEDGER.md 38 KB, complete; verify pass not run",
+   "raw": [
+    "census/raw/world-table-stakes.json (14 findings)"
+   ],
+   "missing": [
+    "world/harness-context-COMPARE.md (377 B stub)",
+    "world/harness-tools-COMPARE.md (380 B stub)",
+    "world/agent-native-ux-COMPARE.md (1,252 B stub)",
+    "raw/world-harness-context.json",
+    "raw/world-harness-tools.json",
+    "raw/world-agent-native-ux.json",
+    "world/investor-asks-forums.md (1,649 B header-only stub)",
+    "OPPORTUNITY_LEDGER verify pass",
+    "PROMISE_LEDGER.md (intent assembly)"
+   ]
+  },
+  "data": {
+   "manifest": [
+    "battery/BATTERY_MANIFEST.md 21,965 B",
+    "battery/manifest.json 28,506 B (24 names)"
+   ],
+   "packs_complete": [
+    "P1_JNPR",
+    "P2_DAL",
+    "P4_SAFE",
+    "P5_CSL",
+    "P6_ICON",
+    "P9_AMAL",
+    "P10_VIYASH",
+    "P12_DHANBANK",
+    "P13_ELCIDIN",
+    "P14_JONJUA",
+    "P15_SUMAX",
+    "P19_AMAL",
+    "P20_SMR",
+    "S1_DHOOTTRANS",
+    "S2_SMR"
+   ],
+   "packs_in_progress": [
+    "P18_ONC",
+    "S3_VERTEX"
+   ],
+   "packs_stub": [
+    "P3_CHTR"
+   ],
+   "packs_missing": [
+    "P7_JUMBO",
+    "P8_NAPEROL",
+    "P11_FUSION",
+    "P16_CREST",
+    "P17_SIFY",
+    "S4_TTC"
+   ],
+   "legacy_unslotted": [
+    "AMAL.json 38,919 B",
+    "JONJUA.json 565 B",
+    "ONC.json 200 B"
+   ],
+   "collected": "24/24, all complete:true; results_calendar 502 on 24/24; shareholding+announcements non-200 on P1,P15,P17,P18,S1; P13 fundamentals+ratings non-200; P15 quote non-200 (SUMAX resolves only to SUMAX-SM needs_disambiguation)",
+   "diffs": "0/24 (battery/diffs/ does not exist); raw/collector.json absent"
+  },
+  "surface": {
+   "raw_present": [
+    "seat-us (1 finding)"
+   ],
+   "partial_no_raw": {
+    "seat-breaker": "http-log.jsonl 3,817 B",
+    "seat-stranger": "transcript.md 19,632 B",
+    "inducer": "7 files ~3 KB (401 bad key, no key, 402 deepseek, network unreachable)",
+    "screener-probe": "EVIDENCE.md + 5 json ~51 KB",
+    "route-fuzzer": "results.jsonl 394 lines 180 KB + skipped.json + health_before.json; scripts/r15/route_fuzz.py exists",
+    "licence-audit": "5 licence json ~173 KB; release/LICENCE_AUDIT.md absent; scripts/r15/licence_scan.py exists",
+    "patch-proof": "surface/patch-proof/01-gpt5nano-tools.jsonl 900 B + agent/patch-proof/ 2 files 2.9 KB; agent/PATCH_3SEP_LIVE_PROOF.md absent",
+    "test-quality": "EVIDENCE.md 762 B",
+    "collector": "collect.log 11,784 B (collection done, diffs not)"
+   },
+   "effectively_empty": {
+    "funnel-thematic": "EVIDENCE.md 1,023 B header + 2 zero-byte run files"
+   },
+   "empty_dirs": [
+    "seat-retail",
+    "seat-microcap",
+    "funnel-largecap",
+    "resolver-probe",
+    "security",
+    "agent-behaviour"
+   ],
+   "no_dir": [
+    "funnel-microcap",
+    "harness-design",
+    "browser-harness",
+    "history-secrets",
+    "docs-truth",
+    "deps-runtime"
+   ],
+   "scripts_present": [
+    "scripts/r15/browse.py",
+    "scripts/r15/collect_battery.py",
+    "scripts/r15/history_secrets_scan.py",
+    "scripts/r15/licence_scan.py",
+    "scripts/r15/route_fuzz.py",
+    "scripts/r15/register.py",
+    "scripts/r15/vy.py"
+   ],
+   "research_dir": "empty (no funnel-*.md)",
+   "release_dir": "empty",
+   "agent_dir": "patch-proof/ only"
+  },
+  "lifecycle": {
+   "present": {
+    "L5-bounds.md": "2,086 B, IN PROGRESS, section 1 only; no raw"
+   },
+   "pending": [
+    "L1-stranger",
+    "L2-rot",
+    "L3-diagnostics",
+    "L4-upgrade",
+    "L6-longsession"
+   ]
+  },
+  "ideation": {
+   "present": {
+    "bloomberg": "json only (9 ideas)",
+    "forensic": "md 34,648 B + json 9",
+    "hn-sceptic": "md 28,614 B + json 9",
+    "quant": "md 26,404 B + json 9",
+    "retail": "md 28,445 B + json 8",
+    "journalist": "md 26,152 B only"
+   },
+   "pending": [
+    "sellside",
+    "designer",
+    "journalist.json",
+    "bloomberg.md",
+    "judge panel"
+   ]
+  },
+  "launch_args_items_without_output": {
+   "code-A": [
+    [
+     "resolver",
+     [
+      "census/refute/code-resolver.json"
+     ]
+    ],
+    [
+     "fundamentals-profile",
+     [
+      "census/refute/code-fundamentals-profile.json"
+     ]
+    ],
+    [
+     "research-retrieval-relevance",
+     [
+      "census/refute/code-research-retrieval-relevance.json"
+     ]
+    ],
+    [
+     "research-extraction-synthesis",
+     [
+      "census/refute/code-research-extraction-synthesis.json"
+     ]
+    ],
+    [
+     "agent-runtime",
+     [
+      "census/refute/code-agent-runtime.json"
+     ]
+    ],
+    [
+     "agent-tools-catalog-ledger",
+     [
+      "census/refute/code-agent-tools-catalog-ledger.json"
+     ]
+    ],
+    [
+     "screener",
+     [
+      "census/refute/code-screener.json"
+     ]
+    ],
+    [
+     "llm-adapters",
+     [
+      "census/code/llm-adapters.md",
+      "census/refute/code-llm-adapters.json"
+     ]
+    ]
+   ],
+   "code-B": [
+    [
+     "disclosures-witnesses",
+     [
+      "census/refute/code-disclosures-witnesses.json"
+     ]
+    ],
+    [
+     "research-depth-iter-deep",
+     [
+      "census/refute/code-research-depth-iter-deep.json"
+     ]
+    ],
+    [
+     "safety-audit",
+     [
+      "census/refute/code-safety-audit.json"
+     ]
+    ],
+    [
+     "host-actions-proposed-changes",
+     [
+      "census/code/host-actions-proposed-changes.md",
+      "census/raw/code-host-actions-proposed-changes.json",
+      "census/refute/code-host-actions-proposed-changes.json"
+     ]
+    ],
+    [
+     "workspace-layout",
+     [
+      "census/refute/code-workspace-layout.json"
+     ]
+    ],
+    [
+     "runs-durable-delegate",
+     [
+      "census/refute/code-runs-durable-delegate.json"
+     ]
+    ],
+    [
+     "error-layer",
+     [
+      "census/code/error-layer.md",
+      "census/refute/code-error-layer.json"
+     ]
+    ],
+    [
+     "frontend-stores",
+     [
+      "census/code/frontend-stores.md",
+      "census/raw/code-frontend-stores.json",
+      "census/refute/code-frontend-stores.json"
+     ]
+    ]
+   ],
+   "code-C": [
+    [
+     "backtest",
+     [
+      "census/refute/code-backtest.json"
+     ]
+    ],
+    [
+     "portfolio",
+     [
+      "census/refute/code-portfolio.json"
+     ]
+    ],
+    [
+     "plugins",
+     [
+      "census/refute/code-plugins.json"
+     ]
+    ],
+    [
+     "mcp-servers",
+     [
+      "census/refute/code-mcp-servers.json"
+     ]
+    ],
+    [
+     "rust-core",
+     [
+      "census/refute/code-rust-core.json"
+     ]
+    ],
+    [
+     "frontend-panels-agent-shell",
+     [
+      "census/refute/code-frontend-panels-agent-shell.json"
+     ]
+    ],
+    [
+     "frontend-panels-data-surfaces",
+     [
+      "census/code/frontend-panels-data-surfaces.md",
+      "census/raw/code-frontend-panels-data-surfaces.json",
+      "census/refute/code-frontend-panels-data-surfaces.json"
+     ]
+    ],
+    [
+     "frontend-panels-shell-chrome",
+     [
+      "census/code/frontend-panels-shell-chrome.md",
+      "census/raw/code-frontend-panels-shell-chrome.json",
+      "census/refute/code-frontend-panels-shell-chrome.json"
+     ]
+    ]
+   ],
+   "code-D": [
+    [
+     "scripts-build",
+     [
+      "census/refute/code-scripts-build.json"
+     ]
+    ],
+    [
+     "market-data-providers-1",
+     [
+      "census/refute/code-market-data-providers-1.json"
+     ]
+    ],
+    [
+     "market-data-providers-2",
+     [
+      "census/refute/code-market-data-providers-2.json"
+     ]
+    ],
+    [
+     "market-data-providers-3",
+     [
+      "census/refute/code-market-data-providers-3.json"
+     ]
+    ],
+    [
+     "macro-quant",
+     [
+      "census/refute/code-macro-quant.json"
+     ]
+    ],
+    [
+     "brokers-adapters",
+     [
+      "census/refute/code-brokers-adapters.json"
+     ]
+    ],
+    [
+     "workflow-engine",
+     [
+      "census/code/workflow-engine.md",
+      "census/raw/code-workflow-engine.json",
+      "census/refute/code-workflow-engine.json"
+     ]
+    ]
+   ],
+   "code-F2": [
+    [
+     "rust-core",
+     [
+      "census/refute/code-rust-core.json"
+     ]
+    ],
+    [
+     "frontend-panels-data-surfaces",
+     [
+      "census/code/frontend-panels-data-surfaces.md",
+      "census/raw/code-frontend-panels-data-surfaces.json",
+      "census/refute/code-frontend-panels-data-surfaces.json"
+     ]
+    ],
+    [
+     "frontend-panels-shell-chrome",
+     [
+      "census/code/frontend-panels-shell-chrome.md",
+      "census/raw/code-frontend-panels-shell-chrome.json",
+      "census/refute/code-frontend-panels-shell-chrome.json"
+     ]
+    ],
+    [
+     "workflow-engine",
+     [
+      "census/code/workflow-engine.md",
+      "census/raw/code-workflow-engine.json",
+      "census/refute/code-workflow-engine.json"
+     ]
+    ],
+    [
+     "runs-durable-delegate",
+     [
+      "census/refute/code-runs-durable-delegate.json"
+     ]
+    ],
+    [
+     "backtest",
+     [
+      "census/refute/code-backtest.json"
+     ]
+    ],
+    [
+     "brokers-adapters",
+     [
+      "census/refute/code-brokers-adapters.json"
+     ]
+    ],
+    [
+     "frontend-panels-agent-shell",
+     [
+      "census/refute/code-frontend-panels-agent-shell.json"
+     ]
+    ],
+    [
+     "macro-quant",
+     [
+      "census/refute/code-macro-quant.json"
+     ]
+    ],
+    [
+     "market-data-providers-2",
+     [
+      "census/refute/code-market-data-providers-2.json"
+     ]
+    ],
+    [
+     "market-data-providers-3",
+     [
+      "census/refute/code-market-data-providers-3.json"
+     ]
+    ],
+    [
+     "mcp-servers",
+     [
+      "census/refute/code-mcp-servers.json"
+     ]
+    ],
+    [
+     "portfolio",
+     [
+      "census/refute/code-portfolio.json"
+     ]
+    ],
+    [
+     "scripts-build",
+     [
+      "census/refute/code-scripts-build.json"
+     ]
+    ]
+   ],
+   "code-R1": [
+    [
+     "research-extraction-synthesis",
+     [
+      "census/refute/code-research-extraction-synthesis.json"
+     ]
+    ],
+    [
+     "llm-adapters",
+     [
+      "census/code/llm-adapters.md",
+      "census/refute/code-llm-adapters.json"
+     ]
+    ],
+    [
+     "error-layer",
+     [
+      "census/code/error-layer.md",
+      "census/refute/code-error-layer.json"
+     ]
+    ],
+    [
+     "frontend-stores",
+     [
+      "census/code/frontend-stores.md",
+      "census/raw/code-frontend-stores.json",
+      "census/refute/code-frontend-stores.json"
+     ]
+    ],
+    [
+     "host-actions-proposed-changes",
+     [
+      "census/code/host-actions-proposed-changes.md",
+      "census/raw/code-host-actions-proposed-changes.json",
+      "census/refute/code-host-actions-proposed-changes.json"
+     ]
+    ],
+    [
+     "safety-audit",
+     [
+      "census/refute/code-safety-audit.json"
+     ]
+    ]
+   ],
+   "code-R2": [
+    [
+     "rust-core",
+     [
+      "census/refute/code-rust-core.json"
+     ]
+    ],
+    [
+     "frontend-panels-data-surfaces",
+     [
+      "census/code/frontend-panels-data-surfaces.md",
+      "census/raw/code-frontend-panels-data-surfaces.json",
+      "census/refute/code-frontend-panels-data-surfaces.json"
+     ]
+    ],
+    [
+     "frontend-panels-shell-chrome",
+     [
+      "census/code/frontend-panels-shell-chrome.md",
+      "census/raw/code-frontend-panels-shell-chrome.json",
+      "census/refute/code-frontend-panels-shell-chrome.json"
+     ]
+    ],
+    [
+     "workflow-engine",
+     [
+      "census/code/workflow-engine.md",
+      "census/raw/code-workflow-engine.json",
+      "census/refute/code-workflow-engine.json"
+     ]
+    ],
+    [
+     "runs-durable-delegate",
+     [
+      "census/refute/code-runs-durable-delegate.json"
+     ]
+    ]
+   ],
+   "code-R3": [
+    [
+     "agent-runtime",
+     [
+      "census/refute/code-agent-runtime.json"
+     ]
+    ],
+    [
+     "agent-tools-catalog-ledger",
+     [
+      "census/refute/code-agent-tools-catalog-ledger.json"
+     ]
+    ],
+    [
+     "fundamentals-profile",
+     [
+      "census/refute/code-fundamentals-profile.json"
+     ]
+    ],
+    [
+     "research-retrieval-relevance",
+     [
+      "census/refute/code-research-retrieval-relevance.json"
+     ]
+    ],
+    [
+     "resolver",
+     [
+      "census/refute/code-resolver.json"
+     ]
+    ],
+    [
+     "screener",
+     [
+      "census/refute/code-screener.json"
+     ]
+    ],
+    [
+     "disclosures-witnesses",
+     [
+      "census/refute/code-disclosures-witnesses.json"
+     ]
+    ],
+    [
+     "research-depth-iter-deep",
+     [
+      "census/refute/code-research-depth-iter-deep.json"
+     ]
+    ],
+    [
+     "market-data-providers-1",
+     [
+      "census/refute/code-market-data-providers-1.json"
+     ]
+    ],
+    [
+     "plugins",
+     [
+      "census/refute/code-plugins.json"
+     ]
+    ]
+   ],
+   "code-R4": [
+    [
+     "backtest",
+     [
+      "census/refute/code-backtest.json"
+     ]
+    ],
+    [
+     "brokers-adapters",
+     [
+      "census/refute/code-brokers-adapters.json"
+     ]
+    ],
+    [
+     "frontend-panels-agent-shell",
+     [
+      "census/refute/code-frontend-panels-agent-shell.json"
+     ]
+    ],
+    [
+     "macro-quant",
+     [
+      "census/refute/code-macro-quant.json"
+     ]
+    ],
+    [
+     "market-data-providers-2",
+     [
+      "census/refute/code-market-data-providers-2.json"
+     ]
+    ],
+    [
+     "market-data-providers-3",
+     [
+      "census/refute/code-market-data-providers-3.json"
+     ]
+    ],
+    [
+     "mcp-servers",
+     [
+      "census/refute/code-mcp-servers.json"
+     ]
+    ],
+    [
+     "portfolio",
+     [
+      "census/refute/code-portfolio.json"
+     ]
+    ],
+    [
+     "scripts-build",
+     [
+      "census/refute/code-scripts-build.json"
+     ]
+    ]
+   ],
+   "ideate-A": [
+    [
+     "bloomberg",
+     [
+      "invent/ideas/bloomberg.md"
+     ]
+    ],
+    [
+     "retail",
+     []
+    ],
+    [
+     "forensic",
+     []
+    ],
+    [
+     "quant",
+     []
+    ]
+   ],
+   "ideate-B": [
+    [
+     "sellside",
+     [
+      "invent/ideas/sellside.md",
+      "invent/ideas/sellside.json"
+     ]
+    ],
+    [
+     "designer",
+     [
+      "invent/ideas/designer.md",
+      "invent/ideas/designer.json"
+     ]
+    ],
+    [
+     "hn-sceptic",
+     []
+    ],
+    [
+     "journalist",
+     [
+      "invent/ideas/journalist.json"
+     ]
+    ]
+   ],
+   "intent-A": [
+    [
+     "blueprint-0",
+     [
+      "census/intent/ledger-blueprint-0.json",
+      "census/raw/intent-blueprint-0.json"
+     ]
+    ],
+    [
+     "blueprint-48",
+     []
+    ],
+    [
+     "blueprint-96",
+     [
+      "census/intent/ledger-blueprint-96.json",
+      "census/raw/intent-blueprint-96.json"
+     ]
+    ],
+    [
+     "blueprint-144",
+     [
+      "census/raw/intent-blueprint-144.json"
+     ]
+    ],
+    [
+     "blueprint-192",
+     []
+    ],
+    [
+     "blueprint-240",
+     [
+      "census/raw/intent-blueprint-240.json"
+     ]
+    ],
+    [
+     "blueprint-288",
+     [
+      "census/intent/ledger-blueprint-288.json",
+      "census/raw/intent-blueprint-288.json"
+     ]
+    ]
+   ],
+   "intent-B": [
+    [
+     "spec-0",
+     [
+      "census/intent/ledger-spec-0.json",
+      "census/raw/intent-spec-0.json"
+     ]
+    ],
+    [
+     "spec-45",
+     [
+      "census/intent/ledger-spec-45.json",
+      "census/raw/intent-spec-45.json"
+     ]
+    ],
+    [
+     "spec-90",
+     []
+    ],
+    [
+     "spec-135",
+     []
+    ],
+    [
+     "spec-180",
+     []
+    ],
+    [
+     "deferred-0",
+     []
+    ],
+    [
+     "deferred-42",
+     [
+      "census/intent/ledger-deferred-42.json",
+      "census/raw/intent-deferred-42.json"
+     ]
+    ],
+    [
+     "deferred-84",
+     [
+      "census/raw/intent-deferred-84.json"
+     ]
+    ]
+   ],
+   "intent-C": [
+    [
+     "pdd-readme-0",
+     []
+    ],
+    [
+     "pdd-readme-45",
+     []
+    ],
+    [
+     "pdd-readme-90",
+     [
+      "census/intent/ledger-pdd-readme-90.json",
+      "census/raw/intent-pdd-readme-90.json"
+     ]
+    ],
+    [
+     "pdd-readme-135",
+     [
+      "census/intent/ledger-pdd-readme-135.json",
+      "census/raw/intent-pdd-readme-135.json"
+     ]
+    ],
+    [
+     "pdd-readme-180",
+     [
+      "census/intent/ledger-pdd-readme-180.json",
+      "census/raw/intent-pdd-readme-180.json"
+     ]
+    ],
+    [
+     "pdd-readme-225",
+     [
+      "census/intent/ledger-pdd-readme-225.json",
+      "census/raw/intent-pdd-readme-225.json"
+     ]
+    ],
+    [
+     "pdd-readme-270",
+     [
+      "census/intent/ledger-pdd-readme-270.json",
+      "census/raw/intent-pdd-readme-270.json"
+     ]
+    ],
+    [
+     "pdd-readme-315",
+     [
+      "census/intent/ledger-pdd-readme-315.json",
+      "census/raw/intent-pdd-readme-315.json"
+     ]
+    ]
+   ],
+   "intent-F": [
+    [
+     "blueprint-48",
+     []
+    ],
+    [
+     "blueprint-144",
+     [
+      "census/raw/intent-blueprint-144.json"
+     ]
+    ],
+    [
+     "blueprint-288",
+     [
+      "census/intent/ledger-blueprint-288.json",
+      "census/raw/intent-blueprint-288.json"
+     ]
+    ],
+    [
+     "deferred-0",
+     []
+    ],
+    [
+     "deferred-84",
+     [
+      "census/raw/intent-deferred-84.json"
+     ]
+    ],
+    [
+     "spec-45",
+     [
+      "census/intent/ledger-spec-45.json",
+      "census/raw/intent-spec-45.json"
+     ]
+    ],
+    [
+     "spec-135",
+     []
+    ],
+    [
+     "pdd-readme-45",
+     []
+    ],
+    [
+     "pdd-readme-90",
+     [
+      "census/intent/ledger-pdd-readme-90.json",
+      "census/raw/intent-pdd-readme-90.json"
+     ]
+    ],
+    [
+     "pdd-readme-180",
+     [
+      "census/intent/ledger-pdd-readme-180.json",
+      "census/raw/intent-pdd-readme-180.json"
+     ]
+    ],
+    [
+     "pdd-readme-270",
+     [
+      "census/intent/ledger-pdd-readme-270.json",
+      "census/raw/intent-pdd-readme-270.json"
+     ]
+    ],
+    [
+     "pdd-readme-315",
+     [
+      "census/intent/ledger-pdd-readme-315.json",
+      "census/raw/intent-pdd-readme-315.json"
+     ]
+    ]
+   ],
+   "intent-R1": [
+    [
+     "blueprint-0",
+     [
+      "census/intent/ledger-blueprint-0.json",
+      "census/raw/intent-blueprint-0.json"
+     ]
+    ],
+    [
+     "blueprint-48",
+     []
+    ],
+    [
+     "blueprint-96",
+     [
+      "census/intent/ledger-blueprint-96.json",
+      "census/raw/intent-blueprint-96.json"
+     ]
+    ],
+    [
+     "blueprint-144",
+     [
+      "census/raw/intent-blueprint-144.json"
+     ]
+    ],
+    [
+     "blueprint-240",
+     [
+      "census/raw/intent-blueprint-240.json"
+     ]
+    ],
+    [
+     "blueprint-288",
+     [
+      "census/intent/ledger-blueprint-288.json",
+      "census/raw/intent-blueprint-288.json"
+     ]
+    ],
+    [
+     "deferred-0",
+     []
+    ],
+    [
+     "deferred-42",
+     [
+      "census/intent/ledger-deferred-42.json",
+      "census/raw/intent-deferred-42.json"
+     ]
+    ],
+    [
+     "deferred-84",
+     [
+      "census/raw/intent-deferred-84.json"
+     ]
+    ]
+   ],
+   "intent-R2": [
+    [
+     "spec-0",
+     [
+      "census/intent/ledger-spec-0.json",
+      "census/raw/intent-spec-0.json"
+     ]
+    ],
+    [
+     "spec-45",
+     [
+      "census/intent/ledger-spec-45.json",
+      "census/raw/intent-spec-45.json"
+     ]
+    ],
+    [
+     "spec-90",
+     []
+    ],
+    [
+     "spec-135",
+     []
+    ],
+    [
+     "spec-180",
+     []
+    ],
+    [
+     "pdd-readme-45",
+     []
+    ],
+    [
+     "pdd-readme-90",
+     [
+      "census/intent/ledger-pdd-readme-90.json",
+      "census/raw/intent-pdd-readme-90.json"
+     ]
+    ],
+    [
+     "pdd-readme-135",
+     [
+      "census/intent/ledger-pdd-readme-135.json",
+      "census/raw/intent-pdd-readme-135.json"
+     ]
+    ],
+    [
+     "pdd-readme-180",
+     [
+      "census/intent/ledger-pdd-readme-180.json",
+      "census/raw/intent-pdd-readme-180.json"
+     ]
+    ],
+    [
+     "pdd-readme-225",
+     [
+      "census/intent/ledger-pdd-readme-225.json",
+      "census/raw/intent-pdd-readme-225.json"
+     ]
+    ],
+    [
+     "pdd-readme-270",
+     [
+      "census/intent/ledger-pdd-readme-270.json",
+      "census/raw/intent-pdd-readme-270.json"
+     ]
+    ],
+    [
+     "pdd-readme-315",
+     [
+      "census/intent/ledger-pdd-readme-315.json",
+      "census/raw/intent-pdd-readme-315.json"
+     ]
+    ]
+   ],
+   "packs-A": [
+    [
+     "P1",
+     []
+    ],
+    [
+     "P2",
+     []
+    ],
+    [
+     "P3",
+     [
+      "battery/packs/P3_CHTR.json (stub)"
+     ]
+    ],
+    [
+     "P4",
+     []
+    ],
+    [
+     "P5",
+     []
+    ],
+    [
+     "P6",
+     []
+    ],
+    [
+     "P7",
+     [
+      "battery/packs/P7_JUMBO.json"
+     ]
+    ],
+    [
+     "P8",
+     [
+      "battery/packs/P8_NAPEROL.json"
+     ]
+    ]
+   ],
+   "packs-B": [
+    [
+     "P9",
+     []
+    ],
+    [
+     "P10",
+     []
+    ],
+    [
+     "P11",
+     [
+      "battery/packs/P11_FUSION.json"
+     ]
+    ],
+    [
+     "P12",
+     []
+    ],
+    [
+     "P13",
+     []
+    ],
+    [
+     "P14",
+     []
+    ],
+    [
+     "P16",
+     [
+      "battery/packs/P16_CREST.json"
+     ]
+    ],
+    [
+     "P17",
+     [
+      "battery/packs/P17_SIFY.json"
+     ]
+    ]
+   ],
+   "packs-C": [
+    [
+     "P18",
+     []
+    ],
+    [
+     "P19",
+     []
+    ],
+    [
+     "P20",
+     []
+    ],
+    [
+     "S1",
+     []
+    ],
+    [
+     "S2",
+     []
+    ],
+    [
+     "S3",
+     []
+    ],
+    [
+     "S4",
+     [
+      "battery/packs/S4_TTC.json"
+     ]
+    ]
+   ],
+   "packs-F": [
+    [
+     "P1",
+     []
+    ],
+    [
+     "P2",
+     []
+    ],
+    [
+     "P3",
+     [
+      "battery/packs/P3_CHTR.json (stub)"
+     ]
+    ],
+    [
+     "P4",
+     []
+    ],
+    [
+     "P5",
+     []
+    ],
+    [
+     "P6",
+     []
+    ],
+    [
+     "P7",
+     [
+      "battery/packs/P7_JUMBO.json"
+     ]
+    ],
+    [
+     "P8",
+     [
+      "battery/packs/P8_NAPEROL.json"
+     ]
+    ],
+    [
+     "P9",
+     []
+    ],
+    [
+     "P10",
+     []
+    ],
+    [
+     "P11",
+     [
+      "battery/packs/P11_FUSION.json"
+     ]
+    ],
+    [
+     "P12",
+     []
+    ],
+    [
+     "P13",
+     []
+    ],
+    [
+     "P14",
+     []
+    ],
+    [
+     "P16",
+     [
+      "battery/packs/P16_CREST.json"
+     ]
+    ],
+    [
+     "P17",
+     [
+      "battery/packs/P17_SIFY.json"
+     ]
+    ],
+    [
+     "P18",
+     []
+    ],
+    [
+     "P20",
+     []
+    ],
+    [
+     "S1",
+     []
+    ],
+    [
+     "S3",
+     []
+    ],
+    [
+     "S4",
+     [
+      "battery/packs/S4_TTC.json"
+     ]
+    ]
+   ],
+   "packs-R": [
+    [
+     "P1",
+     []
+    ],
+    [
+     "P3",
+     [
+      "battery/packs/P3_CHTR.json (stub)"
+     ]
+    ],
+    [
+     "P4",
+     []
+    ],
+    [
+     "P6",
+     []
+    ],
+    [
+     "P7",
+     [
+      "battery/packs/P7_JUMBO.json"
+     ]
+    ],
+    [
+     "P8",
+     [
+      "battery/packs/P8_NAPEROL.json"
+     ]
+    ],
+    [
+     "P9",
+     []
+    ],
+    [
+     "P10",
+     []
+    ],
+    [
+     "P11",
+     [
+      "battery/packs/P11_FUSION.json"
+     ]
+    ],
+    [
+     "P12",
+     []
+    ],
+    [
+     "P13",
+     []
+    ],
+    [
+     "P16",
+     [
+      "battery/packs/P16_CREST.json"
+     ]
+    ],
+    [
+     "P17",
+     [
+      "battery/packs/P17_SIFY.json"
+     ]
+    ],
+    [
+     "P18",
+     []
+    ],
+    [
+     "P20",
+     []
+    ],
+    [
+     "S1",
+     []
+    ],
+    [
+     "S3",
+     []
+    ],
+    [
+     "S4",
+     [
+      "battery/packs/S4_TTC.json"
+     ]
+    ]
+   ],
+   "w2-F": [
+    [
+     "seat-us",
+     []
+    ],
+    [
+     "seat-breaker",
+     [
+      "census/raw/seat-breaker.json"
+     ]
+    ],
+    [
+     "seat-stranger",
+     [
+      "census/raw/seat-stranger.json"
+     ]
+    ],
+    [
+     "funnel-thematic",
+     [
+      "research/funnel-thematic.md",
+      "census/raw/funnel-thematic.json"
+     ]
+    ],
+    [
+     "resolver-probe",
+     [
+      "census/raw/resolver-probe.json",
+      "surface/resolver-probe/"
+     ]
+    ],
+    [
+     "test-quality",
+     [
+      "census/raw/test-quality.json"
+     ]
+    ],
+    [
+     "L1-stranger",
+     [
+      "lifecycle/L1-stranger.md",
+      "census/raw/lifecycle-L1-stranger.json"
+     ]
+    ],
+    [
+     "L2-rot",
+     [
+      "lifecycle/L2-rot.md",
+      "census/raw/lifecycle-L2-rot.json"
+     ]
+    ],
+    [
+     "L3-diagnostics",
+     [
+      "lifecycle/L3-diagnostics.md",
+      "census/raw/lifecycle-L3-diagnostics.json"
+     ]
+    ],
+    [
+     "L5-bounds",
+     [
+      "lifecycle/L5-bounds.md (stub)",
+      "census/raw/lifecycle-L5-bounds.json"
+     ]
+    ]
+   ],
+   "w2-mixed-F": [
+    [
+     "agent-behaviour",
+     [
+      "census/raw/agent-behaviour.json",
+      "surface/agent-behaviour/"
+     ]
+    ],
+    [
+     "test-quality",
+     [
+      "census/raw/test-quality.json"
+     ]
+    ],
+    [
+     "harness-design",
+     [
+      "agent/SCENARIO_HARNESS_DESIGN.md",
+      "census/raw/harness-design.json"
+     ]
+    ],
+    [
+     "L3-diagnostics",
+     [
+      "lifecycle/L3-diagnostics.md",
+      "census/raw/lifecycle-L3-diagnostics.json"
+     ]
+    ],
+    [
+     "L5-bounds",
+     [
+      "lifecycle/L5-bounds.md (stub)",
+      "census/raw/lifecycle-L5-bounds.json"
+     ]
+    ],
+    [
+     "L6-longsession",
+     [
+      "lifecycle/L6-longsession.md",
+      "census/raw/lifecycle-L6-longsession.json"
+     ]
+    ]
+   ],
+   "w2-mixed": [
+    [
+     "agent-behaviour",
+     [
+      "census/raw/agent-behaviour.json",
+      "surface/agent-behaviour/"
+     ]
+    ],
+    [
+     "test-quality",
+     [
+      "census/raw/test-quality.json"
+     ]
+    ],
+    [
+     "harness-design",
+     [
+      "agent/SCENARIO_HARNESS_DESIGN.md",
+      "census/raw/harness-design.json"
+     ]
+    ],
+    [
+     "L3-diagnostics",
+     [
+      "lifecycle/L3-diagnostics.md",
+      "census/raw/lifecycle-L3-diagnostics.json"
+     ]
+    ],
+    [
+     "L5-bounds",
+     [
+      "lifecycle/L5-bounds.md (stub)",
+      "census/raw/lifecycle-L5-bounds.json"
+     ]
+    ],
+    [
+     "L6-longsession",
+     [
+      "lifecycle/L6-longsession.md",
+      "census/raw/lifecycle-L6-longsession.json"
+     ]
+    ],
+    [
+     "L1-stranger",
+     [
+      "lifecycle/L1-stranger.md",
+      "census/raw/lifecycle-L1-stranger.json"
+     ]
+    ],
+    [
+     "L2-rot",
+     [
+      "lifecycle/L2-rot.md",
+      "census/raw/lifecycle-L2-rot.json"
+     ]
+    ],
+    [
+     "L4-upgrade",
+     [
+      "lifecycle/L4-upgrade.md",
+      "census/raw/lifecycle-L4-upgrade.json"
+     ]
+    ]
+   ],
+   "w2-opus-A": [
+    [
+     "L1-stranger",
+     [
+      "lifecycle/L1-stranger.md",
+      "census/raw/lifecycle-L1-stranger.json"
+     ]
+    ],
+    [
+     "L2-rot",
+     [
+      "lifecycle/L2-rot.md",
+      "census/raw/lifecycle-L2-rot.json"
+     ]
+    ],
+    [
+     "L4-upgrade",
+     [
+      "lifecycle/L4-upgrade.md",
+      "census/raw/lifecycle-L4-upgrade.json"
+     ]
+    ],
+    [
+     "collector",
+     [
+      "battery/diffs/",
+      "census/raw/collector.json"
+     ]
+    ],
+    [
+     "rig-salvage",
+     []
+    ],
+    [
+     "browser-harness",
+     [
+      "surface/browser-harness/",
+      "census/raw/browser-harness.json"
+     ]
+    ]
+   ],
+   "w2-opus-B": [
+    [
+     "route-fuzzer",
+     [
+      "census/raw/route-fuzzer.json"
+     ]
+    ],
+    [
+     "licence-audit",
+     [
+      "release/LICENCE_AUDIT.md",
+      "census/raw/licence-audit.json"
+     ]
+    ],
+    [
+     "history-secrets",
+     [
+      "release/SECRETS_HISTORY_SCAN.md",
+      "census/raw/history-secrets.json"
+     ]
+    ],
+    [
+     "docs-truth",
+     [
+      "census/raw/docs-truth.json",
+      "surface/docs-truth/"
+     ]
+    ],
+    [
+     "patch-proof",
+     [
+      "agent/PATCH_3SEP_LIVE_PROOF.md",
+      "census/raw/patch-proof.json"
+     ]
+    ],
+    [
+     "deps-runtime",
+     [
+      "census/raw/deps-runtime.json",
+      "surface/deps-runtime/"
+     ]
+    ]
+   ],
+   "w2-probes-F": [
+    [
+     "funnel-largecap",
+     [
+      "research/funnel-largecap.md",
+      "census/raw/funnel-largecap.json"
+     ]
+    ],
+    [
+     "funnel-microcap",
+     [
+      "research/funnel-microcap.md",
+      "census/raw/funnel-microcap.json"
+     ]
+    ],
+    [
+     "funnel-thematic",
+     [
+      "research/funnel-thematic.md",
+      "census/raw/funnel-thematic.json"
+     ]
+    ],
+    [
+     "screener-probe",
+     [
+      "census/raw/screener-probe.json"
+     ]
+    ],
+    [
+     "resolver-probe",
+     [
+      "census/raw/resolver-probe.json",
+      "surface/resolver-probe/"
+     ]
+    ],
+    [
+     "security",
+     [
+      "census/raw/security.json",
+      "surface/security/"
+     ]
+    ]
+   ],
+   "w2-probes": [
+    [
+     "funnel-largecap",
+     [
+      "research/funnel-largecap.md",
+      "census/raw/funnel-largecap.json"
+     ]
+    ],
+    [
+     "funnel-microcap",
+     [
+      "research/funnel-microcap.md",
+      "census/raw/funnel-microcap.json"
+     ]
+    ],
+    [
+     "funnel-thematic",
+     [
+      "research/funnel-thematic.md",
+      "census/raw/funnel-thematic.json"
+     ]
+    ],
+    [
+     "screener-probe",
+     [
+      "census/raw/screener-probe.json"
+     ]
+    ],
+    [
+     "resolver-probe",
+     [
+      "census/raw/resolver-probe.json",
+      "surface/resolver-probe/"
+     ]
+    ],
+    [
+     "security",
+     [
+      "census/raw/security.json",
+      "surface/security/"
+     ]
+    ]
+   ],
+   "w2-seats": [
+    [
+     "seat-retail",
+     [
+      "census/raw/seat-retail.json",
+      "surface/seat-retail/"
+     ]
+    ],
+    [
+     "seat-microcap",
+     [
+      "census/raw/seat-microcap.json",
+      "surface/seat-microcap/"
+     ]
+    ],
+    [
+     "seat-us",
+     []
+    ],
+    [
+     "seat-breaker",
+     [
+      "census/raw/seat-breaker.json"
+     ]
+    ],
+    [
+     "seat-stranger",
+     [
+      "census/raw/seat-stranger.json"
+     ]
+    ],
+    [
+     "inducer",
+     [
+      "census/raw/inducer.json"
+     ]
+    ]
+   ],
+   "w2-tools-F": [
+    [
+     "collector",
+     [
+      "battery/diffs/",
+      "census/raw/collector.json"
+     ]
+    ],
+    [
+     "rig-salvage",
+     []
+    ],
+    [
+     "browser-harness",
+     [
+      "surface/browser-harness/",
+      "census/raw/browser-harness.json"
+     ]
+    ],
+    [
+     "route-fuzzer",
+     [
+      "census/raw/route-fuzzer.json"
+     ]
+    ],
+    [
+     "licence-audit",
+     [
+      "release/LICENCE_AUDIT.md",
+      "census/raw/licence-audit.json"
+     ]
+    ],
+    [
+     "history-secrets",
+     [
+      "release/SECRETS_HISTORY_SCAN.md",
+      "census/raw/history-secrets.json"
+     ]
+    ],
+    [
+     "docs-truth",
+     [
+      "census/raw/docs-truth.json",
+      "surface/docs-truth/"
+     ]
+    ],
+    [
+     "deps-runtime",
+     [
+      "census/raw/deps-runtime.json",
+      "surface/deps-runtime/"
+     ]
+    ]
+   ],
+   "w2-tools": [
+    [
+     "collector",
+     [
+      "battery/diffs/",
+      "census/raw/collector.json"
+     ]
+    ],
+    [
+     "rig-salvage",
+     []
+    ],
+    [
+     "browser-harness",
+     [
+      "surface/browser-harness/",
+      "census/raw/browser-harness.json"
+     ]
+    ],
+    [
+     "route-fuzzer",
+     [
+      "census/raw/route-fuzzer.json"
+     ]
+    ],
+    [
+     "licence-audit",
+     [
+      "release/LICENCE_AUDIT.md",
+      "census/raw/licence-audit.json"
+     ]
+    ],
+    [
+     "history-secrets",
+     [
+      "release/SECRETS_HISTORY_SCAN.md",
+      "census/raw/history-secrets.json"
+     ]
+    ],
+    [
+     "docs-truth",
+     [
+      "census/raw/docs-truth.json",
+      "surface/docs-truth/"
+     ]
+    ],
+    [
+     "patch-proof",
+     [
+      "agent/PATCH_3SEP_LIVE_PROOF.md",
+      "census/raw/patch-proof.json"
+     ]
+    ],
+    [
+     "deps-runtime",
+     [
+      "census/raw/deps-runtime.json",
+      "surface/deps-runtime/"
+     ]
+    ]
+   ],
+   "world-2": [
+    [
+     "harness-context",
+     [
+      "census/world/harness-context-COMPARE.md (stub)",
+      "census/raw/world-harness-context.json"
+     ]
+    ],
+    [
+     "harness-tools",
+     [
+      "census/world/harness-tools-COMPARE.md (stub)",
+      "census/raw/world-harness-tools.json"
+     ]
+    ],
+    [
+     "agent-native-ux",
+     [
+      "census/world/agent-native-ux-COMPARE.md (stub)",
+      "census/raw/world-agent-native-ux.json"
+     ]
+    ],
+    [
+     "opp-ledger",
+     []
+    ]
+   ],
+   "world-F": [
+    [
+     "cmp-agent-native-ux",
+     [
+      "census/world/agent-native-ux-COMPARE.md (stub)",
+      "census/raw/world-agent-native-ux.json"
+     ]
+    ],
+    [
+     "opp-ledger",
+     []
+    ],
+    [
+     "quant",
+     []
+    ],
+    [
+     "hn-sceptic",
+     []
+    ],
+    [
+     "patch-proof",
+     [
+      "agent/PATCH_3SEP_LIVE_PROOF.md",
+      "census/raw/patch-proof.json"
+     ]
+    ]
+   ],
+   "world-ideate-R": [
+    [
+     "cmp-harness-context",
+     [
+      "census/world/harness-context-COMPARE.md (stub)",
+      "census/raw/world-harness-context.json"
+     ]
+    ],
+    [
+     "cmp-harness-tools",
+     [
+      "census/world/harness-tools-COMPARE.md (stub)",
+      "census/raw/world-harness-tools.json"
+     ]
+    ],
+    [
+     "cmp-agent-native-ux",
+     [
+      "census/world/agent-native-ux-COMPARE.md (stub)",
+      "census/raw/world-agent-native-ux.json"
+     ]
+    ],
+    [
+     "opp-ledger",
+     []
+    ],
+    [
+     "bloomberg",
+     [
+      "invent/ideas/bloomberg.md"
+     ]
+    ],
+    [
+     "retail",
+     []
+    ],
+    [
+     "forensic",
+     []
+    ],
+    [
+     "quant",
+     []
+    ],
+    [
+     "sellside",
+     [
+      "invent/ideas/sellside.md",
+      "invent/ideas/sellside.json"
+     ]
+    ],
+    [
+     "designer",
+     [
+      "invent/ideas/designer.md",
+      "invent/ideas/designer.json"
+     ]
+    ],
+    [
+     "hn-sceptic",
+     []
+    ],
+    [
+     "journalist",
+     [
+      "invent/ideas/journalist.json"
+     ]
+    ]
+   ]
+  }
+ },
+ "section3_skills": {
+  "manifest": "~/Documents/dev/skills-audit/MANIFEST.md (2026-08-02) + install.sh + patches/ (aposd-critique.SKILL.md, software-design-philosophy.SKILL.md, critique-storage.mjs)",
+  "present": [
+   "aposd-critique (patched: SKILL.md + critique-storage.mjs byte-identical to patches/)",
+   "software-design-philosophy (patched, byte-identical)",
+   "claude-code-best-practices",
+   "graphify",
+   "superpowers x14",
+   "ponytail x6",
+   "example-skills (12 listed + extras) incl frontend-design",
+   "ui-ux-pro-max",
+   "feature-dev (commands/agents)",
+   "commit-commands x3",
+   "andrej-karpathy-skills:karpathy-guidelines",
+   "context7 MCP (enabled; query-docs/resolve-library-id tools live in this session)",
+   "rust-analyzer-lsp (cache present)",
+   "built-ins: dataviz, artifact-design, artifact-capabilities, update-config, keybindings-help, simplify, fewer-permission-prompts, loop, schedule, claude-api, run, init, security-review",
+   "project: 15 speckit-* skills in .claude/skills/"
+  ],
+  "missing": [
+   "review (built-in PR reviewer listed in the manifest; not offered in this CLI build; code-review is offered instead)"
+  ],
+  "review_vocabulary": [
+   "Target = a GitHub PR, fetched with gh (gh pr view / gh pr diff); never review from memory",
+   "Review the diff, not the whole repo; anchor every finding to file:line in the diff",
+   "Hunt correctness bugs first: wrong logic, unhandled errors, broken edge cases, races",
+   "Then conventions: does the change follow CLAUDE.md and repo coding standards",
+   "Then tests: is the changed behaviour pinned; would the tests fail without the change",
+   "Security pass: secrets, injection, unsafe input at system boundaries",
+   "Rank findings by severity; say what breaks and for which input",
+   "No style nits unless a repo rule demands them",
+   "Distinguish confirmed bugs from plausible ones",
+   "Posting to the PR needs the user to ask (never auto-comment)",
+   "Replacement in this build: /code-review (levels low..max, --comment, --fix) and security-review"
+  ],
+  "caveats": [
+   "node/npx are not on the default PATH (nvm only): aposd-critique persistence (node critique-storage.mjs) fails unless PATH includes ~/.nvm/versions/node/v24.15.0/bin; the skill degrades to persist=false. Its persistence also writes .aposd/critique/ into the working tree (not git-ignored) - read-only census workers should run with persist=false.",
+   "playwright and tauri-mcp MCP servers failed to connect in this session (ENOENT npx/node) - same PATH cause; the browser-harness and rig lanes cannot rely on them.",
+   "software-design-philosophy README install path (claude install-skill) does not exist; only npx skills add works (per manifest)."
+  ],
+  "aposd_principles_for_workers": [
+   "Strategic over tactical programming",
+   "Deep modules",
+   "Information hiding",
+   "Information leakage",
+   "General-purpose modules are deeper",
+   "Different layer, different abstraction",
+   "Pull complexity downward",
+   "Better together or better apart",
+   "Define errors out of existence",
+   "Design it twice",
+   "Comments describe the non-obvious",
+   "Comments first",
+   "Choosing names",
+   "Modifying existing code",
+   "Consistency",
+   "Code should be obvious",
+   "Design for the future",
+   "Performance as design",
+   "Increments are abstractions, not features"
+  ]
+ }
+}

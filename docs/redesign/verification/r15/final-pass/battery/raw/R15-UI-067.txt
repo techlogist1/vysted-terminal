@@ -1,0 +1,9 @@
+# R15-UI-067 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:34+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'R15-UI-067' src/components/DataBadges.test.tsx; grep -n 'synthetic = false' src/components/DataBadges.tsx
+--- output ---
+36:  it("states synthetic in visible text without a prefix, never colour alone (R15-UI-067)", () => {
+73:  it("dates EOD in the viewer's local calendar across IST midnight (R15-UI-067)", () => {
+39:  synthetic = false,
+
+EXIT=0 (0.0s)

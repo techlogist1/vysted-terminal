@@ -1,0 +1,8 @@
+Commands run against candidate sidecar (source-booted, :52352, region IN):
+1) python3 -c "from services import yfinance_provider; print(yfinance_provider._yahoo_symbol('RELIANCE.NS'))" -> RELIANCE.NS (unchanged, not mangled to RELIANCE-NS)
+2) earnings_provider / analyst_ratings_extended no longer define a local _normalise_symbol (NO_FUNC) -- grep confirms both now `from services.yfinance_provider import _yahoo_symbol` and call it (earnings_provider.py:60,219,262; analyst_ratings_extended.py:47,184); news_provider.py:59,297,563 likewise.
+3) curl 'http://127.0.0.1:52352/news?symbols=RELIANCE,TCS,KAYNES,BDL&limit=50&region=IN' -> HTTP 200, 14 items, symbol tags {TCS:12, RELIANCE:2}, NO "Flanigan" text anywhere in the body (grep -i flanigan = no match). Item for TCS carries source "Yahoo! Finance: TCS.NS News" via_symbol_feed:true (per-symbol feed correctly suffixed .NS, not mangled).
+4) curl 'http://127.0.0.1:52352/earnings/INFY.NS/estimates' -> HTTP 200, eps_estimate_mean=19.61527, currency=INR, revenue currency=INR.
+5) curl 'http://127.0.0.1:52352/earnings/INFY/estimates?region=IN' (bare ticker) -> HTTP 200, IDENTICAL body (symbol echoed INFY.NS, same EPS/currency) -- the bare NSE ticker resolves to the Indian listing's own INR figures, not the US ADR's USD EPS.
+Exit: 0 all calls.
+Verdict: HOLDS. The dash-mangling normalisers are gone from earnings/ratings/news; all three lanes share yfinance_provider._yahoo_symbol; live news/estimates checks show no US-namesake leakage for the register's own repro symbols.

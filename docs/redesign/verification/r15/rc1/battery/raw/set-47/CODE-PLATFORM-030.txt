@@ -1,0 +1,5 @@
+sidecar/services/backtest_engine.py:406 (sell branch):
+  sold = min(abs(intent.quantity), position.quantity)
+This clamps a sell larger than the held position to the actual held quantity,
+so a BacktestOrderIntent(qty=-100) against a 10-share position now sells only 10,
+not 100 -- no phantom shares, no minted cash.

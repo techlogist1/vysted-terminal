@@ -1,0 +1,18 @@
+Live CRUD against candidate sidecar :52344:
+- POST /workflow/save (id=rc1-battery-wf-1) -> 200
+- POST /workflow/schedules {interval, everyMinutes:5} -> 200, id sch-e5b4d3c22505
+- POST /workflow/schedules {announcement, symbol=QUALIANCE, phrase=results} -> 200, id sch-6032c3a7da8c
+- POST /workflow/schedules {interval, everyMinutes:1} -> 422 "Input should be greater than or equal to 5" (MIN_INTERVAL_MINUTES enforced)
+- GET /workflow/schedules -> both rows listed
+- PATCH /workflow/schedules/sch-e5b4d3c22505 {enabled:false} -> 200, enabled:false
+- DELETE both schedules -> {"deleted":true} x2
+- GET /workflow/schedules -> []
+- PUT /workflow/webhooks/rc1-battery-ref1 (X-Vysted-Webhook-Url header) -> 200 {"refs":["rc1-battery-ref1"]}
+- GET /workflow/webhooks -> {"refs":["rc1-battery-ref1"]} (URL itself never echoed/returned, ref only)
+- action.webhook node registered in workflow_nodes/__init__.py:89,123 and builtin.py:392 (raises on missing secret_ref,
+  missing keychain URL, non-2xx, or transport error)
+Not live-tested this shard (needs fake-clock / 5+ minute wall wait, or a live scheduler-loop fire cycle):
+  actual interval/announcement firing behavior, no-overlap-with-previous-run guard, webhook 10s timeout enforcement.
+  These are pinned by sidecar/tests/test_workflow_scheduler.py (per PLAN.md Test section) -> ci_pinned for that slice.
+Verdict: holds for the CRUD/schema/routes/webhook-secret-never-echoed surface (live-confirmed);
+ci_pinned for the scheduler-loop firing/no-overlap/timeout behavior (sidecar/tests/test_workflow_scheduler.py).

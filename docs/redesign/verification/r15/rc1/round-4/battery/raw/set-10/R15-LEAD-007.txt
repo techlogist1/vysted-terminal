@@ -1,0 +1,24 @@
+Repro: grep sidecar/services/agent_tools/schemas.py gemini_tools() at 1006c6da; catalog.py schema
+for coupons_per_year (int enum) and panels.items.type (["string","object"]) unions are UNCHANGED
+(still present, expected — the register's issue was Gemini's OWN Schema type rejecting them, not
+the catalog schema itself).
+
+$ sed -n '86,104p' sidecar/services/agent_tools/schemas.py
+def gemini_tools(tool_ids):
+    ...
+        {
+            "function_declarations": [
+                {
+                    "name": tid,
+                    "description": ...,
+                    # ``parameters`` is google-genai's OpenAPI-subset Schema, which
+                    # rejects plain JSON Schema (int enums, list-valued ``type``);
+                    # ``parameters_json_schema`` takes the catalog schema as-is.
+                    "parameters_json_schema": TOOL_SCHEMAS[tid]["input_schema"],
+                }
+                ...
+
+Verdict: holds. gemini_tools() now emits parameters_json_schema (accepts raw JSON Schema, int
+enums and list-valued type included) instead of parameters (the strict OpenAPI-subset Schema
+that raised the "8 validation errors for GenerateContentConfig"). The comment names the exact
+failure this replaces.

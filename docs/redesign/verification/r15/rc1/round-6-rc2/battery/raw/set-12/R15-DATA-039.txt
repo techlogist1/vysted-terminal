@@ -1,0 +1,6 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: GET /sec/filings?symbol=INFY ; GET /sec/filings?symbol=AAPL
+== d39_infy EXIT 0
+count 40 [('6-K', 16), ('3', 10), ('4', 8), ('3/A', 2), ('F-6 POS', 1), ('F-6EF', 1), ('20-F', 1), ('144', 1)]
+== d39_aapl EXIT 0
+count 40 [('4', 22), ('144', 9), ('8-K', 3), ('10-Q', 2), ('3', 1), ('8-K/A', 1), ('SD', 1), ('SCHEDULE 13G', 1)]

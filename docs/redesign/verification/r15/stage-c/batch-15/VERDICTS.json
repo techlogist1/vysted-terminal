@@ -1,0 +1,13 @@
+{
+  "certified": [],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-AGENT-090",
+      "reason": "The grounding half holds and the original repro no longer reproduces, but the guard's own marker lets a fresh fabrication wording through, and the bar needs every fresh fabrication guarded. _MARKED's 'count of a lower-case plural noun' rule treats any lower-case word ending in s/es as the counted noun, so a class designator or qualifier before 'shares' blanks the claimed number. Against a fundamentals result with no depositary term, _guard_ratio_claims keeps these unchanged: 'Each ADS represents 6 class A shares.', 'Each ADS represents 6 class A ordinary shares.', 'Each ADR represents 2 bonus shares.' and 'The ADR stands for 4 class B common shares.'. The capitalised 'Class B' form is replaced. Live on the running sidecar (llama3.1:8b, verifier-evidence/live-8.jsonl), the model emitted 'Each ADS represents 6 class A shares.' and it reached the stream unguarded. That is an untraced ratio claim, where the bar requires 0 untraced. For a grounding miss (TSM and BABA get no ads_ratio, see mcp2.out) the guard is the only defence, and Chinese ADR covers use 'Class A ordinary shares' wording. Fix shape: make the plural-noun branch of _MARKED skip a word that is followed by an optional class letter and then (ordinary|equity|common )?shares, e.g. exclude class/series/bonus, and pin it with a test on a qualifier the fix was not written against. Everything else passes: grounding (SIFY 6 with 20-F provenance, which matches the SEC 20-F cover text I fetched myself; fresh IBN 2, HDB 3 and INFY 1 are all true; AAPL and MSFT carry no key; financial_statements carries the key), all 14 GUARDED, 8 KEPT and 4 TRACED bar sentences, the batch-13/14 lists, 10 of 11 of my fresh fabrications on the offline path, and 5 of 5 original-repro runs with 0 untraced (runs 2 and 3 answered the true 'six equity shares'; run 4's 1:1 was replaced)."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-15-int@4daf6507e5a4b004c0e4170113ff0c8201fa8771"
+}

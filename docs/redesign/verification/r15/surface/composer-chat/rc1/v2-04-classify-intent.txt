@@ -1,0 +1,4 @@
+'write a note about this stock' -> IntentResult(intent='edit', confidence=0.95, signals=['\\bnotes?\\b', '\\bwrite\\b'], compound=False)
+'screen for stocks under 50 PE' -> IntentResult(intent='edit', confidence=0.95, signals=['\\bscreen\\b'], compound=False)
+'save this screen as my momentum screen' -> IntentResult(intent='edit', confidence=0.95, signals=['\\bsave\\b', '\\bscreen\\b'], compound=False)
+'jot down that I want to revisit BDL next week' -> IntentResult(intent='build', confidence=0.7833333333333333, signals=[], compound=True)

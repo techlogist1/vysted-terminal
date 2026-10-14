@@ -1,0 +1,1 @@
+{"filing":{"accession":"0001564590-22-035087","cik":"0000789019","company_name":"MICROSOFT CORP","symbol":null,"form_type":"10-Q","filed_date":"2022-10-25","period_of_report":"2022-09-30","edgar_url":"https://www.sec.gov/Archives/edgar/data/789019/000156459022035087/"},"sections":[],"total_chars":0}

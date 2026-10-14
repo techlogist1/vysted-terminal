@@ -1,0 +1,125 @@
+--- catalog.py internal/mcp/agent_selectable ---
+222:def _cap(id: str, **fields: Any) -> tuple[str, Capability]:
+1763:def internal_tool_ids() -> list[str]:
+1793:def agent_selectable_tool_ids() -> frozenset[str]:
+1804:def default_grant_tool_ids() -> list[str]:
+def internal_tool_ids() -> list[str]:
+    """Ids of every capability the internal copilot can be given (allow-list domain)."""
+    return [c.id for c in internal_capabilities()]
+
+
+def mcp_capabilities() -> list[Capability]:
+    """Capabilities projected to the external MCP server (FR-020/022).
+
+    The same read capabilities the internal copilot uses, by the SAME name — so
+    an external agent builds on Vysted with no divergence. The surface is
+    read-only in 0.9 (R15-AGENT-083): no host action or mutating capability is
+    projected; those stay in-app behind the proposed-changes gate.
+    """
+    return [c for c in CAPABILITY_CATALOG.values() if c.mcp]
+
+
+def mcp_tool_ids() -> list[str]:
+    """Ids of every capability exposed on the external MCP surface."""
+    return [c.id for c in mcp_capabilities()]
+
+
+def read_handler_ids() -> list[str]:
+    """Ids of internal capabilities backed by a registered agent_tools handler.
+
+    These are exactly the ids a registry-completeness audit expects to find in
+    :func:`services.agent_tools.registered_tools` once all tools are registered.
+    """
+    return [c.id for c in internal_capabilities() if c.kind == "read_handler"]
+
+
+def agent_selectable_tool_ids() -> frozenset[str]:
+    """The Custom Agent Builder allow-list — equal to :func:`internal_tool_ids` by design.
+
+    A custom agent may select any tool the first-party copilot can use, so no
+    internal capability is withheld from the builder; each id resolves at the
+    host (registry handler, per-invocation closure, or host action). Safety is
+    host-enforced regardless of selection; no trading tool exists (D81).
+    """
+    return frozenset(internal_tool_ids())
+
+
+def default_grant_tool_ids() -> list[str]:
+    """Ids granted to every FIRST-PARTY agent at load time (R10, E5).
+
+    The loader (:func:`services.agent_runtime._grant_first_party_hands`) unions
+    each first-party spec's tools with this projection — capability maximization
+    is catalog-driven, so a tool registered+catalogued can never silently fall
+    out of an agent's belt by JSON drift (the E5 regression). Custom agents
+    (the agents_store path) stay exactly author-picked.
+    """
+    return [c.id for c in internal_capabilities() if c.default_grant]
+
+
+--- Capability class def ---
+173:class Capability:
+class Capability:
+    """One terminal capability — the single declaration projected to all consumers."""
+
+    id: str
+    description: str
+    input_schema: dict[str, Any]
+    domain: Domain
+    read_only: bool
+    kind: ToolKind
+    #: Former ids of this capability. A stored agent's tool list still names a
+    #: renamed tool by its old id; :func:`resolve_tool_ids` maps it here
+    #: (R15-LIFECYCLE-025).
+    aliases: tuple[str, ...] = field(default_factory=tuple)
+    #: Granted to every FIRST-PARTY agent at load time (R10, E5): the loader
+    #: unions each first-party spec's tools with :func:`default_grant_tool_ids`,
+    #: so a tool can never fall out of the belt by agent-JSON drift. Custom
+    #: agents stay author-picked.
+    default_grant: bool = True
+    #: Per-dispatch wall budget (R10, E7) enforced at the runtime's tool
+    #: boundary via ``asyncio.wait_for``. ``None`` = no timeout (host actions /
+    #: per-invocation locals are exempt; ``research`` carries its own outer
+    #: guard computed from its args).
+    timeout_seconds: float | None = None
+    #: The result carries third-party text (web pages, news, exchange
+    #: disclosures, research built from them). The runtime fences it with
+    #: ``scrub.wrap_untrusted`` in the model-facing tool message, so injected
+    #: instructions read as data, never as the user's request (R15-AGENT-021).
+    untrusted_text: bool = False
+
+    @property
+    def internal(self) -> bool:
+        """Projected to the internal copilot/persona adapters (every kind but ``mcp_endpoint``)."""
+        return self.kind != "mcp_endpoint"
+
+    @property
+    def mcp(self) -> bool:
+        """Projected to the external MCP server — derived from the ONE rule below, never set."""
+        return self.kind == "read_handler" and self.id not in _MCP_INTERNAL_ONLY
+
+
+# MCP projection rule (FR-020/022, R15-AGENT-083): the external MCP surface is
+# READ-ONLY in 0.9. Every handler-backed read capability is exposed — EXCEPT
+# those that need local-only context (a backtest run_id lives only in this
+# session). Per-invocation reads are request-scoped and host actions mutate the
+# cockpit behind the in-app proposed-changes gate, so neither is projected.
+# Exposing writes through a host-side queue is a future operator decision.
+_MCP_INTERNAL_ONLY: frozenset[str] = frozenset({"backtest_summary"})
+
+
+def _cap(id: str, **fields: Any) -> tuple[str, Capability]:
+    """``(id, Capability)`` — an entry passes only what it sets; defaults live on the class."""
+    return id, Capability(id=id, **fields)
+
+--- grep internal field usage ---
+1760:    return [c for c in CAPABILITY_CATALOG.values() if c.internal]
+--- default_grant=False sites ---
+1219:            default_grant=False,
+CMD: in-process python (candidate venv) importing catalog and printing projection counts
+internal 56
+agent_selectable 56
+default_grant 55
+mcp 32
+internal==agent_selectable True
+default_grant < internal True
+VERDICT: holds — code read confirms both knobs the register named are gone by construction, not patched: internal (catalog.py:199-201) and mcp (:203-205) are now derived @property computed from kind (never a stored/overwritten field); _cap() docstring (:222) says 'an entry passes only what it sets; defaults live on the class' (no re-declaration); agent_selectable_tool_ids() (:1793) explicitly returns internal_tool_ids() with a docstring naming why. Live in-process import (candidate venv): internal=56, agent_selectable=56 (equal by design), default_grant=55 (< internal, confirms default_grant=False is live on at least one capability, e.g. ask_user at :1219), mcp=32.

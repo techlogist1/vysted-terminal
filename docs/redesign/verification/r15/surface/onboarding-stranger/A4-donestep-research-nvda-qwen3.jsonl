@@ -1,0 +1,961 @@
+{"kind": "tool_use", "tool_call_id": "", "name": "research", "input": {"query": "NVDA", "depth": "quick"}}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin 2edf381ff2ee4aba894a5d72b8826dad depth=normal query=NVDA", "latency_ms": null, "status": "ok", "index": 1}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolving \"NVDA\"", "latency_ms": null, "status": "ok", "index": 2}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 NVDA", "latency_ms": 2, "status": "ok", "index": 3}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulling market data for NVDA", "latency_ms": null, "status": "ok", "index": 4}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulled 4/4 data sources", "latency_ms": 5886, "status": "ok", "index": 5}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "searching the web for NVIDIA CORP", "latency_ms": null, "status": "ok", "index": 6}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "6 web source(s)", "latency_ms": 49002, "status": "ok", "index": 7}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 8}
+{"kind": "tool_use", "tool_call_id": "__autobrief", "name": "publish_brief", "input": {"query": "NVDA", "symbol": "NVDA", "mode": "fast", "depth": "quick", "execution": {"run_id": "2edf381ff2ee4aba894a5d72b8826dad", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790136492.1552582, "finished_at": 1790136547.069668, "degraded_reason": null}, "markdown": "", "sources": [{"url": "https://www.cnn.com/markets/stocks/NVDA", "title": "NVDA Stock Quote Price and Forecast | CNN", "excerpt": "", "domain": "web"}, {"url": "https://finance.yahoo.com/quote/NVDA/", "title": "NVIDIA Corporation (NVDA) Stock Price, News, Quote & History - Yahoo Finance", "excerpt": "", "domain": "web"}, {"url": "https://www.cnbc.com/quotes/NVDA", "title": "NVDA: NVIDIA Corporation - Stock Price, Quote and News - CNBC", "excerpt": "", "domain": "web"}, {"url": "https://www.tradingview.com/symbols/NASDAQ-NVDA/", "title": "Nvidia Stock Price Chart \u2014 NASDAQ:NVDA \u2014 TradingView", "excerpt": "", "domain": "web"}, {"url": "https://www.nasdaq.com/market-activity/stocks/nvda", "title": "NVIDIA Corporation Common Stock (NVDA) Stock Price, News, Quotes, & Historic Data | Nasdaq", "excerpt": "", "domain": "web"}, {"url": "https://seekingalpha.com/symbol/NVDA", "title": "NVIDIA Corporation (NVDA) Stock Price, Quote, News & Analysis | Seeking Alpha", "excerpt": "", "domain": "web"}], "structured": {"price": {"ok": true, "provider": "yfinance", "data": {"symbol": "NVDA", "price": 228.87, "change": 1.5762, "change_percent": 0.6934637020455463, "volume": 93296546.0, "currency": "USD", "market_state": null, "timestamp": "2026-09-23T04:08:13.962320Z", "provider": "yfinance", "freshness": null}}, "fundamentals": {"ok": true, "provider": "yfinance", "data": {"symbol": "NVDA", "name": "NVIDIA Corporation", "sector": "Technology", "industry": "Semiconductors", "currency": "USD", "market_cap": 5526523478016.0, "pe_ratio": 28.934261, "forward_pe": 14.593853, "peg_ratio": 0.483, "price_to_book": 24.134768, "price_to_sales": 18.241158, "ev_to_ebitda": 27.288, "book_value": 9.483, "dividend_yield": 0.0044, "dividend_per_share": 1.0, "eps": 7.91, "beta": 2.217, "fifty_two_week_high": 236.54, "fifty_two_week_low": 164.27, "fifty_two_week_change": 0.2848506, "roe": 1.17211, "roa": 0.53572, "gross_margin": 0.74674004, "operating_margin": 0.66236997, "profit_margin": 0.63663, "debt_to_equity": 0.16971, "current_ratio": 4.589, "quick_ratio": 2.918, "revenue_ttm": 302970011648.0, "net_income_ttm": 192880001024.0, "free_cash_flow": 41809874944.0, "shares_outstanding": 24147000000.0, "revenue_growth": 1.059, "earnings_growth": 1.278, "growth_basis": "mrq_yoy", "held_percent_insiders": 0.04007, "held_percent_institutions": 0.71413004, "dividend_per_share_ttm": 0.52, "revenue_growth_computed": 1.0585114348672529, "earnings_growth_computed": 1.2590265687684505, "growth_computed_quarters": {"mrq": "2026-07-31", "prior": "2025-07-31"}, "field_meta": {"name": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "sector": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "industry": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "currency": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "market_cap": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "pe_ratio": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "forward_pe": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "peg_ratio": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "price_to_book": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "price_to_sales": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "ev_to_ebitda": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "book_value": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "dividend_yield": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "dividend_per_share": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "eps": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "beta": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "fifty_two_week_high": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "fifty_two_week_low": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "fifty_two_week_change": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "roe": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "roa": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "gross_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "operating_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "profit_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "debt_to_equity": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "current_ratio": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "quick_ratio": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "revenue_ttm": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "net_income_ttm": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "free_cash_flow": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "shares_outstanding": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "revenue_growth": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "earnings_growth": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "held_percent_insiders": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "held_percent_institutions": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": null, "label": null}, "identity_note": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T04:08:16.342310+00:00", "reason": "provider did not publish this field", "label": null}, "dividend_per_share_ttm": {"status": "ok", "provider": "yfinance"}}, "provider": "yfinance", "identity_note": null, "earnings_quality": {"reported_net_income": 120067000000.0, "normalized_income": 120067000000.0, "unusual_items": null, "tax_effect": 0.0, "one_off_net": 0.0, "distortion_fraction": 0.0, "period": "2026-01-31"}}}, "derived": {"ok": true, "provider": "derived", "data": {"drawdown_from_high": {"value": 0.03242580536061549, "label": "Below 52-week high", "basis": "vs 52w high", "formula": "(52w high - price) / 52w high", "unit": "percent"}, "fifty_two_week_change": {"value": 0.2848506, "label": "52-week price change (Yahoo)", "basis": "trailing 52 weeks", "unit": "percent"}, "dividend_yield": {"value": 0.004369292611526194, "label": "Dividend yield", "basis": "fraction of price", "formula": "dividend per share / price", "unit": "percent"}, "dividend_per_share": {"value": 1.0, "label": "Dividend per share", "basis": "per share, USD", "unit": "currency"}, "dividend_per_share_ttm": {"value": 0.52, "label": "Dividend/share (trailing 12m paid)", "basis": "corporate-action history", "formula": "sum of dividends paid in the trailing 12 months", "unit": "currency"}, "revenue_growth": {"value": 1.059, "label": "Revenue growth", "basis": "quarterly YoY (MRQ)", "unit": "percent"}, "earnings_growth": {"value": 1.278, "label": "Earnings growth", "basis": "quarterly YoY (MRQ)", "unit": "percent"}, "conflicts": [{"field": "dividend_per_share", "kind": "dividend_conflict", "conflict_kind": "data_conflict", "sources": [{"provider": "yfinance (dividendRate)", "value": 1.0}, {"provider": "derived (trailing-12m paid history)", "value": 0.52}], "note": "The provider's dividend per share (Yahoo dividendRate, 1) EXCEEDS the trailing-12-month dividends actually PAID (0.52) by more than 10% \u2014 the scalar may anticipate a declared-but-unpaid dividend or ride a forward/inflated basis; the paid history is the settled figure."}]}}, "news": {"ok": true, "provider": "rss", "data": [{"id": "dcd63d129eed2aaa", "title": "NVDA Edges Down Overnight After 6-Day Winning Streak \u2014 Director Mark Stevens Sells Another $300M In Stock", "summary": "Nvidia\u2019s latest insider filing adds to a steady stream of stock sales by key shareholders.", "url": "https://stocktwits.com/news-articles/markets/equity/nvda-edges-down-overnight-after-6-day-winning-streak-director-mark-stevens-sells-another-300-m-in-stock/cZME0zYRB7q?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-23T03:57:01Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "e7ae4013c9ac63a2", "title": "NSE IPO shares to list tomorrow: GMP signals 2% listing gain ahead of market debut", "summary": "National Stock Exchange of India (NSE) IPO shares will list on BSE tomorrow, September 24, 2026. Ahead of the debut, grey market premium signals a modest 2.4% listing gain over the upper price band of Rs 1,785. The Rs 22,562 crore offer for sale was subscribed 5.71 times overall.", "url": "https://economictimes.indiatimes.com/markets/ipos/fpos/nse-ipo-shares-to-list-tomorrow-gmp-signals-2-listing-gain-ahead-of-market-debut/articleshow/134425287.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:55:00Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "1414471575302d00", "title": "Chasing IPO debut highs? All 10 listing multibaggers of last 2 years bleed negative returns", "summary": "Recent IPOs are turning into a headache for investors, as nearly all are now falling beneath their initial listing highs. For instance, Vibhor Steel Tubes and Mamata Machinery have seen drastic declines from their early performances. While a few stocks maintain values above their original prices, many investors find themselves grappling with losses due to inflated entry costs.", "url": "https://economictimes.indiatimes.com/markets/ipos/fpos/chasing-ipo-debut-highs-all-10-listing-multibaggers-of-last-2-years-bleed-negative-returns/articleshow/134425314.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:54:07Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "b4b5c95c1eb063c9", "title": "ETMarkets Smart Talk| STT, GST, brokerage, UPI charges: Varun Saboo on the hidden cost of frequent trading", "summary": "In this episode of ETMarkets Smart Talk, Varun Saboo, Head \u2013 Equities at Anand Rathi Share and Stock Brokers, breaks down the hidden cost of frequent trading, explains why the impact differs sharply between long-term investors and active traders, and shares what investors should keep in mind when evaluating returns after transaction costs.", "url": "https://economictimes.indiatimes.com/markets/expert-view/etmarkets-smart-talk-stt-gst-brokerage-upi-charges-varun-saboo-on-the-hidden-cost-of-frequent-trading/articleshow/134425203.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:49:19Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "169e609cc04a98c2", "title": "Voltas share price: Nuvama upgrades rating but Jefferies cuts target price after analyst meet. Here\u2019s why", "summary": "Shares of Voltas received mixed brokerages calls after the company\u2019s analyst meet. Nuvama upgraded the stock to \u2018Hold\u2019 but cut its target to Rs 1,220, while Jefferies retained \u2018Buy\u2019 and lowered its target to Rs 1,495. Margin pressures, rising costs and market-share gains remain key factors for investors.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/voltas-shares-in-focus-after-mixed-brokerage-views-post-analyst-meet-why-nuvama-upgraded-rating-but-jefferies-cut-target-price/articleshow/134425169.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:46:19Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "d5feda94eea04d53", "title": "Voltas shares in focus after mixed brokerage views post analyst meet. Why Nuvama upgraded rating but Jefferies cut target price", "summary": "Voltas shares remain in focus after brokerages issued mixed views following the company\u2019s analyst meet. Nuvama upgraded the stock to \u2018Hold\u2019 but cut its target to Rs 1,220, while Jefferies retained \u2018Buy\u2019 and lowered its target to Rs 1,495. Margin pressures, rising costs and market-share gains remain key factors for investors.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/voltas-shares-in-focus-after-mixed-brokerage-views-post-analyst-meet-why-nuvama-upgraded-rating-but-jefferies-cut-target-price/articleshow/134425169.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-23T03:46:19Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "0129e12893efe37a", "title": "5 Adani group stocks in focus as firms settle Sebi proceedings linked to Hindenburg report", "summary": "Five Adani Group companies have settled Sebi proceedings over alleged disclosure and corporate governance violations, paying a combined Rs 1.51 crore. The proceedings relate to findings arising from Sebi\u2019s examination of issues highlighted in the Hindenburg Report.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/5-adani-group-stocks-in-focus-as-firms-settle-sebi-proceedings-linked-to-hindenburg-report/articleshow/134425212.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:45:01Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "6dd7bb927b2f869c", "title": "Why Meloni wants to ban burqas, niqabs in Italian schools? How Europe regulates Islamic veils | Explained", "summary": "Italy\u2019s center-right coalition government moved to counter the surge of the ultranationalist National Future party, with Prime Minister Giorgia Meloni proposing new education laws that would place more restrictions on foreigners and veils.", "url": "https://www.livemint.com/news/world/why-giorgia-meloni-wants-to-ban-burqas-niqabs-in-italian-schools-how-europe-regulates-islamic-veils-explained-11790130074349.html", "source": "mint - news", "published_at": "2026-09-23T03:39:40Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "0130184d4c18664e", "title": "Varmora Granito IPO Day 2: Check GMP, subscription status and other key details. Should you apply?", "summary": "Varmora Granito\u2019s Rs 708-crore IPO was 11% subscribed on Day 1, with the retail portion at 20%. The issue\u2019s grey market premium has cooled to 2% from 6%, indicating a modest listing premium. The IPO closes on September 24, with allotment expected on September 25 and listing on NSE and BSE on September 29.", "url": "https://economictimes.indiatimes.com/markets/ipos/fpos/varmora-granito-ipo-day-2-check-gmp-subscription-status-and-other-key-details-should-you-apply/articleshow/134425087.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:37:49Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "0677a241a77e128b", "title": "ETMarkets Smart Talk | 2-year bonds attractive, long end risky: Apoorva Javadekar\u2019s fixed-income playbook", "summary": "While the recent rise in yields may make short-tenor bonds more attractive, the long end remains vulnerable to global rate pressures and domestic fiscal risks. Apoorva Javadekar, Chief Economist at Shriram Group, believes the 2-year segment offers a relatively attractive entry point, while investors should remain cautious on long-duration bonds.", "url": "https://economictimes.indiatimes.com/markets/bonds/etmarkets-smart-talk-2-year-bonds-attractive-long-end-risky-apoorva-javadekars-fixed-income-playbook/articleshow/134425069.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:37:09Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "7d7aadd89da2a62b", "title": "Five pivotal figures shaping the battle for $185 billion Tata Group", "summary": "On one side is family patriarch Noel Tata, who heads Tata Trusts, on the other is N Chandrasekaran, Tata Sons' chairman with no links to the founding family but a slew of powerful corporate backers", "url": "https://www.business-standard.com/companies/news/five-pivotal-figures-shaping-the-battle-for-185-billion-tata-group-126092300162_1.html", "source": "Pulse by Zerodha", "published_at": "2026-09-23T03:34:30Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "d995d37a60a3686b", "title": "360 ONE WAM shares rise over 2% after appointing Jefferies India Head and MD as new CEO", "summary": "360 ONE WAM appoints Jefferies India Country Head Aashish Agarwal as Group CEO, with founders Karan Bhagat and Yatin Shah taking focused leadership roles across strategy and wealth management.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/360-one-wam-shares-in-focus-after-appointing-jefferies-india-head-and-md-as-new-ceo/articleshow/134425059.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:32:34Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "eb56c13ec8339e30", "title": "360 ONE WAM shares in focus after appointing Jefferies India Head and MD as new CEO", "summary": "360 ONE WAM appoints Jefferies India Country Head Aashish Agarwal as Group CEO, with founders Karan Bhagat and Yatin Shah taking focused leadership roles across strategy and wealth management.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/360-one-wam-shares-in-focus-after-appointing-jefferies-india-head-and-md-as-new-ceo/articleshow/134425059.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-23T03:32:34Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "1e6086abdd534f93", "title": "Elevate Campuses IPO opens today: Check GMP, GMP trend and other key details", "summary": "Elevate Campuses IPO opens for subscription today, September 23, 2026, with a price band of Rs 343 to Rs 362 per share. The Rs 2,100 crore public issue commands a modest 1% grey market premium. Bidding closes on September 25, with shares scheduled to list on BSE and NSE on September 30.", "url": "https://economictimes.indiatimes.com/markets/ipos/fpos/elevate-campuses-ipo-opens-today-check-gmp-gmp-trend-and-other-key-details/articleshow/134424973.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:29:08Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "f862b41e29d83d72", "title": "Dixon Technologies eyes growth beyond smartphones to add global clout", "summary": "The contract manufacturer is seeking higher margins by making electronics components like camera modules, while deepening its smartphone and laptop production", "url": "https://www.business-standard.com/companies/news/dixon-technologies-eyes-growth-beyond-smartphones-to-add-global-clout-126092300152_1.html", "source": "Pulse by Zerodha", "published_at": "2026-09-23T03:27:52Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "ad9240c86b81c3bb", "title": "ETMarkets Smart Talk | Anthropic, SpaceX, US stocks: Viram Shah on how Indian investors can access global opportunities", "summary": "The global investment opportunity set is getting wider for Indian investors. From high-profile AI companies such as Anthropic to blockbuster listings such as SpaceX, some of the world's most closely watched investment opportunities are now outside Indian markets.", "url": "https://economictimes.indiatimes.com/markets/us-stocks/wall-street-guide/etmarkets-smart-talk-anthropic-spacex-us-stocks-viram-shah-on-how-indian-investors-can-access-global-opportunities/articleshow/134424933.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:26:35Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "f09c898d56726884", "title": "Swastika Infra IPO opens today: GMP signals 5% listing gain, check key details", "summary": "Swastika Infra IPO opens for subscription today, September 23, 2026, with a price band of Rs 175 to Rs 185 per share. The Rs 160.88 crore issue commands a 5% grey market premium. Retail investors need a minimum investment of Rs 14,985. Bidding closes on September 25, with listing expected on September 30", "url": "https://economictimes.indiatimes.com/markets/ipos/fpos/swastika-infra-ipo-opens-today-gmp-signals-5-listing-gain-check-key-details/articleshow/134424956.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:26:25Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "e8899f81821188fb", "title": "BPCL Share Price Live Updates: BPCL Breaks Through 100-Day EMA Resistance", "summary": null, "url": "https://economictimes.indiatimes.com/markets/stocks/stock-liveblog/bpcl-stock-price-today-live-23-sep-2026/liveblog/134424989.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:25:04Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "9ea7f7be54e4045e", "title": "Hero MotoCorp Share Price Live Updates: Hero MotoCorp's Closing Figures", "summary": null, "url": "https://economictimes.indiatimes.com/markets/stocks/stock-liveblog/hero-motocorp-stock-price-today-live-23-sep-2026/liveblog/134424944.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:20:56Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "de67fa331c94a6f4", "title": "Gabriel India among 4 stocks showing RSI trending up", "summary": "Four Nifty500 stocks that gained over 5% appeared in StockEdge\u2019s RSI Trending Up scan on September 22, with Gabriel India, Sun TV Network, Cemindia Projects and Jain Resource Recycling showing bullish RSI momentum.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/gabriel-india-among-4-stocks-showing-rsi-trending-up/slideshow/134424901.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:12:04Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "a8155d9d17932a04", "title": "IPO GMP Today Live Updates | Elevate Campuses IPO GMP signals modest premium; check lot size, other key details", "summary": null, "url": "https://economictimes.indiatimes.com/markets/stocks/live-blog/ipo-gmp-today-live-updates-elevate-campuses-armee-infotech-varmora-granito-grey-market-price-band-subscription-status-listing-date/liveblog/134424803.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T03:09:59Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "c3c5f46ba293ba29", "title": "NYC Mayor Mamdani announces $131.5 million DoorDash settlement over underpaid delivery workers: Deal explained", "summary": "New York City Mayor Zohran Mamdani announced a $131.5 million DoorDash settlement over delivery worker pay. About 264,000 couriers will receive compensation, while DoorDash will pay $16.7 million in fines to the city.", "url": "https://www.livemint.com/news/us-news/nyc-mayor-mamdani-announces-131-5-million-doordash-settlement-over-underpaid-delivery-workers-deal-explained-11790131113113.html", "source": "mint - news", "published_at": "2026-09-23T03:01:35Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "80af1d73c5882022", "title": "Tata Steel Share Price Live Updates: Tata Steel achieves a slight weekly return", "summary": null, "url": "https://economictimes.indiatimes.com/markets/stocks/stock-liveblog/tata-steel-stock-price-livestock-price-today-live-updates-23-sep-2026/liveblog/134424681.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:57:44Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "2314df0edd9c46b7", "title": "Australia tightens visa rules for students, visitors and workers: Key changes explained", "summary": "Australia has announced a fresh set of migration measures affecting student, visitor, skilled migration and working holiday visas, with the changes to be rolled out progressively over the next 12 months.", "url": "https://www.livemint.com/news/india/australia-tightens-visa-rules-for-students-visitors-and-workers-key-changes-explained-11790131586684.html", "source": "mint - news", "published_at": "2026-09-23T02:55:26Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "3eb1761fbeb70204", "title": "ONGC Share Price Live Updates: ONGC's Recent Decline Below Moving Average", "summary": null, "url": "https://economictimes.indiatimes.com/markets/stocks/stock-liveblog/ongc-stock-price-livestock-price-today-live-updates-23-sep-2026/liveblog/134424650.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:55:05Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "256d5343c2d29026", "title": "\u2018Feeling burned out\u2019: Bengaluru techie earning \u20b935 LPA contemplates 6-month career break, sparks debate", "summary": "Despite a lucrative salary and about six years of experience, the techie shared that he felt overwhelmed by the daily grind.", "url": "https://www.livemint.com/news/feeling-burned-out-bengaluru-techie-earning-35-lpa-contemplates-6-month-career-break-sparks-debate-11790129512496.html", "source": "mint - news", "published_at": "2026-09-23T02:48:35Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "5ef62b360c56cdb5", "title": "Adroit Industries IPO opens today; GMP signals 25% listing gains \u2014 Check key details", "summary": "Adroit Industries IPO is a book-built issue worth Rs 150.71 crore. The public issue comprises a fresh issue of 98.97 lakh shares aggregating to Rs 132.62 crore and an offer for sale (OFS) of 13.50 lakh shares worth Rs 18.09 crore.", "url": "https://economictimes.indiatimes.com/markets/ipos/fpos/adroit-industries-ipo-opens-today-gmp-signals-25-listing-gains-check-key-details/articleshow/134424393.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:41:43Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "ce5d8ef589f59234", "title": "Kotak Bank Share Price Live Updates: Kotak Bank Sees Significant Trading Activity", "summary": null, "url": "https://economictimes.indiatimes.com/markets/stocks/stock-liveblog/kotak-bank-stock-price-live-updates-23-sep-2026/liveblog/134424470.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:40:38Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "9046b0f3d4c85cdb", "title": "SS Retail shares to list today: GMP signals 35% listing gains; Check key details", "summary": "The Rs 500 crore SS Retail IPO comprised a fresh issue of 85.08 lakh shares aggregating to Rs 360 crore and an offer for sale (OFS) of 33.02 lakh shares worth Rs 140 crore. The company had fixed the IPO price band at Rs 403\u2013Rs 424 per share, with a lot size of 35 shares.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/ss-retail-shares-to-list-today-gmp-signals-35-listing-gains-check-key-details/articleshow/134424347.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:40:16Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "73a359325027e644", "title": "M&amp;M Share Price Live Updates: M&amp;M's Market Performance Update", "summary": null, "url": "https://economictimes.indiatimes.com/markets/stocks/stock-liveblog/mm-stock-price-today-live-23-sep-2026/liveblog/134424453.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:40:04Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "5724740e844feb45", "title": "ArMee Infotech IPO opens today: Check GMP, price band, issue details. Should you subscribe?", "summary": "The Rs 300-crore public issue will remain open for investors until September 25. The allotment is expected to be finalised on September 28, while the company's shares are tentatively scheduled to list on the National Stock Exchange (NSE) and BSE on September 30.", "url": "https://economictimes.indiatimes.com/markets/ipos/fpos/armee-infotech-ipo-opens-today-check-gmp-price-band-issue-details-should-you-subscribe/articleshow/134424262.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:35:35Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "8d91f9d8b66a6fe1", "title": "JSW Steel Share Price Live Updates: JSW Steel's Positive Trend Alert", "summary": null, "url": "https://economictimes.indiatimes.com/markets/stocks/stock-liveblog/jsw-steel-stock-price-live-updates-23-sep-2026/liveblog/134424403.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:32:06Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "40e2d98933c608a3", "title": "Brahma AI raises $150 million at $2 billion valuation led by Multiples", "summary": "Brahma AI\u2019s latest funding, led by Multiples at a $2 billion valuation, will support R&amp;amp;D, global expansion and talent as the company builds an enterprise AI platform for content and digital humans.", "url": "https://www.livemint.com/news/brahma-ai-multiples-prabhu-narasimhan-enterprise-ai-11790118529891.html", "source": "mint - news", "published_at": "2026-09-23T02:30:54Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "57acf3853c1bb707", "title": "Hero Motors shares to list today. Check GMP ahead of debut", "summary": "The Rs 1,000 crore Hero Motors IPO was a book-built issue comprising a fresh issue of 7.14 crore shares aggregating to Rs 600 crore and an offer for sale (OFS) of 4.76 crore shares worth Rs 400 crore. The IPO was priced in the range of Rs 79\u2013Rs 84 per share, with a minimum lot size of 178 shares.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/hero-motors-shares-to-list-today-check-gmp-ahead-of-debut/articleshow/134424218.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:26:16Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "4bbc9885d444b7c3", "title": "Oil Price Today (September 23): Crude oil below $100 on hopes of US-Iran talks. What did Trump say?", "summary": "Brent crude futures fell 7 cents, or 0.07%, to $99.18 a barrel, while West Texas Intermediate futures declined 35 cents, or 0.39%, to $90.17 a barrel.", "url": "https://economictimes.indiatimes.com/markets/commodities/news/oil-price-today-september-23-crude-oil-below-100-on-hopes-of-us-iran-talks-what-did-trump-say/articleshow/134424196.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:18:31Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "5fcc05367ee25001", "title": "AMD joins $1 trillion club amid AI boom", "summary": "In a significant leap for technology, Advanced Micro Devices (AMD) has crossed the $1 trillion market capitalization threshold recently. This landmark moment emphasizes the intensifying AI race among chip makers as the tech scene evolves. Remarkably, out of 17 companies achieving this valuation, six have done so in just the last four years, while others have reached this mark through sectors like e-commerce and oil.", "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/amd-joins-1-trillion-club-amid-ai-boom/articleshow/134424103.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:16:48Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "8c2c354fa147d945", "title": "Stock Market LIVE: GIFT Nifty signals tepid open; Brent crude falls on progress in US-Iran talks", "summary": "Sensex Today | Stock Market LIVE Updates Wednesday: The GIFT Nifty indicated a tepid start for the Nifty50 while Asian peers rallied as tech shares advanced", "url": "https://www.business-standard.com/markets/news/stock-market-live-nse-bse-sensex-today-nifty-gift-nifty-brent-crude-oil-price-russia-war-jindal-supreme-share-price-september-23-126092300112_1.html", "source": "Pulse by Zerodha", "published_at": "2026-09-23T02:16:33Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "c768e9aec8602411", "title": "5 SME IPOs to open today: Check issue size, price band and key detail", "summary": "The five SME IPOs are looking to raise around Rs 169 crore. Coreintegra Consulting and Pooja Logistics will be listed on the NSE SME platform, while Liqvd Digital, S.K. Offset and Unitec Fibres will make their debut on the BSE SME platform. The allotment for all five issues is expected to be finalised on September 28, with tentative listing scheduled for September 30.", "url": "https://economictimes.indiatimes.com/markets/ipos/fpos/5-sme-ipos-to-open-today-check-issue-size-price-band-and-key-detail/articleshow/134424137.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:13:57Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "d2eb82fe179e7fb9", "title": "Jindal Supreme shares to list today; GMP signals 31% listing gains", "summary": "The Rs 124.88 crore Jindal Supreme IPO comprised a fresh issue of 1.07 crore shares aggregating to Rs 99.89 crore and an offer for sale (OFS) of 26.87 lakh shares worth Rs 24.99 crore. The company had fixed the IPO price band at Rs 88\u201393 per share.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/jindal-supreme-shares-to-list-today-gmp-signals-31-listing-gains/articleshow/134424107.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:13:51Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "c2263c0039be6da1", "title": "Nvidia (NVDA) Targets 22,000 GPUs For New Southeast Asia AI Factory Hubs", "summary": "NVIDIA (NasdaqGS: NVDA) and Aolani agreed to deploy 22,000 GPUs across new AI factory sites in Southeast Asia. The partners plan over 100 megawatts of new AI factory capacity, including major hubs in Malaysia and the Philippines. The build out is intended to position Southeast Asia as a global node for AI compute and data center infrastructure. The Aolani AI factory rollout in Malaysia and the Philippines is only one part of the broader NVIDIA story. Take a look at 2 warning signs (1 major)...", "url": "https://finance.yahoo.com/technology/ai/articles/nvidia-nvda-targets-22-000-021206548.html?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-23T02:12:06Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "27285d4dd6f42476", "title": "Positive Breakout: These 5 stocks cross above their 200 DMAs", "summary": "As long as a stock's price remains above its 200-day moving average on the daily timeframe, it is generally interpreted as being in an overall uptrend.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/positive-breakout-these-5-stocks-cross-above-their-200-dmas/slideshow/134424087.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:01:50Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "295a9e250ae0e54e", "title": "Why is Trump administration accepting White South African refugees to US again? Here's what we know", "summary": "The Trump administration plans to admit 17,500 refugees in FY2027, primarily Afrikaners from South Africa. The administration said they face racial discrimination and persecution; South Africa disputes claims of systematic persecution or genocide against the group.", "url": "https://www.livemint.com/news/us-news/why-is-trump-administration-accepting-white-south-african-refugees-to-the-us-again-heres-what-we-know-11790128237518.html", "source": "mint - news", "published_at": "2026-09-23T02:00:40Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "04ac30b365c0d458", "title": "Dollar holds near 2-month high as markets weigh rate hikes, Iran diplomacy", "summary": "The dollar stands firm near a two-month high, driven by projections of interest rate hikes. In contrast, oil prices are retreating as optimism grows for a diplomatic solution in the Middle East. Market sentiment on currency values is swayed by the Federal Reserve's ongoing tightening strategy. Experts believe recent actions from the Bank of Japan might not cause substantial shifts in the yen.", "url": "https://economictimes.indiatimes.com/markets/forex/forex-news/dollar-holds-near-2-month-high-as-markets-weigh-rate-hikes-iran-diplomacy/articleshow/134424038.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T02:00:13Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "2aaf16a6d3369ab8", "title": "Oil falls on increased Gulf supply and hopes for US-Iran talks", "summary": "Oil prices experienced a decline as Saudi Arabia resumed its key pipeline operations to the Red Sea. This development, coupled with rising hopes for a diplomatic resolution to the US-Iran tensions following recent discussions in New York, led to a positive market reaction. Brent crude fell below $100 a barrel for the first time in several weeks.", "url": "https://economictimes.indiatimes.com/markets/commodities/news/oil-falls-on-increased-gulf-supply-and-hopes-for-us-iran-talks/articleshow/134424016.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T01:58:06Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "c3f754fc90a45f18", "title": "Taylor Swift announces \u2018Patient Zero\u2019, her first single after wedding; new track to release September 25", "summary": "Taylor Swift is set to release her new single \u2018Patient Zero\u2019 on September 25, days before she receives the inaugural MTV VMA Artist Director Honors.", "url": "https://www.livemint.com/news/us-news/taylor-swift-announces-patient-zero-her-first-single-after-wedding-new-track-to-release-september-25-11790128142850.html", "source": "mint - news", "published_at": "2026-09-23T01:57:20Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "d5f7a2c18bb5667b", "title": "Gold lacklustre as higher-for-longer rate outlook weighs on sentiment", "summary": "Gold values have shown minimal fluctuations as market participants assess the likelihood of persistent elevated interest rates. Recent hikes by significant central banks have influenced current market trends, curtailing gold's appeal as a hedge against inflation. Meanwhile, rival precious metals like silver, platinum, and palladium witnessed slight upward movements. Key economic indicators from both Europe and the US are expected to be announced later today.", "url": "https://economictimes.indiatimes.com/markets/commodities/news/gold-lacklustre-as-higher-for-longer-rate-outlook-weighs-on-sentiment/articleshow/134423996.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T01:56:14Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "26bb010b17ca1c58", "title": "Sensex Today | Nifty 50 | Stock Market Live Updates | Opening Bell: Sensex jumps 200 pts, Nifty above 23,350; Bajaj twins, Asian Paints rise 2% each", "summary": null, "url": "https://economictimes.indiatimes.com/markets/stocks/live-blog/bse-sensex-today-nifty50-stock-market-live-updates-gift-nifty-adani-group-omcs-share-price-23-september-2026/liveblog/134423997.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T01:53:25Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "b2d5a0b759d42150", "title": "Sensex Today | Nifty 50 | Stock Market Live Updates: GIFT Nifty signals a negative start; Asian shares trade higher", "summary": null, "url": "https://economictimes.indiatimes.com/markets/stocks/live-blog/bse-sensex-today-nifty50-stock-market-live-updates-gift-nifty-adani-group-omcs-share-price-23-september-2026/liveblog/134423997.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-23T01:53:25Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "58a84c561ff62b17", "title": "Petrol, diesel prices today, September 23: Check rates in Delhi, Mumbai, Bengaluru", "summary": "In Mumbai, the retail price of petrol stood at \u20b9111.21 per litre, remaining unchanged from the previous day.", "url": "https://www.livemint.com/news/india/petrol-diesel-prices-today-september-23-check-rates-in-delhi-mumbai-bengaluru-11790126147371.html", "source": "mint - news", "published_at": "2026-09-23T01:45:30Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "d503fab1cedd9773", "title": "Aashish Agarwal named CEO of 360 ONE WAM Group", "summary": "Wealth and asset management firm 360 ONE has appointed Aashish Agarwal as chief executive officer of 360 ONE WAM Group, according to a release. Agarwal joins the company from Jefferies, where he was MD and country head since April 2020. Karan Bhagat, currently MD and CEO, will become vice chairman and continue as managing director.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/aashish-agarwal-named-ceo-of-360-one-wam-group/articleshow/134423737.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T01:22:58Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "1d1cdcfaf95c2a20", "title": "Global Market Today: Asian stocks rise after US tech rally, oil drops", "summary": "MSCI\u2019s Asia Pacific equity index climbed 0.3%, a sixth straight day of gains, with Japanese markets closed for a holiday. Bellwether chip stocks such as Samsung Electronics Co. and SK Hynix Inc. climbed.", "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/global-market-asian-stocks-rise-after-us-tech-rally-oil-drops/articleshow/134423544.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T01:22:33Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "faa156f51cda76d4", "title": "Elevate Campuses raises Rs 945 crore from anchor investors", "summary": "Mumbai's Elevate Campuses has completed a remarkable \u20b9945 crore fundraising round, attracting an array of anchor investors, including the prominent State Bank of India Mutual Fund. The initiative drew participation from 20 firms globally, with significant contributors like Norges from Norway. The full subscription of the anchor investors' segment showcases an increasing enthusiasm for the education sector among financial entities.", "url": "https://economictimes.indiatimes.com/markets/ipos/fpos/elevate-campuses-raises-rs-945-crore-from-anchor-investors/articleshow/134423696.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T01:17:02Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "3bc5bacca990ca66", "title": "Can Elevate Campuses IPO deliver long-term growth for high-risk investors?", "summary": "Elevate Campuses is set to generate \u20b92,100 crore via an initial public offering aimed at fueling its expansion plans and repaying existing debts. The firm specializes in managing student accommodations under its brands Good Host Spaces and ScholarZ. Significant increases in revenue and net profits are expected between FY24 and FY26 due to rising student housing demand.", "url": "https://economictimes.indiatimes.com/markets/ipos/fpos/can-elevate-campuses-ipo-deliver-long-term-growth-for-high-risk-investors/articleshow/134423619.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T01:08:24Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "f0b07ced67de3ad2", "title": "Iran War Live: Trump warns Iran of 'annihilation' but says deal could be near; Tehran sets Hormuz conditions", "summary": "Iran War Live: Trump warns Iran of annihilation but says a deal could be near. Tehran sets conditions to reopen the Strait of Hormuz, while Saudi Arabia restarts its East-West oil pipeline and Gulf states discuss a security framework.", "url": "https://www.livemint.com/news/us-news/iran-war-live-updates-strait-of-hormuz-houthis-saudi-arabia-trump-oil-price-11790124295205.html", "source": "mint - news", "published_at": "2026-09-23T01:08:12Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "bdd3a77468c20a68", "title": "CD rates diverge as liquidity surges, rate hike bets rise", "summary": "Within the Indian financial landscape, the contrast between short- and long-term certificate of deposit rates is becoming increasingly evident. Short-term rates are experiencing a decline thanks to heightened liquidity from foreign currency inflows. Conversely, long-term rates are climbing, fueled by expectations surrounding future interest hikes. Financial experts warn that borrowers could face higher costs as both inflation and global interest rates continue to rise.", "url": "https://economictimes.indiatimes.com/markets/forex/forex-news/cd-rates-move-in-opposite-directions-amid-liquidity-surge/articleshow/134423479.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T00:59:24Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "8eccdee6e7ae4056", "title": "WACR tops repo rate for first time in nearly 2 months", "summary": "Liquidity in the banking sector has contracted to below \u20b95 lakh crore, causing the weighted average call rate to rise to 5.31%. The Reserve Bank of India is undertaking actions to absorb surplus liquidity. With government expenditures and bond sales looming, analysts predict a return to normalcy in liquidity levels, hovering near \u20b95 lakh crore by month-end, while the Reserve Bank maintains oversight on the call rate.", "url": "https://economictimes.indiatimes.com/markets/forex/forex-news/wacr-surpasses-repo-rate-for-the-first-time-in-2-months-as-rbi-drains-liquidity/articleshow/134423446.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T00:32:12Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "c36c89a0f76b7252", "title": "D-St braces for weak opening on negative GIFT Nifty cues", "summary": "Benchmark indices faced pressure and closed negatively on Tuesday. The Nifty is expected to continue its consolidation in a broad range. Foreign portfolio investors were net sellers, while domestic investors bought shares. The Indian Rupee appreciated against the US dollar on Tuesday. Several stocks were placed under the F&amp;O ban for Tuesday's trading.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/pre-market-action-heres-the-trade-setup-for-todays-session/articleshow/134416943.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T00:30:00Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "78c2770cfe07a93f", "title": "Stocks in news: Adani Group, OMCs, Persistent Systems and IRB Infra", "summary": "The Indian stock market closed lower on Tuesday, with profit-taking affecting investor sentiment. Adani Group companies resolved their SEBI adjudication issues tied to potential infractions. Focus turned to oil marketing firms in light of a sharp fall in crude oil prices. Persistent Systems expanded its stake in Nagarro, eyeing a potential delisting, alongside numerous companies announcing expansion and corporate milestones.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/stocks-in-news-adani-group-omcs-persistent-systems-and-irb-infra/articleshow/134416639.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T00:30:00Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "b32e0dedb67d0131", "title": "Rupee strengthens to 95.59 amid drop in oil prices &amp; RBI dollar sales", "summary": "On Tuesday, the Indian rupee appreciated to 95.59, benefiting from a decrease in oil prices. The central bank's dollar sales helped mitigate pressure on the currency. The rupee fluctuated between 95.58 and 95.86 during the trading session. Corporate demand for dollars created a conflict in the market, affecting the rupee's stability. Ultimately, the central bank's intervention helped maintain the rupee's strength against the dollar.", "url": "https://economictimes.indiatimes.com/markets/forex/forex-news/rupee-strengthens-to-95-59-amid-drop-in-oil-prices-rbi-dollar-sales/articleshow/134423415.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T00:23:13Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "c9478042bb4f34fd", "title": "September sees biggest IPO rush in nearly 30 years as 30 mainboard issues raise Rs 38,785 crore", "summary": "This month has also seen a sharp increase in fundraising, with mainboard IPOs raising around \u20b938,785 crore, the biggest monthly fundraise since October last year, when 10 issues raised \u20b945,188 crore.", "url": "https://economictimes.indiatimes.com/markets/ipos/fpos/september-sees-biggest-ipo-rush-in-nearly-30-years-as-30-mainboard-issues-raise-rs-38785-crore/articleshow/134423399.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T00:19:17Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "439243409350c39b", "title": "Nvidia's stock is flashing a warning sign as valuation drops", "summary": "Nvidia Corp's stock currently trades at less than 17 times its projected profit for the upcoming year, marking a notable decline from earlier values seen in 2025 and mid-2023. Despite solid fundamentals, investor confidence is wavering on the sustainability of the company's earnings. The stock's performance follows a rally in semiconductor shares amid concerns over AI models, highlighted by encouraging signals regarding chip demand from new AI advancements.", "url": "https://economictimes.indiatimes.com/markets/us-stocks/news/nvidias-stock-is-flashing-a-warning-sign/articleshow/134423243.cms", "source": "Markets-Economic Times", "published_at": "2026-09-23T00:00:23Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "5e07e1888cdc31a6", "title": "Adani Group firms settle Sebi case on governance issues", "summary": "The Adani Group has settled with Sebi, with companies like Adani Enterprises and Adani Green Energy collectively paying \u20b91.5 crore over allegations concerning related party transaction disclosures and corporate governance practices. Notably, Adani Enterprises contributed \u20b976.05 lakh to the settlement, responding to criticisms raised in the Hindenburg Report about the company's compliance with audit standards and peer reviews.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/adani-group-settles-legal-issues-with-sebi-pays-rs-1-5-cr-over-alleged-corporate-governance-violations/articleshow/134423213.cms", "source": "Markets-Economic Times", "published_at": "2026-09-22T23:41:34Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "4aa8d3970c5c434d", "title": "Sebi to address derivatives expiry settlement price concerns: Tuhin Kanta Pandey", "summary": "The Securities and Exchange Board of India is seeking to alleviate concerns related to derivative settlement prices. Among the proposed options are a blended VWAP model and a return to the previous VWAP method. Sebi is open to public feedback on these alternatives, which are intended to enhance market structure. Currently, market participants have shown favor for the older VWAP technique.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/sebi-to-address-expiry-day-derivatives-settlement-concerns/articleshow/134423187.cms", "source": "Markets-Economic Times", "published_at": "2026-09-22T23:28:36Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "3b281d4e573ec666", "title": "Nvidia\u2019s Cooling Stock Valuations Are Being Looked At As A Warning Signal", "summary": "Nvidia's shares trade at less than 17 times forward earnings, signaling growing Wall Street skepticism about its long-term sustainability.", "url": "https://stocktwits.com/news-articles/markets/equity/nvda-stock-is-at-its-cheapest-in-more-than-a-decade-what-is-holding-nvidia-back/cZM5Ty5RB7K?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T22:45:19Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "da9d2d4d712978e3", "title": "Nvidia Backed SB Energy\u2019s $50 Billion Valuation Push. Wall Street Just Hit the Brakes", "summary": "SB Energy\u2019s planned public listing is turning into a stress test for the financing side of the AI buildout. The SoftBank-backed developer has slowed preparations for an IPO that had been discussed around a $50 billion valuation, according to a September 22 Financial Times report, while a $4.9 billion debt package has faced weak demand [\u2026]", "url": "https://finance.yahoo.com/technology/ai/articles/nvidia-backed-sb-energy-50-221736610.html?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T22:17:36Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "505b53fe38368fc0", "title": "VGT Holders Bought \u2018Tech\u2019 and Own No Google, Meta, or Amazon: The Sector Rule That Decides What\u2019s Inside", "summary": "VGT promises tech exposure, but a classification rule buried in the index methodology quietly excludes three of the biggest names most investors assume they are buying. Knowing which ones changes how your whole portfolio actually fits together.", "url": "https://247wallst.com/investing/etf/2026/09/22/vgt-holders-bought-tech-and-own-no-google-meta-or-amazon-the-sector-rule-that-decides-whats-inside/?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T22:15:04Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "8d7a2d37177dc4b4", "title": "Hurricane Polo Becomes One of 2026\u2019s Strongest Storms Off Mexico", "summary": "Hurricane Polo has become one of the world\u2019s strongest storms this year as it threatens to lash Mexico\u2019s Pacific Coast with heavy rain and winds.", "url": "https://www.livemint.com/news/hurricane-polo-becomes-one-of-2026-s-strongest-storms-off-mexico-11790115282361.html", "source": "mint - news", "published_at": "2026-09-22T22:14:41Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "13b663767bfaf1b9", "title": "Alibaba Just Unveiled an AI Chip 3x Faster Than Its Predecessor. Nvidia Has a China Problem to Watch", "summary": "Alibaba used its September 22 developer conference to show how quickly China\u2019s AI stack is filling the holes left by restricted access to U.S. chips. The company unveiled the Zhenwu V900 accelerator, which it says delivers roughly three times the performance of its predecessor and is scheduled for mass production in early 2027. Alibaba Group [\u2026]", "url": "https://finance.yahoo.com/technology/ai/articles/alibaba-just-unveiled-ai-chip-221410155.html?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T22:14:10Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "84d8b49af39a8f78", "title": "Google Is Taking Its AI Chips Outside the Cloud. Nvidia Just Got a New Sovereign-AI Rival", "summary": "Google is testing whether its custom AI chips can become national infrastructure instead of remaining mostly a cloud advantage. A September 22 report from Seoul Economic Daily said Google met South Korean officials on September 9 to discuss supplying tensor processing units for the country\u2019s sovereign-AI buildout. That puts Alphabet Inc. (NASDAQ:GOOGL) into a market [\u2026]", "url": "https://finance.yahoo.com/technology/ai/articles/google-taking-ai-chips-outside-220542329.html?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T22:05:42Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "bad3c633934f8bb9", "title": "Intel vs. TSMC: One Chip Stock Controls 72.5% of the Foundry Market. The Other Is Mounting a Comeback.", "summary": "A deep dive into the rivalry between Intel and Taiwan Semiconductor shows why chip foundries are AI's real bottleneck, how Intel's 18A/14A comeback stacks up, and which foundry stock fits your risk.", "url": "https://www.barchart.com/story/news/4743571/intel-vs-tsmc-one-chip-stock-controls-72-5-of-the-foundry-market-the-other-is-mounting-a-comeback?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T22:03:37Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "3ee380a2d149312b", "title": "MrBeast faces backlash over $10 million Ghana project: Here\u2019s how he responded to critics", "summary": "MrBeast has defended a nearly $10 million Ghana village project aimed at tackling child labour after criticism over overseas spending. He pointed to his philanthropy in Greenville, North Carolina, including millions of meals distributed in his community.", "url": "https://www.livemint.com/news/trends/mrbeast-faces-backlash-over-10-million-ghana-project-here-s-how-he-responded-to-critics-11790112090959.html", "source": "mint - news", "published_at": "2026-09-22T21:50:40Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "60e32a93e315b005", "title": "3 Monthly Income ETFs to Buy Once That Have Paid You Every Single Month for More Than a Decade", "summary": "Three covered call ETFs have deposited cash into investor accounts every single month for up to twelve years running, surviving a pandemic and multiple bear markets without missing a beat. The fund most income screens ignore has quietly outperformed the two obvious choices by a wide margin.", "url": "https://247wallst.com/investing/etf/2026/09/22/3-monthly-income-etfs-to-buy-once-that-have-paid-you-every-single-month-for-more-than-a-decade/?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T21:45:44Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "0288bd802bfa516f", "title": "JEPI\u2019s 4.42% Gain Looks Modest Next to FYEE\u2019s 12.4% Run in 2026", "summary": "JEPI has been doing its job in 2026, delivering steady income and muted volatility exactly as promised. But a smaller Fidelity fund running a nearly identical strategy has quietly built a gap that JEPI investors may find hard to ignore.", "url": "https://247wallst.com/investing/etf/2026/09/22/jepis-4-42-gain-looks-modest-next-to-fyees-12-4-run-in-2026/?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T21:35:52Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "e43fdf5bcddc6009", "title": "Trump says CNN, MS NOW, Politico could return to White House if court rules against media ban", "summary": "The remarks come a day before a federal court hearing on the outlets\u2019 lawsuit challenging the administration\u2019s decision. The three media organizations have argued that the restrictions violate their First Amendment rights.", "url": "https://www.livemint.com/news/us-news/trump-says-cnn-ms-now-politico-could-return-to-white-house-if-court-rules-against-media-ban-11790109377772.html", "source": "mint - news", "published_at": "2026-09-22T20:58:57Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "11f9c6910936b701", "title": "Micron vs. SanDisk: Comparing Two Red-Hot AI Memory Stocks", "summary": "Memory stocks have reemerged as the biggest beneficiaries of the AI infrastructure boom, with Micron Technology (MU) and SanDisk (SNDK) delivering extraordinary rallies.", "url": "https://finance.yahoo.com/markets/stocks/articles/micron-vs-sandisk-comparing-two-205700744.html?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T20:57:00Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "6cd919cd2916719b", "title": "AutoZone, Inc. Q4 2026 Earnings Call Summary", "summary": "Moby summary of AutoZone, Inc.'s Q4 2026 earnings call", "url": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-autozone-inc-q4-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss&.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T20:51:14Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "9c051cf171640bf8", "title": "AI Stocks Can\u2019t Carry the Entire Market Forever", "summary": "The artificial-intelligence trade is ripping once again, with tech stocks cresting fresh all-time highs, Wall Street bosses touting the scale of the investment race, and key players in the ecosystem downplaying existential risks from the world\u2019s most important technology. Comments from JPMorgan\u2019s Jamie Dimon on AI spending, pushback from Nvidia CEO Jensen Huang on AI risks, and surge in popularity of Meta Platform new AI agent Muse have all played a role in the tech resurgence.", "url": "https://in.finance.yahoo.com/m/acefb7db-d360-3bf5-85cc-2189b339d083/ai-stocks-can%E2%80%99t-carry-the.html?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T20:44:00Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "dd501be61f2f0d4e", "title": "A Florida artist spent decades creating this bizarre world. Now his family is opening it for Halloween", "summary": "Florida artist Lewis VanDercar spent decades transforming his Wesley Chapel property into a world of sculptures, gardens and unusual buildings. His family is now reopening the Warlock House for a Halloween event and October statuary tours.", "url": "https://www.livemint.com/news/trends/a-florida-artist-spent-decades-creating-this-bizarre-world-now-his-family-is-opening-it-for-halloween-11790095712189.html", "source": "mint - news", "published_at": "2026-09-22T20:36:09Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "3408e6bd90604414", "title": "Apple Just Misses $5 Trillion Market Cap. The Milestone Is Likely Coming Soon.", "summary": "Apple stock finished up 0.2% at $339.75, giving the company its highest close since July 28 and putting its market cap at $4.96 trillion.", "url": "https://in.finance.yahoo.com/m/1055d02e-f8f1-3e79-9f3c-e62ad94a49d1/apple-just-misses-%245-trillion.html?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T20:29:00Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "cd4d51562fdd6353", "title": "Top Analyst Reports for NVIDIA, Berkshire Hathaway & GE Aerospace", "summary": "NVIDIA's AI demand, Berkshire's diversified earnings and GE Aerospace's commercial and defense strength drive today's research focus.", "url": "https://finance.yahoo.com/markets/stocks/articles/top-analyst-reports-nvidia-berkshire-202400005.html?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T20:24:00Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "f194227dbcb1ad98", "title": "Dow, S&amp;P 500 slip as oil hovers near $100 despite Nasdaq\u2019s record close", "summary": "The Dow and S&amp;P 500 declined sharply as oil prices rallied near the $100 mark, causing apprehension among investors. However, the Nasdaq soared to a historic high, fueled by the performance of Micron Technology and companies in the AI sector.", "url": "https://economictimes.indiatimes.com/markets/us-stocks/wall-street-guide/dow-sp-500-slip-as-oil-hovers-near-100-despite-nasdaqs-record-close/articleshow/134420046.cms", "source": "Markets-Economic Times", "published_at": "2026-09-22T20:21:39Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "29de5803bcf9a978", "title": "Netanyahu-Mamdani clash escalates: Israeli PM vows to \u2018tell the truth\u2019 about NYC mayor at UNGA", "summary": "Netanyahu is scheduled to address the UN General Assembly on Thursday, with his visit coming amid continued international scrutiny of Israel\u2019s military campaign in Gaza and growing tensions between him and Mamdani over the conflict.", "url": "https://www.livemint.com/news/world/netanyahu-vs-mamdani-explodes-ahead-of-unga-i-m-going-to-tell-the-truth-about-you-11790105193860.html", "source": "mint - news", "published_at": "2026-09-22T19:58:29Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "7166d33919a37adb", "title": "Should You Sell Your Marvell Stock Now That Higher Forecasts Are Not Enough?", "summary": "Marvell Technology (MRVL) raised its revenue outlook in late August. Yet its stock has fallen 16.4% over the past three months, before dividends. The S&amp;P 500 returned 4.2% with dividends reinvested over the same stretch. After its late-August results, investors worried about when a key AI chip deal will pay off. Management placed the biggest gains from it in fiscal 2029 and beyond. Meanwhile, the shares already trade at a far higher multiple of profit than the S&amp;P 500.", "url": "https://www.trefis.com/articles/616152/should-you-sell-your-marvell-stock-now-that-higher-forecasts-are-not-enough/2026-09-22?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T19:44:12Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "a70d68c9f57cabed", "title": "12 S&P 500 Stocks Join Trillion-Dollar Club \u2014 What Could Go Wrong?", "summary": "It was big news when the value of Apple surpassed $1 trillion. But now a dozen S&amp;P 500 companies have done it.", "url": "https://in.finance.yahoo.com/m/5e66dab7-8878-3060-a695-fcaf0a891a01/12-s%26p-500-stocks-join.html?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T19:41:17Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "491c4cdea680fb81", "title": "Nebius Stock Spikes 4% on Higher Computer Prices. How to Play NBIS Stock Here.", "summary": "Nebius stock climbed after reports of higher AI computing prices and a new Palantir deal. Here's what's behind the NBIS stock move.", "url": "https://www.barchart.com/story/news/4740983/nebius-stock-spikes-4-on-higher-computer-prices-how-to-play-nbis-stock-here?.tsrc=rss", "source": "Yahoo! Finance: NVDA News", "published_at": "2026-09-22T19:40:50Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "e4510972ce42e6e4", "title": "Binance faces US criminal probe over Iran sanctions violations | What we know", "summary": "US prosecutors are investigating Binance over possible Iran sanctions violations and whether the crypto exchange knowingly allowed prohibited trading. The probe adds to the company\u2019s history of US regulatory scrutiny following its 2023 guilty plea.", "url": "https://www.livemint.com/news/binance-faces-us-criminal-probe-over-iran-sanctions-violations-what-we-know-11790095881342.html", "source": "mint - news", "published_at": "2026-09-22T19:36:42Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "aeef968ba762477e", "title": "US national Van Dyke pays \u20b95.5 lakh compounding charge; may return to US: What it means for NIA case &amp; UAPA probe", "summary": "The FRRO proceedings have resulted in the compounding payment relating to the Foreigners Act offences, while the legal position concerning the alleged UAPA offences remains part of the pending proceedings.", "url": "https://www.livemint.com/news/india/us-national-matthew-van-dyke-pays-5-5-lakh-compounding-charge-may-return-to-uswhat-it-means-for-nia-case-uapa-pr-11790103623384.html", "source": "mint - news", "published_at": "2026-09-22T19:30:56Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "3491ed240213f1c5", "title": "RBI warns banks against a loan price war", "summary": "In situations where banks are inundated with liquidity, the natural tendency among many lenders is to push loans and go down the credit matrix. The fear is that such aggressive lending to generate returns that cover the interest outgo on deposits and other costs may show up as sticky assets a few years down the line.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/rbi-warns-banks-against-a-loan-price-war/articleshow/134423379.cms", "source": "Markets-Economic Times", "published_at": "2026-09-22T19:13:47Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "2f1df79645c507f3", "title": "Credit card issuers push EMI loans to counter revolver model misfire", "summary": "With a smaller share of customers carrying balances month to month, interest-bearing receivables are growing more slowly than transaction volumes, pushing issuers to convert purchases into EMIs, deepen personal loan-on-card offerings and extract more fee income from a business that is increasingly being used as a payment product rather than a borrowing product.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/credit-card-issuers-push-emi-loans-to-counter-revolver-model-misfire/articleshow/134423370.cms", "source": "Markets-Economic Times", "published_at": "2026-09-22T18:57:33Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "72b440ea297a3c51", "title": "US economy firming as inflation risks persist, says Richmond Fed\u2019s Tom Barkin", "summary": "The US economy demonstrates resilience with strong consumer spending and growth beyond technology sectors. Richmond Fed President Tom Barkin remarks that inflation remains a more pressing concern than labor market weaknesses. The Federal Reserve raised interest rates last week to address rising price pressures. Barkin indicates that demand-driven inflation is becoming a significant factor affecting the economy. Various sectors, including defense and manufacturing, are experiencing positive developments according to Barkin.", "url": "https://economictimes.indiatimes.com/markets/us-stocks/wall-street-guide/us-economy-firming-as-inflation-risks-persist-says-richmond-feds-tom-barkin/articleshow/134418821.cms", "source": "Markets-Economic Times", "published_at": "2026-09-22T18:21:41Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "603bd6b852f6194e", "title": "Hurricane Polo reaches Category 5 strength: When it is likely to make landfall and which areas to be worst affected?", "summary": "Polo jumped from Category 1 to the strongest Category 5 classification on the Saffir-Simpson hurricane scale in less than a day. The hurricane was packing sustained winds of around 160 mph (260 kph) and could strengthen further, the NHC said", "url": "https://www.livemint.com/news/us-news/hurricane-polo-reaches-category-5-strength-when-it-is-likely-to-make-landfall-and-which-areas-to-be-worst-affected-11790098503867.html", "source": "mint - news", "published_at": "2026-09-22T18:18:22Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "c35641ce66ca2521", "title": "\u2018Ridiculous or reasonable?\u2019 Gurgaon couple reveals \u20b91.2 lakh monthly spending breakdown", "summary": "The couple said their biggest monthly expense is the \u20b936,000 they pay towards rent and maintenance for their 3 BHK home.", "url": "https://www.livemint.com/news/trends/ridiculous-or-reasonable-gurgaon-couple-reveals-1-2-lakh-monthly-spending-breakdown-11790096906006.html", "source": "mint - news", "published_at": "2026-09-22T17:50:45Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "ac3a0353b0a1ce55", "title": "Obamacare crackdown: Why Trump administration is removing 750,000 people from health insurance rolls", "summary": "The Trump administration plans to remove hundreds of thousands of people from Obamacare rolls over alleged improper enrollment, while suspending brokers. The move comes as healthcare costs rise and millions remain dependent on ACA marketplace coverage.", "url": "https://www.livemint.com/news/us-news/obamacare-crackdown-why-trump-administration-is-removing-750-000-people-from-health-insurance-rolls-11790096669647.html", "source": "mint - news", "published_at": "2026-09-22T17:48:15Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "b0e26151bcba8896", "title": "Trump at UNGA: US President again claims credit for India-Pakistan ceasefire - \u2018Saved 30 million lives\u2019", "summary": "Trump's latest remarks came despite New Delhi's longstanding position that the ceasefire was reached through direct communication between the two countries' military leaderships, rather than through third-party mediation.", "url": "https://www.livemint.com/news/us-news/trump-at-unga-us-president-again-claims-credit-for-india-pakistan-ceasefire-saved-30-million-lives-11790097779903.html", "source": "mint - news", "published_at": "2026-09-22T17:37:12Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "42592bf47c75ccc3", "title": "Turkish President Erdogan raises Kashmir issue at UNGA again, calls for India-Pakistan dialogue under UN framework", "summary": "The remarks came in the presence of Pakistan Prime Minister Shehbaz Sharif. Erdogan's latest intervention marks a continuation of Ankara's repeated references to Kashmir at the UN.", "url": "https://www.livemint.com/news/us-news/turkish-president-erdogan-raises-kashmir-issue-at-unga-again-calls-for-india-pakistan-dialogue-under-un-framework-11790096272913.html", "source": "mint - news", "published_at": "2026-09-22T17:06:59Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "bcdd789166e33211", "title": "Trump signs US-Denmark-Greenland agreement: What the new US security deal means", "summary": "The deal falls short of Trump's demand for the United States to acquire Greenland as a US territory, but grants Washington expanded military access and security rights on the mineral-rich island.", "url": "https://www.livemint.com/news/us-news/trump-signs-us-denmark-greenland-agreement-what-the-new-us-security-agreement-means-11790092732510.html", "source": "mint - news", "published_at": "2026-09-22T16:16:14Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "1d0bb662064077fb", "title": "Ahead of Market: 10 things that will decide stock market action on Wednesday", "summary": "Indian equities reversed morning gains on Tuesday, with Sensex falling 330 points and Nifty closing lower after sharp volatility during the closing auction session. F&amp;O expiry, foreign outflows, geopolitical uncertainty, IT pressure and elevated crude prices weighed on market sentiment.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/ahead-of-market-10-things-that-will-decide-stock-market-action-on-wednesday/articleshow/134415960.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T15:56:34Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "57f3f91f20bc4ce3", "title": "Market Trading Guide: Finolex Cables among 3 stock recommendations for Wednesday", "summary": "Falling crude oil prices and Brent slipping below $100 a barrel helped Indian markets recover from intraday lows. Analysts highlighted BlueStone Jewellery, JSW Infrastructure and Finolex Cables as three stocks showing breakout setups, bullish momentum and positive technical indicators for Wednesday.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/market-trading-guide-finolex-cables-among-3-stock-recommendations-for-wednesday/slideshow/134415805.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T15:41:16Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "f7e97b82b2fca53d", "title": "RHI Magnesita block deal: Dalmia Bharat refractories divests 11.11% stake for Rs 826 crore; SBI MF, Bandhan MF among buyers", "summary": "Dalmia Bharat Refractories sold 2.29 crore RHI Magnesita India shares, or 11.11% of equity, through a Rs 826 crore block deal at Rs 360 apiece. SBI Mutual Fund led purchases, while RHI Magnesita shares gained 3.04% to Rs 379.20.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/rhi-magnesita-block-deal-dalmia-bharat-refractories-divests-11-11-stake-for-rs-826-crore-sbi-mf-bandhan-mf-among-buyers/articleshow/134415677.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T15:34:01Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "53c06158f28f05a2", "title": "CDSCO flags indiscriminate use of painkillers and antibiotics", "summary": "The Drugs Controller General of India advises that all non-steroidal anti-inflammatory drugs (NSAIDs) and antibiotics must be sold and distributed only on the prescription of a registered medical practitioner or specialist.", "url": "https://www.livemint.com/news/cdsco-flags-indiscriminate-use-of-painkillers-and-antibiotics-11790088574575.html", "source": "mint - news", "published_at": "2026-09-22T15:30:14Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "84213b056e2dbb61", "title": "Trump\u2019s UNGA speech: \u2018Big decision\u2019 on Iran, economic isolation call and 8 other key points", "summary": "Trump also said he believed the US and Iran could reach a deal after the November midterm elections, while insisting that Tehran would never be allowed to obtain a nuclear weapon.", "url": "https://www.livemint.com/news/us-news/trumps-unga-speech-big-decision-on-iran-economic-isolation-call-and-8-other-key-points-11790089786447.html", "source": "mint - news", "published_at": "2026-09-22T15:20:47Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "58d8694260d2e27f", "title": "Hayden Panettiere cause of death revealed: Actor died from fentanyl overdose, coroner says", "summary": "Hayden Panettiere died from an accidental overdose involving fentanyl and several other drugs, the Greenville County Coroner\u2019s Office confirmed. The 36-year-old actor was found unresponsive in South Carolina on 16 August.", "url": "https://www.livemint.com/news/us-news/hayden-panettiere-cause-of-death-revealed-actor-died-from-fentanyl-overdose-coroner-says-11790089947274.html", "source": "mint - news", "published_at": "2026-09-22T15:17:17Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "3cf0c0d5f6660602", "title": "Reaping profits by YouTube and discarded materials: This couple built 2,500-sq-ft home for $40,000, sold it for $290,000", "summary": "Jessica Patrzyk, 34, and her husband left their life in rural Worth, New York, where they had operated several businesses, including a coffee shop, retail shops and a tarot reading service", "url": "https://www.livemint.com/news/trends/reaping-profits-by-youtube-and-discarded-materials-this-couple-built-2-500-sq-ft-home-for-40-000-sold-it-for-290000-11790087735807.html", "source": "mint - news", "published_at": "2026-09-22T15:17:02Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "d0f023065b650579", "title": "Trump couldn\u2019t get Greenland. So he secured permanent US military rights instead | Here's what the deal is about", "summary": "The agreement aims to strengthen US and NATO security in Greenland amid concerns over Russia and China, but key legal details remain undisclosed.", "url": "https://www.livemint.com/news/us-news/trump-couldn-t-get-greenland-so-he-secured-permanent-us-military-rights-instead-heres-what-the-deal-about-11790086512429.html", "source": "mint - news", "published_at": "2026-09-22T14:35:09Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "a79de83d5335023f", "title": "Sebi to address concerns over settlement price for derivatives on expiry days, says chief Tuhin Kanta Pandey", "summary": "\"Having successfully established the Closing Auction Session as an important market structure reform, we intend to address concerns in respect of settlement price for derivatives on expiry days and other related issues. A consultation paper has already been issued inviting public comment,\" Pandey said at the 11th JP Morgan India Conference.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/sebi-to-address-concerns-over-settlement-price-for-derivatives-on-expiry-days-says-chief-tuhin-kanta-pandey/articleshow/134414692.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T14:27:15Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "707c5b78e0bb7ca1", "title": "Trump's Iran war is nearing 7 months. Here's why his UN speech matters for oil prices and markets", "summary": "Trump\u2019s UNGA speech comes as the Iran war nears seven months, with oil prices, Hormuz and global markets in focus.", "url": "https://www.livemint.com/news/world/trumps-iran-war-is-nearing-7-months-heres-why-his-un-speech-matters-for-oil-prices-and-markets-11790081354434.html", "source": "mint - news", "published_at": "2026-09-22T14:07:35Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "4f8c93a22b823d73", "title": "Vijay Mallya gets Bombay HC warning over posting court documents on social media", "summary": "The court issued the warning after Enforcement Directorate (ED) lawyer said that Mallya had uploaded the agency's affidavit on his social media accounts even before it was formally submitted before the court.", "url": "https://www.livemint.com/news/india/vijay-mallya-gets-bombay-hc-warning-over-posting-court-documents-on-social-media-11790082597937.html", "source": "mint - news", "published_at": "2026-09-22T13:42:02Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "8bead27b7cc2a35a", "title": "Fortis audit order could drag listed firms into promoters' personal debt cases: InGovern", "summary": "InGovern has warned that the Delhi High Court\u2019s Fortis Healthcare forensic audit order could set a wider precedent, potentially exposing listed companies to enforcement proceedings over promoters\u2019 personal liabilities and challenging the established separation between companies and their owners.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/fortis-audit-order-could-drag-listed-firms-into-promoters-personal-debt-cases-ingovern/articleshow/134413677.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T13:27:07Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "213deff68c2453e4", "title": "After Hindenburg: 5 Adani group companies settle disclosure violation case with Sebi", "summary": "Five Adani group firms settled Sebi adjudication proceedings over alleged disclosure and governance lapses flagged in the Hindenburg Report, paying \u20b91.51 crore without admitting or denying violations.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/after-hindenburg-5-adani-group-companies-settle-disclosure-violation-case-with-sebi/articleshow/134413631.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T13:24:56Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "4274bab866046bfe", "title": "UNGA 2026 Highlights: Trump rejects \u2018globalist scheme\u2019 to control AI, says should be called \u2018super intelligence'", "summary": "UNGA 2026 Highlights: President Trump has begun his address to the United Nations. 'I can report to you with pride that America is back', the US President said.", "url": "https://www.livemint.com/news/world/unga-un-general-assembly-2026-live-news-updates-trump-netanyahu-qatar-iran-war-ai-russia-ukraine-11790081695656.html", "source": "mint - news", "published_at": "2026-09-22T13:16:10Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "857f30e8c5abffaf", "title": "Mahadev betting case: ED chargesheets EaseMyTrip co-founder Nishant Pitti; shares worth \u20b959.6 crore frozen", "summary": "The ED has also provisionally attached shares held in Pitti's demat account valued at \u20b959.60 crore under the PMLA.", "url": "https://www.livemint.com/news/india/mahadev-betting-case-ed-chargesheets-easemytrip-co-founder-nishant-pitti-shares-worth-59-6-crore-frozen-11790079702019.html", "source": "mint - news", "published_at": "2026-09-22T13:08:39Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "34611ae5b344990d", "title": "Are GLP-1s causing blindness? Novo Nordisk, Eli Lilly face lawsuits in US", "summary": "The condition, known as nonarteritic anterior ischemic optic neuropathy (NAION), affects the optic nerve and can cause sudden, painless loss of vision.", "url": "https://www.livemint.com/news/us-news/are-glp-1s-causing-blindness-novo-nordisk-eli-lilly-face-lawsuits-in-us-11790078146306.html", "source": "mint - news", "published_at": "2026-09-22T12:52:57Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "21f22afef82d318d", "title": "Rajasthan CET 2026 exams rescheduled over local body polls, 40 lakh aspirants affected: Check revised dates", "summary": "Rajasthan CET 2026 candidates who have registered for the examinations should take note of the revised schedule and plan their preparation accordingly.", "url": "https://www.livemint.com/news/trends/rajasthan-cet-2026-exams-rescheduled-over-local-body-polls-40-lakh-aspirants-affected-check-revised-dates-11790072689924.html", "source": "mint - news", "published_at": "2026-09-22T12:25:20Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "bb3c07ec5eb99b10", "title": "Bay of Bengal depression likely to intensify, hit Andhra-Odisha coast", "summary": "The weather system comes as the southwest monsoon begins its annual withdrawal from northwest India.", "url": "https://www.livemint.com/news/india/bay-of-bengal-depression-likely-to-intensify-hit-andhra-odisha-coast-11790073388269.html", "source": "mint - news", "published_at": "2026-09-22T11:49:45Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "eda2bb5865eb4fbd", "title": "Engineers India among 7 small-cap stocks that hit 52-week highs and rallied up to 25% in a month", "summary": "Seven stocks from the BSE 250 Smallcap Index hit fresh 52-week highs despite the Sensex falling 329 points on Tuesday. Engineers India led one-month gains at 24%, followed by Syrma SGS Technology, Welspun Corp, Welspun Living and Acme Solar Holdings.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/engineers-india-among-7-small-cap-stocks-that-hit-52-week-highs-and-rallied-up-to-25-in-a-month/slideshow/134411302.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T11:33:48Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "30c722f3dabbd60d", "title": "Zoho Sridhar Vembu warns engineers over AI coding: \u2018Driving too fast in a fancy new car'", "summary": "In a post on X, Sridhar Vembu said engineers should make use of AI tools but continue to exercise their own technical judgement and understand the work being produced.", "url": "https://www.livemint.com/news/trends/zoho-sridhar-vembu-warns-engineers-over-ai-coding-driving-too-fast-in-a-fancy-new-car-11790074692613.html", "source": "mint - news", "published_at": "2026-09-22T11:32:38Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "29f803f641f09fb9", "title": "Market wrap: Coal India, Eternal, Tata Consumer, Nestle India top gainers and losers on Nifty and Sensex on Tuesday", "summary": "Indian equities ended lower on Tuesday as selling pressure resurfaced toward the close, with Nifty and Sensex falling 0.36% and 0.44%, respectively. Coal India, Eternal and InterGlobe were among the top gainers, while Tata Consumer, Nestle India and Bajaj Finserv featured among the biggest losers across key indices.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/market-wrap-coal-india-eternal-tata-consumer-nestle-india-top-gainers-and-losers-on-nifty-and-sensex-on-tuesday/articleshow/134410334.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T11:08:01Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "f0c578286463a158", "title": "CAS chaos: Nifty\u2019s indicative price drops 1% in seconds to fall below 23,150 on F&amp;O expiry day, Sensex closes 330 pts lower", "summary": "Indian equities ended lower on Tuesday after morning gains faded, with Sensex dropping 330 points and Nifty witnessing a sharp closing-auction swing on expiry day. Broader markets also declined, while IT stocks weakened and realty gained. Market breadth turned negative, with 1,868 NSE stocks declining against 1,679 advancing.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/cas-chaos-niftys-indicative-price-drops-1-in-seconds-to-fall-below-23150-on-fo-expiry-day-sensex-closes-330-pts-lower/articleshow/134409443.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T10:20:14Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "9409b52fffb91720", "title": "Sebi sees potential for Rs 2 lakh crore IPO fundraising as fresh capital gains prominence", "summary": "SEBI Chairman Tuhin Kanta Pandey said India could raise up to Rs 2 lakh crore through IPOs, with substantial proceeds flowing directly to companies. He highlighted reforms simplifying market access, rising corporate bond issuance, growing domestic investor participation and measures to deepen capital markets, improve liquidity and expand global investor access.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/sebi-sees-potential-for-rs-2-lakh-crore-ipo-fundraising-as-fresh-capital-gains-prominence/articleshow/134409191.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T10:05:34Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "8199c6e6287c9094", "title": "11 stocks added by more than 15 MF schemes in August; shares surge up to 240% in CY26", "summary": "Mutual funds added 24 stocks to their portfolios through at least 15 schemes in August 2026, with 11 of these stocks delivering over 25% YTD returns. Welspun Corp and Apar Industries emerged as the top performers, gaining 240% and 126%, respectively.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/11-stocks-added-by-more-than-15-mf-schemes-in-august-shares-surge-up-to-240-in-cy26/slideshow/134406376.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T07:39:29Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "ae1f53f9b0dbde43", "title": "Stocks to buy: JM Financial names 9 NBFC stocks as top picks amid rate hike cycle", "summary": "Amid rising interest rates and fluctuating bond yields, JM Financial has pinpointed nine NBFCs as top stock picks. These picks showcase a diverse performance spectrum, with some stocks dipping while others have enjoyed robust gains over various timeframes. Investors are encouraged to delve into net interest margin dynamics and asset quality trends when making their selection.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/stocks-to-buy-jm-financial-names-9-nbfc-stocks-as-top-picks-amid-rate-hike-cycle/slideshow/134406163.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T07:29:33Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "9e94433c4903003e", "title": "Meesho shares rally 12% after UBS hikes target price by 24%. What\u2019s keeping analysts bullish?", "summary": "UBS has raised its Meesho estimates across NMV, contribution profit and EBITDA, citing stronger seller and buyer growth and improving unit economics. The brokerage expects contribution margins to expand as logistics costs ease and advertising revenue grows. Meesho\u2019s ability to sustain user additions, ordering frequency and NMV growth remains central to its outlook.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/meesho-shares-rally-12-after-ubs-hikes-target-price-by-24-whats-keeping-analysts-bullish/articleshow/134404902.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T06:44:18Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "b198f77ba6b0eea4", "title": "HDFC Bank shares hit 7-week high as RBI weighs Anup Bagchi for CEO post. What lies ahead?", "summary": "HDFC Bank shares rose to a nearly seven-week high of Rs 749.30, extending gains to 5% over three sessions, after ET reported that the RBI is weighing Anup Bagchi\u2019s candidature for the bank\u2019s CEO and MD post and has sought feedback from IRDAI and ICICI Bank CEO Sandeep Bakhshi.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/hdfc-bank-shares-hit-7-week-high-as-rbi-weighs-anup-bagchi-for-ceo-post-what-lies-ahead/articleshow/134404789.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T06:38:49Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "00f44e9373f89afb", "title": "Hindustan Copper shares gain 3% as company plans Rs 7,000 crore capital investment in next 5 years", "summary": "Hindustan Copper shares rose after the company announced a Rs 7,000 crore investment over the next 5-6 years and signed MoUs with major PSUs to expand its mining portfolio, while also partnering with Chile\u2019s CODELCO on mining expertise and capacity building.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/hindustan-copper-shares-gain-3-as-company-plans-rs-7000-crore-capital-investment-in-next-5-years/articleshow/134404296.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T06:15:11Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "33a4947241b62de9", "title": "Embassy Developments rallies 8% after Rs 711 crore residential tower deal with Angel One founder", "summary": "Embassy Developments shares rallied up to 8% to Rs 63.80 after signing an MoU to sell an entire residential tower at Embassy Terazza in Juhu to Angel One CMD Dinesh Thakkar for Rs 711 crore. Spanning 63,000 sq ft, it is India\u2019s largest single residential property transaction.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/embassy-developments-rallies-8-after-rs-711-crore-residential-tower-deal-with-angel-one-founder/articleshow/134404167.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T06:10:20Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "1210ae6c7e9a0fbe", "title": "Textile stocks rally up to 10%: Raymond, Gokaldas Exports &amp; others rebound after Trump tariff-triggered selloff", "summary": "Textile stocks rebounded on Tuesday, recovering most of the previous session\u2019s losses after US President Donald Trump signed a Russia sanctions bill into law. Raymond led the gains with a 10% rally, while Pearl Global Industries, Gokaldas Exports, Arvind and Vardhman Textiles also advanced.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/textile-stocks-rally-up-to-10-raymond-gokaldas-exports-other-stocks-rebound-after-trump-tariff-worries-spark-selloff/articleshow/134403813.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T05:56:19Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "79017514200136a8", "title": "Motilal Oswal initiates Buy on Solar Industries, sees 24% upside. 4 reasons why", "summary": "Motilal Oswal has initiated coverage on Solar Industries with a Buy rating and a target price of Rs 23,000, citing strong growth prospects across explosives and defence. The brokerage expects revenue and profit to grow at 43% and 34% CAGR, respectively, through FY30.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/motilal-oswal-initiates-buy-on-solar-industries-sees-24-upside-4-reasons-why/articleshow/134403261.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T05:42:47Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "1d9cba09027bc54b", "title": "Pace Digitek shares jump 13% after subsidiary bags Rs 488 crore BESS order", "summary": "Pace Digitek shares surged over 13% to Rs 175.37 on Tuesday after its material subsidiary, Lineage Power, bagged a Rs 488.46-crore BESS order from NTPC GE Power Services. The project at the Barh Super Thermal Power Project involves BESS containers, maintenance, and extended warranty through December 2026.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/pace-digitek-shares-jump-13-after-subsidiary-bags-rs-488-crore-bess-order/articleshow/134403215.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T05:30:19Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "cab11c77f051101f", "title": "Sensex rises 110 points, Nifty above 23,450 as oil prices, bond yields cool down. Time for a sectoral pivot?", "summary": "Indian equities traded higher as softer crude prices and easing bond yields improved sentiment. Sensex and Nifty extended gains, while broader markets also advanced. Analysts highlighted a possible sectoral shift towards fairly valued largecaps and improving technical momentum.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/sensex-rises-110-points-nifty-above-23450-as-oil-prices-bond-yields-cool-down-time-for-a-sectoral-pivot/articleshow/134403150.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T05:20:09Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "bcc5a96ef41cb6e5", "title": "This stock just beat AI star HFCL\u2019s 230% rally to top Nifty 500 gainers in 2026. Can outperformance last?", "summary": "Welspun Corp has emerged as the top-performing Nifty 500 stock in 2026 after a 236% rally, overtaking AI infrastructure play HFCL. The sharp gains have been driven by strong investor interest in the company\u2019s oil, gas and water transmission business. The key question now is whether the rally can sustain.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/this-stock-just-beat-ai-star-hfcls-230-rally-to-top-nifty-500-gainers-in-2026-can-outperformance-last/articleshow/134403063.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T05:13:29Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "1e4af0a955903e90", "title": "Sterling and Wilson Renewable Energy shares rally 8% after securing Rs 985 crore domestic and global orders", "summary": "Sterling and Wilson Renewable Energy shares surged nearly 8% on Tuesday to Rs 186.66 after winning domestic and international orders exceeding Rs 985 crore. The orders include a 534.3 MWp solar project in Rajasthan and a 616 MWh energy storage capacity project in South Africa.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/sterling-and-wilson-renewable-energy-shares-rally-8-after-securing-rs-985-crore-domestic-and-global-orders/articleshow/134402652.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T04:52:04Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "6ea632a5b870bec5", "title": "Waaree Energies shares gain 2% after company bags 2 GW solar module order", "summary": "Waaree Energies shares rose after securing a 2 GW solar module supply order from a leading domestic solar developer for FY27-FY28. The contract\u2019s value remains undisclosed. Despite the order, the stock has declined recently and trades below seven of eight SMAs. FIIs raised their June-quarter stake, while mutual fund holdings fell.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/waaree-energies-shares-gain-2-after-company-bags-2-gw-solar-module-order/articleshow/134402610.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T04:46:54Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "7b090b853d75a957", "title": "Tata Group stocks see sharp swings as boardroom battle intensifies, but analysts say avoid the noise", "summary": "Tata Group stocks are undergoing substantial fluctuations amid an unsettling boardroom conflict as Tata Trusts questions the reappointment of N Chandrasekaran as Chairman. Market analysts advise investors to hone in on the core fundamentals and disregard the temporary corporate commotion. Companies like Tata Steel and Tata Motors are highlighted as sound investment choices, showing promise for long-term growth and accumulation due to their solid performance.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/tata-group-stocks-see-sharp-swings-as-boardroom-battle-intensifies-but-analysts-say-avoid-the-noise/articleshow/134402387.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T04:43:57Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "32a597321a634cbb", "title": "Polycab shares slide 17% in 3 months amid Ultravolt shock, but Jefferies sees 33% upside. What\u2019s behind the bullish view?", "summary": "Polycab shares have fallen 17% from their June peak after UltraTech entered the wires and cables segment. Jefferies retained its Buy rating and Rs 11,100 target, implying 33% upside, citing strong demand, volume growth and Polycab\u2019s distribution strength.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/polycab-shares-slide-17-in-3-months-amid-ultravolt-shock-but-jefferies-sees-33-upside-whats-behind-the-bullish-view/articleshow/134402210.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T04:25:07Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "9849be874090330f", "title": "Goldman Sachs raises target on a stock that has already surged over 140% this year. Do you own it?", "summary": "Sansera Engineering shares rallied after Goldman Sachs raised its target price to Rs 4,990 from Rs 4,500 while retaining its Buy rating. The revised target implies 16.1% upside, with the stock already up over 140% in 2026. Goldman sees investments by Applied Materials and Lam Research in India supporting local supplier ecosystems and R&amp;D, potentially driving longer-term growth for Sansera\u2019s ADS component business.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/goldman-sachs-raises-target-on-a-stock-that-has-already-surged-over-140-this-year-do-you-own-it/articleshow/134402171.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T04:21:04Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "2fec7a44b61d1f6c", "title": "Oracle Financial among 4 F&amp;O stocks with a sharp rise in futures open interest", "summary": "As of September 21, four NSE F&amp;O stocks recorded an increase of over 8% in futures open interest compared to the previous trading session. Oracle Financial Services Software led the gains with an 11.43% rise, followed by Sona BLW Precision Forgings, Patanjali Foods, and BSE.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/oracle-financial-among-4-fampo-stocks-with-a-sharp-rise-in-futures-open-interest/slideshow/134402151.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T04:15:13Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "bff69b5dc8795fc7", "title": "Syngene International among 4 stocks that closed crossing above VWAP", "summary": "Four Nifty 500 stocks closed over 1.5% above their VWAPs on September 21, signaling stronger-than-average trading prices.", "url": "https://economictimes.indiatimes.com/markets/stocks/news/syngene-international-among-4-stocks-that-closed-crossing-above-vwap/slideshow/134402030.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T04:07:33Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}, {"id": "ed795a904e073832", "title": "Dr Reddys Share Price Highlights: Dr. Reddys Stock Price History", "summary": null, "url": "https://economictimes.indiatimes.com/markets/stocks/stock-liveblog/dr-reddys-share-price-live-updates-22-sep-2026/liveblog/134401875.cms", "source": "Stocks-Markets-Economic Times", "published_at": "2026-09-22T04:04:12Z", "symbols": [], "sentiment": null, "sentiment_label": null, "provider": "rss"}]}, "filings": {"ok": true, "provider": null, "data": {"cik": "NVDA", "company_name": "", "symbol": null, "filings": [{"accession": "0001199039-26-000016", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "4", "filed_date": "2026-09-22", "period_of_report": "2026-09-18", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000119903926000016/"}, {"accession": "0001243821-26-000007", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "4", "filed_date": "2026-09-18", "period_of_report": "2026-09-16", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000124382126000007/"}, {"accession": "0001283854-26-000010", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "4", "filed_date": "2026-09-18", "period_of_report": "2026-09-16", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000128385426000010/"}, {"accession": "0001696841-26-000012", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "4", "filed_date": "2026-09-18", "period_of_report": "2026-09-16", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000169684126000012/"}, {"accession": "0001588670-26-000014", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "4", "filed_date": "2026-09-18", "period_of_report": "2026-09-16", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000158867026000014/"}, {"accession": "0001197649-26-000012", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "4", "filed_date": "2026-09-18", "period_of_report": "2026-09-16", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000119764926000012/"}, {"accession": "0002152188-26-000005", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "4", "filed_date": "2026-09-11", "period_of_report": "2026-09-09", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000215218826000005/"}, {"accession": "0001199039-26-000014", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "4", "filed_date": "2026-09-08", "period_of_report": "2026-09-03", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000119903926000014/"}, {"accession": "0001197647-26-000009", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "4", "filed_date": "2026-09-04", "period_of_report": "2026-09-02", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000119764726000009/"}, {"accession": "0002152188-26-000003", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "3", "filed_date": "2026-09-03", "period_of_report": "2026-08-24", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000215218826000003/"}, {"accession": "0001045810-26-000078", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "8-K", "filed_date": "2026-09-03", "period_of_report": "2026-09-02", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000078/"}, {"accession": "0001199039-26-000012", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "4", "filed_date": "2026-09-02", "period_of_report": "2026-08-31", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000119903926000012/"}, {"accession": "0001696841-26-000010", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "4", "filed_date": "2026-09-02", "period_of_report": "2026-08-31", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000169684126000010/"}, {"accession": "0001045810-26-000075", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "10-Q", "filed_date": "2026-08-26", "period_of_report": "2026-07-26", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000075/"}, {"accession": "0001045810-26-000073", "cik": "0001045810", "company_name": "NVIDIA CORP", "symbol": null, "form_type": "8-K", "filed_date": "2026-08-26", "period_of_report": "2026-08-26", "edgar_url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000073/"}]}}}, "cost": null, "web_available": true, "note": null, "web_reason": null, "backend": "keyless-fallback"}}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " structured"}
+{"kind": "delta", "text": " analysis"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " insights"}
+{"kind": "delta", "text": " related"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "N"}
+{"kind": "delta", "text": "VIDIA"}
+{"kind": "delta", "text": " Corporation"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "NV"}
+{"kind": "delta", "text": "DA"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "---\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Recent"}
+{"kind": "delta", "text": " News"}
+{"kind": "delta", "text": " &"}
+{"kind": "delta", "text": " Market"}
+{"kind": "delta", "text": " Activity"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Market"}
+{"kind": "delta", "text": " Trends"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " broader"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " showed"}
+{"kind": "delta", "text": " mixed"}
+{"kind": "delta", "text": " performance"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Sense"}
+{"kind": "delta", "text": "x"}
+{"kind": "delta", "text": " rising"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " points"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "N"}
+{"kind": "delta", "text": "ifty"}
+{"kind": "delta", "text": " above"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " softer"}
+{"kind": "delta", "text": " crude"}
+{"kind": "delta", "text": " prices"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " easing"}
+{"kind": "delta", "text": " bond"}
+{"kind": "delta", "text": " yields"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Text"}
+{"kind": "delta", "text": "ile"}
+{"kind": "delta", "text": " stocks"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " rebound"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Ray"}
+{"kind": "delta", "text": "mond"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " leading"}
+{"kind": "delta", "text": " gains"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "%,"}
+{"kind": "delta", "text": " following"}
+{"kind": "delta", "text": " Trump"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " Russia"}
+{"kind": "delta", "text": " sanctions"}
+{"kind": "delta", "text": " bill"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "AI"}
+{"kind": "delta", "text": "-driven"}
+{"kind": "delta", "text": " stocks"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "HF"}
+{"kind": "delta", "text": "CL"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "W"}
+{"kind": "delta", "text": "els"}
+{"kind": "delta", "text": "pun"}
+{"kind": "delta", "text": " Corp"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " out"}
+{"kind": "delta", "text": "per"}
+{"kind": "delta", "text": "formed"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " W"}
+{"kind": "delta", "text": "els"}
+{"kind": "delta", "text": "pun"}
+{"kind": "delta", "text": " Corp"}
+{"kind": "delta", "text": " topping"}
+{"kind": "delta", "text": " N"}
+{"kind": "delta", "text": "ifty"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " gain"}
+{"kind": "delta", "text": "ers"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Sector"}
+{"kind": "delta", "text": "al"}
+{"kind": "delta", "text": " Shift"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " Analyst"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": " suggest"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " potential"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "sector"}
+{"kind": "delta", "text": "al"}
+{"kind": "delta", "text": " pivot"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " toward"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "fair"}
+{"kind": "delta", "text": "ly"}
+{"kind": "delta", "text": " valued"}
+{"kind": "delta", "text": " large"}
+{"kind": "delta", "text": "caps"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " improving"}
+{"kind": "delta", "text": " technical"}
+{"kind": "delta", "text": " momentum"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " could"}
+{"kind": "delta", "text": " influence"}
+{"kind": "delta", "text": " investor"}
+{"kind": "delta", "text": " sentiment"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " NVIDIA"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "a"}
+{"kind": "delta", "text": " tech"}
+{"kind": "delta", "text": " leader"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " sem"}
+{"kind": "delta", "text": "icon"}
+{"kind": "delta", "text": "duct"}
+{"kind": "delta", "text": "ors"}
+{"kind": "delta", "text": ").\n\n"}
+{"kind": "delta", "text": "---\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " NVIDIA"}
+{"kind": "delta", "text": " Fil"}
+{"kind": "delta", "text": "ings"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "SEC"}
+{"kind": "delta", "text": " Data"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Latest"}
+{"kind": "delta", "text": " Fil"}
+{"kind": "delta", "text": "ings"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "as"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "-Q"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Quarter"}
+{"kind": "delta", "text": "ly"}
+{"kind": "delta", "text": " Report"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Filed"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " covering"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " period"}
+{"kind": "delta", "text": " ending"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " This"}
+{"kind": "delta", "text": " includes"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " results"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " operational"}
+{"kind": "delta", "text": " updates"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "-K"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Material"}
+{"kind": "delta", "text": " Event"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Filed"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " likely"}
+{"kind": "delta", "text": " related"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " significant"}
+{"kind": "delta", "text": " corporate"}
+{"kind": "delta", "text": " event"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "e"}
+{"kind": "delta", "text": ".g"}
+{"kind": "delta", "text": ".,"}
+{"kind": "delta", "text": " partnerships"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " acquisitions"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " regulatory"}
+{"kind": "delta", "text": " changes"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Quarter"}
+{"kind": "delta", "text": "ly"}
+{"kind": "delta", "text": " Report"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Multiple"}
+{"kind": "delta", "text": " filings"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " period"}
+{"kind": "delta", "text": " ending"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " These"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " updates"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " chip"}
+{"kind": "delta", "text": " demand"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " H"}
+{"kind": "delta", "text": "PC"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "High"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "Performance"}
+{"kind": "delta", "text": " Computing"}
+{"kind": "delta", "text": "),"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " center"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Key"}
+{"kind": "delta", "text": " Insight"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " NVIDIA"}
+{"kind": "delta", "text": "\u2019s"}
+{"kind": "delta", "text": " filings"}
+{"kind": "delta", "text": " suggest"}
+{"kind": "delta", "text": " strong"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "AI"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " H"}
+{"kind": "delta", "text": "PC"}
+{"kind": "delta", "text": " demand"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " focus"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "data"}
+{"kind": "delta", "text": " center"}
+{"kind": "delta", "text": " expansion"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "sem"}
+{"kind": "delta", "text": "iconductor"}
+{"kind": "delta", "text": " innovation"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "-Q"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "-K"}
+{"kind": "delta", "text": " filings"}
+{"kind": "delta", "text": " could"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " R"}
+{"kind": "delta", "text": "&D"}
+{"kind": "delta", "text": " investments"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " strategic"}
+{"kind": "delta", "text": " partnerships"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "---\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Web"}
+{"kind": "delta", "text": " Data"}
+{"kind": "delta", "text": " &"}
+{"kind": "delta", "text": " Stock"}
+{"kind": "delta", "text": " Analysis"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Stock"}
+{"kind": "delta", "text": " Price"}
+{"kind": "delta", "text": " &"}
+{"kind": "delta", "text": " Tools"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Live"}
+{"kind": "delta", "text": " Price"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " Check"}
+{"kind": "delta", "text": " platforms"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Yahoo"}
+{"kind": "delta", "text": " Finance"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "CN"}
+{"kind": "delta", "text": "BC"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "NASDAQ"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " real"}
+{"kind": "delta", "text": "-time"}
+{"kind": "delta", "text": " NV"}
+{"kind": "delta", "text": "DA"}
+{"kind": "delta", "text": " quotes"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Technical"}
+{"kind": "delta", "text": " Ind"}
+{"kind": "delta", "text": "icators"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " Use"}
+{"kind": "delta", "text": " tools"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Trading"}
+{"kind": "delta", "text": "View"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " analyze"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "MA"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Moving"}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "verages"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "RS"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "MAC"}
+{"kind": "delta", "text": "D"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "volume"}
+{"kind": "delta", "text": " trends"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Anal"}
+{"kind": "delta", "text": "yst"}
+{"kind": "delta", "text": " Ratings"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Gold"}
+{"kind": "delta", "text": "man"}
+{"kind": "delta", "text": " Sachs"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " raised"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " target"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Sans"}
+{"kind": "delta", "text": "era"}
+{"kind": "delta", "text": " Engineering"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "a"}
+{"kind": "delta", "text": " supplier"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " NVIDIA"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Rs"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " implying"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " upside"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Mot"}
+{"kind": "delta", "text": "il"}
+{"kind": "delta", "text": "al"}
+{"kind": "delta", "text": " Osw"}
+{"kind": "delta", "text": "al"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " initiated"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Buy"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Solar"}
+{"kind": "delta", "text": " Industries"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " citing"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " explosives"}
+{"kind": "delta", "text": " sectors"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "ind"}
+{"kind": "delta", "text": "irect"}
+{"kind": "delta", "text": "ly"}
+{"kind": "delta", "text": " relevant"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " NVIDIA"}
+{"kind": "delta", "text": "\u2019s"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " semiconductor"}
+{"kind": "delta", "text": " ecosystem"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": "  \n\n"}
+{"kind": "delta", "text": "---\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Strategic"}
+{"kind": "delta", "text": " Outlook"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " NVIDIA"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Strength"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "AI"}
+{"kind": "delta", "text": " Leadership"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " NVIDIA"}
+{"kind": "delta", "text": "\u2019s"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "GPU"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "AI"}
+{"kind": "delta", "text": " chip"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " dominance"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " centers"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " autonomous"}
+{"kind": "delta", "text": " vehicles"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " infrastructure"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Part"}
+{"kind": "delta", "text": "ners"}
+{"kind": "delta", "text": "hips"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " Collabor"}
+{"kind": "delta", "text": "ations"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Microsoft"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Meta"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "AWS"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " work"}
+{"kind": "delta", "text": "loads"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Revenue"}
+{"kind": "delta", "text": " Growth"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " Recent"}
+{"kind": "delta", "text": " filings"}
+{"kind": "delta", "text": " suggest"}
+{"kind": "delta", "text": " strong"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Q"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " results"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " driven"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " demand"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": "isks"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Supply"}
+{"kind": "delta", "text": " Chain"}
+{"kind": "delta", "text": " Press"}
+{"kind": "delta", "text": "ures"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " Global"}
+{"kind": "delta", "text": " chip"}
+{"kind": "delta", "text": " manufacturing"}
+{"kind": "delta", "text": " challenges"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Com"}
+{"kind": "delta", "text": "petition"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " Increased"}
+{"kind": "delta", "text": " competition"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "AMD"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Intel"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "SM"}
+{"kind": "delta", "text": "C"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Invest"}
+{"kind": "delta", "text": "or"}
+{"kind": "delta", "text": " Take"}
+{"kind": "delta", "text": "away"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Buy"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " For"}
+{"kind": "delta", "text": " long"}
+{"kind": "delta", "text": "-term"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " H"}
+{"kind": "delta", "text": "PC"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Watch"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " For"}
+{"kind": "delta", "text": " macro"}
+{"kind": "delta", "text": "economic"}
+{"kind": "delta", "text": " risks"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "e"}
+{"kind": "delta", "text": ".g"}
+{"kind": "delta", "text": ".,"}
+{"kind": "delta", "text": " interest"}
+{"kind": "delta", "text": " rates"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " inflation"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": "  \n\n"}
+{"kind": "delta", "text": "---\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Next"}
+{"kind": "delta", "text": " Steps"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Check"}
+{"kind": "delta", "text": " Fil"}
+{"kind": "delta", "text": "ings"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " Review"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "-Q"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "-K"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " detailed"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " material"}
+{"kind": "delta", "text": " events"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Monitor"}
+{"kind": "delta", "text": " Market"}
+{"kind": "delta", "text": " Trends"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " Track"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "AI"}
+{"kind": "delta", "text": " adoption"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "data"}
+{"kind": "delta", "text": " center"}
+{"kind": "delta", "text": " spending"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": " signals"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Use"}
+{"kind": "delta", "text": " Technical"}
+{"kind": "delta", "text": " Tools"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " Analy"}
+{"kind": "delta", "text": "ze"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "RS"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "MAC"}
+{"kind": "delta", "text": "D"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " entry"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "exit"}
+{"kind": "delta", "text": " points"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "  \n\n"}
+{"kind": "delta", "text": "For"}
+{"kind": "delta", "text": " real"}
+{"kind": "delta", "text": "-time"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " visit"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Yahoo"}
+{"kind": "delta", "text": " Finance"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "NASDAQ"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " further"}
+{"kind": "delta", "text": " analysis"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 16384, "output_tokens": 1492, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}

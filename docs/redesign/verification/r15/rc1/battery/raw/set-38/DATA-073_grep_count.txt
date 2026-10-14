@@ -1,0 +1,32 @@
+30
+78:        "2026-01-15",  # Municipal Corporation Election - Maharashtra
+79:        "2026-01-26",  # Republic Day
+80:        "2026-02-15",  # Mahashivratri
+81:        "2026-03-03",  # Holi
+82:        "2026-03-21",  # Id-Ul-Fitr (Ramadan Eid)
+83:        "2026-03-26",  # Shri Ram Navami
+84:        "2026-03-31",  # Shri Mahavir Jayanti
+85:        "2026-04-03",  # Good Friday
+86:        "2026-04-14",  # Dr. Baba Saheb Ambedkar Jayanti
+87:        "2026-05-01",  # Maharashtra Day
+88:        "2026-05-28",  # Bakri Id
+89:        "2026-06-26",  # Muharram
+90:        "2026-08-15",  # Independence Day
+91:        "2026-09-14",  # Ganesh Chaturthi
+92:        "2026-10-02",  # Mahatma Gandhi Jayanti
+93:        "2026-10-20",  # Dussehra
+94:        "2026-11-08",  # Diwali Laxmi Pujan*
+95:        "2026-11-10",  # Diwali-Balipratipada
+96:        "2026-11-24",  # Prakash Gurpurb Sri Guru Nanak Dev
+97:        "2026-12-25",  # Christmas
+114:        "2026-01-01",
+115:        "2026-01-19",
+116:        "2026-02-16",
+117:        "2026-04-03",
+118:        "2026-05-25",
+119:        "2026-06-19",
+120:        "2026-07-03",
+121:        "2026-09-07",
+122:        "2026-11-26",
+123:        "2026-12-25",
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/resolver_masters/regenerate_holidays.py

@@ -1,0 +1,4 @@
+$ python3 -c _compare_symbols({'symbols':['RELIANCE.NS','RENTOMOJO.NS']})
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'RELIANCE.NS'
+R1: {'ok': True, 'relative': {'best': None, 'worst': None, 'note': 'windows not comparable: RENTOMOJO has 7 bars since 2026-09-17'}}
+R2 (fresh, ARCIL short-window): {'ok': True, 'relative': {'best': 'TCS', 'worst': 'RELIANCE', 'note': 'windows not comparable: ARCIL has 7 bars since 2026-09-17'}}

@@ -1,0 +1,14 @@
+NOTE: an earlier probe run against port 52347 hit a stale orphaned
+earlier-round process (PID 47234, cwd rc1-round-5-cand/sidecar, started
+14:48, PPID 1) that had squatted this shard's assigned port before this
+role's own sidecar boot. Verified via lsof+ps, killed it, rebooted this
+shard's own sidecar (sleep pid 69255) on the correct recheck candidate +
+data dir, confirmed /health ok. This re-run is against the confirmed-correct sidecar.
+
+COMMAND: curl -sS -m 15 -X POST http://127.0.0.1:52347/llm/chat -H 'Content-Type: application/json' -d '{"provider":"openrouter","model":"test","api_key":"fake-key-b7","messages":[{"role":"user","content":"hi"}],"options":{"depth":"deep"}}'
+--- output ---
+data: {"kind": "error", "message": "The OpenRouter API key was rejected \u2014 check it in Settings.", "action": "Re-enter the API key in Settings.", "detail": "Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}", "code": "auth"}
+
+
+EXIT: 0
+VERDICT: holds -- 401 auth-error frame returned cleanly (no TypeError / unhandled kwarg crash) despite an unscrubbed composer option key ("depth") in the request body.

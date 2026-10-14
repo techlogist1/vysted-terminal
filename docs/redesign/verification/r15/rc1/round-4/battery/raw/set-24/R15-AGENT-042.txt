@@ -1,0 +1,87 @@
+=== AGENT-042: PortfolioPanel publishes holdings[i].id ===
+169:    () => portfolios.find((p) => p.id === activeId) ?? portfolios[0],
+180:  const [formPortfolioId, setFormPortfolioId] = useState(active.id);
+181:  if (formPortfolioId !== active.id) {
+182:    setFormPortfolioId(active.id);
+434:  const activePortfolioId = active?.id ?? null;
+441:      // `position_id` (rows[i] is holdings[i]) — without it an edit of one of
+444:        id: holdings[i]?.id,
+516:      if (!updateHolding(active.id, editingId, input)) {
+523:      addHolding(active.id, input);
+537:    setEditingId(holding.id);
+548:      removeHolding(active.id, id);
+550:    [editingId, removeHolding, active.id],
+672:            onConfirm={() => r.holding && handleDelete(r.holding.id)}
+693:      renamePortfolio(active.id, name);
+808:              value={active.id}
+813:                <option key={p.id} value={p.id}>
+861:              onConfirm={() => deletePortfolio(active.id)}
+1236:            rowKey={(row) => row.holding?.id ?? row.position.symbol}
+--- resolveHolding refuses ambiguous match ---
+681:function resolveHolding(
+682-  portfolio: Portfolio | undefined,
+683-  input: Record<string, unknown>,
+684-): { target: Holding | null; problem: string } {
+685-  const id = input.position_id != null ? String(input.position_id) : "";
+686-  const symbol = str(input, "symbol");
+687-  const byId = id ? portfolio?.holdings.find((h) => h.id === id) : undefined;
+688-  if (byId) {
+689-    return { target: byId, problem: "" };
+690-  }
+691-  const lots = symbol
+692-    ? (portfolio?.holdings.filter((h) => baseSymbol(h.symbol) === baseSymbol(symbol)) ?? [])
+693-    : [];
+694-  if (lots.length === 1) {
+695-    return { target: lots[0], problem: "" };
+696-  }
+697-  if (lots.length > 1) {
+698-    const choices = lots.map((h) => `${h.id} (${lotText(h)})`).join(", ");
+699-    return {
+700-      target: null,
+701-      problem: `${symbol} has ${lots.length} lots; name one by position_id: ${choices}`,
+702-    };
+703-  }
+704-  return {
+705-    target: null,
+706-    problem: `${symbol || id || "position"} is not in the active portfolio`,
+707-  };
+708-}
+709-
+710-/** " (lot 2 of 3)" when the holding's symbol has several lots, else "". */
+711-function lotOrdinal(portfolioId: string, holding: Holding): string {
+712-  const lots = (portfolioById(portfolioId)?.holdings ?? []).filter(
+713-    (h) => baseSymbol(h.symbol) === baseSymbol(holding.symbol),
+714-  );
+715-  const at = lots.findIndex((h) => h.id === holding.id);
+716-  return lots.length > 1 && at >= 0 ? ` (lot ${at + 1} of ${lots.length})` : "";
+717-}
+718-
+719-/** The holding fields an agent portfolio write carries, merged over the
+720- *  targeted holding for an update. An absent or non-finite cost basis is null
+721- *  (an update keeps the holding's own cost) — never a fabricated 0. */
+        .map((b) => b.currency || "unknown")
+        .join(", ")}) — no cross-currency total; read per-holding values`
+    : !hasLiveQuotes
+      ? positionCount > 0
+        ? "no live quotes resolved"
+        : null
+      : unresolvedSymbols.length > 0
+        ? `excludes ${unresolvedSymbols.join(", ")} (no live quote)`
+        : null;
+  const activePortfolioId = active?.id ?? null;
+  const activePortfolioName = active?.name ?? null;
+  // Serialise the published holdings as a stable string so the publish effect
+  // only fires when the holdings (or their resolved P&L) actually change.
+  const publishedHoldings = useMemo(
+    () =>
+      // `id` is the holding id the agent's portfolio update/delete names as
+      // `position_id` (rows[i] is holdings[i]) — without it an edit of one of
+      // several same-symbol lots could not say which (R15-AGENT-042).
+      summary.rows.map(({ position, marketValue, pnl }, i) => ({
+        id: holdings[i]?.id,
+        symbol: position.symbol,
+        quantity: position.quantity,
+        costBasis: position.cost_basis,
+        assetClass: position.asset_class === "crypto" ? "crypto" : "equity",
+        marketValue: marketValue ?? null,
+        pnl: pnl ?? null,

@@ -1,0 +1,30 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_6a74c25b461448d48fb59436dfc8a4ff", "name": "fundamentals", "input": {"symbol": "TATAMOTORS.NS"}}
+[  45.9s] heartbeat: {"kind": "heartbeat"}
+[  49.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_6a74c25b461448d48fb59436dfc8a4ff", "name": "fundamentals", "ok": true, "error": null}
+[  59.5s] heartbeat: {"kind": "heartbeat"}
+[  69.5s] heartbeat: {"kind": "heartbeat"}
+[  81.6s] done: {"kind": "done", "usage": {"input_tokens": 5846, "output_tokens": 174, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+~~~
+| **Name** | **Value** |
+| --- | --- |
+| Market Cap | ₹106,973 cr |
+| P/E Ratio | Unavailable (negative EPS) |
+| Forward P/E | 6.0940776 |
+| Price to Book | 0.9543728 |
+| Price to Sales | 0.30797726 |
+| EV/EBITDA | 13.13 |
+| Dividend Yield | 0.0102% |
+| Earnings Per Share (EPS) | -₹9.17 |
+| Beta | 0.778 |
+| 52-Week High | ₹739.7 |
+| 52-Week Low | ₹288.0 |
+| Revenue TTM | ₹347,339 cr |
+| Net Income TTM | -₹3,375 cr |
+~~~
+
+=== ok · 81.6s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 171, 'done': 1} · usage in=5846 out=174 · est $0.00000 · llama3.1:8b

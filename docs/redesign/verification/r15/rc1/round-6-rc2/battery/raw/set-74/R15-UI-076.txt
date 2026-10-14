@@ -1,0 +1,35 @@
+# probe at ace7dd76 (candidate worktree), run 05:55:38
+$ grep -n 'defaultSymbol\|IN' src/lib/region.ts | head -8
+2: * Region / locale (default `IN` since R10 E1).
+17:/** The supported regions. `IN` is present as the Pass-B target; `GLOBAL` is a
+19:export type Region = "US" | "IN" | "GLOBAL";
+33:  { id: "IN", label: "India", locale: "en-IN", currency: "INR" },
+39:export const DEFAULT_REGION: Region = "IN";
+$ grep -n 'DEFAULT_SYMBOLS' -B2 -A6 src/store/symbols.ts | head -24
+38-}
+39-
+40:const US_DEFAULT_SYMBOLS: SymbolEntry[] = [
+41-  { symbol: "SPY", assetClass: "equity" },
+42-  { symbol: "QQQ", assetClass: "equity" },
+43-  { symbol: "BTC/USDT", assetClass: "crypto" },
+44-  { symbol: "ETH/USDT", assetClass: "crypto" },
+45-  { symbol: "NVDA", assetClass: "equity" },
+46-  { symbol: "AAPL", assetClass: "equity" },
+47-];
+48-
+49:const IN_DEFAULT_SYMBOLS: SymbolEntry[] = [
+50-  { symbol: "^NSEI", assetClass: "equity" }, // NIFTY 50
+51-  { symbol: "RELIANCE.NS", assetClass: "equity" },
+52-  { symbol: "TCS.NS", assetClass: "equity" },
+53-  { symbol: "HDFCBANK.NS", assetClass: "equity" },
+54-];
+55-
+--
+57- *  (the app default) seeds NSE names instead of the US list. */
+$ grep -n 'symbol' src/modules/chart/ChartPanel.tsx | sed -n 1,6p
+65:import { assetClassOf } from "@/store/symbols";
+97: * detail (provider/session) first and hides last — the symbol survives in the
+106:// folds (Enter in the input submits) and the symbol field narrows one step.
+231: * toolbar row: symbol input, the eight-step timeframe segmented control, and
+257:  // Comparison overlay — second-symbol line series, replaced on toggle.
+259:  // Raw OHLCV cache for the comparison symbol — avoids re-fetching on normalize toggle.

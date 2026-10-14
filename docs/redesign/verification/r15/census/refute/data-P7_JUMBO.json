@@ -1,0 +1,56 @@
+[
+  {
+    "raw_id": "DAT-P7-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The empty feed is real but the stated mechanism is wrong: the BSE lane ran and succeeded (sources:['BSE'], errors:{}); it returns nothing because _fetch_bse_announcements hard-codes a 30-day date window (_BSE_ANN_WINDOW_DAYS=30), and BSE's own feed shows JUMBO's newest filing is 2026-07-31, i.e. 50 days before the 2026-09-19 collection, so nothing falls inside the window. It is not an NSE-first assumption. Severity stays high because research relies on this feed to reach 'a quarter-old results filing' through limit=50 (research/disclosures.py:34-38). The date window defeats that silently for any infrequent BSE filer: the agent tool returns ok:True with an empty list, and the response never states the window. Correction on the framing: BSE's CorporateAction record shows no 2026 dividend, so 'a dividend was just declared' is not supported by the exchange record. Fix: page by count, not a 30-day window, or widen the window and return it in the response.",
+    "evidence": "sidecar/services/corporate_disclosures.py:88, :131-158, :265-332; sidecar/services/research/disclosures.py:34-38, :145-170; sidecar/services/agent_tools/disclosure_tools.py:33-60; https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260701&strScrip=516078&strSearch=P&strToDate=20260923&strType=C&subcategory=-1 (fetched_at 2026-09-23T01:10:10Z: newest row 2026-07-31T17:43 'Scrutiniser', then 2026-07-30 AGM outcome / Q1 results / director appointment; nothing after 2026-07-31)",
+    "evidence_checked": "Opened the service, router, agent tool and research consumer. Re-ran the repro against :52152 and fetched BSE's announcements API directly over 2026-07-01..2026-09-23.",
+    "repro_check": "curl -s 'http://127.0.0.1:52152/disclosures/announcements?symbol=JUMBO&limit=50' at 2026-09-23T01:11Z -> HTTP200 {count:0, sources:['BSE'], errors:{}}. BSE API over the wider window -> 10 rows, all dated 2026-07-31 or earlier."
+  },
+  {
+    "raw_id": "DAT-P7-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Confirmed: get_results_calendar calls only nse_provider, with no exchange gate and no BSE fallback, and the router turns the ProviderError into a 502 that carries the raw 'nse_direct: ... not a known NSE instrument' string. Severity corrected from high to medium because no frontend code calls /disclosures/results (grep of src/ finds nothing), and the one in-product consumer, research's fetch_results_calendar, degrades honestly to {ok:False, error:'results calendar unavailable: ...'}. What remains is a real gap: a BSE-only listing has no results-calendar source at all, and a raw 502 comes back where a 200 with an empty list or an 'NSE-only feed' note would fit.",
+    "evidence": "sidecar/services/corporate_disclosures.py:335-341; sidecar/routers/disclosures.py:74-92; sidecar/services/nse_provider.py:597-603; sidecar/services/research/disclosures.py:185-203",
+    "evidence_checked": "Opened the service, router, NSE provider accessor and research wrapper, and grepped src/ and sidecar/services for consumers. Re-ran the repro against :52152.",
+    "repro_check": "curl -s -w '%{http_code}' 'http://127.0.0.1:52152/disclosures/results?symbol=JUMBO' at 2026-09-23T01:11Z -> 502 {\"detail\":\"nse_direct: 'JUMBO' is not a known NSE instrument\"}."
+  },
+  {
+    "raw_id": "DAT-P7-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The book-value leg holds. book_value=54.361 is yfinance's raw info['bookValue'], served with field_meta status 'ok'. It disagrees with the outside value (57.0, screener) and with the app's own balance sheet (FY2026 Common Stock Equity 477,377,000 / 8,373,700 shares = 57.01). It also drags P/B (1.63-1.66 in the app vs 1.55 computed from screener). The EPS leg does not survive as a same-definition mismatch. eps is raw info['trailingEps'], and the app's own income statement shows diluted EPS about 2% below basic (FY2026 9.77 vs 9.98). The 1.4% gap between 13.69 and 13.89 fits a diluted-vs-basic difference. So EPS is a definitional difference plus a missing basis label, not a wrong value. Severity stays high on the book-value leg: a wrong, money-relevant value shown as true that feeds P/B.",
+    "evidence": "sidecar/services/yfinance_provider.py:372-375 (book_value/eps straight from the info dict), :186-200 (_served_field_meta stamps 'ok'); docs/redesign/verification/r15/battery/collected/P7_JUMBO.json calls.balance (Common Stock Equity 2026=477377000, Ordinary Shares Number 8373700) and calls.income (Diluted EPS 2026=9.77, Basic EPS 2026=9.98); docs/redesign/verification/r15/battery/packs/P7_JUMBO.json book_value_per_share/eps_ttm",
+    "evidence_checked": "Opened the yfinance mapping and field_meta code. Parsed the collected income and balance sheets. Fetched GET /fundamentals/JUMBO from :52152 again (values unchanged).",
+    "repro_check": "curl -s 'http://127.0.0.1:52152/fundamentals/JUMBO' at 2026-09-23T01:10Z -> eps 13.69, book_value 54.361, price_to_book 1.629, shares_outstanding 8373700. 477377000/8373700 = 57.01."
+  },
+  {
+    "raw_id": "DAT-P7-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. roe is only yfinance's raw returnOnEquity, with no fallback computed from net income over equity. When yfinance omits it, the field is null and labelled 'provider did not publish this field'. ROCE does not exist anywhere in the sidecar models, frontend or shared types. The outside ROE is disputed (screener 14.2% vs BSE 33.58%), so a computed fallback must state its basis, but a value exists outside the app and the screener-parity benchmark carries both ROE and ROCE (14.6%). Medium stands: the blank is labelled honestly, but it covers a core ratio.",
+    "evidence": "sidecar/services/yfinance_provider.py:381; sidecar/models/fundamentals.py:81; grep -rni 'roce' sidecar src types (no matches outside .venv); docs/redesign/verification/r15/battery/packs/P7_JUMBO.json roe/roce",
+    "evidence_checked": "Opened the provider mapping and fundamentals model, and grepped for any computed ROE or ROCE. Fetched /fundamentals/JUMBO from :52152 again (roe still null).",
+    "repro_check": "curl -s 'http://127.0.0.1:52152/fundamentals/JUMBO' -> roe null, field_meta.roe.status 'unavailable', and no roce key."
+  },
+  {
+    "raw_id": "DAT-P7-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The gap is real. BSE's CorporateAction record lists no dividend since the 14 Sep 2009 ex-date (Rs 0.60), so on the exchange record the trailing-12m paid dividend is 0 and the pack's 0.0 holds. The app shows null. The finding's central claim, that 'no data' and 'paid nothing' collapse into the same blank, does not hold. dividend_yield carries field_meta status 'unavailable' with a stated reason, which is a labelled unknown, not a fake zero. dividend_per_share_ttm is deliberately not computed on /fundamentals (a _DERIVED_FIELDS exclusion). The research path computes it and can affirm a labelled zero (research/fast.py _apply_dividend_ttm). No frontend code reads it outside the research brief. This is a labelled gap, not a silent blank, so severity drops from medium to low.",
+    "evidence": "sidecar/services/yfinance_provider.py:166-180, :343-351, :373-374; sidecar/services/research/fast.py:208-231; sidecar/services/dividend_history.py:132-154; https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=516078 (fetched_at 2026-09-23T01:10:13Z: dividend rows only 2009 Rs0.60 and 2007 Rs1.00; no 2026 record or ex-date)",
+    "evidence_checked": "Opened the provider field_meta logic, the research dividend-TTM threading and dividend_history. Grepped src/ for consumers. Checked field_meta in the collected snapshot. Fetched /fundamentals/JUMBO from :52152 again and fetched BSE CorporateAction once.",
+    "repro_check": "curl -s 'http://127.0.0.1:52152/fundamentals/JUMBO' -> dividend_yield null (field_meta 'unavailable', reason 'provider did not publish this field'), dividend_per_share_ttm null with no field_meta entry. BSE CorporateAction shows no dividend after 2009."
+  },
+  {
+    "raw_id": "DAT-P7-6",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed. The Fundamentals model and the resolve payload have no equity face-value field. The only face_value in the codebase is the bond pricer's (models/quant.py:152, BondPricerPanel.tsx), and nse_provider mentions faceVal only in a docstring about corporate-action rows, which is never modelled. The outside value is 10.0 (screener and BSE agree). Low stands.",
+    "evidence": "sidecar/models/fundamentals.py:60-111; sidecar/models/quant.py:152; sidecar/services/nse_provider.py:617-627; grep -rni 'face_\\?val' src types sidecar (bond-only hits)",
+    "evidence_checked": "Grepped sidecar, src and types and opened the fundamentals model. The collected resolve and fundamentals bodies have no face_value key.",
+    "repro_check": "grep -rni 'face_value\\|faceVal' sidecar src types (excluding .venv/tests) -> bond pricer and one NSE docstring only."
+  }
+]

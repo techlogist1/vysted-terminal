@@ -1,0 +1,6 @@
+TSM {'currentPrice': 450.61, 'regularMarketPrice': 450.61, 'bookValue': 4.8890653, 'priceToBook': 92.1669, 'financialCurrency': 'TWD', 'currency': 'USD', 'sharesOutstanding': 5186474013, 'marketCap': 2337076936704}
+2330.TW {'currentPrice': 2475.0, 'regularMarketPrice': 2475.0, 'bookValue': 248.05, 'priceToBook': 9.977827, 'financialCurrency': 'TWD', 'currency': 'TWD', 'sharesOutstanding': 25932370067, 'marketCap': 64182615539712}
+HDB {'currentPrice': 23.01, 'regularMarketPrice': 23.01, 'bookValue': 2.4680262, 'priceToBook': 9.32324, 'financialCurrency': 'INR', 'currency': 'USD', 'sharesOutstanding': 5139492337, 'marketCap': 118259720192}
+HDFCBANK.NS {'currentPrice': 735.6, 'regularMarketPrice': 735.6, 'bookValue': 393.813, 'priceToBook': 1.8678916, 'financialCurrency': 'INR', 'currency': 'INR', 'sharesOutstanding': 15418477012, 'marketCap': 11341831077888}
+TWDUSD=X {'currentPrice': None, 'regularMarketPrice': 0.031550717, 'bookValue': None, 'priceToBook': None, 'financialCurrency': None, 'currency': 'USD', 'sharesOutstanding': None, 'marketCap': None}
+INRUSD=X {'currentPrice': None, 'regularMarketPrice': 0.010436235, 'bookValue': None, 'priceToBook': None, 'financialCurrency': None, 'currency': 'USD', 'sharesOutstanding': None, 'marketCap': None}

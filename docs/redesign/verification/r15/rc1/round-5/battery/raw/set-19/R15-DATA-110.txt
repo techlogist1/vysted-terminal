@@ -1,0 +1,6 @@
+R15-DATA-110: live cold sp500 screen against candidate sidecar :52344 (fresh data dir, no prior warm).
+CMD: POST /screener/run {universe:sp500, criteria:[pe_ratio lt 20], limit:50}
+
+HTTP_CODE:200 TIME:0.714148
+evaluated_count 478 skipped_count 25 partial False throttled False duration_ms 712.6789589528926
+rows served 50

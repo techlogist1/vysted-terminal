@@ -1,0 +1,10 @@
+# R15-LEAD-017 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:07:03+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in CSL.NS CSL.BO; do echo -n "$s: "; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/disclosures/shareholding?symbol=$s" | python3 -c "
+import sys,json,collections;d=json.load(sys.stdin);ps=d.get('patterns') or [];q=[p.get('quarter_end') for p in ps];c=collections.Counter(q)
+print(len(ps),'patterns',len(set(q)),'unique quarter_end; dups',[k for k,v in c.items() if v>1], '2026-08-20 x',c.get('2026-08-20'))"; done
+--- output ---
+CSL.NS: 49 patterns 49 unique quarter_end; dups [] 2026-08-20 x 1
+CSL.BO: 49 patterns 49 unique quarter_end; dups [] 2026-08-20 x 1
+
+EXIT=0 (0.6s)

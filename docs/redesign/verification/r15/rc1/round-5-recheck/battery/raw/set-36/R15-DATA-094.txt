@@ -1,0 +1,22 @@
+--- fresh case (DATA-094): fake NewsAPI key via header, check /news/sources/status and /news headers ---
+HTTP/1.1 200 OK
+date: Sun, 27 Sep 2026 14:13:03 GMT
+server: uvicorn
+content-length: 26
+content-type: application/json
+vary: Origin
+
+{"newsapi":"unauthorized"}
+--- GET /news?limit=5 with fake key ---
+HTTP/1.1 200 OK
+date: Sun, 27 Sep 2026 14:13:04 GMT
+server: uvicorn
+content-length: 3083
+content-type: application/json
+x-news-sources: rss=ok;newsapi=unauthorized
+vary: Origin
+
+[{"id":"e67c71a41187751f","title":"New York and Northeast Facing Another Day of Wild Weather","summary":"New Yorkers can expect rain and high winds through Monday as a powerful nor’easter that caused moderate flooding in Manhattan’s Battery continues to pound the area, knocking out power to thousands and grounding hundreds of flights.","url":"https://www.livemint.com/news/us-news/new-york-and-northeast-facing-another-day-of-wild-weather-11790516910196.html","source":"mint - news","published_at":"2026-09-27T13:48:29Z","symbols":[],"sentiment":0.4215,"sentiment_label":"positive","provider":"rss","via_symbol_feed":false},{"id":"7101a00d18860de1","title":"‘No UPI Day’ on October 2? Mobile retailers protest proposed 0.4% MDR on payments","summary":"AIMRA has called for merchant UPI payments to continue under the existing zero-MDR structure. AIMRA Vice President and Delhi-NCR President Tarvinder Singh said the association had chosen October 2 for the protest to draw attention to the concerns of mobile retailers.","url":"https://www.livemint.com/news/india/no-upi-day-on-october-2-mobile-retailers-protest-proposed-0-4-mdr-on-payments-11790513884544.html","source":"mint - news","published_at":"2026-09-27T13:34:36Z","symbols":[],"sentiment":-0.4588,"sentiment_label":"negative","provider":"rss","via_symbol_feed":false},{"id":"5bee74f7257e65bf","title":"Boeing Detects Software Issue With MAX Planes; May Impact Automated Flight Guidance System","summary":"Software flaw could reduce cockpit automation during a go-around, as Boeing works on a permanent fix for affected 737 MAX aircraft","url":"https://www.ndtvprofit.com/india/boeing-detects-software-issue-with-max-planes-may-impact-automated-flight-guidance-system-12105429#publisher=newsstand","source":"Pulse by Zerodha","published_at":"2026-09-27T13:25:42Z","symbols":[],"sentiment":-0.1531,"sentiment_label":"negative","provider":"rss","via_symbol_feed":false},{"id":"7478a3366258c431","title":"Heavy rain likely in parts of north India, northeast and south over next week","summary":"The IMD has forecast widespread rain in parts of India through early October, even as the southwest monsoon continues to withdraw from the northwest.","url":"https://www.livemint.com/news/india-weather-imd-rainfall-forecast-monsoon-withdrawal-southwest-monsoon-heavy-rainfall-11790500524522.html","source":"mint - news","published_at":"2026-09-27T13:22:27Z","symbols":[],"sentiment":0.0,"sentiment_label":"neutral","provider":"rss","via_symbol_feed":false},{"id":"64f16dc33b218ee4","title":"India-Russia Defence Ties: Russian Envoy Denis Alipov Says It's Not A 'Zero-Sum Game'","summary":"Russian Ambassador to India Denis Alipov said India-Russia ties remain rooted in trust and mutual partnership.","url":"https://www.ndtvprofit.com/india/india-russia-defence-ties-russian-envoy-denis-alipov-says-its-not-a-zero-sum-game-12105389#publisher=newsstand","source":"Pulse by Zerodha","published_at":"2026-09-27T13:08:09Z","symbols":[],"sentiment":0.5719,"sentiment_label":"positive","provider":"rss","via_symbol_feed":false}]
+--- key appears 0 times in sidecar log ---
+0
+VERDICT: holds. /news/sources/status={'newsapi':'unauthorized'}; GET /news carries header x-news-sources: rss=ok;newsapi=unauthorized and RSS-only items; fake key appears 0 times in the sidecar log. Matches the batch-9 certification exactly.

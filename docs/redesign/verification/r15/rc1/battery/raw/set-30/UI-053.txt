@@ -1,0 +1,7 @@
+=== UI-053: IMF catalog id (still known-dead upstream) ===
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP:502
+=== outside world: IMF SDMX 2.1 IFS dataflow (should be 404/empty per batch-8) ===
+IMF SDMX2.1 IFS status: 404
+=== outside world: IMF SDMX 3.0 CPI dataflow (should be 200 per batch-8) ===
+IMF SDMX3.0 CPI status: 404

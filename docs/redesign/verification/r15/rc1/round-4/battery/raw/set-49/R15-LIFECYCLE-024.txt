@@ -1,0 +1,25 @@
+COMMAND(s): in-process python calls against candidate's sidecar/.venv (ensure_build, schema_version.migrate, store touches)
+EXIT: 0
+OUTPUT:
+--- ensure_build (backup-before-upgrade) ---
+ensure_build cleared: True
+backup exists: True
+backup has data_cache.db: True
+new build marker: ('0.8.0',)
+cache row count after clear: (0,)
+--- 7 stores 0->1 migration ---
+portfolio.db user_version=1
+delegate_runs.db user_version=0
+plugins.db user_version=0
+custom_agents.db user_version=0
+touched all three
+delegate_runs.db user_version=1
+plugins.db user_version=1
+custom_agents.db user_version=1
+--- schema_version.migrate: fresh/no-op/newer-than-build ---
+schema_version: database is at version 7, newer than this build's 1; left untouched
+fresh migrate -> 1 step ran 1 times
+second call (no-op) -> 1 step ran total 1 times
+newer-than-build (7 vs 1 step) -> stays at 7 (left untouched, no downgrade)
+--- frontend workspace.test.ts schemaVersion present (source check, vitest not run) ---
+src/lib/workspace.test.ts exists; schemaVersion field + WORKSPACE_SCHEMA_VERSION referenced in src/lib/workspace.ts

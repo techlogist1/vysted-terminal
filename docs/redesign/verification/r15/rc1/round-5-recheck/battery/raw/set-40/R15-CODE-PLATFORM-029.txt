@@ -1,0 +1,16 @@
+=== R15-CODE-PLATFORM-029 repro: engine-from-source probe (register's exact scenario) ===
+Live python (sidecar venv, candidate 949c3c9f), a scripted strategy buying 10
+shares on each of 4 flat bars @ 100, capital 100000, run through the real
+services/backtest_engine.run_backtest (not pytest — a standalone async script
+mirroring tests/test_backtest_engine.py's _scripted_run harness):
+
+  register repro: 4 flat bars @100, buy 10 every bar, capital 100000
+  final equity: 99996.0 expected (capital-fees): 99996.0
+  total_return: -4e-05 -- register says this WAS -0.03004 before the fix
+  trades (should be ONE merged 40-share lot, not 4 orphaned 10-share rows):
+     40 100.1 None
+
+VERDICT: holds. Exactly matches batch-10's probe1 (totalReturn -4e-05 vs the
+pre-fix -0.03004, one merged 40-share lot at final equity 99996). Source
+(backtest_engine.py:367-380) merges into the existing _OpenPosition at a
+weighted-average entry price instead of overwriting it.

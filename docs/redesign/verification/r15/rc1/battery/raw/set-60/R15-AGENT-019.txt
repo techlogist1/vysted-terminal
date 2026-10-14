@@ -1,0 +1,7 @@
+'Can you log 10 TCS at 3400 in my portfolio?' -> IntentResult(intent='edit', confidence=0.95, signals=['\\blog\\b', '\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d'], compound=False)
+'Can you record that I hold 20 ITC at 410?' -> IntentResult(intent='edit', confidence=0.95, signals=['\\brecord\\b(?! (highs?|lows?)\\b)', '\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d'], compound=False)
+'Could you enter 5 HDFCBANK at 1600 into my portfolio?' -> IntentResult(intent='edit', confidence=0.95, signals=['\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d'], compound=False)
+'Would you mind noting down 15 WIPRO at 250 for me?' -> IntentResult(intent='edit', confidence=0.95, signals=['\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d'], compound=False)
+'Can you add 3 NVDA at 180 to my holdings?' -> IntentResult(intent='edit', confidence=0.95, signals=['\\badd\\b', '\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d'], compound=False)
+'what is P/E?' -> IntentResult(intent='read', confidence=0.7, signals=["\\bwhat('?s| is| are| was)\\b", '\\?\\s*$'], compound=False)
+'How is my portfolio doing?' -> IntentResult(intent='read', confidence=0.6, signals=['\\?\\s*$'], compound=False)

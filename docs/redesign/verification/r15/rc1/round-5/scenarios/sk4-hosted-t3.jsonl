@@ -1,0 +1,216 @@
+{"kind": "tool_use", "tool_call_id": "call_bad492f7ac75442798a111e6638eb788", "name": "fundamentals", "input": {"symbol": "DAL"}}
+{"kind": "tool_use", "tool_call_id": "call_550f3743d1614f61b21609b3e936e9a2", "name": "financial_statements", "input": {"symbol": "DAL", "statement": "income", "period": "annual"}}
+{"kind": "tool_result", "tool_call_id": "call_bad492f7ac75442798a111e6638eb788", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_550f3743d1614f61b21609b3e936e9a2", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Delta"}
+{"kind": "delta", "text": " Air"}
+{"kind": "delta", "text": " Lines"}
+{"kind": "delta", "text": " Financial"}
+{"kind": "delta", "text": " Overview"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Latest"}
+{"kind": "delta", "text": " Revenue"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "TT"}
+{"kind": "delta", "text": "M"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "97"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Net"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "TT"}
+{"kind": "delta", "text": "M"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "02"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Internal"}
+{"kind": "delta", "text": " Cons"}
+{"kind": "delta", "text": "istency"}
+{"kind": "delta", "text": " Check"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " assess"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " consistency"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " compute"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " net"}
+{"kind": "delta", "text": " margin"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " given"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " formula"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "\\"}
+{"kind": "delta", "text": "[\n"}
+{"kind": "delta", "text": "\\"}
+{"kind": "delta", "text": "text"}
+{"kind": "delta", "text": "{"}
+{"kind": "delta", "text": "Net"}
+{"kind": "delta", "text": " Margin"}
+{"kind": "delta", "text": "}"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \\"}
+{"kind": "delta", "text": "left"}
+{"kind": "delta", "text": "(\\"}
+{"kind": "delta", "text": "frac"}
+{"kind": "delta", "text": "{\\"}
+{"kind": "delta", "text": "text"}
+{"kind": "delta", "text": "{"}
+{"kind": "delta", "text": "Net"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": "}}"}
+{"kind": "delta", "text": "{\\"}
+{"kind": "delta", "text": "text"}
+{"kind": "delta", "text": "{"}
+{"kind": "delta", "text": "Revenue"}
+{"kind": "delta", "text": "}}\\"}
+{"kind": "delta", "text": "right"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " \\"}
+{"kind": "delta", "text": "times"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "\\"}
+{"kind": "delta", "text": "]\n\n"}
+{"kind": "delta", "text": "Calcul"}
+{"kind": "delta", "text": "ating"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " net"}
+{"kind": "delta", "text": " margin"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "\\"}
+{"kind": "delta", "text": "[\n"}
+{"kind": "delta", "text": "\\"}
+{"kind": "delta", "text": "text"}
+{"kind": "delta", "text": "{"}
+{"kind": "delta", "text": "Net"}
+{"kind": "delta", "text": " Margin"}
+{"kind": "delta", "text": "}"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \\"}
+{"kind": "delta", "text": "left"}
+{"kind": "delta", "text": "(\\"}
+{"kind": "delta", "text": "frac"}
+{"kind": "delta", "text": "{"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "02"}
+{"kind": "delta", "text": " \\"}
+{"kind": "delta", "text": "text"}
+{"kind": "delta", "text": "{"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": "}}"}
+{"kind": "delta", "text": "{"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "97"}
+{"kind": "delta", "text": " \\"}
+{"kind": "delta", "text": "text"}
+{"kind": "delta", "text": "{"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": "}}\\"}
+{"kind": "delta", "text": "right"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " \\"}
+{"kind": "delta", "text": "times"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": " \\"}
+{"kind": "delta", "text": "approx"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": "\\"}
+{"kind": "delta", "text": "%\n"}
+{"kind": "delta", "text": "\\"}
+{"kind": "delta", "text": "]\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Conclusion"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "A"}
+{"kind": "delta", "text": " net"}
+{"kind": "delta", "text": " margin"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " generally"}
+{"kind": "delta", "text": " reasonable"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " airlines"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " reflecting"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " typical"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " structure"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " competitive"}
+{"kind": "delta", "text": " pressures"}
+{"kind": "delta", "text": " they"}
+{"kind": "delta", "text": " operate"}
+{"kind": "delta", "text": " under"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "While"}
+{"kind": "delta", "text": " margins"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " fluctuate"}
+{"kind": "delta", "text": " significantly"}
+{"kind": "delta", "text": " among"}
+{"kind": "delta", "text": " airlines"}
+{"kind": "delta", "text": " based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " economic"}
+{"kind": "delta", "text": " conditions"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " operational"}
+{"kind": "delta", "text": " efficiency"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " margin"}
+{"kind": "delta", "text": " around"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " make"}
+{"kind": "delta", "text": " sense"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " profitable"}
+{"kind": "delta", "text": " operational"}
+{"kind": "delta", "text": " context"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 16214, "output_tokens": 211, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.015095}

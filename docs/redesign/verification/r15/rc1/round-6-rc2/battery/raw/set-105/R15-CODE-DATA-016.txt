@@ -1,0 +1,26 @@
+# rc1-battery-22 raw R15-CODE-DATA-016 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ echo '(a) banner:'; grep -n 'tabError' src/modules/analyst-ratings/AnalystRatingsPanel.tsx | head; echo '(b) analysts sort key:'; grep -rn "'analysts'\|\"analysts\"" src/modules/analyst-ratings src/modules/earnings --include=*.tsx --include=*.ts | grep -v test | head; echo '(c) dup maps/fmtDate:'; grep -rn 'RATING_LABEL\s*[:=]\|RATING_COLOR\s*[:=]\|function fmtDate\|const fmtDate' src/modules/analyst-ratings src/modules/earnings | grep -v test; echo '(d) chart sort comment:'; sed -n 98,108p src/modules/earnings/EarningsSurpriseChart.tsx; ls src/modules/analyst-ratings/format.ts*
+(a) banner:
+110:  const tabError =
+129:  const tabLoading = symbol !== null && tabData === null && !tabError;
+245:            ) : tabError && tabData === null ? (
+250:                hint={tabError}
+(b) analysts sort key:
+(c) dup maps/fmtDate:
+src/modules/analyst-ratings/format.ts:9:export const RATING_LABEL: Record<string, string> = {
+src/modules/analyst-ratings/format.ts:17:export const RATING_COLOR: Record<string, string> = {
+src/modules/analyst-ratings/format.ts:34:export function fmtDate(iso: string): string {
+(d) chart sort comment:
+    seriesRef.current = series;
+    return () => {
+      chart.remove();
+      chartRef.current = null;
+      seriesRef.current = null;
+    };
+  }, [hasData, currency]);
+
+  useEffect(() => {
+    const series = seriesRef.current;
+    if (!series) {
+src/modules/analyst-ratings/format.ts
+EXIT=0

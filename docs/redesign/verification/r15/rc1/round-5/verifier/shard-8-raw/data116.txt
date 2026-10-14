@@ -1,0 +1,20 @@
+== AMAL
+200 AMAL count 104 latest ('2026-06-30', 71.35, 'https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/506597_572') {}
+== DAL
+200 DAL count 43 latest ('2026-06-30', 70.86, 'https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/539681_177') {}
+== NAPEROL
+200 NAPEROL count 104 latest ('2026-06-30', 70.76, 'https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/500298_217') {}
+== JUMBO
+200 JUMBO count 110 latest ('2026-06-30', 42.77, 'https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/516078_227') {}
+== ELCIDIN
+200 ELCIDIN count 118 latest ('2026-06-30', 75.0, 'https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/503681_177') {}
+== TCS
+200 TCS count 20 latest ('2026-06-30', 71.77, 'https://nsearchives.nseindia.com/corporate/xbrl/SHP_1698205_') {}
+== SMR.BO
+200 SMR count 1 latest ('2026-06-04', 65.74, 'https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/544774_862') {}
+== 544774.BO
+200 544774 count 1 latest ('2026-06-04', 65.74, 'https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/544774_862') {}
+== KRITIKA.BO
+200 KRITIKA count 19 latest ('2026-06-30', 63.32, 'https://nsearchives.nseindia.com/corporate/xbrl/SHP_1696927_') {}
+== ANUPAMRAS.BO
+200 ANUPAMRAS count 0 latest None {}

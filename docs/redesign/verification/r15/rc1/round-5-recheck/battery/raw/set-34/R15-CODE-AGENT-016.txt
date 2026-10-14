@@ -1,0 +1,17 @@
+CMD: grep -n defaultProvider -A2 sidecar/agents/_schema.json
+8:  "required": ["id", "name", "philosophy", "systemPrompt", "tools", "defaultProvider"],
+9-  "properties": {
+10-    "id": {
+11-      "type": "string",
+--
+37:    "defaultProvider": {
+38-      "type": "string",
+39-      "description": "Default `LLMProviderId`. User may override at invocation time. No enum here: the loader (`agent_runtime._load_schema`) fills it from `config/model_registry.json` provider ids, the one source."
+40-    },
+
+CMD: python3 -c model_registry.provider_ids()
+registry provider_ids: ('anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter')
+
+CMD: curl -s http://127.0.0.1:52361/agents
+type: <class 'list'>
+count: 13

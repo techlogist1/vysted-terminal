@@ -1,0 +1,19 @@
+CMD: in-process P1 replay (launch ORIGINAL -> ask_user pause -> answer ONE -> pause -> answer TWO); EXIT=0
+state1 paused Q1?
+state2 paused Q2?
+state3 done
+P1 AGENT-036 provider request 3 (after ANSWER TWO):
+    ('user', 'ORIGINAL')
+    ('assistant', 'A1')
+    ('assistant', '[price_data → {"ok": true}]')
+    ('assistant', '[ask_user → Q1?]')
+    ('user', 'ANSWER ONE')
+    ('assistant', 'A2')
+    ('assistant', '[ask_user → Q2?]')
+    ('user', 'ANSWER TWO')
+P1 request 2 (after ANSWER ONE):
+    ('user', 'ORIGINAL')
+    ('assistant', 'A1')
+    ('assistant', '[price_data → {"ok": true}]')
+    ('assistant', '[ask_user → Q1?]')
+    ('user', 'ANSWER ONE')

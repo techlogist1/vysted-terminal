@@ -1,0 +1,17 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p006.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import inspect, re
+from services.research import depth, iter as iter_mod
+from services.agent_tools import deep_research
+print("PANEL_MIN_ANGLES",depth.PANEL_MIN_ANGLES,"is_panel by depth",[depth.PROFILES[d].is_panel for d in depth.DEPTHS])
+for m in (deep_research,iter_mod):
+    print(m.__name__,"has own lockstep copy:",[n for n in ("_MIN_HEAVY_ANGLES","_MIN_ANGLES") if hasattr(m,n)])
+    src=inspect.getsource(m); print("  uses PANEL_MIN_ANGLES/is_panel:", "PANEL_MIN_ANGLES" in src or "is_panel" in src)
+--- output ---
+PANEL_MIN_ANGLES 2 is_panel by depth [False, False, True]
+services.agent_tools.deep_research has own lockstep copy: []
+  uses PANEL_MIN_ANGLES/is_panel: True
+services.research.iter has own lockstep copy: []
+  uses PANEL_MIN_ANGLES/is_panel: True
+EXIT=0

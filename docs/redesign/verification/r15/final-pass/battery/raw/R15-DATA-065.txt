@@ -1,0 +1,11 @@
+# R15-DATA-065 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:00+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+date; for q in 'SPY?timeframe=1mo' 'AAPL?timeframe=1wk' 'TCS.NS?timeframe=1mo' 'RELIANCE.NS?timeframe=1wk'; do curl -s -m 100 "$H/history/$q" | python3 -c "import sys,json;d=json.load(sys.stdin);b=d['bars'][-1];print('$q','last bar',b['timestamp'],'freshness',d.get('freshness'))"; done
+--- output ---
+Sat Oct  3 17:58:48 IST 2026
+SPY?timeframe=1mo last bar 2026-10-01T00:00:00-04:00 freshness eod
+AAPL?timeframe=1wk last bar 2026-09-28T00:00:00-04:00 freshness eod
+TCS.NS?timeframe=1mo last bar 2026-10-01T00:00:00Z freshness eod
+RELIANCE.NS?timeframe=1wk last bar 2026-09-28T00:00:00Z freshness eod
+
+EXIT=0 (11.8s)

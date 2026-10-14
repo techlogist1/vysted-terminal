@@ -1,0 +1,28 @@
+== GET /disclosures/shareholding?symbol=HDB
+{"symbol":"HDB","count":0,"patterns":[],"coverage":"not_applicable","note":"HDB is not an NSE/BSE instrument; Indian exchange disclosures do not apply","provider":null,"major_shareholders":[],"source_url":null}
+HTTP 200
+
+== GET /disclosures/shareholding?symbol=IBN
+{"symbol":"IBN","count":0,"patterns":[],"coverage":"not_applicable","note":"IBN is not an NSE/BSE instrument; Indian exchange disclosures do not apply","provider":null,"major_shareholders":[],"source_url":null}
+HTTP 200
+
+== GET /disclosures/shareholding?symbol=WIT
+{"symbol":"WIT","count":0,"patterns":[],"coverage":"covered","note":"WIT is not an NSE/BSE instrument; its major (5%+) holders are read from its 20-F filed 2026-06-02 (Item 7.A), not an Indian shareholding pattern","provider":"sec-20f","major_shareholders":[{"holder":"Azim H. Premji","percent":72.62,"as_of":"2026-03-31"},{"holder":"Hasham Traders","percent":17.99,"as_of":"2026-03-31"},{"holder":"Prazim Traders","percent":20.6,"as_of":"2026-03-31"},{"holder":"Zash Traders","percent":21.0,"as_of":"2026-03-31"},{"holder":"Azim Premji Trust","percent":6.49,"as_of":"2026-03-31"}],"source_url":"https://www.sec.gov/Archives/edgar/data/1123799/000119312526253514/wit-20260331.htm"}
+HTTP 200
+
+== GET /disclosures/shareholding?symbol=AAPL
+{"symbol":"AAPL","count":0,"patterns":[],"coverage":"not_applicable","note":"AAPL is not an NSE/BSE instrument; Indian exchange disclosures do not apply","provider":null,"major_shareholders":[],"source_url":null}
+HTTP 200
+
+== GET /disclosures/shareholding?symbol=VOD.L
+{"symbol":"VOD.L","count":0,"patterns":[],"coverage":"not_applicable","note":"VOD.L is not an NSE/BSE instrument; Indian exchange disclosures do not apply; its 20-F holders could not be read (sec-edgar-mcp tool 'get_recent_filings' failed: Failed to get recent filings: Company 'VOD.L' not found)","provider":null,"major_shareholders":[],"source_url":null}
+HTTP 200
+
+== GET /disclosures/shareholding?symbol=BTC/USDT
+{"symbol":"BTC/USDT","count":0,"patterns":[],"coverage":"not_applicable","note":"BTC/USDT is not an NSE/BSE instrument; Indian exchange disclosures do not apply; its 20-F holders could not be read (sec-edgar-mcp tool 'get_recent_filings' failed: Failed to get recent filings: Company 'BTC/USDT' not found)","provider":null,"major_shareholders":[],"source_url":null}
+HTTP 200
+
+== GET /disclosures/shareholding?symbol=ZZZQX
+{"symbol":"ZZZQX","count":0,"patterns":[],"coverage":"not_applicable","note":"ZZZQX is not an NSE/BSE instrument; Indian exchange disclosures do not apply; its 20-F holders could not be read (sec-edgar-mcp tool 'get_recent_filings' failed: Failed to get recent filings: Company 'ZZZQX' not found)","provider":null,"major_shareholders":[],"source_url":null}
+HTTP 200
+

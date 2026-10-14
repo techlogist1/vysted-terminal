@@ -1,0 +1,10 @@
+R15-CODE-FRONTEND-003: frontend TS/store/component logic — cannot execute the exact original repro without vitest+jsdom or a live GUI (both out of scope for this role: 'never run vitest or pytest suites'; 'No GUI').
+
+Static source check performed instead:
+CMD: grep -n 'mode.*append\|=== .append.' src/lib/host-actions.ts
+760:/** The write_note mode: the catalog default is 'append', so only an explicit
+763:  return str(input, "mode") === "replace" ? "replace" : "append";
+1049:        append: noteMode(input) === "append",
+
+Pinned test that exercises this behavior at runtime: src/lib/host-actions.test.ts:1241
+VERDICT: ci_pinned

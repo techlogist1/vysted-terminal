@@ -1,0 +1,7 @@
+cwd=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-9bc600e-fix-int sha=633f844071d972b337f4c3526d86555c80df0568
+real handler result for expiry 'nearest': {"ok": false, "error": "invalid argument: Invalid isoformat string: 'nearest'"}
+tool_result frame: {'kind': 'tool_result', 'tool_call_id': 'c1', 'name': 'option_chain', 'ok': False, 'error': "invalid argument: Invalid isoformat string: 'nearest'"}
+== entry repro stream (one errored call) -> ["option_chain errored: invalid argument: Invalid isoformat string: 'nearest'"]
+== retry of the SAME input recovers -> []
+== fresh: errored AAPL call + a DIFFERENT-subject ok call (MSFT) -> []
+== fresh: ok call first, errored call LAST -> ["option_chain errored: invalid argument: Invalid isoformat string: 'nearest'"]

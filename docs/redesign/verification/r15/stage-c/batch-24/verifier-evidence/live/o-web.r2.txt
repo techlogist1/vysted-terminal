@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  26.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_c1e88dc8da59420bbb0bbaca4e0f9f49", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "WIPRO.NS", "timeframe": "1d"}}
+[  32.4s] tool_result: {"kind": "tool_result", "tool_call_id": "call_c1e88dc8da59420bbb0bbaca4e0f9f49", "name": "price_data", "ok": true, "error": null}
+[  42.4s] heartbeat: {"kind": "heartbeat"}
+[  52.4s] heartbeat: {"kind": "heartbeat"}
+[  62.4s] heartbeat: {"kind": "heartbeat"}
+[  63.9s] done: {"kind": "done", "usage": {"input_tokens": 6813, "output_tokens": 16, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of WIPRO.NS is ₹164.02.
+
+=== ok · 63.9s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 15, 'done': 1} · usage in=6813 out=16 · est $0.00000 · llama3.1:8b

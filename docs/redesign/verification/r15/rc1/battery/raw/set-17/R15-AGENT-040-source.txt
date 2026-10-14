@@ -1,0 +1,9 @@
+557:#: The newest history the model sees verbatim (R15-AGENT-040); older turns
+558:#: fold into one summary message instead of silently falling off a window.
+561:#: How much of each older user ask the summary keeps.
+563:_HISTORY_SUMMARY_HEAD = "Earlier in this conversation (older turns, summarised):"
+565:#: its failure), carried verbatim into the summary.
+621:#: A ``[tool steps: ...]`` trailer line, verbatim or folded into the summary.
+663:    the model would echo as its own prose (R15-LEAD-033). The folded summary
+735:#: typically calls one to three tools (backtest_summary + optionally
+2688:                "thread were folded into a summary of your asks, tool steps and failures.",

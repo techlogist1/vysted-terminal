@@ -1,0 +1,36 @@
+{
+ "tag": "life-S2B",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. THEN read docs/redesign/verification/r15/tooling/PROMPT_surface_s2.md's LIFECYCLE section in full. A previous attempt at your task may have died to a usage wall or power loss: your sidecar, .md file and raw file may already exist - verify and continue, never restart. Before any pnpm/node/cargo command: export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$HOME/.cargo/bin:$PATH.",
+ "stages": [
+  {
+   "label": "lifecycle",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Answer question {{question}} of PROMPT_surface_s2.md's LIFECYCLE section. <port> = {{port}}, data dir = {{data_dir}}. Write docs/redesign/verification/r15/lifecycle/{{slug}}.md in L5-bounds.md's shape, and CENSUS/raw/life-{{id}}.json (raw_id prefix LIFE-{{group_prefix}}, area \"lifecycle\", empty [] allowed). Stop your sidecar (kill the sleep pid) when done. Return the RESULT object with count = raw findings written."
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Refute the findings you (or a prior attempt) wrote for \"{{id}}\". Raw file: docs/redesign/verification/r15/census/raw/life-{{id}}.json. Output: docs/redesign/verification/r15/census/refute/life-{{id}}.json. Follow PROMPT_surface_s2.md's REFUTE section (which points to PROMPT_refute.md) exactly, including the trading-scope removed_with_feature handling. If the raw file is [], confirm and write [] as your verdict file. Return the RESULT object."
+  }
+ ],
+ "items": [
+  {
+   "id": "l3-diagnostics",
+   "question": "L3",
+   "port": 52227,
+   "data_dir": "<scratchpad>/vysted-iso/seat-l3-diagnostics/data (cp -R <scratchpad>/vysted-iso/data into it per ISO_STACK.md)",
+   "slug": "L3-diagnostics",
+   "group_prefix": "L3-DIAGNOSTICS"
+  },
+  {
+   "id": "l4-upgrade",
+   "question": "L4",
+   "port": 52228,
+   "data_dir": "<scratchpad>/vysted-iso/seat-l4-upgrade/data (your OWN cp -R of the 19-Sep 0.8.0 data dir referenced in LOCAL_LANE_PROOF.md/ISO_STACK.md, never a copy another item is using)",
+   "slug": "L4-upgrade",
+   "group_prefix": "L4-UPGRADE"
+  }
+ ]
+}

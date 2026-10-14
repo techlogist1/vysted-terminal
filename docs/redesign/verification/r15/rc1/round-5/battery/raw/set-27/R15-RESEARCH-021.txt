@@ -1,0 +1,5 @@
+candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98 in-process repro via /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/.venv/bin/python3, cwd=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar
+=== R15-RESEARCH-021 ===
+CMD: entity_match({'title':'BAJFINANCE 200 DMA breakout...'}, target=BAJFINANCE) [exact register repro]
+OUTPUT: 'BAJFINANCE 200 DMA breakout...' -> 1.0 (relevant=True); '52-week high' -> 1.0
+

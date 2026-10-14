@@ -1,0 +1,3 @@
+CMD: grep -n "saved screens survive serialize" src/lib/workspace.test.ts (candidate 949c3c9f)
+Not a live probe: savedScreens persisted-slice round-trip; certified via pinned vitest per batch-2 VERDICTS.md.
+1584:  it("saved screens survive serialize, a fresh store and deserialize", () => {

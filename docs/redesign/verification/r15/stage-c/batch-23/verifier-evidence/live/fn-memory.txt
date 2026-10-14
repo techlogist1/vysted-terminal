@@ -1,0 +1,6 @@
+[   1.3s] done: {"kind": "done", "usage": {"input_tokens": 2738, "output_tokens": 19, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+That's a simple calculation. 12% of ₹5,000 is ₹600.
+
+=== ok · 1.3s · events {'delta': 18, 'done': 1} · usage in=2738 out=19 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,5 @@
+# rc1-battery-22 raw R15-AGENT-063 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ curl -s -m60 '127.0.0.1:52362/news?symbols=BTC/USDT,ETH/USDT&limit=10' | python3 -c "import sys,json; d=json.load(sys.stdin); d=d if isinstance(d,list) else d.get('items',d); print(len(d)); [print(x['title'][:80],x['symbols'],x['sentiment_label']) for x in d[:8]]"
+1
+Bitcoin leads crypto market rebound above $85K as short liquidations accelerate ['BTC/USDT', 'ETH/USDT'] positive
+EXIT=0

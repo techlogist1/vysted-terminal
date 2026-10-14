@@ -1,0 +1,7 @@
+CMD: launch copilot delegate run, budget {} (all ceilings cleared) -> stored budget
+--- from /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/A.out
+"budget":{}
+"budget":{"max_tokens":120000,"max_spend_usd":1.0,"max_wall_seconds":600.0,"max_steps":12}
+# launch {"prompt":"Reply with the single word OK. Do not use tools.","model":"llama3.1:8b","budget":{}}
+launch resp: {"run_id":"61fcf8c48b764bccb071aed3cef5fc50"}
+final status poll: done (9 polls)

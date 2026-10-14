@@ -1,0 +1,4 @@
+CMD: ./.venv/bin/python3 _r15data010_repro.py (in-process, register repro)
+case1 sortino=6.3521 expected~6.35 (pre-fix would be ~261.93)
+case2 identical_losses sortino=-7.4833 nonzero=True
+EXIT: 0

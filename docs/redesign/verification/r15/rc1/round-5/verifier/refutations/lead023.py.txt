@@ -1,0 +1,16 @@
+import pandas as pd
+import yfinance as yf
+from types import SimpleNamespace as N
+from services import yfinance_provider as yp, provider_registry as pr
+from services.errors import ProviderError
+class FakeTicker:
+    def __init__(self, sym): self.sym=sym; self.fast_info=N(last_price=101.5, previous_close=100.0, last_volume=1000, currency="USD")
+    def get_history_metadata(self): return {}
+    def history(self, **k): return pd.DataFrame()
+yp.yf.Ticker=FakeTicker
+for s in ("AXON","ZZZT"):
+    try: q=yp.get_quote(s); print("provider-level", s, q.price, q.timestamp)
+    except ProviderError as e: print("provider-level", s, "ProviderError:", str(e)[:100], "kind", getattr(e,'kind',None))
+    except Exception as e: print("provider-level", s, "RAW", type(e).__name__, e)
+    try: q=pr.get_quote(s, region="US"); print("registry", s, "->", q.provider, q.price, q.timestamp)
+    except Exception as e: print("registry", s, "->", type(e).__name__, str(e)[:160])

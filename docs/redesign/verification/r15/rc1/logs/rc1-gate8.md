@@ -1,0 +1,16 @@
+# rc1-gate8 working log (gate round 2)
+
+Round-1 log/evidence (candidate 4097dac4) is in git history at b2cfbb68; this round overwrites gate8/ in place.
+
+- 2026-09-26 06:13:20 IST start. Candidate 4c6dfe8c (rc1-cand worktree, read-only; HEAD verified). Data dir scratchpad/rc1-data-rc1-gate8 (fresh cp -R of rc1-seed-data; round-1 copy moved to .round1).
+- Own sidecar :52310 from rc1-cand/sidecar, env VYSTED_OPENBB_MCP_PORT=52153 VYSTED_SEC_EDGAR_MCP_PORT=52154. sleep pid 51475 (sh 51473, python 51476). Log scratchpad/rc1-gate8-sidecar.log.
+- 06:15:17 (a) /openapi.json 111 method+path rows (101 paths); app.routes 117. grep hits: GET /disclosures/shareholding, GET /portfolio/positions only (identical to round 1).
+- (b) catalog 56 / TOOL_SCHEMAS 56 / KNOWN_TOOL_IDS 56 / registered 33 / default grant 55 / MCP list_tools 40 == live :52310 /mcp 40 (/mcp/status toolCount 40). Hits: portfolio_{add,update,delete}_position host actions, shareholding_pattern, margins in fundamentals descriptions, SIMULATED backtest. FORBIDDEN_TOOL_SUBSTRINGS intact.
+- (c) pytest test_no_trading_surface.py: 8 passed.
+- (d) rg: src 111 / sidecar 255 / src-tauri 3 / plugins 0 / docs 17765 (16695 under docs/redesign/verification). Classifier round-2 copy (scratchpad/gate8_classify_r2.py): PHASE_10_HANDOFF now historical (D81 notices l.3-6 + l.123-126; round-1 rc1-gate8:1 fixed); new sidecar hits = public_suffix_list.dat (.broker TLD, FP) + margin wording in research tests (FP). Product 0 on every root, unclassified 0. Extra brand-name sweep (grep-extra-brokernames.txt): only residue (format.ts kite/upstox/dhan labels, DataBadges.test PAPER prefix, Zerodha Pulse news feed, ANGELONE/DHAN-RE listed symbols) — no path.
+- 06:15-06:20 (e) phase A (scratch vitest) 9/9 ok; P&L exact; CSV floats unrounded (rc1-gate8:2). Agent turn 1 (ask) get_portfolio: handler-vs-ledger MATCH; reply writes INFY cost as $1500 (open R15-AGENT-091). Turn 2 (ask) TCS 5 @ 3500 staged, blob cmp-identical, legacy ledger []. Phase B: enqueue staged -> accept applied, TCS read back.
+- 06:21-06:23 turn 3 (auto) 'Buy 10 AAPL at market': no order tool; reply 'no brokerage connection'; model also sent portfolio_add_position AAPL 10 @ 0 (rc1-gate8:3). Phase C: that action staged under AUTO ('Add 10 AAPL @ ₹0' -> rc1-gate8:1), rejected, ledger unchanged; forged propose_order/place_order under auto+ask: accept failed ('unknown action'), ledger unchanged. (First phase-C run failed on MY harness assertion expecting 'staged' under AUTO; the product returned 'failed' (auto-attempt of an unknown action) which is also fail-closed; assertion corrected to 'never applied' and rerun.)
+- Data dir: no audit_log.db, no order/audit/broker/kill/margin table.
+- 06:26:23 sidecar stopped (kill 51475; port free). rc1-cand git status clean. Ollama lock released after each of the 3 runs.
+- Verdict: PASS (routes, tools, MCP, pytest 8/8, grep product 0 on all roots, portfolio 18/18). Findings rc1-gate8:1-3, all low new_defect.
+- Notes: purchased_at is invented by the model on every add (2023-12-01 / 2026-09-26) and silently dropped by the frontend (no purchasedAt in src) — the schema advertises a field the product ignores. Residue with no path: format.ts kite/upstox/dhan labels, DataBadges.test PAPER prefix, EmptyState.test 'Connect broker' fixture.

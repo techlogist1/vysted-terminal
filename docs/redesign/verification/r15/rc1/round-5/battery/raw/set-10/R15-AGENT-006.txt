@@ -1,0 +1,5 @@
+num parts 3
+quote True b'\xff\xfe\x00sig-one'
+news False None
+fundamentals True b'sig-two-ascii'
+PASS: signatures preserved per-call, unsigned call carries none

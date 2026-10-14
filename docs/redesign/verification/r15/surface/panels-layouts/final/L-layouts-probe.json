@@ -1,0 +1,1046 @@
+{
+ "planLayout": {
+  "single-focus": {
+   "panels": [
+    {
+     "id": "chart",
+     "component": "chart-panel"
+    }
+   ],
+   "focus": "chart",
+   "maximize": "chart"
+  },
+  "research-cockpit": {
+   "panels": [
+    {
+     "id": "chart",
+     "component": "chart-panel"
+    },
+    {
+     "id": "equity-overview",
+     "component": "equity-overview-panel",
+     "position": {
+      "referencePanel": "chart",
+      "direction": "right"
+     }
+    },
+    {
+     "id": "brief",
+     "component": "brief-panel",
+     "position": {
+      "referencePanel": "equity-overview",
+      "direction": "below"
+     }
+    },
+    {
+     "id": "news",
+     "component": "news-panel",
+     "position": {
+      "referencePanel": "brief",
+      "direction": "below"
+     }
+    }
+   ],
+   "focus": "brief"
+  },
+  "compare": {
+   "panels": [
+    {
+     "id": "chart",
+     "component": "chart-panel"
+    }
+   ],
+   "focus": "chart",
+   "maximize": "chart"
+  },
+  "macro-scan": {
+   "panels": [
+    {
+     "id": "macro",
+     "component": "macro-panel"
+    },
+    {
+     "id": "chart",
+     "component": "chart-panel",
+     "position": {
+      "referencePanel": "macro",
+      "direction": "right"
+     }
+    },
+    {
+     "id": "screener-panel",
+     "component": "screener-panel",
+     "position": {
+      "referencePanel": "macro",
+      "direction": "below"
+     }
+    }
+   ],
+   "focus": "macro"
+  }
+ },
+ "fit": {
+  "single-focus@1440": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 1440
+   }
+  },
+  "research-cockpit@1440": {
+   "res": {
+    "applied": "research-cockpit",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "brief",
+     "chart",
+     "equity-overview",
+     "news"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "equity-overview"
+     ],
+     [
+      "brief"
+     ],
+     [
+      "news"
+     ]
+    ],
+    "active": "brief",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "compare@1440": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 1440
+   }
+  },
+  "macro-scan@1440": {
+   "res": {
+    "applied": "macro-scan",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart",
+     "macro",
+     "screener-panel"
+    ],
+    "groups": [
+     [
+      "macro"
+     ],
+     [
+      "chart"
+     ],
+     [
+      "screener-panel"
+     ]
+    ],
+    "active": "macro",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "single-focus@1179": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 1179
+   }
+  },
+  "research-cockpit@1179": {
+   "res": {
+    "applied": "essentials-research",
+    "downgraded": true
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "brief",
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "brief"
+     ]
+    ],
+    "active": "brief",
+    "maximized": false,
+    "width": 1179
+   }
+  },
+  "compare@1179": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 1179
+   }
+  },
+  "macro-scan@1179": {
+   "res": {
+    "applied": "macro-scan",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart",
+     "macro",
+     "screener-panel"
+    ],
+    "groups": [
+     [
+      "macro"
+     ],
+     [
+      "chart"
+     ],
+     [
+      "screener-panel"
+     ]
+    ],
+    "active": "macro",
+    "maximized": false,
+    "width": 1179
+   }
+  },
+  "single-focus@1100": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 1100
+   }
+  },
+  "research-cockpit@1100": {
+   "res": {
+    "applied": "essentials-research",
+    "downgraded": true
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "brief",
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "brief"
+     ]
+    ],
+    "active": "brief",
+    "maximized": false,
+    "width": 1100
+   }
+  },
+  "compare@1100": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 1100
+   }
+  },
+  "macro-scan@1100": {
+   "res": {
+    "applied": "macro-scan",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart",
+     "macro",
+     "screener-panel"
+    ],
+    "groups": [
+     [
+      "macro"
+     ],
+     [
+      "chart"
+     ],
+     [
+      "screener-panel"
+     ]
+    ],
+    "active": "macro",
+    "maximized": false,
+    "width": 1100
+   }
+  },
+  "single-focus@1079": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 1079
+   }
+  },
+  "research-cockpit@1079": {
+   "res": {
+    "applied": "essentials-research",
+    "downgraded": true
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "brief",
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "brief"
+     ]
+    ],
+    "active": "brief",
+    "maximized": false,
+    "width": 1079
+   }
+  },
+  "compare@1079": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 1079
+   }
+  },
+  "macro-scan@1079": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": true
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 1079
+   }
+  },
+  "single-focus@800": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 800
+   }
+  },
+  "research-cockpit@800": {
+   "res": {
+    "applied": "essentials-research",
+    "downgraded": true
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "brief",
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "brief"
+     ]
+    ],
+    "active": "brief",
+    "maximized": false,
+    "width": 800
+   }
+  },
+  "compare@800": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 800
+   }
+  },
+  "macro-scan@800": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": true
+   },
+   "err": null,
+   "after": {
+    "panels": [
+     "chart"
+    ],
+    "groups": [
+     [
+      "chart"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 800
+   }
+  }
+ },
+ "menuModes": {
+  "fundamental": {
+   "ok": true,
+   "after": {
+    "panels": [
+     "brief",
+     "chart",
+     "equity-overview"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "equity-overview"
+     ],
+     [
+      "brief"
+     ]
+    ],
+    "active": "equity-overview",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "technical": {
+   "ok": true,
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ],
+    "active": "chart",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "macro": {
+   "ok": true,
+   "after": {
+    "panels": [
+     "chart",
+     "macro",
+     "screener-panel"
+    ],
+    "groups": [
+     [
+      "macro"
+     ],
+     [
+      "chart"
+     ],
+     [
+      "screener-panel"
+     ]
+    ],
+    "active": "macro",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "compare-desk": {
+   "ok": true,
+   "after": {
+    "panels": [
+     "chart",
+     "equity-overview"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "equity-overview"
+     ]
+    ],
+    "active": "chart",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "bogus": {
+   "ok": false,
+   "after": {
+    "panels": [
+     "notes"
+    ],
+    "groups": [
+     [
+      "notes"
+     ]
+    ],
+    "active": "notes",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "no-api": {
+   "ok": false
+  }
+ },
+ "researchSpace": {
+  "1000": {
+   "panels": [
+    "brief",
+    "chart",
+    "notes"
+   ],
+   "groups": [
+    [
+     "chart"
+    ],
+    [
+     "brief"
+    ],
+    [
+     "notes"
+    ]
+   ],
+   "active": "brief",
+   "maximized": false,
+   "width": 1000
+  },
+  "1440": {
+   "panels": [
+    "brief",
+    "chart",
+    "equity-overview",
+    "notes"
+   ],
+   "groups": [
+    [
+     "chart"
+    ],
+    [
+     "equity-overview"
+    ],
+    [
+     "brief"
+    ],
+    [
+     "notes"
+    ]
+   ],
+   "active": "brief",
+   "maximized": false,
+   "width": 1440
+  }
+ },
+ "agentArrange": {
+  "research-cockpit": {
+   "input": {
+    "pattern": "research-cockpit",
+    "symbol": "RELIANCE"
+   },
+   "label": "Arranged the research cockpit layout",
+   "err": null,
+   "after": {
+    "panels": [
+     "brief",
+     "chart",
+     "equity-overview",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ],
+     [
+      "equity-overview"
+     ],
+     [
+      "brief"
+     ]
+    ],
+    "active": "brief",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "macro-scan": {
+   "input": {
+    "pattern": "macro-scan"
+   },
+   "label": "Arranged the macro scan layout",
+   "err": null,
+   "after": {
+    "panels": [
+     "chart",
+     "macro",
+     "news",
+     "screener-panel",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news",
+      "macro"
+     ],
+     [
+      "screener-panel"
+     ]
+    ],
+    "active": "macro",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "compare": {
+   "input": {
+    "pattern": "compare",
+    "symbols": [
+     "INFY",
+     "TCS"
+    ]
+   },
+   "label": "Arranged the compare layout",
+   "err": null,
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 1440
+   }
+  },
+  "single-focus": {
+   "input": {
+    "pattern": "single-focus",
+    "symbol": "AAPL"
+   },
+   "label": "Arranged the single focus layout",
+   "err": null,
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ],
+    "active": "chart",
+    "maximized": true,
+    "width": 1440
+   }
+  },
+  "fundamental-mode": {
+   "input": {
+    "pattern": "fundamental"
+   },
+   "label": "Arranged the fundamental layout",
+   "err": null,
+   "after": {
+    "panels": [
+     "brief",
+     "chart",
+     "equity-overview"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "equity-overview"
+     ],
+     [
+      "brief"
+     ]
+    ],
+    "active": "equity-overview",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "custom-list": {
+   "input": {
+    "pattern": "custom",
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ]
+   },
+   "label": "Arranged chart + news + watchlist",
+   "err": null,
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ],
+    "active": "chart",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "custom-tool-id-as-panel": {
+   "input": {
+    "pattern": "custom",
+    "panels": [
+     "sec_filings_list"
+    ]
+   },
+   "label": "Arranged sec_filings_list",
+   "err": null,
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ],
+    "active": "news",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "custom-string-panels": {
+   "input": {
+    "pattern": "custom",
+    "panels": "chart, sec-filings"
+   },
+   "label": "Arranged your panels",
+   "err": null,
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ],
+    "active": "news",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "unknown": {
+   "input": {
+    "pattern": "dashboard-xyz"
+   },
+   "label": null,
+   "err": null,
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ],
+    "active": "news",
+    "maximized": false,
+    "width": 1440
+   }
+  },
+  "auto": {
+   "input": {
+    "pattern": "auto"
+   },
+   "label": "Arranged 3 windows around Chart",
+   "err": null,
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ],
+    "active": "chart",
+    "maximized": false,
+    "width": 1440
+   }
+  }
+ },
+ "tokens": {
+  "screener": {
+   "id": "screener-panel",
+   "component": "screener-panel"
+  },
+  "screener-panel": {
+   "id": "screener-panel",
+   "component": "screener-panel"
+  },
+  "sec_filings_list": null,
+  "Sec Filings": {
+   "id": "sec-filings",
+   "component": "sec-filings-panel"
+  },
+  "options": {
+   "id": "option-pricer",
+   "component": "option-pricer-panel"
+  },
+  "audit-log": null,
+  "broker": null
+ },
+ "planCustomDup": {
+  "panels": [
+   {
+    "id": "chart",
+    "component": "chart-panel"
+   },
+   {
+    "id": "news",
+    "component": "news-panel",
+    "position": {
+     "referencePanel": "chart",
+     "direction": "right"
+    }
+   }
+  ],
+  "focus": "chart"
+ }
+}

@@ -1,0 +1,369 @@
+{
+  "slot": "P2",
+  "symbol": "DAL",
+  "diffed_at": "2026-09-23",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P2_DAL.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P2_DAL.json",
+  "subtle_tier_covered": true,
+  "fields": [
+    {
+      "field": "identity.isin",
+      "app_value": "INE874E01012",
+      "app_as_of": "2026-09-19",
+      "outside_value": "INE874E01012",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=539681&industry=&segment=Equity&status=Active",
+      "status": "match"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "539681",
+      "app_as_of": "2026-09-19",
+      "outside_value": "539681",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=539681&industry=&segment=Equity&status=Active",
+      "status": "match"
+    },
+    {
+      "field": "identity.legal_name",
+      "app_value": "Dynamic Archistructures Limited / Dynamic Archistructures Ltd",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Dynamic Archistructures Limited (multiple spelling variants across BSE/filing)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "status": "match",
+      "note": "App spelling falls within the same variant set the pack itself records across BSE/filing sources; not treated as a distinct error."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Financial Services",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Financial Services",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Credit Services",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Non Banking Financial Company (NBFC)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid=",
+      "status": "definitional difference",
+      "note": "yfinance's own industry taxonomy label vs BSE's; both describe the same NBFC business, different classification schemes."
+    },
+    {
+      "field": "price.last_close (value)",
+      "app_value": 49.88,
+      "app_as_of": "2026-09-18 (quote.timestamp) / 2026-09-19T09:41 (fundamentals field_meta)",
+      "outside_value": 49.88,
+      "outside_as_of": "2025-03-12",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=539681&seriesid=",
+      "status": "match",
+      "note": "Price value itself agrees with BSE's last print; see the paired as_of row for the date discrepancy."
+    },
+    {
+      "field": "price.last_close (as_of date)",
+      "app_value": "2026-09-18T00:00:00Z (quote.timestamp, market_state=CLOSED, freshness=eod)",
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": "2025-03-12 (true last trade date; BSE Ason='12 Mar 25 | 16:00')",
+      "outside_as_of": "2025-03-12",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=539681&seriesid=",
+      "status": "mismatch",
+      "note": "App stamps the 556-day-stale print with a timestamp one day before collection instead of the true 2025-03-12 last-trade date. See DAT-P2-9."
+    },
+    {
+      "field": "market_cap (value)",
+      "app_value": "24.99 INR crore (249,898,800 INR)",
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": "24.99 INR crore",
+      "outside_as_of": "2025-03-12",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=539681&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "market_cap (as_of date)",
+      "app_value": "2026-09-19T09:41:13 (fetch time)",
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": "2025-03-12 (the price it is computed from)",
+      "outside_as_of": "2025-03-12",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=539681&seriesid=",
+      "status": "mismatch",
+      "note": "Same as_of-mislabeling mechanism as price.last_close; rolled into DAT-P2-9 (not filed twice)."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 5.6044946,
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": 24.5,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "mismatch",
+      "note": "Downstream of the eps_ttm mismatch below (49.88 / 8.9 = 5.60 vs true 49.88 / 2.05 = 24.33-24.5). See DAT-P2-2."
+    },
+    {
+      "field": "pb",
+      "app_value": 0.74869037,
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": "0.69 (BSE) / 0.75 (screener) - pack records both as conflicting outside sources (C2)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "match",
+      "note": "App value (0.7487) agrees with the screener leg of the pack's own two-source conflict; not filed as a mismatch since a matching outside source exists."
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": "-2.57 percent (screener, FY26) / 2.83 percent (BSE, conflicting - C3)",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "app blank",
+      "note": "See DAT-P2-5."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": -1.45,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "app blank",
+      "note": "No roce field exists anywhere in the collected fundamentals payload. See DAT-P2-5."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "app blank",
+      "note": "See DAT-P2-5."
+    },
+    {
+      "field": "revenue_ttm (fundamentals endpoint)",
+      "app_value": "2.76 INR crore (27,600,000 INR)",
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": "9.97 INR crore",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "mismatch",
+      "note": "See DAT-P2-3."
+    },
+    {
+      "field": "revenue_ttm / net_profit_ttm (income-statement endpoint)",
+      "app_value": "revenue ~INR 52.7-63.4 billion, net income ~INR 1.3-5.0 billion per year (2021-2025), shares outstanding ~648-660 million - Delta Air Lines Inc (NYSE:DAL) scale",
+      "app_as_of": "collection 2026-09-19 (periods 2021-12-31..2025-12-31)",
+      "outside_value": "revenue_ttm 9.97 INR crore, net_profit_ttm 1.02 INR crore, shares_outstanding 5,010,000",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "mismatch",
+      "note": "See DAT-P2-1 (top finding): /fundamentals/DAL/{income,balance,cashflow} return an entirely different company's financials."
+    },
+    {
+      "field": "net_profit_ttm (fundamentals endpoint)",
+      "app_value": "1.02 INR crore (10,200,000 INR)",
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": "1.02 INR crore",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "match"
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": "46 percent (growth_basis=mrq_yoy)",
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": "-73.3 percent (annual P&L basis) / -0.4 percent (sum-of-quarters basis) / -1 percent (screener TTM cell) - pack records the source as internally self-contradictory",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "definitional difference",
+      "note": "App's MRQ-YoY basis (Q1 FY27 7.26cr vs implied Q1 FY26 ~5.00cr = +45%) roughly reconciles with a quarter-over-quarter-year basis and is not the same basis as either of the pack's two annual figures; not filed as a value mismatch."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 8.9,
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": "2.05 (screener TTM) / 2.04 (BSE EPS)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "mismatch",
+      "note": "See DAT-P2-2."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 66.623,
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": 66.7,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "match"
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "match",
+      "note": "Both sides render as null/no-dividend; pack's null is itself the confirmed value (0% payout every year 2015-2026)."
+    },
+    {
+      "field": "dividend.record_or_ex_date",
+      "app_value": "not exposed by any collected route",
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnGetData/w?strCat=Corp.%20Action&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C",
+      "status": "match",
+      "note": "Outside truth is itself null (BSE ExDate='--'); no mismatch possible."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "app blank",
+      "note": "See DAT-P2-8."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/539681/",
+      "status": "app blank",
+      "note": "See DAT-P2-8."
+    },
+    {
+      "field": "week52.high",
+      "app_value": 49.88,
+      "app_as_of": "2026-09-19T09:41:13 (no per-field as-of exposed)",
+      "outside_value": 49.88,
+      "outside_as_of": "2025-03-12",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=539681",
+      "status": "match"
+    },
+    {
+      "field": "week52.low",
+      "app_value": 46.58,
+      "app_as_of": "2026-09-19T09:41:13 (no per-field as-of exposed)",
+      "outside_value": 49.88,
+      "outside_as_of": "2025-03-12",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=539681",
+      "status": "mismatch",
+      "note": "BSE's own exchange record shows one trade in the trailing 52 weeks, so high==low==49.88 exactly; app's low of 46.58 implies a non-degenerate range that does not exist. See DAT-P2-4."
+    },
+    {
+      "field": "week52.high/low (as_of dates)",
+      "app_value": "no per-leg as-of exposed; only a single fundamentals fetch timestamp (2026-09-19T09:41:13)",
+      "app_as_of": "2026-09-19T09:41:13",
+      "outside_value": "both legs dated 2025-03-12 (12/03/2025) per BSE HighLow",
+      "outside_as_of": "2025-03-12",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=539681",
+      "status": "app blank",
+      "note": "Rolled into DAT-P2-9/DAT-P2-4 discussion, not filed as a separate raw finding."
+    },
+    {
+      "field": "shareholding.quarter",
+      "app_value": "2026-06-30",
+      "app_as_of": "2026-07-17 (submission_date)",
+      "outside_value": "Q1 FY2026-27, quarter ended 30-06-2026",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.promoter_pct",
+      "app_value": 70.86,
+      "app_as_of": "2026-06-30",
+      "outside_value": 70.86,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": null,
+      "app_as_of": "2026-06-30",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "status": "app blank",
+      "note": "See DAT-P2-6."
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": null,
+      "app_as_of": "2026-06-30",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "status": "app blank",
+      "note": "See DAT-P2-6."
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": 29.14,
+      "app_as_of": "2026-06-30",
+      "outside_value": 29.14,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": "field does not exist in the shareholding-pattern response schema",
+      "app_as_of": null,
+      "outside_value": 0.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "status": "app blank",
+      "note": "See DAT-P2-6."
+    },
+    {
+      "field": "latest_results.quarter / filing_date",
+      "app_value": "HTTP 502: \"nse_direct: 'DAL' is not a known NSE instrument\"",
+      "app_as_of": null,
+      "outside_value": "Q1 FY2026-27 (ended 30-06-2026), filed 2026-08-12",
+      "outside_as_of": "2026-08-12",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "status": "app blank",
+      "note": "See DAT-P2-7."
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "3 announcements 2026-08-27..2026-08-29, same substance (AGM notice/annual report split into two BSE filing rows, plus one Reg-30 newspaper publication)",
+      "app_as_of": "2026-08-29",
+      "outside_value": "same 3 dates/topics",
+      "outside_as_of": "2026-08-29",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "status": "match"
+    },
+    {
+      "field": "corporate_actions_2026",
+      "app_value": "no dedicated corporate-actions route was collected (results_calendar 502'd before any corp-action data could be read)",
+      "app_as_of": null,
+      "outside_value": [],
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnGetData/w?strCat=Corp.%20Action&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C",
+      "status": "no source truth",
+      "note": "Cannot diff: no app value was ever collected for this field, and the outside value is itself an empty list, so no wrong-value claim can be substantiated."
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": "not exposed by any collected route",
+      "app_as_of": null,
+      "outside_value": "STANDALONE ONLY",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid=",
+      "status": "no source truth",
+      "note": "No app value collected for this field; not diffable from the given collected snapshot."
+    }
+  ]
+}

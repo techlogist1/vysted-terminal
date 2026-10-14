@@ -1,0 +1,14 @@
+# R15-RESEARCH-003 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:29+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+rm -f $B/out/R15-RESEARCH-003.txt; "$IP" $B/sc/b15_set2b.py >/dev/null 2>&1; echo "script exit $?"; cat $B/out/R15-RESEARCH-003.txt
+--- output ---
+script exit 0
+d38b5d1a candidate venv, cwd sidecar
+COMMAND: in-process iter loop: round-1 marker minted, round 2 adds PRIMARY filing; marker must still resolve (live gpt-4o-mini Blue Star run replaced: spend/no key)
+EXIT: 0
+OUTPUT:
+sources: ['https://ex.com/a', 'vysted://price/NVDA', 'vysted://fundamentals/NVDA', 'vysted://news/NVDA', 'https://www.sec.gov/Archives/nvda-10q.htm']
+marker 1 -> https://ex.com/a | round1 url: https://ex.com/a | match True
+primary in sources: True
+
+EXIT=0 (3.4s)

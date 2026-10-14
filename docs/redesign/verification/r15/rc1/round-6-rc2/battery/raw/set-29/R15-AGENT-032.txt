@@ -1,0 +1,3 @@
+candidate ace7dd76; command: grep -n -E 'R15-AGENT-032' src/modules/chat/ChatSidebar.test.tsx; heavy lane runs the vitest
+859:  it("under AUTO a failing auto-apply writes no 'Applied:' line, it says why (R15-AGENT-032)", async () => {
+exit=0

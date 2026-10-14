@@ -1,0 +1,123 @@
+[
+ {
+  "key": "rc1-vshard-4:1",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-LEAD-022",
+  "title": "Foreign listings outside the 37-suffix allowlist (.SR, .F, .BA, .AT, .PR, .SN, .QA, .CA, .CN, .NE, .AE) are still dash-rewritten and 404",
+  "repro": "GET /quotes/2222.SR, /quotes/SAP.F, /quotes/GGAL.BA on an own sidecar @68d5573a -> 404 not_found; Yahoo v8 chart answers 2222.SR 25.78 SAR, SAP.F 185.2 EUR, GGAL.BA 6290 ARS; 2222-SR -> 'No data found'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:2",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-RESEARCH-027",
+  "title": "NORMAL research is not bounded when the web round stalls (18-20 s > 15 s); structured cockpit is not published before web + prose",
+  "repro": "In-process, patch keyless engines' search() to sleep 60 s; NORMAL 'Saksoft' 19.5 s, 'Tata Elxsi' 18.4 s. fast.py:694 gathers structured+web; web round not time-boxed at fast level",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/research/fast.py",
+   "sidecar/services/search/keyless.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:3",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-UI-015",
+  "title": "sec.searchCompanies still discards the failure reason (fix_shape part unfixed); failed company search reads as no match",
+  "repro": "src/store/sec.ts:257-258 `catch { set({ searchResults: EMPTY_SEARCH, searchStatus: \"error\" }); }`; no SEC UI reads searchStatus",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-4.md",
+  "suspected_files": [
+   "src/store/sec.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:4",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-UI-058",
+  "title": "Settings import reports 'Imported settings.' when a recognised section key holds only unrecognised content",
+  "repro": "Render SettingsPanel, import {settings:{theme:'dark',fontSize:14}} or {keybindingOverrides:{'no.such.action':'Mod+X'}} or {enabledModules:{'not-a-module':true}} or {searchSettings:{colour:'blue'}} -> green 'Imported settings.' with nothing applied",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-4.md",
+  "suspected_files": [
+   "src/components/SettingsPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:5",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-RESEARCH-022",
+  "title": "Mojeek captcha/challenge page (HTTP 200) parses to zero rows and counts as a healthy keyless answer; briefs claim web available with 0 sources and no note",
+  "repro": "Direct Mojeek probe -> HTTP 200 'Captcha ... JavaScript is required to complete this challenge'; live NORMAL briefs 4/4 web_available true, 0 sources, no note while DDG 202 / Brave 429",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/search/mojeek.py",
+   "sidecar/services/search/keyless.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-RESEARCH-027",
+  "title": "Web-round note says 'No web-search backend configured' when keyless engines are configured but unreachable",
+  "repro": "Stall keyless engines in-process; brief web.reason 'unreachable' with note 'No web-search backend configured — structured data only' (fast.py ~526)",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/research/fast.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-AGENT-007",
+  "title": "OpenRouter chat URL hardcoded in sonar.py:42 and deep_research.py:795, bypassing model_registry.default_base_url_for",
+  "repro": "grep -n 'openrouter.ai/api/v1/chat/completions' sidecar/services/research/sonar.py sidecar/services/agent_tools/deep_research.py",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/research/sonar.py",
+   "sidecar/services/agent_tools/deep_research.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-094",
+  "title": "NewsFeedPanel badge 'NewsAPI key rejected' also shown for status 'error' (429/5xx/network)",
+  "repro": "NewsFeedPanel.tsx:282 renders the rejected-key copy for both 'unauthorized' and 'error' source status",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-4.md",
+  "suspected_files": [
+   "src/modules/news/NewsFeedPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:9",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-UI-039",
+  "title": "A prefix of a retired ticker ('GUJGAS') returns no candidates from /resolve or autocomplete while the full GUJGASLTD resolves with a rename",
+  "repro": "resolve and autocomplete for prefix GUJGAS on own sidecar :52604 -> []",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/symbol_resolver.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-4:10",
+  "kind": "environment",
+  "severity": "low",
+  "register_id": "",
+  "title": "Yahoo getcrumb 429 throughout (shared IP); DDG html 202, Brave 429 — cold quote/fundamentals legs exceed the 6 s research box",
+  "repro": "cold /quotes 6.7-6.9 s, /fundamentals 15.8-21.3 s on :52604",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-4.md",
+  "suspected_files": []
+ }
+]

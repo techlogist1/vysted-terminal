@@ -1,0 +1,7 @@
+CMD: curl -sS -m 20 'http://127.0.0.1:52362/quotes/BTC%2FUSDT?asset_class=crypto'
+{"symbol":"BTC/USDT","price":85048.0,"change":896.84,"change_percent":1.066,"volume":9775.51255,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-09-27T10:17:51.011000Z","provider":"ccxt:binance","freshness":"live"}
+CMD: curl -sS -m 20 'http://127.0.0.1:52362/history/ETH%2FUSDT?range=1y&asset_class=crypto' bar count
+bars: 365 provider: ccxt:binance
+CMD (no asset_class, checking 404 regression risk): curl -sS -m 20 'http://127.0.0.1:52362/quotes/BTC%2FUSDT'
+HTTP 404
+EXIT: 0

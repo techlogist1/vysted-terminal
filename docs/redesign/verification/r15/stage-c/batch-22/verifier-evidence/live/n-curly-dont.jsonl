@@ -1,0 +1,34 @@
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " sold"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": " each"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " proceeds"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " x"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": ")."}
+{"kind": "done", "usage": {"input_tokens": 2746, "output_tokens": 33, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

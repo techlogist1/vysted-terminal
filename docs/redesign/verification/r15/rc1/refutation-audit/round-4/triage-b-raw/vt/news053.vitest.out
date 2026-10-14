@@ -1,0 +1,14 @@
+
+ RUN  v4.1.6 /Users/lokavyasingh/Documents/dev/vysted-terminal
+
+stdout | docs/redesign/verification/r15/rc1/refutation-audit/round-4/triage-b-raw/vt/news053.test.ts > AGENT-053 news snapshot at HEAD > what the agent receives for an open News panel
+NEWS otherPanels entry: {"source":"news","summary":"watchedSymbols=2 items, focusedArticleId=3f1c2a9d0b7e4c55a8e1d2f3b4c5d6e7f8091a2b"}
+FULL snapshot keys: focusedPanel,focusedSymbol,charts,watchlist,portfolio,brief,otherPanels,openPanels,region,capturedAt
+
+ ✓ docs/redesign/verification/r15/rc1/refutation-audit/round-4/triage-b-raw/vt/news053.test.ts > AGENT-053 news snapshot at HEAD > what the agent receives for an open News panel 1ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  07:32:30
+   Duration  656ms (transform 166ms, setup 40ms, import 195ms, tests 2ms, environment 332ms)
+

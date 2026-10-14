@@ -1,0 +1,37 @@
+import asyncio, json, sys
+from datetime import date
+sys.path.insert(0, ".")
+from services import earnings_provider as ep
+
+def pay(sym, cal, cur="USD", fin=None, rev=None, teps=None, country=None):
+    return {"symbol": sym, "calendar": cal, "earnings_dates": None, "earnings_estimate": None, "revenue_estimate": None,
+            "currency": cur, "financial_currency": fin, "total_revenue": rev, "trailing_eps": teps, "country": country, "name": sym}
+CASES = {
+  # LEAD-039 register shape: Revenue present, no Earnings Average/High/Low
+  "RDY": pay("RDY", {"Earnings Date": [date(2026, 10, 28)], "Revenue Average": 8.9e10, "Revenue High": 9.1e10, "Revenue Low": 8.7e10}, fin="INR", rev=3.3e11, teps=0.75, country="India"),
+  # FRESH: only Earnings Date (no revenue, no EPS)
+  "TM": pay("TM", {"Earnings Date": [date(2026, 11, 5)]}, fin="JPY", country="Japan"),
+  # FRESH: EPS high only, NaN mean
+  "SONY": pay("SONY", {"Earnings Date": [date(2026, 11, 10)], "Earnings High": 0.4, "Earnings Average": float("nan")}, fin="JPY", country="Japan"),
+  # FRESH: Earnings Date as ISO string
+  "UMC": pay("UMC", {"Earnings Date": ["2026-10-29"], "Earnings Average": 0.14}, fin="TWD", rev=2.3e11, teps=0.55, country="Taiwan"),
+  # DATA-113 register: WIT INR-sized revenue estimate
+  "WIT": pay("WIT", {"Earnings Date": [date(2026, 10, 16)], "Earnings Average": 0.035, "Revenue Average": 244246846490.0}, fin="INR", rev=8.9e11, teps=0.14, country="India"),
+  # FRESH: INFY ADR: financialCurrency USD but INR-sized estimate
+  "INFY": pay("INFY", {"Earnings Date": [date(2026, 10, 16)], "Earnings Average": 0.2, "Revenue Average": 4.5e11}, fin="USD", rev=1.9e10, teps=0.8, country="India"),
+  # FRESH: TSM TWD-sized revenue estimate
+  "TSM": pay("TSM", {"Earnings Date": [date(2026, 10, 16)], "Earnings Average": 2.9, "Revenue Average": 9.9e11}, fin="TWD", rev=3.6e12, teps=10.0, country="Taiwan"),
+  # FRESH: NVO DKK revenue, country Denmark not mapped, no totalRevenue
+  "NVO": pay("NVO", {"Earnings Date": [date(2026, 11, 5)], "Earnings Average": 5.9, "Revenue Average": 7.8e10}, fin="DKK", rev=None, teps=22.0, country="Denmark"),
+  # FRESH: US domestic unchanged
+  "AAPL": pay("AAPL", {"Earnings Date": [date(2026, 10, 30)], "Earnings Average": 1.75, "Revenue Average": 1.02e11}, fin="USD", rev=4.1e11, teps=7.1, country="United States"),
+}
+ep._fetch_calendar_sync = lambda s: CASES[s]
+async def main():
+    for s in CASES:
+        try:
+            d = (await ep.get_estimate_detail(s)).model_dump(mode="json")
+            print(s, json.dumps({k: d.get(k) for k in ("eps_estimate_mean","eps_estimate_high","eps_estimate_low","revenue_estimate_mean","currency","revenue_currency")}))
+        except Exception as e:
+            print(s, "ERR", type(e).__name__, e)
+asyncio.run(main())

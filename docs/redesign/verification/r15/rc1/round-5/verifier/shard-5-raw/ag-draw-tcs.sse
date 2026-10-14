@@ -1,0 +1,98 @@
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "tool_use", "tool_call_id": "call_06464a345a164fe3b2df5c773e1d3a2f", "name": "add_chart_drawing", "input": {"kind": "horizontal-line", "panelId": "chart panel ID (assuming it is already open)", "points": [{"price": 2900}]}}
+
+data: {"kind": "tool_result", "tool_call_id": "call_06464a345a164fe3b2df5c773e1d3a2f", "name": "add_chart_drawing", "ok": true, "error": null}
+
+data: {"kind": "delta", "text": "I"}
+
+data: {"kind": "delta", "text": " have"}
+
+data: {"kind": "delta", "text": " added"}
+
+data: {"kind": "delta", "text": " a"}
+
+data: {"kind": "delta", "text": " horizontal"}
+
+data: {"kind": "delta", "text": " line"}
+
+data: {"kind": "delta", "text": " at"}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "2"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": "900"}
+
+data: {"kind": "delta", "text": " on"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " T"}
+
+data: {"kind": "delta", "text": "CS"}
+
+data: {"kind": "delta", "text": " chart"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " mark"}
+
+data: {"kind": "delta", "text": " support"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "This"}
+
+data: {"kind": "delta", "text": " change"}
+
+data: {"kind": "delta", "text": " has"}
+
+data: {"kind": "delta", "text": " been"}
+
+data: {"kind": "delta", "text": " proposed"}
+
+data: {"kind": "delta", "text": " for"}
+
+data: {"kind": "delta", "text": " your"}
+
+data: {"kind": "delta", "text": " review"}
+
+data: {"kind": "delta", "text": " and"}
+
+data: {"kind": "delta", "text": " will"}
+
+data: {"kind": "delta", "text": " apply"}
+
+data: {"kind": "delta", "text": " only"}
+
+data: {"kind": "delta", "text": " after"}
+
+data: {"kind": "delta", "text": " you"}
+
+data: {"kind": "delta", "text": " accept"}
+
+data: {"kind": "delta", "text": " it"}
+
+data: {"kind": "delta", "text": " in"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " proposal"}
+
+data: {"kind": "delta", "text": " bar"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "research_step", "tool_call_id": "call_06464a345a164fe3b2df5c773e1d3a2f", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: add_chart_drawing. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+
+data: {"kind": "done", "usage": {"input_tokens": 2942, "output_tokens": 42, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

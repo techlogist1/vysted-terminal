@@ -1,0 +1,11 @@
+# R15-LIFECYCLE-031 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:35+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b23_set81.py 2>&1 | grep -v Warning | tail -30
+--- output ---
+fundamentals warm: crawl cycle: 1 of 3 symbols failed (first: RuntimeError('sqlite write error'))
+030: seed calls after IN boot + sweep first cycle = 1 (want 1)
+031: _seed_task handle retained = True
+031: seed task cancelled/done after stop = True cancelled = True | handle cleared = True
+032: _crawl_once returned fetched = 2 (want 2; no raise)
+
+EXIT=0 (2.8s)

@@ -1,0 +1,414 @@
+{
+ "head": "cac9d206759c2cd83d46778cc94a4dbd0b678429",
+ "why_not_edited": "the main checkout's register working copy is HEAD aeeffae0's, which differs from d38b5d1a by R15-LEAD-125..135 additions and 8 changed entries (not only the triage R15-FINAL additions), and the R15-FINAL entries live in final-pass/REGISTER_ADDITIONS.json, not in the register; per the role the statuses are written here for the lead",
+ "statuses": [
+  {
+   "id": "R15-FINAL-001",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md); re-proof concurs (reproof/recert/f001-f007-jsdom.json)"
+  },
+  {
+   "id": "R15-FINAL-007",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md); re-proof concurs (reproof/recert/f001-f007-jsdom.json)"
+  },
+  {
+   "id": "R15-FINAL-017",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-033",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-016",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-030",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-LEAD-077",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-003",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md); re-proof concurs (reproof/recert/fund-SUNRAJDI.json, fund-YASHOPTICS.json)"
+  },
+  {
+   "id": "R15-FINAL-009",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md); re-proof concurs (reproof/recert/med-009-024.txt)"
+  },
+  {
+   "id": "R15-FINAL-024",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md); re-proof concurs (reproof/recert/med-009-024.txt)"
+  },
+  {
+   "id": "R15-FINAL-010",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-LEAD-071",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-002",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md); re-proof concurs (reproof/recert/resolve-GSTL.json, f002-fresh.txt)"
+  },
+  {
+   "id": "R15-FINAL-011",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-027",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-LEAD-060",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-021",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md); re-proof concurs (reproof/recert/med-021.txt)"
+  },
+  {
+   "id": "R15-FINAL-022",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-023",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-037",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-035",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-008",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md); re-proof concurs (reproof/recert/f008-corrupt.txt)"
+  },
+  {
+   "id": "R15-LIFECYCLE-024",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-031",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-028",
+   "status": "fixed",
+   "closure_evidence": "cac9d20 final-pass r1",
+   "note": "certified by fix-r1 (fix-r1/VERDICTS.md)"
+  },
+  {
+   "id": "R15-FINAL-004",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "fix a5fe4a80 certified by fix-r1 but REFUSED by the final re-proof: the fix gates only the 192-word COMMON_WORD_TICKERS list; fresh NSE common-word names outside it (CAMPUS, SAFARI, ETERNAL) still score 1.0 on unrelated headlines ('Campus placements surge', 'Apple Safari update', 'The eternal debate') (reproof/recert/f004-relevance.txt). Certification failures: 1."
+  },
+  {
+   "id": "R15-FINAL-005",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "not certified by fix-r1 and re-proof: GET /fundamentals/VOLERCAR (IN) still has eps/pe/revenue/net income null with no field_meta reason (reproof/recert/fund-VOLERCAR.json); YASHOPTICS fixed, SUMAX typed reason. Certification failures: 2."
+  },
+  {
+   "id": "R15-FINAL-006",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "not certified by fix-r1 and re-proof: idle cold single quotes 0.4-2.1 s, but with 100 cold NSE quotes in flight (16-wide) single cold quotes took 19.5-21.2 s (reproof/recert/f006-single-latency.txt); nse_provider._Throttle is one global FIFO pacer. Certification failures: 2."
+  },
+  {
+   "id": "R15-AGENT-027",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-RESEARCH-022",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-CODE-PLATFORM-072",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-FINAL-012",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-FINAL-013",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-FINAL-014",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-FINAL-015",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-FINAL-018",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-FINAL-019",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-FINAL-020",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-061",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-062",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-063",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-064",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-065",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-066",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-067",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-068",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-069",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-070",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-072",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-073",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-074",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-075",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-076",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-078",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-079",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-080",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-081",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-082",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-083",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-122",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-LEAD-124",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "medium filed for 0.9.1 under the operator burst bar (Sat 3 Oct 14:35 IST: 'mediums and lows filed for 0.9.1'); not Tier-4 by R6 (no Tier-1 file, no locked decision), so status stays open, not blocked_tier4"
+  },
+  {
+   "id": "R15-FINAL-025",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "low filed for 0.9.1: research/iter.py synthesis wall box; outside every set's files"
+  },
+  {
+   "id": "R15-FINAL-026",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "low filed for 0.9.1: ScreenerPanel fmtAgo floor; no screener owner this round"
+  },
+  {
+   "id": "R15-FINAL-029",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "low filed for 0.9.1: code_node sum/list concatenation cap; outside every set's files"
+  },
+  {
+   "id": "R15-FINAL-032",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "low filed for 0.9.1: company_narrative bold-header parse; outside every set's files"
+  },
+  {
+   "id": "R15-FINAL-034",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "low filed for 0.9.1: BriefPanel web-origin predicate; no research-UI owner"
+  },
+  {
+   "id": "R15-FINAL-036",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "low filed for 0.9.1: CURRENT_STATE.md rewrite belongs to the release docs lane"
+  },
+  {
+   "id": "R15-FINAL-038",
+   "status": "open",
+   "closure_evidence": "",
+   "note": "low filed for 0.9.1: src-tauri lib.rs MCP protocol constant; needs a cargo chain"
+  }
+ ]
+}

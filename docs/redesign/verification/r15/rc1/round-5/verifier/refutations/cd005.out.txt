@@ -1,0 +1,92 @@
+HEAD 633f844071d972b337f4c3526d86555c80df0568
+$ grep -rn "def is_applicable\|def _is_blocked\|def is_india_target\|def _row_value\|def is_india_listing\|def is_block_error" sidecar/services
+sidecar/services/witness.py:19:def is_india_listing(listing: object) -> bool:
+sidecar/services/witness.py:24:def is_block_error(exc: BaseException) -> bool:
+sidecar/services/growth_check.py:94:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+sidecar/services/dividend_actions.py:60:def is_applicable(symbol: str) -> bool:
+sidecar/services/research/relevance.py:602:def is_india_target(target: ResearchTarget | None) -> bool:
+sidecar/services/earnings_quality.py:123:def is_applicable(symbol: str) -> bool:
+sidecar/services/earnings_quality.py:134:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+    def as_wire(self) -> dict[str, Any]:
+        """The plain dict attached under :data:`DECLARED_KEY`."""
+        return asdict(self)
+
+
+def is_applicable(symbol: str) -> bool:
+    """True when ``symbol`` is an NSE or BSE listing (the corporate-actions lane
+    merges both exchanges).
+
+    Decided on the resolved listing (``.NS``/``.BO``, via
+    :func:`services.witness.is_india_listing`) whose bare ticker is in an India
+    master — never on bare-ticker membership alone, so a US-bound listing is
+    skipped without a network call.
+    """
+    if not is_india_listing(symbol):
+        return False
+---
+        isinstance(fund.get(key), (int, float)) and not isinstance(fund.get(key), bool)
+        for key in ("pe_ratio", "roe", "eps", "net_income_ttm")
+    )
+
+
+def is_applicable(symbol: str) -> bool:
+    """True for any non-empty symbol — one-off distortion is universal.
+
+    Unlike the exchange-shareholding cross-check, reported-vs-adjusted earnings
+    is not India-specific: US and other listings carry the same yfinance income
+    statement rows. The real gate is :func:`should_cross_check` (a ratio to
+    caveat) plus the presence of the statement line items.
+    """
+    return isinstance(symbol, str) and bool(symbol)
+
+
+def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+    """The first present row's value at ``column``, as float; NaN/missing → None.
+
+    Mirrors :func:`services.growth_check._row_value` (case-insensitive label
+    match, duplicate-row tolerant) so the two Yahoo statement readers behave
+    identically.
+    """
+    lowered = {str(label).strip().lower(): label for label in frame.index}
+    for candidate in labels:
+        actual = lowered.get(candidate.lower())
+        if actual is None:
+            continue
+        value = frame.loc[actual, column]
+        if isinstance(value, pd.Series):
+            value = value.iloc[0]
+        if value is None or pd.isna(value):
+            return None
+---
+        for key in ("revenue_growth", "earnings_growth")
+    )
+
+
+def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+    """The first present row's value at ``column``, as float; NaN/missing → None."""
+    lowered = {str(label).strip().lower(): label for label in frame.index}
+    for candidate in labels:
+        actual = lowered.get(candidate.lower())
+        if actual is None:
+            continue
+        value = frame.loc[actual, column]
+        # Duplicate row labels make .loc return a Series — take the first.
+        if isinstance(value, pd.Series):
+            value = value.iloc[0]
+        if value is None or pd.isna(value):
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+services/market_cap_witness.py:12:This adds an INDEPENDENT witness: the app bundles a BSE-derived share count for
+services/market_cap_witness.py:23:reintroduce the circularity this witness exists to break.
+services/market_cap_witness.py:25::func:`get_market_cap_witness` is the entry point. It reads the bundled master
+services/market_cap_witness.py:46:from services.witness import is_india_listing
+services/market_cap_witness.py:52:MCAP_WITNESS_KEY = "market_cap_witness"
+services/market_cap_witness.py:54:#: Human label for the witness share-count source, carried into the conflict
+services/market_cap_witness.py:59:#: snapshot, so a corporate action after that date can make the witness share
+services/market_cap_witness.py:89:    """Whether the fundamentals payload carries a provider market cap to witness.
+services/market_cap_witness.py:91:    True only when ``market_cap`` is a real number — there is nothing to witness
+services/market_cap_witness.py:100:is_applicable = is_india_listing

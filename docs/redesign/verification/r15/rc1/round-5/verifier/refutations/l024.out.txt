@@ -1,0 +1,10 @@
+== case a (no meta table: pre-ca25a5ca / released-build data dir)
+ensure_build cleared= True
+backups exists: False []
+0
+build|0.8.0
+== case b (meta build=0.7.9-prior)
+ensure_build cleared= True
+backups exists: True ['0.7.9-prior']
+0
+build|0.8.0

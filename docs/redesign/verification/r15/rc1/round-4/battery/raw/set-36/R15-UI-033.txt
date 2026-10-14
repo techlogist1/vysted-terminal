@@ -1,0 +1,18 @@
+=== R15-UI-033: MarketplacePanel CredentialForm has an error path on configure() rejection (code + live backend) ===
+-- fix present at src/modules/marketplace/MarketplacePanel.tsx (CredentialForm submit handler) --
+        // R15-UI-033: configure() used to have no error path here — a rejected
+        // write (a bad NewsAPI key, a keychain failure) vanished as an
+        // unhandled rejection and the dialog just sat there. Show it instead.
+        configure(entry.pluginId, values)
+          .then(onDone)
+          .catch((err: unknown) => {
+            setValidationError(err instanceof Error ? err.message : "Could not save credentials.");
+          });
+      }}
+
+-- no permanent vitest test file covers this exact scenario (MarketplacePanel.test.tsx has R15-UI-018/072/077
+only); the original certification used a scratch (non-permanent) render, so this is verified by code + the
+live backend rejection this catch depends on (same live probe as R15-DATA-094 in set-36) --
+{"newsapi":"unauthorized"}
+VERDICT: holds. configure(...).then(onDone).catch(setValidationError) is present and unchanged; the backend
+rejection (401 -> unauthorized) that would trigger this catch is confirmed live above.

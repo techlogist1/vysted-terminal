@@ -1,0 +1,22 @@
+=== R15-DATA-114 live repro: 3 consecutive /quant/option/chain/NIFTY calls ===
+--- call 1 ---
+
+HTTP:200
+real 0.79
+user 0.00
+sys 0.00
+as_of 2026-09-25 keys ['symbol', 'expiry', 'expiries', 'underlying_price', 'contracts', 'as_of']
+--- call 2 ---
+
+HTTP:200
+real 0.04
+user 0.00
+sys 0.00
+as_of 2026-09-25 keys ['symbol', 'expiry', 'expiries', 'underlying_price', 'contracts', 'as_of']
+--- call 3 ---
+
+HTTP:200
+real 0.04
+user 0.00
+sys 0.00
+as_of 2026-09-25 keys ['symbol', 'expiry', 'expiries', 'underlying_price', 'contracts', 'as_of']

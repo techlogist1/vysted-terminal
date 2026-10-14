@@ -57,6 +57,8 @@ export interface RatingsHistoryEntry {
 export interface RatingsHistoryResponse {
   symbol: string;
   history: RatingsHistoryEntry[];
+  /** When this envelope was fetched upstream (ISO datetime); a cache hit keeps the fetch time. */
+  as_of?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -85,6 +87,8 @@ export interface PriceTargetEntry {
 export interface PriceTargetHistoryResponse {
   symbol: string;
   history: PriceTargetEntry[];
+  /** When this envelope was fetched upstream (ISO datetime); a cache hit keeps the fetch time. */
+  as_of?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,4 +123,6 @@ export interface IndividualAnalystForecast {
 export interface IndividualAnalystResponse {
   symbol: string;
   analysts: IndividualAnalystForecast[];
+  /** When this envelope was fetched upstream (ISO datetime); a cache hit keeps the fetch time. */
+  as_of?: string | null;
 }

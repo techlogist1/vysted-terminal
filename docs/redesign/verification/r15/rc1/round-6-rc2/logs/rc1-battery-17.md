@@ -1,0 +1,6 @@
+# rc1-battery-17 log (gate round 6-rc2, candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd)
+
+- Sidecar :52357 from candidate source on a copy of the seed data. The shared stack (:52152-:52154) was not listening, so the first boot had no openbb/sec-edgar MCP; I started the candidate's own MCP binaries on :52390 (openbb) and :52391 (sec-edgar) and rebooted the sidecar against them. Early set-9 probes (DATA-005, LEAD-002 first rounds, DATA-019/021/022) ran on the yfinance-fallback path; LEAD-002 was re-run with MCPs up (R15-LEAD-002-openbbup.txt). Set-25 and later ran with MCPs up (DATA-060 SIFY re-run after restart).
+- All sets: holds, except R15-UI-062 and R15-LEAD-048 (ci_pinned, GUI/vitest-only repros).
+- Adjacent notes: (1) a transient sec-edgar-mcp failure produced a not_applicable shareholding response that the router cached under the region-keyed data_cache key and kept serving after the MCP recovered (SIFY, region unset); a fresh key (X-Vysted-Region: US) served the 20-F holders. (2) Cold first-call /fundamentals for an Indian symbol takes 15-19 s, then 0.4-2.8 s (LEAD-002's uncached-witness symptom is not present).
+- Stopped sidecar sleep pid 17092 and MCP sleep pids 13345, 13346.

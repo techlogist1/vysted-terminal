@@ -1,0 +1,2 @@
+.rw-r--r--@  41k lokavyasingh  3 Oct 07:08 vysted.log
+.rw-r--r--@ 2.1M lokavyasingh  3 Oct 06:46 vysted.log.1

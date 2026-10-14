@@ -1,0 +1,70 @@
+=== R15-UI-014: sidecar-client.ts + streaming.ts wrapping + lib.rs Terminated ===
+    // A spawn failure or an exited engine is named at once (R15-LIFECYCLE-010).
+    throw new SidecarError(0, status.reason ?? SIDECAR_UNREACHABLE);
+  }
+  return `http://127.0.0.1:${status.port}`;
+}
+
+/** The Rust core's `get_sidecar_port` answer. */
+interface SidecarBootStatus {
+  port: number;
+  state: "starting" | "ready" | "failed";
+  reason: string | null;
+}
+
+/**
+ * Resolve (and cache) the sidecar base URL, gated on a real `/health` probe so
+ * the first successful resolution implies the sidecar is actually listening.
+ *
+ * Rust announces the port *number* before the sidecar binds (a cold
+ * PyInstaller boot takes tens of seconds to extract and import), and a
+ * bare-port URL with no probe makes single-shot panels (News, Portfolio) fire
+ * into a dead socket and latch a permanent error. Cold boot can be tens of
+ * seconds, so budget generously with exponential backoff. Shared promise:
+ * concurrent panel mounts await the same probe instead of each firing a doomed
+ * fetch. Re-armable — a failure nulls the promise so a later caller (or a
+ * manual Retry) re-probes.
+ */
+export function getSidecarBaseUrl(): Promise<string> {
+  if (readyPromise) {
+    return readyPromise;
+  }
+  readyPromise = resolveAndAwaitReady().catch((error: unknown) => {
+    readyPromise = null; // re-armable: a later caller / manual Retry re-probes
+    reportReachability(false, error instanceof Error ? error.message : String(error));
+    throw error;
+  });
+  return readyPromise;
+}
+
+async function resolveAndAwaitReady(): Promise<string> {
+  const deadline = Date.now() + 120_000;
+  let delay = 250;
+  for (;;) {
+    // Re-read each round: a spawn that fails while we probe stops the wait.
+    const base = await resolvePortToBaseUrl();
+    try {
+      const response = await fetch(new URL("/health", base).toString());
+--- lib.rs CommandEvent::Terminated ---
+301-                CommandEvent::Stderr(line) => {
+302-                    diag_eprintln!("[sidecar] {}", String::from_utf8_lossy(&line));
+303-                }
+304:                CommandEvent::Terminated(payload) => {
+305-                    let reason = terminated_reason(payload.code, payload.signal);
+306-                    events_app.state::<SidecarStatus>().fail(reason.clone());
+307-                    let _ = events_app.emit("vysted://sidecar-terminated", reason);
+308-                }
+309-                _ => {}
+310-            }
+311-        }
+312-    });
+313-
+314-    let endpoint_data_dir = data_dir.clone();
+315-    let wait_app = app.clone();
+316-    thread::spawn(move || {
+317-        // R8: the main sidecar gets the same cold-extraction budget as the MCP
+318-        // subprocesses (45s x 2) — a cold `--onefile` boot (~60s observed: _MEI
+319-        // extraction + heavy imports) outlives the old flat 15s probe, which
+--- store/app.ts listener for sidecar-terminated ---
+83: *  `vysted://sidecar-terminated` (emitted with the reason when the engine
+93:      listen<string>("vysted://sidecar-terminated", (event) => markReachable(false, event.payload)),

@@ -1,0 +1,9 @@
+--- DATA-066: warm 20-name NSE batch timing (backend caches across polls) ---
+call 1 (cold or warm depending on state):
+real 40.02
+user 0.00
+sys 0.00
+call 2 (should be warm/cached if under cadence window):
+real 40.02
+user 0.00
+sys 0.00

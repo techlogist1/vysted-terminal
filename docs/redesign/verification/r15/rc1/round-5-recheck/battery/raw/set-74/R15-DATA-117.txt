@@ -1,0 +1,13 @@
+COMMAND: curl -s http://127.0.0.1:52355/fundamentals/{TSM,HDB,AAPL,IBN}  (live yfinance network, candidate's own sidecar)
+EXIT: 0 (all HTTP 200)
+
+TSM: price_to_book=null withheld ('divides ... USD listing value against TWD statements'); book_value=null withheld (same reason); price_to_sales=null withheld; pe_ratio=33.55 ok
+HDB: price_to_book=null withheld; book_value=null withheld; pe_ratio=16.09 ok
+AAPL (USD/USD, control): price_to_book=46.34 ok; book_value=7.36 ok; pe_ratio=39.07 ok
+IBN (fresh case, USD/INR, not in the original certified sample): price_to_book=null withheld; book_value=null withheld; pe_ratio=17.34 ok
+
+Full field_meta.price_to_book/book_value reason strings for TSM:
+price_to_book {'status': 'withheld', 'provider': 'yfinance', 'as_of': '2026-09-25T20:00:02+00:00', 'reason': "Yahoo's price/book (listing price over book value per share) divides or states a USD listing value against TWD statements; its basis cannot be verified without FX, so it is withheld", 'label': None, 'basis_note': None}
+book_value {'status': 'withheld', 'provider': 'yfinance', 'as_of': '2026-09-27T14:48:51.133424+00:00', 'reason': "Yahoo's book value per share divides or states a USD listing value against TWD statements; its basis cannot be verified without FX, so it is withheld", 'label': None, 'basis_note': None}
+price_to_book {'status': 'withheld', 'provider': 'yfinance', 'as_of': '2026-09-25T20:00:02+00:00', 'reason': "Yahoo's price/book (listing price over book value per share) divides or states a USD listing value against TWD statements; its basis cannot be verified without FX, so it is withheld", 'label': None, 'basis_note': None}
+book_value {'status': 'withheld', 'provider': 'yfinance', 'as_of': '2026-09-27T14:48:51.133424+00:00', 'reason': "Yahoo's book value per share divides or states a USD listing value against TWD statements; its basis cannot be verified without FX, so it is withheld", 'label': None, 'basis_note': None}

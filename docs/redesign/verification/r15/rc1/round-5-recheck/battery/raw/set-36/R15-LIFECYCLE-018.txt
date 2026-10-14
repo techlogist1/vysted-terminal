@@ -1,0 +1,43 @@
+Original batch-9 certification for this id was itself a source read
+("warm_detect() runs from the lifespan at boot. The hot-path flag flips
+only after refresh() completes, under a lock."), not a live timed probe.
+Re-checked the same way, at 949c3c9f, live sidecar (port 52348) confirmed
+booted and running from this exact source:
+
+$ grep -n "ready_base_url_detected\|warm_detect" sidecar/services/searxng_manager.py sidecar/app.py
+
+sidecar/app.py:144: searxng_manager.manager.warm_detect() -- called from the
+  FastAPI lifespan startup (before line 144: comment "cancelled in the
+  searxng_manager.shutdown() call below" confirms this is startup, not a
+  request handler).
+
+sidecar/services/searxng_manager.py:533-558 ready_base_url_detected():
+  docstring itself cites R15-LIFECYCLE-018 and explains the fix: "the guard
+  flag flips only AFTER refresh() completes (never before it), under a
+  dedicated lock -- two concurrent callers racing the cold first read both
+  await the SAME derivation instead of the second one reading a still-
+  STATE_UNKNOWN manager and wrongly concluding 'no managed instance'."
+  Code:
+    if not self._hot_path_detected:
+        async with self._detect_lock:
+            if not self._hot_path_detected:
+                try:
+                    await self.refresh()
+                except Exception:
+                    pass
+                finally:
+                    self._hot_path_detected = True
+    return self.ready_base_url()
+  -- double-checked locking, flag set in `finally` AFTER refresh(), both
+  reads/writes guarded by the same asyncio.Lock (_detect_lock). This is the
+  opposite of the pre-fix bug (register repro: "_hot_path_detected is set
+  True BEFORE the await, so a concurrent first search floors to keyless
+  while the derivation is in flight").
+
+My sidecar (port 52348) has been running since 19:37 IST with this exact
+binary/source; no "searxng" log lines appear in its boot log (detection is
+silent unless it errors), consistent with a clean warm_detect() at startup.
+
+VERDICT: holds. Fix confirmed present and structurally correct via source
+read, at the same evidentiary level (code read, no live timed race) the
+original batch-9 certification used.

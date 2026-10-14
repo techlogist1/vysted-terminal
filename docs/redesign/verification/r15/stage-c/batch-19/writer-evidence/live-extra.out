@@ -1,0 +1,23 @@
+== x-sify-ttm-2 tools=['financial_statements'] results=[('financial_statements', True)]
+The terminal's data does not include SIFY.US's TTM revenue in USD.
+
+== x-infy-list tools=['price_data', 'price_data', 'price_data'] results=[('price_data', False), ('price_data', True), ('price_data', True)]
+Here are the results:
+INFY.NS - ₹1000.20
+TCS.NS - ₹2082.00
+
+== x-wiprox-dump tools=['fundamentals'] results=[('fundamentals', True)]
+Here are some key metrics for Wipro Limited (WIPRO.NS):
+
+* Market Cap: ₹162,271 crore
+* PE Ratio: 13.04
+* Forward PE: 11.80
+* Dividend Yield: 0.049%
+* Earnings Per Share (EPS): ₹12.62
+* Beta: 0.39
+
+Note that the PE ratio is flagged as "trailing EPS 12.58 disagrees by 6% with the payload's net income / shares outstanding...". This means that there may be a discrepancy between the reported earnings and the actual earnings, which could affect the accuracy of the PE ratio.
+
+Also, note that some metrics are marked as "unavailable" because they were not published by the provider.
+
+ALLDONE

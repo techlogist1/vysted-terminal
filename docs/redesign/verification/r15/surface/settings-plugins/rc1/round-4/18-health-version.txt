@@ -1,0 +1,2 @@
+{"status":"ok","service":"vysted-sidecar","version":"0.8.0","providers":{"analyst_rating":"yfinance","balance_sheet":"yfinance","cash_flow":"yfinance","fundamentals":"yfinance","income_statement":"yfinance","macro_series":"unavailable","ohlcv":"ccxt (nse_direct, nse, bse, yfinance fallback)","quote":"ccxt (nse_direct, nse, bse, yfinance fallback)","openbb-mcp":"unavailable"},"agents_degraded":[]}
+HTTP 200

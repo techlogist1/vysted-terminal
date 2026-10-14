@@ -1,0 +1,24 @@
+=== fundamentals SHERA ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP=404
+=== quotes SHERA ===
+[{"symbol":"SHERA","price":177.9,"change":1.9000000000000057,"change_percent":1.079545454545458,"volume":27000.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}]
+HTTP=200
+=== fundamentals RICHA ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP=404
+=== quotes RICHA ===
+[{"symbol":"RICHA","price":78.0,"change":-4.5,"change_percent":-5.454545454545454,"volume":1000.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}]
+HTTP=200
+=== fundamentals ONYX ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP=404
+=== quotes ONYX ===
+[{"symbol":"ONYX","price":36.0,"change":-0.10000000000000142,"change_percent":-0.27700831024931144,"volume":4000.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-24T00:00:00Z","provider":"nse","freshness":"eod"}]
+HTTP=200
+=== fundamentals USHAFIN ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP=404
+=== quotes USHAFIN ===
+[{"symbol":"USHAFIN","price":54.0,"change":-1.7999999999999972,"change_percent":-3.225806451612898,"volume":16000.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}]
+HTTP=200

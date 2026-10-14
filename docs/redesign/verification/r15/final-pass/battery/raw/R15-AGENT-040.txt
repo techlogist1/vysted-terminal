@@ -1,0 +1,13 @@
+# R15-AGENT-040 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:02+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+rm -f $B/out/R15-AGENT-0{25,26,33,40}.txt; "$IP" $B/sc/p17.py >/dev/null 2>&1; echo "script exit $?"; cat $B/out/R15-AGENT-040.txt
+--- output ---
+script exit 0
+COMMAND: _coerce_history on 12-message history (turn1 constraint + 5 exchanges) then invoke_agent options.history
+EXIT: 0
+OUTPUT:
+folded=4; verbatim msgs=9
+summary msg sent to provider contains turn-1 constraint: True; tool-steps trailer kept: True
+notice events: ['LLMResearchStepEvent {"kind": "research_step", "tool": "history", "step_kind": "notice", "detail": "Older turns summarised: the 4 earliest messages of this thread were folded into a summary of your asks, tool steps and failures.", "status": "ok", "index": "0"}']
+
+EXIT=0 (1.5s)

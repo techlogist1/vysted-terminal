@@ -1,0 +1,20 @@
+Probe: live POST /llm/keys/validate on my own sidecar (:52352, candidate source) with a fake
+OpenRouter key, exactly the register's repro string.
+
+Command:
+  curl -s -X POST http://127.0.0.1:52352/llm/keys/validate -H "Content-Type: application/json" \
+    -d '{"provider":"openrouter","api_key":"<redacted synthetic test key, prefix sk-or-, 68 chars; the provider rejected it>"}'
+
+Exit: 0
+HTTP 200
+
+Output:
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+
+Verdict basis: register repro was POST /llm/keys/validate {provider:openrouter} -> {ok:true}
+(false positive: the API's /v1/models endpoint answers 200 without auth, so validate_key
+mis-reported success). Now: ok:false, reason "invalid", detail "OpenRouter rejected this key."
+— the adapter now probes the auth-checked endpoint (/api/v1/key, which the register notes
+answers 401 for the same fake key), not the open /models endpoint. Matches batch-3's
+certification ("Live /llm/keys/validate returns {ok:false,"unauthorized…"} for fake OpenRouter,
+Gemini and xAI keys.").

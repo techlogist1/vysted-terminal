@@ -1,0 +1,40 @@
+{
+  "certified": [
+    "R15-AGENT-007",
+    "R15-CODE-AGENT-009",
+    "R15-LIFECYCLE-024",
+    "R15-LIFECYCLE-026",
+    "R15-DATA-071",
+    "R15-CODE-PLATFORM-026",
+    "R15-CODE-PLATFORM-027",
+    "R15-CODE-PLATFORM-028",
+    "R15-RELEASE-005",
+    "R15-RELEASE-006",
+    "R15-LEAD-013",
+    "R15-DATA-059",
+    "R15-DATA-079",
+    "R15-UI-087",
+    "R15-UI-085",
+    "R15-UI-091",
+    "R15-CODE-PLATFORM-023",
+    "R15-CODE-PLATFORM-025"
+  ],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-LEAD-028",
+      "reason": "Live on the running sidecar GET /quotes/506597.BO -> 404 not_found and GET /history/544774.BO?range=1y -> 200 with bars [] provider none. The resolver half works (is_bse_symbol/bse_scrip_code/_require_bse map 506597->AMAL, 544774->SMR; bse_provider.get_quote('506597.BO') returns AMAL 688.1 directly), but provider_registry then rejects the result in correctness_gate.validate_quote/validate_series: \"provider 'bse' returned 'AMAL' for requested '506597.BO' (symbol mismatch)\" (correctness_gate.py:155-158, :193-196), falls through to yfinance, which has no data. The unit tests call bse_provider on fakes and never go through the registry gate. Fix: let the gate accept a code-addressed request whose provider returned the code's canonical ticker (or canonicalise the request before the walk), and pin it with a registry-level test. Not a regression: before the batch the same routes failed one lane earlier."
+    },
+    {
+      "id": "R15-RELEASE-007",
+      "reason": "Writers reported could-not and the integrator left it open: package.json lint is still 'eslint .'; the audit is wired into no script or gate. node scripts/audit-design-tokens.mjs at 9985b00e exits 1 with 4 pre-existing off-grid hits (OnboardingFlow.tsx:533 px-1.5, ProposedChangesReview.tsx:106 py-1.5, SecFilingsPanel.tsx:212 max-h-56, :226 py-1.5), which is why wiring it would turn lint red. Those four spacing fixes plus the one-line lint wiring close it."
+    }
+  ],
+  "concur_not_defect": [
+    "R15-UI-047",
+    "R15-UI-059",
+    "R15-DATA-080"
+  ],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-11-int@9985b00eee9668f41b50c5ea908429f713db144e"
+}

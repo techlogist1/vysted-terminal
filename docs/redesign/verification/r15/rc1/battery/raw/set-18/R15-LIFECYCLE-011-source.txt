@@ -1,0 +1,9 @@
+src/store/app.ts:12:  sidecarStatus: SidecarStatus;
+src/store/app.ts:25:  sidecarStatus: "connecting",
+src/store/app.ts:29:    set({ sidecarStatus: "connecting", sidecarError: null });
+src/store/app.ts:51:  const { sidecarStatus, sidecarError } = useAppStore.getState();
+src/store/app.ts:57:    if (sidecarStatus !== "connected") {
+src/store/app.ts:58:      useAppStore.setState({ sidecarStatus: "connected", sidecarError: null });
+src/store/app.ts:63:  if (sidecarStatus !== "error" || sidecarError !== message) {
+src/store/app.ts:64:    useAppStore.setState({ sidecarStatus: "error", sidecarError: message });
+src/lib/sidecar-client.ts:194: * (`false` + the reason) — how the app store keeps `sidecarStatus` current

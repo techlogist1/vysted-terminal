@@ -1,0 +1,8 @@
+RAW rc1-battery-12 @ ace7dd76 in-process (candidate venv) probe 008 (ValueError + TypeError from two non-last providers)
+provider bad1 failed for quote, falling through: parse
+provider bad2 failed for quote, falling through: none
+provider bad1 failed for quote, falling through: parse
+provider bad2 failed for quote, falling through: none
+sync -> good
+async -> good
+PASS (ValueError/TypeError from two non-last providers fell through to 'good')

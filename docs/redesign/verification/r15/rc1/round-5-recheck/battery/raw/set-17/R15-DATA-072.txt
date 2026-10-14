@@ -1,0 +1,21 @@
+Repro is 'design' (register: record_success missing from get_history/statements/analyst_rating).
+CMD: grep -n 'def get_history\|def get_income_statement\|def get_balance_sheet\|def get_cash_flow\|def get_analyst_rating\|def get_quote\|def get_fundamentals\|record_success' sidecar/services/yfinance_provider.py
+471:def get_quote(symbol: str) -> Quote:
+493:    provider_health.record_success(provider_health.YAHOO)
+537:def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCVSeries:
+572:    provider_health.record_success(provider_health.YAHOO)
+844:def get_fundamentals(symbol: str) -> Fundamentals:
+858:    provider_health.record_success(provider_health.YAHOO)
+995:def get_income_statement(symbol: str, period: str = "annual") -> IncomeStatement:
+1004:    provider_health.record_success(provider_health.YAHOO)
+1027:    provider_health.record_success(provider_health.YAHOO)
+1031:def get_balance_sheet(symbol: str, period: str = "annual") -> BalanceSheet:
+1039:    provider_health.record_success(provider_health.YAHOO)
+1066:    provider_health.record_success(provider_health.YAHOO)
+1080:def get_cash_flow(symbol: str, period: str = "annual") -> CashFlowStatement:
+1088:    provider_health.record_success(provider_health.YAHOO)
+1099:def get_analyst_rating(symbol: str) -> AnalystRating:
+1108:    provider_health.record_success(provider_health.YAHOO)
+---live confirmation: a get_history call succeeds and does not error (yahoo path reachable)---
+CMD: curl -s 'http://127.0.0.1:52361/history/AAPL?range=1mo'
+provider: yfinance bars: 22

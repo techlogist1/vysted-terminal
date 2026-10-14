@@ -11,10 +11,11 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Any
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMUsage
+from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMModelOption, LLMUsage
 from routers import llm as llm_router
 
 
@@ -37,15 +38,16 @@ class _FakeProvider:
         yield LLMDeltaEvent(text=" two")
         yield LLMDoneEvent(usage=LLMUsage(input_tokens=3, output_tokens=2), finish_reason="stop")
 
-    async def validate_key(self, api_key: str | None = None) -> bool:  # noqa: ARG002
+    async def validate_key(self, api_key: str | None = None) -> bool:
+        self.last_api_key = api_key
         return self._validate_returns
 
 
-def test_get_providers_returns_seven(client: TestClient) -> None:
+def test_get_providers_returns_all(client: TestClient) -> None:
     response = client.get("/llm/providers")
     assert response.status_code == 200
     body = response.json()
-    assert len(body) == 7
+    assert len(body) == 8
     ids = {row["id"] for row in body}
     assert ids == {
         "anthropic",
@@ -55,11 +57,30 @@ def test_get_providers_returns_seven(client: TestClient) -> None:
         "ollama",
         "deepseek",
         "xai",
+        "openrouter",
     }
     # Ollama is the only one that does not require a key.
     ollama_row = next(row for row in body if row["id"] == "ollama")
     assert ollama_row["requires_key"] is False
     assert ollama_row["default_base_url"]
+    # Every row now carries the registry-sourced default_model + known_models.
+    for row in body:
+        assert isinstance(row["default_model"], str) and row["default_model"]
+        assert isinstance(row["known_models"], list) and row["known_models"]
+        assert row["default_model"] in row["known_models"]
+    anthropic_row = next(row for row in body if row["id"] == "anthropic")
+    assert anthropic_row["default_model"] == "claude-opus-4-8"
+    assert anthropic_row["known_models"] == [
+        "claude-opus-4-8",
+        "claude-sonnet-4-6",
+        "claude-haiku-4-5",
+    ]
+    # OpenRouter is a model-routing aggregator, NOT a broker. The frontend
+    # providers store mirrors this label verbatim into Settings at runtime
+    # (useLLMProvidersStore.refresh), so this registry row is the one source
+    # that can resurface the "(broker)" walkthrough defect — pin it here.
+    openrouter_row = next(row for row in body if row["id"] == "openrouter")
+    assert openrouter_row["label"] == "OpenRouter"
 
 
 def test_validate_key_ok(
@@ -86,13 +107,69 @@ def test_validate_key_unauthorized(
         "/llm/keys/validate",
         json={"provider": "anthropic", "api_key": "sk-bad"},
     )
-    assert response.json() == {"ok": False, "detail": "unauthorized or no key supplied"}
+    # C4 (R15-UI-013): a rejected key says so by reason, not a bare boolean.
+    assert response.json() == {
+        "ok": False,
+        "reason": "invalid",
+        "detail": "Anthropic rejected this key.",
+    }
 
 
-def test_validate_key_transport_error_surfaces_detail(
+def test_validate_key_strips_pasted_whitespace(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """R15-UI-057: a trailing newline/space is not part of the key."""
+    fake = _FakeProvider(True)
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: fake)
+    response = client.post(
+        "/llm/keys/validate",
+        json={"provider": "openai", "api_key": "sk-test \n"},
+    )
+    assert response.json()["ok"] is True
+    assert fake.last_api_key == "sk-test"
+
+
+def test_validate_key_blank_key_is_not_configured(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A keyed provider with no (or a whitespace-only) key is not set up, not invalid."""
+    fake = _FakeProvider(True)
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: fake)
+    response = client.post("/llm/keys/validate", json={"provider": "openrouter", "api_key": "  "})
+    body = response.json()
+    assert body["ok"] is False
+    assert body["reason"] == "not_configured"
+    assert fake.last_api_key is None  # the provider is never probed
+
+
+def test_validate_key_connect_error_is_unreachable(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An SDK transport failure means the provider is unreachable, never a bad key."""
+
+    class _ConnectFailing(_FakeProvider):
+        async def validate_key(self, api_key: str | None = None) -> bool:  # noqa: ARG002
+            raise httpx.ConnectError("connection refused")
+
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _ConnectFailing())
+    response = client.post("/llm/keys/validate", json={"provider": "openai", "api_key": "sk-test"})
+    body = response.json()
+    assert body["ok"] is False
+    assert body["reason"] == "unreachable"
+    assert "Could not reach OpenAI" in body["detail"]
+
+
+def test_validate_transport_failure_is_humanized(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-019: the raw SDK exception repr never reaches the Key Entry
+    Dialog — the route returns humanize()'s message + action, same as every other
+    failure surface in the subsystem; the raw text stays in the sidecar log only."""
+
     class _RaisingProvider:
         async def stream_chat(self, *_a: Any, **_kw: Any) -> AsyncIterator[Any]:  # pragma: no cover
             if False:
@@ -108,7 +185,13 @@ def test_validate_key_transport_error_surfaces_detail(
     )
     body = response.json()
     assert body["ok"] is False
-    assert "network down" in body["detail"]
+    assert body["reason"] == "unreachable"
+    assert (
+        body["detail"]
+        == "Something went wrong with Anthropic. Try again or switch provider in Settings."
+    )
+    assert "RuntimeError" not in body["detail"]
+    assert "network down" not in body["detail"]
 
 
 def test_chat_streams_sse_frames(
@@ -122,7 +205,7 @@ def test_chat_streams_sse_frames(
         "/llm/chat",
         json={
             "provider": "anthropic",
-            "model": "claude-opus-4-7",
+            "model": "claude-opus-4-8",
             "messages": [{"role": "user", "content": "hi"}],
             "api_key": "sk-routed",
         },
@@ -140,6 +223,169 @@ def test_chat_streams_sse_frames(
     assert fake.last_api_key == "sk-routed"
 
 
+def test_chat_forwards_only_allowlisted_adapter_options(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-005: /llm/chat filters options through the same allowlist
+    as the agent path, so a composer control key never reaches the SDK."""
+    seen: dict[str, Any] = {}
+
+    class _KwargsProvider(_FakeProvider):
+        async def stream_chat(self, messages: list[Any], model: str, **kwargs: Any) -> Any:
+            seen.update(kwargs)
+            yield LLMDoneEvent()
+
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _KwargsProvider())
+    with client.stream(
+        "POST",
+        "/llm/chat",
+        json={
+            "provider": "deepseek",
+            "model": "deepseek-chat",
+            "messages": [{"role": "user", "content": "hi"}],
+            "api_key": "sk",
+            "options": {"depth": "deep", "someNewKey": 1, "temperature": 0.2},
+        },
+    ) as response:
+        b"".join(response.iter_bytes())
+    assert seen == {"api_key": "sk", "temperature": 0.2}
+
+
+@pytest.mark.parametrize(
+    ("provider", "model", "spend"),
+    [
+        ("deepseek", "deepseek-chat", 0.0009),  # 1,000 tokens at $0.9/1M
+        ("xai", "mystery-1", None),  # no price-table key: unknown, not the fallback
+    ],
+)
+def test_chat_done_frame_carries_the_priced_spend(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    provider: str,
+    model: str,
+    spend: float | None,
+) -> None:
+    """R15-AGENT-082 (C11): the /llm/chat done frame carries ``spend_usd``."""
+    import json
+
+    class _UsageProvider(_FakeProvider):
+        async def stream_chat(self, messages: list[Any], model: str, **kwargs: Any) -> Any:
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=800, output_tokens=200))
+
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _UsageProvider())
+    with client.stream(
+        "POST",
+        "/llm/chat",
+        json={
+            "provider": provider,
+            "model": model,
+            "messages": [{"role": "user", "content": "hi"}],
+        },
+    ) as response:
+        body = b"".join(response.iter_bytes()).decode()
+    frames = [json.loads(f.removeprefix("data: ")) for f in body.split("\n\n") if f.strip()]
+    [done] = [f for f in frames if f["kind"] == "done"]
+    assert done["spend_usd"] == spend
+
+
+class _CatalogProvider:
+    """Adapter stub whose ``list_models`` returns a canned catalog."""
+
+    def __init__(
+        self,
+        models: list[LLMModelOption],
+        captured: dict[str, Any] | None = None,
+    ) -> None:
+        self._models = models
+        self.captured = captured if captured is not None else {}
+
+    async def stream_chat(self, *_a: Any, **_kw: Any) -> AsyncIterator[Any]:  # pragma: no cover
+        if False:
+            yield None
+
+    async def validate_key(self, api_key: str | None = None) -> bool:  # noqa: ARG002
+        return True
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+        self.captured["api_key"] = api_key
+        return self._models
+
+
+def test_get_models_live_carries_metadata_and_note(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    models = [
+        LLMModelOption(
+            id="x/tool", label="X Tool", supports_tools=True, context_length=128000, pricing="free"
+        ),
+        LLMModelOption(id="x/plain", label="X Plain", supports_tools=False),
+    ]
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _CatalogProvider(models))
+    response = client.get("/llm/models", params={"provider": "openrouter"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["source"] == "live"
+    assert body["provider"] == "openrouter"
+    assert [m["id"] for m in body["models"]] == ["x/tool", "x/plain"]
+    assert body["models"][0]["supports_tools"] is True
+    assert body["models"][0]["context_length"] == 128000
+    assert "tool-capable" in body["note"]
+    # No key sent → the OpenRouter note says full catalog, not "routable on your key".
+    assert "full catalog" in body["note"]
+
+
+def test_get_models_openrouter_routable_note_and_never_echoes_key(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+    models = [LLMModelOption(id="x/tool", label="X", supports_tools=True)]
+    monkeypatch.setattr(
+        llm_router, "get_provider", lambda *_a, **_k: _CatalogProvider(models, captured)
+    )
+    response = client.get(
+        "/llm/models",
+        params={"provider": "openrouter"},
+        headers={"X-LLM-Key": "sk-secret-do-not-echo"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert "routable on your key" in body["note"]
+    # The key reached the adapter as the api_key argument …
+    assert captured["api_key"] == "sk-secret-do-not-echo"
+    # … but is NEVER reflected in the response body (BYOK no-echo contract).
+    assert "sk-secret-do-not-echo" not in response.text
+
+
+def test_get_models_falls_back_to_registry_when_empty(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _CatalogProvider([]))
+    response = client.get("/llm/models", params={"provider": "anthropic"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["source"] == "fallback"
+    assert "claude-opus-4-8" in [m["id"] for m in body["models"]]
+    assert "unavailable" in body["note"]
+
+
+def test_get_models_adapter_error_degrades_to_fallback(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _Boom(_CatalogProvider):
+        async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+            raise RuntimeError("network down")
+
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _Boom([]))
+    response = client.get("/llm/models", params={"provider": "groq"})
+    assert response.status_code == 200
+    assert response.json()["source"] == "fallback"
+
+
 def test_chat_invalid_provider_returns_400(client: TestClient) -> None:
     response = client.post(
         "/llm/chat",
@@ -151,3 +397,50 @@ def test_chat_invalid_provider_returns_400(client: TestClient) -> None:
     )
     # Pydantic rejects the literal at the input boundary, so we get 422 not 400.
     assert response.status_code in {400, 422}
+
+
+def test_no_llm_route_echoes_the_key(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-021: the key rides a header on ``GET /llm/models`` and the
+    JSON body on ``POST /llm/chat`` / ``POST /llm/keys/validate`` (two transports,
+    documented as such — moving them onto one transport is out of this entry's
+    scope), but on ALL THREE routes it reaches the adapter and never the response."""
+    canary = "sk-canary-do-not-echo"
+
+    fake = _FakeProvider()
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: fake)
+
+    validate_response = client.post(
+        "/llm/keys/validate",
+        json={"provider": "anthropic", "api_key": canary},
+    )
+    assert canary not in validate_response.text
+    assert fake.last_api_key == canary
+
+    with client.stream(
+        "POST",
+        "/llm/chat",
+        json={
+            "provider": "anthropic",
+            "model": "claude-opus-4-8",
+            "messages": [{"role": "user", "content": "hi"}],
+            "api_key": canary,
+        },
+    ) as chat_response:
+        chat_body = b"".join(chat_response.iter_bytes()).decode("utf-8")
+    assert canary not in chat_body
+    assert fake.last_api_key == canary
+
+    captured: dict[str, Any] = {}
+    monkeypatch.setattr(
+        llm_router, "get_provider", lambda *_a, **_k: _CatalogProvider([], captured)
+    )
+    models_response = client.get(
+        "/llm/models",
+        params={"provider": "openrouter"},
+        headers={"X-LLM-Key": canary},
+    )
+    assert canary not in models_response.text
+    assert captured["api_key"] == canary

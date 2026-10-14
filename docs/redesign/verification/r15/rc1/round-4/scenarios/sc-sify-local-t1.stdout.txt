@@ -1,0 +1,7 @@
+
+=== ASSISTANT TEXT ===
+We couldn't retrieve the fundamentals for SIFY ADR. The provider (yfinance) is missing its instrument data. 
+
+However, if you're looking to find this information, I can try to fetch it from another source or suggest a different way of getting the answer. Would you like me to do that?
+
+=== ok · 35.8s · events {'heartbeat': 2, 'tool_use': 1, 'tool_result': 1, 'delta': 65, 'done': 1} · usage in=2836 out=64 · est $0.00000 · llama3.1:8b

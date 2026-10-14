@@ -1,0 +1,4 @@
+calls made: ['https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20260923_F_0000.csv.zip', 'https://archives.nseindia.com/products/content/sec_bhavdata_full_23092026.csv']
+result: 2026-09-23 1
+cache writes: ['nse_bhavcopy:20260923']
+PASS: primary 404 tried the legacy fallback, returned its rows, wrote no holiday marker

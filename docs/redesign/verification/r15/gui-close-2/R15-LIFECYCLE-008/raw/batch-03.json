@@ -1,0 +1,313 @@
+[
+{
+"cmd": "click",
+"x": 434,
+"y": 766
+},
+{
+"cmd": "wait",
+"seconds": 2.5
+},
+{
+"cmd": "click",
+"x": 434,
+"y": 774
+},
+{
+"cmd": "wait",
+"seconds": 2.5
+},
+{
+"cmd": "click",
+"x": 434,
+"y": 782
+},
+{
+"cmd": "wait",
+"seconds": 2.5
+},
+{
+"cmd": "click",
+"x": 434,
+"y": 790
+},
+{
+"cmd": "wait",
+"seconds": 2.5
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/R15-LIFECYCLE-008/1fddb2b-06-after-copy-diagnostics.png"
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "wait",
+"seconds": 1.5
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/R15-LIFECYCLE-008/1fddb2b-07-preview-at-end.png"
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 160
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 166
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 172
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 178
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 184
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 190
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 196
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 202
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 208
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 214
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 220
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 226
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 232
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 238
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 244
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "click",
+"x": 437,
+"y": 250
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "wait",
+"seconds": 1
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/R15-LIFECYCLE-008/1fddb2b-08-after-copy-to-clipboard.png"
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 571,
+"y": 795
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "wait",
+"seconds": 1
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/R15-LIFECYCLE-008/1fddb2b-09-status-line.png"
+}
+]

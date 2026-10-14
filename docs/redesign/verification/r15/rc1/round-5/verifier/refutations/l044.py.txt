@@ -1,0 +1,12 @@
+import asyncio, config
+from services import screener
+async def main():
+    config.set_request_region('IN')
+    for s in ['HAL','CCL','IEX','ACGL','PTC']:
+        pair, skip = await screener._fetch_pair(s, 'equity', screener._UNIVERSE_REGION['sp500'])
+        f = pair[0] if pair else None
+        print('sp500-region', s, '->', (f.symbol, f.name, f.currency) if f else skip)
+    pair, skip = await screener._fetch_pair('PTC', 'equity', None)
+    f = pair[0] if pair else None
+    print('custom(None)->session IN', 'PTC', '->', (f.symbol, f.name, f.currency) if f else skip)
+asyncio.run(main())

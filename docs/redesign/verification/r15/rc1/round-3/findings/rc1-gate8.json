@@ -1,0 +1,14 @@
+[
+  {
+    "key": "rc1-gate8:1",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "",
+    "title": "Proposed-change review card and applied label price a US lot in the session region's currency (Add 4 MSFT @ ₹480 for a $480 lot)",
+    "repro": "Region IN (seed profile). Copilot on llama3.1:8b, --autonomy ask: 'I bought 4 shares of MSFT at 480 dollars per share. Add that position to my tracked portfolio with portfolio_add_position.' -> tool_use portfolio_add_position {MSFT, 4, 480}; frontend enqueue -> review card title 'Add 4 MSFT @ ₹480 to the portfolio', after 'Portfolio: +MSFT ×4 @ ₹480 (3 total)'. Same for the order-attempt write: 'Add 10 AAPL @ ₹0'. The ledger stores 480 correctly and the Portfolio panel renders it with the quote currency ($), so only the text the user accepts is wrong (contradicts D57).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-3/gate8/portfolio-07-gated-add.json",
+    "suspected_files": [
+      "src/lib/host-actions.ts"
+    ]
+  }
+]

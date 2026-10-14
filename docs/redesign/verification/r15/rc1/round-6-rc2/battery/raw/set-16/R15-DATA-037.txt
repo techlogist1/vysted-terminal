@@ -1,0 +1,9 @@
+# R15-DATA-037 (asset_class=crypto)
+$ curl http://127.0.0.1:52351/history/BTC/USDT?range=1mo&asset_class=crypto
+1mo 30 ccxt:binance {'timestamp': '2026-09-04T00:00:00Z', 'open': 81270.37, 'high': 81427.75, 'low': 78660.0, 'close': 79660.77, 'volume': 19198.62549} 200
+$ curl http://127.0.0.1:52351/history/BTC/USDT?range=1y&asset_class=crypto
+1y 365 ccxt:binance {'timestamp': '2025-10-04T00:00:00Z', 'open': 122232.21, 'high': 122800.0, 'low': 121510.0, 'close': 122391.0, 'volume': 8208.16678} 200
+$ curl http://127.0.0.1:52351/history/BTC/USDT?range=5y&asset_class=crypto
+5y 1826 ccxt:binance {'timestamp': '2021-10-04T00:00:00Z', 'open': 48200.01, 'high': 49536.12, 'low': 46891.0, 'close': 49224.94, 'volume': 46796.49372} 200
+$ ETH/USDT 1h 1mo
+720 ccxt:binance

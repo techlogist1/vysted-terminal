@@ -1,0 +1,82 @@
+{
+    "workflows": [
+        {
+            "description": "Fetch AAPL quote, extract last price, compare to 250 and log.",
+            "edges": [
+                {
+                    "id": "e1",
+                    "sourceNode": "n1",
+                    "sourcePort": "quote",
+                    "targetNode": "n2",
+                    "targetPort": "value"
+                },
+                {
+                    "id": "e2",
+                    "sourceNode": "n2",
+                    "sourcePort": "extracted",
+                    "targetNode": "n3",
+                    "targetPort": "a"
+                },
+                {
+                    "id": "e3",
+                    "sourceNode": "n3",
+                    "sourcePort": "result",
+                    "targetNode": "n4",
+                    "targetPort": "value"
+                }
+            ],
+            "id": "wf-aapl-close-check",
+            "name": "AAPL close check",
+            "nodes": [
+                {
+                    "config": {
+                        "asset_class": "equity",
+                        "symbol": "AAPL"
+                    },
+                    "id": "n1",
+                    "position": {
+                        "x": 80.0,
+                        "y": 120.0
+                    },
+                    "type": "data.fetch_quote"
+                },
+                {
+                    "config": {
+                        "path": "price"
+                    },
+                    "id": "n2",
+                    "position": {
+                        "x": 320.0,
+                        "y": 120.0
+                    },
+                    "type": "transform.json_path"
+                },
+                {
+                    "config": {
+                        "op": ">",
+                        "value": 250
+                    },
+                    "id": "n3",
+                    "position": {
+                        "x": 560.0,
+                        "y": 120.0
+                    },
+                    "type": "logic.compare"
+                },
+                {
+                    "config": {
+                        "message": "AAPL above 250"
+                    },
+                    "id": "n4",
+                    "position": {
+                        "x": 800.0,
+                        "y": 120.0
+                    },
+                    "type": "action.log"
+                }
+            ],
+            "updatedAt": 1791055308099,
+            "version": 1
+        }
+    ]
+}

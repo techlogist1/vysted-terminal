@@ -1,0 +1,17 @@
+### POST /agents/nope/invoke {"prompt":"hi","provider":"ollama","model":"llama3.1:8b","mode":"agent"}
+{"detail":"unknown agent: 'nope'"}
+[HTTP 404]
+### POST /agents/copilot/invoke {"prompt":"hi","provider":"notaprovider","model":"x","mode":"agent"}
+{"detail":[{"type":"literal_error","loc":["body","provider"],"msg":"Input should be 'anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai' or 'openrouter'","input":"notaprovider","ctx":{"expected":"'anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai' or 'openrouter'"}}]}
+[HTTP 422]
+### POST /agents/copilot/invoke {"prompt":"hi","provider":"ollama","model":"x","mode":"yolo"}
+{"detail":[{"type":"literal_error","loc":["body","mode"],"msg":"Input should be 'agent', 'ask', 'edit', 'build' or 'delegate'","input":"yolo","ctx":{"expected":"'agent', 'ask', 'edit', 'build' or 'delegate'"}}]}
+[HTTP 422]
+### POST /agents/copilot/invoke {"prompt":"hi","provider":"ollama","model":"llama3.1:8b","mode":"agent","apiKey":"x"}
+{"detail":[{"type":"extra_forbidden","loc":["body","apiKey"],"msg":"Extra inputs are not permitted","input":"x"}]}
+[HTTP 422]
+### POST /llm/chat no key openai
+data: {"kind": "error", "message": "Something went wrong with the AI provider.", "action": "Try again or switch provider in Settings.", "detail": "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.", "code": "unknown"}
+
+data: {"kind": "done"}
+

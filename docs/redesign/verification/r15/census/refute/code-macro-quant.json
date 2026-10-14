@@ -1,0 +1,137 @@
+[
+  {
+    "raw_id": "COD-macro-quant-1",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Holds exactly: price_fwd is priced one day later so (price_fwd - price_base) is already the negative decay, and the extra negation at options.py:166 flips it positive; the in-process repro gives binomial theta +39.8351 vs Black-Scholes -39.6807 for the panel's own default inputs. Binomial is also the ONLY engine for American exercise, so every American option's theta is sign-inverted, and test_binomial_greeks_populated pins delta/gamma/vega but never theta.",
+    "evidence": "sidecar/services/quant/options.py:158-166, options.py:132-133, options.py:257-266, sidecar/services/quant/_common.py:57, sidecar/tests/test_quant_greeks.py:105-108, sidecar/tests/test_quant_options.py:136-142, src/modules/quant/OptionPricerPanel.tsx:235-237, OptionPricerPanel.tsx:557-561",
+    "evidence_checked": "Opened options.py, _common.py, the two quant test files and the panel render; ran the engine in-process from sidecar/.venv (no POST to :52152 needed, same code path the router calls).",
+    "repro_check": "sidecar/.venv/bin/python3: options.price(OptionPricingRequest(method='binomial',binomial_steps=200, european call S=K=220 r=.05 q=.005 vol=.28 2026-05-16->2026-06-30)) -> theta=+39.835137; method='black-scholes' -> theta=-39.680656. Confirmed."
+  },
+  {
+    "raw_id": "COD-macro-quant-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Mechanism is real and worse than a date mix-up: the four /quant routes are sync def (threadpool) and every engine writes the process-global ql.Settings evaluationDate before a lazy NPV(); a two-thread probe returned price 0.0 (option judged already expired) for 1413 of 3000 pricings of a valid ITM-ish call when a second thread priced with a later valuation date. Severity corrected critical->high only because the trigger needs two overlapping quant computations with DIFFERENT valuation dates in a single-user desktop (panel computes are click-driven; the async agent tools call options.price synchronously on the event loop, quant_tools.py:54, which also blocks the loop for large binomial_steps).",
+    "evidence": "sidecar/routers/quant.py:36-69, sidecar/services/quant/_common.py:34-41, _common.py:57, sidecar/services/quant/bonds.py:52, sidecar/services/quant/yield_curve.py:70, sidecar/services/agent_tools/quant_tools.py:42-101, sidecar/models/quant.py:33",
+    "evidence_checked": "Opened router, _common, bonds, yield_curve, quant_tools, models; ran an in-process two-thread concurrency probe (sys.setswitchinterval 1e-6) with sidecar/.venv, no stack traffic.",
+    "repro_check": "Two threads x3000 options.price(): A=BS call S=K=220 2026-05-16->2026-06-30 (ref 9.21805), B=BS call 2026-07-15->2026-12-31 -> A returned 0.0 in 1413/3000 runs, B 0 mismatches, 0 exceptions. Confirmed."
+  },
+  {
+    "raw_id": "COD-macro-quant-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real but overstated: the panels show the exact partials they label (GreeksDashboard rows read 'dV/dsigma' and 'dV/dt'; vega per unit decimal vol and theta per year are mathematically those partials for the inputs as entered), so this is unlabelled units + a false backend comment ('the panel divides by 100' / 'the panel relabels') rather than wrong data. Still a genuine trap because market convention (per 1 vol pt, per day) differs by 100x/365x and no unit is shown on either panel; medium, not high.",
+    "evidence": "sidecar/services/quant/options.py:129-133, sidecar/services/quant/greeks.py:26-27, src/modules/quant/GreeksDashboard.tsx:69-81, GreeksDashboard.tsx:103, GreeksDashboard.tsx:136, src/modules/quant/OptionPricerPanel.tsx:557-561",
+    "evidence_checked": "Opened both service docstrings and both panels' render paths; confirmed no scaling anywhere between wire and toFixed(4). Values from the in-process run: vega 30.627, theta -39.681.",
+    "repro_check": "In-process BS price for the panel defaults -> vega=30.6270, theta=-39.6807 rendered verbatim by value.toFixed(4); grep shows no /100 or /365 in src/modules/quant."
+  },
+  {
+    "raw_id": "COD-macro-quant-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds: _parse_series_id returns _DEFAULT_COUNTRY='USA' for any bare id and all 9 featured World Bank entries are bare, so the WB tab serves US data to every region including IN (labelled '- USA' in title/source_url, so disclosed, but India WDI data is unreachable from the UI without knowing the ':IND' id syntax). Live GET confirmed the US series.",
+    "evidence": "sidecar/services/macro/world_bank_provider.py:41, world_bank_provider.py:131-139, world_bank_provider.py:49-113 (series_id lines 49,57,65,73,81,89,97,105,113), world_bank_provider.py:205-215, sidecar/services/macro/macro_router.py:54-63",
+    "evidence_checked": "Opened provider + dispatcher; GET against isolated stack :52152.",
+    "repro_check": "curl '127.0.0.1:52152/macro/NY.GDP.MKTP.KD.ZG?provider=world-bank' -> title 'NY.GDP.MKTP.KD.ZG — USA', source_url ...?locations=USA, 66 observations. Confirmed."
+  },
+  {
+    "raw_id": "COD-macro-quant-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The behaviour is real (live 502 for DGS10 under x-vysted-region: IN), but no in-product caller takes the provider-less path: the frontend store always sends provider (store/macro.ts:82-85), and both the macro_series agent tool and the workflow node reject a missing provider. Impact is limited to direct REST/external callers of the route, so high->medium.",
+    "evidence": "sidecar/routers/macro.py:100-110, sidecar/services/macro/macro_router.py:59-74, src/store/macro.ts:82-85, sidecar/services/agent_tools/macro_tools.py:36-45, sidecar/services/workflow_nodes/macro_nodes.py:28-43",
+    "evidence_checked": "Opened router, dispatcher, store, agent tool and workflow node; grepped src/ plugins/ for other /macro/ callers (none); GET against :52152 with the region header.",
+    "repro_check": "curl -H 'x-vysted-region: IN' 127.0.0.1:52152/macro/DGS10 -> HTTP 502 \"World Bank upstream error for 'DGS10'/'USA': APIError: JSON decoding error\". Confirmed."
+  },
+  {
+    "raw_id": "COD-macro-quant-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Mechanism holds: any wbgapi exception is logged at debug and replaced by a substring match over the 9 curated entries (score 0.5), and macro_router.search caches whatever comes back for 6h, so a transient outage pins a degraded result set with no signal (FRED/IMF re-raise instead). Corrected: the fallback rows are genuine WB indicator ids, not 'US rows' (country is applied later at get_series), and the effect is an incomplete search list rather than wrong values, so high->medium.",
+    "evidence": "sidecar/services/macro/world_bank_provider.py:219-270, sidecar/services/macro/macro_router.py:42, macro_router.py:145-154, sidecar/services/macro/fred_provider.py:307-311, src/store/macro.ts:108-125",
+    "evidence_checked": "Code-only for the outage path (did not cut network on the shared machine); opened provider, dispatcher, FRED sibling and store.",
+    "repro_check": "Would run: monkeypatch wbgapi.series.list to raise, call macro_router.search('unemployment','world-bank') twice with the patch removed in between -> second call returns the cached 0.5-scored curated rows. Not run (code path is unambiguous)."
+  },
+  {
+    "raw_id": "COD-macro-quant-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Holds: loadCatalog swallows every error and resolves, so the picker's .catch that sets catalogError never fires, the error+Retry branch is dead, and the !catalog skeleton pulses indefinitely on that tab. Corrected: every provider's catalog is a static curated list served from memory (no upstream call), so the only trigger is the sidecar being unreachable/booting, recovery happens on a provider-tab switch (provider is an effect dep) and search still works; medium, not high.",
+    "evidence": "src/store/macro.ts:127-137, src/modules/macro/MacroSeriesPicker.tsx:49-63, MacroSeriesPicker.tsx:140-170, sidecar/services/macro/macro_router.py:157-176, sidecar/services/macro/ecb_provider.py:240-242, imf_provider.py:269-271, fred_provider.py:342-344",
+    "evidence_checked": "Code-only (UI; no GUI allowed): opened store, picker, dispatcher and the four catalog() functions.",
+    "repro_check": "Would run a vitest rendering MacroSeriesPicker with sidecarGet mocked to reject -> expect 'Could not load featured series' (will fail; macro-catalog-skeleton renders). Not run."
+  },
+  {
+    "raw_id": "COD-macro-quant-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Repro reproduces exactly (100 points, 99 distinct dates, 2026-05-17 twice, last 2026-08-23), but only when step_days floors to 1, i.e. total_days < 2*(sample_count-1); with the panel default sample_count=30 that needs a curve whose longest tenor is under ~2 months. A normal 3M+10Y curve at 50 samples gives 50 distinct dates and actually UNDERSHOOTS the last tenor (ends 2036-04-19 vs 2036-05-16). Edge-case sampling defect, low.",
+    "evidence": "sidecar/services/quant/yield_curve.py:118-149, src/modules/quant/YieldCurvePanel.tsx:143, YieldCurvePanel.tsx:175, YieldCurvePanel.tsx:220-231",
+    "evidence_checked": "Opened yield_curve.py and the panel; ran bootstrap_curve in-process twice.",
+    "repro_check": "bootstrap_curve(3M deposit only, sample_count=100) -> 100 pts, 99 distinct, first two 2026-05-17, last 2026-08-23; bootstrap_curve(3M depo + 10Y swap, 50) -> 50 distinct, last 2036-04-19."
+  },
+  {
+    "raw_id": "COD-macro-quant-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The dead branch and the raw-code title are real (live title 'NY.GDP.MKTP.CD'-style code — USA), but the mechanism and proposed fix are wrong: wbgapi.series.info returns a Featureset whose .items is a plain LIST attribute (callable() is False, so the guard skips), and its elements are dicts, so getattr(first,'value') would also miss. The suggested `list(info.items())` raises TypeError ('list' object is not callable); the working fix is `info.items[0]['value']` without the callable guard.",
+    "evidence": "sidecar/services/macro/world_bank_provider.py:192-207",
+    "evidence_checked": "Opened provider; probed wbgapi in sidecar/.venv; GET against :52152.",
+    "repro_check": "python: info=wbgapi.series.info('NY.GDP.MKTP.CD') -> Featureset, hasattr items True, callable False, list(info.items)=[{'id':'NY.GDP.MKTP.CD','value':'GDP (current US$)'}], info.items() -> TypeError. curl :52152/macro/NY.GDP.MKTP.KD.ZG?provider=world-bank -> title 'NY.GDP.MKTP.KD.ZG — USA'."
+  },
+  {
+    "raw_id": "COD-macro-quant-10",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Holds in code: _FREQ_MAP maps 'bw'->weekly and 'sa'->quarterly while the contract has an unused 'other'. Downgraded medium->low: the frequency field is only a caption in the chart header/picker (no computation consumes it) and semiannual/biweekly FRED series are rare.",
+    "evidence": "sidecar/services/macro/fred_provider.py:159-167, fred_provider.py:204-207, fred_provider.py:291, sidecar/models/macro_extended.py:30-37, types/macro.ts:24-28, src/modules/macro/MacroChart.tsx:130",
+    "evidence_checked": "Opened map, coercion, contract and render; grepped sidecar/services + src for other .frequency consumers (display only).",
+    "repro_check": "grep -rn '.frequency' sidecar/services src -> only provider constructors and MacroChart/MacroSeriesPicker display; no live FRED SA series pulled."
+  },
+  {
+    "raw_id": "COD-macro-quant-11",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Holds: monte_carlo.py (184 LOC) has no importer anywhere outside its own definitions and a package-docstring mention, no test, and its docstring claims workflow nodes/agent tools reach into it. Downgraded medium->low: dead code with a misleading docstring, no user-visible effect.",
+    "evidence": "sidecar/services/quant/monte_carlo.py:10-17, monte_carlo.py:115-130, monte_carlo.py:182-183, sidecar/services/quant/__init__.py:20",
+    "evidence_checked": "Opened module and package __init__; repo-wide grep excluding .venv/node_modules/r15.",
+    "repro_check": "grep -rn 'monte_carlo\\b|price_asian_mc|price_barrier_mc' --include=*.py/ts/json . -> only monte_carlo.py itself and the __init__ docstring line; wc -l -> 184."
+  },
+  {
+    "raw_id": "COD-macro-quant-12",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Holds: panel requires >=1, validate_domain 1..100000, service rejects <3 (same three-way drift exists for MC paths: panel >=1, model >=1, service >=100). Downgraded medium->low: the consequence is a clear 400 with an accurate message, never a wrong number.",
+    "evidence": "src/modules/quant/OptionPricerPanel.tsx:270-280, sidecar/models/quant.py:104-113, sidecar/services/quant/options.py:179-180, options.py:212-213",
+    "evidence_checked": "Opened all three layers; ran in-process.",
+    "repro_check": "options.price(binomial_steps=2) -> ValueError 'binomial steps must be at least 3, got 2' (router maps to 400)."
+  },
+  {
+    "raw_id": "COD-macro-quant-13",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Only the '$' labelling holds. The day-count half is wrong: RBI's G-Sec primer states Indian bonds use 30/360 (semi-annual coupons), which is what the engine computes (the US vs European 30/360 variants differ only on 31st-of-month edges), and the USDCurrency on the synthetic Ibor index does not affect bootstrapped values. Residual defect is a hard-coded dollar prefix on BondPricerPanel; low.",
+    "evidence": "sidecar/services/quant/bonds.py:28-80, sidecar/services/quant/yield_curve.py:77-86, src/modules/quant/BondPricerPanel.tsx:301, :323, :326; https://www.rbi.org.in/Scripts/FAQView.aspx?Id=79 ('Bond market: The day count convention followed is 30/360')",
+    "evidence_checked": "Opened bonds.py, yield_curve.py, BondPricerPanel grep; fetched RBI FAQ Id=79 via curl.",
+    "repro_check": "curl RBI FAQView.aspx?Id=79 | grep 'day count' -> 'Bond market: The day count convention followed is 30/360'; grep '\\$' BondPricerPanel.tsx -> lines 301/323/326."
+  },
+  {
+    "raw_id": "COD-macro-quant-14",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Holds and is easier to trigger than stated: useRetryOnSidecarReady(loadDefault,[provider,seriesId]) re-runs the 12-attempt backoff on every user change, and the picker's onProviderChange is bare setProvider, so merely clicking the World Bank/ECB/IMF tab reloads the CURRENT id (e.g. DGS10) against the new provider, fails, and retries ~50s. Corrected repro: picker rows always come from the active provider, so the stated 'select a FRED id on the WB tab' path is not the realistic one — the tab switch is.",
+    "evidence": "src/lib/use-sidecar-retry.ts:35-36, use-sidecar-retry.ts:40-46, use-sidecar-retry.ts:79-113, src/modules/macro/MacroPanel.tsx:27-52, MacroPanel.tsx:58, MacroPanel.tsx:69-81",
+    "evidence_checked": "Code-only (UI, no GUI allowed): opened hook and panel; the WB 502 for DGS10 confirmed via GET on :52152 in item 5.",
+    "repro_check": "Would run: vitest render MacroPanel with sidecarGet rejecting for provider=world-bank, click macro-provider-world-bank, advance fake timers 60s -> expect >1 /macro/DGS10?provider=world-bank calls. Not run."
+  },
+  {
+    "raw_id": "COD-macro-quant-15",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Duplication is real: compute_greeks rebuilds the same BSM process, payoff, exercise, AnalyticEuropeanEngine and five greeks + NPV as price_european_bs. Downgraded medium->low: ~20 identical lines with no present divergence; a maintainability smell, not a defect a user hits.",
+    "evidence": "sidecar/services/quant/greeks.py:21-57, sidecar/services/quant/options.py:49-88",
+    "evidence_checked": "Opened both functions side by side.",
+    "repro_check": "design; diff of greeks.py:32-51 vs options.py:60-80 shows identical construction."
+  }
+]

@@ -1,0 +1,3 @@
+CMD: pytest -v test_research_metering.py::test_research_guard_takes_its_ceilings_from_the_depth_profile (candidate sha 1006c6da694ede5776c3dabbd27b305aeb56b5ad, sidecar/tests)
+---MATCHED LINES---
+tests/test_research_metering.py::test_research_guard_takes_its_ceilings_from_the_depth_profile PASSED [ 21%]

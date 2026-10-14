@@ -1,0 +1,41 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_9250c4de8e004c448ff939d633987e02", "name": "price_data", "input": {"asset_class": "equity", "range": "1y", "symbol": "IBN", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_9250c4de8e004c448ff939d633987e02", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " fetched"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " IC"}
+{"kind": "delta", "text": "ICI"}
+{"kind": "delta", "text": " Bank"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " NY"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "DR"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "IB"}
+{"kind": "delta", "text": "N"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " contain"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " underlying"}
+{"kind": "delta", "text": " equity"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "DR"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources.\n\n"}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources."}
+{"kind": "done", "usage": {"input_tokens": 6498, "output_tokens": 81, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

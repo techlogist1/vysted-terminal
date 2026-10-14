@@ -1,0 +1,12 @@
+# R15-CROSS-PLATFORM-006 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:26+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+ls src/lib/safe-filename.ts; node --experimental-strip-types -e "import('./src/lib/safe-filename.ts').then(m=>{for (const s of ['NSE:RELIANCE','CON',':*?\"<>|','a:*?b']) console.log(JSON.stringify(s),'->',m.safeFilename(s))})" 2>&1 | grep -v ExperimentalWarning
+--- output ---
+src/lib/safe-filename.ts
+"NSE:RELIANCE" -> NSE_RELIANCE
+"CON" -> CON_
+":*?\"<>|" -> _______
+"a:*?b" -> a___b
+
+EXIT=0 (0.1s)

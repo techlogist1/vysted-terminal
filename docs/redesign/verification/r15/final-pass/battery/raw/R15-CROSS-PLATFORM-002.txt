@@ -1,0 +1,33 @@
+# R15-CROSS-PLATFORM-002 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:24+0530
+
+$ git merge-base --is-ancestor 6b70230 HEAD && echo 'closure 6b70230 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 6b70230 NOT an ancestor'
+[exit 0] [0.02s]
+closure 6b70230 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CROSS-PLATFORM-002\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+Binary file sidecar/tests/__pycache__/test_tests_encoding.cpython-313-pytest-9.0.3.pyc matches
+sidecar/tests/test_tests_encoding.py:1:"""R15-CROSS-PLATFORM-002: every text-mode file read/write in the test suite
+
+
+$ grep -n 'read_text(' sidecar/tests/test_search_extract.py sidecar/tests/test_nse_provider.py sidecar/tests/test_corporate_disclosures.py sidecar/tests/test_bse_provider.py | head -12
+[exit 0] [0.01s]
+sidecar/tests/test_search_extract.py:467:    payload = json.loads(fixture.read_text(encoding="utf-8"))
+sidecar/tests/test_nse_provider.py:27:_HISTORICAL = json.loads((_FIXTURES / "historical_or_cm_equity.json").read_text(encoding="utf-8"))
+sidecar/tests/test_nse_provider.py:29:    (_FIXTURES / "corporate_announcements.json").read_text(encoding="utf-8")
+sidecar/tests/test_nse_provider.py:31:_EVENTS = json.loads((_FIXTURES / "event_calendar.json").read_text(encoding="utf-8"))
+sidecar/tests/test_nse_provider.py:33:    (_FIXTURES / "corporate_share_holdings_master.json").read_text(encoding="utf-8")
+sidecar/tests/test_nse_provider.py:35:_ACCESS_DENIED = (_FIXTURES / "quote_equity_access_denied.html").read_text(encoding="utf-8")
+sidecar/tests/test_nse_provider.py:502:        (_FIXTURES / "announcements_sumax_sme_20260924.json").read_text(encoding="utf-8")
+sidecar/tests/test_nse_provider.py:518:        (_FIXTURES / "shareholding_master_qualiance_sme_20260924.json").read_text(encoding="utf-8")
+sidecar/tests/test_nse_provider.py:531:        (_FIXTURES / "historical_or_sumax_sm_20260924.json").read_text(encoding="utf-8")
+sidecar/tests/test_corporate_disclosures.py:35:    (_NSE_FIXTURES / "corporate_announcements.json").read_text(encoding="utf-8")
+sidecar/tests/test_corporate_disclosures.py:37:_NSE_EVENTS = json.loads((_NSE_FIXTURES / "event_calendar.json").read_text(encoding="utf-8"))
+sidecar/tests/test_corporate_disclosures.py:39:    (_NSE_FIXTURES / "corporate_share_holdings_master.json").read_text(encoding="utf-8")
+
+
+$ echo "read_text() without encoding: $(grep -n 'read_text()' sidecar/tests/test_search_extract.py sidecar/tests/test_nse_provider.py sidecar/tests/test_corporate_disclosures.py sidecar/tests/test_bse_provider.py | wc -l)"
+[exit 0] [0.01s]
+read_text() without encoding:        0
+

@@ -1,0 +1,34 @@
+# R15-AGENT-061 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:54:31+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C/sidecar"; grep -n "class ProviderError" -r services | head -2
+"$IP" - <<'PY' 2>&1 | grep -v -e Warning -e warnings.warn
+import asyncio, importlib
+from services.agent_tools import fundamentals as f
+from services import provider_registry as pr
+import services.provider_registry as m
+PE=None
+for mod in ("services.provider_errors","services.providers.base","services.provider_registry","services.errors"):
+    try:
+        PE=getattr(importlib.import_module(mod),"ProviderError"); break
+    except Exception: pass
+print("ProviderError from", PE.__module__)
+async def go():
+    for msg in ("Yahoo has no company record for 'KSE.NS'","yfinance returned a non-company (fund-id) record for '509470.BO'"):
+        async def boom(sym, *a, **k): raise PE(msg, kind="not_found")
+        pr.get_fundamentals=boom
+        r=await f._fetch_once("KSE.NS")
+        print("kind",r.kind,"| error",r.error,"| classify ->",f._classify_reason(r.error,r.kind))
+    print("network kind ->", f._classify_reason("boom","network"))
+asyncio.run(go())
+PY
+echo "\$ GET /fundamentals/KSE.NS"; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/fundamentals/KSE.NS" | head -c 300; echo
+--- output ---
+services/errors.py:34:class ProviderError(RuntimeError):
+ProviderError from services.errors
+kind not_found | error provider error: Yahoo has no company record for 'KSE.NS' | classify -> not_found
+kind not_found | error provider error: yfinance returned a non-company (fund-id) record for '509470.BO' | classify -> not_found
+network kind -> provider_error
+$ GET /fundamentals/KSE.NS
+{"symbol":"KSE.NS","name":"KSE Limited","sector":"Consumer Defensive","industry":"Packaged Foods","sector_source":"yfinance","currency":"INR","financial_currency":null,"ratio_price":176.94,"market_cap":5662080000.0,"pe_ratio":12.194348,"forward_pe":null,"peg_ratio":null,"price_to_book":1.6200478,"pr
+
+EXIT=0 (12.4s)

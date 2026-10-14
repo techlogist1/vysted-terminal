@@ -1,0 +1,20 @@
+=== ci_pinned: entry certified via vitest, not re-run per battery instructions (heavy lane owns vitest/pytest) ===
+=== src/store/settings.ts chartDefaults slice ===
+91:  chartDefaults: ChartDefaults;
+118:  chartDefaults: {
+152:    chartDefaults: {
+153:      ...DEFAULT_SETTINGS.chartDefaults,
+154:      indicators: [...DEFAULT_SETTINGS.chartDefaults.indicators],
+174:/** Parse a persisted/imported `chartDefaults` field; anything malformed (an
+238:      chartDefaults: {
+288:    const chartDefaults =
+289:      "chartDefaults" in bundle
+290:        ? parseChartDefaults(bundle.chartDefaults, current.chartDefaults)
+=== ChartPanel.test.ts test names ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/chart/ChartPanel.test.tsx
+224:  it("loads SPY at the 1d timeframe by default", async () => {
+269:  it("a saved chart default (already touched) never fetches the suggested set", async () => {
+278:  it("a fresh panel (no persisted view) opens on the settings chart default (R15-UI-048)", async () => {
+289:  it("a persisted per-panel view still wins over the settings default (R15-UI-020)", async () => {
+311:  it('"Make default" persists the current symbol/timeframe/indicators to settings', async () => {
+936:  it("opens on its persisted view and shows only that chart's drawings (R15-UI-020)", async () => {

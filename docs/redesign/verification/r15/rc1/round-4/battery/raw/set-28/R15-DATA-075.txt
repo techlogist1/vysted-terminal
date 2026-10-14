@@ -1,0 +1,4 @@
+COMMAND: python -c _fetch_bse_pdf() with AttachLive->404, AttachHis->200 stub
+EXIT: 0
+OUTPUT:
+calls=['https://www.bseindia.com/xml-data/corpfiling/AttachLive/abc123.pdf', 'https://www.bseindia.com/xml-data/corpfiling/AttachHis/abc123.pdf'] final_status=200 body_len=23

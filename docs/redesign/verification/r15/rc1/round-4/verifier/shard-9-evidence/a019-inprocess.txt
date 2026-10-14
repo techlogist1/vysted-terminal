@@ -1,0 +1,20 @@
+KEEP | Would you scrap my ITC position? | need portfolio_delete_position | intent read [] | n_tools 55
+KEEP | Could you drop WIPRO from my portfolio? | need portfolio_delete_position | intent read [] | n_tools 55
+KEEP | Can you bump my INFY quantity to 30? | need portfolio_update_position | intent read [] | n_tools 55
+KEEP | Can you log 10 TCS at 3400 in my portfolio? | need portfolio_add_position | intent edit ['\\blog\\b', '\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d'] | n_tools 55
+KEEP | Is it possible to add 10 SBIN at 800 to my portfolio? | need portfolio_add_position | intent edit ['\\badd\\b', '\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d'] | n_tools 55
+STRIP | Any chance you could get rid of my TCS position? | need portfolio_delete_position | intent read ['\\?\\s*$'] | n_tools 42
+STRIP | Mind noting that INFY cut its guidance? | need write_note | intent read ['\\?\\s*$'] | n_tools 42
+KEEP | Would it be possible to save this screen as defence picks? | need save_screen | intent edit ['\\bsave\\b', '\\bscreen\\b'] | n_tools 55
+KEEP | I sold all my WIPRO shares today. | need portfolio_delete_position | intent edit ['\\bsold\\b'] | n_tools 55
+KEEP | Should you add 20 ITC at 410 to my portfolio? | need portfolio_add_position | intent edit ['\\badd\\b', '\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d'] | n_tools 55
+KEEP | How about adding 15 HAL at 4200 to my portfolio? | need portfolio_add_position | intent edit ['\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d'] | n_tools 55
+STRIP | What if you noted that BEL order book is 75k cr? | need write_note | intent read ['\\?\\s*$'] | n_tools 42
+KEEP | Is there a way to filter the screener to P/E under 20? | need write_screener_filters | intent edit ['\\bfilters?\\b'] | n_tools 55
+KEEP | Why not save my layout as morning desk? | need save_layout | intent build ['\\blay ?out\\b'] | n_tools 55
+KEEP | Kindly remove HDFC Bank from my portfolio | need portfolio_delete_position | intent edit ['\\bremove\\b'] | n_tools 55
+KEEP | Record my purchase of 12 LT at 3600 | need portfolio_add_position | intent edit ['\\brecord\\b(?! (highs?|lows?)\\b)', '\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d'] | n_tools 55
+control STRIPS | Is RELIANCE up today?
+control STRIPS | How is my portfolio doing?
+control STRIPS | what is P/E?
+control STRIPS | Can you explain what a P/E ratio is?

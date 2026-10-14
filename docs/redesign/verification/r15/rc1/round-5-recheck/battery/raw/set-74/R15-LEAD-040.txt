@@ -1,0 +1,15 @@
+COMMAND: source check — grep _RESOLVE_POOL / resolve_async / autocomplete_async in sidecar/services/symbol_resolver.py; grep to_thread(symbol_resolver... across routers/ and agent_tools/
+EXIT: 0
+symbol_resolver.py:152 _LIVE_SEARCH_POOL(4 workers); :160 _RESOLVE_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix='resolver') — dedicated, not the shared default to_thread pool
+resolve_async (line 1036-1042) and autocomplete_async (1692-1698) both run on _RESOLVE_POOL via loop.run_in_executor, explicitly NOT the shared default to_thread executor (R15-LEAD-040 comment at both sites)
+grep 'to_thread(symbol_resolver' across routers/ + agent_tools/: 0 hits (no call site left on the shared pool)
+
+COMMAND: curl timing — idle /quotes/AAPL, then /quotes/AAPL fired immediately after launching 16 concurrent /resolve + /resolve/autocomplete calls (unique queries) against the candidate's own sidecar :52355
+NOTE: this sidecar's resolver_masters cache (bse/nse_instruments.json) was already warm (copied from the seed data dir, and my own earlier probes touched /quotes/AAPL), so this is a warm-cache concurrency check reproducing the batch-27 fresh-case MECHANISM (concurrent resolve calls vs an unrelated /quotes/AAPL timing), not a from-cold-boot repro of the original literal case.
+idle: 0.436s
+under 16-way resolve storm (1st sample): 0.358s
+under 16-way resolve storm (2nd sample, storm had already drained): 0.300s
+storm log:
+(empty = all 16 curls exited cleanly, no error output)
+
+No starvation observed: /quotes/AAPL timing under concurrent resolve load is in the same range as idle (0.30-0.44s), consistent with the dedicated _RESOLVE_POOL fix (no contention with the shared to_thread pool).

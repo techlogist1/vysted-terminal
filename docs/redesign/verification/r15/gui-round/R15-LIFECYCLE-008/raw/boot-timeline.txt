@@ -1,0 +1,7 @@
+37:2026-10-03T01:16:50.505Z [openbb-mcp] INFO:     Uvicorn running on http://127.0.0.1:63304 (Press CTRL+C to quit)
+39:2026-10-03T01:17:21.729Z [vysted] Python sidecar did not come up on port 63303
+48:2026-10-03T01:17:27.387Z [sidecar] 2026-10-03 06:47:27,387 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:63303 (Press CTRL+C to quit)
+193:2026-10-03T01:35:55.024Z [vysted] Python sidecar not up yet on port 64960 after attempt 1/2 (45s); cold PyInstaller extraction may be slow — retrying.
+224:2026-10-03T01:36:12.523Z [openbb-mcp] INFO:     Uvicorn running on http://127.0.0.1:64961 (Press CTRL+C to quit)
+226:2026-10-03T01:36:40.035Z [vysted] Python sidecar did not come up on port 64960
+235:2026-10-03T01:36:57.156Z [sidecar] 2026-10-03 07:06:57,156 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:64960 (Press CTRL+C to quit)

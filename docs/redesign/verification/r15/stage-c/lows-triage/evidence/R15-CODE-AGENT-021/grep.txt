@@ -1,0 +1,44 @@
+sidecar/routers/llm.py:52-65 (header)
+@router.get("/models")
+async def get_models(
+    provider: LLMProviderId,
+    base_url: str | None = None,
+    x_llm_key: str | None = Header(default=None, alias="X-LLM-Key"),
+) -> LLMModelCatalog:
+    """Return a provider's LIVE model catalog, with a registry fallback.
+
+    The BYOK key rides the ``X-LLM-Key`` header (read-only-plugin pattern: secret
+    in a header, never the body/query/log) so the OpenRouter path can narrow to
+    the caller's account-routable models. When the live fetch fails or returns
+    nothing, the registry ``known_models`` are served with ``source="fallback"``
+    so the picker is never empty. GET-only, never echoes the key.
+    """
+
+sidecar/models/llm.py:262-279 (body)
+
+    ``api_key`` is BYOK — read from the OS keychain on the frontend and passed
+    per request. The sidecar holds it in memory only for the lifetime of the
+    request; never persisted, never logged.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    provider: LLMProviderId
+    model: LLMModelId
+    messages: list[LLMMessage]
+    api_key: str | None = None
+    base_url: str | None = None
+    #: Provider-specific overrides (e.g. ``temperature``, ``max_tokens``).
+    options: dict[str, Any] = Field(default_factory=dict)
+
+
+class LLMKeyValidationRequest(BaseModel):
+
+sidecar/services/llm/base.py:7-11
+Keys are NEVER persisted on the adapter — they are passed in per call so the
+sidecar can hold them in memory only for the request lifecycle. The frontend
+keychain (``src/lib/keychain.ts``) reads the key from the OS keychain and
+attaches it to the request body; the router unwraps it and forwards into
+``stream_chat``.
+
+cmd: grep -n 'api_key\|X-LLM-Key\|x-llm-key' src/lib/sidecar-client.ts

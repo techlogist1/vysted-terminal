@@ -1,0 +1,8 @@
+# R15-DATA-051 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:28:15+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+for q in SMR CREST; do curl -s -m 60 "$H/resolve?q=$q" | python3 -c 'import sys,json;d=json.load(sys.stdin)["resolved"];print({k:d.get(k) for k in ("symbol","board","exchange_group","face_value")})'; done
+--- output ---
+{'symbol': 'SMR', 'board': 'SME', 'exchange_group': 'M', 'face_value': 10.0}
+{'symbol': 'CREST', 'board': 'mainboard', 'exchange_group': 'B', 'face_value': 10.0}
+
+EXIT=0 (0.1s)

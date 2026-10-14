@@ -1,0 +1,35 @@
+# R15-LEAD-029 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:34+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- test_nse_lookup_docstring_count_matches_india_al sidecar/tests/test_screener_india.py | head -3; test -f sidecar/tests/test_screener_india.py || echo 'MISSING sidecar/tests/test_screener_india.py'
+[exit 0] [0.01s]
+119:def test_nse_lookup_docstring_count_matches_india_all_length() -> None:
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-LEAD-029\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+Binary file sidecar/tests/__pycache__/test_screener_india.cpython-313-pytest-9.0.3.pyc matches
+sidecar/tests/test_screener_india.py:120:    """R15-LEAD-029: no docstring in the India universe module may carry a
+
+
+$ cd sidecar && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 -c "import re,inspect;from services import screener_universe_india as m;d=inspect.getsource(m._nse_lookup);print([l.strip() for l in d.splitlines() if '~' in l or 'india-all' in l][:3]);print('len india-all =',len(m.load_india_universe('india-all')))" 2>&1 | tail -5
+[exit 0] [0.16s]
+  File "<string>", line 1, in <module>
+    import re,inspect;from services import screener_universe_india as m;d=inspect.getsource(m._nse_lookup);print([l.strip() for l in d.splitlines() if '~' in l or 'india-all' in l][:3]);print('len india-all =',len(m.load_india_universe('india-all')))
+                                                                                                                                                                                                                  ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object of type 'ScreenerUniverse' has no len()
+['O(1). The boot seed calls it once per ``india-all`` symbol;', 'loop ~4 s at startup."""']
+
+
+$ (follow-up) sed -n 106,111p sidecar/services/screener_universe_india.py; grep -c '5,156' sidecar/services/screener_universe_india.py
+def _nse_lookup() -> dict[str, _NseRow]:
+    """``{SYMBOL: row}`` — hoisted so :func:`india_symbol_meta` is
+    O(1). The boot seed calls it once per ``india-all`` symbol;
+    rebuilding both master dicts per call was O(n²) and blocked the event
+    loop ~4 s at startup."""
+    return {row.symbol: row for row in _nse_rows()}
+count '5,156': 0

@@ -1,0 +1,21 @@
+# base 93ba12da with the batch-22 W1 tests copied in
+## tests/test_agent_runtime.py
+FAILED tests/test_agent_runtime.py::test_an_unclosed_block_at_the_end_of_the_stream_is_judged_whole[calls0-deltas0-The fundamentals tool returned no data for this in this turn.\n\n]
+FAILED tests/test_agent_runtime.py::test_an_unclosed_block_at_the_end_of_the_stream_is_judged_whole[calls1-deltas1-The fundamentals tool returned no data for this in this turn.\n\n]
+FAILED tests/test_agent_runtime.py::test_an_unclosed_block_at_the_end_of_the_stream_is_judged_whole[calls2-deltas2-The price_data tool returned no data for this in this turn.\n\n]
+FAILED tests/test_agent_runtime.py::test_an_unclosed_block_at_the_end_of_the_stream_is_judged_whole[calls3-deltas3-The fundamentals tool returned no data for this in this turn.\n]
+FAILED tests/test_agent_runtime.py::test_an_unclosed_block_at_the_end_of_the_stream_is_judged_whole[calls4-deltas4-TCS closed at \u20b93,235.50.\n\nThe quote tool returned no data for this in this turn.\n\n]
+FAILED tests/test_agent_runtime.py::test_an_unclosed_block_at_the_end_of_the_stream_is_judged_whole[calls5-deltas5-TCS closed at \u20b93,235.50.\n\nThe quote tool returned no data for this in this turn.\n]
+FAILED tests/test_agent_runtime.py::test_an_errored_subject_named_by_a_short_name_is_replaced[calls0-q?-deltas0-TCS.NS closed at \u20b93,235.50.-gone0]
+FAILED tests/test_agent_runtime.py::test_an_errored_subject_named_by_a_short_name_is_replaced[calls1-q?-deltas1-TCS.NS closed at \u20b93,235.50.-gone1]
+FAILED tests/test_agent_runtime.py::test_an_errored_subject_named_by_a_short_name_is_replaced[calls2-q?-deltas2-TCS.NS closed at \u20b93,235.50.-gone2]
+FAILED tests/test_agent_runtime.py::test_an_errored_subject_named_by_a_short_name_is_replaced[calls3-How are SBI, Airtel, TCS and L & T doing?-deltas3-- TCS: \u20b93,235.50\n-gone3]
+FAILED tests/test_agent_runtime.py::test_an_ungrounded_figure_on_no_ok_subject_fails_safe[calls1-deltas1-Infosys could not be refreshed.\n\nThe price_data tool returned no data for this in this turn.\n]
+FAILED tests/test_agent_runtime.py::test_an_ungrounded_figure_on_no_ok_subject_fails_safe[calls2-deltas2-TCS held firm.\n\nThe price_data tool returned no data for this in this turn.]
+FAILED tests/test_agent_runtime.py::test_an_ungrounded_figure_on_no_ok_subject_fails_safe[calls3-deltas3-The quote tool returned no data for this in this turn. TCS.NS closed at \u20b93,235.50.]
+FAILED tests/test_agent_runtime.py::test_an_ungrounded_figure_on_no_ok_subject_fails_safe[calls4-deltas4-The price_data tool returned no data for this in this turn.]
+14 failed, 254 passed in 1.53s
+## tests/test_figure_grounding.py
+E   AttributeError: module 'services.figure_grounding' has no attribute 'payload_names'. Did you mean: 'payload_numbers'?
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.20s

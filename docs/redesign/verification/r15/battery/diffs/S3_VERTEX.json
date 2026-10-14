@@ -1,0 +1,372 @@
+{
+  "slot": "S3",
+  "symbol": "VERTEX",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/S3_VERTEX.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/S3_VERTEX.json",
+  "diff_stage_run_at": "2026-09-23",
+  "diffed_by_model": "claude-sonnet-5",
+  "fresh_refetch_from_sidecar": "none - all diff rows use the 2026-09-19 collected snapshot as the app-side source of record",
+  "subtle_tier_covered": true,
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Vertex Securities Limited (fundamentals.name)",
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": "Vertex Securities Limited",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "http://www.vertexbroking.com/",
+      "status": "match"
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE316D01024 (resolve_bare_symbol)",
+      "app_as_of": "2026-09-19 (collected)",
+      "outside_value": "INE316D01024",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://in.investing.com/equities/vertex-securities-bo",
+      "status": "match"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "531950 (resolve)",
+      "app_as_of": "2026-09-19 (collected)",
+      "outside_value": "531950",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "match"
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": "not present / exchange=BSE only (resolve)",
+      "app_as_of": "2026-09-19 (collected)",
+      "outside_value": "null - does not exist",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "match",
+      "note": "App correctly shows no NSE listing for this BSE-only scrip."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Financial Services (fundamentals.sector)",
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": "Financial Services",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "match"
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Capital Markets (fundamentals.industry)",
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": "Stock broking / depository participant / merchant banking",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "definitional difference",
+      "note": "yfinance GICS-style taxonomy label vs Screener's descriptive industry text; pack itself records 4 different aggregator phrasings for this field."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 3.27,
+      "app_as_of": "2026-09-18T00:00:00Z",
+      "outside_value": 3.27,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "match"
+    },
+    {
+      "field": "price.last_close.date",
+      "app_value": "2026-09-18 (quote.timestamp)",
+      "app_as_of": "2026-09-18T00:00:00Z",
+      "outside_value": "2026-09-18",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "match"
+    },
+    {
+      "field": "market_cap",
+      "app_value": "INR 48.40 crore (484,039,744 / 1e7, fundamentals.market_cap)",
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": "INR 48.4 crore (best_supported)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price",
+      "status": "match",
+      "note": "App's absolute market cap correctly reconciles with the post-rights ~148.02M share count."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": "null (fundamentals.pe_ratio)",
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": "loss-making (correctly null, not a number)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "match",
+      "note": "App correctly avoids the T4 trap (does not render a negative PE for negative earnings)."
+    },
+    {
+      "field": "shares_outstanding",
+      "app_value": 74012189,
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": 148024378,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price",
+      "status": "mismatch",
+      "note": "App's own market_cap field (484,039,744) implies ~148.02M shares at price 3.27, i.e. the SAME fundamentals response uses two different share counts for two different fields."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 1.369,
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "mismatch",
+      "note": "No pack candidate equals 1.369 exactly, but it reconciles exactly to consolidated net worth (10.13cr, post-rights) divided by the STALE pre-rights share count (74,012,189) -- 10.13/0.74012189 = 1.369. Root cause: same stale shares_outstanding used above."
+    },
+    {
+      "field": "pb",
+      "app_value": 2.3886049,
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "mismatch",
+      "note": "price_to_book = 3.27/1.369 = 2.3886, downstream of the same stale share count; none of the pack's 4 candidates (4.43/4.78/3.48/2.19) is close enough to be the same figure by coincidence, but the mechanism is directly traceable within the app's own numbers."
+    },
+    {
+      "field": "roe",
+      "app_value": -21.57,
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": -22.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "match",
+      "note": "Within normal cross-source rounding (Screener -22.0%, Groww -23.35%)."
+    },
+    {
+      "field": "roce",
+      "app_value": "absent from /fundamentals schema entirely (no key)",
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": -13.4,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "app blank",
+      "note": "ROE and ROA are both present as fields; ROCE has no key at all in the response, standalone -13.4% / consolidated -12.04% both well corroborated outside."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": 0.514,
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": 0.59,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/vertex-securities-ltd",
+      "status": "definitional difference",
+      "note": "Pack's own T10 trap notes broker leverage ratios are computed inconsistently across sources (client-float items in 'other liabilities'); cannot confirm same numerator/denominator definition without opening app code."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": 7.136,
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": 7.136,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/quote/bom/531950/",
+      "status": "match",
+      "note": "Matches StockAnalysis/Investing.com TTM candidate exactly (71,361,000 INR = 7.136 crore)."
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": -2.3657,
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": -2.366,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/quote/bom/531950/",
+      "status": "match"
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": "-2.0% (fundamentals.revenue_growth, growth_basis='mrq_yoy')",
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack only has FY-over-FY (-21.86%, Screener) and TTM-over-TTM (-16.56%, StockAnalysis) bases sourced; it has consolidated quarterly sales (Jun-2026 1.88cr vs Jun-2025 1.99cr = -5.53%) but not the standalone quarterly series the app's mrq_yoy basis may be using, so the specific basis the app reports cannot be checked against outside truth."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": -0.25,
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "mismatch",
+      "note": "Does not equal any of the pack's 5 independently sourced candidates (-0.17/-0.16/-0.18/-0.0676/-0.32) under any combination of the two known net-income figures (-2.37cr/-2.54cr) and three known share counts (74.01M/92.5M/148.02M) traced in the pack; mechanism distinct from and additional to the shares_outstanding/book_value cluster above (that cluster's arithmetic does not reproduce -0.25 either)."
+    },
+    {
+      "field": "face_value",
+      "app_value": "not observed in collected calls (no field in fundamentals/quote)",
+      "app_as_of": null,
+      "outside_value": 2.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "no source truth",
+      "note": "No collected endpoint call returned a face-value field to diff."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": "null (fundamentals.dividend_per_share)",
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": 0.5,
+      "outside_as_of": "2026-09-18 (declared 2006-10-11)",
+      "outside_source_url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price",
+      "status": "no source truth",
+      "note": "Whether this field is meant to reach back to a single 2006 declaration (19 years stale) vs. only trailing/recent activity cannot be determined without reading the app's field semantics in code; not asserted as a mismatch."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": "null (fundamentals.dividend_per_share_ttm)",
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "app blank",
+      "note": "Pack's own world_gaps explicitly flags this exact trap: 'dividend_yield_is_genuinely_zero' - zero is a real, known value here, not a missing one."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": "null (fundamentals.dividend_yield)",
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "app blank",
+      "note": "Same null-vs-real-zero trap as paid_trailing_12m_per_share."
+    },
+    {
+      "field": "week52.low",
+      "app_value": 2.26,
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": 2.26,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "match",
+      "note": "Unanimous across all 5 outside sources."
+    },
+    {
+      "field": "week52.high",
+      "app_value": 4.96,
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "definitional difference",
+      "note": "App's 4.96 matches the UNADJUSTED-for-rights-issue camp (StockAnalysis, Investing.com) exactly; the ADJUSTED camp (Screener, Groww, INDmoney) shows 4.59. Both are legitimate answers to different questions (adjusted vs raw price history) per the pack's own T12 trap."
+    },
+    {
+      "field": "shareholding.promoter_pct (BSE XBRL, shareholding endpoint)",
+      "app_value": 36.43,
+      "app_as_of": "2026-07-21 (submission_date, quarter_end 2026-06-30)",
+      "outside_value": 36.44,
+      "outside_as_of": "2026-09-18 (Q1 FY27, quarter ended 2026-06-30)",
+      "outside_source_url": "https://www.screener.in/company/531950/consolidated/",
+      "status": "match",
+      "note": "0.01pp rounding, matches Groww/INDmoney's 36.43 exactly; pack itself notes this is not a real conflict."
+    },
+    {
+      "field": "shareholding.promoter_pct (fundamentals.held_percent_insiders)",
+      "app_value": 77.676004,
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": 36.44,
+      "outside_as_of": "2026-09-18 (Q1 FY27, quarter ended 2026-06-30)",
+      "outside_source_url": "https://www.screener.in/company/531950/consolidated/",
+      "status": "mismatch",
+      "note": "The SAME app, same collection run, reports promoter/insider holding as 36.43% via /disclosures/shareholding (BSE XBRL, correct) and 77.68% via /fundamentals (yfinance held_percent_insiders) -- an internal contradiction on the most gameable Indian small-cap metric, more than double the true figure, with no gap/caveat flag on the wrong field."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": "null (shareholding.patterns[0].fii_percent)",
+      "app_as_of": "2026-07-21 (submission_date, quarter_end 2026-06-30)",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack's own fii_pct is a low-confidence guess ('no FII row rendered', explicitly 'not confirmed against the filed BSE shareholding pattern') without a real source_url; app's null (from the actual BSE XBRL filing) is at least as credible as the pack's guess, so not filed as a mismatch."
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": "null (shareholding.patterns[0].dii_percent)",
+      "app_as_of": "2026-07-21 (submission_date, quarter_end 2026-06-30)",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/consolidated/",
+      "status": "app blank",
+      "note": "Pack records DII explicit 0.00% from Screener (higher confidence than the FII guess). The app's own shareholding record for the same quarter carries institutions_percent=0.0 (the aggregate), confirming the true DII figure is a known, computable zero, yet the granular dii_percent field is left null."
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": 63.57,
+      "app_as_of": "2026-07-21 (submission_date, quarter_end 2026-06-30)",
+      "outside_value": 63.57,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/531950/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": "not present in schema",
+      "app_as_of": "2026-07-21 (submission_date, quarter_end 2026-06-30)",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack explicitly records this as world_gaps.pledge_unreached -- genuinely unknown, not zero, from any source it reached."
+    },
+    {
+      "field": "shareholding.as_of_quarter",
+      "app_value": "2026-06-30 (Q1 FY27), submission_date 2026-07-21",
+      "app_as_of": "2026-07-21 (submission_date, quarter_end 2026-06-30)",
+      "outside_value": "2026-06-30 (Q1 FY27, latest filed quarter)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "corporate_actions_2026 (rights issue)",
+      "app_value": "not observed in any collected call (no dedicated corporate-actions endpoint collected; last 5 announcements, 2026-08-29 to 2026-09-16, do not reach back to the Mar-2026 rights issue)",
+      "app_as_of": null,
+      "outside_value": "1:1 rights issue at INR 2.00, allotted across 2026-03-31",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/vertex-securities-ltd",
+      "status": "no source truth",
+      "note": "No collected call tests a dedicated corporate-actions surface, so absence cannot be confirmed as a defect rather than an untested surface."
+    },
+    {
+      "field": "latest_results (disclosures/results)",
+      "app_value": "HTTP 502: \"nse_direct: 'VERTEX' is not a known NSE instrument\"",
+      "app_as_of": "2026-09-19 (collected)",
+      "outside_value": "Q1 FY27 (qtr ended 2026-06-30): consolidated sales 1.88cr, net profit -0.40cr",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/consolidated/",
+      "status": "app blank",
+      "note": "The results-calendar route appears to require/default to an NSE lookup and fails outright for this BSE-only scrip instead of falling back to BSE or degrading gracefully; the world has the data (Screener, both standalone and consolidated)."
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "5 BSE announcements 2026-08-29 to 2026-09-16, dates+headlines match",
+      "app_as_of": "2026-09-19 (collected)",
+      "outside_value": "3 most recent: 2026-09-16 investor-meet intimation, 2026-09-05 AGM newspaper publication, 2026-09-03 annual report",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/531950/",
+      "status": "match"
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": "fundamentals endpoint does not label which basis (consolidated/standalone) its numbers use",
+      "app_as_of": "2026-09-19T10:01:57+00:00",
+      "outside_value": "MATERIAL - differs on every headline line (revenue, profit, EPS, book value, P/B, ROCE)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/531950/consolidated/",
+      "status": "no source truth",
+      "note": "Not a value diff; recorded as context. Whether the app's /fundamentals values are standalone-basis, consolidated-basis, or a yfinance-specific third basis is unclear without reading provider code, so not asserted as a mismatch on its own -- feeds interpretation of the rows above instead."
+    }
+  ]
+}

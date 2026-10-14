@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_aed81e5d655c4c81aa46348c2ecec4a9", "name": "get_terminal_state", "input": {}}
+[  29.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_6a9bca181fcc4417a2f1125be07c3133", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "ZOMATO.NS", "timeframe": "1d"}}
+[  36.0s] done: {"kind": "done", "usage": {"input_tokens": 2821, "output_tokens": 62, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+We can't retrieve the current price of Zomato. Our provider is missing it for this name.
+
+However, you can try checking the latest news or market updates to see if there's any information available about Zomato's performance today. Would you like me to open the news panel for you?
+
+=== ok · 36.0s · events {'heartbeat': 2, 'tool_use': 2, 'delta': 61, 'done': 1} · usage in=2821 out=62 · est $0.00000 · llama3.1:8b

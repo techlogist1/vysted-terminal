@@ -1,0 +1,16 @@
+# R15-UI-008 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:30:15+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+for p in openrouter gemini xai; do k=sk-or-v1-<redacted-synthetic-test-key>; [ $p = gemini ] && k=<redacted-synthetic-test-key>; echo "== $p"; curl -s -m 60 -X POST "$H/llm/keys/validate" -H 'Content-Type: application/json' -d "{\"provider\":\"$p\",\"api_key\":\"$k\"}"; echo; done
+echo '== direct openrouter comparison (fake bearer)'; curl -s -o /dev/null -w 'models %{http_code}\n' -H 'Authorization: Bearer sk-or-v1-fake' https://openrouter.ai/api/v1/models; curl -s -o /dev/null -w 'key %{http_code}\n' -H 'Authorization: Bearer sk-or-v1-fake' https://openrouter.ai/api/v1/key
+--- output ---
+== openrouter
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+== gemini
+{"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+== xai
+{"ok":false,"reason":"invalid","detail":"xAI rejected this key."}
+== direct openrouter comparison (fake bearer)
+models 200
+key 401
+
+EXIT=0 (2.1s)

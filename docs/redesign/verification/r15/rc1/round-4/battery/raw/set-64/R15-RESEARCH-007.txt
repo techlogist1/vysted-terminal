@@ -1,0 +1,7 @@
+https://medium.com/investor-diary/why-i-bought-xyz -> 3 GENERAL
+https://someblog.wordpress.com/ir/2024/hot-tip -> 3 GENERAL
+https://reuters.com/markets/x -> 2 PRESS
+https://reuters.com/markets/investors-rush -> 2 PRESS
+https://ir.somecompany.com/press-release -> 1 PRIMARY
+https://investors.com/news/story -> 3 GENERAL
+rank_sources([Medium, Reuters]) -> ['Reuters piece', 'Medium piece']

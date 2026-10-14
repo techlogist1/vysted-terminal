@@ -1,0 +1,26 @@
+{
+ "tag": "merge-S2-delta2",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_merge.md in full — including the 23 Sep register-bundler note appended under REFUTE-RAW — before touching anything. New intent-spec-135 raw/verdict rows landed AFTER merge-S2-delta closed these clusters' merge files; `python3 scripts/r15/register.py bundle` was re-run and diffed against a pre-run snapshot to isolate exactly which raw ids are new per cluster (listed per item below). This is a second DELTA pass, not a redo: every cluster's census/merge/<cluster>.json already has entries for all pre-existing raw ids (including the merge-S2-delta batch) — do not touch those.",
+ "stages": [
+  {
+   "label": "merge",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Cluster {{id}}: CONTINUE from the existing census/merge/{{id}}.json — add entries (or attach as a duplicate raw id to an existing entry, or a one-line rejection) ONLY for these new raw ids: {{new_raw_ids}}; never rewrite existing entries; keep severity order; follow PROMPT_merge.md MERGE. Return RESULT with count = new entries."
+  }
+ ],
+ "items": [
+  {
+   "id": "agent",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/agent.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/agent.json",
+   "new_raw_ids": "INT-spec-135-156, INT-spec-135-162, INT-spec-135-164"
+  },
+  {
+   "id": "ui",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/ui.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/ui.json",
+   "new_raw_ids": "INT-spec-135-154, INT-spec-135-158, INT-spec-135-168, INT-spec-135-173, INT-spec-135-174"
+  }
+ ]
+}

@@ -1,0 +1,2 @@
+{"id":"custom:battery9test","name":"battery9-test-agent","philosophy":"test","system_prompt":"test","tools":["research","web_search","price_data"],"default_provider":"openrouter","default_model":null,"icon":null,"created_at":1790457646,"updated_at":1790457646}
+HTTP_STATUS:201

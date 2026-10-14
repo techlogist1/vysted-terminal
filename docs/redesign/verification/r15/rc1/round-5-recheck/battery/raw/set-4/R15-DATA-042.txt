@@ -1,0 +1,5 @@
+CMD: node --experimental-strip-types wrapper reproducing PortfolioPanel.tsx handleExport's exact column mapping (buildCsv logic copied verbatim from src/lib/csv.ts, since that module's own top-level import pulls in Tauri APIs unavailable under plain node) over buildPortfolioSummary(RELIANCE.NS+AAPL, live :52350 quotes)
+Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note
+RELIANCE.NS,10,1200,equity,INR,1226,12260,260,2.166666666666667,,
+AAPL,5,300,equity,USD,341.07000732421875,1705.3500366210938,205.35003662109375,13.690002441406248,,
+EXIT: 0

@@ -1,0 +1,8 @@
+[   1.4s] error: {"kind": "error", "message": "Could not reach OpenRouter \u2014 check your network.", "action": "Check your internet connection and try again.", "detail": "Connection error.", "code": "network"}
+[   1.4s] done: {"kind": "done", "usage": null, "finish_reason": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 1.4s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · inclusionai/ling-3.0-flash-vl:free
+exit=0

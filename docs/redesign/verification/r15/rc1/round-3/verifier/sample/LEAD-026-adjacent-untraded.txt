@@ -1,0 +1,10 @@
+# Adjacent to R15-LEAD-026: a valid but untraded-in-range scrip also answers an empty series with reason null
+# sidecar :52312 from candidate worktree HEAD 5ff9be041180c1c316ad48ceb120a23549a7575a (data dir seeded settings.region=IN)
+## curl -s 'http://127.0.0.1:52312/history/DAL.BO?timeframe=1d'
+{'symbol': 'DAL.BO', 'timeframe': '1d', 'bars': 0, 'provider': 'none', 'reason': None, 'partial': False, 'coverage_start': None}
+## sidecar log (verifier/sidecar-52312.log 23:26:45)
+provider bse failed for ohlcv: bse: no EOD data for 'DAL'
+provider yfinance failed for ohlcv: correctness gate: empty series for 'DAL.BO' from 'yfinance'
+## truth, yfinance direct (candidate venv): DAL.BO 1y = 252 bars, 0 traded (all forward-filled, dropped by R15-DATA-016 design); 5y = 1239 bars, 33 traded, last trade 2023-12-07
+## control: /history/IBM 251 bars yfinance; /history/KO 251 bars yfinance; /history/JUMBO.BO 256 bars bse
+## reading: the empty series is correct; the missing typed reason ('no trades in range') is the LEAD-026/DATA-064 empty-reason class, severity low.

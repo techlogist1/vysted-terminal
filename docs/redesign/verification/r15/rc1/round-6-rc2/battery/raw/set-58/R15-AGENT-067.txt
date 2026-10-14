@@ -1,0 +1,29 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: in-process MCP projection rule (explicit per-entry exclusion set) + live MCP list_tools
+mcp tool count 31
+run_custom_backtest on MCP surface: False
+backtest_summary on MCP surface: False
+broker_portfolio on MCP surface: False
+all MCP-projected read_only: True
+run_custom_backtest.read_only = True
+ToolKind members: ('read_handler', 'per_invocation', 'host_action')
+mcp-projected non-read_handler kinds: {'read_handler'}
+live MCP tools 39
+run_custom_backtest listed: False | backtest_summary listed: False
+pinned test: 172:def test_mcp_projection_is_explicit_per_entry() -> None:
+# MCP projection rule (FR-020/022, R15-AGENT-083): the external MCP surface is
+# READ-ONLY in 0.9. Every handler-backed read capability is exposed — EXCEPT
+# those bound to local-only context: a backtest run_id lives only in this
+# session, so neither its reader (backtest_summary) nor its writer
+# (run_custom_backtest, which caches the run and would otherwise advertise
+# readOnlyHint=true, R15-AGENT-066) is projected. Per-invocation reads are
+# request-scoped and host actions mutate the cockpit behind the in-app
+# proposed-changes gate, so neither is projected. Exposing writes through a
+# host-side queue is a future operator decision. The exposed set is pinned by
+# name in test_mcp_catalog_parity, so each new read_handler is an explicit
+# expose-or-exclude decision (R15-AGENT-067).
+_MCP_INTERNAL_ONLY: frozenset[str] = frozenset({"backtest_summary", "run_custom_backtest"})
+
+
+def _cap(id: str, **fields: Any) -> tuple[str, Capability]:
+EXIT=0

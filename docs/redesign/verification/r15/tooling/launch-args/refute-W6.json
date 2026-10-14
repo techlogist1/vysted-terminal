@@ -1,0 +1,44 @@
+{
+ "tag": "refute-W6",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_refute.md in full before touching anything. Your raw file and output file are given per-item below; if the output file already exists, verify it and finish it, never restart.",
+ "stages": [
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Raw file: {{raw_file}} ({{count}} findings). Output: {{out_file}}. Follow PROMPT_refute.md exactly; return the RESULT object."
+  }
+ ],
+ "items": [
+  {
+   "id": "intent-deferred-0",
+   "raw_file": "docs/redesign/verification/r15/census/raw/intent-deferred-0.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/intent-deferred-0.json",
+   "count": 1
+  },
+  {
+   "id": "code-error-layer",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-error-layer.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-error-layer.json",
+   "count": 15
+  },
+  {
+   "id": "intent-pdd-readme-0",
+   "raw_file": "docs/redesign/verification/r15/census/raw/intent-pdd-readme-0.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/intent-pdd-readme-0.json",
+   "count": 3
+  },
+  {
+   "id": "intent-spec-180",
+   "raw_file": "docs/redesign/verification/r15/census/raw/intent-spec-180.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/intent-spec-180.json",
+   "count": 0
+  },
+  {
+   "id": "seat-us",
+   "raw_file": "docs/redesign/verification/r15/census/raw/seat-us.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/seat-us.json",
+   "count": 1
+  }
+ ]
+}

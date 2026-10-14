@@ -1,0 +1,30 @@
+{
+  "query": "",
+  "symbol": "ROUTE.NS",
+  "mode": "FAST",
+  "depth": "quick",
+  "markdown": "# Route Mobile (ROUTE) \u2014 Q4 FY26 Results from Exchange Filings\n\n**Board Meeting: May 7, 2026** | Period ended March 31, 2026\n\n---\n\n## Key Financials \u2014 Q4 FY26\n\n| Metric | Value |\n|--------|-------|\n| **Revenue from operations** | **\u20b91,130.9 crore** (\u20b911,309 Mn) [1] |\n| **Net profit (PAT)** | **\u20b9114.43 crore** [2] |\n| **YoY PAT growth** | **+89.8%** [2] |\n| **Revenue change** | +2.2% QoQ, \u22123.8% YoY [1] |\n| **Final Dividend recommended** | **\u20b92.00 per equity share** [3] |\n\n## Dividend Details\n\nThe Board **recommended a Final Dividend of \u20b92 per equity share** for FY26 at its meeting on May 7, 2026 [3]. This is subject to shareholder approval. Total dividend per share for FY26 stands at **\u20b912.00** (including the interim dividends paid earlier), implying a dividend yield of **~2.3%** at the current price of \u20b9518 [4].\n\n## FY26 Full Year (TTM)\n\n| Metric | Value |\n|--------|-------|\n| **Revenue (TTM)** | \u20b94,408 crore |\n| **Net Income (TTM)** | \u20b9239 crore |\n| **EPS (TTM)** | \u20b937.95 |\n| **P/E (ttm)** | 13.7\u00d7 |\n| **Book Value** | \u20b9440/share |\n| **P/B** | 1.18\u00d7 |\n| **ROE** | 9.7% |\n| **Debt/Equity** | 0.015 (near debt-free) |\n| **Operating Margin** | 10.0% |\n| **Profit Margin** | 5.4% |\n| **Free Cash Flow** | \u20b9662 crore |\n\nSource: Exchange filings (NSE/BSE) + reported financials [1][2][3][4]\n\n## Key Takeaways\n\n1. **Revenue** came in at \u20b91,130.9 crore for Q4 \u2014 modest QoQ growth (+2.2%) but a slight YoY decline (\u22123.8%) [1].\n2. **PAT surged ~90% YoY** to \u20b9114.4 crore, suggesting strong operating leverage / cost discipline [2].\n3. **Final Dividend of \u20b92/share** recommended (subject to AGM approval), taking the full-year payout to \u20b912 DPS [3].\n4. The company carries **near-zero debt** (D/E 0.015) with strong FCF of \u20b9662 crore \u2014 solid financial position [4].\n5. Trading at **P/E of 13.7\u00d7** with ROE of ~9.7% \u2014 valuation looks reasonable for a cash-generative CPaaS player [4].\n\n---\n\n**Sources**\n[1] BSE filing \u2014 Outcome of Board Meeting & Financial Results, May 8, 2026\n[2] Financial blog \u2014 Q4 FY26 PAT & analyst outlook\n[3] NSE filing \u2014 Final Dividend recommendation of \u20b92/share, May 7, 2026\n[4] Fundamentals TTM data via terminal\n",
+  "sources": [
+    {
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/654c6bef-ba9d-49cc-a2d4-24534844ceb5.pdf",
+      "title": "Route Mobile \u2014 BSE Outcome of Board Meeting & Financial Results (Q4 FY26)",
+      "excerpt": "",
+      "domain": "bseindia.com"
+    },
+    {
+      "url": "https://univest.in/blogs/route-mobile-q4-results-2026",
+      "title": "ROUTE MOBILE Q4 Results 2026: Date, Revenue, PAT",
+      "excerpt": "",
+      "domain": "univest.in"
+    },
+    {
+      "url": "https://nsearchives.nseindia.com/corporate/ROUTE_07052026224204_Outcome07052026signed.pdf",
+      "title": "NSE filing \u2014 Final Dividend recommendation of Rs. 2/share",
+      "excerpt": "",
+      "domain": "nseindia.com"
+    }
+  ],
+  "sourceCount": 3,
+  "webAvailable": true,
+  "createdAt": 1781108789728
+}

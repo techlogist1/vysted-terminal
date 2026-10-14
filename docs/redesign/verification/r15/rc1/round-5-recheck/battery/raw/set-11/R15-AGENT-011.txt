@@ -1,0 +1,38 @@
+CMD: grep run-id hydration in src/store/backtest.ts + tool description claim + GET /backtest/runs route
+10: * - ``runs[runId]`` — every backtest the user has kicked off this
+55:  runId: string;
+95:   * from `GET /backtest/runs/{runId}` as a complete run and make it active.
+98:  loadRun: (runId: string) => Promise<void>;
+101:  setActiveRunId: (runId: string | null) => void;
+148:          runId: tempId,
+170:        const realId = event.runId;
+183:                runId: realId,
+197:          const slot = state.runs[event.runId] ?? state.runs[resolvedRunId];
+201:          const id = slot.runId;
+216:          const slot = state.runs[event.runId] ?? state.runs[resolvedRunId];
+220:          const id = slot.runId;
+235:          const slot = state.runs[event.runId] ?? state.runs[resolvedRunId];
+239:          const id = slot.runId;
+259:          const slot = state.runs[event.runId] ?? state.runs[resolvedRunId];
+263:          const id = slot.runId;
+331:  loadRun: async (runId) => {
+332:    const result = await sidecarGet<BacktestResult>(`/backtest/runs/${encodeURIComponent(runId)}`);
+336:        [runId]: {
+337:          runId,
+349:      activeRunId: runId,
+353:  setActiveRunId: (runId) => set({ activeRunId: runId }),
+---catalog claim---
+sidecar/services/agent_tools/catalog.py:1119:                "the full result renders in the backtest panel and resolves via "
+---route exists---
+8:  - ``GET  /backtest/runs``        — list cached run ids
+9:  - ``GET  /backtest/runs/{run_id}`` — load cached BacktestResult
+184:@router.get("/runs/{run_id}")
+---loadRun callers---
+src/lib/host-actions.ts:2059:      await useBacktestStore.getState().loadRun(intent.runId);
+CMD: (1) in-process run_custom_backtest via candidate venv, (2) GET /backtest/runs/{run_id} against my sidecar :52345
+--- (1) tool call output (in-process) ---
+{"ok": true, "indicators": ["rsi(14)", "sma(20)", "sma(50)"], "requiredBars": 50, "runId": "b1435999-9a62-49c6-bfb6-3054ae1b643d", "strategyId": "custom", "strategyParams": {"entry": "sma(20) > sma(50)", "exit": "rsi(14) > 70", "position_size": 100}, "symbols": ["AAPL"], "startDate": "2025-01-01", "endDate": "2025-12-01", "metrics": {"totalReturn": 0.0821180694274904, "annualizedReturn": 0.091853017047274, "sharpe": 2.437341860965208, "sortino": 4.581422578806737, "calmar": 7.482014838786343, "maxDrawdownPct": -0.012276508270354283, "winRate": 0.8181818181818182, "tradeCount": 11, "bestTradePnl": 2815.396679687501, "worstTradePnl": -101.23681640624511}, "warnings": null, "recentTrades": [{"id": "790418a4-d72f-48cd-b711-15d2e3984dec", "symbol": "AAPL", "side": "buy", "enteredAt": "2025-06-05", "exitedAt": "2025-08-08", "entryPrice": 199.86465827941893, "exitPrice": 228.01862507629394, "quantity": 100.0, "pnl": 2815.396679687501, "closeReason": "exit: rsi(14) > 70"}, {"id": "675cf0a3-ac94-45c1-a044-e3f7b6ca4f4c", "symbol": "AAPL", "side": "buy", "enteredAt": "2025-08-11", "exitedAt": "2025-08-12", "entryPrice": 226.57023121643064, "exitPrice": 228.57597427368165, "quantity": 100.0, "pnl": 200.574305725101, "closeReason": "exit: rsi(14) > 70"}, {"id": "d96e7808-91d2-47f4-8b68-0d1c1f6dee15", "symbol": "AAPL", "side": "buy", "enteredAt": "2025-08-13", "exitedAt": "2025-08-14", "entryPrice": 232.70372369384762, "exitPrice": 231.69135552978517, "quantity": 100.0, "pnl": -101.2368164
+RUN_ID: b1435999-9a62-49c6-bfb6-3054ae1b643d
+
+--- (2) GET /backtest/runs/b1435999-9a62-49c6-bfb6-3054ae1b643d against my own sidecar (run stored in different data dir/process; expect 404 since it's a separate DB) ---
+HTTP_STATUS:200

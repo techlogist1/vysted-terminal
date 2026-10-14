@@ -1,0 +1,26 @@
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+probe: pinned-test citation (no vitest/pytest suite execution per harness rule)
+
+=== sidecar/tests/test_code_node.py ===
+1:"""transform.code — the server evaluator is canonical (R15-CODE-PLATFORM-017).
+29:    def test_round_half_away_from_zero_not_bankers_rounding(self) -> None:
+34:    def test_round_with_decimals(self) -> None:
+37:    def test_caret_is_power_not_bitwise_xor(self) -> None:
+40:    def test_caret_binds_tighter_than_addition_like_mathjs(self) -> None:
+46:    def test_ternary(self) -> None:
+52:    def test_ternary_with_parenthesized_condition(self) -> None:
+55:    def test_ternary_inside_a_call_is_not_split_early(self) -> None:
+61:    def test_expression_with_no_ternary_is_unchanged(self) -> None:
+67:    (R15-CODE-PLATFORM-017) — pin the 3 cases where the retired mathjs
+71:    def test_unregistered_function_is_disallowed_syntax_not_a_value(self) -> None:
+77:    def test_round_two_decimals_float_precision_matches_server(self) -> None:
+83:    def test_nested_ternary_without_grouping_parens_is_a_parse_error(self) -> None:
+95:    def test_basic_arithmetic(self) -> None:
+98:    def test_dict_member_access(self) -> None:
+101:    def test_undefined_symbol_errors(self) -> None:
+105:    def test_disallowed_syntax_errors(self) -> None:
+109:    def test_missing_expression_errors(self) -> None:
+
+=== src/modules/node-editor/code-node-run.test.ts ===
+33:describe("validateWorkflow (R15-CODE-PLATFORM-017)", () => {
+

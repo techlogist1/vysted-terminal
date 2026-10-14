@@ -1,0 +1,6 @@
+# R15-DATA-057 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:19:20+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/resolve?q=Dhanalakshmi+Bank'
+[exit 0] [0.55s]
+{"ok":true,"query":"Dhanalakshmi Bank","region":"IN","resolved":null,"needs_disambiguation":true,"candidates":[{"symbol":"DHANBANK","name":"Dhanlaxmi Bank Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"DHANBANK.NS","confidence":0.792,"isin":"INE680A01011","bse_code":"532180","industry":"Banks - Regional","former_name":"The Dhanalakshmi Bank Limited","board":"mainboard","exchange_group":"B","face_value":10.0},{"symbol":"CANBK","name":"Canara Bank","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"CANBK.NS","confidence":0.6429,"isin":"INE476A01022","bse_code":"532483","industry":"Financial Services / Public Sector Bank","former_name":null,"board":"mainboard","exchange_group":"A","face_value":2.0}],"rename_lane":"available"}
+[http 200 0.531016s]

@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+The ADS-to-share conversion ratio for Wipro (WIT) is 1:1, and the company's latest annual revenue in USD was ₹94,968 cr.
+
+=== ok · 56.6s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 35, 'done': 1} · usage in=5846 out=36 · est $0.00000 · llama3.1:8b

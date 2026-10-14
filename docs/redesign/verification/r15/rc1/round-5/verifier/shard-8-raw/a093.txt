@@ -1,0 +1,23 @@
+repro option_chain | {'symbol': ('NIFTY', 'str'), 'max_strikes': (5, 'int')}
+repro sec_filings_list | {'symbol': ('AAPL', 'str'), 'limit': (10, 'int')}
+repro sec_insider | {'symbol': ('AAPL', 'str'), 'limit': (100, 'int')}
+repro corporate_announcements | {'symbol': ('TCS', 'str'), 'limit': (10, 'int')}
+fresh price_option numbers | INVALID: invalid arguments for price_option: 'exercise' is a required property; call again with valid args
+fresh price_bond enum int | INVALID: invalid arguments for price_bond: 'issue_date' is a required property; call again with valid args
+fresh walk_forward '3.0' | INVALID: invalid arguments for run_custom_backtest: 'entry' is a required property; call again with valid args
+fresh boolean publish_brief | INVALID: invalid arguments for publish_brief: missing markdown — ask the user for it; do not guess
+fresh negative number | INVALID: invalid arguments for compute_greeks: 'payoff' is a required property; call again with valid args
+fresh padded ' 25 ' | {'symbol': ('AAPL', 'str'), 'limit': (25, 'int')}
+fresh exp form '1e2' | INVALID: invalid arguments for screener_run: 'universe' is a required property; call again with valid args
+fresh stringified instruments | INVALID: invalid arguments for yield_curve_value: 'valuation_date' is a required property; call again with valid args
+neg control 'ten' | INVALID: invalid arguments for earnings_upcoming: 'ten' is not of type 'integer'; call again with valid args
+neg control '7.5' int | INVALID: invalid arguments for earnings_upcoming: '7.5' is not of type 'integer'; call again with valid args
+neg control 'NaN' | INVALID: invalid arguments for price_option: 'exercise' is a required property; call again with valid args
+fresh price_option numbers | {'spot': (185.5, 'float'), 'strike': (190, 'int'), 'risk_free_rate': (0.05, 'float'), 'dividend_yield': (0, 'int'), 'volatility': (0.25, 'float'), 'monte_carlo_paths': (10000, 'int')} | non-required errors: []
+fresh price_bond enum int | {'face_value': (1000, 'int'), 'coupon_rate': (0.07, 'float'), 'coupons_per_year': (2, 'int'), 'yield_to_maturity': (0.065, 'float')} | non-required errors: []
+fresh walk_forward '3.0' | {'walk_forward_slices': (3, 'int'), 'initial_capital': (100000, 'int')} | non-required errors: []
+fresh boolean publish_brief | {'web_available': (True, 'bool')} | non-required errors: []
+fresh negative number | {'spot': (100, 'int'), 'strike': (95, 'int'), 'risk_free_rate': (-0.005, 'float'), 'volatility': (0.3, 'float')} | non-required errors: []
+fresh exp form '1e2' | {'limit': (100, 'int')} | non-required errors: []
+fresh stringified instruments | {'instruments': ([{'tenor': 2, 'rate': 0.041}, {'tenor': 10, 'rate': 0.045}], 'list'), 'sample_count': (50, 'int')} | non-required errors: []
+neg control 'NaN' | {'spot': ('NaN', 'str')} | non-required errors: ["'NaN' is not of type 'number'"]

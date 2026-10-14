@@ -1,0 +1,10 @@
+import asyncio, os, json
+os.environ["VYSTED_SIDECAR_INTERNAL_BASE_URL"]="http://127.0.0.1:52608"
+from fastmcp import Client
+from services import mcp_server
+async def main():
+    async with Client(mcp_server._build_server()) as c:
+        for name,args in [("list_workspaces",{}),("get_workspace",{"workspace_id":"vshard8-ws"}),("get_workspace",{"workspace_id":"Desk 2 (vshard8)"}),("get_workspace",{"workspace_id":"missing-xyz"})]:
+            r=await c.call_tool(name,args,raise_on_error=False)
+            print(name,args,"is_error=",r.is_error,json.dumps(r.structured_content)[:300])
+asyncio.run(main())

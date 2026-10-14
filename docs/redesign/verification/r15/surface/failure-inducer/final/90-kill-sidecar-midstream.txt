@@ -1,0 +1,4 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+=== ASSISTANT TEXT ===
+

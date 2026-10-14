@@ -1,0 +1,20 @@
+HU openai RateLimitError -> {'code': 'insufficient_credit', 'message': 'Your OpenAI account is out of credit or quota.', 'action': 'Add credit or check your plan, or switch provider in Settings.'}
+HU openai BadRequestError -> {'code': 'context_overflow', 'message': 'The conversation is too long for this OpenAI model.', 'action': 'Start a new chat or pick a model with a larger context window.'}
+HU groq APIStatusError -> {'code': 'context_overflow', 'message': 'The conversation is too long for this Groq model.', 'action': 'Start a new chat or pick a model with a larger context window.'}
+HU ollama ConnectError -> {'code': 'ollama_not_running', 'message': 'Ollama is not running.', 'action': 'Start Ollama (open the app or run `ollama serve`), then try again.'}
+HU ollama ReadTimeout -> {'code': 'ollama_not_running', 'message': 'Ollama is not responding.', 'action': 'Make sure Ollama is running (`ollama serve`), then try again.'}
+HU xai BadRequestError -> {'code': 'auth', 'message': 'The xAI API key was rejected — check it in Settings.', 'action': 'Re-enter the API key in Settings.'}
+HU xai PermissionDeniedError -> {'code': 'insufficient_credit', 'message': 'Your xAI account is out of credit or quota.', 'action': 'Add credit or check your plan, or switch provider in Settings.'}
+HU openrouter NotFoundError -> {'code': 'model_not_found', 'message': 'The requested model is not available on OpenRouter — pick another model.', 'action': 'Choose a different model in Settings.'}
+HU groq BadRequestError -> {'code': 'model_not_found', 'message': 'The requested model is not available on Groq — pick another model.', 'action': 'Choose a different model in Settings.'}
+HU gemini -> {'code': 'auth', 'message': 'The Google Gemini API key was rejected — check it in Settings.', 'action': 'Re-enter the API key in Settings.'}
+HU gemini -> {'code': 'context_overflow', 'message': 'The conversation is too long for this Google Gemini model.', 'action': 'Start a new chat or pick a model with a larger context window.'}
+groq 413 '' -> unknown | Something went wrong with Groq. | Try again or switch provider in Settings.
+groq 413 'Request Entity Too Large' -> context_overflow | The conversation is too long for this Groq model. | Start a new chat or pick a model with a larger context window.
+openai 429 'credit balance exhausted' -> insufficient_credit | Your OpenAI account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings.
+openai 400 'maximum context length' -> context_overflow | The conversation is too long for this OpenAI model. | Start a new chat or pick a model with a larger context window.
+openrouter 429 'meta-llama/llama-3.3-70b-instruct:free is temporarily rate-limited upstream (shared pool)' -> free_pool_busy | OpenRouter's free-model pool is busy right now. | Try again shortly, or pick a paid model in Settings.
+gemini 400 'API key not valid. Please pass a valid API key.' -> auth | The Google Gemini API key was rejected — check it in Settings. | Re-enter the API key in Settings.
+groq 413 TPM body -> context_overflow | The conversation is too long for this Groq model. | Start a new chat or pick a model with a larger context window.
+humanize(groq,status=413) -> unknown | Something went wrong with Groq. | Try again or switch provider in Settings.
+humanize(groq,status=413,detail="") -> unknown

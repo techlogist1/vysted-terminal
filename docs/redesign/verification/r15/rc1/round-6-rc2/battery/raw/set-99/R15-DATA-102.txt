@@ -1,0 +1,7 @@
+ace7dd76 candidate venv, cwd sidecar
+COMMAND: row_to_pair on a bare seed row: field_meta + growth_basis
+EXIT: 0
+OUTPUT:
+field_meta: {} | growth_basis (no growth): None
+field_meta keys: ['pe_ratio'] | growth_basis (growth NULL): None
+growth_basis (growth present, none stored): None

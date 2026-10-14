@@ -1,0 +1,11 @@
+# R15-DOCS-012 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; ls scripts/render_phase_6_* 2>&1; ls docs/screenshots/v0.6.0/ 2>&1; ls docs/screenshots/v0.6.0/teammate-e docs/screenshots/v0.6.0/teammate-sc 2>&1; grep -rn -c 'retired v0.6.0-era' docs/screenshots/v0.6.0/README.md 2>/dev/null
+--- output ---
+ls: scripts/render_phase_6_*: No such file or directory
+teammate-f
+teammate-m
+ls: docs/screenshots/v0.6.0/teammate-e: No such file or directory
+ls: docs/screenshots/v0.6.0/teammate-sc: No such file or directory
+
+EXIT=2 (0.0s)

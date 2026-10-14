@@ -1,0 +1,10 @@
+=== cold call ===
+real 0.49
+user 0.00
+sys 0.00
+=== warm call (repeat) ===
+real 0.45
+user 0.00
+sys 0.00
+provider: bse
+bars: 256

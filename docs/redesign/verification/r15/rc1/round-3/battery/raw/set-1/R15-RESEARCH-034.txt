@@ -1,0 +1,2 @@
+'Price action is not covered yet' -> False
+'Coverage is complete, no gaps' -> True

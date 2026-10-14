@@ -1,0 +1,22 @@
+# R15-AGENT-015 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:05+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio
+from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMUsage
+from services.workflow_nodes import builtin
+from services import agent_runtime
+seen={}
+async def fake(**kw):
+    seen['prompt']=kw.get('prompt')
+    yield LLMDeltaEvent(text='ok'); yield LLMDoneEvent(usage=LLMUsage(input_tokens=1,output_tokens=1))
+agent_runtime.invoke_agent=fake
+r=asyncio.run(builtin.agent_invoke({'context':'CTX'},{'agent_id':'buffett','prompt_template':'Typed prompt about {context}'}))
+print('prompt received by invoke_agent:',repr(seen.get('prompt'))); print('result',r)
+PY
+grep -n '"prompt_template"\|key: "prompt_template"' "$C/src/modules/node-editor/"*.ts* "$C/src/lib/"*.ts 2>/dev/null | head -3
+--- output ---
+prompt received by invoke_agent: 'Typed prompt about CTX'
+result {'content': 'ok', 'agent_id': 'buffett'}
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/src/modules/node-editor/node-registry.ts:471:        key: "prompt_template",
+
+EXIT=0 (2.3s)

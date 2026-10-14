@@ -1,0 +1,164 @@
+{
+ "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-drive-rb-harness/cut-03b-first.jsonl": {
+  "phase": "published",
+  "applied": [
+   {
+    "name": "publish_brief",
+    "label": "Published the DEEP research brief",
+    "phaseAfter": "published"
+   }
+  ],
+  "errors": [],
+  "engineNotices": [
+   "Your active model — openai/gpt-4o-mini · Heavy mode (3 parallel angles + cross-check)"
+  ],
+  "brief": {
+   "symbol": "DATAPATTNS",
+   "depth": "heavy",
+   "mode": "DEEP",
+   "backend": "native",
+   "webAvailable": false,
+   "sourceCount": 13,
+   "sourcesStored": 13,
+   "sourcesRendered": 13,
+   "markdownLen": 4114,
+   "markersInBody": [
+    11,
+    12,
+    12,
+    1,
+    2,
+    1,
+    4,
+    1,
+    12,
+    4,
+    12,
+    12,
+    4,
+    4,
+    12,
+    1
+   ],
+   "maxMarker": 12,
+   "markersAfterSanitize": 16,
+   "execution": {
+    "runId": "e3920ca76b924ee09b39408fbb756f5f",
+    "requestedDepth": "ultra",
+    "loop": "heavy",
+    "backend": "native",
+    "startedAt": 1791023186.54247,
+    "finishedAt": 1791023471.475338,
+    "degradedReason": null
+   },
+   "metrics": {
+    "symbol": "DATAPATTNS",
+    "provider": "nse_direct",
+    "asOf": 1790812800000,
+    "price": 4251.3,
+    "change": -35.599999999999454,
+    "changePercent": -0.8304369124542084,
+    "currency": "INR",
+    "assetClass": "equity",
+    "items": [
+     {
+      "label": "Below 52-week high",
+      "value": "-14.97% · vs 52w high",
+      "title": "(52w high - price) / 52w high"
+     },
+     {
+      "label": "52-week price change (Yahoo)",
+      "value": "+49.60% · trailing 52 weeks",
+      "title": "trailing 52 weeks"
+     },
+     {
+      "label": "Dividend yield",
+      "value": "0.24% · fraction of price",
+      "title": "dividend per share / price"
+     },
+     {
+      "label": "Dividend per share",
+      "value": "₹10.00 · per share, INR",
+      "title": "per share, INR"
+     },
+     {
+      "label": "Revenue growth",
+      "value": "+16.81% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Earnings growth",
+      "value": "-13.49% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Promoter group (exchange filing)",
+      "value": "42.41% · NSE shareholding filing, 2026-06-30",
+      "title": "NSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Institutional holding (exchange filing)",
+      "value": "24.48% · BSE shareholding filing, 2026-06-30",
+      "title": "BSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Market cap",
+      "value": "₹238B"
+     },
+     {
+      "label": "P/E",
+      "value": "88.43"
+     },
+     {
+      "label": "Fwd P/E",
+      "value": "52.47"
+     },
+     {
+      "label": "Price/Book",
+      "value": "13.70"
+     },
+     {
+      "label": "EPS",
+      "value": "47.86"
+     },
+     {
+      "label": "Beta",
+      "value": "0.538"
+     },
+     {
+      "label": "ROE",
+      "value": "15.43%"
+     },
+     {
+      "label": "Net margin",
+      "value": "28.46%"
+     },
+     {
+      "label": "Debt/Equity",
+      "value": "0.00304"
+     },
+     {
+      "label": "Revenue",
+      "value": "₹9.41B"
+     },
+     {
+      "label": "52w range",
+      "value": "2,131–5,000"
+     },
+     {
+      "label": "Volume",
+      "value": "306K"
+     }
+    ],
+    "conflicts": [
+     {
+      "text": "Sources disagree on held percent insiders: 52.231 (yfinance (heldPercentInsiders)) vs 42.41 (NSE shareholding filing) — The provider's heldPercentInsiders (52.23%) counts INSIDERS — a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates — while the NSE shareholding filing reports the strict PROMOTER GROUP at 42.41% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced.",
+      "kind": "data_conflict"
+     }
+    ]
+   }
+  },
+  "anchors": [],
+  "renderedText": " Save .md Save PDF Save PNGDEEPDATAPATTNS13 sources· 541k tok· $0.32 HEAVY· deepestweb + structured dataEOD as of 2026-10-03Data Patterns (India) Limited — latest quarterly resultsStructured-data-only briefStructured data only — no web sources found for DATAPATTNS.DATAPATTNS₹4,251.30-₹35.60 (-0.83%)nse_directBelow 52-week high-14.97% · vs 52w high52-week price change (Yahoo)+49.60% · trailing 52 weeksDividend yield0.24% · fraction of priceDividend per share₹10.00 · per share, INRRevenue growth+16.81% · quarterly YoY (MRQ)Earnings growth-13.49% · quarterly YoY (MRQ)Promoter group (exchange filing)42.41% · NSE shareholding filing, 2026-06-30Institutional holding (exchange filing)24.48% · BSE shareholding filing, 2026-06-30Market cap₹238BP/E88.43Fwd P/E52.47Price/Book13.70EPS47.86Beta0.538ROE15.43%Net margin28.46%Debt/Equity0.00304Revenue₹9.41B52w range2,131–5,000Volume306KCONFLICTSources disagree on held percent insiders: 52.231 (yfinance (heldPercentInsiders)) vs 42.41 (NSE shareholding filing) — The provider's heldPercentInsiders (52.23%) counts INSIDERS — a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates — while the NSE shareholding filing reports the strict PROMOTER GROUP at 42.41% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced.Data Patterns (India) Limited — Q1 FY27 Financial Results BriefOverviewData Patterns (India) Limited (Ticker: DATAPATTNS) has released its financial results for the quarter ending June 30, 2026. This brief summarizes key financial metrics, performance evaluations, and the competitive positioning of the company.Financial HighlightsStock Price: As of October 3, 2026, the stock is priced at ₹4,251.3, reflecting a decrease of ₹35.6 (-0.83%) from the previous closing price of ₹4,286.9 11.Market Capitalization: Approximately ₹237.82 billion 12.P/E Ratio: 88.43 12.Revenue PerformanceTotal Revenue: ₹116.03 crores for Q1 FY27, a significant decline from ₹344.85 crores in Q4 FY26 (quarter ended March 31, 2026) 12.Year-over-Year Revenue Growth: Growth of +16.81% compared to the same quarter last year [1, 12].Profitability MetricsNet Income: ₹22.06 crores, representing a decline of 13.49% year-over-year from ₹25.50 crores 14.Profit Margin: 28.46% for Q1 FY27, down from 40.04% in Q4 FY26, but significantly higher than the industry average of 10% to 15% for the Capital Goods / Aerospace & Defense sector 112.Earnings Per Share (EPS)EPS: ₹3.94 for Q1 FY27, a drop from ₹24.71 in the previous quarter 4.Valuation ComparisonTrailing Twelve-Month Revenue: Approximately ₹9.41 billion with a net income of around ₹2.68 billion 12.Dividend DetailsDividend per Share: ₹10.00, yielding 0.24% at the current share price 12.Market ContextData Patterns' profit margin, although declining, remains substantially above the sector average, underscoring its competitive edge despite challenges in revenue and earnings performance. Analysts may express caution due to the year-over-year earnings decline, which could influence market sentiment and investor confidence 4.Key Risks and Future ConsiderationsOperational Expenses: Increased operational costs have contributed to the decline in net income and profit before tax, decreasing from ₹363.54 crores to ₹29.48 crores [1, 2].Regulatory Changes: No specific regulatory changes affecting the company have been reported 4.Supply Chain and Demand: Current insights into supply chain stability and market demand for products remain unclear, particularly in the defense sector 12.Competitive Position & Market LandscapeData Patterns operates in a dynamic electronics and embedded systems sector. While it faces competition, specific competitor analysis and performance metrics have not been detailed in this run. The company’s continued investments in defense and aerospace are seen as potential growth catalysts 1.ConclusionData Patterns (India) Limited's Q1 FY27 financial results reveal a complex mixture of robust revenue growth against the backdrop of declining earnings and profit margins. The firm remains well-positioned in terms of market share and profit margins relative to industry norms, but it must address operational challenges and maintain investor confidence moving forward.Questions for Further ResearchWhat specific operational factors led to the revenue decrease in Q1 FY27?How might analyst perspectives influence Data Patterns' future market performance?What further benchmarks can be identified for revenue growth and profit margins in the industry for more thorough valuation assessments?Cross-checkTop numeric claims re-checked against fresh web evidence (at least 2 independent domains required per claim):UNVERIFIED — ₹4,251.3 as of October 3, 2026, stock price (no sources) — only 0 independent source(s) foundUNVERIFIED — ₹237.82 billion market capitalization (no sources) — only 0 independent source(s) foundUNVERIFIED — 88.43 P/E ratio (no sources) — only 0 independent source(s) foundUNVERIFIED — ₹116.03 crores total revenue for Q1 FY27 (no sources) — only 0 independent source(s) foundUNVERIFIED — ₹22.06 crores net income for Q1 FY27 (no sources) — only 0 independent source(s) foundSources(13)"
+ }
+}

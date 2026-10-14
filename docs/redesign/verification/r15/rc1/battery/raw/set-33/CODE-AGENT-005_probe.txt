@@ -1,0 +1,2 @@
+data: {"kind": "error", "message": "The OpenRouter API key was rejected \u2014 check it in Settings.", "action": "Re-enter the API key in Settings.", "detail": "Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}", "code": "auth"}
+

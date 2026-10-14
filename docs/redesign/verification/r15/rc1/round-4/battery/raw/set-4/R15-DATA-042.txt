@@ -1,0 +1,66 @@
+NOT RUN AS VITEST: battery role does not run vitest/pytest suites (heavy lane owns them); verdict ci_pinned.
+Verified the pinned test still exists in candidate 1006c6da:
+
+573:  it("R15-DATA-042: CSV export gets a Currency column and a blank Weight % when mixed", async () => {
+
+test body (lines 573-610):
+  it("R15-DATA-042: CSV export gets a Currency column and a blank Weight % when mixed", async () => {
+    mockFetchQuotes.mockResolvedValue({
+      quotes: new Map([
+        ["RELIANCE.NS", quote("RELIANCE.NS", 1293, "INR")],
+        ["AAPL", quote("AAPL", 120, "USD")],
+      ]),
+      failed: 0,
+    });
+    render(<PortfolioPanel />);
+    await addHolding("reliance.ns", "50", "1200");
+    await addHolding("aapl", "10", "100");
+    await screen.findByText(/₹64,650\.00 \+ \$1,200\.00/);
+
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText("Export portfolio to CSV"));
+    });
+
+    expect(mockDownloadCsv).toHaveBeenCalledTimes(1);
+    const [, csv] = mockDownloadCsv.mock.calls[0];
+    const lines = csv.split("\n");
+    expect(lines[0]).toBe(
+      "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note",
+    );
+    const relianceRow = lines[1].split(",");
+    const aaplRow = lines[2].split(",");
+    expect(relianceRow[0]).toBe("RELIANCE.NS");
+    expect(relianceRow[4]).toBe("INR");
+    expect(aaplRow[0]).toBe("AAPL");
+    expect(aaplRow[4]).toBe("USD");
+    // Weight % (index 9) is blank — never a cross-currency ratio.
+    expect(relianceRow[9]).toBe("");
+    expect(aaplRow[9]).toBe("");
+  });
+
+  describe("risk section (R15-CODE-PLATFORM-023)", () => {
+    /** `n` daily closes from `start`, ascending, with enough day-to-day
+     *  variance for a non-zero stdev (never a flat, degenerate series). */
+    function closesFrom(start: string, n: number, base: number): Map<string, number> {
+
+handleExport source (Currency column + blank Weight% when mixed):
+20:  instrumentCurrency,
+33:import { benchmarkSymbolForCurrency, fetchDailyCloses, fetchPositionQuotes } from "./api";
+36:  computeCurrencyRisk,
+38:  type CurrencyRiskMetrics,
+60:  if (currency && instrumentCurrency(currency) === null && Number.isFinite(value)) {
+71:function pairCurrency(symbol: string): string | undefined {
+276:  const mixedCurrencies = summary.mixedCurrencies;
+288:    metrics: CurrencyRiskMetrics | null;
+320:  const [riskByCurrency, setRiskByCurrency] = useState<Map<string, RiskEntry>>(new Map());
+324:      setRiskByCurrency(new Map());
+328:    setRiskByCurrency((prev) => {
+356:        const benchmarkSymbol = benchmarkSymbolForCurrency(currency);
+360:        return [currency, computeCurrencyRisk(currency, withHistory, benchmarkCloses)] as const;
+364:      setRiskByCurrency((prev) => {
+411:  // R15-UI-005: an empty `byCurrency` means NOTHING resolved — the sum then
+415:  const hasLiveQuotes = summary.byCurrency.length > 0;
+417:    summary.mixedCurrencies || (!hasLiveQuotes && positionCount > 0)
+423:  const totalValueNote = summary.mixedCurrencies
+424:    ? `holdings span multiple currencies (${summary.byCurrency
+602:          lotMoney(r.position.cost_basis, r.quote?.currency ?? pairCurrency(r.position.symbol)),

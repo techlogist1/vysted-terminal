@@ -1,0 +1,14 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_76614c42d7ce4533b4795113683ac473", "name": "price_data", "input": {"asset_class": "equity", "range": "1mo", "symbol": "SBIN.ZZ", "timeframe": "1d"}}
+[  40.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_b1a19637164c44369d23f68cf049001a", "name": "price_data", "input": {"asset_class": "equity", "range": "1mo", "symbol": "BHARTIARTL.NS", "timeframe": "1d"}}
+[  44.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_76614c42d7ce4533b4795113683ac473", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'SBIN.ZZ' from 'yfinance'"}
+[  54.6s] heartbeat: {"kind": "heartbeat"}
+[  59.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_b1a19637164c44369d23f68cf049001a", "name": "price_data", "ok": false, "error": "timeout"}
+[  63.1s] done: {"kind": "done", "usage": {"input_tokens": 2959, "output_tokens": 41, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+We couldn't retrieve the latest price for SBI (SBIN.ZZ) as our provider had a correctness gate error. The price_data tool returned no data for this in this turn.
+
+=== ok · 63.1s · events {'heartbeat': 4, 'tool_use': 2, 'tool_result': 2, 'delta': 27, 'done': 1} · usage in=2959 out=41 · est $0.00000 · llama3.1:8b

@@ -22,29 +22,38 @@ import groq
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
-    LLMErrorEvent,
     LLMMessage,
+    LLMModelOption,
     LLMToolUseEvent,
     LLMUsage,
 )
+from services.errors import humanize
 
-from .base import LLMProvider, LLMStreamEvent
+from .base import (
+    LLMProvider,
+    LLMStreamEvent,
+    client_timeout,
+    invalid_tool_args,
+    is_chat_model,
+)
 
 
 def _parse_tool_args(raw: str) -> dict[str, Any]:
     """Parse accumulated tool-call argument JSON into a dict.
 
-    A no-argument call streams an empty string; a malformed fragment (rare,
-    but possible on a truncated stream) degrades to an empty dict rather than
-    aborting the round — the host surfaces the call with whatever it has.
+    A no-argument call streams an empty string (``{}``). A malformed fragment
+    (a truncated stream) or a non-object is stamped with the invalid-args
+    sentinel so the model is told its arguments were wrong, never run on ``{}``.
     """
     if not raw:
         return {}
     try:
         parsed = json.loads(raw)
     except (ValueError, TypeError):
-        return {}
-    return parsed if isinstance(parsed, dict) else {}
+        return invalid_tool_args("arguments were not valid JSON", raw)
+    if not isinstance(parsed, dict):
+        return invalid_tool_args("arguments were not a JSON object", raw)
+    return parsed
 
 
 def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
@@ -93,8 +102,11 @@ def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
 class GroqProvider(LLMProvider):
     """Groq chat-completions adapter."""
 
+    def __init__(self, base_url: str | None = None) -> None:
+        self._base_url = base_url
+
     def _client(self, api_key: str | None) -> groq.AsyncGroq:
-        return groq.AsyncGroq(api_key=api_key)
+        return groq.AsyncGroq(api_key=api_key, base_url=self._base_url, timeout=client_timeout())
 
     async def stream_chat(
         self,
@@ -104,7 +116,15 @@ class GroqProvider(LLMProvider):
         **kwargs: Any,
     ) -> AsyncIterator[LLMStreamEvent]:
         tool_ids = kwargs.pop("tool_ids", None)
-        client = self._client(api_key)
+        # Native server-side web search (FR-081): on Groq, search is handled by
+        # the Compound system server-side — a Compound model (``compound-*`` /
+        # ``groq/compound*``) runs web search automatically, so there is no
+        # explicit tool to inject; pass through. A non-Compound Groq model has
+        # no native search, and ``native_search_available`` gates the flag per
+        # model, so the runtime keeps the local ``web_search`` tool for it.
+        # Either way, pop the kwargs so they never reach the SDK.
+        kwargs.pop("web_search", None)
+        kwargs.pop("web_search_max_uses", None)
         api_messages = _to_api_messages(messages)
         request_kwargs: dict[str, Any] = {
             "model": model,
@@ -119,6 +139,7 @@ class GroqProvider(LLMProvider):
                 request_kwargs["tools"] = tools
         request_kwargs.update(kwargs)
         try:
+            client = self._client(api_key)
             stream = await client.chat.completions.create(**request_kwargs)
             usage: LLMUsage | None = None
             finish_reason: str | None = None
@@ -170,11 +191,13 @@ class GroqProvider(LLMProvider):
                     name=slot["name"],
                     input=_parse_tool_args(slot["args"]),
                 )
+            # No finish_reason and no tool call: the stream never finished, so
+            # no clean ``done`` is fabricated for it (R15-AGENT-026).
+            if finish_reason is None and not tool_acc:
+                return
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
-        except groq.GroqError as exc:  # pragma: no cover — network path
-            yield LLMErrorEvent(message=f"groq stream failed: {exc}")
-        except Exception as exc:  # pragma: no cover — defensive
-            yield LLMErrorEvent(message=f"groq stream failed: {exc}")
+        except Exception as exc:  # pragma: no cover — any failure ends as a humanized error
+            yield humanize("groq", exc).to_event()
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``/openai/v1/models`` — the cheapest authenticated call."""
@@ -188,5 +211,27 @@ class GroqProvider(LLMProvider):
             return False
         except groq.PermissionDeniedError:
             return False
-        except groq.GroqError:
-            raise
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+        """Live catalog via ``/openai/v1/models``, filtered to chat models.
+
+        Groq rotates and decommissions models often, so a static list silently
+        goes wrong — and it also serves whisper (audio) models the chat picker
+        must drop.
+        """
+        if not api_key:
+            return []
+        try:
+            client = self._client(api_key)
+            page = await client.models.list()
+        except groq.AuthenticationError:
+            return []
+        except groq.PermissionDeniedError:
+            return []
+        options = [
+            LLMModelOption(id=str(model.id), label=str(model.id))
+            for model in (getattr(page, "data", None) or [])
+            if getattr(model, "id", None) and is_chat_model(str(model.id))
+        ]
+        options.sort(key=lambda opt: opt.id.lower())
+        return options

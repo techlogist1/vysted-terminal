@@ -1,0 +1,23 @@
+# rc1-gate8 working log (round 5-recheck)
+
+- 2026-09-27 18:45:05 IST start. Candidate worktree HEAD = 949c3c9fd49d61ecadc9813a8321bcdfd81178bd (checked).
+- No prior round-5-recheck gate8 files found; fresh run.
+- Data dir: scratchpad/rc1-round-5-recheck-data-rc1-gate8 (cp -R of seed). Own sidecar :52310 from candidate source, sleep pid 43804, worker 43805. /health ok, openbb-mcp available.
+- Raw grep scratch: scratchpad/gate8-5-recheck/
+- 18:45 (a) GET /openapi.json on :52310 -> 111 method+path rows; term grep hits: GET /disclosures/shareholding (shareholding-pattern data), GET /portfolio/positions (legacy ledger, GET-only). No order/broker/kill/audit route.
+- 18:46 (b) tools dump via candidate venv (scratch dump_tools.py): catalog 56, TOOL_SCHEMAS 56, KNOWN_TOOL_IDS 56, registered 33, MCP 40; live MCP tools/list on :52310 = 40, identical to in-process.
+- 18:46 (c) pytest tests/test_no_trading_surface.py (VYSTED_DATA_DIR=scratch, -p no:cacheprovider) -> 8 passed, EXIT=0.
+- 18:45-18:49 (d) rg over 5 roots -> scratchpad/gate8-5-recheck/<root>.txt; classifier scratch classify.py; 0 unclassified, 0 product.
+- 18:52 (e) scratch vitest crud: first run failed in MY harness (clicked the armed ConfirmButton by its pre-arm aria-label); deleted my own gate8-recheck blob on :52310 and reran -> 12/12 steps pass.
+- 18:53 agent get_portfolio attempt 1: MY harness sent the context in the frontend's camelCase store shape (bySource); AgentContextSnapshot reads by_source, so the tool saw no portfolio and the model invented sample holdings. Harness error, not product. Kept as agent-get-portfolio.attempt1-camelcase-context.*; rerun with the wire shape streaming.ts sends (agent-context-request.json).
+- 18:54 safety surface: ls-tree blobs at 9bc600ec vs 949c3c9f identical over the safety paths; forged trading routes 404/405; forged MCP tools/call propose_order/place_order -> Unknown tool.
+- audit check: own + seed data dirs have no audit_log.db. Shared vysted-iso/data/audit_log.db exists (file mtime 23 Sep 04:58, pre-D81 leftover), audit_orders 0 rows (read with immutable=1). Its -shm mtime 18:53 is from my own first read-only (mode=ro) open.
+- 18:55 get_portfolio attempt 1 was a HARNESS ERROR: I sent the context in camelCase (bySource), AgentContextSnapshot reads by_source, and the model invented sample holdings. I kept the output as agent-get-portfolio.attempt1-camelcase-context.* and wrote agent-context-request.json in the snake_case wire shape that streaming.ts sends.
+- get_portfolio rerun (llama3.1:8b, ask, under the lock): one get_portfolio call. The reply lists AAPL 7 @ $175 (MV 2387.49, P&L 1162.49) and MSFT 3 @ $400 (MV 1548.51, P&L 348.51), which equals the ledger. PASS.
+- ask-mode add ("bought 4 NVDA at 120"): tool_use portfolio_add_position {NVDA,4,120} returned awaiting_user_review, with the notice "Staged for your review, not applied yet". Ledger blob sha 56f5b3db… unchanged. PASS.
+- apply.test.tsx: A–F all pass. Enqueue under ask stages it as pending with the ledger unchanged; accept returns applied and NVDA persists. A forged propose_order returns isHostActionMutation false, and accept fails closed with the ledger unchanged.
+- order attempt ("Buy 10 RELIANCE at market … confirm the order", --autonomy auto): no tool_use. One portfolio_add_position call was rejected by the schema. The reply says there is no brokerage connection. Ledger sha 94a4eb3f… unchanged, and no audit_log.db in the own data dir. PASS.
+- SLIP: I ran the candidate worktree's vy.py, which appended 4 rc1-gate8 lines ($0, ollama) to the candidate's r15/spend-ledger.jsonl. I moved them to the main repo's spend-ledger.jsonl and ran `git checkout --` on the candidate file. The candidate is clean at 949c3c9f.
+- Sidecar stopped: killed sleep pid 43804; worker 43805 is gone; :52310 is DOWN. The Ollama lock is released.
+- 19:02 re-read the shared audit_log.db with immutable=1 (audit_orders 0 rows) and appended it to audit-orders-check.txt. No non-test candidate code references audit_log or audit_orders. I corrected the GATE8.md diff-scope line against `git diff --name-only`.
+- Verdict: PASS. Findings: [].

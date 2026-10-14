@@ -1,0 +1,2 @@
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+HTTP:200

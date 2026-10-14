@@ -1,0 +1,124 @@
+{"kind": "tool_use", "tool_call_id": "call_49c7b02bc4b44df68ce1c81b51607b86", "name": "resolve_symbol", "input": {"query": "Sify Technologies"}}
+{"kind": "tool_result", "tool_call_id": "call_49c7b02bc4b44df68ce1c81b51607b86", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_410a7b5a012e421c8d3c1c9d3d9a3fb0", "name": "earnings_estimates", "input": {"symbol": "SIFY"}}
+{"kind": "tool_use", "tool_call_id": "call_cf0f7d4b72b44b4a893f748cdceaaf45", "name": "earnings_history", "input": {"symbol": "SIFY"}}
+{"kind": "tool_use", "tool_call_id": "call_ff1d0c4bff284dcb9083153890ee9583", "name": "fundamentals", "input": {"symbol": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_410a7b5a012e421c8d3c1c9d3d9a3fb0", "name": "earnings_estimates", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_cf0f7d4b72b44b4a893f748cdceaaf45", "name": "earnings_history", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_ff1d0c4bff284dcb9083153890ee9583", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " metrics"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " looking"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " already"}
+{"kind": "delta", "text": " reported"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " ADR"}
+{"kind": "delta", "text": " basis"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " means"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " do"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "not"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " adjust"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " some"}
+{"kind": "delta", "text": " key"}
+{"kind": "delta", "text": " figures"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " Per"}
+{"kind": "delta", "text": " Share"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "EPS"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "This"}
+{"kind": "delta", "text": " indicates"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " loss"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " ADR"}
+{"kind": "delta", "text": " level"}
+{"kind": "delta", "text": ".)\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Price"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Un"}
+{"kind": "delta", "text": "available"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " reporting"}
+{"kind": "delta", "text": " negative"}
+{"kind": "delta", "text": " earnings"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " making"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " meaningful"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " further"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " questions"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " feel"}
+{"kind": "delta", "text": " free"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " ask"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 13387, "output_tokens": 115, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.019098}

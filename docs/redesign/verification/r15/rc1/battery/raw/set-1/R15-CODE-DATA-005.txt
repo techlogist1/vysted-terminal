@@ -1,0 +1,13 @@
+-- is_applicable defs --
+sidecar/services/market_cap_witness.py:100:is_applicable = is_india_listing
+sidecar/services/dividend_actions.py:60:def is_applicable(symbol: str) -> bool:
+sidecar/services/earnings_quality.py:123:def is_applicable(symbol: str) -> bool:
+sidecar/services/ownership_check.py:104:is_applicable = is_india_listing
+sidecar/services/research/range_check.py:127:is_applicable = is_india_listing
+-- is_block_error defs --
+sidecar/services/witness.py:24:def is_block_error(exc: BaseException) -> bool:
+-- is_india_target defs --
+sidecar/services/research/relevance.py:374:def is_india_target(target: ResearchTarget | None) -> bool:
+-- _row_value defs --
+sidecar/services/growth_check.py:94:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+sidecar/services/earnings_quality.py:134:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:

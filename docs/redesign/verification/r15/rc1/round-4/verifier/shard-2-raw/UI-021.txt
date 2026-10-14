@@ -1,0 +1,79 @@
+sha: 68d5573aff9a579af084dcbb124843f2aecff6e8 (read-only copy of worktree src at scratchpad/vs2/fe, node_modules symlinked)
+$ ./node_modules/.bin/vitest run src/modules/chart/VS2UI021.test.tsx
+
+const draw = (panel: string, id: string) => ({
+  id,
+  panelId: panel,
+  symbol: "SPY",
+  timeframe: "1d",
+  kind: "trendline" as const,
+  points: [
+    { time: 1, price: 100 },
+    { time: 2, price: 110 },
+  ],
+  style: { color: "#e9a94d", lineWidth: 1 },
+  createdAt: 0,
+});
+
+describe("vshard-2 fresh cases (R15-UI-021)", () => {
+  it("one Delete with focus on body (user last clicked a non-focusable spot elsewhere) — how many charts lose a drawing?", async () => {
+    useChartDrawingsStore.getState().addDrawing("chart-A", draw("chart-A", "a1"));
+    useChartDrawingsStore.getState().addDrawing("chart-B", draw("chart-B", "b1"));
+    render(
+      <>
+        <ChartPanel api={{ id: "chart-A" }} />
+        <ChartPanel api={{ id: "chart-B" }} />
+        <div data-testid="watchlist-row">RELIANCE</div>
+      </>,
+    );
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    const chips = await screen.findAllByRole("button", { name: "Select trendline" });
+    expect(chips).toHaveLength(2);
+    fireEvent.click(chips[0]);
+    fireEvent.click(chips[1]);
+    // user clicks a non-focusable row in another panel: WebKit leaves activeElement = body
+    fireEvent.click(screen.getByTestId("watchlist-row"));
+    fireEvent.keyDown(document.body, { key: "Backspace" });
+    const a = useChartDrawingsStore.getState().getDrawings("chart-A").length;
+    const b = useChartDrawingsStore.getState().getDrawings("chart-B").length;
+    expect({ chartA: a, chartB: b }).toEqual({ chartA: 1, chartB: 1 });
+  });
+});
+--- output
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs2/fe
+
+ ❯ src/modules/chart/VS2UI021.test.tsx (1 test | 1 failed) 137ms
+     × one Delete with focus on body (user last clicked a non-focusable spot elsewhere) — how many charts lose a drawing? 135ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/modules/chart/VS2UI021.test.tsx > vshard-2 fresh cases (R15-UI-021) > one Delete with focus on body (user last clicked a non-focusable spot elsewhere) — how many charts lose a drawing?
+AssertionError: expected { chartA: +0, chartB: +0 } to deeply equal { chartA: 1, chartB: 1 }
+
+- Expected
++ Received
+
+  {
+-   "chartA": 1,
+-   "chartB": 1,
++   "chartA": 0,
++   "chartB": 0,
+  }
+
+ ❯ src/modules/chart/VS2UI021.test.tsx:258:38
+    256|     const a = useChartDrawingsStore.getState().getDrawings("chart-A").…
+    257|     const b = useChartDrawingsStore.getState().getDrawings("chart-B").…
+    258|     expect({ chartA: a, chartB: b }).toEqual({ chartA: 1, chartB: 1 });
+       |                                      ^
+    259|   });
+    260| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  05:21:32
+   Duration  1.12s (transform 169ms, setup 56ms, import 386ms, tests 137ms, environment 386ms)
+

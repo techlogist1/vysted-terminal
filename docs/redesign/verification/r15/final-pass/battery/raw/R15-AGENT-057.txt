@@ -1,0 +1,40 @@
+# R15-AGENT-057 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:53:13+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY'
+import json, urllib.request, urllib.parse
+H="http://127.0.0.1:52860"
+def req(m,p,b=None):
+    r=urllib.request.Request(H+p,method=m,data=(json.dumps(b).encode() if b is not None else None),headers={"content-type":"application/json"})
+    try:
+        with urllib.request.urlopen(r,timeout=30) as x: return x.status, x.read().decode()
+    except urllib.error.HTTPError as e: return e.code, e.read().decode()
+import re
+src=open("/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/src/lib/plugin-agents.ts").read()
+print("plugin-agents.ts endpoints:", sorted(set(re.findall(r'"/custom-agents[^"]*"|`/custom-agents[^`]*`', src))))
+aid="custom:vysted-lenses-quant-tutor"
+base={"id":aid,"name":"Quant tutor","philosophy":"p","system_prompt":"s","default_provider":"ollama","tools":["not_a_real_tool"]}
+s,b=req("POST","/custom-agents",base); print("bad tool id register ->",s,b[:200])
+base["tools"]=["price_data","fundamentals"]
+s,b=req("POST","/custom-agents",base); print("good register #1 ->",s,b[:120])
+s,b=req("POST","/custom-agents",{**base,"philosophy":"revised"}); print("good register #2 ->",s,b[:120])
+if s==409:
+    s,b=req("PUT","/custom-agents/"+urllib.parse.quote(aid,safe=""),{**base,"philosophy":"revised"}); print("PUT ->",s,b[:120])
+s,b=req("GET","/custom-agents/"+urllib.parse.quote(aid,safe="")); print("stored philosophy:", (json.loads(b).get("philosophy") if s==200 else (s,b[:120])))
+s,b=req("DELETE","/custom-agents/"+urllib.parse.quote(aid,safe="")); print("cleanup DELETE ->",s)
+PY
+grep -n "409\|PUT\|unknown tool" "$C/src/lib/plugin-agents.ts" | head -6
+--- output ---
+plugin-agents.ts endpoints: ['"/custom-agents"', '`/custom-agents/${encodeURIComponent(id)}`']
+bad tool id register -> 422 {"detail":[{"type":"value_error","loc":["body","tools"],"msg":"Value error, unknown tool ids: ['not_a_real_tool']; allowed: ['add_chart_drawing', 'add_to_watchlist', 'analyst_history', 'analyst_indivi
+good register #1 -> 201 {"id":"custom:vysted-lenses-quant-tutor","name":"Quant tutor","philosophy":"p","system_prompt":"s","tools":["price_data"
+good register #2 -> 409 {"detail":"custom agent 'custom:vysted-lenses-quant-tutor' already exists"}
+PUT -> 200 {"id":"custom:vysted-lenses-quant-tutor","name":"Quant tutor","philosophy":"revised","system_prompt":"s","tools":["price
+stored philosophy: revised
+cleanup DELETE -> 204
+25: * store so they are invokable. No-op for non-agent plugins. A 409 on register
+26: * means an earlier registration exists, so the agent is updated in place (PUT)
+29: * 422 for an unknown tool id) rejects with the details, which the plugin
+67:        if (response.status === 409) {
+69:            method: "PUT",
+
+EXIT=0 (0.1s)

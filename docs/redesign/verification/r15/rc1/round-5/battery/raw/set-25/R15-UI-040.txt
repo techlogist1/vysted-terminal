@@ -1,0 +1,77 @@
+CMD: R15-UI-040 — client-store/sidecar-truth reconciliation is frontend logic; this role never runs vitest suites (the heavy lane owns them).
+Design check: the fix is pinned as a committed regression test, not a scratch harness file:
+170:describe("delegate-runs — sidecar truth", () => {
+177:  it("adopts a live sidecar run the store never saw (a webview reload), once", async () => {
+211:  it("a failed cancel leaves the run running with a retry message", async () => {
+233:  it("a refused cancel names the sidecar's reason, not an HTTP code (class pin, R15-CODE-PLATFORM-011)", async () => {
+256:  it("a rejected launch shows the 422 field errors, not [object Object]", async () => {
+289:describe("delegate-runs — output delivery", () => {
+
+Relevant tests (src/lib/delegate-runs.test.ts):
+describe("delegate-runs — sidecar truth", () => {
+  beforeEach(() => resetAgentRunsStoreForTests());
+  afterEach(() => {
+    stopDelegatePolling();
+    vi.restoreAllMocks();
+  });
+
+  it("adopts a live sidecar run the store never saw (a webview reload), once", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          runs: [
+            {
+              id: "run-8",
+              agent_id: "copilot",
+              agent_name: "Copilot",
+              status: "running",
+              provider: "openrouter",
+              cost: { tokens: 4_000, spend_usd: 0.02, steps: 2 },
+            },
+            { id: "run-7", agent_id: "copilot", status: "done" },
+          ],
+        }),
+      ),
+    );
+
+    await adoptSidecarRuns();
+    await adoptSidecarRuns();
+
+    const runs = useAgentRunsStore.getState().runs;
+    expect(runs).toHaveLength(1);
+    expect(runs[0]).toMatchObject({
+      sidecarRunId: "run-8",
+      status: "running",
+      mode: "delegate",
+      provider: "openrouter",
+      cost: { tokens: 4_000, spendUsd: 0.02, steps: 2 },
+    });
+  });
+
+  it("a failed cancel leaves the run running with a retry message", async () => {
+    const id = useAgentRunsStore.getState().startRun({
+      agentId: "copilot",
+      agentName: "Copilot",
+      mode: "delegate",
+      sidecarRunId: "run-4",
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve({}) }),
+    );
+
+    const result = await cancelDelegateRun("run-4");
+
+    expect(result).toEqual({ ok: false, error: "Cancel failed (HTTP 500) — retry." });
+    expect(useAgentRunsStore.getState().runs.find((r) => r.id === id)?.status).toBe("running");
+
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ cancelled: true })));
+    expect(await cancelDelegateRun("run-4")).toEqual({ ok: true });
+    expect(useAgentRunsStore.getState().runs.find((r) => r.id === id)?.status).toBe("cancelled");
+  });
+
+  it("a refused cancel names the sidecar's reason, not an HTTP code (class pin, R15-CODE-PLATFORM-011)", async () => {
+    useAgentRunsStore.getState().startRun({
+      agentId: "copilot",
+verdict: ci_pinned (named test: src/lib/delegate-runs.test.ts — 'adopts a live sidecar run the store never saw (a webview reload), once' and 'a failed cancel leaves the run running with a retry message')

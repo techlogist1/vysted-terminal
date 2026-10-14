@@ -1,0 +1,12 @@
+# R15-CODE-PLATFORM-004 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:36+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd $B/sc; "$C/sidecar/.venv/bin/python3" s18a.py 2>&1 | grep -v Warning
+--- output ---
+$ POST /workflow/run: logic.branch(value=V) true_path -> action.notify_desktop -> action.log (un-taken port for falsy V; expect skipped)
+value='false': [('start', 'b'), ('output', 'b'), ('skipped', 'n'), ('skipped', 'd')]  branch_out=[{'false_path': 'false'}]
+value='no': [('start', 'b'), ('output', 'b'), ('skipped', 'n'), ('skipped', 'd')]  branch_out=[{'false_path': 'no'}]
+value='0': [('start', 'b'), ('output', 'b'), ('skipped', 'n'), ('skipped', 'd')]  branch_out=[{'false_path': '0'}]
+value='off': [('start', 'b'), ('output', 'b'), ('skipped', 'n'), ('skipped', 'd')]  branch_out=[{'false_path': 'off'}]
+value='true': [('start', 'b'), ('output', 'b'), ('start', 'n'), ('output', 'n'), ('start', 'd'), ('output', 'd')]  branch_out=[{'true_path': 'true'}]
+
+EXIT=0 (0.2s)

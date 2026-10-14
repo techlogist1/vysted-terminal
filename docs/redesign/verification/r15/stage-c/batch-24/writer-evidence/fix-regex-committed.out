@@ -1,0 +1,71 @@
+want_strip=True  ship=True  fix=True  | Without calling any tool, add 10 SBIN at ₹800 to my portfolio and tell me the total.
+want_strip=True  ship=True  fix=True  | Don't use any tools, add 7 INFY to my holdings
+want_strip=True  ship=True  fix=True  | Never use tools for this: add 5 TCS at ₹3,000 to my holdings.
+want_strip=True  ship=True  fix=True  | DON'T USE TOOLS. Sell 5 ITC at ₹420 from my portfolio.
+want_strip=True  ship=True  fix=True  | no tool calls — I sold 4 TCS at ₹3,200, update my position and tell me what I got.
+want_strip=True  ship=True  fix=True  | No tools please. I bought 25 WIPRO at ₹165 today — put them in my portfolio.
+want_strip=True  ship=True  fix=True  | Do not call tools. Remove my HDFCBANK holding.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Answer without any tools: I sold 5 TCS shares at ₹3,100 each. Restate my total proceeds.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Do not call a tool. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Don’t use any tools. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Avoid calling any functions. I bought 40 ITC shares at ₹415, add them to my holdings and tell me what I spent.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Skip the tools for this one — I hold 12 HDFCBANK at ₹1,600; add 3 more at ₹1,650, what is my average?
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Zero tool calls please: I want to add 7 INFY at ₹1,500 to my portfolio — just tell me the total cost.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | I hold 40 HDFCBANK at ₹1,640; answer only from what I gave you: what is my cost basis?
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Refrain from calling any tools and restate my 5 TCS at ₹3,100.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Without using functions, add 3 HDFCBANK at ₹1,650 to my holdings and tell me the total.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | No function calls. I bought 15 WIPRO at ₹250; total cost?
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Please don’t invoke any tool — record nothing, just tell me 5 × ₹3,100.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Hands off the tools: add 20 SBIN at ₹800 to my portfolio.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | No external calls. Record a buy of 5 RELIANCE at ₹1,200 in my portfolio.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Don't look anything up; I sold 3 INFY at ₹1,010 — update my holdings.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Without any function calls, delete my TCS position.
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Tools off for this one: what is TCS.NS trading at right now?
+want_strip=True  ship=False fix=False  <- fix miss (fails safe) | Please don't touch any tools, just tell me INFY.NS's current price.
+want_strip=False ship=False fix=False | Don't just use the tools blindly — check the TCS.NS price and explain the move.
+want_strip=False ship=False fix=False | Never call the tools twice for one symbol; get the INFY.NS price.
+want_strip=False ship=False fix=False | Don't call functions you don't need, just get me SBIN.NS's latest price.
+want_strip=False ship=False fix=False | No lookups needed for TCS, I know it; what is ITC.NS trading at?
+want_strip=False ship=False fix=False | Never use the search tools, only the quote: INFY.NS price?
+want_strip=False ship=False fix=False | Don't use the tools for arithmetic; get the TCS.NS price.
+want_strip=False ship=False fix=False | Do not call the tools again for TCS, just get INFY.NS price.
+want_strip=False ship=True  fix=False | I never said don't use tools — get RELIANCE.NS price.
+want_strip=False ship=True  fix=False | Don't use any tools other than price data: TCS.NS close?
+want_strip=False ship=True  fix=False | Don't use tools for the math, but do fetch the TCS.NS price.
+want_strip=False ship=True  fix=False | No tools except price_data for TCS.NS
+want_strip=False ship=True  fix=False | Don't use tools you don't need; get the ITC.NS price.
+want_strip=False ship=True  fix=False | Don't call tools twice — what is HDFCBANK.NS at?
+want_strip=False ship=True  fix=False | Do not use tools from the web, only the quote: WIPRO.NS price?
+want_strip=False ship=False fix=False | Get the latest price of SBIN.NS and state it in one sentence that calls the company SBI.
+want_strip=False ship=False fix=False | Get the latest price of TCS.NS and state it in one sentence.
+want_strip=False ship=False fix=False | What is INFY.NS trading at right now? One line.
+want_strip=False ship=False fix=False | Fetch ITC.NS with price_data and tell me its current price.
+want_strip=False ship=False fix=False | Latest HDFCBANK.NS price please, just the number and the date.
+want_strip=False ship=False fix=False | Use price_data for WIPRO.NS and give me the current price and today's change.
+want_strip=True  ship=True  fix=True  | I sold 5 TCS shares at ₹3,100 each. Without calling any tool, restate my sale price and my total proceeds.
+want_strip=True  ship=True  fix=True  | Please answer without using any tools: I own 30 ITC shares at ₹410 and will add 10 more at ₹420. What's my new average cost?
+want_strip=True  ship=True  fix=True  | No tools please. I bought 15 WIPRO shares at ₹250 and sold them at ₹262. What was my profit?
+want_strip=True  ship=True  fix=True  | Don't use any tools, add 7 INFY to my holdings
+want_strip=True  ship=True  fix=True  | no tool calls — I sold 4 TCS at ₹3,200, what did I get?
+want_strip=True  ship=True  fix=True  | DON'T USE TOOLS. Sell 5 ITC at ₹420 from my portfolio.
+want_strip=True  ship=True  fix=True  | Never use tools for this: add 5 TCS at ₹3,000 to my holdings.
+want_strip=True  ship=True  fix=True  | I hold 40 HDFCBANK at ₹1,640; just answer from what I gave you: what is my cost basis?
+want_strip=False ship=False fix=False | Just get the latest price from the market for the stocks in this message: TCS.NS, INFY.NS
+want_strip=False ship=False fix=False | Only use data from price_data for the above symbols: TCS.NS
+want_strip=False ship=False fix=False | Why did you not use the tools? Get the TCS.NS price now.
+want_strip=False ship=False fix=False | Don't forget to use the tools to get the latest TCS.NS price.
+want_strip=False ship=False fix=False | Do not answer without using the tools: what is TCS.NS trading at?
+want_strip=False ship=False fix=False | Never guess, always call the tools: what is INFY.NS trading at
+want_strip=False ship=False fix=False | Don't use web search, get TCS.NS price
+want_strip=False ship=False fix=False | Add 10 TCS at 3,200 to my portfolio
+want_strip=False ship=False fix=False | What tools do you have?
+want_strip=False ship=False fix=False | I don't trust your memory, use the tools to fetch INFY.NS fundamentals
+want_strip=False ship=False fix=False | Could you use the tools to get HDFCBANK.NS price?
+want_strip=False ship=False fix=False | Don't rely on memory; get TCS.NS price with the tools.
+want_strip=False ship=False fix=False | No need to avoid the tools this time: what is SBIN.NS at?
+want_strip=False ship=False fix=False | What is TCS.NS at? Don't call the news tool.
+want_strip=False ship=False fix=False | Without calling the fundamentals tool, use price_data for TCS.NS.
+
+N=67  ship correct/over-strip/miss=[43, 7, 17]  fix correct/over-strip/miss=[50, 0, 17]
+
+OK: committed planner._NO_TOOL_CUE matches the batch-23 disposition verdict exactly.

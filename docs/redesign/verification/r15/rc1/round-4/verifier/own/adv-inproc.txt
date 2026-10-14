@@ -1,0 +1,43 @@
+HEAD 68d5573aff9a579af084dcbb124843f2aecff6e8
+
+## AGENT-019 entry phrasings -> write tool kept?
+KEEP  | 'Write a note on Cochin Shipyard: valuation looks stretched at ~54x tra' | need write_note | intent edit ['\\bnotes?\\b', '\\bwrite\\b'] | read_only False | n_tools 55
+KEEP  | 'screen for defence stocks P/E < 40' | need write_screener_filters | intent edit ['\\bscreen\\b'] | read_only False | n_tools 55
+KEEP  | 'Save my layout as research desk' | need save_layout | intent research ['\\bresearch\\b'] | read_only False | n_tools 55
+KEEP  | 'Delete TCS from my portfolio' | need portfolio_delete_position | intent edit ['\\bdelete\\b'] | read_only False | n_tools 55
+KEEP  | 'Update my RELIANCE cost basis to 1180' | need portfolio_update_position | intent edit ['\\bupdate\\b'] | read_only False | n_tools 55
+KEEP  | 'My RELIANCE lot is actually 12 shares' | need portfolio_update_position | intent read [] | read_only False | n_tools 55
+KEEP  | 'I bought 10 shares of INFY at 1500, track it in my portfolio' | need portfolio_add_position | intent edit ['\\bbought\\b', '\\btrack\\b'] | read_only False | n_tools 55
+KEEP  | 'Put 25 HDFC Bank at 1600 in my paper portfolio' | need portfolio_add_position | intent edit ['\\bput\\b.*\\b(on|in|into)\\b'] | read_only False | n_tools 55
+STRIP | 'Any chance you could get rid of my TCS position?' | need portfolio_delete_position | intent read ['\\?\\s*$'] | read_only True | n_tools 42
+STRIP | 'Mind noting that INFY cut its guidance?' | need write_note | intent read ['\\?\\s*$'] | read_only True | n_tools 42
+
+## RESEARCH-007 literal repro
+https://medium.com/investor-diary/why-i-bought-xyz -> 3
+https://someblog.wordpress.com/ir/2024/hot-tip -> 3
+https://reuters.com/markets/x -> 2
+https://investors.ghost.io/x -> 1
+https://ir.hashnode.dev/x -> 1
+
+## LEAD-022 _yahoo_symbol
+BHP.AX -> BHP.AX
+0700.HK -> 0700.HK
+7203.T -> 7203.T
+VOD.L -> VOD.L
+2222.SR -> 2222-SR
+SAP.F -> SAP-F
+GGAL.BA -> GGAL-BA
+OPAP.AT -> OPAP-AT
+BRK.B -> BRK-B
+RELIANCE.NS -> RELIANCE.NS
+
+## CODE-PLATFORM-017 server evaluate_code on the entry's cases
+round(2.5) -> {'value': 3.0}
+2^3 -> {'value': 8}
+1 > 0 ? 1 : 0 -> {'value': 1}
+log(100, 10) -> ERR disallowed syntax: Call
+1/0 -> ERR division by zero
+
+## LEAD-031 literal leak-hold: '{"name": "price_data...' then guard
+shown: ['Let me check. '] held: '{"name": "price_data", "parameters": {"symbol": "SIFY"}}'
+fresh shown: ['{"type": "function", ', '"name": "fundamentals", ', '"parameters": {"symbol": "SIFY"}}'] held: ''

@@ -1,0 +1,6 @@
+CMD: pe_ratio asc sort limit 200 nse-all 0<pe<40
+
+HTTP_CODE:200
+result_count 200 matched_count 1918 evaluated_count 2684
+first5 [0.0005003513, 0.09405082, 0.12438075, 0.21586734, 0.4072153]
+is_sorted_asc True

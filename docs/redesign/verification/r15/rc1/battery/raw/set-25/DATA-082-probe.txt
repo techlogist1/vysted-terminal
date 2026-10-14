@@ -1,0 +1,2 @@
+PASS (missing fields): ccxt ticker for binance:ZZZ/USDT carries no last or close price
+FAIL: got a Quote instead of ProviderError: symbol='ZZZ/USDT' price=0.0 change=0.0 change_percent=0.0 volume=None open=None high=None low=None prev_close=None currency='USDT' market_state='open' timestamp=datetime.datetime(2026, 9, 26, 1, 44, 13, 315829, tzinfo=datetime.timezone.utc) provider='ccxt:binance' freshness=None

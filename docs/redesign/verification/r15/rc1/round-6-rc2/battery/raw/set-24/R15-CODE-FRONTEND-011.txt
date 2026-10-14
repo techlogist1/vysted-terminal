@@ -1,0 +1,20 @@
+RAW (candidate ace7dd76) ci_pinned-by-source-probe: pinned test describe/apply parity table
+head: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -n 'describe/apply parity\|the diff promises what apply does\|the table covers every host action' src/lib/host-actions.test.ts
+1661:describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)", () => {
+1788:  it("the table covers every host action", () => {
+1792:  it.each(ROWS)("%s %j: the diff promises what apply does", async (name, input, said, did) => {
+exit=0
+$ grep -n 'parseHostAction' src/lib/host-actions.ts | head -5
+10: *   - `parseHostAction` — parse the args ONCE into a bound {@link HostIntent}.
+961:export function parseHostAction(name: string, input: Record<string, unknown>): HostIntent {
+1486:  return describeIntent(parseHostAction(name, input));
+2049:  return applyIntent(parseHostAction(name, input)).label;
+2170:  return (await applyIntentAsync(parseHostAction(name, input))).label;
+exit=0
+$ grep -n 'intent' src/store/proposed-changes.ts | head -5
+102:    const intent = parseHostAction(name, input);
+103:    const described = describeIntent(intent);
+108:      intent,
+145:    const { status, reason, preImage } = await applyIntentAsync(change.intent);
+exit=0

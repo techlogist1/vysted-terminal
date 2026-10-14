@@ -1,0 +1,4 @@
+command: node -e "import('./scripts/build-python.mjs').then(m=>console.log(m.resolveBuildPython()))" (cwd=candidate, bare python3 on PATH = 3.14.5, exact repro condition)
+python3 --version on this PATH: Python 3.14.5
+resolved: python3.13
+exit: 0

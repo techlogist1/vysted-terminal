@@ -1,0 +1,69 @@
+=== CODE-PLATFORM-046 ===
+  }
+}
+
+/**
+ * Build a `VystedModule` surfacing a catalog row's panels + commands through the
+ * dockview host + cmd+K palette. Plugins without panels and commands return
+ * `null` so the caller skips them. The companion panel components come from the
+ * catalog row (the locked contract stays serializable; host glue wires React).
+ */
+export function moduleForPlugin(row: CatalogRow): VystedModule | null {
+  const instance = row.discovered.instance;
+  const panels = instance.capabilities.contributesPanels ? (instance.getPanels?.() ?? []) : [];
+  const commands = instance.capabilities.contributesCommands
+    ? (instance.getCommands?.() ?? [])
+    : [];
+  if (panels.length === 0 && commands.length === 0) {
+    return null;
+  }
+  const commandHandlers: Record<string, () => void> = {};
+  if (instance.capabilities.supportsControlPlane && instance.executeCommand) {
+    for (const command of commands) {
+
+/**
+ * Bridge a loaded plugin's panels/commands into the module registry + enable
+ * them. Idempotent (`appendModules` de-dupes), so a reload re-attaches safely.
+ */
+function bridgePluginModule(pluginId: string): void {
+  const row = CATALOG_BY_ID[pluginId];
+  if (!row) return;
+  const mod = moduleForPlugin(row);
+  if (!mod) return;
+  useModulesStore.getState().appendModules([mod]);
+  useModulesStore.getState().setModuleEnabled(mod.id, true);
+}
+
+/** Drop a plugin's panels/commands from the registry projections AND close any
+ *  of its open dockview panels, so its capabilities disappear cleanly on
+ *  disable/remove (US10 AS2). */
+function unbridgePluginModule(pluginId: string): void {
+  useModulesStore.getState().setModuleEnabled(`plugin:${pluginId}`, false);
+  const row = CATALOG_BY_ID[pluginId];
+  const api = useWorkspaceStore.getState().dockviewApi;
+  if (!row || !api) return;
+  const mod = moduleForPlugin(row);
+  const panelIds = new Set((mod?.panels ?? []).map((p) => p.id));
+  if (panelIds.size === 0) return;
+  // dockview singleton panels keep their spec id; close every open panel of this
+  // plugin so no orphan surface lingers after the plugin is gone.
+  for (const panel of [...api.panels]) {
+    if (panelIds.has(panel.id)) {
+      try {
+        panel.api.close();
+    // FR-054/SC-015: resolve a plugin's granted secret ids from the OS keychain
+    // at load. Best-effort per id (skip on a keychain miss outside Tauri).
+    resolveSecrets: async (ids) => {
+      const resolved: Record<string, string> = {};
+      for (const id of ids) {
+        try {
+          const value = await getSecret(id);
+          if (value !== null) resolved[id] = value;
+        } catch {
+          // Keychain unreachable (non-Tauri dev) — skip this secret.
+        }
+      }
+      return resolved;
+    },
+  });
+

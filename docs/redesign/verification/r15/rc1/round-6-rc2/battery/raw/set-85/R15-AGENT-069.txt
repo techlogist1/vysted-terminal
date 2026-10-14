@@ -1,0 +1,33 @@
+# R15-AGENT-069 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:42:44Z, sidecar :52348
+# kind=py
+# command:
+#   import asyncio, json
+#   from types import SimpleNamespace as NS
+#   from services import provider_registry
+#   from services.agent_tools import compare_symbols as cs, market_overview as mo
+#   # a Quote whose read of `change_percent` raises, as if the model field were renamed
+#   class Renamed:
+#       symbol='BADCO'; price=10.0; provider='fake'; currency='USD'; change=1.0; market_state='open'
+#       @property
+#       def change_percent(self): raise AttributeError("'Quote' object has no attribute 'change_percent'")
+#   good=lambda s: NS(symbol=s, price=100.0, change=1.0, change_percent=1.0, currency='USD', market_state='open', provider='fake')
+#   orig=provider_registry.get_quote
+#   def fake_quote(symbol, asset_class='equity', region=None):
+#       return Renamed() if symbol=='BADCO' else good(symbol)
+#   provider_registry.get_quote=fake_quote
+#   async def nofund(s): raise RuntimeError('no fundamentals')
+#   provider_registry.get_fundamentals=nofund
+#   def nohist(*a,**k): raise RuntimeError('no history')
+#   provider_registry.get_history=nohist
+#   async def main():
+#       r=await cs._compare_symbols({'symbols':['GOODCO','BADCO']})
+#       print('compare_symbols ok:', r.get('ok'), '| rows:', [(x['symbol'], 'error' in x) for x in r.get('symbols',[])], '| msg:', r.get('message'))
+#       syms=['^GSPC','BADCO','^IXIC']
+#       mo._indices_for_region=lambda region: syms
+#       r2=await mo._market_overview({})
+#       print('market_overview rows:', [(x['symbol'], 'error' in x) for x in r2.get('indices',[])], '| keys', sorted(r2.keys()))
+#   asyncio.run(main())
+# output:
+compare_symbols ok: False | rows: [('GOODCO', False), ('BADCO', True)] | msg: fewer than two symbols resolved — 1 of 2 returned a quote. BADCO: 'Quote' object has no attribute 'change_percent'
+market_overview rows: [('^GSPC', False), ('BADCO', True), ('^IXIC', False)] | keys ['headlines', 'indices', 'ok', 'region']
+# exit=0

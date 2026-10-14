@@ -1,0 +1,21 @@
+# R15-DOCS-017 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'full S&P 500\|3,506 symbols\|5,042\|5,891' docs/CURRENT_STATE.md; python3 - <<'PY'
+import json
+d=json.load(open('sidecar/services/screener_universes/sp500.json'))
+print('sp500.json', type(d).__name__, len(d.get('symbols',d)) if isinstance(d,dict) else len(d))
+PY
+echo '$ live universes'; for u in sp500 nse-all bse-all india-all; do echo -n "$u "; curl -s -m 60 "$H/screener/universe?id=$u" | python3 -c "import sys,json;d=json.load(sys.stdin);print(len(d.get('symbols',[])), d.get('label'))"; done
+--- output ---
+370:  fan-out filter engine. Universes: `sp500` (full S&P 500 — 503 symbols, a
+374:  `SYMBOL.NS` — 3,506 symbols: EQ 2,584 + ETF 351 + SM 571, SM = NSE Emerge),
+375:  `bse-all` (BSE master rows with STATUS == "Active" as `SYMBOL.BO` — 5,042
+377:  symbol is dual-listed — 5,891 symbols), `custom`. The three India
+sp500.json dict 503
+$ live universes
+sp500 503 S&P 500
+nse-all 3506 NSE (all listed)
+bse-all 5042 BSE (all active)
+india-all 5891 India (NSE + BSE)
+
+EXIT=0 (0.1s)

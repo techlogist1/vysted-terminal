@@ -1,0 +1,50 @@
+{
+ "tag": "merge-S2-delta",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_merge.md in full — including the 23 Sep register-bundler note appended under REFUTE-RAW — before touching anything. New intent raw/verdict files landed after the original merge waves closed each of these clusters' merge files; `python3 scripts/r15/register.py bundle` was re-run and diffed old vs new merge-in/<cluster>.json to isolate exactly which raw ids are new per cluster (listed per item below). This is a DELTA pass, not a redo: every cluster's census/merge/<cluster>.json already has entries for its pre-existing raw ids — do not touch those.",
+ "stages": [
+  {
+   "label": "merge",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Cluster {{id}}: CONTINUE from the existing {{out_file}} — add entries (or attach to an existing entry as a duplicate raw id, or a one-line rejection) ONLY for these new raw ids (found in {{bundle_file}}): {{new_raw_ids}}. Do not rewrite existing entries; keep severity order; follow PROMPT_merge.md's MERGE section (dedupe against what is already in {{out_file}} before opening a new entry — several of these may be duplicates of an existing defect, in which case attach the raw id to that entry instead of writing a new one). When {{out_file}}/{{bundle_file}} name more than one file, treat each cluster/file pair independently and finish both. Return RESULT with count = new entries written (not the cluster's total)."
+  }
+ ],
+ "items": [
+  {
+   "id": "research+release",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/research.json, docs/redesign/verification/r15/census/merge-in/release.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/research.json, docs/redesign/verification/r15/census/merge/release.json",
+   "new_raw_ids": "research.json: INT-spec-180-196, INT-spec-180-198 | release.json: INT-blueprint-288-2, INT-deferred-42-1, INT-deferred-42-7"
+  },
+  {
+   "id": "data",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/data.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/data.json",
+   "new_raw_ids": "INT-deferred-42-9, INT-spec-180-214, INT-spec-45-3"
+  },
+  {
+   "id": "code-platform",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/code-platform.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/code-platform.json",
+   "new_raw_ids": "INT-deferred-42-5, INT-pdd-readme-270-6, INT-pdd-readme-315-3, INT-pdd-readme-90-2, INT-spec-180-187, INT-spec-90-11, INT-spec-90-12"
+  },
+  {
+   "id": "ui",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/ui.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/ui.json",
+   "new_raw_ids": "INT-deferred-42-2, INT-deferred-42-4, INT-spec-180-181, INT-spec-180-189, INT-spec-180-210, INT-spec-180-215, INT-spec-180-217, INT-spec-90-10, INT-spec-90-5, INT-spec-90-8, INT-spec-90-9"
+  },
+  {
+   "id": "agent",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/agent.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/agent.json",
+   "new_raw_ids": "INT-blueprint-288-1, INT-deferred-42-3, INT-spec-0-1, INT-spec-0-2, INT-spec-180-202, INT-spec-180-205, INT-spec-180-206, INT-spec-180-207, INT-spec-180-209, INT-spec-45-2, INT-spec-90-6, INT-spec-90-7"
+  },
+  {
+   "id": "docs",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/docs.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/docs.json",
+   "new_raw_ids": "INT-deferred-42-6, INT-pdd-readme-135-1, INT-pdd-readme-135-2, INT-pdd-readme-180-2, INT-pdd-readme-180-3, INT-pdd-readme-180-4, INT-pdd-readme-225-1, INT-pdd-readme-270-1, INT-pdd-readme-270-2, INT-pdd-readme-270-3, INT-pdd-readme-270-4, INT-pdd-readme-270-5, INT-pdd-readme-270-7, INT-pdd-readme-315-1, INT-pdd-readme-315-2, INT-pdd-readme-90-1, INT-spec-45-1"
+  }
+ ]
+}

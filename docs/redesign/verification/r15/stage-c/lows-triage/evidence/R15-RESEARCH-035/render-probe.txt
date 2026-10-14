@@ -1,0 +1,17 @@
+# R15-RESEARCH-035 at e032be7d
+## iter.py:116-124 _Report.render
+    def render(self) -> str:
+        """The bounded working report for the next round's context."""
+        cap = self.char_cap if self.char_cap > 0 else _REPORT_CHAR_CAP
+        text = self.body.strip()
+        if len(text) > cap:
+            # Keep the newest distilled content (the tail) on overflow.
+            text = "…\n" + text[-cap:]
+        return text or "(no findings distilled yet)"
+
+
+cmd: PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python - (import services.research.iter._Report; over-cap 4-section body; render)
+cap 6000 body_len 6980 out_len 6002
+Facts established survives: False
+Planned next survives: True
+head of render: '…\ne 1,028 crore [1]\n- fact 29 revenue 1,029 crore [1]\n- fact'

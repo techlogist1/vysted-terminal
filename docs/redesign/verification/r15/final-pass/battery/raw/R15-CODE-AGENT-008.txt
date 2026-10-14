@@ -1,0 +1,29 @@
+# R15-CODE-AGENT-008 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:48:04+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import json
+from services import agent_runtime as ar
+from models.llm import LLMToolUseEvent
+brief={"query":"research NVDA","symbol":"NVDA","markdown":"m","sources":[{"url":"https://a.com"},{"url":"https://b.com"}],"structured":{"price":{}},"future_field":{"x":1}}
+ev=ar._auto_publish_event(LLMToolUseEvent(tool_call_id="t1",name="research",input={}),json.dumps({"ok":True,"brief":brief}))
+print("auto id:",ev.tool_call_id,"| input == brief verbatim:",ev.input==brief,"| sources:",len(ev.input["sources"]))
+print("no brief key ->",ar._auto_publish_event(LLMToolUseEvent(tool_call_id="t2",name="research",input={}),json.dumps({"ok":True})))
+PY
+python3 - <<PY
+import json,os
+f="$B/out/res.events.jsonl"
+if not os.path.exists(f): print("live leg: no events file (RESEARCH-027 probe not run yet)")
+else:
+    ev=[json.loads(l) for l in open(f) if l.strip()]
+    pb=[e for e in ev if e.get("kind")=="tool_use" and e.get("name")=="publish_brief"]
+    for e in pb:
+        i=e.get("input") or {}
+        print("auto publish_brief id=",e.get("tool_call_id"),"input keys:",",".join(i), "| structured keys:", ",".join((i.get("structured") or {}).keys()), "| sources:", len(i.get("sources") or []))
+    if not pb: print("no publish_brief event; kinds:", sorted({e.get('kind') for e in ev}))
+PY
+--- output ---
+auto id: t1__autobrief | input == brief verbatim: True | sources: 2
+no brief key -> None
+auto publish_brief id= call_e8be245837c5461aa307f60b34a0dcf7__autobrief input keys: query,symbol,mode,depth,execution,markdown,sources,structured,cost,web_available,note,web_reason,backend | structured keys: price,fundamentals,derived,news,filings,source_floor | sources: 0
+
+EXIT=0 (1.4s)

@@ -1,0 +1,11 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_89a2b526b39c4b1dbacd7c27303b1c2b", "name": "price_data", "input": {"asset_class": "equity", "range": "1mo", "symbol": "AAPL", "timeframe": "1d"}}
+[  25.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_89a2b526b39c4b1dbacd7c27303b1c2b", "name": "price_data", "ok": true, "error": null}
+[  35.6s] heartbeat: {"kind": "heartbeat"}
+[  40.1s] done: {"kind": "done", "usage": {"input_tokens": 4805, "output_tokens": 21, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The latest price of AAPL is $335.60, as fetched from the yfinance tool.
+
+=== ok · 40.1s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 20, 'done': 1} · usage in=4805 out=21 · est $0.00000 · llama3.1:8b

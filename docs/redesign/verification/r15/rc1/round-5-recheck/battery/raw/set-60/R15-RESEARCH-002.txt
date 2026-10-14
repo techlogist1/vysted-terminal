@@ -1,0 +1,21 @@
+=== R15-RESEARCH-002 repro: register's exact python -c command, candidate 949c3c9f ===
+cd sidecar && ./.venv/bin/python3 -c "
+from services.research.verify import _parse_verdict
+print(_parse_verdict('UNVERIFIED - no source confirms the 23% operating margin.'))
+print(_parse_verdict('UNVERIFIED - evidence does not support the figure'))
+print(_parse_verdict('UNVERIFIED - no matching figure'))
+"
+
+('unverified', 'UNVERIFIED - no source confirms the 23% operating margin.')
+('unverified', 'UNVERIFIED - evidence does not support the figure')
+('unverified', 'UNVERIFIED - no matching figure')
+
+VERDICT: holds. All three register-cited strings now parse as 'unverified'
+(were 'agree' pre-fix). The register's own note already records this exact
+class of check: "rc1 gate round 5 @633f8440: rc1-vshard-7 refuted the class
+claim ... own stated repro HOLDS on the verifier's re-run ... stays fixed
+under gate rule change 1; the class claim is filed as R15-LEAD-060" — this
+shard re-confirms the SAME own-stated-repro result independently at
+949c3c9f. The broader labelled/bracketed/numbered-verdict class (R15-LEAD-060)
+is out of scope for this entry's own repro per gate rule change 1 and is not
+re-litigated here.

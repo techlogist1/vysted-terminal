@@ -1,0 +1,185 @@
+=== R15-RESEARCH-032 repro: SettingsPanel now routes through sidecarGet/sidecarRequest + reload on visibilitychange/focus ===
+}
+
+// ---- R9 research tiers (two tiers — built on Team A's store contract) -------
+
+/** The managed-SearXNG status payload — mirrors `searxng_manager.snapshot()`. */
+interface SearxngStatus {
+  state: string;
+  detail: string | null;
+  reason: string | null;
+  port: number | null;
+  url: string | null;
+}
+
+/** The SearXNG state machine's status; a failure throws with its reason. */
+function fetchSearxngStatus(): Promise<SearxngStatus> {
+  return sidecarGet<SearxngStatus>("/search/searxng/status");
+}
+
+/** Poll cadence while the SearXNG setup is in a transition state (pulling/starting). */
+const SEARXNG_TRANSITION_POLL_MS = 3_000;
+
+/** Slow re-read cadence for a sidecar-backed Settings section while mounted. */
+export const SETTINGS_SLOW_POLL_MS = 60_000;
+
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Read a sidecar resource on mount, again whenever the window regains focus or
+ * the tab turns visible, and on a slow poll while mounted — so state that
+ * changed outside the app (a container that died) does not stay stale
+ * (R15-RESEARCH-032). A failure keeps its reason (the sidecar's own sentence,
+ * or that it is unreachable) instead of collapsing to "not connected".
+ */
+function useLiveSidecarRead<T>(read: () => Promise<T>) {
+  const [value, setValue] = useState<T | "loading">("loading");
+  const [error, setError] = useState<string | null>(null);
+  const alive = useRef(true);
+  const reload = useCallback(() => {
+    read().then(
+      (next) => {
+        if (alive.current) {
+          setValue(next);
+          setError(null);
+        }
+      },
+      (e: unknown) => {
+        if (alive.current) {
+          setError(messageOf(e));
+        }
+      },
+    );
+  }, [read]);
+
+  useEffect(() => {
+    alive.current = true;
+    reload();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        reload();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", reload);
+    const slow = setInterval(reload, SETTINGS_SLOW_POLL_MS);
+    return () => {
+      alive.current = false;
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", reload);
+      clearInterval(slow);
+    };
+  }, [reload]);
+
+  return { value, error, reload, setValue };
+}
+
+/** Designed status-chip vocabulary per sidecar state (the brief's words, not
+ *  the wire ids). Exported so the chip contract is locked by tests. */
+export function searxngChipMeta(state: string): { label: string; className: string } {
+  switch (state) {
+    case "not_installed_docker":
+      return { label: "Docker not found", className: "text-warning border-warning/40" };
+    case "docker_present_not_setup":
+      return { label: "Not set up", className: "text-charcoal-400 border-charcoal-700" };
+    case "pulling":
+      return { label: "Pulling", className: "text-charcoal-200 border-charcoal-600" };
+    case "starting":
+      return { label: "Starting", className: "text-charcoal-200 border-charcoal-600" };
+    case "ready":
+      return { label: "Ready", className: "text-positive border-positive/40" };
+    case "degraded":
+      // R15-RESEARCH-028: the container answers but its engines are blocked
+      // (or empty across enough probes/real queries) — distinct from "error"
+      // (the container itself is down) and from "ready" (it just answers).
+      return { label: "Degraded — engines blocked", className: "text-warning border-warning/40" };
+    case "error":
+      return { label: "Error", className: "text-negative border-negative/40" };
+    default:
+      // An unknown state (newer sidecar) — name it honestly rather than guessing.
+      return { label: state, className: "text-charcoal-400 border-charcoal-700" };
+  }
+}
+
+/** The live status chip — micro-text, hairline border, state-keyed color. */
+function SearxngStatusChip({ state }: { state: string }) {
+  const meta = searxngChipMeta(state);
+  return (
+    <span
+      data-testid="searxng-status-chip"
+      className={cn(
+        "text-micro rounded-control flex h-6 shrink-0 items-center border px-2 whitespace-nowrap",
+        meta.className,
+      )}
+    >
+      {meta.label}
+    </span>
+  );
+}
+
+/**
+ * Tier A's managed-SearXNG flow, driven VERBATIM off the sidecar state
+ * machine: a status chip + a container-health line + ONE primary action per
+ * state (Set up → Stop; Retry on error; nothing while pulling/starting), the
+ * Docker-missing state with honest copy (plain-text install hint, no external
+ * nav), and — whenever the instance is not READY — the quiet truth line that
+ * research is riding the limited keyless fallback meanwhile.
+ */
+function SearxngManagedFlow() {
+  const {
+    value: status,
+    error: statusError,
+    reload,
+    setValue: setStatus,
+  } = useLiveSidecarRead(fetchSearxngStatus);
+  const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const state = status !== "loading" ? status.state : null;
+  const transitional = state === "pulling" || state === "starting";
+
+  // While the setup is pulling/starting, follow progress on a ~3s poll.
+  useEffect(() => {
+    if (!transitional) {
+      return;
+    }
+    const interval = setInterval(reload, SEARXNG_TRANSITION_POLL_MS);
+    return () => clearInterval(interval);
+  }, [transitional, reload]);
+
+  async function runAction(action: "setup" | "teardown") {
+    setBusy(true);
+    setActionError(null);
+    try {
+      setStatus(await sidecarRequest<SearxngStatus>("POST", `/search/searxng/${action}`));
+    } catch (e) {
+      setActionError(messageOf(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** The quiet not-ready truth line (brief D1). */
+  const fallbackNote = (
+    <p className="text-charcoal-500 text-caption">
+      Until set up, research uses limited keyless search.
+    </p>
+  );
+
+  if (statusError !== null) {
+    return (
+      <div className="flex flex-col gap-2">
+        <p className="text-charcoal-500 text-caption" role="alert">
+          SearXNG status unavailable: {statusError}
+        </p>
+        {fallbackNote}
+
+-- live probe against own sidecar :52362 --
+GET /search/searxng/status:
+{"state":"degraded","detail":"SearXNG is running but its search engines are blocked","reason":"brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA","port":8888,"url":null,"container":"running","container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":true,"daemon_running":true,"runtime":"Docker Engine - Community"}}
+GET /system/hardware (first 200 chars):
+{"device":{"ramBytes":17179869184,"ramGib":16.0,"gpuBudgetBytes":11338713661,"gpuBudgetGib":10.6,"totalCores":8,"perfCores":6,"isAppleSilicon":true,"arch":"arm64","chip":"Apple M1 Pro","osName":"macOS
+
+VERDICT: holds. Both endpoints go through sidecarGet (line 775) / sidecarRequest (line 914) instead of a private raw-fetch client, so a non-2xx now carries the SidecarError reason rather than collapsing to 'sidecar not connected'; the panel re-fetches on both visibilitychange (823) and window focus (824), covering the register's 'chip keeps Ready after the container is stopped' repro. Both live probes above return real, non-degraded-to-null payloads. A live Docker-stop-while-mounted case needs a GUI session; source confirms the specific fix_shape (sidecarPost equivalent = sidecarRequest, SidecarError reason rendered, re-fetch on focus/visibilitychange).

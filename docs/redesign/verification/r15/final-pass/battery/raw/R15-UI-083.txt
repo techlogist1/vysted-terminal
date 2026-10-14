@@ -1,0 +1,24 @@
+# R15-UI-083 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'saveTextArtifact\|savePdfArtifact\|savePngArtifact\|bodySettled' src/modules/research/BriefPanel.tsx | head -8; ls docs/redesign/verification/r15/gui-round/R15-UI-083/ 2>&1 | head
+--- output ---
+41:import { saveTextArtifact, savePdfArtifact, savePngArtifact } from "@/lib/export-artifact";
+653:  // which is why those two buttons stay disabled until `bodySettled` below.
+665:  // `bodySettled` tracks the SAME stagger math `BriefBody`/`MarkdownBody` actually
+683:  const bodySettled = reducedMotion === true || settledKey === (brief?.createdAt ?? null);
+696:      const r = await saveTextArtifact("research", `${briefSlug(brief)}.md`, md);
+707:      const r = await savePdfArtifact("research", `${briefSlug(brief)}.pdf`, el);
+718:      const r = await savePngArtifact("research", `${briefSlug(brief)}.png`, el);
+791:          PDF/PNG rasterize `briefBodyRef` and stay disabled until `bodySettled`
+DRIVE.md
+VERIFY.md
+ace7dd7-01-boot-passive.png
+ace7dd7-02-cockpit-brief-settled.png
+ace7dd7-03-save-md-status.png
+ace7dd7-04-save-pdf-status.png
+ace7dd7-04b-save-pdf-status-late.png
+ace7dd7-05-save-png-status.png
+ace7dd7-05b-save-png-status-late.png
+raw
+
+EXIT=0 (0.0s)

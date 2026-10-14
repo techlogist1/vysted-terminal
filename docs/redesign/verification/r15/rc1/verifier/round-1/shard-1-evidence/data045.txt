@@ -1,0 +1,16 @@
+orig-127 False blocked redirect to a non-public or non-http(s) URL 
+orig-metadata False blocked redirect to a non-public or non-http(s) URL 
+v-localtest.me False blocked redirect to a non-public or non-http(s) URL 
+v-nip.io False blocked redirect to a non-public or non-http(s) URL 
+v-decimal False blocked redirect to a non-public or non-http(s) URL 
+v-ipv6-loop False blocked redirect to a non-public or non-http(s) URL 
+v-v4mapped False blocked redirect to a non-public or non-http(s) URL 
+v-zero False blocked redirect to a non-public or non-http(s) URL 
+v-pdf-lane False blocked redirect to a non-public or non-http(s) URL 
+v-file False blocked redirect to a non-public or non-http(s) URL 
+v-2hop False blocked redirect to a non-public or non-http(s) URL
+v-pdf-path False HTTP 404
+visit_for_research VisitResult(text=None, reason='blocked redirect to a non-public or non-http(s) URL')
+pdf-lane-direct False blocked redirect to a non-public or non-http(s) URL
+pdf-lane-direct False blocked redirect to a non-public or non-http(s) URL
+curl_cffi lane RedirectBlocked redirect from https://httpbin.org/redirect-to?url=http%3A%2F%2F127.0.0.1%3A52609%2F to a refused URL was blocked

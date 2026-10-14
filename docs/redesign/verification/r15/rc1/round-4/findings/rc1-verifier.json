@@ -1,0 +1,194 @@
+[
+ {
+  "key": "rc1-verifier:1",
+  "kind": "new_defect",
+  "severity": "high",
+  "register_id": null,
+  "title": "arrange_layout pattern='custom' with panels raises TypeError (unhashable type: 'list') in agent_runtime._coerce, so every custom-layout agent turn crashes (confirms rc1-vshard-9:1; introduced by the AGENT-093 fix 816f7cac)",
+  "repro": "At 68d5573, in-process: agent_runtime tool-arg coercion of arrange_layout {'pattern':'custom','panels':['chart','news']} and {'pattern':'custom','panels':[{'component':'chart'}]} both RAISE TypeError unhashable type: 'list'; the panels items schema type is the list ['string','object'] and _coerce tests `expected in _JSON_STRING_TYPES` with it. {'pattern':'research-cockpit'} is OK.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adj-a093-arrange-custom.txt",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:2",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-AGENT-090",
+  "title": "Ratio guard releases a partial sentence at any delta boundary that ends in whitespace, so the figure clause of a guarded ADR-ratio sentence streams through after the replacement (defeats AGENT-090)",
+  "repro": "At 68d5573, ratio_sim.py drives _release_point/_guard_ratio_claims exactly as _consume_round does. 'One ADR of SIFY equals 6 ordinary shares, per the 20-F.' as ONE delta -> replaced cleanly; split after 'equals ' or token-streamed -> \"The ADR-to-ordinary-share ratio is not available from this session's sources. 6 ordinary shares, per the 20-F.\" Root: _SENTENCE matches to \\Z and _seg_at marks the segment closed when sentence[-1].isspace(). Live: scenarios/sk-sify-hosted-t2 ('... not available from this session's sources. 5 or The ADR-to-ordinary-share ratio ...') and sk-sify-local-t1 ('... sources. 6 ordinary shares.').",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adv-ratio-guard-sim.txt",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:3",
+  "kind": "regression",
+  "severity": "critical",
+  "register_id": "R15-DATA-003",
+  "title": "Refutation stands: US-bound AMAL still receives Amal Ltd's BSE shareholding and announcements as a flat 200 with no not-applicable signal",
+  "repro": "Own repro at 68d5573 on :52312 with X-Vysted-Region: US: /resolve?q=AMAL binds Amalgamated Financial Corp (US, ISIN US0226711010), yet /disclosures/shareholding?symbol=AMAL returns 104 BSE patterns (promoter_percent 71.35, xbrl 506597_...) and /disclosures/announcements?symbol=AMAL returns 21 BSE items, no field/flag/error saying the lane does not apply (confirms rc1-vshard-0:1).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adv-curl.out",
+  "suspected_files": [
+   "sidecar/routers/disclosures.py",
+   "sidecar/services/ownership_check.py",
+   "sidecar/services/corporate_disclosures.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:4",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-LEAD-022",
+  "title": "Refutation stands: _yahoo_symbol still dash-rewrites every foreign suffix outside a 37-entry allowlist, so 2222.SR, SAP.F, GGAL.BA, OPAP.AT 404 'check the symbol'",
+  "repro": "Own repro at 68d5573: in-process _yahoo_symbol('2222.SR')='2222-SR', 'SAP.F'='SAP-F', 'GGAL.BA'='GGAL-BA', 'OPAP.AT'='OPAP-AT' (BHP.AX/0700.HK/7203.T/VOD.L now pass through); GET /quotes/2222.SR, /quotes/SAP.F, /quotes/GGAL.BA -> 404 not_found 'check the symbol' while the entry's repro is 'any non-US, non-IN foreign listing' (confirms rc1-vshard-4:1).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adv-inproc.txt",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:5",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-LEAD-014",
+  "title": "Refutation stands: tool-arg repair accepts a placeholder schema echo ({prop: '<type-name>'}) as real arguments",
+  "repro": "Own repro at 68d5573: OpenAIProvider._repair_tool_args with a repair reply '{\"symbol\": \"string\"}' for fundamentals and price_data, '{\"query\": \"string\"}' for resolve_symbol, and '{}' for news -> ACCEPTED and executed; full-schema and properties echoes are rejected. The fix_shape names exactly the property-name -> type-name placeholder shape (confirms rc1-vshard-2:4).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adv-lead014.txt",
+  "suspected_files": [
+   "sidecar/services/llm/openai.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:6",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-LEAD-004",
+  "title": "Refutation stands: a quarterly Indian filer (NDTV) still carries the '(a half-yearly filer)' TTM label",
+  "repro": "Own repro at 68d5573: GET /fundamentals/NDTV on :52312 -> field_meta.revenue_ttm.reason and net_income_ttm.reason = 'TTM basis: the exchange filings do not cover the trailing year in four quarters (a half-yearly filer) ...'. NDTV files quarterly under LODR; FiledPeriods.cadence() returns half-yearly whenever the trailing 12 months are not four 3-month periods (one missing quarter) (confirms rc1-vshard-3:1).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adv-lead004-NDTV.json",
+  "suspected_files": [
+   "sidecar/services/exchange_financials.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:7",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-AGENT-055",
+  "title": "Refutation stands: the same layout id still yields different panel sets per entry point (agent single-focus/compare = one maximized chart; menu payload single-focus = chart+watchlist+news, compare = chart+equity-overview)",
+  "repro": "Own repro at 68d5573: layout-templates.ts TEMPLATE_PLACEMENT 'single-focus' and compare maximize the chart; MENU_PAYLOAD_TO_MODE maps the Rust menu payload 'layout:single-focus' -> technical (chart, watchlist, news) and 'layout:compare' -> compare-desk (chart, equity-overview). The fix_shape test 'for each template id the agent and menu paths produce the same panel set' fails; the description half (heatmap/dual-chart) is fixed (confirms rc1-vshard-3:2).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adv-agent055-ui015.txt",
+  "suspected_files": [
+   "src/lib/layout-templates.ts",
+   "src-tauri/src/lib.rs"
+  ]
+ },
+ {
+  "key": "rc1-verifier:8",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-053",
+  "title": "Refutation stands: NSE-direct quotes serve null open/high/low/prev_close (ELCIDIN, AMAL, INFY.NS) and the BSE path serves volume in lakh units as shares (INFY.BO volume 8.12)",
+  "repro": "Own repro at 68d5573 on :52312: /quotes/ELCIDIN?asset_class=equity and /quotes/AMAL?asset_class=equity -> provider nse_direct, open/high/low/prev_close null (entry raw DAT-P13-4: ELCIDIN day range absent); /quotes/INFY.BO -> provider bse volume 8.12 (TTQ in lakh, 100000x low); ICON now carries volume 1200 and OHLC (confirms rc1-vshard-5:1 and rc1-vshard-9:5).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adv-curl.out",
+  "suspected_files": [
+   "sidecar/services/nse_provider.py",
+   "sidecar/services/bse_provider.py",
+   "sidecar/models/market.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:9",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-UI-015",
+  "title": "Refutation stands only on the entry's secondary clause: sec.searchCompanies still discards the failure reason (retry clause fixed)",
+  "repro": "Own repro at 68d5573: src/store/sec.ts:257 `} catch { set({ searchResults: EMPTY_SEARCH, searchStatus: \"error\" }); }`; use-sidecar-retry now retries only on non-SidecarError, status 0 or 503 (primary clause fixed). Residual is low (confirms rc1-vshard-4:3).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adv-agent055-ui015.txt",
+  "suspected_files": [
+   "src/store/sec.ts"
+  ]
+ },
+ {
+  "key": "rc1-verifier:10",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-AGENT-043",
+  "title": "A flat AND criterion group sent by the agent never runs: applyFilters keeps it as group with advanced=false, and runScreener sends group only when nested or combinator 'or' (confirms rc1-vshard-3:6)",
+  "repro": "Own read at 68d5573: src/store/screener.ts applyFilters sets group, advanced=hasNestedGroup(group)=false, combinator='and'; runScreener builds group only for a nested pruned tree or combinator==='or', so a flat {combinator:'and',criteria:[...]} is dropped and only the flat criteria list (possibly empty) is executed while the label shows the group.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adj-agent043-flat-and.txt",
+  "suspected_files": [
+   "src/store/screener.ts"
+  ]
+ },
+ {
+  "key": "rc1-verifier:11",
+  "kind": "environment",
+  "severity": "medium",
+  "register_id": null,
+  "title": "battery-raw-missing is undercounted: 25 fixed-at-sha ids have only a NOT RUN battery raw file (the collator claimed 3); the battery also ran at 1006c6da, not 68d5573",
+  "repro": "Own count over battery/raw/** against the register at 68d5573: 395 fixed, 370 with a real raw file, 25 with only NOT RUN files (AGENT-053, AGENT-057, CODE-FRONTEND-001/005/016/018, CODE-PLATFORM-012/013/053, CROSS-PLATFORM-004, DATA-031/042/100, LEAD-033, LIFECYCLE-002/003/009, RESEARCH-026, UI-016/029/030/038/058/086/092).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/battery-raw-check.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:12",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-AGENT-019",
+  "title": "Three-failure note: AGENT-019's own phrasings keep the write tool (not refuted, stays certified), but a fresh question-shaped write ask ('Any chance you could get rid of my TCS position?', 'Mind noting that INFY cut its guidance?') classifies read and strips the write tool (55 -> 42 tools)",
+  "repro": "Own in-process classify_intent/_resolve_tool_surface at 68d5573: all 8 entry phrasings KEEP; the two '?'-terminated asks STRIP via the '\\?\\s*$' read rule (relates to rc1-vshard-9:2).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adv-inproc.txt",
+  "suspected_files": [
+   "sidecar/services/planner.py",
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:13",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-LEAD-039",
+  "title": "Three-failure note: LEAD-039's 502 is gone (not refuted by its own repro); the partial EarningsEstimates still carries no stated reason (relates to rc1-vshard-9:4)",
+  "repro": "Own curl at 68d5573: /earnings/RDY/estimates, /earnings/TM/estimates, /earnings/SONY/estimates -> 200.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/adv-curl.out",
+  "suspected_files": [
+   "sidecar/routers/earnings.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:14",
+  "kind": "regression",
+  "severity": "note",
+  "register_id": "R15-DATA-002",
+  "title": "Concurrence note only (blocked_tier4, DECISIONS 4.15 operator decision pending): hosted skepticism trials bind a bare cross-market ticker silently",
+  "repro": "scenarios/sk-amal-hosted-t1..t3: 'The current price of Amal Limited (AMAL) is Rs 674.40' with no disclosure that NASDAQ:AMAL (Amalgamated Financial) exists; sk-dal-hosted-t2: 'DAL is the ticker symbol for Delta Air Lines' followed by Rs crore revenue from an Indian scrip. Recorded as reproductions of DATA-002, not new defects.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/scenarios/sk-dal-hosted-t2.stdout.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:15",
+  "kind": "regression",
+  "severity": "note",
+  "register_id": "R15-AGENT-046",
+  "title": "Concurrence with rc1-fix-r1-recheck:2 (low): the local lane's rb-brief trial narrates a completed brief although W1 now stages the auto-brief; the reply template is unconditional on review mode",
+  "repro": "scenarios/rb-brief-local-t1.stdout.txt (lane at 1006c6da, pre-W1) and the recheck claim at 68d5573; filed under the LEAD-038 known-limitation class for the local model.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/scenarios/rb-brief-local-t1.stdout.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-verifier:16",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "nifty50 universe still lists TATAMOTORS.NS, which Yahoo no longer quotes after the demerger; the screener honestly skips it ('screened 49 of 50 - 1 unavailable')",
+  "repro": "Own POST /screener/run nifty50 zero-result at 68d5573: skip_details [{TATAMOTORS.NS, not_found}]; the same in surface/screener/rc1/round-4/07-zero-result-response.json.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/own/drive-spot.out",
+  "suspected_files": [
+   "sidecar/services/screener_universes/nifty50.json"
+  ]
+ }
+]

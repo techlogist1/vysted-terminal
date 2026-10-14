@@ -1,0 +1,110 @@
+{
+  "before": [
+    {
+      "symbol": "SPY",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "QQQ",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "BTC/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "ETH/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "NVDA",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "AAPL",
+      "assetClass": "equity"
+    }
+  ],
+  "afterAddMSFT": [
+    {
+      "symbol": "SPY",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "QQQ",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "BTC/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "ETH/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "NVDA",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "AAPL",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "MSFT",
+      "assetClass": "equity"
+    }
+  ],
+  "afterRemoveQQQ": [
+    {
+      "symbol": "SPY",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "BTC/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "ETH/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "NVDA",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "AAPL",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "MSFT",
+      "assetClass": "equity"
+    }
+  ],
+  "afterRestore": [
+    {
+      "symbol": "SPY",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "BTC/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "ETH/USDT",
+      "assetClass": "crypto"
+    },
+    {
+      "symbol": "NVDA",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "AAPL",
+      "assetClass": "equity"
+    },
+    {
+      "symbol": "QQQ",
+      "assetClass": "equity"
+    }
+  ]
+}

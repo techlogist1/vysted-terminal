@@ -1,0 +1,4 @@
+total tools granted: 55
+full schema chars: 41582 ~tokens 10395
+subset len for small window: 29
+subset len for huge window (should be all): 55

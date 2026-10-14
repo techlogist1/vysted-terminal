@@ -1,0 +1,18 @@
+# batch-10/W6-chart-notes-blueprint (shard rc1-battery-19)
+
+Candidate: 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Sidecar booted from candidate source
+on :52359, data dir `rc1-round-5-data-rc1-battery-19` (copy of the round-5 keyless seed).
+
+| id | repro run | observed | verdict |
+|---|---|---|---|
+| R15-CODE-PLATFORM-024 | Live source check: `src-tauri/src/lib.rs:391,422` define `write_text_atomic`/`write_bytes_atomic`, registered in the `invoke_handler` (`:513-514`); `docs/BLUEPRINT.md:77-81` now documents these commands (not `tauri-plugin-fs`) as the real fs layer, naming this entry and the Blob-download fallback explicitly. | Both Rust commands present and registered; BLUEPRINT.md text matches the fix_shape (documents the atomic-write commands, no longer claims `tauri-plugin-fs`). | holds |
+| R15-DATA-078 | Live grep: `docs/BLUEPRINT.md:266` now reads "yfinance fallback (no API key needed for basic use; R15-DATA-078 — alpha_vantage was [never built]"; `grep -rn alpha_vantage sidecar/ --include=*.py` (excl. tests) → 0 hits. | BLUEPRINT.md no longer claims the alpha_vantage fallback; source still has none (never built, consistent with the fix — remove the false claim rather than build the feature). | holds |
+| R15-DOCS-004 | Live read: `docs/redesign/PRODUCT_DESIGN_DECISIONS.md:1-16` opens with a `> **SUPERSEDED (R15-DOCS-004):**` banner naming both reversals (R6 Pure Black, R9 Linear/Cursor scale) and pointing to `VYSTED_DESIGN.md`/`R9_DESIGN_SYSTEM.md` as the live authority; states §8/§11-16 stay binding and cites `src/lib/design-doc-citations.test.ts` as the enforcement gate. | Banner text present verbatim, matches the closure evidence in batch-10 VERDICTS.md. | holds |
+| R15-DOCS-005 | Live count: `src/modules/index.ts` imports exactly 20 module files, all pushed into `vystedModules[]`; `docs/BLUEPRINT.md:20` reads "20 modules shipped in 0.9 (see §4 for the full ~37-module v1.0 roadmap)"; `docs/BLUEPRINT.md:238` heading matches ("20 shipped in 0.9.0 ... ~37 modules"). | Doc count (20) matches the real registered-module count (20); the ~38→~37 roadmap figure is now framed as future scope, not a current-state promise. | holds |
+| R15-LEAD-026 | Live `GET /history/ZZQXNOTASYM` on :52359. | `{"reason":"unknown_symbol","provider":"none","bars":[]}` for the bare unknown symbol; `GET /history/QQZZFAKE.NS` (suffixed unknown, documented exception) still returns `reason: null` as the rule specifies. | holds |
+| R15-UI-024 | 5 sub-repros, all pinned vitest, unmodified: (a) Task List — `NotesToolbar.test.tsx:84` "the Task list button toggles a task list (extension is registered)"; (b) slash/wikilink keyboard nav — `notes.test.ts:335`/`:353` ArrowDown+Enter picks the 2nd item; (c) wikilink round-trip — `notes.test.ts:390` "[[SYMBOL]] round-trips through getMarkdown()/setContent() unchanged"; (d) picker offers a symbol added after mount — `NotesPanel.test.tsx:117`; (e) toolbar button wraps instead of deleting a selection — `NotesToolbar.test.tsx:95`. | All 5 tests present, unmodified, each matching its named sub-repro. | ci_pinned |
+| R15-UI-048 | `src/store/settings.ts` `chartDefaults` slice present. Pinned vitest `ChartPanel.test.tsx:278` "a fresh panel (no persisted view) opens on the settings chart default (R15-UI-048)" and `:311` "'Make default' persists the current symbol/timeframe/indicators to settings" — both unmodified. | Settings slice present; both tests present and match the register repro (no more hard-coded SPY/1d ignoring the user's chosen default). | ci_pinned |
+
+Raw: `battery/raw/set-44/<id>.txt` for all 7 ids.
+
+COVERAGE: 7/7 ids raw; no raw: none.

@@ -1,0 +1,15 @@
+{
+  "injected_hits": [
+    "async",
+    "sync",
+    "async"
+  ],
+  "ok_keys": [
+    "derived",
+    "fundamentals",
+    "price"
+  ],
+  "price_ok": true,
+  "fundamentals_ok": true,
+  "ESCAPED": false
+}

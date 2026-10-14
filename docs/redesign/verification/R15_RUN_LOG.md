@@ -1,0 +1,320 @@
+<!-- backfilled 24 Sep 2026 from journals + run-state; numbers traceable per row -->
+
+# R15 LAUNCH — run log (telemetry)
+
+56 workflow runs tabulated (26 as of the first backfill below, plus 30 more from this backfill:
+28 completed/killed runs since the batch-10 row plus the 2 still in flight at write time). The
+first 26: the 23 under this session's
+`…/3e7ae14d-d48a-4882-8a75-f7608754c23f/subagents/workflows/` (23-Sep/24-Sep) plus 3 from the
+prior session's `…/5df12ac0-.../subagents/workflows/` (19 Sep) whose run ids appear in the loop
+log. Duration = journal file birth-time → last-write mtime (`stat -f %SB/%Sm`), cross-checked
+against every run-state duration that states one — all matched to the stated minute (batch 6's
+712.8 min file-derived duration matches the stated "11.9 h" exactly). Agent/model counts = one
+`{"type":"result"}` line per completed agent in that run's `journal.jsonl`; model strings are
+bucketed fable/opus/sonnet/other. Tokens are **not** a journal field (no journal in this run
+carries a token count) — every token figure below is copied from the matching
+`vysted-r15-run-state.md` loop-log line and cited as such; where no loop-log line states tokens
+for a run, it is marked not recorded.
+
+From this backfill on (rows added below the batch-10 row), tokens, agent counts, model mix and
+duration come from each run's own `…/workflows/wf_<id>.json` file (`totalTokens`,
+`workflowProgress`'s per-agent `model`/`tokens`/`durationMs`/`state`, `startTime`/`durationMs`),
+cross-checked against that run's `journal.jsonl` and against the matching
+`vysted-r15-run-state.md` IN-FLIGHT LEDGER line where one exists.
+
+## Waves
+
+| Run id | Stage / batch | Purpose | Launched (IST) | Duration | Agents (landed) | Model mix | Tokens | Outcome | Source |
+|---|---|---|---|---|---|---|---|---|---|
+| wf_6871fdb3-621 | Stage 0 | truth scouts (env/drift/keys/law/surface/subsystem/battery) + pushguard + rig | 19 Sep 06:20 | 2h08m | 8/11 | sonnet 4, opus 3, haiku 1 | not recorded | 8/11 landed pre-wall; pushguard + rig salvaged later | journal(5df12ac0) + run-state L1,L4 |
+| wf_734dffa1-5d4 | Stage 1 | intent-extract (blueprint/pdd-readme/spec/deferred) + world research/compare pipeline | 19 Sep 06:23 | 2h41m | 7 | sonnet 4, opus 3 | not recorded | partial landing pre-wall; remainder relaunched session 2 | journal(5df12ac0) + run-state L2,L6 |
+| wf_4073e516-82c | Stage 1 | battery curator + 24 outside-truth packs | 19 Sep 06:27 | 3h30m | 2 (curator only) | opus 2 | not recorded | heavy retry/fail churn on individual packs; most relaunched later | journal(5df12ac0) + run-state L3,L6 |
+| wf_aa843beb-8ad | Stage A | worktree/registration salvage scout (RECONCILE_MANIFEST) | 23 Sep 03:50 | 7.8min | 1 | opus 1 | not recorded | facts folded into header | journal + run-state L9/L10 |
+| wf_351041f4-938 | Stage A | license writer+reviewer, iso-stack rebuild + Ollama local-lane proof | 23 Sep 04:01 | 17.8min | 3 | sonnet 1, opus 1, ollama 1 | not recorded | license commit 0c63d465; iso stack up on :52152-54 | journal + run-state L10/L11 |
+| wf_e5b785bd-002 | Stage A | num_ctx fix writer+verifier, refute-planner | 23 Sep 04:22 | 34.6min | 3 | sonnet 2, opus 1 | not recorded | num_ctx fix d328089; Gate 1 holds | journal + run-state L12, commit 38ded25b |
+| wf_338a3672-c14 | Stage B (refute-W1) | 6 subsystem refuters | 23 Sep 04:58 | 7.8min | 6 | opus 6 | 797k | 89 findings: 0 refuted, 38 admitted, 48 corrected, 3 removed_with_feature | journal + run-state L12/L13 |
+| wf_f9150967-7cf | Stage B (refute-chain W2-W6) | 29 subsystem/intent refuters | 23 Sep 05:07 | 21min | 29 | opus 29 | 3.37M | 404 verdicts: 183 admitted, 201 corrected, 13 refuted, 7 removed | journal + run-state L14 |
+| wf_6a0f9c02-a2e | Stage B items 1-3 | code S2A/S2B critique+refute, data 24/24 packs+diffs | 23 Sep 05:30 | 1h38m | 75 | sonnet 31, opus 44 | 11.56M | closed, 0 failures; commit f763a44b | journal + run-state L15 |
+| wf_e5222ca0-412 | Stage B items 4-6 | surface/lifecycle/intent/world/ideation waves | 23 Sep 07:11 | 5h14m | 77/78 | sonnet 20, opus 54, other 3 | not recorded | closed; commit 44497c4c; L6 soak mis-flagged as a stall | journal + run-state L16 |
+| wf_94189615-7df | Gate 2 (1st) | l6-finisher, completeness-checker, 13 cluster merges, register build, verify | 23 Sep 12:39 | 50min | 21 | sonnet 4, opus 17 | 3.14M | BLOCKED — intent-census gap missed (counted stale ledgers) | journal + run-state L17, commit 38919fd1 |
+| wf_a8d56de8-9b4 | Gate 2 (intent re-close) | 12-chunk extract/verify/refute + delta merges + register rebuild | 23 Sep 13:30 | 46.7min | 35 | sonnet 15, opus 20 | not recorded | BLOCKED (narrower) — spec-135 ledger only 16/45 rows | journal + run-state L18, commit 56b77917 |
+| wf_079d13fa-9ac | Gate 2 (final close) | row-count loop, spec-135 completion, delta-2 merges, rebuild, re-verify | 23 Sep 14:19 | 43.1min | 10 | sonnet 6, opus 4 | not recorded | **GATE 2 HOLDS** | journal + run-state L19, commit 99e2ae38 |
+| wf_9f29ee60-ba0 | Stage C batch 1 (trading removal) | plan, sidecar/frontend/docs writers, integrate, review, verify | 23 Sep 15:05 | 84.3min | 7 | opus 6, sonnet 1 | 1.74M | merged `a122dbf6`; Gate 8 rewritten-proof pass (0 broker/order/kill/audit hits) | journal + run-state L20 |
+| wf_17fd6179-d65 | Stage C batch template | first batch-2 adjudicate launch | 23 Sep 16:32 | instantaneous | 0 (1 started) | — | n/a | aborted; superseded immediately by wf_48478ec5-daf | journal |
+| wf_48478ec5-daf | Stage C batch 2 | adjudicate, plan, 5 writers, integrate, review, verify | 23 Sep 16:34 | 132.5min | 10 | sonnet 2, opus 8 | 3.2M | merged `806a90ca`; 37/40 certified, 3 not certified | journal + run-state L22 |
+| wf_aaf73f27-1c5 | Stage C batch 3 | same shape | 23 Sep 18:49 | 136.8min | 10 | sonnet 1, opus 9 | 2.9M | merged `c81d879b`; 38/40 certified, 2 not certified | journal + run-state L23 |
+| wf_f37de2ba-9d1 | Stage C batch 4 | same shape | 23 Sep 21:08 | 172min | 10 | sonnet 2, opus 8 | 2.6M | merged `dcbe7bae`; 45/52 certified, 2 needs_gui, 3 not certified | journal + run-state L24 |
+| wf_17b6cbe4-389 | Stage C batch 5 | same shape (+ an off-journal Opus regression fixer, 14min, no run id) | 24 Sep 00:02 | 165.1min | 10 | sonnet 1, opus 9 | 2.5M | merged `1574ed8e`; 48/58 certified, 2 needs_gui; LEAD-010 regression fixed post-hoc `7ae5117` | journal + run-state L25 |
+| wf_94ccf2b8-e97 | Stage C batch 6 — **FAILED** | writers, integrate, verify | 24 Sep 03:04 | 712.8min (11.9h) | 4 (of ~10 phases) | sonnet 1, opus 3 | 6.4M | harness-stall watchdog killed writers/integrator/verifier repeatedly; 21/22 delivered entries recovered by hand, merged `5e147317` | journal + run-state L26 |
+| wf_5c799024-a29 | Stage C batch 7 | same shape | 24 Sep 15:36 | 136.6min | 10 | sonnet 1, opus 9 | 3.4M | merged `e81c9e7c`; 50/55 certified, 1 needs_gui, 4 not certified | journal + run-state L27 |
+| wf_b829ac35-3a5 | Stage C batch 8 | same shape | 24 Sep 17:54 | 131.4min | 10 | sonnet 1, opus 9 | 3.1M | merged `68bb7aa4`; 39/47 certified, 1 needs_gui, 7 not certified | journal + run-state L28 |
+| wf_36d043fa-61f | Stage C batch 9 | same shape | 24 Sep 20:09 | 154.7min | 10 | sonnet 4, opus 6 | 1.8M | merged `6b702305`; 29/45 certified, 2 needs_gui, 14 not certified | journal + run-state L29 |
+| wf_c6207d00-908 | Lows pre-triage | 14-shard critique + critic + collate | 24 Sep 22:10 | 23min | 17 | sonnet 2, fable 14, opus 1 | 2.2M | 199/205 still reproduce, 5 already-fixed, collated `84418994` | journal + run-state ledger line 23 |
+| wf_31f149cf-57d | Stage D docs wave | facts, 5 drafts + Fable critics, secrets/licence scans | 24 Sep 22:48 | 29.3min | 20 | sonnet 14, fable 5, other 1 | 2.8M | 5 drafts revised, committed `5f1ddaae`; drafts not promoted | journal + run-state ledger line 25 |
+| wf_54334d97-0e6 | Stage C batch 10 | adjudicate, plan, 8 writers, integrate, review, verify | 24 Sep 22:47 | ~2h56m wall over 3 dispatches (stopped 00:25 for routing change 4, resumed 00:30, re-dispatched 01:23 after 2 Fable verify weekly-limit rejections; final dispatch alone 18.7min/239k tokens) | 13 in final dispatch (adjudicate, plan, W1-W8, integrate, review, verify) + 2 earlier Fable verify attempts failed (weekly limit) | opus 5, sonnet 5 (dispatch 1) → all-Fable resume/re-dispatch | not recorded overall (final dispatch's verify agent alone: 239k) | MERGED `f407107f` on origin/004 (79 commits over 6b91b8fa); 50 certified, UI-084 needs_gui, AGENT-083 concur_not_defect, 4 not certified with fresh cases | run file + run-state ledger line 30 |
+| wf_96670fc2-911 | Stage C batch 11 — aborted first launch | `r15-stage-c-batch` dispatched with `tag:'batch-11'`, aborted | 25 Sep 01:44 | 2.0min (killed: `Error: Workflow aborted`) | 1 (fable, in progress when killed) | fable 1 | not recorded (absent) | Aborted before any agent landed; batch-11 relaunched cleanly 4 min later as `wf_a5e688ba-d35` — **not in the ledger by this id** (the ledger's "first resume... stopped within a minute" text at line 30 describes a different, unlogged batch-10 event; this run file's own `args` show `tag:'batch-11'`, not batch-10) | run file only |
+| wf_a5e688ba-d35 | Stage C batch 11 | adjudicate, plan, 6 writers, integrate, review, verify | 25 Sep 01:48 | 186.6min | 13 | opus 10, sonnet 3 | 2.39M | merged `4097dac4` on origin/004; 18 certified, LEAD-028 + RELEASE-007 not certified (no regression), UI-047/UI-059/DATA-080 concurred out of scope | run file + run-state ledger line 34 |
+| wf_be24fed9-05a | lows-waves harness check | `lows-waves.js` `{mode:'partition', dry_run:true, max_writers:16}` dry run | 25 Sep 03:57 | ~0min (10ms) | 0 (0 spawned) | — | 0 | Returned in 10ms; `would_spawn` = lows-adjudicate sonnet/high + lows-partition opus/high; also this window the batch-11 integrator appended 32 W3 agent-eval ollama $0 spend rows (177→209 lines) | run file + run-state ledger line 31 |
+| wf_3e90ff66-7ea | scope-change-2 groundwork — authoring | groundwork script write (one Opus agent) | 25 Sep 04:43 | 7.2min | 1 | opus 1 | 155,788 | Committed `b3f7f284` on origin/004: the groundwork tooling script + its runbook doc, node --check ok, stubbed dry runs clean, banned-phrase check 0 hits | run file, matched by duration/tokens to run-state ledger line 32 (id not printed there) |
+| wf_8607274d-b0e | scope-change-2 groundwork — PREP harness check | groundwork script `{mode:'prep', dry_run:true, sha:'b3f7f284', max_shard:80}` dry run | 25 Sep 04:51 | ~0min (14ms) | 0 (0 spawned) | — | 0 | Dry run only: 0 agents spawned, `would_spawn` lists ~14 fixed prep roles (verify/scout/baseline/options/mine/label shards) — **not in the ledger** | run file only |
+| wf_18bf38f4-b9d | scope-change-2 groundwork — PREP | verify, baseline, options, mine, label (26 agents) | 25 Sep 04:52 | 14.3min | 26 | opus 16, sonnet 10 | 2.48M | Package verified Apache-2.0 (the candidate inference package's 0.2.0 build flagged as an unattested third-party port); 366 candidates → 339 agreed; committed `b667140c`/`69853b14`/`2d2fb032` on origin/004 | run file + run-state ledger line 33 |
+| wf_fbc3642c-442 | Lows partition | register adjudication of batch-11 + partition build | 25 Sep 04:57 | 36.2min | 2 | opus 1, sonnet 1 | 310,246 | Register adjudication `5a0e97b0` (18→fixed); `PARTITION.json`/`.md` `9ec6bd17` — 207 open lows placed, 191 in 27 writer sets, ownership audit 0 errors over 393 files | run file + run-state ledger line 41 |
+| wf_7c4b2e60-141 | rc1 GATE ROUND 1 | full gate: register, ci-local, smoke, data packs, scenarios, drives, battery, adversarial sample | 25 Sep 04:57 | 295.6min | 43 | opus 17, sonnet 26 | 6.38M | **FAIL, no tag.** Committed `b2cfbb68` + fix rounds `57897778`; PASS Gate 8/ci-local/smoke/data packs; FAIL register (5 open c/h/m), scenarios, drives, battery, adversarial sample (14/14 certified entries refuted) | run file + run-state ledger line 36 |
+| wf_90712d2d-cab | rc1 REFUTATION AUDIT | 5-agent audit of the 14 adversarially-refuted entries | 25 Sep 09:58 | 14.3min | 5 | opus 4, sonnet 1 | 688,305 | Evidence `4f2aba93` on origin/004: regression_confirmed 1 (DATA-059), partial 12, adjacent 1 (AGENT-003); 13 reopened, gate verifier got nothing wrong | run file + run-state ledger line 37 |
+| wf_4e25ca95-a6f | rc1 SCRIPT TUNING | one Opus agent patches `rc1-gate.js` | 25 Sep 09:59 | 4.5min | 1 | opus 1 | 128,318 | `91dac548` on origin/004: `drive_limit`/`batt_limit` args, LOCAL-MODEL LOCK cause, coverage-first battery sharding, skip_gui list | run file, matched by duration/tokens to run-state ledger line 38 (id not printed there) |
+| wf_272a4f49-e8a | rc1 GATE RUBRIC RESTORE | one Sonnet/high agent patches `rc1-gate.js` | 25 Sep 10:08 | 3.4min | 1 | sonnet 1 | 122,811 | `3c51ac3c` on origin/004 (+3/-3): register criterion RUBRIC (a) restored — requires a fresh concurrence for not_a_defect/out_of_scope/removed_with_feature in the four named areas | run file + run-state ledger line 39 |
+| wf_7e4c4a3f-085 | batch-12 rc1 FIX BATCH | 8 writers / 22 entries | 25 Sep 10:14 | 69.1min | 13 | opus 6, sonnet 7 | 2.35M | Merged `ef33c7f6`; register adjudication `bc3e64fe` (10 new lows, 3 → blocked_tier4); 19 certified, 3 not certified (RESEARCH-007, DOCS-017, AGENT-090) | run file + run-state ledger line 40 |
+| wf_ac5e3ff2-49d | scope-change-2 measure | zero-shot measure vs the $0 heuristics + critic re-run | 25 Sep 11:27 | 13.2min | 4 | opus 1, sonnet 3 | 428,248 | `52d6957e` on origin/004: not worth fine-tuning this release (loses or no-signal on 2/3 tasks; entity_match the only signal); backlog entry inserted | run file + run-state ledger line 42 |
+| wf_1e4295f3-748 | batch-13 rc1 FIX BATCH | 8 agents | 25 Sep 11:41 | 53.8min | 8 | opus 5, sonnet 3 | 1.28M | Merged `a217a529`; RESEARCH-007 + DOCS-017 certified; AGENT-090 + CODE-AGENT-033 not certified. Open c/h/m after merge: AGENT-090 (high), CODE-AGENT-033 (medium) | run file + run-state ledger line 43 |
+| wf_7c5e7b20-e4f | VERIFIER RUBRIC TUNING | one Sonnet/high agent, three prompt files only | 25 Sep 11:42 | 2.5min | 1 | sonnet 1 | 144,380 | `f1a2682d` on origin/004: "CERTIFY THE CLAIM, NOT ONLY THE REPRO" clause added to 4 verifier prompt sites; labels/models/effort/schemas untouched | run file + run-state ledger line 50 |
+| wf_b7cf82ec-5ec | batch-14 rc1 FIX BATCH | 6 agents | 25 Sep 12:37 | 50.5min | 6 | opus 5, sonnet 1 | 774,658 | Merged `17301f54`; CODE-AGENT-033 certified; AGENT-090 NOT certified a second time (wording-recognition errs both ways); merged anyway | run file + run-state ledger line 44 |
+| wf_45b81e1e-57a | batch-15 STEP 1: AGENT-090 root cause | one Fable/high agent, strongest-tier root cause after 2 failed Opus attempts | 25 Sep 13:32 | 40.7min | 1 | fable 1 | 123,479 | `origin/worktree-agent-batch-15-W1@aaf32a7e`: clause-level attribution redesign in `_guard_tool_citations`; 12 tests added; live bar 0/8 untraced | run file + run-state ledger line 45 |
+| wf_b1ca86d0-402 | batch-15 STEP 2 | 6 agents, W1 salvage + integrate | 25 Sep 14:13 | 39.0min | 6 | opus 5, sonnet 1 | 719,905 | Merged `74ee3468`; AGENT-090 NOT certified on one residual (class-qualifier nouns); grounding SIFY/IBN/HDB/INFY holds with 20-F provenance | run file + run-state ledger line 46 |
+| wf_3e8b0f3e-a84 | batch-16 rc1 FIX BATCH | 6 agents | 25 Sep 14:55 | 55.2min | 6 | opus 5, sonnet 1 | 775,918 | Merged `d64640d2`; AGENT-090 CERTIFIED, LEAD-032 CERTIFIED, LEAD-030 NOT certified (3 new escapes); LEAD-031 not attempted | run file + run-state ledger line 47 |
+| wf_232102df-2f0 | batch-17 rc1 RESIDUAL BATCH | 6 agents | 25 Sep 15:57 | 52.2min | 6 | opus 5, sonnet 1 | 807,671 | Merged `292ba53a`; LEAD-031 CERTIFIED; LEAD-030 NOT certified a second time (true-citation-beside-errored-tool case); 2 new lows surfaced | run file + run-state ledger line 48 |
+| wf_037d692d-bcd | LOWS PARTITION PATCH | one Sonnet/high agent | 25 Sep 15:58 | 3.9min | 1 | sonnet 1 | 161,522 | `dd7b98e9` on origin/004: 3 newly-filed lows added to the partition (AGENT-091, CODE-PLATFORM-077, LEAD-029); 0 file overlaps | run file + run-state ledger line 51 |
+| wf_116e8cdf-429 | batch-18 STEP 1: LEAD-030 strongest-tier root cause | one Fable/high agent, 203 tool uses | 25 Sep 16:53 | 47.7min | 1 | fable 1 | 112,090 | `origin/worktree-agent-batch-18-W1@ecdd223e`: clause-level attribution in `_guard_tool_citations`; 3 new tests; focused 211 passed; live bar 8 runs, 0 fabricated / 0 true replaced | run file + run-state ledger line 49 |
+| wf_9fadb146-f9b | LEAD_FOUND FILING | one Sonnet/high agent | 25 Sep 16:54 | 4.5min | 1 | sonnet 1 | 114,529 | `701751b9` on origin/004: filed R15-LEAD-033 (chat trailer echo) + R15-LEAD-034 (NSE Emerge -SM symbol mismatch) as new mediums | run file + run-state ledger line 52 |
+| wf_d855d73b-b6b | Stage E JUDGE PANEL — **DEGRADED** | 4 Opus case-builders → Fable judge A → Fable judge B → Fable synthesis | 25 Sep 17:25 | 22.7min | 7 (2 landed: judge A + synthesis) | fable 3, opus 4 | 527,049 | `afbc3314` on origin/004: 5 of 7 agents died on API safeguard errors (all 4 case-builders + judge B); judge A + synthesis only — 48 survivors, top BL-03; completion re-run separately | run file + run-state ledger line 53 |
+| wf_50973ceb-819 | HANDOVER PRE-REFRESH | one Opus agent | 25 Sep 17:27 | 12.2min | 1 | opus 1 | 250,888 | `ac227f43` on origin/004: `R15_RUN_REPORT.md` + `OPERATOR_BRIEFING.draft.md` refreshed; surfaced CHANGELOG gap (batches 12–17) and a CLAUDE.md keychain doc mismatch | run file + run-state ledger line 54 |
+| wf_cd489d8e-cf7 | LOWS BUCKET ADJUDICATION | one Sonnet/high agent | 25 Sep 17:28 | 2.9min | 1 | sonnet 1 | 98,766 | `3483b699` on origin/004: 4 lows → blocked_tier4, 2 → needs_gui; register now fixed 388 / open 206 / needs_gui 11 / blocked_tier4 22 | run file + run-state ledger line 55 |
+| wf_dc281379-fb7 | CHANGELOG BACKFILL | one Sonnet/high agent | 25 Sep 17:41 | 6.9min | 1 | sonnet 1 | 189,033 | `b1ee6aa5` on origin/004: added CHANGELOG sections for batches 12–17 + rc1 round 1; 56 cited shas resolve; zero banned-phrase hits | run file + run-state ledger line 56 |
+| wf_ea0144f4-04a | Stage C batch-18 STEP 2 | adjudicate, plan, W1 (opus) + W2 (sonnet) writers, integrate, review, verify | 25 Sep 17:43 | 68.5min | 7 | opus 5, sonnet 2 | 982,271 | Merged `ebc5ed41`; LEAD-033 + LEAD-034 CERTIFIED, LEAD-030 NOT certified a 4th time (colon-terminated attribution + errored-tool figure list escapes) — strategy change for batch-19 | run file + run-state ledger line 57 |
+| wf_407df695-831 | Stage E PANEL COMPLETION | Fable judge B (independent) → Fable synthesis | 25 Sep 17:59 | 15.9min | 2 | fable 2 | 349,041 | `52b47455`: judge B ran clean (50 survivors, 9 kills), synthesis merged both judges — 47 survivors, top BL-03 'Reasons about you', runners-up BL-18/BL-11; panel now meets the 2-judge requirement | run file + run-state ledger line 58 |
+| wf_69fa6332-fb7 | RUN LOG TELEMETRY BACKFILL #2 | one Sonnet/high agent | 25 Sep 18:04 | 9.1min | 1 | sonnet 1 | 189,548 | `704fa8c5`: 29 rows added (55 total), batch-10 finalised, spend section refreshed, 0 banned-word hits | run file + run-state ledger line 59 |
+| wf_f1d7f06d-d22 | TAIL SCRIPT AUTHORING | 2 Opus/high authors, parallel | 25 Sep 18:23 | 17.0min | 2 | opus 2 | 479,831 | `ade877ed` (small-build.js + plan) + `fb918b9b` (final-pass.js + plan) on origin/004; both node --check clean, stubbed dry runs spawn nothing; neither script run for real yet | run file + run-state ledger line 61 |
+| wf_f724edac-bff | LOWS WRITE P1 | load, W1-W9 writers, collate | 25 Sep 18:56 | 37.6min | 11 | sonnet 7, opus 4 | 1,613,751 | `06ce565f` + 9 branches on origin: 61 fixed, 2 could_not (CODE-RESEARCH-005, CODE-AGENT-031) deferred to the serial set | run file + run-state ledger line 62 |
+| wf_a342e2a8-74a | LOWS WRITE P2 | load, W1-W9 writers, collate | 25 Sep 18:56 | 39.8min | 11 | sonnet 8, opus 3 | 1,728,661 | `2ea83865` + 9 branches on origin: 60 fixed, 3 could_not (CODE-DATA-019, LIFECYCLE-035, CODE-FRONTEND-027) to the P2 integrator, 1 not_a_defect_proposed (LEAD-025) — all three lows write waves now done (184 fixed, 7 could_not, 3 not_a_defect_proposed) | run file + run-state ledger line 63 |
+| wf_e64eeddf-e23 | LOWS WRITE P3 | load, W1-W9 writers, collate | 25 Sep 18:56 | 37.7min | 11 | sonnet 8, opus 3 | 1,629,773 | `c40bf690` + 9 branches on origin: 63 fixed, 2 could_not (AGENT-077, DATA-102) to the P3 integrator, 2 not_a_defect_proposed (CODE-PLUGINS-045/046) | run file + run-state ledger line 64 |
+| wf_dab096e5-3ae | Stage C batch-19 (LEAD-030 strategy change) | adjudicate, plan, W1 (opus) writer, integrate, review, verify | 25 Sep 18:57 | 73.9min | 6 | opus 5, sonnet 1 | 847,353 | Merged `ec7f7cd6`; LEAD-030 NOT certified a 5th time (code-fenced dump for an errored/uncalled tool, all-errored markdown table, annotated bullets and an inline JSON dump still stream; a user's own figure list now over-replaced) — shape-matching leaked on fresh shapes five times, batch-20 switches the mechanism to figure grounding | run file + run-state ledger line 65 |
+| wf_d9c19941-576 | RUN LOG TELEMETRY BACKFILL #3 | one Sonnet/high agent | 25 Sep 19:41 | 3.4min | 1 | sonnet 1 | 166,282 | `5bb43ff0`: 6 rows added (61 total; 2 replaced in place — batch-18 step 2 + panel completion finalised), IN FLIGHT row added for batch-19, spend refreshed to 384 ledger lines ($0.201076, all new lines free ollama), 0 banned-word hits | run file + run-state ledger line 66 |
+| wf_152b123d-228 | Stage C batch-20 (LEAD-030 sixth attempt) | adjudicate, plan, W1 (fable) writer, integrate, review, verify | 25 Sep 20:17 | 109.2min | 6 | opus 4, sonnet 1, fable 1 | 897,548 | Merged `1abef99b`; LEAD-036 fixed, LEAD-030 NOT certified a 6th time — the new figure-grounding mechanism holds every pinned shape but `_NEGATIVE` still exempts error-acknowledging clauses before rule 1 runs (live SBIN.NS ₹742.35 fabrication vs app truth 983.0) and subject aliasing matches by ticker only, missing company-name mentions | run file + run-state ledger line 67 |
+| wf_3e8a9abe-7f7 | Stage C batch-21 (LEAD-030 seventh round + LEAD-035) | adjudicate, plan, W1 (opus) + W2 (sonnet) writers, integrate, review, verify | 25 Sep 22:12 | 74.2min | 7 | opus 5, sonnet 2 | 926,139 | Merged `86ae79c4`; LEAD-036 fixed, LEAD-030 NOT certified a 7th time (short-name aliases SBI/Airtel/L&T still unmatched; a REGRESSION — an unclosed trailing fence streams its figure), LEAD-035 first attempt fails (closed no-tool-cue list misses live phrasings, a write still dispatches) — STOP-RULE AMENDMENT: batch-22 runs, an 8th LEAD-030 or 3rd LEAD-035 failure is final | run file + run-state ledger line 69 |
+| wf_c1b4581a-8d6 | Stage C batch-22 (LEAD-030 eighth round + LEAD-035 second) | adjudicate, plan, W1 (opus) + W2 (sonnet) writers, integrate, review, verify | 25 Sep 23:29 | 80.9min | 7 | opus 5, sonnet 2 | 1,001,263 | Merged W1-only as `c155e5ad` (00:53 IST Sat 26 Sep); W2 excluded as a verified regression (six explicit data requests lose the tool surface); LEAD-030 NOT certified an 8th time — paragraph inheritance lets a fabricated figure for an unrecognised/never-called subject stream beside an ok subject — STOP RULE fired (final), DECISIONS 4.9 disposition (recommend blocked_tier4) pending a fresh verifier's concurrence in batch-23; LEAD-036 holds | run file + run-state ledger line 70 |
+| wf_727db864-af6 | Stage C batch-23 (LEAD-035 third/final round + LEAD-030 disposition concurrence) | adjudicate, plan, W1 (opus) writer, integrate, review, verify | 26 Sep 01:03 | 86.4min | 6 | opus 5, sonnet 1 | 952k | int `worktree-agent-batch-23-int@9aa9fb6c` left UNMERGED: W1 `5a0f1ffe` (per-clause `_no_tool_cue`) NOT certified a THIRD time and a REGRESSION vs base — 7 fresh qualified-negation phrasings ('Never call the tools twice…', 'Don't call functions you don't need…') lose every tool and live llama fabricated prices 7/7; STOP RULE FIRED for LEAD-035 (final, no fourth round) — base (batch-21's closed cue list) ships as the fail-safe; LEAD-030 disposition CONCURRENCE = CONCUR on `blocked_tier4` with a corrected, broader wording (rule 2c only fires on an errored call, so a never-called subject's figure streams in all-ok/no-call turns too); two new mediums filed (LEAD-037 stale-bar grounding, LEAD-038 narrated false write); adjudicator's staged register edits swept into the lead's `014bb7f1` by the shared index (byte-verified, harmless) | run file + run-state ledger line 72; evidence `d38a090f` (batch-23 docs) + `75354204` (batch-22 docs, cited alongside) |
+| wf_78d193b7-ea8 | DISPOSITION DOCS | one Opus writer, effort high, docs + register only | 26 Sep 02:35 | 85.8min (pair; shares this run with the concurrence row below) | 1 | opus 1 | not split by agent (411k combined for the pair) | `535307c8`: DECISIONS 4.9 rewritten to the batch-23 verifier's concurred, broader wording + the ninth-fix spec; new 4.10 R15-LEAD-035, 4.11 R15-LEAD-037, 4.12 R15-LEAD-038 filed (Blocked/Why operator-attended/Recommendation/Risk/Status); register LEAD-030 → `blocked_tier4` with the concurrence note, 035/037/038 noted and left open; `FACTS.md` gains the 'Known limitations at rc1' block | run file + run-state ledger line 74 |
+| wf_78d193b7-ea8 | DISPOSITION CONCURRENCE | one FRESH Opus verifier, 141 live runs on its own source sidecar :52310 (llama3.1:8b) | 26 Sep 02:35 | 85.8min (pair; shares this run with the docs row above) | 1 | opus 1 | not split by agent (411k combined for the pair) | `4fd3cbfd`: R15-LEAD-038 CONCUR (calls=[] 21/21, nothing staged/written, but narration falsely claims a completed write 10/21); R15-LEAD-037 REFUSE on wording only (the corrected wording alone makes it a CONCUR — guard never checks an ok-subject figure; 2/18 stale-bar answers, 1/18 invented ₹20,820 off-payload); R15-LEAD-035 REFUSE on (a)(b)(c) — shipping list under-matches 17/67 phrasings (fail-safe) AND over-matches 7 explicit data requests (15/21 live runs invented a price as fetched); named narrowing-only fix recorded (not built), feeds batch-24 | run file + run-state ledger line 75 |
+| wf_e17e21c5-cb8 | Stage C batch-24 (LEAD-035 = the disposition verifier's named narrowing-only fix, nothing else) | adjudicate, plan, W1 (sonnet) writer, integrate, review, verify | 26 Sep 04:04 | 114min | 6 | opus 4, sonnet 2 | 828k | Merged `6778f892` on origin/004 (adjudicator applied batch-23's disposition at `1db862d0`; W1 `227c1e25` built the verifier's regex byte-identical, 67/67 pinned + subset invariant + 7 OVER keep + 5 held-out, 478 focused tests; integrator chain green at `d1290f66`: pytest 3596, vitest 1831, cargo 19, clippy, ruff, smoke 3/3); fresh verifier: **LEAD-035 NOT certified a FOURTH time** (0 new strips on 97 phrasings, OVER prompts call price_data 21/21, but 4/18 fresh qualified-negation requests still lose every tool, 6/8 fabricated) and **REFUSED** the `blocked_tier4` concurrence, naming a further narrowing-only guard it would certify (`LEAD-035-CONCURRENCE.md` §3/§4); lead merged anyway — LEAD-035 → `blocked_tier4` under the operator's THREE-FAILURE RULE with the refusal on record (DECISIONS 4.10 options: (a) accept the residual / (b) one bounded round on rc2, lead recommends (b)); docs `99a8cc05`. Open c/h/m = 0. | run file + run-state ledger line 78 |
+| a199fd740bcafc37d | RUN REPORT NARRATIVE PRE-REFRESH | one Sonnet/high agent (own-hands dispatch, not a Workflow run) | 26 Sep 04:05 | 11.6min | 1 | sonnet 1 | 239k | `b3b4034d`: `R15_RUN_REPORT.md` rewritten (Outcome so far, Stages incl. the batch table through row 24 + the LEAD-030/035/037/038 disposition paragraph, Register now, What is still ahead); counts from the register JSON's own `counts` (652 entries: fixed 391 / open 206 / needs_gui 11 / blocked_tier4 25 / removed_with_feature 14 / not_a_defect 5; open c/h/m = LEAD-035 only); disclosed caveat — `register.py status` recomputes from `r15/census/merge/` and lags the JSON (603 vs 652); the JSON is authoritative, the rc1 gate's register criterion must read it | task output (agent `a199fd740bcafc37d`) + run-state ledger line 77 |
+| wf_1d24a3f2-c0e | VERSION BRANCH | one Opus agent | 26 Sep 04:13 | 7.5min | 1 | opus 1 | 163k | `origin/worktree-agent-r15-version-0.9.0` pushed, exactly two commits, NOT merged (merge plan: right after the r15-rc1 tag, `git restore CLAUDE.md` first, then `merge --no-ff`): `517da226` bumps 0.9.0 across package.json, Cargo.toml + Cargo.lock, tauri.conf.json, sidecar `app.py`, `plugin-bootstrap.ts` HOST_VERSION, the marketplace test fixture, README status line; `c1e9164c` the single CLAUDE.md commit (dev-keystore rule replaces the stale keychain gotcha, §6.5 + plugin-companion text rewritten to the code, new local-lane known-limitation rule). Checks green: typecheck, lint, format:check, cargo fmt/clippy, ruff, 112/112 version-touching vitest, 76 version-touching pytest | run file + run-state ledger line 79 |
+| wf_acb50b5c-0d7 | STAGE D REFRESH | facts + 5 drafts refresh, secrets/licence scans (off-machine, pacing change 4 item 1) | 26 Sep 04:19 | 36min | 20 | sonnet 15, opus 5 | 2.88M | `7c685b9f` on origin/004 (script's new `note` arg `b7707120` carried the sign-off rules): FACTS at `4d893147` CARRYING the hand-added 'Known limitations at rc1' block; all five drafts revised after Opus critics (README 7/7 applied, RUNBOOK 11/11, BRIEFING 15/15, NOTES 12/13, STATE+BLOCKERS 17/17) — the LEAD-030 sentence with the struck clause removed, LEAD-037/038 in the verbatim disposition wording, under the local-model lane with the fail-safe and `_NO_TOOL_CUE` named; scans: SECRETS 0 real, DEPS 6 flagged (frozendict LGPL unchanged), LICENCE_CHECK 1 (the CLAUDE.md line, fixed on the version branch); still due at the tag: final facts patched (tag sha, gate verdict, LEAD-035's disposition, 0.9.0) | run file + run-state ledger line 80 |
+| wf_7370dec8-7cb | DECISIONS RECONCILIATION | one Opus/high agent | 26 Sep 05:26 | 3.9min | 1 | opus 1 | 154k | `3b90820e` on origin/004: `DECISIONS_FOR_OPERATOR.md` gains §5 (5.1-5.10) + a one-line pointer under §2.21; headline **§5.1** — eight AGPL-3.0-only `openbb-*` packages frozen into the openbb-mcp sidecar, plus `sec-edgar-mcp` (AGPL-3.0) and `Unidecode` (GPLv2+) into the sec-edgar sidecar — separate loopback-MCP processes, unmodified, but shipped inside the same `.app`/`.dmg` as the PolyForm Strict core; recommends (a) ship as separate programs + a third-party notices file, a lawyer's read before the first commercial licence; status awaiting operator. Also files 5.2 frozendict LGPL, 5.3 empty-metadata packages resolved, 5.4 the CLAUDE.md AGPL line, 5.5 Windows unverified, 5.6 secrets clean, 5.7 no rollback artefact, 5.8 the groundwork folder naming, 5.9/5.10 the rehearsal findings; `OPEN_QUESTIONS.md` carries 'Filed as' trailers; prettier green, 0 banned-word hits | run file + run-state ledger line 84 |
+| wf_754d9dcd-698 | THIRD-PARTY NOTICES DRAFT | one Sonnet agent | 26 Sep 05:31 | 9.4min | 1 | sonnet 1 | 178k | `ccd542f0` on origin/004: `scripts/r15/third_party_notices.py` (stdlib-only, deterministic, ruff-clean) + `r15/stage-d/THIRD_PARTY_NOTICES.draft.{md,json}` — 1046 bundled packages across the three sidecars (125/106/68), npm runtime (205) and Rust crates (542); 22 copyleft rows (9 AGPL-3.0, 1 GPL-2.0+, 2 LGPL-3.0, 10 MPL-2.0) with licence texts appended from each package's own LICENSE file; all 20 DEPS_LICENCES flagged rows present at matching versions, 0 unresolved; a draft for the operator to promote per DECISIONS §5.1, not in the release tree | run file + run-state ledger line 85 |
+| wf_bf6dac45-9c5 | GUI ROUND SCRIPT AUTHORING | one Opus agent | 26 Sep 05:43 | 9.6min | 1 | opus 1 | 215k | `1dc9c325` on origin/004: `r15/tooling/gui-round.js` + `GUI_ROUND_PLAN.md` + the promoted register-md renderer `scripts/r15/render_register_md.py` (byte-identical to the current view); stubbed dry run: 1 preflight call / 11 planned entries (10 drivable, DOCS-024 auto-blocked_env), 21 calls total, one fresh verifier per driven entry; rig transport = `scripts/rig/rig.py` (PyObjC Quartz/System Events, never computer-use). **OPERATOR ACTION REQUIRED: arm the rig's away sentinel** (`~/.vysted-rig-away`, absent, no agent writes it) before the round can run — lead holds the launch | run file + run-state ledger line 86 |
+| wf_f3b7fd1a-361 | BUNDLE REHEARSAL | production-bundle rehearsal from a clean profile (fired by the watcher the moment batch-24's integrate phase ended) | 26 Sep 05:05 | 18min | 1 | opus 1 | 162k | **PASS-WITH-FINDINGS** at `64e9470e`: offline install, three sidecar builds (main 87.4 MB ≤120 target, openbb-mcp 54.5, sec-edgar-mcp 82.8), `tauri build` + smoke (13 agents, 40 MCP tools) all exit 0, `.app` ≈234 MB / dmg 228.6 MB ad-hoc/unsealed, clean-profile launch rendered a working cockpit, `/health` ok, clean shutdown; evidence `c584f545` + `69f47e48`; 8 runbook corrections recorded; one boundary incident (the HOME=-isolated launch still wrote WKWebView housekeeping files into the operator's real `~/Library/WebKit`/`Caches`, recorded not reverted); findings dispositioned into UI-044 (second trigger), a documented signing limitation, and 5 new lows | run file + run-state ledger line 82 |
+| wf_4ed38558-4d0 | rc1 GATE ROUND 2 — **FAIL, twice, no tag** | `rc1-gate.js {sha:4c6dfe8c, max_fix_rounds:2, skip_gui:true, batt_limit:4}`: full gate re-run (preflight, Gate 8, heavy, scenarios, battery index, 8 owner-drives, datapack, 5 battery shards) | 26 Sep 06:05 | first pass 06:05→14:50 (301 min active + a wall pause); resume 14:50→18:02 (192 min wall vs a 60-90 min estimate) | 42 agents (first pass); resume replayed from cache except round-3 chain + verifier | sonnet-led, mixed with the app's own local-model turns | 7.21M (first pass; resume delta not separately stated) | **First pass FAIL 14:50 IST**: Gate 8 PASS, chain PASS, all 8 drives PASS, battery 8/8 shards but ~80 fixed ids with no raw row; scenarios + datapack partial; blocked on `rc1-drive-research-briefs:2` (citation net matches only a bare `[n]`) surviving 2 fix rounds, and the final verifier died twice on `ENOTFOUND` (a DNS/network outage) — no gate sheet. **RESUMED 14:50 IST** (`resumeFromRunId`, `max_fix_rounds:3`, task `w8wvgklvz`) to try round 3: the resume re-keyed half the run (five lane-serial drives, all 8 battery shards, collator, fix-loop, vshards re-ran under new keys and the blocked battery shards deleted 54 round-1 raw files, restored from HEAD); round 3 never ran (triage timed out 6x+3, writer died `ENOTFOUND` x6 in a second network outage ~15:00-17:00 IST). **Fresh verifier's sheet landed 18:02 IST: FAIL AGAIN** — Gate 8 PASS, ci-local PASS (own run: pytest 3596+1 skipped, vitest 152/1831, cargo 19), smoke PASS, owner-drives PASS; FAIL on the register criterion: 9 `fixed` entries refuted (DATA-002 critical; AGENT-019, AGENT-093 high; DATA-113, LEAD-028, DATA-064, DATA-059, AGENT-053, RESEARCH-015 medium), 2 new highs (rc1-verifier:1 BSE SHP-index 403 over plain httpx; rc1-verifier:2 MCP `list_workspaces`/`get_workspace` hit `/workspaces` not `/workspace`), the citation fix loop still unclosed, 2 plausible regressions (CODE-PLATFORM-013, AGENT-010), and 3 harness coverage gaps (battery, scenarios, data packs all partly pre-candidate). Evidence `3cd62b02` on origin/004 (880 files, pushed 18:12); no rc1 tag exists. | run file + run-state ledger lines 88, 104-105 |
+| — (Agent-tool, no run id) | STAGE D LEAD-035 DISPOSITION + RUNBOOK CORRECTIONS | one Sonnet agent | 26 Sep 06:05 | 15min | 1 | sonnet 1 | 261k | `ed82d896` on origin/004 (9 files, +398/-110, stage-d only): FACTS.md/.json + all four drafts carry LEAD-035 = `blocked_tier4` escalation at `4c6dfe8c` with the verifier's verbatim `d1290f66` wording, fail-safe and shipping matcher named, 0 open c/h/m, batch-24 outcome; OPEN_QUESTIONS 4.10 + the promotion item RESOLVED; RELEASE_RUNBOOK.draft gains all 8 REHEARSAL.md corrections (venv order, dmg name/signing state, HOME=<fresh>+binary, keychain inconclusive, WKWebView leak boundary, warm-up timing, fill-at-rc2 markers filled); banned word 0, prettier clean | run-state ledger line 88 |
+| — (Agent-tool, no run id) | NEW-LOWS DRAFT for the P1 adjudication | one Sonnet agent | 26 Sep 06:07 | 15min | 1 | sonnet 1 | 208k | `e29ca6c7` = `r15/stage-c/lows/NEW_LOWS_DRAFT.{json,md}` (register untouched): 6 drafted entries each sourced file:line at HEAD (DOCS-025 AUTO-autonomy scope, CODE-PLATFORM-078 requirements-dev installed into the main sidecar venv, CODE-FRONTEND-038 a defeated dynamic import, DOCS-026 tier4 rig-pointer/owner-name, CODE-PLATFORM-079 a missing coverage/ gitignore entry — fresh finding, CODE-PLATFORM-080 the HOME= override leak) + 2 note-append objects (DOCS-006, UI-044 second trigger); to be filed at the P1 adjudication | run-state ledger line 89 |
+| wf_971af170-542 | BURST: LOWS REMAINING — **DONE** | `lows-remaining.js {base:4c6dfe8c}`: 7 Opus could_not second attempts, 1 fresh Opus refuter (LEAD-025/CODE-PLATFORM-045/046), Sonnet writers for the 6 NEW_LOWS_DRAFT entries + the 10 partition-deferred lows, Opus on LEAD-036, Sonnet collator | 26 Sep 06:49 | 34.5min | 13 | opus-led, sonnet writers | 1.61M | Zero errors. 27 rows collated: 19 fixed_untested on 11 pushed branches (all 7 could_not second attempts now fixed — CODE-RESEARCH-005, CODE-AGENT-031, CODE-DATA-019, LIFECYCLE-035, CODE-FRONTEND-027, AGENT-077, DATA-102); DEF-A: CODE-FRONTEND-033 fixed, AGENT-065/086 + CODE-FRONTEND-031 not_a_defect_proposed (needs a fresh refuter), AGENT-085 deferred_feature; DEF-B: CROSS-PLATFORM-012, UI-068 (port half deferred), UI-071/073/082 fixed; NEW-drafted: DOCS-025, CODE-PLATFORM-078/079/080, CODE-FRONTEND-038 fixed, DOCS-026 tier4; LEAD-036 fixed; refuter LEAD-025/CODE-PLATFORM-045/046 all concur_not_defect. Evidence `d6daad0a` + `af4f47b3` on 004. Everything untested pending integration. | run file + run-state ledger line 90 |
+| wf_33fb46f9-580 | BURST: LOWS PRE-INTEGRATION — **DONE** | `lows-preint.js {base:4c6dfe8c}`: per-partition Opus/high assembler merges the 9 writer branches into `worktree-agent-lows-Pn-int`, fresh Opus reviewer, one bounded Opus fix pass on blocking items | 26 Sep 06:49 | 22min | 9 | opus 1 + partition writers | 1.20M | Zero errors, off-lane, nothing run. Three candidates on origin (never merged): **P1** `@a642caac` (98 files; blocking R15-UI-076 India-default ripple fixed) — `lows/P1/{PREINT.md,PREINT.json,PREINT_REVIEW.md}` `ca6da314`/`f093b856`/`4ac94b8c`; **P2** `@d7d0d325` (116 files; 3 blocking fixed — LIFECYCLE-033 rig-hooks env, CODE-PLATFORM-062 Windows main guard, RELEASE-011 async coverage-pin test) — `af32ca3c`/`6823e462`; **P3** `@aa1690ee` (163 files; blocking DOCS-010 NotesToolbar test fixed) — flagged `@tiptap/extension-list` absent, needs a frozen install first. All three: untested pending integration. | run file + run-state ledger line 91 |
+| wf_8388c01a-1e5 | BURST: SPECS + FINAL PASS + HANDOVER + STAGE D GAPS — **DONE** | `burst-specs.js {sha:<head>}`: build specs + a fresh critic for the judge panel's top two survivors (BL-03, BL-18), re-author `final-pass.js` + reviewer, Sonnet `OPERATOR_HANDOVER.draft.md` + Opus review, Sonnet `STAGE_D_GAPS.md` | 26 Sep 06:49 | 25min | 9 | opus + sonnet mixed | 1.67M | Zero errors, off-lane. (a) BL-03 spec `50d953f1` 2.5d → fresh critic SMALL at 3.0d (`d984710c`, 3 blocking spec defects fixed); BL-18 spec `76842bd8` 3d → critic SMALL at 4.0d (`cfa7017f`, 4 blocking spec defects); both stay rc2→rc3 candidates. (b) final pass re-authored `66ce4231` → fresh reviewer **launch_ready** `01a0ba9d` (4 in-place patches, 0 blocking). (c) operator handover `stage-d/OPERATOR_HANDOVER.draft.md` `05f7e178` → Opus review **ready_to_promote** after 28 corrections `a61f9896`. (d) Stage D gaps `01132660` (`STAGE_D_GAPS.md` + CHANGELOG entry draft + docs-index draft). Self-reported boundary incident: one early broad grep matched two lines inside `R15_BRIEF*.md` before it narrowed the exclusion; nothing in the deliverables is sourced from them. | run file + run-state ledger line 92 |
+| — (Agent-tool, no run id) | BURST 5B: CLAUDE.md SINGLE-COMMIT AUDIT — **DONE** | one Sonnet agent, effort high, off-lane, read-only on the version branch | 26 Sep 07:01 | 8min | 1 | sonnet 1 | 168k | `8add9949`: `stage-d/CLAUDE_MD_AUDIT.md` + `CLAUDE_MD_ADDENDUM.draft.diff` (4 hunks, clean `patch --dry-run`). VERDICT: `c1e9164c` alone is NOT sufficient as the single CLAUDE.md commit — a held hunk is byte-identical, the proposal is partial (2 true clauses dropped), model-assignment still wrongly prescribes Haiku, the rig pointer/owner name is missing (DOCS-026); 7 R7-era gotchas left unverified (follow-up check filed separately). Lead decision: re-cut the version branch after the rc1 tag with one fresh CLAUDE.md commit = this diff + the follow-up's hunks. | run-state ledger line 93-94 |
+| this run | BURST 5B: RUN LOG BACKFILL #6 PART 1 + RUN REPORT DELTA | one Sonnet agent, effort high, off-lane, docs only | 26 Sep 07:01 | in flight (writing this row now) | 1 (running) | sonnet 1 | not recorded (in flight) | Adds every Waves row for a run finished or launched since backfill #5 (`57160a48`/`c22fe166`) — Stage D refresh, bundle rehearsal, notices draft, GUI-round authoring, batch-24, the gate round 2 launch, the LEAD-035 disposition + new-lows Agent-tool agents, the three burst workflows; tokens from journals/ledger only where stated, 'not recorded' otherwise. Also refreshes `R15_RUN_REPORT.md` through the burst launch, with the gate round 2 verdict left as an explicitly marked 'pending at the tag' row, never a guessed outcome. Part 2 of this backfill lands at the `r15-rc1` tag with the gate verdict. Commit sha stamped at push | this session's journal + run-state ledger line 94 |
+| — (Agent-tool, no run id) | BURST 5B: HYGIENE-PRUNE INVENTORY — **DONE** | one Sonnet agent, effort medium, read-only, git only | 26 Sep 07:01 | 13min | 1 | sonnet 1 | 201k | `1afa2add`: `r15/rc1/HYGIENE_PRUNE.md`, read-only, nothing deleted. 18 worktrees (main; 15 in-use burst worktrees; a detached `rc1-cand` at the candidate 4c6dfe8c; one palette worktree); 359 local branches (306 merged into 004); 223 `origin/worktree-agent-*` (170 merged); 108 exact `git push origin --delete` lines for merged batch/rc1-fix branches (lead runs after the tag); 0 stashes; 0 `r15-*` tags yet. The palette worktree and one duplicate-content worktree flagged prune-at-hygiene-step. | run-state ledger line 96 |
+| wf_6bd30dbe-213 | LOAD CHECK / DRY RUN — **DONE, zero agents** | workflow launched then returned with nothing started (journal carries only a `launched` row, no `started`/`result` rows) | 26 Sep 07:15 | ~0min | 0 | — | not recorded | A load check / dry run: the workflow launched and closed without spawning any agent. No deliverable, nothing to flip. | journal(`wf_6bd30dbe-213`) + run-state header 26 Sep 07:xx window |
+| wf_1eaadd4a-b43 | LOWS PRE-INTEGRATION RE-RUN WITH THE REMAINING BRANCHES — **DONE** | `lows-preint.js {base:4c6dfe8c, extra:{P1:[CN-research-005,CN-agent-031,DEF-A], P2:[CN-data-019,CN-lifecycle-035,CN-frontend-027,DEF-B], P3:[CN-agent-077,CN-data-102,NEW-drafted,LEAD-036]}}`: Opus assembler → Opus reviewer → fix pass per partition, reusing the kept `lows-preint/<P>` worktrees | 26 Sep 07:25 | 22min | 8 | opus-led | 1.22M | Zero errors. Candidates refreshed on origin (never merged): **P1** `@dbe5fe4f` review READY (0 blocking, 9 advisories incl. the CLAUDE.md 'GET /runs emits BOTH' line now false under CODE-AGENT-031); **P2** `@78220d0c` after a fix pass (5 blocking applied: pnpm-lock entries, `toHaveNoViolations` matcher type, sort-button test targets, Windows cache-dir split, legacy-name read); **P3** `@f9da207a` after a fix pass (DATA-102 fixture fixup; reviewer flags `agent_runtime.py` +45/-2 from LEAD-036's fence guard, proposed-changes gate byte-untouched). Cross-partition `git merge-tree` P1×P2, P1×P3, (P1+P2)×P3 all clean. Docs `lows/<P>/PREINT.{md,json}` + `PREINT_REVIEW.md` committed `fd2448c7`…`d59109d4`. Integration order after the tag: P1, P3, P2 (P2 last). | run file + run-state ledger line 101 |
+| wf_ba2ae216-f89 | rc1 REFUTATION AUDIT, ROUND 2 — **DONE** | 4 Opus/high auditors in parallel by group on their own sidecars + 1 Sonnet/medium collator, over the 11 gate-round-2 refutations + 2 new highs, at candidate `4c6dfe8c` | 26 Sep 18:16 | 16min (vs a 15-40 min estimate) | 5 | opus 4, sonnet 1 | 682k | Zero verifier errors. ALL 11 register refutations verdicted `partial` (the stated repro holds, the class does not — each with root cause file:line, fix shape and an acceptance test); the 2 new highs CONFIRMED and filed as `R15-DATA-116` (BSE SHP index over plain httpx 403) and `R15-CODE-AGENT-034` (MCP `/workspaces` → `/workspace`); 2 adjacent findings noted. Failure counts: DATA-002, LEAD-028, DATA-059, AGENT-019, CODE-PLATFORM-013 now at TWO each (a third stops them for the operator); `DECISIONS_CANDIDATES.md` = none at three yet. Evidence `5dac683a` on origin/004 (`r15/rc1/refutation-audit/round-2/*` + both register files). Register after: fixed 380 / open 218 / blocked_tier4 26 / needs_gui 11. | run file + run-state ledger line 106 |
+| — (Agent-tool, no run id) | rc1 GATE-SCRIPT FIX-UP FOR ROUND 3 — **IN FLIGHT** | one Opus/high Agent-tool agent, off-lane, own worktree on branch `worktree-agent-rc1-gate-r3` from origin/004: strip launch-order-dependent values from `rc1-gate.js` prompts, scope evidence paths per round, guarantee a battery raw row (or named reason) per fixed id, always re-run scenarios/data packs, never let a blocked shard delete prior evidence, regenerate `FINDINGS.json/.md` from round-2 files only | 26 Sep 18:13 (launched 18:16) | in flight | 1 | opus 1 | not recorded (in flight) | Not a Workflow run — an Agent-tool agent, no run id to invent. DONE looks like: the branch pushed with `node --check` + a stubbed dry run (0 agents) and a short `r15/tooling/RC1_GATE_R3_CHANGES.md`; the lead merges `--no-ff`. **Outcome pending.** | run-state ledger line 107 |
+| wf_fbb7a07b-9f8 | STAGE C BATCH 25 (the gate round-2 fix batch) — **IN FLIGHT** | `stage-c-batch.js {tag:'batch-25', severities:['critical','high','medium'], max_entries:60, exclude_ids:[], note:<lead note>}`: Opus planner + ≤8 writers (Sonnet by default, Opus where the planner names root-causing — RESEARCH-043 forced Opus), Opus integrator, Opus reviewer, Opus fresh verifier; heavy lane | 26 Sep 18:34 | in flight (estimate 60-120min) | not recorded (in flight) | opus + sonnet mixed | not recorded (in flight) | Fixes the 14 open c/h/m going in: the 11 `partial` reopened entries (per the round-2 audit's fix shape + acceptance test), `R15-DATA-116`, `R15-CODE-AGENT-034`, `R15-RESEARCH-043`. DONE looks like: a `--no-ff` merge on origin/004 of `worktree-agent-batch-25-int` behind a fresh verifier's VERDICTS.json + register adjudication; any third certification failure (DATA-002, LEAD-028, DATA-059, AGENT-019, CODE-PLATFORM-013 are at two) stays open and goes to DECISIONS, never another round. **Outcome pending — this row is left as launched, not a guessed verdict.** | run-state ledger line 109 |
+| wf_6bab09f0-cfe | RUN LOG BACKFILL #5 (handover refresh, second half) | one Sonnet/high agent, effort high, docs only, no machine lane | 26 Sep 04:21 | 7.6min | 1 | sonnet 1 | 243k | `57160a48` on origin/004 (flagged done at `c22fe166`): added every Waves row for a run finished or launched since backfill #4 (`34875d1a`), corrected the stale batch-23 IN FLIGHT row to its unmerged outcome, refreshed Strategy changes (pacing change 3, the compaction rule, pacing change 4 + the Tier-4 sign-off) and one Limit-walls row (the shared-index sweep `014bb7f1`); spend re-read: 393 lines / $0.201076, unchanged since backfill #4; 0 banned-word hits | this session's journal (`wf_6bab09f0-cfe`, task `wkxem9bzu`) + run-state ledger line 83 |
+
+## Strategy changes
+
+- **03:46 IST 23 Sep — SCOPE CHANGE.** Trading removed from the product permanently (operator
+  Tier-4 sign-off in-message). Removal became the first Stage C batch; Gate 8 rewritten to prove
+  no order/broker/simulated-account path exists anywhere and the tracked portfolio is intact; the
+  OpenAI-direct spend cap raised from the session-1 $2.00 hard stop to $8.00 (`vy.py` refuses at
+  $7.50). Source: run-state header SCOPE CHANGE bullet, D81 in `DECISIONS.md`.
+- **03:52 IST 23 Sep — ROUTING CHANGE 1.** Zero Fable agents for the rest of the run, including
+  the judge panel; Sonnet 5 (effort medium) became the default for bounded/mechanical work; Opus
+  5.5 (effort high/xhigh) reserved for judgement work — refutation, root-causing, risk-adjacent
+  implementation, integration, certification.
+- **19:33 IST 24 Sep — ROUTING CHANGE 2** (ack mid batch-8 Verify phase, left to finish on the old
+  script). Sonnet became the default for any task with a clear spec and a checkable output,
+  including most fixes; Opus narrowed to refutation/root-causing/risk-adjacent
+  implementation/integration/fresh-context certification at its default effort; one verification
+  per merged batch (writers never re-verify, reviewers never re-run what the integrator ran).
+- **20:05 IST 24 Sep — ROUTING CHANGE 3** (ack mid batch-9 run). Fable agents returned for
+  judgement-only roles (refutation, root-causing, fresh-context certification, risk-adjacent
+  review, the judge panel), model set explicitly per site; never for fan-out labour, packs, diffs,
+  docs or mechanical fixes; one automatic fallback to Opus if a Fable verifier returns nothing.
+- **21:45 IST 24 Sep — PACING CHANGE** (ack mid batch-9 Write phase, left alone). Concurrent-agent
+  ceiling raised 8 → 16; two workflows in flight became the norm on disjoint lanes/tiers (never
+  two both needing the live app/GUI/local model/heavy-job lane); waves sized to about half a
+  window; a wave starving with no wall reported drops back to 8.
+- **19:50 IST 24 Sep — PROCESS NOTE (IN-FLIGHT LEDGER)**, adopted at the batch-8 merge. Every
+  workflow or own-hands step is written into the run-state header as IN-FLIGHT before it starts,
+  with a stated DONE definition and evidence path, and flipped to DONE only once that evidence
+  exists on disk or in git.
+- **~15:00 IST 24 Sep — HARNESS STALL RULE**, added after the batch-6 failure (see below). Every
+  worker prompt (`COMMON.md`) now forbids running a long command (`ci-local`, full pytest, sidecar
+  boots, `sleep`-loops) inside a single tool call — detach and poll instead. Saved to project
+  memory as `harness-stall-watchdog.md`.
+- **04:44 IST Fri 25 Sep — COMPACTION RULE (process note 2).** After every compaction, before any
+  other action, the lead re-reads the run-state header, the in-flight ledger and the Boundaries
+  section of `R15_BRIEF.md`; the compaction summary is a hint, the disk is the truth, and where
+  they disagree the ledger wins. Lead turns stay short — anything longer than a compact return
+  goes to a worker first. Mirrored in the lead's memory index so a fresh context window starts
+  here.
+- **17:15/17:23 IST Fri 25 Sep — PACING CHANGE 3.** The weekly pool resets Sat 15:30 IST and is
+  mostly unspent — the pool is not the constraint, this Mac is. Up to FOUR workflows in flight on
+  different lanes (the judge panel and docs lanes run off-machine and do not count), 18
+  test-running writers max on this Mac, single lanes stay single, waves run full-size; every lane
+  busy, every idle window filled with work that needs no machine whenever the machine is the
+  bottleneck. Applied: the Stage E judge panel launched off-machine; the three lows WRITE runs
+  launch beside batch-18 step 2's adjudication instead of waiting for the rc1 tag; gate round 2
+  waits until no writer is still running tests.
+- **04:12/04:15 IST Sat 26 Sep — PACING CHANGE 4 + TIER-4 SIGN-OFF.** DECISIONS 4.9–4.12 ACCEPTED:
+  LEAD-030/037/038 stay `blocked_tier4` as documented known limitations of the local-model lane;
+  LEAD-035's residual joins them on batch-24's verifier concurrence; NO further rounds on this
+  class this release (a fresh instance is filed against the limitation, not fixed); the wording
+  goes VERBATIM into the release notes, the operator briefing and CURRENT_STATE under the local
+  lane, with the fail-safe described and the shipping matcher named. The 15:30 IST reset is not a
+  deadline — plan around the tags. Up to FOUR workflows on different lanes, ≤18 test-running
+  writers, single lanes stay single. NEW RULE: any register entry that fails certification THREE
+  times in this run stops and goes to DECISIONS for the operator, whatever its severity. Order
+  after batch-24's merge: adjudicate → 0 open c/h/m → rc1 GATE ROUND 2 at once (skip_gui true,
+  max_fix_rounds 2) → tag `r15-rc1`, push, hygiene prune, merge the version branch, handover →
+  lows integrate P1/P2/P3 (fresh verifier each) ∥ the GUI round ∥ docs promoted ∥ one bundle
+  rehearsal on the heavy lane whenever idle → `r15-rc2` → the panel's top survivor if small →
+  `r15-rc3` → one final adversarial pass → `r15-launch`.
+
+## Limit walls and failures
+
+- **19 Sep ~15:05 IST — 5-hour session wall.** ~95 of ~100 agents died at once (each burned its 3
+  retries instantly). Resumed 15:08 in low-priority mode. (L6)
+- **19 Sep 15:08-15:45 IST — low-priority mode starved Opus.** Measured 10 min in: Opus 0
+  progressing / 105 starved; Fable 35 progressing / 2 starved. All-Opus workflows were stopped and
+  reissued on Fable. (L7)
+- **19 Sep, sometime between 10:06 and 14:41 IST — MacBook lost power.** Exact loss time is not
+  recorded in `vysted-r15-run-state.md` (only the 14:41 resume is stated); HEAD/hooks/iso-stack/
+  caffeinate were confirmed intact on resume; the running code-census workflow had stopped with
+  3/31 critiques landed. (L4-L5)
+- **19 Sep 15:45-16:10 IST — operator-requested graceful pause.** All 15 workflows + the monitor
+  stopped; 21 own sidecars stopped by verified PID; caffeinate released. Not a wall. (L8)
+- **24 Sep, Stage C batch 6 harness-stall failure.** `wf_94ccf2b8-e97` (launched 03:16) FAILED at
+  14:56: "agent stalled on all 6 attempts (no progress for 180000ms each)" — a 3-minute
+  no-progress watchdog repeatedly killed writers, the integrator and the verifier (42 transcripts
+  for 10 agents, 6.4M tokens, 11.9h) because they ran long commands inside single tool calls. 22 of
+  60 planned entries were delivered before the workflow died; recovered by hand (see next). (L26)
+- **24 Sep ~15:00 IST — the Mac slept.** The iso stack, the operator's own dev sidecar (:52052) and
+  the run's `caffeinate` all died together with the stall. Lead recovery: killed 2 orphan pool
+  workers (PPID 1, 11h old), patched `COMMON.md` with the stall rule, re-armed caffeinate,
+  restarted the iso stack, reconstructed `batch-6/VERDICTS.md` from the verifier transcript, and
+  dispatched an Opus fixer for the leaking quant-pool workers (`831d52b`); merged as `5e147317`. (L26)
+- **24 Sep, batch-8 window — SSH flakes.** SSH to GitHub flaked twice with "Permission denied
+  (publickey)" between otherwise-working calls; pushes switched to
+  `GIT_SSH_COMMAND='ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes'`. (L28)
+- **GitHub returning HTTP 500 on an infra call: not recorded.** Searched
+  `vysted-r15-run-state.md`, `CHANGELOG.md`, `DECISIONS.md`/`DECISIONS_FOR_OPERATOR.md` and every
+  Stage C `VERDICTS.md` — no GitHub-infrastructure-500 event is documented in any of them. The
+  only HTTP 500s on record are product-level data-vendor errors (e.g. a screener headline fetch in
+  `r15/stage-c/batch-6/VERDICTS.md:379`), which are register findings about the app, not run-infra
+  failures, and are out of scope here.
+- **24 Sep, lows pre-triage workflow-return under-count (`wf_c6207d00-908`).** The script's
+  `RETURN counts` field omitted `still_reproduces` (reported 1 instead of 199); the underlying
+  files (`LOWS_TRIAGE.json`/`.md`) are correct — fix `lows-triage.js` only if it is ever rerun.
+  (run-state ledger line 23)
+- **25 Sep 01:22-01:23, batch-10 verify weekly-limit rejections (`wf_54334d97-0e6`).** Two Fable
+  verify attempts (`batch-10-verify-fable` then `batch-10-verify-fable-retry`) both failed with
+  "You've hit your weekly limit · resets Sep 26 at 3:30pm (Asia/Calcutta)"; a trivial probe agent
+  returned ok, so the rejection was momentary — re-dispatched with only the verifier live, which
+  then passed. (journal `wf_54334d97-0e6`; run-state ledger line 30)
+- **25 Sep 01:44, killed batch-11 first launch attempt (`wf_96670fc2-911`).** Aborted
+  (`Error: Workflow aborted`) 2.0min after launch with 1 Fable agent still in progress, 0 agents
+  landed; batch-11 relaunched cleanly 4 minutes later as `wf_a5e688ba-d35`. Not named by id in the
+  run-state ledger. (run file `wf_96670fc2-911.json`)
+- **25 Sep 17:25, Stage E judge panel DEGRADED (`wf_d855d73b-b6b`).** Five of seven agents died on
+  API safeguard errors: all 4 Opus case-builders (`cases-q1..q4`) and Fable `judge-B`; only judge A
+  and synthesis landed, so `PANEL.md`/`PANEL.json` carry one judge's scores for the whole backlog.
+  Completion re-run separately as `wf_407df695-831` to add the missing judge B. (journal
+  `wf_d855d73b-b6b`; run-state ledger line 53)
+- **26 Sep 02:33-04:04 IST, shared-index register-edit sweep (`014bb7f1`).** batch-23's Sonnet
+  adjudicator staged its register edits (`DISPOSITION-CONCURRENCE.md` verdicts applied to
+  `vysted-r15-register.json`/`.md`) directly against the shared worktree's git index; the lead's
+  own commit swept them into `014bb7f1` before they were reviewed as a separate change. Content
+  verified byte-for-byte against the adjudicator's intended edit, so nothing was lost — but the
+  lead now stages and commits every file by explicit path (`-- <path>`) rather than trusting the
+  shared index's staged state, per the multi-agent build discipline in `CLAUDE.md`.
+
+## API spend
+
+Caps: session 1 (D8, 19 Sep) set a $2.00 OpenAI-direct hard stop + the OpenRouter `:free` lane
+(1000 req/day, $0), enforced by `scripts/r15/vy.py` refusing at 700 free calls/day or $1.80 paid.
+Superseded by the SCOPE CHANGE (03:46 IST 23 Sep): OpenAI-direct hard stop raised to **$8.00**
+(`vy.py` refuses at $7.50).
+
+**Re-read for backfill #6 part 2** at 18:38 IST Sat 26 Sep from
+`docs/redesign/verification/r15/spend-ledger.jsonl`: now **539 lines** (up from 498 at backfill
+#6 part 1, up from 393 at backfill #5; this file is dirty on purpose and stays uncommitted — read
+only, never git-added). By provider (summed `est_usd` per row, not estimated):
+
+| Provider | Calls | Paid (est_usd) |
+|---|---|---|
+| `openai` | 47 | $0.247804 |
+| `ollama` | 378 | $0.00 |
+| `openrouter` | 111 | $0.00 |
+| `deepseek` | 2 | $0.00 |
+| `none` (bookkeeping note row, not an API call) | 1 | $0.00 |
+| **Total** | **539** | **$0.247804** |
+
+47 rows are paid (all via `openai`, up 8 since backfill #6 part 1); 492 are free (378 `ollama`,
+111 `openrouter` free-tier, 2 `deepseek`); 1 is a non-call bookkeeping note (the `budget-change`
+cap-raise entry). Paid total **$0.247804** — well under both the original $2.00 cap and the
+raised $8.00 cap.
+
+**Spend-figure reconciliation.** Three figures are on record and none of them is wrong — they are
+three snapshots of the same monotonically-growing, append-only ledger, taken at three different
+row counts: $0.201076 is the exact sum of the first 30 `openai` rows (the state at 393 lines,
+backfill #5, 04:22 IST); $0.21824 is the exact sum of the first 39 `openai` rows (the state at 498
+lines, backfill #6 part 1, 07:05 IST); **$0.247804 is the exact sum of all 47 `openai` rows** (the
+state at 539 lines, right now, backfill #6 part 2, 18:38 IST) — re-derived directly from the
+ledger's own `est_usd` field (present on every row; it does carry a cost field, contrary to an
+earlier assumption that it did not) rather than copied from any prior write-up. **$0.247804 is the
+current, correct figure** — the other two are stale snapshots superseded by 17 more paid `openai`
+calls made since (8 of them since backfill #6 part 1 alone: six `rc1-fix-r?-recheck-gr2-*` probes
+and two `rc1-vshard-0-R003-*` probes from the gate round-2 resume and its round-1 vshard replay).
+Well under both the original $2.00 cap and the raised $8.00 cap.
+
+<details>
+<summary>Prior snapshot (04:22 IST Sat 26 Sep, backfill #5, 393 rows)</summary>
+
+| Provider | Calls | Paid (est_usd) |
+|---|---|---|
+| `openai` | 30 | $0.201076 |
+| `ollama` | 256 | $0.00 |
+| `openrouter` | 104 | $0.00 |
+| `deepseek` | 2 | $0.00 |
+| `none` (bookkeeping note row, not an API call) | 1 | $0.00 |
+| **Total** | **393** | **$0.201076** |
+
+</details>
+
+<details>
+<summary>Prior snapshot (23:31 IST 24 Sep, 173 rows, by lane)</summary>
+
+| Lane | Calls | Paid (est_usd) |
+|---|---|---|
+| Stage A / census probes (`s2a-*`) | 25 | $0.159517 |
+| Batch verifier probes (`b2v..b9v-*`, `b7/b8-verifier-*`) | 64 | $0.014512 |
+| Surface probes (`surf-*`) | 26 | $0.003777 |
+| Session bookkeeping / misc (`lead-smoke`, `inducer`, `L2-rot`, `budget-change`, `patch-proof`, `untagged`) | 13 | $0.001547 |
+| Local-lane Ollama proof (`local-lane-*`) | 15 | $0.00 |
+| Lifecycle probes (`life-*`) | 19 | $0.00 |
+| World/harness probes (`wld-*`) | 4 | $0.00 |
+| Stage B/C data probes (`s2b/s2c-*`) | 3 | $0.00 |
+| Onboarding probes (`onb-*`) | 4 | $0.00 |
+| **Total** | **173** | **$0.179353** |
+
+24 rows were paid (all via `openai`); 149 were free (96 `ollama`, 52 `openrouter` free-tier, 1
+`deepseek`).
+
+</details>
+
+## Session 3 (Sat 3 Oct 2026, CC 2.1.288, per-workflow cap 6, lead claude-opus-5-5 high + Fable 5.1 advisor)
+
+- Telemetry `wf_8cc8e3eb-9ec` docs lane: 3 agents (claude-sonnet-5-5 medium ×2, claude-opus-5-5 medium ×1), 2.8 min wall, 288,535 subagent tokens, 31 tool uses, 0 errors, 0 walls. Files: CLAUDE.md (working tree, held), 5 handover/backlog/draft docs `4b5eb003`. Advisor spend from agents: NEEDS-MANUAL-CHECK (usage view is operator-only).
+- Telemetry `wf_61cda7fc-ea9` lows-int round 1: 2 agents (claude-sonnet-5-5 medium ×2), 38.8 min, 284,155 tokens, 108 tool uses, 0 errors, 0 walls. RED: 19 cross-partition failures.
+- Telemetry `wf_cf63695a-69c` lows fix round: 5 agents (claude-opus-5-5 medium ×4 incl. verifier, claude-sonnet-5-5 medium ×1), 39 min over two passes, ~669k tokens, 0 errors, 0 walls. CERTIFIED d3509715.
+
+- **Telemetry `wf_580450ca-23f` (rc2 gate, round 6-rc2, ace7dd76):** 05:03→06:49 IST, 105.6 min wall; 30 agents (rc1-gate.js pins claude-opus-5-5 / claude-sonnet-5-5, effort medium), 0 errors / 0 empty; 1639 tool calls; 4.63 M subagent tokens; no walls or pauses. Lanes run: preflight, gate8, heavy, battery-index, battery (25 shards, 142 sets, 593 entries), collate. Agent-tool side-agents this stage: register adjudicator ×2 + docs pass 1 + bundle builder (alias `sonnet`, self-reported "Sonnet 5" — alias resolution to 5.5 unconfirmed, NEEDS-MANUAL-CHECK in the usage view), carry-forward judge (alias `opus`, self-reported claude-opus-5-5). The GUI round at 9368c626 (`wf_20e615ae-ce7`) was stopped by the lead at 05:11 after 2 entries; relaunched at ace7dd76 as `wf_b3c54acc-931`.

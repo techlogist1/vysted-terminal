@@ -1,0 +1,50 @@
+=== R15-CODE-PLATFORM-030: backtest_engine.py sell reconciliation ===
+350:            cost = abs(intent.quantity) * fill_price
+361:                        abs(intent.quantity),
+373:                    held = position.quantity + intent.quantity
+375:                        position.entry_price * position.quantity + fill_price * intent.quantity
+377:                    position.quantity = held
+407:                sold = min(abs(intent.quantity), position.quantity)
+416:                if sold < position.quantity:
+419:                    position.quantity -= sold
+420:                    trades[at] = trades[at].model_copy(update={"quantity": position.quantity})
+428:                    portfolio.positions.pop(intent.symbol)
+                        symbol=intent.symbol,
+                        side="buy",
+                        enteredAt=bar.timestamp,
+                        entryPrice=fill_price,
+                        quantity=intent.quantity,
+                    )
+                )
+            else:
+                # Sell — close (part of) an existing long, never more than held.
+                position = portfolio.positions.get(intent.symbol)
+                if position is None:
+                    continue
+                sold = min(abs(intent.quantity), position.quantity)
+                portfolio.cash += sold * fill_price
+                exit_fields = {
+                    "exited_at": bar.timestamp,
+                    "exit_price": fill_price,
+                    "pnl": (fill_price - position.entry_price) * sold,
+                    "close_reason": intent.reason or "strategy",
+                }
+                at = trade_index[position.trade_id]
+                if sold < position.quantity:
+                    # A partial close is its own closed trade; the rest stays
+                    # open at the same average entry.
+                    position.quantity -= sold
+                    trades[at] = trades[at].model_copy(update={"quantity": position.quantity})
+                    trades.append(
+                        trades[at].model_copy(
+                            update={"id": str(uuid.uuid4()), "quantity": sold, **exit_fields}
+                        )
+                    )
+                else:
+                    trades[at] = trades[at].model_copy(update=exit_fields)
+                    portfolio.positions.pop(intent.symbol)
+
+    # Mark to market the final timestamp's bars (the loop above only marks
+---
+521:async def test_flat_market_pyramiding_ends_at_capital_minus_fees() -> None:
+532:async def test_flat_market_oversell_closes_the_held_quantity_once() -> None:

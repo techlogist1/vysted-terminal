@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import socket
 from datetime import UTC, datetime
 from typing import Any
 
@@ -105,10 +106,65 @@ def test_status_returns_unavailable_without_env(monkeypatch: pytest.MonkeyPatch)
         ("BF.B", "BF-B"),
         ("aapl", "AAPL"),
         ("AAPL", "AAPL"),
+        ("RELIANCE.NS", "RELIANCE.NS"),  # an India listing passes through, never RELIANCE-NS
     ],
 )
 def test_normalize_symbol(raw: str, expected: str) -> None:
     assert openbb_mcp_provider._normalize_symbol(raw) == expected
+
+
+@pytest.mark.parametrize(
+    ("bare", "listing"),
+    [
+        ("DAL", "DAL.BO"),
+        ("CHTR", "CHTR.BO"),
+        ("SAFE", "SAFE.BO"),
+        ("CSL", "CSL.BO"),
+        ("ICON", "ICON.BO"),
+        ("AMAL", "AMAL.NS"),  # NSE-listed since 2026-08-17
+        ("SMR", "SMR.BO"),
+        ("TTC", "TTC.BO"),
+        ("SUMAX", "SUMAX-SM.NS"),  # NSE Emerge: Yahoo -SM.NS (R15-DATA-017)
+    ],
+)
+def test_in_session_statement_asks_for_the_indian_listing(
+    recorder: _RecordingClient, bare: str, listing: str
+) -> None:
+    """R15-DATA-001: each ticker is an Indian listing that collides with a US
+    ticker. OpenBB's yfinance backend answers a bare ticker with the US company,
+    so in an IN session the tool must be asked for the Indian listing and the
+    statement must echo it."""
+    import config
+
+    recorder.respond(
+        "equity_fundamental_income",
+        [{"symbol": listing, "period_ending": "2025-03-31", "revenue": 1.0}],
+    )
+    token = config.set_request_region("IN")
+    try:
+        statement = asyncio.run(openbb_mcp_provider.get_income_statement(bare))
+    finally:
+        config.reset_request_region(token)
+    assert recorder.calls[0]["arguments"]["symbol"] == listing
+    assert statement.symbol == listing
+
+
+def test_us_session_keeps_the_bare_us_ticker(recorder: _RecordingClient) -> None:
+    """The case the mapping was not written against: the same bare AMAL in a US
+    session is Amalgamated Financial and reaches the tool as AMAL."""
+    import config
+
+    recorder.respond(
+        "equity_fundamental_income",
+        [{"symbol": "AMAL", "period_ending": "2025-12-31", "revenue": 1.0}],
+    )
+    token = config.set_request_region("US")
+    try:
+        statement = asyncio.run(openbb_mcp_provider.get_income_statement("AMAL"))
+    finally:
+        config.reset_request_region(token)
+    assert recorder.calls[0]["arguments"]["symbol"] == "AMAL"
+    assert statement.symbol == "AMAL"
 
 
 # ---------------------------------------------------------------------------
@@ -218,7 +274,9 @@ def test_get_fundamentals_combines_profile_and_metrics(recorder: _RecordingClien
                 "forward_pe": 28.4,
                 "peg_ratio": 2.1,
                 "price_to_book": 47.0,
-                "dividend_yield": 0.0044,
+                # openbb returns dividend_yield as a PERCENT (0.44 = 0.44%) — the
+                # provider normalises it to a fraction (the contract's unit).
+                "dividend_yield": 0.44,
                 "eps": 6.17,
                 "beta": 1.25,
                 "fifty_two_week_high": 220.0,
@@ -230,6 +288,7 @@ def test_get_fundamentals_combines_profile_and_metrics(recorder: _RecordingClien
     assert fundamentals.symbol == "AAPL"
     assert fundamentals.name == "Apple Inc."
     assert fundamentals.market_cap == 3_000_000_000_000
+    # 0.44% (percent, as openbb sends it) → 0.0044 fraction (the contract unit).
     assert fundamentals.dividend_yield == pytest.approx(0.0044)
     assert fundamentals.provider == "openbb-mcp"
 
@@ -335,6 +394,25 @@ def test_get_macro_series_maps_observations(recorder: _RecordingClient) -> None:
     assert recorder.calls[0]["arguments"]["provider"] == "fred"
 
 
+def test_get_macro_series_keeps_a_real_zero_observation(recorder: _RecordingClient) -> None:
+    """R15-DATA-084: ``value or series_id`` turned a ZIRP-era 0.0 into a hole."""
+    recorder.respond(
+        "economy_fred_series",
+        [{"date": "2021-01-04", "value": 0.0}, {"date": "2021-01-05", "value": 0.07}],
+    )
+    series = asyncio.run(openbb_mcp_provider.get_macro_series("EFFR"))
+    assert [o.value for o in series.observations] == [0.0, 0.07]
+
+
+def test_get_quote_keeps_a_real_zero_volume(recorder: _RecordingClient) -> None:
+    """The same zero-drop class on the quote's volume fallback (not written against)."""
+    recorder.respond(
+        "equity_price_quote",
+        [{"symbol": "AAPL", "last_price": 100.0, "volume": 0, "exchange_volume": None}],
+    )
+    assert asyncio.run(openbb_mcp_provider.get_quote("AAPL")).volume == 0.0
+
+
 def test_get_macro_series_accepts_provider_override(recorder: _RecordingClient) -> None:
     recorder.respond("economy_fred_series", [{"date": "2025-01-01", "value": 1.0}])
     asyncio.run(openbb_mcp_provider.get_macro_series("GDP", provider="econdb"))
@@ -412,3 +490,32 @@ def test_registry_uses_openbb_mcp_when_available(
     result = asyncio.run(provider_registry.get_fundamentals("AAPL"))
     assert result.provider == "openbb-mcp"
     assert result.pe_ratio == 31.2
+
+
+def test_dead_child_falls_through_and_reports_unavailable(
+    monkeypatch: pytest.MonkeyPatch, mock_yfinance: object
+) -> None:
+    """With nothing listening on the openbb-mcp port, the REAL client's failure is a
+    ProviderError, so the registry falls through to yfinance, and status stops
+    reporting the provider available (R15-LIFECYCLE-005)."""
+    from services import provider_registry
+
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    monkeypatch.setenv("VYSTED_OPENBB_MCP_PORT", str(port))
+    openbb_mcp_provider._reset_for_tests()
+
+    async def _go() -> tuple[Any, dict[str, Any]]:
+        await mcp_client.reset_clients()
+        try:
+            result = await provider_registry.get_fundamentals("AAPL")
+            return result, await openbb_mcp_provider.status()
+        finally:
+            await mcp_client.reset_clients()
+
+    result, status = asyncio.run(_go())
+    assert result.provider == "yfinance"
+    assert status["available"] is False
+    assert status["lastToolCallOk"] is False
+    assert "ConnectError" in status["lastError"]

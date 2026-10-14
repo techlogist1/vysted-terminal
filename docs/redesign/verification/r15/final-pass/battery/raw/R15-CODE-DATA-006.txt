@@ -1,0 +1,9 @@
+# R15-CODE-DATA-006 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:20+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'function finish' src/store/screener.ts; grep -n 'R15-CODE-DATA-006' src/store/screener.test.ts
+--- output ---
+408:    function finish(patch: Partial<ScreenerState>): boolean {
+308:    it("R15-CODE-DATA-006: run A's late unary fallback does not touch run B's result or status", async () => {
+
+EXIT=0 (0.0s)

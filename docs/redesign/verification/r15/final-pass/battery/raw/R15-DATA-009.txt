@@ -1,0 +1,11 @@
+# R15-DATA-009 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:02+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b7_bt.py 2>&1 | grep -v Warning
+--- output ---
+N=1 points=200 sharpe=0.4852 date-sampled-sharpe(pstdev)=0.4852 annRet=0.07338 totalRet=0.04866
+N=2 points=200 sharpe=1.1897 date-sampled-sharpe(pstdev)=1.1897 annRet=0.13122 totalRet=0.09760
+N=4 points=200 sharpe=1.1375 date-sampled-sharpe(pstdev)=1.1375 annRet=0.08319 totalRet=0.06306
+sortino register series: 6.352097860237519 textbook: 6.352097860237523
+two identical losses sortino: -2.509980079602211
+
+EXIT=0 (0.2s)

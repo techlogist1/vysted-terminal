@@ -1,0 +1,294 @@
+{
+ "pe_asc": [
+  200,
+  {
+   "universe": "custom",
+   "evaluated_count": 9,
+   "skipped_count": 1,
+   "skip_details": [
+    {
+     "symbol": "TATAMOTORS.NS",
+     "reason": "rate_limited"
+    }
+   ],
+   "result_count": 9,
+   "matched_count": 9,
+   "rows": [
+    {
+     "symbol": "IDEA.NS",
+     "name": "Vodafone Idea Limited",
+     "sector": "Communication Services",
+     "industry": "Telecommunication / Telecom - Cellular & Fixed line services",
+     "market_cap": 1369455984640.0,
+     "pe_ratio": 3.6217766,
+     "forward_pe": -8.53881,
+     "peg_ratio": null,
+     "price_to_book": -3.8303032,
+     "dividend_yield": 0.0,
+     "roe": -1.0460875637339897,
+     "debt_to_equity": -5.3841937468538505,
+     "price": 12.64,
+     "change_percent_1d": -2.3938184,
+     "volume": 612301899.0,
+     "currency": "INR",
+     "data_basis": "live",
+     "data_as_of": null
+    },
+    {
+     "symbol": "INFY.NS",
+     "name": "Infosys Limited",
+     "sector": "Technology",
+     "industry": "Information Technology / Computers - Software & Consulting",
+     "market_cap": 4192105660416.0,
+     "pe_ratio": 13.298214,
+     "forward_pe": 12.941654,
+     "peg_ratio": 1.8047,
+     "price_to_book": null,
+     "dividend_yield": 0.00052308623,
+     "roe": 0.32,
+     "debt_to_equity": 0.09541000000000001,
+     "price": 1035.0,
+     "change_percent_1d": 4.114277,
+     "volume": 15061214.0,
+     "currency": "INR",
+     "data_basis": "live",
+     "data_as_of": null
+    },
+    {
+     "symbol": "ITC.NS",
+     "name": "ITC Limited",
+     "sector": "Consumer Defensive",
+     "industry": "Fast Moving Consumer Goods / Diversified FMCG",
+     "market_cap": 3206559301632.0,
+     "pe_ratio": 16.155302,
+     "forward_pe": 15.266291,
+     "peg_ratio": 1.78,
+     "price_to_book": 4.4220567,
+     "dividend_yield": 0.0,
+     "roe": 0.27361935068055215,
+     "debt_to_equity": 0.03293,
+     "price": 255.9,
+     "change_percent_1d": -2.6070433,
+     "volume": 16440881.0,
+     "currency": "INR",
+     "data_basis": "live",
+     "data_as_of": null
+    },
+    {
+     "symbol": "PAYTM.NS",
+     "name": "One97 Communications Limited",
+     "sector": "Financial Services",
+     "industry": "Financial Services / Financial Technology (Fintech)",
+     "market_cap": 1058858991616.0,
+     "pe_ratio": 163.96039,
+     "forward_pe": 46.25488,
+     "peg_ratio": null,
+     "price_to_book": 6.6247687,
+     "dividend_yield": 0.0,
+     "roe": 0.040559089878946714,
+     "debt_to_equity": 0.01073,
+     "price": 1656.0,
+     "change_percent_1d": -1.3110846,
+     "volume": 1936787.0,
+     "currency": "INR",
+     "data_basis": "live",
+     "data_as_of": null
+    },
+    {
+     "symbol": "NYKAA.NS",
+     "name": "FSN E-Commerce Ventures Limited",
+     "sector": "Consumer Cyclical",
+     "industry": "Consumer Services / E-Retail/ E-Commerce",
+     "market_cap": 931069755392.0,
+     "pe_ratio": 357.08792,
+     "forward_pe": 110.70344,
+     "peg_ratio": null,
+     "price_to_book": 64.7053,
+     "dividend_yield": 0.0,
+     "roe": 0.17811791318377168,
+     "debt_to_equity": 0.82829,
+     "price": 324.95,
+     "change_percent_1d": 1.5468788,
+     "volume": 7907117.0,
+     "currency": "INR",
+     "data_basis": "live",
+     "data_as_of": null
+    },
+    {
+     "symbol": "ETERNAL.NS",
+     "name": "Eternal Limited",
+     "sector": "Consumer Cyclical",
+     "industry": "Consumer Services / E-Retail/ E-Commerce",
+     "market_cap": 2889572941824.0,
+     "pe_ratio": 667.8723,
+     "forward_pe": 83.313644,
+     "peg_ratio": null,
+     "price_to_book": 9.279021,
+     "dividend_yield": 0.0,
+     "roe": 0.01397675878631375,
+     "debt_to_equity": 0.14826,
+     "price": 313.9,
+     "change_percent_1d": -1.9062519,
+     "volume": 29621512.0,
+     "currency": "INR",
+     "data_basis": "live",
+     "data_as_of": null
+    },
+    {
+     "symbol": "OLAELEC.NS",
+     "name": "Ola Electric Mobility Limited",
+     "sector": "Consumer Cyclical",
+     "industry": "Automobile and Auto Components / 2/3 Wheelers",
+     "market_cap": 163888873472.0,
+     "pe_ratio": null,
+     "forward_pe": -12.401613,
+     "peg_ratio": null,
+     "price_to_book": 4.8976626,
+     "dividend_yield": 0.0,
+     "roe": -0.4316,
+     "debt_to_equity": 0.82453,
+     "price": 37.09,
+     "change_percent_1d": 0.46046045,
+     "volume": 54895799.0,
+     "currency": "INR",
+     "data_basis": "live",
+     "data_as_of": null
+    },
+    {
+     "symbol": "SWIGGY.NS",
+     "name": "Swiggy Limited",
+     "sector": "Consumer Cyclical",
+     "industry": "Consumer Services / E-Retail/ E-Commerce",
+     "market_cap": 623560425472.0,
+     "pe_ratio": null,
+     "forward_pe": -42.38994,
+     "peg_ratio": null,
+     "price_to_book": 3.3866951,
+     "dividend_yield": 0.0,
+     "roe": -0.20465218704815988,
+     "debt_to_equity": 0.13929,
+     "price": 238.0,
+     "change_percent_1d": -4.838067,
+     "volume": 13783000.0,
+     "currency": "INR",
+     "data_basis": "live",
+     "data_as_of": null
+    },
+    {
+     "symbol": "TMPV.NS",
+     "name": "Tata Motors Passenger Vehicles Limited",
+     "sector": "Consumer Cyclical",
+     "industry": "Automobile and Auto Components / Passenger Cars & Utility Vehicles",
+     "market_cap": 1029027987456.0,
+     "pe_ratio": null,
+     "forward_pe": 5.879559,
+     "peg_ratio": 0.27,
+     "price_to_book": 0.91806424,
+     "dividend_yield": 0.0,
+     "roe": -0.03011564373059214,
+     "debt_to_equity": 0.70364,
+     "price": 279.4,
+     "change_percent_1d": -1.4462103,
+     "volume": 15253213.0,
+     "currency": "INR",
+     "data_basis": "live",
+     "data_as_of": null
+    }
+   ],
+   "duration_ms": 3.539124969393015,
+   "partial": true,
+   "coverage": "screened 9 of 10 \u2014 1 unavailable",
+   "freshness": {
+    "quotes_as_of": 1791021126.573001,
+    "valuation_as_of": 1791021126.572999,
+    "deep_as_of": 1791019384.206756
+   },
+   "basis_counts": {
+    "live": 9
+   },
+   "throttled": true
+  }
+ ],
+ "pe_lt_15": [
+  200,
+  {
+   "universe": "custom",
+   "evaluated_count": 6,
+   "skipped_count": 4,
+   "skip_details": [
+    {
+     "symbol": "OLAELEC.NS",
+     "reason": "missing_field:pe_ratio"
+    },
+    {
+     "symbol": "SWIGGY.NS",
+     "reason": "missing_field:pe_ratio"
+    },
+    {
+     "symbol": "TATAMOTORS.NS",
+     "reason": "rate_limited"
+    },
+    {
+     "symbol": "TMPV.NS",
+     "reason": "missing_field:pe_ratio"
+    }
+   ],
+   "result_count": 2,
+   "matched_count": 2,
+   "rows": [
+    {
+     "symbol": "IDEA.NS",
+     "name": "Vodafone Idea Limited",
+     "sector": "Communication Services",
+     "industry": "Telecommunication / Telecom - Cellular & Fixed line services",
+     "market_cap": 1369455984640.0,
+     "pe_ratio": 3.6217766,
+     "forward_pe": -8.53881,
+     "peg_ratio": null,
+     "price_to_book": -3.8303032,
+     "dividend_yield": 0.0,
+     "roe": -1.0460875637339897,
+     "debt_to_equity": -5.3841937468538505,
+     "price": 12.64,
+     "change_percent_1d": -2.3938184,
+     "volume": 612301899.0,
+     "currency": "INR",
+     "data_basis": "live",
+     "data_as_of": null
+    },
+    {
+     "symbol": "INFY.NS",
+     "name": "Infosys Limited",
+     "sector": "Technology",
+     "industry": "Information Technology / Computers - Software & Consulting",
+     "market_cap": 4192105660416.0,
+     "pe_ratio": 13.298214,
+     "forward_pe": 12.941654,
+     "peg_ratio": 1.8047,
+     "price_to_book": null,
+     "dividend_yield": 0.00052308623,
+     "roe": 0.32,
+     "debt_to_equity": 0.09541000000000001,
+     "price": 1035.0,
+     "change_percent_1d": 4.114277,
+     "volume": 15061214.0,
+     "currency": "INR",
+     "data_basis": "live",
+     "data_as_of": null
+    }
+   ],
+   "duration_ms": 2.774083986878395,
+   "partial": true,
+   "coverage": "screened 6 of 10 \u2014 4 unavailable",
+   "freshness": {
+    "quotes_as_of": 1791021126.573001,
+    "valuation_as_of": 1791021126.572999,
+    "deep_as_of": 1791019384.206756
+   },
+   "basis_counts": {
+    "live": 2
+   },
+   "throttled": true
+  }
+ ]
+}

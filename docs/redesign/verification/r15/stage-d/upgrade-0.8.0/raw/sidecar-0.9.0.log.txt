@@ -1,0 +1,61 @@
+2026-10-04 00:58:28,750 INFO services.backtest_strategies: backtest_strategies: registered mean_reversion, trend_following, regime_aware, custom
+2026-10-04 00:58:28,750 INFO services.agent_tools: agent_tools: registered v0.5.0 tools (price_data, fundamentals)
+2026-10-04 00:58:28,750 INFO services.agent_tools: agent_tools: registered v0.6.0 domains: macro, sec, quant, earnings+analyst, screener, news, market_overview, resolve_symbol, compare_symbols, web_search, research, disclosures, backtest-custom
+2026-10-04 00:58:30,250 INFO uvicorn.error: Started server process [47164]
+2026-10-04 00:58:30,250 INFO uvicorn.error: Waiting for application startup.
+2026-10-04 00:58:30,255 INFO services.data_cache: data_cache: data dir backed up to <scratchpad>/upgrade-080/data/backups/unversioned-2026-10-04 before the upgrade
+2026-10-04 00:58:30,256 INFO services.data_cache: data_cache: build 0.9.0 (cache written by an unversioned build) - cleared
+2026-10-04 00:58:30,260 INFO mcp.server.streamable_http_manager: StreamableHTTP session manager started
+2026-10-04 00:58:30,316 INFO uvicorn.error: Application startup complete.
+2026-10-04 00:58:30,321 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:52151 (Press CTRL+C to quit)
+2026-10-04 00:58:30,357 INFO services.fundamentals_warm: fundamentals warm: seeded 5891 india rows
+2026-10-04 00:58:30,548 INFO services.fundamentals_warm: fundamentals warm: seed pack applied to 5050 rows (2026-07-08)
+2026-10-04 00:58:31,398 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ABB.BO"}}}
+2026-10-04 00:58:31,472 INFO httpx: HTTP Request: GET http://127.0.0.1:8888/search?q=test&format=json "HTTP/1.1 200 OK"
+2026-10-04 00:58:31,535 INFO uvicorn.access: 127.0.0.1:49675 - "GET /health HTTP/1.1" 200
+2026-10-04 00:58:31,544 INFO uvicorn.access: 127.0.0.1:49676 - "GET /health HTTP/1.1" 200
+2026-10-04 00:58:31,583 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08ABB.BO'
+2026-10-04 00:58:31,653 INFO httpx: HTTP Request: GET http://127.0.0.1:8888/search?q=test&format=json "HTTP/1.1 200 OK"
+2026-10-04 00:58:32,517 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+2026-10-04 00:58:32,715 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08ADD.BO'
+2026-10-04 00:58:33,290 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADR.BO"}}}
+2026-10-04 00:58:33,642 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08ADR.BO'
+2026-10-04 00:58:36,894 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMD.BO"}}}
+2026-10-04 00:58:37,088 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08AMD.BO'
+2026-10-04 00:58:37,469 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMR.BO"}}}
+2026-10-04 00:58:37,661 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08AMR.BO'
+2026-10-04 00:58:38,020 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQD.BO"}}}
+2026-10-04 00:58:38,209 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08AQD.BO'
+2026-10-04 00:58:38,522 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQR.BO"}}}
+2026-10-04 00:58:38,721 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08AQR.BO'
+2026-10-04 00:58:39,031 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08BPB.BO"}}}
+2026-10-04 00:58:39,334 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08BPB.BO'
+2026-10-04 00:58:40,396 WARNING services.nse_symbol_change: nse_symbol_change: request failed (ConnectTimeout: )
+2026-10-04 00:58:40,397 WARNING services.nse_bhavcopy: nse_bhavcopy: request failed for 2026-10-02 (ConnectTimeout: )
+2026-10-04 00:58:40,401 WARNING services.nse_symbol_change: nse_symbol_change: no file and no recent cache — rename lane is a no-op
+2026-10-04 00:58:40,864 INFO httpx: HTTP Request: GET https://archives.nseindia.com/products/content/sec_bhavdata_full_02102026.csv "HTTP/1.1 200 OK"
+2026-10-04 00:58:41,094 INFO services.fundamentals_warm: fundamentals warm: bhavcopy EOD applied to 2923 NSE rows (trade date 2026-10-02)
+2026-10-04 00:58:43,255 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08DPR.BO"}}}
+2026-10-04 00:58:43,483 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08DPR.BO'
+2026-10-04 00:58:50,584 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08MPR.BO"}}}
+2026-10-04 00:58:51,051 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08MPR.BO'
+2026-10-04 00:58:51,368 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08QPD.BO"}}}
+2026-10-04 00:58:51,561 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08QPD.BO'
+2026-10-04 00:58:54,598 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADD.BO"}}}
+2026-10-04 00:58:54,791 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '11ADD.BO'
+2026-10-04 00:58:55,118 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADR.BO"}}}
+2026-10-04 00:58:55,316 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '11ADR.BO'
+2026-10-04 00:59:09,221 INFO uvicorn.access: 127.0.0.1:49693 - "GET /portfolio/positions HTTP/1.1" 200
+2026-10-04 00:59:09,279 INFO uvicorn.access: 127.0.0.1:49694 - "GET /custom-agents HTTP/1.1" 200
+2026-10-04 00:59:09,330 INFO uvicorn.access: 127.0.0.1:49695 - "GET /custom-agents/custom%3Adividend-hawk HTTP/1.1" 200
+2026-10-04 00:59:09,383 INFO uvicorn.access: 127.0.0.1:49696 - "GET /custom-agents/tool-ids HTTP/1.1" 200
+2026-10-04 00:59:09,437 INFO uvicorn.access: 127.0.0.1:49697 - "GET /workflow/saved HTTP/1.1" 200
+2026-10-04 00:59:09,492 INFO uvicorn.access: 127.0.0.1:49698 - "GET /workflow/saved/wf-aapl-close-check HTTP/1.1" 200
+2026-10-04 00:59:09,547 INFO uvicorn.access: 127.0.0.1:49699 - "GET /workflow/node-types HTTP/1.1" 200
+2026-10-04 00:59:09,598 INFO uvicorn.access: 127.0.0.1:49700 - "GET /workflow/schedules HTTP/1.1" 200
+2026-10-04 00:59:09,652 INFO uvicorn.access: 127.0.0.1:49701 - "GET /workspace HTTP/1.1" 200
+2026-10-04 00:59:09,705 INFO uvicorn.access: 127.0.0.1:49702 - "GET /workspace/Main%20Desk HTTP/1.1" 200
+2026-10-04 00:59:09,757 INFO uvicorn.access: 127.0.0.1:49703 - "GET /workspace/Research_Desk-2 HTTP/1.1" 200
+2026-10-04 00:59:09,807 INFO uvicorn.access: 127.0.0.1:49704 - "GET /health HTTP/1.1" 200
+2026-10-04 00:59:09,860 INFO uvicorn.access: 127.0.0.1:49705 - "GET /agents HTTP/1.1" 200
+2026-10-04 00:59:40,899 INFO httpx: HTTP Request: GET https://nsearchives.nseindia.com/content/equities/symbolchange.csv "HTTP/1.1 200 OK"

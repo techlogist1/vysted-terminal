@@ -1,0 +1,73 @@
+--- disclosure_tools.py _corporate_announcements ---
+56:async def _corporate_announcements(args: dict[str, Any]) -> dict[str, Any]:
+57-    """Merged BSE+NSE corporate announcements for ``symbol``."""
+58-    symbol = args.get("symbol")
+59-    if not isinstance(symbol, str) or not symbol.strip():
+60-        return {"ok": False, "error": "missing or non-string symbol"}
+61-    exchange_arg = args.get("exchange")
+--- corporate_disclosures.get_announcements_cached def ---
+617:async def get_announcements_cached(
+618-    symbol: str, exchange: str | None = None, limit: int = DEFAULT_LIMIT
+619-) -> AnnouncementsResponse:
+620-    """:func:`get_announcements` through :mod:`services.data_cache` — the one
+621-    cached entry point the router, the agent tool and research share. Raises
+622-    :class:`ProviderError` like the uncached call; a failure is never cached."""
+623-    normalized = symbol.strip().upper()
+624-    cache_key = (
+625-        f"disclosures:announcements:{normalized}:{exchange or 'ALL'}:{limit}:{config.get_region()}"
+626-    )
+627-    cached = await data_cache.get(cache_key, ANNOUNCEMENTS_TTL_SECONDS)
+628-    if isinstance(cached, dict):
+629-        try:
+630-            return AnnouncementsResponse.model_validate(cached)
+631-        except Exception:  # noqa: BLE001
+632-            logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
+--- routers/disclosures.py still uses cache too (for parity) ---
+6:shareholding patterns) through :mod:`services.data_cache` with domain-tuned
+10:  (:func:`corporate_disclosures.get_announcements_cached`, shared with the agent
+38:from services import corporate_disclosures, data_cache, sec_ownership
+62:    return await corporate_disclosures.get_announcements_cached(symbol, exchange, limit)
+72:    cached = await data_cache.get(cache_key, _TTL_RESULTS)
+79:    await data_cache.set(cache_key, response.model_dump(mode="json"))
+91:    cached = await data_cache.get(cache_key, _TTL_SHAREHOLDING)
+99:    await data_cache.set(cache_key, response.model_dump(mode="json"))
+110:    cached = await data_cache.get(cache_key, _TTL_CORPORATE_ACTIONS)
+117:    await data_cache.set(cache_key, response.model_dump(mode="json"))
+132:    cached = await data_cache.get(cache_key, _TTL_DEALS)
+139:    await data_cache.set(cache_key, response.model_dump(mode="json"))
+--- research/iter.py call site uses cached version now? ---
+    """
+    findings = _Findings(evidence=evidence)
+    report = _Report(task=query, char_cap=report_char_cap or _REPORT_CHAR_CAP)
+    steps: list[ResearchStep] = []
+    structured: dict[str, Any] = {}
+
+    if target is None and not bound:
+        target = await resolve_target(tool_call, query, region=region)
+        if isinstance(target, ResearchDisambiguation):
+            return target.payload(query=query)
+    symbol = target.symbol if target is not None else ""
+    structured["resolved"] = resolved_payload(target)
+    # Snapshot price + fundamentals so an iter/Heavy brief backs the same native
+    # metric cards as a FAST one (additive; a failed leg renders no card). The
+    # heavy panel passes ONE shared snapshot so explorers never re-pull it.
+    if target is not None:
+...
+            on_step,
+            ResearchStep(
+                step.kind,
+                f"[{tag}: {short}] {step.detail}",
+                latency_ms=step.latency_ms,
+                status=step.status,
+            ),
+        )
+
+    return _sink
+
+
+async def run_heavy_research(
+
+--- research call sites route through the corporate_announcements agent tool ---
+services/research/disclosures.py:154,314 tool_call("corporate_announcements", ...)
+services/research/fast.py:477 tool_call("corporate_announcements", ...)
+No direct calls to corporate_disclosures.get_announcements remain in services/research/ — all routes go through the same cached agent-tool entry point.

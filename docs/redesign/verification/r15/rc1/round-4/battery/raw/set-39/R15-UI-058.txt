@@ -1,0 +1,8 @@
+NOT RUN LIVE: frontend-only (settings export v2 + import merge/reject-unknown), needs jsdom.
+PINNED TEST (ci_pinned):
+  src/store/keybindings.test.ts:85 it("R15-UI-058: merges over the CURRENT overrides instead of replacing them")
+  src/store/keybindings.test.ts:94 it("R15-UI-058: rejects an unknown action id and a non-string value without touching existing overrides")
+  src/store/settings.test.ts:134 it("R15-UI-058: a field ABSENT from a later setAll preserves the CURRENT value, not the seed")
+  src/components/SettingsPanel.test.tsx:451 it("R15-UI-058: search-settings setAll preserves the CURRENT searxngUrl when a later bundle omits it")
+VERDICT BASIS: four pinned tests, each explicitly tagged R15-UI-058 in its own name, cover the merge-over-current and reject-unknown behaviors named in the fix_shape.
+NOTE (carried, not blocking): batch-9's own certification recorded a residual minor -- a settings file whose only content is unknown action ids still reports "Imported settings." This matches the register entry's own note field; not re-litigated here (no new instance).

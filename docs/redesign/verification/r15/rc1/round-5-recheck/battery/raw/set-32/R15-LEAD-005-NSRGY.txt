@@ -1,0 +1,1 @@
+{"symbol":"NSRGY","price":93.12000274658203,"change":-0.7599972534179642,"change_percent":-0.8095411732189649,"volume":884100.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:00Z","provider":"yfinance","freshness":"eod"}

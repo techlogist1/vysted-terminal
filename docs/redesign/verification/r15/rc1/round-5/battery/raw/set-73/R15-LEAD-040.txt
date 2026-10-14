@@ -1,0 +1,9 @@
+CMD: grep -rn 'to_thread(symbol_resolver' sidecar/routers sidecar/services
+
+CMD: grep -n '_RESOLVE_POOL' sidecar/services/symbol_resolver.py
+160:_RESOLVE_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="resolver")
+1016:    ``loop.run_in_executor(_RESOLVE_POOL, resolve, query, region)``
+1037:    """``resolve`` off the dedicated ``_RESOLVE_POOL`` (R15-LEAD-040), not the
+1042:    return await loop.run_in_executor(_RESOLVE_POOL, resolve, query, region)
+1695:    """``autocomplete`` off the dedicated ``_RESOLVE_POOL`` (R15-LEAD-040), not
+1698:    return await loop.run_in_executor(_RESOLVE_POOL, autocomplete, query, region, limit)

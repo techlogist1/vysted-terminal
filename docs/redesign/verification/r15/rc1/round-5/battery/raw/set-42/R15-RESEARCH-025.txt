@@ -1,0 +1,19 @@
+CMD: curl -s -X POST http://127.0.0.1:52356/screener/formula/validate -d '{"formula": "<f>"}' for 8 formulas (original repro + fresh cases)
+-- min(pe < 5, roe) > 0.5 --
+{"ok":false,"error":"min() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+-- abs(pe_ratio > 3) > 0.5 --
+{"ok":false,"error":"abs() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+-- (pe_ratio < 15) + 1 > 1.5 --
+{"ok":false,"error":"a boolean expression can't be used in arithmetic — wrap the comparison on its own, or combine with 'and'/'or'","position":16,"fields":[]}
+-- (pe > 10) + 1 --
+{"ok":false,"error":"a boolean expression can't be used in arithmetic — wrap the comparison on its own, or combine with 'and'/'or'","position":10,"fields":[]}
+-- abs(pe > 10) --
+{"ok":false,"error":"abs() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+-- max(pe > 10, 1) --
+{"ok":false,"error":"max() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+-- (pe > 10) * 2 + 1 --
+{"ok":false,"error":"a boolean expression can't be used in arithmetic — wrap the comparison on its own, or combine with 'and'/'or'","position":10,"fields":[]}
+-- pe > 10 and pb < 3 --
+{"ok":true,"error":null,"position":null,"fields":["pe_ratio","price_to_book"]}
+
+VERDICT: holds -- every boolean-into-arithmetic formula (original repro's min()/abs()/+ cases plus the fresh (pe>10)+1 / abs(pe>10) / max(pe>10,1) / (pe>10)*2+1 cases) is now rejected with a boolean-coercion error naming the position; the legitimate 'pe > 10 and pb < 3' still validates ok.

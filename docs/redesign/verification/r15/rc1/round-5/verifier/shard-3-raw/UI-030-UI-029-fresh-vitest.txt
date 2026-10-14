@@ -1,0 +1,72 @@
+# UI-030-UI-029 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/modules/macro/vs3-macro.test.tsx
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+stdout | src/modules/macro/vs3-macro.test.tsx > vs3 fresh > UI-030: keyless 502 mount default = one request; rapid tabs imf->world-bank->fred = one request each with that tab's id; no retries after 60s
+series calls [["/macro/DGS10",{"provider":"fred"}],["/macro/WEO%2FUSA.NGDP_RPCH.A",{"provider":"imf"}],["/macro/NY.GDP.PCAP.CD",{"provider":"world-bank"}],["/macro/DGS10",{"provider":"fred"}]]
+ ✓ src/modules/macro/vs3-macro.test.tsx > vs3 fresh > UI-030: keyless 502 mount default = one request; rapid tabs imf->world-bank->fred = one request each with that tab's id; no retries after 60s 41ms
+ ✓ src/modules/macro/vs3-macro.test.tsx > vs3 fresh > UI-029: catalog transport failure -> error + Retry (no forever skeleton); Retry succeeds -> featured rows 71ms
+stdout | src/modules/macro/vs3-macro.test.tsx > vs3 fresh > adjacent: a failed SEARCH renders as 'No matching series' (false empty)
+search-failure renders: No matching seriesNo results for "unemployment" on fred.
+ ✓ src/modules/macro/vs3-macro.test.tsx > vs3 fresh > adjacent: a failed SEARCH renders as 'No matching series' (false empty) 1020ms
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  17:03:09
+   Duration  1.91s (transform 90ms, setup 45ms, import 285ms, tests 1.13s, environment 361ms)
+
+## test source (appended part)
+// vs3 fresh: UI-030 / UI-029 / adjacent search-swallow
+const IDS = { fred: "DGS10", ecb: "FM.D.U2.EUR.4F.KR.MRR_FR.LEV", imf: "WEO/USA.NGDP_RPCH.A", "world-bank": "NY.GDP.PCAP.CD" } as const;
+const keyless = "FRED needs a free API key for macro data.";
+describe("vs3 fresh", () => {
+  it("UI-030: keyless 502 mount default = one request; rapid tabs imf->world-bank->fred = one request each with that tab's id; no retries after 60s", async () => {
+    vi.useFakeTimers();
+    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+      if (path === "/macro/catalog") return SAMPLE_CATALOG;
+      if (path === "/macro/DGS10") throw new SidecarError(502, keyless);
+      throw new SidecarError(502, "upstream down");
+    });
+    render(<MacroPanel />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(60000); });
+    for (const p of ["imf", "world-bank", "fred"]) {
+      fireEvent.click(screen.getByTestId(`macro-provider-${p}`));
+      await act(async () => { await vi.advanceTimersByTimeAsync(10); });
+    }
+    await act(async () => { await vi.advanceTimersByTimeAsync(60000); });
+    const calls = vi.mocked(sidecarGet).mock.calls.filter(([p]) => p !== "/macro/catalog");
+    console.log("series calls", JSON.stringify(calls));
+    expect(calls).toEqual([
+      ["/macro/DGS10", { provider: "fred" }],
+      [`/macro/${encodeURIComponent(IDS.imf)}`, { provider: "imf" }],
+      [`/macro/${encodeURIComponent(IDS["world-bank"])}`, { provider: "world-bank" }],
+      ["/macro/DGS10", { provider: "fred" }],
+    ]);
+    expect(screen.getByTestId("macro-error")).toHaveTextContent(keyless);
+    vi.useRealTimers();
+  });
+  it("UI-029: catalog transport failure -> error + Retry (no forever skeleton); Retry succeeds -> featured rows", async () => {
+    let fail = true;
+    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+      if (path === "/macro/catalog") { if (fail) throw new SidecarError(0, "The data engine is not responding"); return SAMPLE_CATALOG; }
+      return SAMPLE_SERIES;
+    });
+    render(<MacroPanel />);
+    expect(await screen.findByText("Could not load featured series.")).toBeInTheDocument();
+    expect(screen.queryByTestId("macro-catalog-skeleton")).toBeNull();
+    fail = false;
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(await screen.findByTestId("macro-result-DGS10")).toBeInTheDocument();
+    expect(screen.queryByText("Could not load featured series.")).toBeNull();
+  });
+  it("adjacent: a failed SEARCH renders as 'No matching series' (false empty)", async () => {
+    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+      if (path === "/macro/catalog") return SAMPLE_CATALOG;
+      if (path === "/macro/search") throw new SidecarError(502, "FRED needs a free API key for macro data.");
+      return SAMPLE_SERIES;
+    });
+    render(<MacroPanel />);
+    const input = await screen.findByRole("searchbox").catch(() => screen.getAllByRole("textbox")[0]);
+    fireEvent.change(input, { target: { value: "unemployment" } });
+    const empty = await screen.findByText("No matching series", {}, { timeout: 2000 });
+    console.log("search-failure renders:", empty.parentElement?.textContent);
+    expect(screen.queryByText(/API key/)).toBeNull();
+  });
+});

@@ -1,0 +1,9 @@
+# R15-RESEARCH-031 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:46+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+node -e "const src=require('fs').readFileSync('src/modules/chat/streaming.ts','utf8');const m=src.match(/RESEARCH_BEGIN_RE\s*=\s*(\/.*\/[a-z]*);/);console.log('regex:',m&&m[1]);const re=eval(m[1]);const r=re.exec('research:begin r1 depth=deep query=Compare TCS and Infosys:\n1) margins\n2) attrition');console.log('matches:',!!r,'query:',r&&JSON.stringify(r[3]))"
+--- output ---
+regex: /^research:begin\s+(\S+)\s+depth=(\S+)(?:\s+query=([\s\S]*))?$/
+matches: true query: "Compare TCS and Infosys:\n1) margins\n2) attrition"
+
+EXIT=0 (0.0s)

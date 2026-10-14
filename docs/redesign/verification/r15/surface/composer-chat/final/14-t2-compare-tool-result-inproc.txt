@@ -1,0 +1,31 @@
+provider nse_direct failed for quote, falling through: nse_direct: 'IBULHSGFIN.NS' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'IBULHSGFIN.NS' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: 'IBULHSGFIN.NS' is not a known BSE instrument
+$IBULHSGFIN.NS: possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")
+$IBULHSGFIN.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+provider yfinance failed for quote, falling through: yfinance quote failed for 'IBULHSGFIN.NS': $IBULHSGFIN.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+{
+ "ok": false,
+ "symbols": [
+  {
+   "symbol": "MDL",
+   "provider": "nse_direct",
+   "quote": {
+    "price": 64.9,
+    "change_percent": 0.0,
+    "currency": "INR"
+   },
+   "fundamentals": null,
+   "return_pct_window": 8.166666666666679,
+   "bars": 51,
+   "window_start": "2026-03-27",
+   "window_end": "2026-09-30"
+  },
+  {
+   "symbol": "IBULHSGFIN.NS",
+   "error": "unresolved name: 'IBULHSGFIN.NS' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker",
+   "note": "unresolved name: 'IBULHSGFIN.NS' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker"
+  }
+ ],
+ "message": "fewer than two symbols resolved \u2014 1 of 2 returned a quote. IBULHSGFIN.NS: unresolved name: 'IBULHSGFIN.NS' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker"
+}

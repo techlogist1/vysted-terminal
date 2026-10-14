@@ -1,0 +1,17 @@
+# R15-RESEARCH-040 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:38+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- 'Tier B + ULTRA renders an estimate before dispat' src/modules/chat/DepthControl.test.tsx | head -3; test -f src/modules/chat/DepthControl.test.tsx || echo 'MISSING src/modules/chat/DepthControl.test.tsx'
+[exit 0] [0.00s]
+18:  it("Tier B + ULTRA renders an estimate before dispatch", () => {
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-RESEARCH-040\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/modules/chat/DepthControl.test.tsx:17:describe("DepthControl cost estimate (R15-RESEARCH-040, FR-073)", () => {
+src/store/search-settings.test.ts:288:  describe("estimateResearchRunUsd / formatResearchCostEstimate (R15-RESEARCH-040, FR-073)", () => {
+

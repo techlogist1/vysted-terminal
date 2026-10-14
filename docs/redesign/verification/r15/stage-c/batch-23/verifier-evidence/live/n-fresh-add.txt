@@ -1,0 +1,10 @@
+[   7.7s] done: {"kind": "done", "usage": {"input_tokens": 2755, "output_tokens": 142, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You currently own 30 ITC shares at ₹410 each, so your total investment is ₹12,300 (30 x ₹410). You're planning to add 10 more shares at ₹420 each. 
+
+Your new total number of shares will be 40 (30 + 10), and the value of these additional shares is ₹4,200 (10 x ₹420). Add this to your initial investment: ₹12,300 + ₹4,200 = ₹16,500.
+
+To find your new average cost per share, divide the total amount invested by the total number of shares. So, your new average cost will be ₹16,500 / 40 = ₹412.50.
+
+=== ok · 7.7s · events {'delta': 144, 'done': 1} · usage in=2755 out=142 · est $0.00000 · llama3.1:8b

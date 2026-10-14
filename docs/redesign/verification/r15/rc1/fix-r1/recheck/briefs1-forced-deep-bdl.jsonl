@@ -1,0 +1,1004 @@
+{"kind": "tool_use", "tool_call_id": "call_c4d1dc396c084a59adbe19cb0ca5d530", "name": "resolve_symbol", "input": {"query": "Bharat Dynamics"}}
+{"kind": "tool_use", "tool_call_id": "call_a661090955e24a50b5437ee65982adba", "name": "financial_statements", "input": {"symbol": "BDL", "statement": "income", "period": "annual"}}
+{"kind": "tool_use", "tool_call_id": "call_ff0ac3d2d93d4055b62ab80ee49ac7c2", "name": "financial_statements", "input": {"symbol": "BDL", "statement": "balance", "period": "annual"}}
+{"kind": "tool_use", "tool_call_id": "call_33faa0f3cdf24f818fca7c95507772bf", "name": "financial_statements", "input": {"symbol": "BDL", "statement": "cashflow", "period": "annual"}}
+{"kind": "tool_use", "tool_call_id": "call_7ed869f42233452c8e59815824225df6", "name": "sec_filings_list", "input": {"symbol": "BDL", "form_type": "10-K", "limit": 5}}
+{"kind": "tool_use", "tool_call_id": "call_d99fcaf40efb4841b00c1a3749703392", "name": "news", "input": {"symbols": ["BDL"], "limit": 5}}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Business"}
+{"kind": "delta", "text": " Model"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Revenue"}
+{"kind": "delta", "text": " Mechanics"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "B"}
+{"kind": "delta", "text": "har"}
+{"kind": "delta", "text": "at"}
+{"kind": "delta", "text": " Dynamics"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "BD"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " significant"}
+{"kind": "delta", "text": " player"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " Aerospace"}
+{"kind": "delta", "text": " &"}
+{"kind": "delta", "text": " Defense"}
+{"kind": "delta", "text": " sector"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " specifically"}
+{"kind": "delta", "text": " engaged"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " manufacturing"}
+{"kind": "delta", "text": " advanced"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " systems"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Its"}
+{"kind": "delta", "text": " primary"}
+{"kind": "delta", "text": " offerings"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " missiles"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " associated"}
+{"kind": "delta", "text": " systems"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " catering"}
+{"kind": "delta", "text": " mainly"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " Indian"}
+{"kind": "delta", "text": " Armed"}
+{"kind": "delta", "text": " Forces"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " operates"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " business"}
+{"kind": "delta", "text": " model"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " focuses"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " long"}
+{"kind": "delta", "text": "-term"}
+{"kind": "delta", "text": " contracts"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " government"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " agencies"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " resulting"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " stable"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " stream"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " performance"}
+{"kind": "delta", "text": " showcases"}
+{"kind": "delta", "text": " revenues"}
+{"kind": "delta", "text": " primarily"}
+{"kind": "delta", "text": " derived"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " sale"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " tactical"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " strategic"}
+{"kind": "delta", "text": " systems"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " commanding"}
+{"kind": "delta", "text": " substantial"}
+{"kind": "delta", "text": " gross"}
+{"kind": "delta", "text": " margins"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " particularly"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " niche"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " high"}
+{"kind": "delta", "text": "-value"}
+{"kind": "delta", "text": " nature"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " products"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "DL"}
+{"kind": "delta", "text": " reported"}
+{"kind": "delta", "text": " operating"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " fiscal"}
+{"kind": "delta", "text": " year"}
+{"kind": "delta", "text": " ending"}
+{"kind": "delta", "text": " March"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " reflecting"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " decline"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "33"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "23"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " previous"}
+{"kind": "delta", "text": " fiscal"}
+{"kind": "delta", "text": " year"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " same"}
+{"kind": "delta", "text": " period"}
+{"kind": "delta", "text": " stood"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "22"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " yielding"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " gross"}
+{"kind": "delta", "text": " profit"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "11"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "93"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " highlighting"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company's"}
+{"kind": "delta", "text": " ability"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " maintain"}
+{"kind": "delta", "text": " healthy"}
+{"kind": "delta", "text": " margins"}
+{"kind": "delta", "text": " over"}
+{"kind": "delta", "text": " time"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Competitive"}
+{"kind": "delta", "text": " Position"}
+{"kind": "delta", "text": "ing"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "B"}
+{"kind": "delta", "text": "har"}
+{"kind": "delta", "text": "at"}
+{"kind": "delta", "text": " Dynamics"}
+{"kind": "delta", "text": " operates"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " competitive"}
+{"kind": "delta", "text": " landscape"}
+{"kind": "delta", "text": " characterized"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " handful"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " players"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " manufacturing"}
+{"kind": "delta", "text": " sector"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Key"}
+{"kind": "delta", "text": " competitors"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " Hind"}
+{"kind": "delta", "text": "ustan"}
+{"kind": "delta", "text": " Aer"}
+{"kind": "delta", "text": "onaut"}
+{"kind": "delta", "text": "ics"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "HAL"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Larsen"}
+{"kind": "delta", "text": " &"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "oub"}
+{"kind": "delta", "text": "ro"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": "&T"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": " Over"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " past"}
+{"kind": "delta", "text": " five"}
+{"kind": "delta", "text": " years"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "DL"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " strengthened"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " increasing"}
+{"kind": "delta", "text": " governmental"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " spending"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " particularly"}
+{"kind": "delta", "text": " amid"}
+{"kind": "delta", "text": " regional"}
+{"kind": "delta", "text": " security"}
+{"kind": "delta", "text": " concerns"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Applying"}
+{"kind": "delta", "text": " Porter"}
+{"kind": "delta", "text": "\u2019s"}
+{"kind": "delta", "text": " Five"}
+{"kind": "delta", "text": " Forces"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Supplier"}
+{"kind": "delta", "text": " Power"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " Moderate"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " raw"}
+{"kind": "delta", "text": " materials"}
+{"kind": "delta", "text": " used"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " manufacturing"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " sourced"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " specialized"}
+{"kind": "delta", "text": " suppliers"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " gives"}
+{"kind": "delta", "text": " them"}
+{"kind": "delta", "text": " some"}
+{"kind": "delta", "text": " power"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "DL"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " established"}
+{"kind": "delta", "text": " relationships"}
+{"kind": "delta", "text": " mitigate"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " risk"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Buyer"}
+{"kind": "delta", "text": " Power"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " Strong"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " primary"}
+{"kind": "delta", "text": " buyers"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " government"}
+{"kind": "delta", "text": " entities"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " significant"}
+{"kind": "delta", "text": " bargaining"}
+{"kind": "delta", "text": " power"}
+{"kind": "delta", "text": " given"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " scale"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Threat"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " New"}
+{"kind": "delta", "text": " Entr"}
+{"kind": "delta", "text": "ants"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " Low"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " high"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": " requirements"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " rigorous"}
+{"kind": "delta", "text": " regulatory"}
+{"kind": "delta", "text": " approvals"}
+{"kind": "delta", "text": " act"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " substantial"}
+{"kind": "delta", "text": " barriers"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " entry"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Threat"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Sub"}
+{"kind": "delta", "text": "stit"}
+{"kind": "delta", "text": "utes"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " Low"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " specialized"}
+{"kind": "delta", "text": " nature"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " systems"}
+{"kind": "delta", "text": " means"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " few"}
+{"kind": "delta", "text": " direct"}
+{"kind": "delta", "text": " substitutes"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": "ival"}
+{"kind": "delta", "text": "ry"}
+{"kind": "delta", "text": " Among"}
+{"kind": "delta", "text": " Existing"}
+{"kind": "delta", "text": " Firms"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " High"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Competition"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " fierce"}
+{"kind": "delta", "text": " among"}
+{"kind": "delta", "text": " established"}
+{"kind": "delta", "text": " players"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " sp"}
+{"kind": "delta", "text": "urred"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " increasing"}
+{"kind": "delta", "text": " contracts"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " tend"}
+{"kind": "delta", "text": "ers"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Financial"}
+{"kind": "delta", "text": " Analysis"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "Analy"}
+{"kind": "delta", "text": "zing"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "DL"}
+{"kind": "delta", "text": " reveals"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " following"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Income"}
+{"kind": "delta", "text": " Statement"}
+{"kind": "delta", "text": " Metrics"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "FY"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Total"}
+{"kind": "delta", "text": " Revenue"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Gross"}
+{"kind": "delta", "text": " Profit"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "11"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "93"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Approximately"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "49"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " gross"}
+{"kind": "delta", "text": " margin"}
+{"kind": "delta", "text": ")\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Operating"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "49"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Net"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "20"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": "\n   \n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Balance"}
+{"kind": "delta", "text": " Sheet"}
+{"kind": "delta", "text": " Highlights"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "FY"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Total"}
+{"kind": "delta", "text": " Assets"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "142"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "61"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Total"}
+{"kind": "delta", "text": " Li"}
+{"kind": "delta", "text": "abilities"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "21"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Total"}
+{"kind": "delta", "text": " Equity"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "42"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "41"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": "\n  \n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Cash"}
+{"kind": "delta", "text": " Flow"}
+{"kind": "delta", "text": " Analysis"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Operating"}
+{"kind": "delta", "text": " Cash"}
+{"kind": "delta", "text": " Flow"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "04"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Free"}
+{"kind": "delta", "text": " Cash"}
+{"kind": "delta", "text": " Flow"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "75"}
+{"kind": "delta", "text": " billion"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "BD"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " gross"}
+{"kind": "delta", "text": " margin"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " notably"}
+{"kind": "delta", "text": " higher"}
+{"kind": "delta", "text": " than"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " sector"}
+{"kind": "delta", "text": " average"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " exempl"}
+{"kind": "delta", "text": "ifying"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " strong"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " position"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " operational"}
+{"kind": "delta", "text": " efficiency"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " operating"}
+{"kind": "delta", "text": " margin"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " however"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " saw"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " contraction"}
+{"kind": "delta", "text": " compared"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " previous"}
+{"kind": "delta", "text": " fiscal"}
+{"kind": "delta", "text": " years"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Val"}
+{"kind": "delta", "text": "uation"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "For"}
+{"kind": "delta", "text": " valuation"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " consider"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " following"}
+{"kind": "delta", "text": " approaches"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "DCF"}
+{"kind": "delta", "text": " Model"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Revenue"}
+{"kind": "delta", "text": " Growth"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Assume"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " CAGR"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " over"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " next"}
+{"kind": "delta", "text": " five"}
+{"kind": "delta", "text": " years"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " reflecting"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " budget"}
+{"kind": "delta", "text": " increase"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " contract"}
+{"kind": "delta", "text": " securing"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Operating"}
+{"kind": "delta", "text": " Margin"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Estimated"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " stabilize"}
+{"kind": "delta", "text": " around"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " historical"}
+{"kind": "delta", "text": " performance"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Terminal"}
+{"kind": "delta", "text": " Growth"}
+{"kind": "delta", "text": " Rate"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "%.\n"}
+{"kind": "delta", "text": "  \n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " This"}
+{"kind": "delta", "text": " analysis"}
+{"kind": "delta", "text": " suggests"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " fair"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": " range"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "650"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " depending"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " assumptions"}
+{"kind": "delta", "text": " used"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": " rates"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " margins"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Comparable"}
+{"kind": "delta", "text": " Company"}
+{"kind": "delta", "text": " Analysis"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "DL"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " stands"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "x"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " compared"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " sector"}
+{"kind": "delta", "text": " averages"}
+{"kind": "delta", "text": " around"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "x"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " This"}
+{"kind": "delta", "text": " divergence"}
+{"kind": "delta", "text": " indicates"}
+{"kind": "delta", "text": " potential"}
+{"kind": "delta", "text": " underv"}
+{"kind": "delta", "text": "alu"}
+{"kind": "delta", "text": "ation"}
+{"kind": "delta", "text": " considering"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": "\u2019s"}
+{"kind": "delta", "text": " operational"}
+{"kind": "delta", "text": " metrics"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Catal"}
+{"kind": "delta", "text": "ysts"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Risks"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "Catal"}
+{"kind": "delta", "text": "ysts"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Recent"}
+{"kind": "delta", "text": " contract"}
+{"kind": "delta", "text": " win"}
+{"kind": "delta", "text": " worth"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "811"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " Ministry"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Defence"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " SAT"}
+{"kind": "delta", "text": "-S"}
+{"kind": "delta", "text": "AA"}
+{"kind": "delta", "text": "W"}
+{"kind": "delta", "text": " weapons"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Expected"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " expenditure"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " Indian"}
+{"kind": "delta", "text": " government"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " New"}
+{"kind": "delta", "text": " product"}
+{"kind": "delta", "text": " launches"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " emerging"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " technologies"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Strategic"}
+{"kind": "delta", "text": " partnerships"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " R"}
+{"kind": "delta", "text": "&D"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " innovation"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "Ris"}
+{"kind": "delta", "text": "ks"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Company"}
+{"kind": "delta", "text": "-S"}
+{"kind": "delta", "text": "pecific"}
+{"kind": "delta", "text": " Risks"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " Dependency"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " government"}
+{"kind": "delta", "text": " contracts"}
+{"kind": "delta", "text": " exposes"}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "DL"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " political"}
+{"kind": "delta", "text": " risk"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Sector"}
+{"kind": "delta", "text": " Risks"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " Changes"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " policies"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " budget"}
+{"kind": "delta", "text": " cuts"}
+{"kind": "delta", "text": " could"}
+{"kind": "delta", "text": " adversely"}
+{"kind": "delta", "text": " affect"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Macro"}
+{"kind": "delta", "text": " Risks"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " Economic"}
+{"kind": "delta", "text": " slowdown"}
+{"kind": "delta", "text": " could"}
+{"kind": "delta", "text": " impact"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " spending"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Recommendation"}
+{"kind": "delta", "text": " Framework"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "DL"}
+{"kind": "delta", "text": " serves"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " compelling"}
+{"kind": "delta", "text": " investment"}
+{"kind": "delta", "text": " opportunity"}
+{"kind": "delta", "text": " within"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " fair"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": " range"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "650"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " To"}
+{"kind": "delta", "text": " categorize"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " strong"}
+{"kind": "delta", "text": " buy"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " scenario"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " require"}
+{"kind": "delta", "text": " sustained"}
+{"kind": "delta", "text": " order"}
+{"kind": "delta", "text": " book"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " improved"}
+{"kind": "delta", "text": " operating"}
+{"kind": "delta", "text": " margins"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Conversely"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " prices"}
+{"kind": "delta", "text": " continue"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " trend"}
+{"kind": "delta", "text": " below"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": " without"}
+{"kind": "delta", "text": " substantial"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " spending"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " contract"}
+{"kind": "delta", "text": " awards"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " considered"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " compelling"}
+{"kind": "delta", "text": " avoid"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " particularly"}
+{"kind": "delta", "text": " given"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " bif"}
+{"kind": "delta", "text": "ur"}
+{"kind": "delta", "text": "c"}
+{"kind": "delta", "text": "ated"}
+{"kind": "delta", "text": " exposure"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " government"}
+{"kind": "delta", "text": " budgets"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " sector"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " My"}
+{"kind": "delta", "text": " conviction"}
+{"kind": "delta", "text": " level"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " approach"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " medium"}
+{"kind": "delta", "text": "-high"}
+{"kind": "delta", "text": " pending"}
+{"kind": "delta", "text": " continued"}
+{"kind": "delta", "text": " announcements"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " strategic"}
+{"kind": "delta", "text": " contracts"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " defense"}
+{"kind": "delta", "text": " budgets"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 25138, "output_tokens": 998, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.026847}

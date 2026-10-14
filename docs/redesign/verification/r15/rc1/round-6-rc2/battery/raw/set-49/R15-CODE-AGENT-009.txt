@@ -1,0 +1,15 @@
+# probe at ace7dd768c3b809b0e72b20b20cfc94eea2368bd (AST measure of the candidate source; no test suite run)
+CMD: python3 ast over sidecar/services/agent_runtime.py; grep -c 'def test_' tests/test_runtime_phases.py
+_dispatch_round lines 193 at line 3093
+invoke_agent lines 101 at line 3288
+.rw-r--r--@ 8.2k lokavyasingh  3 Oct 05:04 tests/test_runtime_phases.py
+50:def test_prepare_run_pops_every_runtime_option_and_publishes_it_task_local() -> None:
+84:def test_open_round_caps_the_last_round_and_spends_down_native_search() -> None:
+100:async def test_consume_round_collects_tool_calls_and_swallows_the_mid_run_done() -> None:
+118:async def test_consume_round_halts_before_dispatch_when_the_budget_says_stop() -> None:
+139:async def test_consume_round_drops_tool_calls_on_the_capped_round() -> None:
+154:async def test_finish_turn_names_a_length_cut_and_an_empty_answer() -> None:
+169:async def test_finish_turn_explains_a_content_filter_refusal() -> None:
+180:async def test_finish_unterminated_says_the_answer_was_cut_and_closes_the_stream() -> None:
+191:async def test_dispatch_round_answers_each_call_and_stops_searching_past_the_cap() -> None:
+base (369faa7-era) per batch-11 VERDICTS: 488 lines

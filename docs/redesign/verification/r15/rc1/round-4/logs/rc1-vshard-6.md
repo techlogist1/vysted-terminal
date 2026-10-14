@@ -1,0 +1,17 @@
+# rc1-vshard-6 working log (gate round 4)
+- 2026-09-27 05:09:50 worktree HEAD 68d5573aff9a579af084dcbb124843f2aecff6e8 confirmed
+- own sidecar :52606, data dir scratchpad/rc1-round-4-data-rc1-vshard-6 (copy of seed), sleep pid 33923, python pid 33924
+- RELEASE-006: scratch copy of scripts (cp -p) + a builder-row extraFiles addition -> builder isStale true AND assertAllFresh throws (same spec.stale). holds
+- CODE-PLATFORM-026: one SIDECAR_SPECS table; ensure-*.mjs are 14-16 line runners; ensure-all + smoke loop over SIDECAR_SPECS. holds
+- CODE-PLATFORM-027: ROOT=resolve(import.meta.dirname); run from /tmp: clean (373 files); nope-dir exit 1; styles (only tokens.css, skipped) exit 1. win32 resolve sim OK. holds
+- CODE-AGENT-009: ast invoke_agent 101 lines (_dispatch_round 193, _consume_round 155, _prepare_run 143); pytest phases/prepass green. holds
+- LIFECYCLE-024: fresh downgrade case (build marker 0.8.1-newer, workflows.db user_version 3): backup to backups/0.8.1-newer (keystore 0600), workflows left at 3 with warning, portfolio 0->1, second ensure_build no-op. holds
+- targeted pytest (phases, prepass, schema_version, provider_registry, bse, option_chain, agent_eval, sp500, indicators): 204 passed
+- LIFECYCLE-026 idle/soak: gaps 0.16/41, 0.19/57, 0.51/56 s; idle 0.21/124, 0.02/45 s (warm crawler in Yahoo 429 backoff). holds
+- DATA-071 cold patched cache: TANFACIND.BO 8 bars partial -> registry yfinance 246; ANDHRAPET.BO 24 partial -> yfinance 246. holds
+- LEAD-013 vs Wikipedia live: 503/503 identical. holds
+- DATA-079 BANKNIFTY/INFY OI identical to NSE UDiFF 2026-09-25. holds
+- UI-087 live bad-key -> code auth (openrouter, openai). holds; UI-085 static + contrast. holds; UI-091 fresh combos + live EMA/VWAP week. holds; PLATFORM-023 AAPL/MSFT vs ^GSPC == numpy. holds
+- AGENT-007: vy.py port guard refuses :52606; curl-driven ollama trial under lock; grader fresh cases. holds
+- adjacent: PTC India served as S&P 500 PTC (medium); run.py 'Stdlib only' vs pydantic (low)
+- 05:26:33 stopped own sidecar (killed sleep pid 33923)

@@ -1,0 +1,1 @@
+ProviderError raised (clean fallthrough): Yahoo returned a price with no trade time

@@ -1,0 +1,8 @@
+--- AGENT-063: GET /news?symbols=BTC/USDT ---
+[{"id":"f629c9a6d905069b","title":"Bitcoin rebounds strongly this week, trades near $84,000 after climbing above $86,000. Here is what experts say","summary":"Bitcoin rebounded to around $84,000 after briefly crossing $86,000, while Ethereum traded near $2,688. Bitcoin gained 3.6% weekly, supported by positive ETF flows and reduced uncertainty after the US Federal Reserve’s September policy decision, though markets remain in consolidation overall.","url":"https://economictimes.indiatimes.com/markets/cryptocurrency/bitcoin-rebounds-strongly-this-week-trades-near-84000-after-climbing-above-86000-here-is-what-experts-say/articleshow/134500992.cms","source":"Markets-Economic Times","published_at":"2026-09-26T08:56:45Z","symbols":["BTC/USDT"],"sentiment":0.802,"sentiment_label":"positive","provider":"rss","via_symbol_feed":false}]
+--- AGENT-063: in-process build_aliases + _tag_symbols fresh cases (candidate venv) ---
+aliases: {'BTC/USDT': ['BTC/USDT', 'BTC', 'bitcoin'], 'ETH/USDT': ['ETH/USDT', 'ETH', 'ethereum'], 'SOL/USDT': ['SOL/USDT', 'SOL', 'solana']}
+'Ethereum ETF inflows surge' -> ['ETH/USDT']
+'Solana outage' -> ['SOL/USDT']
+'Ethereal plans IPO' -> []
+'SOLID results for Solar firm' -> []

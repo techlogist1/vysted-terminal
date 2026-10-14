@@ -1,0 +1,8 @@
+[   5.1s] done: {"kind": "done", "usage": {"input_tokens": 2735, "output_tokens": 92, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I'm afraid I need to inform you that Vysted is a research terminal and does not have the capability to facilitate buying or selling of securities. It's designed for analyzing data and providing insights, but it does not have a brokerage connection.
+
+If you'd like to track INFY in your local portfolio, I can help you with that. Please let me know if you'd like to add it manually, and I'll guide you through the process.
+
+=== ok · 5.1s · events {'delta': 93, 'done': 1} · usage in=2735 out=92 · est $0.00000 · llama3.1:8b

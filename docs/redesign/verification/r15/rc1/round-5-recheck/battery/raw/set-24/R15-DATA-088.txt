@@ -1,0 +1,36 @@
+COMMAND: grep -n "R15-DATA-088" src/store/portfolios.test.ts src/lib/host-actions.test.ts
+CONTEXT: pinned tests name the id directly in both the store-level and
+host-action-level suites (negative/garbage-quantity rejection, corrupt
+restored blob dropped not zeroed). Not executed (no-vitest-suite rule).
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/store/portfolios.test.ts:49:describe("holding validation (R15-DATA-088)", () => {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/lib/host-actions.test.ts:1188:  it("add with a negative cost basis is an honest null, not a stored holding (R15-DATA-088)", async () => {
+
+describe("holding validation (R15-DATA-088)", () => {
+  it("a corrupt restored blob drops a negative cost and a garbage quantity instead of zeroing them", () => {
+    usePortfoliosStore.getState().setAll([
+      {
+        id: "default",
+        name: "Portfolio",
+        holdings: [
+          { id: "h-bad-qty", symbol: "RELIANCE", quantity: "abc", costBasis: 100 },
+          { id: "h-neg-cost", symbol: "TCS", quantity: 5, costBasis: -100 },
+          { id: "h-zero-qty", symbol: "INFY", quantity: 0, costBasis: 1500 },
+          { id: "h-ok", symbol: "HDFC", quantity: 2, costBasis: 0 },
+        ] as never,
+      },
+    ]);
+    expect(holdings().map((h) => h.id)).toEqual(["h-ok"]);
+  });
+
+  it("add and update refuse the same values the form refuses", () => {
+    const store = usePortfoliosStore.getState();
+    expect(store.addHolding("default", { ...RELIANCE, costBasis: -1 })).toBeNull();
+    expect(store.addHolding("default", { ...RELIANCE, quantity: Number.NaN })).toBeNull();
+    const id = store.addHolding("default", RELIANCE)!;
+    expect(store.updateHolding("default", id, { ...RELIANCE, quantity: -3 })).toBe(false);
+    expect(holdings()).toEqual([expect.objectContaining({ id, quantity: 5, costBasis: 1263 })]);
+  });
+});
+
+EXIT: 0
+VERDICT: ci_pinned -- src/store/portfolios.test.ts:49 describe("holding validation (R15-DATA-088)"); also src/lib/host-actions.test.ts:1188

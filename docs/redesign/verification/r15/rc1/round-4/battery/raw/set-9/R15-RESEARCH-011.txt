@@ -1,0 +1,11 @@
+SIL.NS count= 20 errors= None
+  latest quarter_end= 2026-06-30 source= NSE split_source= BSE split_as_of= 2026-06-30 institutions_percent= 42.83
+  ExchangeOwnership= ExchangeOwnership(promoter_percent=20.31, institutions_percent=42.83, public_percent=79.69, as_of_quarter='2026-06-30', source='NSE', institutions_source='BSE', institutions_as_of='2026-06-30')
+RELIANCE.NS count= 22 errors= None
+  latest quarter_end= 2026-06-30 source= NSE split_source= BSE split_as_of= 2026-06-30 institutions_percent= 38.39
+  ExchangeOwnership= ExchangeOwnership(promoter_percent=50.48, institutions_percent=38.39, public_percent=49.52, as_of_quarter='2026-06-30', source='NSE', institutions_source='BSE', institutions_as_of='2026-06-30')
+TCS.NS count= 20 errors= None
+  latest quarter_end= 2026-06-30 source= NSE split_source= BSE split_as_of= 2026-06-30 institutions_percent= 22.53
+  ExchangeOwnership= ExchangeOwnership(promoter_percent=71.77, institutions_percent=22.53, public_percent=28.23, as_of_quarter='2026-06-30', source='NSE', institutions_source='BSE', institutions_as_of='2026-06-30')
+595:    raw_inst_source = exchange.get("institutions_source")
+597:    raw_inst_as_of = exchange.get("institutions_as_of")

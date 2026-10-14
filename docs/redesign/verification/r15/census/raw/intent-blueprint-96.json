@@ -1,0 +1,62 @@
+[
+ {
+  "raw_id": "INT-blueprint-96-1",
+  "title": "alpha_vantage is a named data fallback that does not exist anywhere in the codebase",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "sidecar data layer / provider fallbacks",
+  "repro": "grep -rn 'alpha_vantage|AlphaVantage|alphavantage' sidecar/ -> 0 hits outside this census's own new files; sidecar/requirements.txt has yfinance==1.3.0 but no alpha_vantage/alphavantage package at all",
+  "evidence": "sidecar/requirements.txt (no alpha_vantage entry); sidecar/services/provider_registry.py (no alpha_vantage provider registered); docs/BLUEPRINT.md:252 \"yfinance + alpha_vantage fallbacks (no API key needed for basic use)\"",
+  "notes": "yfinance is real and wired; alpha_vantage is not a partial implementation, it is entirely absent - no dependency, no provider module, no route. Alpha Vantage also requires a free API key, contradicting the promise's own \"no API key needed\" framing, so the promise as written was never buildable as stated. Smallest fix: either add a real alpha_vantage provider behind the existing provider_registry fallback chain, or drop the claim from BLUEPRINT.md \u00a74 Data Layer."
+ },
+ {
+  "raw_id": "INT-blueprint-96-2",
+  "title": "Portfolio risk analytics (VaR, Beta, correlation matrix) do not exist anywhere; Sharpe/Sortino/Calmar/max-drawdown exist only inside the backtest engine, never for the user's live tracked portfolio",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "portfolio risk analytics",
+  "repro": "grep -rn 'value_at_risk|\\bVaR\\b|def.*beta|correlation_matrix' sidecar/services sidecar/routers -> 0 hits anywhere in the whole sidecar. grep -n 'sharpe|sortino|calmar' sidecar/services/*.py -> matches ONLY inside sidecar/services/backtest_engine.py (lines 236-282, 480); sidecar/services/portfolio_db.py and sidecar/models/portfolio.py have no risk-metric fields at all, only cost_basis/quantity",
+  "evidence": "sidecar/services/backtest_engine.py:236-282 (sharpe/sortino/calmar computed only for a backtest run); sidecar/models/portfolio.py (position model: no risk fields); sidecar/services/portfolio_db.py (no risk computation); docs/BLUEPRINT.md:266 \"Risk analytics (Sharpe, Sortino, Calmar, VaR, Beta, max drawdown, correlation matrix)\" listed under Portfolio & Risk, not Backtesting",
+  "notes": "4 of the 7 named metrics exist, but only for a simulated backtest run, not for what the user actually holds - a Portfolio & Risk module promise is being met by a different module (Backtesting) for a subset of metrics. VaR, Beta and a correlation matrix are 0% built anywhere. Not the subject of code-portfolio.json (that file covers data-sync/UI defects in the existing portfolio panel, not missing risk-metric capability). Smallest fix: either compute Sharpe/Sortino/Calmar/maxDD/VaR/Beta/correlation on the live portfolio's return series in portfolio_db.py and surface it in the panel, or correct BLUEPRINT.md to describe risk analytics as backtest-only."
+ },
+ {
+  "raw_id": "INT-blueprint-96-3",
+  "title": "No license-gate UI exists; the only place PolyForm/commercial licensing is mentioned to a user is one passive bullet inside a first-launch TOS modal whose subject is now-removed live trading",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "onboarding / FirstLaunchTosDialog",
+  "repro": "grep -rln 'LicenseGate|license.*gate|LicenseModal|LicenseDialog' src/ -> 0 hits; grep -n license src/components/OnboardingFlow.tsx src/components/OnboardingBanner.tsx -> 0 hits. The only licensing text anywhere in the UI is src/modules/safety/DisclaimerFlow.tsx:44 (TOS_BODY, one bullet of five), rendered by FirstLaunchTosDialog which is unconditionally mounted at src/app/page.tsx:289 for every new user (DisclaimerFlow.tsx:81-95: title \"Welcome to Vysted\", description \"Please review the operating terms before connecting a broker\")",
+  "evidence": "src/modules/safety/DisclaimerFlow.tsx:35-121 (TOS_BODY + FirstLaunchTosDialog); src/app/page.tsx:19,289 (DisclaimerFlow mounted unconditionally, not gated on broker-connect intent); docs/BLUEPRINT.md:283 \"License gate UI (PolyForm Strict/commercial choice on first launch)\"; docs/redesign/DECISIONS.md:141 (D81, 23 Sep - trading removed from the product)",
+  "notes": "Two compounding problems on the same surface: (1) there is no interactive choice between noncommercial and commercial licensing anywhere - a user cannot pick or even meaningfully acknowledge a license, the text is just present in an unrelated dialog; (2) that dialog's own copy (\"before connecting a broker\", order confirmation, \"kill switch halts all order routing\") describes a live-trading product D81 explicitly removed on 23 Sep, so the one modal every new user is forced to read on first launch is now largely describing a feature that no longer exists. Smallest fix: split the dialog - rewrite TOS_BODY to drop the order/kill-switch language (or fold it back into the per-broker first-connect ack where it belongs), and add a real first-launch license acknowledgment naming PolyForm Strict 1.0.0 vs the commercial license."
+ },
+ {
+  "raw_id": "INT-blueprint-96-4",
+  "title": "\"Multi-window\" is unbuilt - the app is a single fixed Tauri window; only multi-tab (dockview panels) exists",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "src-tauri window shell",
+  "repro": "python3 -c \"import json; print(json.load(open('src-tauri/tauri.conf.json'))['app']['windows'])\" -> exactly one window entry (\"Vysted Terminal\", fixed size/min-size); grep -rln 'popout|pop-out|newWindow|WebviewWindow|secondary window' src/ src-tauri/src/*.rs -> 0 hits anywhere",
+  "evidence": "src-tauri/tauri.conf.json app.windows (array of 1); src-tauri/src/lib.rs (no WebviewWindowBuilder / additional-window spawn code); docs/BLUEPRINT.md:235 \"Multi-window / multi-tab layout\"",
+  "notes": "Multi-tab is real and substantial (dockview panel host, PanelHost.tsx). Multi-window - popping a chart or research brief out to its own OS window, useful on a multi-monitor trading desk, which is exactly this product's stated user - has zero implementation: no second-window spawn path exists in the Rust core or the frontend. Smallest fix: either scope the promise down to \"multi-tab only\" in BLUEPRINT.md, or add a minimal pop-out-panel-to-window affordance via a second WebviewWindowBuilder call."
+ },
+ {
+  "raw_id": "INT-blueprint-96-5",
+  "title": "Theming engine promise (\"dark default + light option + future custom themes\") is dark-only; a prior light/custom-theme mechanism (themeKnobs) was explicitly killed",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "theming",
+  "repro": "python3 -c \"import json; print(json.load(open('src-tauri/tauri.conf.json'))['app']['windows'][0]['theme'])\" -> \"Dark\" (hardcoded, no light variant); grep -rln 'prefers-color-scheme|data-theme|ThemeToggle' src/ styles/ -> 0 hits; src/store/settings.ts:12-14 lists themeKnobs among fields explicitly KILLED and silently dropped from older workspace blobs",
+  "evidence": "src-tauri/tauri.conf.json app.windows[0].theme = \"Dark\"; src/store/settings.ts:1-14 (killed-fields comment naming themeKnobs); docs/CURRENT_STATE.md:551,894 (\"Light theme ... Deferred to v1.1 - dark-only ships\", BLOCKERS S2 #10); docs/BLUEPRINT.md:237 \"Theming engine (dark default + light option + future custom themes)\"",
+  "notes": "This is already an internally-tracked, named blocker (BLOCKERS S2 #10, deferred to v1.1), not a fresh discovery, but the promise ledger should reflect it plainly rather than silently marking the module 'delivered' - two of the promise's three clauses (light option, future custom themes) are unbuilt and the mechanism that would have supported them was actively removed. Smallest fix: none needed beyond what BLOCKERS.md already tracks; correct BLUEPRINT.md \u00a74 to describe the v0.8.0 reality (dark-only) with the v1.1 deferral noted inline instead of stating light/custom support as already-decided scope."
+ },
+ {
+  "raw_id": "INT-blueprint-96-6",
+  "title": "BLUEPRINT.md's own Module Catalog still describes the retired warm charcoal/amber/sage palette as the current design system",
+  "severity": "low",
+  "area": "docs",
+  "subsystem": "BLUEPRINT.md \u00a74 Foundation",
+  "repro": "grep -n 'charcoal + warm amber + sage' docs/BLUEPRINT.md -> line 233 still present; CLAUDE.md Gotchas (Frontend) states the 003 rebuild replaced the warm clay/espresso palette with the minimal zinc + cool-indigo system and that design token NAMES (amber-*, charcoal-*) are now historical labels only",
+  "evidence": "docs/BLUEPRINT.md:233 \"Tailwind + shadcn/ui design system (Vysted aesthetic: charcoal + warm amber + sage + serif-meets-monospace typography)\"; CLAUDE.md Gotchas > Frontend (\"Design token NAMES are historical, not literal ... 003 rebuild: the warm 'Claude after dark' clay/espresso palette was replaced by the minimal zinc + cool-indigo system\"); styles/tokens.css",
+  "notes": "Same class of drift as the already-filed Next.js/Vite finding (INT-blueprint-0-3, and code-frontend-panels-shell-chrome-13 for CLAUDE.md itself) but a distinct citation - BLUEPRINT.md's own Module Catalog entry, not yet corrected for the 003 rebuild's palette change. Not a functional gap; the actual shipped palette is real and coherent, only its description in a Tier-1 locked doc is stale. Smallest fix: one-line edit to BLUEPRINT.md:233 swapping the palette description for the current zinc + cool-indigo language."
+ }
+]

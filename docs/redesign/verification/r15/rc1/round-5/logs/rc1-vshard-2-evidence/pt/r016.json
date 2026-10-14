@@ -1,0 +1,22 @@
+{
+ "ultra_3_angles": [
+  "https://nsearchives.nseindia.com/corporate/PARAS_0.pdf",
+  "https://nsearchives.nseindia.com/corporate/PARAS_1.pdf",
+  "https://nsearchives.nseindia.com/corporate/PARAS_2.pdf",
+  "https://example-news.com/paras-order-win",
+  "vysted://price/PARAS.NS"
+ ],
+ "ultra_budget_1": [
+  "https://nsearchives.nseindia.com/corporate/PARAS_0.pdf",
+  "https://nsearchives.nseindia.com/corporate/PARAS_1.pdf",
+  "https://nsearchives.nseindia.com/corporate/PARAS_2.pdf",
+  "vysted://price/PARAS.NS"
+ ],
+ "deep": [
+  "https://nsearchives.nseindia.com/corporate/PARAS_0.pdf",
+  "https://nsearchives.nseindia.com/corporate/PARAS_1.pdf",
+  "https://nsearchives.nseindia.com/corporate/PARAS_2.pdf",
+  "https://example-news.com/paras-order-win",
+  "vysted://price/PARAS.NS"
+ ]
+}

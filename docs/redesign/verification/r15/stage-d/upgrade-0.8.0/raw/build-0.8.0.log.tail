@@ -1,0 +1,60 @@
+47418 INFO: Processing pre-safe-import-module hook 'hook-platformdirs.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/PyInstaller/hooks/pre_safe_import_module'
+47428 INFO: Processing standard module hook 'hook-platformdirs.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+54375 INFO: Processing standard module hook 'hook-zope.interface.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/PyInstaller/hooks'
+<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/oandapyV20/endpoints/decorators.py:18: SyntaxWarning: invalid escape sequence '\['
+  nw = re.findall('.*?\[(.*)\]', v, flags=re.S)
+<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/oandapyV20/endpoints/decorators.py:25: SyntaxWarning: invalid escape sequence '\{'
+  allSlots = re.findall("\{(_v3.*?)\}", obj.__doc__)
+55702 INFO: Processing standard module hook 'hook-fastmcp.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+56433 INFO: Processing standard module hook 'hook-opentelemetry.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+58305 INFO: Processing standard module hook 'hook-vaderSentiment.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+62655 INFO: Analyzing hidden import 'uvicorn.loops.auto'
+62656 INFO: Analyzing hidden import 'uvicorn.protocols.http.auto'
+62656 INFO: Analyzing hidden import 'uvicorn.protocols.websockets.auto'
+62657 INFO: Analyzing hidden import 'uvicorn.lifespan.on'
+62661 INFO: Analyzing hidden import 'uvicorn.lifespan.off'
+62661 INFO: Processing module hooks (post-graph stage)...
+63435 INFO: Processing standard module hook 'hook-lxml.isoschematron.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+64980 INFO: Processing standard module hook 'hook-lxml.objectify.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/stdhooks'
+65013 INFO: Performing binary vs. data reclassification (725 entries)
+65093 INFO: Looking for ctypes DLLs
+65121 WARNING: Library user32 required via ctypes not found
+65125 WARNING: Library msvcrt required via ctypes not found
+65130 WARNING: Library ole32 required via ctypes not found
+65130 WARNING: Library shell32 required via ctypes not found
+65167 INFO: Analyzing run-time hooks ...
+65185 INFO: Including run-time hook 'pyi_rth_inspect.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/PyInstaller/hooks/rthooks'
+65187 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/PyInstaller/hooks/rthooks'
+65188 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/PyInstaller/hooks/rthooks'
+65189 INFO: Including run-time hook 'pyi_rth_setuptools.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/PyInstaller/hooks/rthooks'
+65190 INFO: Including run-time hook 'pyi_rth_cryptography_openssl.py' from '<scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/_pyinstaller_hooks_contrib/rthooks'
+65250 INFO: Creating base_library.zip...
+65264 INFO: Looking for dynamic libraries
+65548 INFO: Warnings written to <scratchpad>/upgrade-080/wt-080/sidecar/build/vysted-sidecar/warn-vysted-sidecar.txt
+65815 INFO: Graph cross-reference written to <scratchpad>/upgrade-080/wt-080/sidecar/build/vysted-sidecar/xref-vysted-sidecar.html
+66015 INFO: checking PYZ
+66015 INFO: Building PYZ because PYZ-00.toc is non existent
+66015 INFO: Building PYZ (ZlibArchive) <scratchpad>/upgrade-080/wt-080/sidecar/build/vysted-sidecar/PYZ-00.pyz
+69183 INFO: Building PYZ (ZlibArchive) <scratchpad>/upgrade-080/wt-080/sidecar/build/vysted-sidecar/PYZ-00.pyz completed successfully.
+69270 INFO: EXE target arch: arm64
+69270 INFO: Code signing identity: None
+69279 INFO: checking PKG
+69279 INFO: Building PKG because PKG-00.toc is non existent
+69279 INFO: Building PKG (CArchive) vysted-sidecar.pkg
+93697 INFO: Building PKG (CArchive) vysted-sidecar.pkg completed successfully.
+93710 INFO: Bootloader <scratchpad>/upgrade-080/wt-080/sidecar/.venv/lib/python3.13/site-packages/PyInstaller/bootloader/Darwin-64bit/run
+93710 INFO: checking EXE
+93710 INFO: Building EXE because EXE-00.toc is non existent
+93710 INFO: Building EXE from EXE-00.toc
+93710 INFO: Copying bootloader EXE to <scratchpad>/upgrade-080/wt-080/sidecar/dist/vysted-sidecar
+93711 INFO: Converting EXE to target arch (arm64)
+93732 INFO: Removing signature(s) from EXE
+93758 INFO: Modifying Mach-O image UUID(s) in EXE
+93812 INFO: Appending PKG archive to EXE
+93851 INFO: Fixing EXE headers for code signing
+93854 INFO: Re-signing the EXE
+93991 INFO: Building EXE from EXE-00.toc completed successfully.
+94003 INFO: Build complete! The results are available in: <scratchpad>/upgrade-080/wt-080/sidecar/dist
+[ensure-sidecar] wrote <scratchpad>/upgrade-080/wt-080/src-tauri/binaries/vysted-sidecar-aarch64-apple-darwin
+[ensure-sidecar] done.
+EXIT=0

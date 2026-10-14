@@ -1,0 +1,13 @@
+# gui-close @1fddb2b
+
+- UPGRADE-080: drive=blocked_env; verify=none; Release 0.9.0 app on a fresh copy of the 0.8.0 profile: 84 of 84 positions, the phase9test layout, 0 agents and 0 workflows read back identical over its sidecar :53675. The first rig capture hit exit 4 because the rig could not bring the window forward ('frontmost app is Zed'; idle 908 s, so not a human). The app was quit and the real-dir mtimes are unchanged.; docs/redesign/verification/r15/gui-close/UPGRADE-080/DRIVE.md, docs/redesign/verification/r15/gui-close/UPGRADE-080/VERIFY.md
+- R15-LIFECYCLE-008: drive=operator_present; verify=none; At boot, the 2096752 B filler log rotated to vysted.log.1 (2097054 B). The new vysted.log holds fresh ISO-timestamped [vysted]/[sidecar]/[openbb-mcp]/[sec-edgar-mcp] lines (raw/ls-logs.txt, raw/log-head.txt, raw/log1-tail.txt). Copy diagnostics was not driven: the screen was locked 21:12-21:25Z, then the operator was active until the 30-min budget ran out. Committed 3103a889.; docs/redesign/verification/r15/gui-close/R15-LIFECYCLE-008/DRIVE.md, docs/redesign/verification/r15/gui-close/R15-LIFECYCLE-008/VERIFY.md
+- R15-UI-022: drive=operator_present; verify=none; not attempted: lane stopped at R15-LIFECYCLE-008; docs/redesign/verification/r15/gui-close/R15-UI-022/DRIVE.md, docs/redesign/verification/r15/gui-close/R15-UI-022/VERIFY.md
+- UI-7: drive=operator_present; verify=none; not attempted: lane stopped at R15-LIFECYCLE-008; docs/redesign/verification/r15/gui-close/UI-7/DRIVE.md, docs/redesign/verification/r15/gui-close/UI-7/VERIFY.md
+- UI-5: drive=operator_present; verify=none; not attempted: lane stopped at R15-LIFECYCLE-008; docs/redesign/verification/r15/gui-close/UI-5/DRIVE.md, docs/redesign/verification/r15/gui-close/UI-5/VERIFY.md
+- COMPOSER-COLLAPSE: drive=operator_present; verify=none; not attempted: lane stopped at R15-LIFECYCLE-008; docs/redesign/verification/r15/gui-close/COMPOSER-COLLAPSE/DRIVE.md, docs/redesign/verification/r15/gui-close/COMPOSER-COLLAPSE/VERIFY.md
+- ARRANGE-COMPARE: drive=operator_present; verify=none; not attempted: lane stopped at R15-LIFECYCLE-008; docs/redesign/verification/r15/gui-close/ARRANGE-COMPARE/DRIVE.md, docs/redesign/verification/r15/gui-close/ARRANGE-COMPARE/VERIFY.md
+- RS2-AC1: drive=operator_present; verify=none; not attempted: lane stopped at R15-LIFECYCLE-008; docs/redesign/verification/r15/gui-close/RS2-AC1/DRIVE.md, docs/redesign/verification/r15/gui-close/RS2-AC1/VERIFY.md
+- FAVICON-FALLBACK: drive=operator_present; verify=none; not attempted: lane stopped at R15-LIFECYCLE-008; docs/redesign/verification/r15/gui-close/FAVICON-FALLBACK/DRIVE.md, docs/redesign/verification/r15/gui-close/FAVICON-FALLBACK/VERIFY.md
+
+Filed: none.

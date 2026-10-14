@@ -1,0 +1,87 @@
+{"kind": "tool_use", "tool_call_id": "", "name": "research", "input": {"query": "Dixon Technologies", "depth": "quick"}}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin 3d88ddbb13904ad09c1fa6e978b5178d depth=normal query=Dixon Technologies", "latency_ms": null, "status": "ok", "index": 1}
+{"kind": "delta", "text": "Since"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " failed"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " gather"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " lack"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " Open"}
+{"kind": "delta", "text": "Router"}
+{"kind": "delta", "text": " API"}
+{"kind": "delta", "text": " key"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Dixon"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " add"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " Open"}
+{"kind": "delta", "text": "Router"}
+{"kind": "delta", "text": " API"}
+{"kind": "delta", "text": " key"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " Settings"}
+{"kind": "delta", "text": " \u2192"}
+{"kind": "delta", "text": " Research"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " switch"}
+{"kind": "delta", "text": " back"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Unlimited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Local"}
+{"kind": "delta", "text": "),"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " retry"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " desired"}
+{"kind": "delta", "text": " depth"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " attempt"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " again"}
+{"kind": "delta", "text": " once"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " resolved"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " issue"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2819, "output_tokens": 85, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}

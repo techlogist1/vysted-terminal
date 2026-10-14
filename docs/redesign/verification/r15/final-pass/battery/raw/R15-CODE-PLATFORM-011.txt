@@ -1,0 +1,13 @@
+# R15-CODE-PLATFORM-011 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+echo "\$ curl -X POST /agents/buffett/runs {prompt:x, budget:{max_tokens:abc}}"; curl -s -m 30 -w ' [%{http_code}]' -X POST "$H/agents/buffett/runs" -H 'content-type: application/json' -d '{"prompt":"x","budget":{"max_tokens":"abc"}}'; echo
+cd "$C"; echo "client leg:"; grep -n "Could not start" src/lib/delegate-runs.ts; grep -n "422 field errors, not \[object Object\]" src/lib/delegate-runs.test.ts; grep -n "422 array throws" src/lib/sidecar-client.test.ts
+--- output ---
+$ curl -X POST /agents/buffett/runs {prompt:x, budget:{max_tokens:abc}}
+{"detail":[{"type":"int_parsing","loc":["body","budget","max_tokens"],"msg":"Input should be a valid integer, unable to parse string as an integer","input":"abc"}]} [422]
+client leg:
+192:    useAgentRunsStore.getState().endRun(localId, "error", `Could not start: ${reasonOf(err)}`);
+288:  it("a rejected launch shows the 422 field errors, not [object Object]", async () => {
+249:  it("a POST answering a 422 array throws 'field: msg' and sends a JSON body", async () => {
+
+EXIT=0 (0.0s)

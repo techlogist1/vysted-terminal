@@ -1,0 +1,1 @@
+metrics.ts buildPortfolioSummary: costValue=cost_basis*qty=4000; marketValue=price*qty=5161.6998291015625; pnl=marketValue-costValue=1161.6998291015625; pnlPercent=29.0425% (price 516.1699829101562 USD @ 2026-09-25T20:00:01Z)

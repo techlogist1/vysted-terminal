@@ -1,0 +1,12 @@
+# ace7dd76 in-process (candidate venv; pytest stubbed - not installed in venv; test file imported only for its fixture builders)
+$ python /tmp/b5_res2.py 011
+emitted keys: ['dividend_declared', 'dividend_per_share', 'dividend_per_share_ttm', 'dividend_yield', 'drawdown_from_high', 'earnings_growth', 'earnings_growth_computed', 'fifty_two_week_change', 'fifty_two_week_high_exchange', 'institutions_percent_exchange', 'market_cap', 'market_cap_witness', 'normalized_net_income', 'promoter_percent_exchange', 'reported_net_income', 'revenue_growth', 'revenue_growth_computed']
+MODE 011
+_dividend_leg tuple[dict[str, typing.Any], list[dict[str, typing.Any]]]
+_dividend_ttm_leg tuple[dict[str, typing.Any], list[dict[str, typing.Any]]]
+_earnings_quality_leg tuple[dict[str, typing.Any], list[dict[str, typing.Any]]]
+_growth_leg tuple[dict[str, typing.Any], list[dict[str, typing.Any]]]
+_market_cap_witness_leg tuple[dict[str, typing.Any], list[dict[str, typing.Any]]]
+_ownership_leg tuple[dict[str, typing.Any], list[dict[str, typing.Any]]]
+_range_leg tuple[dict[str, typing.Any], list[dict[str, typing.Any]]]
+EXIT=0

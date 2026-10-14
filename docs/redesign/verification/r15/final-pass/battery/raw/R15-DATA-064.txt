@@ -1,0 +1,11 @@
+# R15-DATA-064 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:06:26+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in SPY AAPL RELIANCE.NS; do echo -n "/history/$s?timeframe=30m: "; curl -s -m 100 "$H/history/$s?timeframe=30m" | python3 -c "import sys,json;d=json.load(sys.stdin);print(len(d.get('bars') or []),'bars reason',d.get('reason'),'provider',d.get('provider'))"; done
+echo -n "indicators SPY 30m: "; curl -s -m 100 -o /dev/null -w '%{http_code}\n' "$H/indicators/SPY?timeframe=30m&indicators=sma"
+--- output ---
+/history/SPY?timeframe=30m: 273 bars reason None provider yfinance
+/history/AAPL?timeframe=30m: 273 bars reason None provider yfinance
+/history/RELIANCE.NS?timeframe=30m: 260 bars reason None provider yfinance
+indicators SPY 30m: 200
+
+EXIT=0 (1.0s)

@@ -39,10 +39,18 @@ import json
 import logging
 import os
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 from fastapi import FastAPI
 from fastmcp import FastMCP
+from fastmcp.exceptions import ToolError
+from fastmcp.server.dependencies import get_http_headers
+from fastmcp.tools import FunctionTool
+from mcp.types import LATEST_PROTOCOL_VERSION, ToolAnnotations
+
+from services import agent_tools
+from services.agent_tools.catalog import mcp_capabilities
 
 _log = logging.getLogger(__name__)
 
@@ -50,7 +58,6 @@ _log = logging.getLogger(__name__)
 # point in the main sidecar; ``http_app(path="/")`` registers a single POST/
 # DELETE endpoint and the outer ``app.mount("/mcp", ...)`` adds the prefix.
 _TRANSPORT = "http"
-_PROTOCOL_VERSION = "2025-06-18"  # MCP revision FastMCP 3.x speaks.
 
 # Env var for an override base URL. In production the MCP server is mounted
 # into the same app whose endpoints it calls, so the natural choice is an
@@ -98,6 +105,51 @@ def bind_app(app: FastAPI) -> None:
     _app_reference = app
 
 
+#: Header an MCP client's own config may set to pass a BYOK key to
+#: ``invoke_agent``. It is never a tool argument, so the key never enters the
+#: calling model's context or transcript.
+API_KEY_HEADER = "x-vysted-api-key"
+
+
+async def _get_list(path: str, key: str) -> dict[str, Any]:
+    """GET a list route; a bare list is wrapped as ``{key: [...]}``.
+
+    Any HTTP failure (a 404 or 5xx from the in-process route included) is
+    reported as ``{"ok": False, "error": ...}``, never as an empty list.
+    """
+    async with _internal_client() as client:
+        try:
+            response = await client.get(path)
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            return {"ok": False, "error": f"GET {path} failed: {exc}"}
+    body = response.json()
+    return body if isinstance(body, dict) else {key: body}
+
+
+def _make_catalog_tool(tool_id: str) -> Any:
+    """Build an MCP tool handler that dispatches to the registered agent_tools
+    handler for ``tool_id`` — the SAME handler the internal copilot loop calls.
+
+    No logic duplication: the external MCP surface and the internal agent loop
+    run the identical handler. Errors (unregistered handler, handler raise)
+    raise :class:`fastmcp.exceptions.ToolError` so the result comes back over
+    MCP with ``isError=True`` — the same signal Vysted's own MCP-client code
+    keys failure off of (R15-CODE-AGENT-023), instead of a successful result
+    whose body happens to say ``{"ok": False, ...}``.
+    """
+
+    async def _handler(**kwargs: Any) -> dict[str, Any]:
+        try:
+            return await agent_tools.invoke_tool(tool_id, kwargs, wrap_errors=False)
+        except KeyError:
+            raise ToolError(f"tool {tool_id!r} is not available in this build") from None
+        except Exception as exc:  # noqa: BLE001 — surface to the MCP client
+            raise ToolError(f"tool {tool_id!r} raised: {exc}") from exc
+
+    return _handler
+
+
 # ---------------------------------------------------------------------------
 # FastMCP setup — tool registration.
 # ---------------------------------------------------------------------------
@@ -107,77 +159,26 @@ def _build_server() -> FastMCP:
     """Construct the FastMCP server and register every tool."""
     mcp = FastMCP("vysted")
 
-    # ---------- Market data tools ----------
-
-    @mcp.tool
-    async def get_quote(symbol: str) -> dict[str, Any]:
-        """Return the latest quote for the given equity symbol.
-
-        Maps to GET /quotes/{symbol} on the Vysted sidecar.
-        """
-        async with _internal_client() as client:
-            response = await client.get(f"/quotes/{symbol}")
-            response.raise_for_status()
-            return response.json()
-
-    @mcp.tool
-    async def get_history(
-        symbol: str, timeframe: str = "1d", range_: str | None = None
-    ) -> dict[str, Any]:
-        """Return OHLCV history bars for the given symbol and timeframe.
-
-        Timeframe is one of: 1m, 5m, 15m, 30m, 1h, 1d, 1wk, 1mo.
-        Range is an optional ISO date (YYYY-MM-DD) that scopes the start.
-        Maps to GET /history/{symbol}.
-        """
-        params: dict[str, str] = {"timeframe": timeframe}
-        if range_:
-            params["range"] = range_
-        async with _internal_client() as client:
-            response = await client.get(f"/history/{symbol}", params=params)
-            response.raise_for_status()
-            return response.json()
-
-    @mcp.tool
-    async def get_fundamentals(symbol: str) -> dict[str, Any]:
-        """Return valuation ratios and company profile for the given symbol.
-
-        Maps to GET /fundamentals/{symbol}.
-        """
-        async with _internal_client() as client:
-            response = await client.get(f"/fundamentals/{symbol}")
-            response.raise_for_status()
-            return response.json()
-
-    @mcp.tool
-    async def get_news(symbols: list[str] | None = None, limit: int = 20) -> dict[str, Any]:
-        """Return recent news headlines, optionally filtered by symbol list.
-
-        Maps to GET /news. Symbols are joined into the ``symbols`` query
-        parameter the sidecar expects.
-        """
-        params: dict[str, Any] = {"limit": limit}
-        if symbols:
-            params["symbols"] = ",".join(symbols)
-        async with _internal_client() as client:
-            response = await client.get("/news", params=params)
-            response.raise_for_status()
-            return response.json()
-
-    @mcp.tool
-    async def get_macro_series(series_id: str, provider: str | None = None) -> dict[str, Any]:
-        """Return a macro time-series by id (FRED-style).
-
-        Maps to GET /macro/{series_id}. Provider is an optional override
-        for the upstream macro source (defaults to FRED).
-        """
-        params: dict[str, str] = {}
-        if provider:
-            params["provider"] = provider
-        async with _internal_client() as client:
-            response = await client.get(f"/macro/{series_id}", params=params)
-            response.raise_for_status()
-            return response.json()
+    # ---------- Data + analysis tools (projected from the capability catalog) ----------
+    #
+    # FR-020/021/022: the external MCP surface is NOT a hand-maintained
+    # duplicate. Every data/analysis capability is declared ONCE in
+    # ``services.agent_tools.catalog`` and projected here under the SAME name the
+    # internal copilot uses, with the SAME input schema and a ``readOnlyHint``
+    # driven by the catalog's ``read_only`` flag. Each tool dispatches to the
+    # SAME registered handler the internal agent loop calls (no logic
+    # duplication). Adding a capability to the catalog makes it appear on both
+    # surfaces; the SC-004 parity audit (``test_mcp_catalog_parity``) locks it.
+    for capability in mcp_capabilities():
+        mcp.add_tool(
+            FunctionTool(
+                name=capability.id,
+                description=capability.description,
+                parameters=capability.input_schema,
+                fn=_make_catalog_tool(capability.id),
+                annotations=ToolAnnotations(readOnlyHint=capability.read_only),
+            )
+        )
 
     # ---------- Agent tools (Teammate A's surface) ----------
 
@@ -185,29 +186,14 @@ def _build_server() -> FastMCP:
     async def list_agents() -> dict[str, Any]:
         """List the agents available in this Vysted sidecar.
 
-        Maps to GET /agents (Teammate A). When the agents router is not
-        mounted (Teammate A pre-merge) this tool returns an empty list
-        rather than erroring — keeps the MCP surface stable across
-        teammate merges.
+        Maps to GET /agents, which returns a bare JSON list; FastMCP requires
+        a dict output, so it is wrapped as ``{"agents": [...]}``. A failing
+        route is ``{"ok": False, "error": ...}``, never "no agents".
         """
-        async with _internal_client() as client:
-            try:
-                response = await client.get("/agents")
-                if response.status_code == 404:
-                    return {"agents": []}
-                response.raise_for_status()
-                # A's `/agents` returns a bare JSON list (REST convention);
-                # FastMCP requires tool outputs to be a dict (or declare an
-                # output_schema), so wrap the list at the MCP-tool boundary.
-                return {"agents": response.json()}
-            except httpx.HTTPError as exc:
-                _log.debug("list_agents: agents router not reachable: %s", exc)
-                return {"agents": []}
+        return await _get_list("/agents", "agents")
 
     @mcp.tool
-    async def invoke_agent(
-        agent_id: str, prompt: str, api_key: str | None = None
-    ) -> dict[str, Any]:
+    async def invoke_agent(agent_id: str, prompt: str) -> dict[str, Any]:
         """Invoke an agent and aggregate its streaming reply into a single string.
 
         Maps to POST /agents/{agent_id}/invoke. The sidecar's agent runtime
@@ -217,6 +203,9 @@ def _build_server() -> FastMCP:
         ``{"agent_id", "content", "usage"}``.
         """
         body: dict[str, Any] = {"prompt": prompt}
+        # A BYOK key rides the MCP client's own HTTP header (its config), never
+        # a tool argument the calling model would see; never logged.
+        api_key = get_http_headers().get(API_KEY_HEADER)
         if api_key:
             body["api_key"] = api_key
         text_buffer: list[str] = []
@@ -264,18 +253,24 @@ def _build_server() -> FastMCP:
 
     @mcp.tool
     async def list_workspaces() -> dict[str, Any]:
-        """List saved workspaces. Maps to GET /workspaces."""
-        async with _internal_client() as client:
-            response = await client.get("/workspaces")
-            response.raise_for_status()
-            return response.json()
+        """List saved workspaces. Maps to GET /workspace (a bare list, wrapped
+        as ``{"workspaces": [...]}``)."""
+        return await _get_list("/workspace", "workspaces")
 
     @mcp.tool
     async def get_workspace(workspace_id: str) -> dict[str, Any]:
-        """Return a saved workspace by id. Maps to GET /workspaces/{id}."""
+        """Return a saved workspace by id. Maps to GET /workspace/{id}.
+
+        A missing workspace or any other route failure is
+        ``{"ok": False, "error": ...}``, never a transport error.
+        """
+        path = f"/workspace/{quote(workspace_id, safe='')}"
         async with _internal_client() as client:
-            response = await client.get(f"/workspaces/{workspace_id}")
-            response.raise_for_status()
+            try:
+                response = await client.get(path)
+                response.raise_for_status()
+            except httpx.HTTPError as exc:
+                return {"ok": False, "error": f"GET {path} failed: {exc}"}
             return response.json()
 
     # ---------- Workflow tools (Teammate W's v0.5.0 surface) ----------
@@ -314,28 +309,46 @@ def _build_server() -> FastMCP:
     async def list_workflows() -> dict[str, Any]:
         """List every saved workflow.
 
-        Maps to ``GET /workflow/saved``. The router returns a dict
-        ``{workflows: [...]}`` already, but this tool keeps that wrap rule
-        explicit at the MCP boundary per the v0.4.0 Gotcha (FastMCP rejects
-        bare-list outputs; always return a dict).
+        Maps to ``GET /workflow/saved``, which already returns a dict
+        ``{workflows: [...]}``. A failing route is ``{"ok": False, "error": ...}``.
         """
+        return await _get_list("/workflow/saved", "workflows")
+
+    @mcp.tool
+    async def save_workflow(spec_json: str) -> dict[str, Any]:
+        """Create or update a saved workflow. Maps to ``POST /workflow/save``.
+
+        ``spec_json`` is a JSON-encoded WorkflowSpec — the same shape
+        ``run_workflow`` accepts, including ``transform.code`` nodes
+        (``config = {"expression": str, "inputs": [str, ...]}``). This is the
+        agent's workflow-AUTHORING surface (R7 hackability): compose or amend
+        a workflow programmatically, then run it via ``run_workflow``.
+        """
+        from models.workflow import WorkflowSpec
+
+        try:
+            spec = WorkflowSpec.model_validate_json(spec_json)
+        except Exception as exc:  # noqa: BLE001 — surface parse errors cleanly
+            return {"ok": False, "error": f"invalid workflow spec: {exc}"}
         async with _internal_client() as client:
-            try:
-                response = await client.get("/workflow/saved")
-                if response.status_code == 404:
-                    return {"workflows": []}
-                response.raise_for_status()
-                body = response.json()
-                # Router already returns {workflows: [...]}; normalise to that
-                # shape if a future revision flattens to a bare list.
-                if isinstance(body, list):
-                    return {"workflows": body}
-                if isinstance(body, dict) and "workflows" in body:
-                    return body
-                return {"workflows": []}
-            except httpx.HTTPError as exc:
-                _log.debug("list_workflows: workflow router not reachable: %s", exc)
-                return {"workflows": []}
+            response = await client.post(
+                "/workflow/save", json=spec.model_dump(mode="json", by_alias=True)
+            )
+            response.raise_for_status()
+            return {"ok": True, "workflow": response.json()}
+
+    # ---------- Delegate-run tools (P3 durable-runs surface) ----------
+
+    @mcp.tool
+    async def list_runs() -> dict[str, Any]:
+        """List Delegate runs (status + cost-so-far). Maps to GET /runs.
+
+        Hand-written + MCP-only (it is a runtime/framework surface, not a
+        catalog data capability), mirroring ``list_workspaces``. The router
+        already returns ``{runs: [...]}``. A failing route is
+        ``{"ok": False, "error": ...}``.
+        """
+        return await _get_list("/runs", "runs")
 
     return mcp
 
@@ -372,8 +385,10 @@ def get_streamable_http_app() -> Any:
 
 
 def protocol_version() -> str:
-    """Return the MCP protocol revision this server speaks (e.g. ``"2025-06-18"``)."""
-    return _PROTOCOL_VERSION
+    """Return the MCP protocol revision this server speaks — the SDK's
+    ``LATEST_PROTOCOL_VERSION``, which is also what an ``initialize`` handshake
+    negotiates when the client requests it (R15-CODE-AGENT-022)."""
+    return LATEST_PROTOCOL_VERSION
 
 
 async def tool_count() -> int:

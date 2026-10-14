@@ -1,0 +1,39 @@
+CMD: grep -rn 'is_applicable' services/market_cap_witness.py services/ownership_check.py services/research/range_check.py
+services/ownership_check.py:104:is_applicable = is_india_listing
+services/ownership_check.py:136:    if not is_applicable(symbol):
+services/ownership_check.py:157:    "is_applicable",
+services/market_cap_witness.py:100:is_applicable = is_india_listing
+services/market_cap_witness.py:140:    if not is_applicable(symbol):
+services/market_cap_witness.py:153:    "is_applicable",
+services/research/range_check.py:127:is_applicable = is_india_listing
+services/research/range_check.py:194:    if not is_applicable(symbol):
+services/research/range_check.py:257:    if not is_applicable(symbol) or provider_health.is_open(EXCHANGE_HISTORY):
+services/research/range_check.py:299:    "is_applicable",
+
+CMD: grep -rn '_is_blocked' services/ownership_check.py services/research/range_check.py services/dividend_actions.py
+
+CMD: grep -rn 'def is_india_listing\|is_india_listing =' services/
+services/witness.py:19:def is_india_listing(listing: object) -> bool:
+
+CMD: grep -rn 'def is_india_target' services/research/relevance.py; grep -n 'from.*relevance import is_india_target' services/research/disclosures.py
+602:def is_india_target(target: ResearchTarget | None) -> bool:
+33:from services.research.relevance import is_india_target
+
+CMD: grep -n 'def _row_value' services/growth_check.py services/earnings_quality.py
+services/earnings_quality.py:134:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+services/growth_check.py:94:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+CMD: grep -rn '_is_blocked' services/ (whole tree, chain's own check)
+
+CMD: grep -rn 'def is_block_error\|is_block_error =' services/witness.py
+24:def is_block_error(exc: BaseException) -> bool:
+35:__all__ = ["is_block_error", "is_india_listing"]
+
+CMD: grep -rn 'is_block_error' services/ownership_check.py services/research/range_check.py services/dividend_actions.py
+services/ownership_check.py:47:from services.witness import is_block_error, is_india_listing
+services/ownership_check.py:143:        if is_block_error(exc):
+services/research/range_check.py:46:from services.witness import is_block_error, is_india_listing
+services/research/range_check.py:201:        if is_block_error(exc):
+services/research/range_check.py:268:            if is_block_error(result):
+services/dividend_actions.py:33:from services.witness import is_block_error, is_india_listing
+services/dividend_actions.py:105:    blocked = any(is_block_error(ProviderError(msg)) for msg in response.errors.values())
+services/dividend_actions.py:123:        if is_block_error(exc):

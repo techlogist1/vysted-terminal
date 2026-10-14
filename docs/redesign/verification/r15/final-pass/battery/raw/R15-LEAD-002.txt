@@ -1,0 +1,24 @@
+# R15-LEAD-002 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:33:35+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+for r in 1 2 3; do echo "round $r"; for s in TCS INFY ITC HDFCBANK SBIN; do curl -s -m 100 -o /dev/null -w "  $s %{http_code} %{time_total}s\n" -H 'X-Vysted-Region: IN' "$H/fundamentals/$s"; done; done
+--- output ---
+round 1
+  TCS 200 15.014713s
+  INFY 200 16.206135s
+  ITC 200 16.053868s
+  HDFCBANK 200 15.526898s
+  SBIN 200 14.569998s
+round 2
+  TCS 200 2.771549s
+  INFY 200 2.471499s
+  ITC 200 1.918877s
+  HDFCBANK 200 1.726700s
+  SBIN 200 1.232056s
+round 3
+  TCS 200 1.190042s
+  INFY 200 1.035250s
+  ITC 200 1.208904s
+  HDFCBANK 200 1.388206s
+  SBIN 200 1.055264s
+
+EXIT=0 (93.5s)

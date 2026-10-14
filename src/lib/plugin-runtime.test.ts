@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { type DiscoveredPlugin, HEALTH_HISTORY_LIMIT, PluginRuntime } from "@/lib/plugin-runtime";
+import {
+  type DiscoveredPlugin,
+  HEALTH_HISTORY_LIMIT,
+  hostSatisfies,
+  PluginRuntime,
+} from "@/lib/plugin-runtime";
 
 import type {
   AgentSpec,
@@ -135,6 +140,7 @@ describe("PluginRuntime — lifecycle", () => {
     const persistence = {
       load: async (): Promise<PluginPersistedConfig> => ({
         pluginId: "a",
+        installed: true,
         enabled: false,
         settings: {},
         grantedSecretIds: [],
@@ -162,12 +168,25 @@ describe("PluginRuntime — lifecycle", () => {
     expect(saved[0].enabled).toBe(true);
   });
 
-  it("loadPlugin is idempotent — re-loading an active plugin is a no-op", async () => {
+  // R15-CODE-PLATFORM-014: this test used to stop at the idempotent second
+  // loadPlugin, which locked configure()'s "reload" as a no-op (stale secrets).
+  // loadPlugin stays idempotent; reloadPlugin is the restart that re-runs
+  // initialize() with the newly granted secrets.
+  it("loadPlugin is idempotent, while reloadPlugin re-runs initialize with fresh secrets", async () => {
     const initialize = vi.fn();
-    const plugin = fakePlugin("a", { initialize });
-    await runtime.loadPlugin(discovered(plugin));
-    await runtime.loadPlugin(discovered(plugin));
+    const reloading = new PluginRuntime({
+      resolveSecrets: async (ids) => Object.fromEntries(ids.map((id) => [id, `v-${id}`])),
+    });
+    const plugin = discovered(fakePlugin("a", { initialize }));
+    await reloading.loadPlugin(plugin);
+    await reloading.loadPlugin(plugin);
     expect(initialize).toHaveBeenCalledOnce();
+
+    await reloading.updateConfig("a", { grantedSecretIds: ["api-key"] });
+    const snapshot = await reloading.reloadPlugin(plugin);
+    expect(snapshot.state).toBe("active");
+    expect(initialize).toHaveBeenCalledTimes(2);
+    expect(initialize.mock.calls[1][0].secrets).toEqual({ "api-key": "v-api-key" });
   });
 
   it("unloadPlugin runs shutdown and transitions to `stopped`", async () => {
@@ -378,6 +397,30 @@ describe("PluginRuntime — health checks", () => {
     expect(snapshot?.state).toBe("error");
     expect(snapshot?.errorMessage).toContain("boom");
   });
+
+  // R15-CODE-PLATFORM-047: healthCheckOne used to write back a snapshot of
+  // `record` captured BEFORE the `healthCheck()` await, so a disable landing
+  // mid-check overwrote the record with `{...staleActiveRecord, healthHistory}`
+  // once the check resolved — reviving state:"active" on a plugin that had
+  // just been stopped.
+  it("disable during a pending healthCheck stays stopped, not reverted to active", async () => {
+    let resolveHealth: (status: HealthStatus) => void = () => {};
+    const pendingHealth = new Promise<HealthStatus>((resolve) => {
+      resolveHealth = resolve;
+    });
+    const runtime = new PluginRuntime();
+    const plugin = discovered(fakePlugin("a", { healthCheck: () => pendingHealth }));
+    await runtime.loadPlugin(plugin);
+
+    const checking = runtime.healthCheckAll(); // healthCheck() in flight, awaiting pendingHealth
+    await runtime.disablePlugin("a"); // lands mid-check: shutdown + transition to `stopped`
+    resolveHealth({ status: "healthy", checkedAt: 0 });
+    await checking;
+
+    const snapshot = runtime.getPlugin("a");
+    expect(snapshot?.state).toBe("stopped");
+    expect(snapshot?.healthHistory).toHaveLength(0);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -436,6 +479,7 @@ describe("PluginRuntime — config wiring", () => {
       persistence: {
         load: async () => ({
           pluginId: "a",
+          installed: true,
           enabled: true,
           settings: { theme: "dark" },
           grantedSecretIds: ["api-key"],
@@ -458,5 +502,156 @@ describe("PluginRuntime — config wiring", () => {
     expect(capturedConfig?.hostVersion).toBe("0.3.0");
     expect(capturedConfig?.settings).toEqual({ theme: "dark" });
     expect(capturedConfig?.secrets).toEqual({ "api-key": "value-of-api-key" });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Compatibility validation (FR-054 / SC-015) — the marketplace trust guarantees
+// ---------------------------------------------------------------------------
+
+describe("PluginRuntime — compatibility validation (FR-054 / SC-015)", () => {
+  it("rejects a manifest id that does not match the instance pluginId", async () => {
+    const runtime = new PluginRuntime();
+    const snapshot = await runtime.loadPlugin({
+      manifest: manifest({ id: "declared-id", version: "1.0.0" }),
+      instance: fakePlugin("actual-id"),
+    });
+    expect(snapshot.state).toBe("error");
+    expect(snapshot.errorMessage).toContain("compatibility");
+    expect(snapshot.errorMessage).toContain("declared-id");
+  });
+
+  it("rejects a manifest version that does not match the instance version", async () => {
+    const runtime = new PluginRuntime();
+    const snapshot = await runtime.loadPlugin({
+      manifest: manifest({ id: "a", version: "2.0.0" }), // instance is 1.0.0
+      instance: fakePlugin("a"),
+    });
+    expect(snapshot.state).toBe("error");
+    expect(snapshot.errorMessage).toContain("version");
+  });
+
+  it("rejects a plugin whose requiredHostVersion the host does not satisfy", async () => {
+    const runtime = new PluginRuntime({ hostVersion: "0.8.0" });
+    const snapshot = await runtime.loadPlugin({
+      manifest: manifest({ id: "a", version: "1.0.0", requiredHostVersion: "1.0.0" }),
+      instance: fakePlugin("a"),
+    });
+    expect(snapshot.state).toBe("error");
+    expect(snapshot.errorMessage).toContain("requires host version");
+  });
+
+  it("loads a compatible plugin (host satisfies requiredHostVersion)", async () => {
+    const runtime = new PluginRuntime({ hostVersion: "0.8.0" });
+    const snapshot = await runtime.loadPlugin({
+      manifest: manifest({ id: "a", version: "1.0.0", requiredHostVersion: "0.5.0" }),
+      instance: fakePlugin("a"),
+    });
+    expect(snapshot.state).toBe("active");
+  });
+
+  // R15-CODE-PLATFORM-048: "<0.9.0" used to have its "<" silently stripped by
+  // the same regex that strips ">="/"^"/"~", so hostSatisfies("0.8.0",
+  // "<0.9.0") read as hostSatisfies("0.8.0", "0.9.0") applying ">=" — the
+  // OPPOSITE of what the manifest asked for — and the rejection message
+  // hardcoded "plugin requires host version >= <0.9.0 ...".
+  it("'<0.9.0' is rejected as unsupported, not parsed as '>=0.9.0'", async () => {
+    const runtime = new PluginRuntime({ hostVersion: "0.8.0" });
+    const snapshot = await runtime.loadPlugin({
+      manifest: manifest({ id: "a", version: "1.0.0", requiredHostVersion: "<0.9.0" }),
+      instance: fakePlugin("a"),
+    });
+    expect(snapshot.state).toBe("error");
+    expect(snapshot.errorMessage).toContain("unsupported");
+    expect(snapshot.errorMessage).not.toContain(">= <0.9.0");
+  });
+
+  it("an incompatible plugin contributes nothing (no silent load)", async () => {
+    const runtime = new PluginRuntime({ hostVersion: "0.8.0" });
+    await runtime.loadPlugin({
+      manifest: manifest({ id: "a", version: "1.0.0", requiredHostVersion: "9.9.9" }),
+      instance: fakePlugin("a", {
+        capabilities: { contributesPanels: true },
+        getPanels: () => [{ id: "p", title: "P", component: "c" }],
+      }),
+    });
+    expect(runtime.collectPanels()).toEqual([]);
+  });
+
+  it("emits an `errored` event when a plugin is rejected at load", async () => {
+    const runtime = new PluginRuntime();
+    const events: string[] = [];
+    runtime.subscribe((e) => events.push(e.kind));
+    await runtime.loadPlugin({
+      manifest: manifest({ id: "x", version: "1.0.0" }),
+      instance: fakePlugin("y"),
+    });
+    expect(events).toContain("errored");
+  });
+});
+
+describe("hostSatisfies (semver host-compat check)", () => {
+  it("is true when host == required", () => {
+    expect(hostSatisfies("0.8.0", "0.8.0")).toBe(true);
+  });
+  it("is true when host > required", () => {
+    expect(hostSatisfies("0.8.0", "0.5.0")).toBe(true);
+    expect(hostSatisfies("1.0.0", "0.9.9")).toBe(true);
+    expect(hostSatisfies("0.8.1", "0.8.0")).toBe(true);
+  });
+  it("is false when host < required", () => {
+    expect(hostSatisfies("0.8.0", "1.0.0")).toBe(false);
+    expect(hostSatisfies("0.8.0", "0.9.0")).toBe(false);
+    expect(hostSatisfies("0.8.0", "0.8.1")).toBe(false);
+  });
+  it("ignores pre-release / build metadata", () => {
+    expect(hostSatisfies("0.8.0-beta.1", "0.8.0")).toBe(true);
+    expect(hostSatisfies("0.8.0+build5", "0.8.0")).toBe(true);
+  });
+  // R15-CODE-PLATFORM-048: "<" is an unsupported range operator, always false
+  // — never inverted into a satisfied ">=" comparison.
+  it("a '<' required version is always false, on either side of it", () => {
+    expect(hostSatisfies("0.8.0", "<0.9.0")).toBe(false);
+    expect(hostSatisfies("0.9.5", "<0.9.0")).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Lifecycle owner (R15-CODE-PLATFORM-012): enable/disable persist AND bridge
+// ---------------------------------------------------------------------------
+
+describe("PluginRuntime — enable/disable own persistence and the host bridge", () => {
+  function hostSpy() {
+    return {
+      attach: vi.fn(async (_id: string) => {}),
+      detach: vi.fn(async (_id: string) => {}),
+    };
+  }
+
+  it("disablePlugin persists enabled:false and detaches the plugin's contributions", async () => {
+    const host = hostSpy();
+    const runtime = new PluginRuntime({ host });
+    await runtime.enablePlugin(discovered(fakePlugin("a")));
+    expect(host.attach).toHaveBeenCalledWith("a");
+
+    await runtime.disablePlugin("a");
+    expect((await runtime.readConfig("a"))?.enabled).toBe(false);
+    expect(runtime.getPlugin("a")?.state).toBe("stopped");
+    expect(host.detach).toHaveBeenCalledWith("a");
+  });
+});
+
+describe("PluginRuntime — the one never-persisted default (R15-CODE-PLATFORM-013)", () => {
+  it("a patch or load of a never-seen plugin uses defaultEnabled, never a hard-coded true", async () => {
+    const initialize = vi.fn();
+    const runtime = new PluginRuntime({ defaultEnabled: () => false });
+    expect(await runtime.readConfig("p")).toMatchObject({ installed: false, enabled: false });
+
+    // configure() grants a secret to a plugin the user never enabled; it stays off.
+    await runtime.updateConfig("p", { grantedSecretIds: ["k"], installed: true });
+    expect((await runtime.readConfig("p")).enabled).toBe(false);
+    const snapshot = await runtime.loadPlugin(discovered(fakePlugin("p", { initialize })));
+    expect(snapshot.state).toBe("stopped");
+    expect(initialize).not.toHaveBeenCalled();
   });
 });

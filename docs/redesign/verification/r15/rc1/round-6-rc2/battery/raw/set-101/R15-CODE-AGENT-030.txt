@@ -1,0 +1,15 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ grep -n -B3 -A3 'except .*Error:' sidecar/services/llm/{openai,groq,gemini,anthropic}.py | grep -n -A3 -B3 'raise$' | head -40; grep -c 'validate_key' sidecar/services/llm/*.py
+exit=0
+sidecar/services/llm/__init__.py:1
+sidecar/services/llm/anthropic.py:1
+sidecar/services/llm/base.py:4
+sidecar/services/llm/gemini.py:1
+sidecar/services/llm/groq.py:1
+sidecar/services/llm/native_search.py:0
+sidecar/services/llm/ollama.py:1
+sidecar/services/llm/oneshot.py:0
+sidecar/services/llm/openai.py:1
+sidecar/services/llm/openrouter_catalog.py:0
+sidecar/services/llm/reasoning_split.py:0
+sidecar/services/llm/tool_call_rescue.py:0

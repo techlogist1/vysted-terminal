@@ -1,0 +1,27 @@
+head cac9d206759c2cd83d46778cc94a4dbd0b678429
+== FINAL-022 grep -inE 'order|broker|paper|place' docs/redesign/R12_HAND_TESTING_GUIDE.md
+hits=0
+       9 docs/redesign/R12_HAND_TESTING_GUIDE.md
+fresh: other hand-testing/how-to docs:
+docs/SAFETY_ARCHITECTURE.md
+docs/redesign/AGENT_TOOLUSE_PLAN.md
+docs/redesign/HANDOFF_VERIFIED.md
+docs/redesign/DECISIONS.md
+docs/redesign/R10_TRACK_BRIEF_FE_BRIEF.md
+== FINAL-023
+5:scripts/docs; promoted here ahead of rc2 as docs-promotion pass 1. The merge-to-main and
+15:- [ ] 1. Confirm the five version sources read `0.9.0` (no merge step; the bump is in the candidate)
+72:`worktree-agent-r15-version-0.9.0` branch is NOT merged; do not merge it. Confirm with
+166:`smoke`. No `r15-rc1` tag exists yet; gate round 2 launches once batch-24 merges.
+175:These are all **integration-branch runs on a batch's own merged tree, not the release
+517da226 NOT ancestor
+  "version": "0.9.0",
+version = "0.9.0"
+  "version": "0.9.0",
+326:    app = FastAPI(title="Vysted Terminal Sidecar", version="0.9.0", lifespan=_lifespan)
+38:export const HOST_VERSION = "0.9.0";
+== FINAL-037
+package.json ci-local present verbatim in runbook: False
+stale 'python -m pip' in runbook: False | 'pnpm test' in ci block: False
+runbook ci-local block steps == package.json && steps: False 1 15
+runbook ci-local block steps == package.json && steps: True 15 15

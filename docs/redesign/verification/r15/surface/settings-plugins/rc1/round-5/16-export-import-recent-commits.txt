@@ -1,0 +1,3 @@
+5109567e fix(platform): route Settings plugin-module toggles through the marketplace lifecycle (R15-CODE-PLATFORM-013)
+71bb721b fix(ui): build FR-038 provider fallback order, start layout and palette options (R15-UI-087)
+3faac91d merge(batch-10): W5-chat-search-workflow

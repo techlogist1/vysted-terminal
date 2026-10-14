@@ -1,0 +1,49 @@
+## symbol_resolver band defaults
+92:    BAND_EXACT_TICKER,
+94:    BAND_FUZZY,
+255:    band: int = BAND_FUZZY
+640:def _instrument_nse(symbol: str, score: float, band: int = BAND_FUZZY) -> Instrument:
+651:        band=band,
+655:def _instrument_bse(symbol: str, score: float, band: int = BAND_FUZZY) -> Instrument:
+665:        band=band,
+669:def _instrument_us(symbol: str, score: float, band: int = BAND_FUZZY) -> Instrument:
+679:        band=band,
+767:            return BAND_FUZZY, ratio
+797:            return _instrument_nse(sym, score, band=BAND_MARQUEE)
+799:            return _instrument_bse(sym, score, band=BAND_MARQUEE)
+870:        candidates.append(_instrument_nse(upper, 1.0, band=BAND_EXACT_TICKER))
+872:        candidates.append(_instrument_bse(upper, 1.0, band=BAND_EXACT_TICKER))
+874:        candidates.append(_instrument_us(upper, 1.0, band=BAND_EXACT_TICKER))
+888:            candidates.append(_instrument_bse(scrip_symbol, 1.0, band=BAND_EXACT_TICKER))
+1027:    if best.band != BAND_FUZZY:
+1090:    return _as_renamed(current, inst.symbol, applied, score=inst.score, band=inst.band)
+1099:    band: int,
+1108:        band=band,
+1133:        current = _instrument_nse(new_symbol, 1.0, BAND_EXACT_TICKER)
+1143:    return _as_renamed(current, symbol, applied, score=1.0, band=BAND_EXACT_TICKER)
+## autocomplete row build
+1319:def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[Instrument]:
+1320-    """Masters-only, network-free candidate list for on-keystroke autocomplete.
+1321-
+1322-    Matches by ticker-prefix OR name-prefix/substring across both masters,
+## resolution_policy decide band
+15:  - ``bound``        — confidence >= :data:`ACCEPT` at a STRONG band (exact
+17:                       prefix — band >= :data:`BAND_PREFIX`). A bare-substring
+27:                       EXACTLY in ``(band, score)`` with nothing left to
+35:Distinct instruments in DIFFERENT regions tied in ``(band, score)`` were
+38:in ``(band, score)`` are residual — the ranking has genuinely nothing left, and
+43:The band vocabulary lives here (the resolver imports it) so the policy can
+44:read a candidate's match band without a circular import: this module imports
+61:#: Match bands, strongest first. The sort key in the resolver is
+62:#: ``(band, locale_match, name_score)`` — a cross-locale higher band ALWAYS
+63:#: beats a same-locale lower band (the additive locale bonus is gone).
+64:BAND_EXACT_TICKER = 6
+65:BAND_MARQUEE = 5
+66:BAND_NAME_EXACT = 4
+67:BAND_FIRST_WORD = 3
+68:BAND_PREFIX = 2
+69:BAND_SUBSTRING = 1
+70:BAND_FUZZY = 0
+106:    first genuinely different instrument. An exact ``(band, score)`` tie there,
+115:        return cand.band == best.band and cand.score == best.score and cand.region == best.region
+123:    and the best candidate's match band. A marquee family hit below ACCEPT is

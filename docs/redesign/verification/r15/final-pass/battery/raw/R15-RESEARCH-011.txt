@@ -1,0 +1,16 @@
+# R15-RESEARCH-011 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:37+0530
+
+$ git merge-base --is-ancestor c81d879 HEAD && echo 'closure c81d879 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure c81d879 NOT an ancestor'
+[exit 0] [0.02s]
+closure c81d879 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-RESEARCH-011\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+sidecar/tests/test_ownership_check.py:137:    """R15-RESEARCH-011: the NSE June master row carries an institutions figure
+Binary file sidecar/tests/__pycache__/test_ownership_check.cpython-313-pytest-9.0.3.pyc matches
+Binary file sidecar/tests/__pycache__/test_correctness_gate.cpython-313-pytest-9.0.3.pyc matches
+sidecar/tests/test_correctness_gate.py:417:    """R15-RESEARCH-011, the gate's copy of the provenance: an institutions
+Binary file sidecar/services/__pycache__/ownership_check.cpython-313.pyc matches
+sidecar/services/ownership_check.py:71:    SEBI-XBRL split, possibly from another quarter (R15-RESEARCH-011).
+

@@ -1,0 +1,21 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+method: live GETs against rc1-battery-11's own sidecar (:52351).
+
+1) GET /earnings/RELIANCE.NS/estimates
+   -> {"symbol":"RELIANCE.NS","eps_estimate_mean":16.275,...,"currency":"INR",...}
+   (was empty / RELIANCE-NS-mangled before the fix)
+
+2) GET /earnings/BDL/estimates   (bare NSE ticker)
+   -> {"symbol":"BDL.NS","eps_estimate_mean":6.16,...,"currency":"INR",...}
+   (correctly resolves to the Indian company, not a US namesake)
+
+3) GET /news?symbols=BDL&limit=10
+   -> []
+   (no Flanigan's / US-namesake articles — the original bug returned
+   "Flanigan's Stock Gains Post Q3 Earnings" for this query)
+
+4) GET /earnings/INFY/estimates
+   -> {"symbol":"INFY.NS","eps_estimate_mean":19.61527,...,"currency":"INR",...}
+   (INR EPS ~19.6, not the ADR's USD 0.205)
+
+verdict: holds

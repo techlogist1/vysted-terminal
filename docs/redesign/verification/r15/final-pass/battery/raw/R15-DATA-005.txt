@@ -1,0 +1,14 @@
+# R15-DATA-005 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:05:05+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in VERTEX JUMBO JNPR; do echo "\$ GET /fundamentals/$s [IN]"; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/fundamentals/$s" | python3 -c "
+import sys,json;d=json.load(sys.stdin);fm=d.get('field_meta') or {}
+print('book_value',d.get('book_value'),'price_to_book',d.get('price_to_book'),'| meta.ptb',json.dumps(fm.get('price_to_book'))[:260],'| meta.bv',json.dumps(fm.get('book_value'))[:200])"; done
+--- output ---
+$ GET /fundamentals/VERTEX [IN]
+book_value 1.369 price_to_book 2.257122 | meta.ptb {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-01T09:27:01+00:00", "reason": "shares outstanding 74,012,189 disagrees by 50% with the 148,024,378 shares implied by market cap / price (457,395,328 / 3.09, price from the ratio price) \u2014 the  | meta.bv {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T12:04:39.481545+00:00", "reason": "shares outstanding 74,012,189 disagrees by 50% with the 148,024,378 shares implied by market cap /
+$ GET /fundamentals/JUMBO [IN]
+book_value 54.361 price_to_book 1.6565185 | meta.ptb {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-01T09:59:25+00:00", "reason": "P/B 1.657 disagrees by 4.6% with market cap / the provider's newest filed stockholders' equity (754,051,712 / 477,377,000 as of 2026-03-31 = 1.58) \u2014 the book va | meta.bv {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T12:04:48.211760+00:00", "reason": "book value per share 54.36 disagrees by 4.6% with the provider's newest filed stockholders' equity
+$ GET /fundamentals/JNPR [IN]
+book_value 70.02 price_to_book 3.8531847 | meta.ptb {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-01T09:59:49+00:00", "reason": "P/B 3.853 disagrees by 14.1% with market cap / the provider's newest filed stockholders' equity (153,515,786,240 / 34,238,830,000 as of 2026-03-31 = 4.48) \u2014 the | meta.bv {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T12:04:54.167559+00:00", "reason": "book value per share 70.02 disagrees by 14.1% with the provider's newest filed stockholders' equit
+
+EXIT=0 (28.3s)

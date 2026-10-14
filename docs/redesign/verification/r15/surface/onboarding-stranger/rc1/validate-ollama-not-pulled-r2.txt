@@ -1,0 +1,2 @@
+== validate ollama model-not-pulled ==
+{"ok":false,"reason":"model_not_pulled","detail":"llama3.1:70b-not-pulled-xyz is not downloaded in Ollama (local) yet."}

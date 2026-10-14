@@ -1,0 +1,7 @@
+=== R15-DATA-094: fake NewsAPI key detected as unauthorized (live) ===
+-- with fake key header --
+{"newsapi":"unauthorized"}
+-- keyless (no header) --
+{"newsapi":"absent"}
+-- key never appears in sidecar log --
+0

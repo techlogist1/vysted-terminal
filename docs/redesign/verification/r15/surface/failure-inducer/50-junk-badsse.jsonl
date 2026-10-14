@@ -1,0 +1,2 @@
+{"kind": "error", "message": "OpenAI returned an unreadable response.", "action": "Try again; if the problem persists, check the provider's status page.", "detail": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)", "code": "parse_error"}
+{"kind": "done", "usage": null, "finish_reason": null}

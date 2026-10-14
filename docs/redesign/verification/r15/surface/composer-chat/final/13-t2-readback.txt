@@ -1,0 +1,20 @@
+Sat Oct  3 16:04:12 IST 2026
+== GET :52800/quotes/IBULHSGFIN.NS
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+== GET :52800/resolve?q=IBULHSGFIN
+resolved ('SAMMAANCAP', 'Sammaan Capital Limited') cands [('SAMMAANCAP', 'Sammaan Capital Limited')]
+== GET :52800/quotes/MDL.NS
+{"symbol":"MDL","price":64.9,"change":0.0,"change_percent":0.0,"volume":2000.0,"open":57.05,"high":64.9,"low":57.05,"prev_close":64.9,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-30T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+== GET :52800/resolve?q=MDL
+resolved ('MDL', 'Marvel Decor Limited') cands [('MDL', 'Marvel Decor Limited')]
+== GET :52800/quotes/MAZDOCK.NS
+{"symbol":"MAZDOCK","price":2064.0,"change":-49.0,"change_percent":-2.318977756743966,"volume":648362.0,"open":2110.0,"high":2115.6,"low":2031.2,"prev_close":2113.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+== GET :52800/resolve?q=MAZDOCK
+resolved ('MAZDOCK', 'Mazagon Dock Shipbuilders Limited') cands [('MAZDOCK', 'Mazagon Dock Shipbuilders Limited'), ('MAZDOCK', 'Mazagon Dock Shipbuilders Ltd')]
+== GET :52800/quotes/COCHINSHIP.NS
+{"symbol":"COCHINSHIP","price":1287.0,"change":-28.0,"change_percent":-2.129277566539924,"volume":727942.0,"open":1315.0,"high":1315.9,"low":1265.6,"prev_close":1315.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+== GET :52800/resolve?q=COCHINSHIP
+resolved ('COCHINSHIP', 'Cochin Shipyard Limited') cands [('COCHINSHIP', 'Cochin Shipyard Limited'), ('COCHINSHIP', 'Cochin Shipyard Ltd')]
+== GET :52800/quotes/SAMMAANCAP.NS
+{"symbol":"SAMMAANCAP","price":132.48,"change":-4.060000000000002,"change_percent":-2.9734876226746763,"volume":6813037.0,"open":136.4,"high":137.3,"low":130.0,"prev_close":136.54,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+NOTE: the in-process run above used an EMPTY data dir (no resolver masters), so IBULHSGFIN did not resolve there; the live sidecar's resolver maps IBULHSGFIN -> SAMMAANCAP (former name), which is why the live tool_result was ok:true.

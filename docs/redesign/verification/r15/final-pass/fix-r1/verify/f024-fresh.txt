@@ -1,0 +1,7 @@
+ExchangeOwnership fields: ['promoter_percent', 'institutions_percent', 'public_percent', 'as_of_quarter', 'source', 'institutions_source', 'institutions_as_of']
+yahoo 0.00% vs filed 0.41: -> not flagged
+yahoo 0.00% vs filed 2.9: -> not flagged
+yahoo 0.00% vs filed 12.0: -> ('flagged', 'yfinance institutions 0.00% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: 12.00%) beyond 3pp (provider institutions ')
+yahoo 10.00% vs filed 0.145: -> ('flagged', 'yfinance institutions 10.00% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: 14.50%) beyond 3pp (provider institutions')
+yahoo 10.00% vs filed 0.3: -> ('flagged', 'yfinance institutions 10.00% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: 30.00%) beyond 3pp (provider institutions')
+yahoo 0.00% vs filed None: -> not flagged

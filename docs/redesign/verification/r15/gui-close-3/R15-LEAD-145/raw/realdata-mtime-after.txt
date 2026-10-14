@@ -1,0 +1,2 @@
+1790978102 /Users/lokavyasingh/Library/Application Support/com.vysted.terminal
+1779906083 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-close/upgrade-080-data

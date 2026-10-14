@@ -1,0 +1,144 @@
+# Battery index (ace7dd76): 142 sets, 593 fixed ids, 41 unplanned
+
+- set-0: batch-2/W1-fundamentals-seam [batch-2] (6) R15-DATA-008, R15-DATA-004, R15-DATA-013, R15-DATA-006, R15-DATA-070, R15-DATA-033
+- set-1: batch-2/W2-instrument-identity [batch-2] (6) R15-DATA-012, R15-CODE-DATA-001, R15-DATA-018, R15-DATA-001, R15-DATA-003, R15-CODE-DATA-005
+- set-2: batch-2/W3-research-integrity [batch-2] (8) R15-RESEARCH-002, R15-RESEARCH-034, R15-RESEARCH-004, R15-RESEARCH-015, R15-RESEARCH-001, R15-RESEARCH-003, R15-RESEARCH-029, R15-RESEARCH-037
+- set-3: batch-2/W4-workspace-persistence [batch-2] (7) R15-CODE-FRONTEND-001, R15-LIFECYCLE-002, R15-LIFECYCLE-003, R15-CODE-FRONTEND-005, R15-CODE-FRONTEND-018, R15-CODE-FRONTEND-004, R15-LIFECYCLE-009
+- set-4: batch-2/W5-surfaces-and-math [batch-2] (9) R15-DATA-009, R15-DATA-010, R15-DATA-011, R15-DATA-031, R15-DATA-042, R15-CODE-PLATFORM-053, R15-DATA-043, R15-DATA-100, R15-DATA-007
+- set-5: batch-3/W1-agent-runtime [batch-3] (8) R15-AGENT-001, R15-AGENT-002, R15-AGENT-003, R15-AGENT-021, R15-AGENT-022, R15-AGENT-024, R15-AGENT-054, R15-AGENT-047
+- set-6: batch-3/W2-agent-frontend-gate [batch-3] (7) R15-AGENT-080, R15-CODE-FRONTEND-008, R15-CODE-FRONTEND-003, R15-CODE-FRONTEND-014, R15-UI-001, R15-UI-002, R15-AGENT-014
+- set-7: batch-3/W3-llm-adapters-and-errors [batch-3] (5) R15-AGENT-004, R15-AGENT-005, R15-AGENT-018, R15-UI-008, R15-CODE-AGENT-003
+- set-8: batch-3/W4-research-depth [batch-3] (6) R15-RESEARCH-009, R15-AGENT-012, R15-RESEARCH-006, R15-RESEARCH-008, R15-DATA-045, R15-LIFECYCLE-006
+- set-9: batch-3/W5-india-data-witnesses [batch-3] (8) R15-DATA-005, R15-LEAD-002, R15-RESEARCH-011, R15-RESEARCH-013, R15-DATA-019, R15-DATA-021, R15-DATA-022, R15-AGENT-010
+- set-10: batch-4/W1-agent-runtime [batch-4] (9) R15-AGENT-008, R15-AGENT-009, R15-AGENT-006, R15-LEAD-007, R15-LEAD-008, R15-RESEARCH-005, R15-DATA-041, R15-DATA-046, R15-AGENT-011
+- set-11: batch-4/W2-workflow-backtest-feeds [batch-4] (8) R15-CODE-PLATFORM-002, R15-AGENT-015, R15-AGENT-016, R15-CODE-PLATFORM-003, R15-CODE-FRONTEND-006, R15-CODE-PLATFORM-016, R15-DATA-040, R15-DATA-029
+- set-12: batch-4/W3-chat-runs-mcp [batch-4] (9) R15-CODE-FRONTEND-002, R15-AGENT-013, R15-AGENT-029, R15-CODE-PLATFORM-037, R15-LIFECYCLE-005, R15-CODE-AGENT-002, R15-DATA-083, R15-DATA-038, R15-DATA-039
+- set-13: batch-4/W4-market-data-gate [batch-4] (8) R15-DATA-016, R15-DATA-047, R15-DATA-049, R15-DATA-034, R15-DATA-082, R15-LIFECYCLE-004, R15-DATA-035, R15-DATA-036
+- set-14: batch-4/W5-panels-screener [batch-4] (9) R15-UI-004, R15-UI-005, R15-UI-006, R15-UI-007, R15-DATA-044, R15-DATA-093, R15-UI-003, R15-CODE-FRONTEND-020, R15-LIFECYCLE-007
+- set-15: batch-5/W1-india-disclosures-agent-surface [batch-5] (12) R15-DATA-020, R15-DATA-023, R15-DATA-024, R15-DATA-025, R15-DATA-056, R15-AGENT-060, R15-AGENT-062, R15-AGENT-058, R15-CODE-RESEARCH-001, R15-DATA-074, R15-DATA-026, R15-AGENT-020
+- set-16: batch-5/W2-resolver-market-data [batch-5] (9) R15-DATA-097, R15-DATA-057, R15-LEAD-011, R15-DATA-064, R15-DATA-063, R15-DATA-015, R15-DATA-037, R15-LEAD-009, R15-DATA-072
+- set-17: batch-5/W3-agent-runtime-chat [batch-5] (8) R15-AGENT-040, R15-AGENT-026, R15-RESEARCH-014, R15-AGENT-025, R15-AGENT-048, R15-AGENT-033, R15-AGENT-031, R15-UI-054
+- set-18: batch-5/W4-platform-workflow-boundary [batch-5] (8) R15-CODE-PLATFORM-004, R15-CODE-PLATFORM-019, R15-CODE-PLATFORM-005, R15-CODE-AGENT-012, R15-AGENT-059, R15-CODE-PLATFORM-020, R15-LEAD-001, R15-LEAD-003
+- set-19: batch-5/W5-screener-earnings-sec [batch-5] (11) R15-DATA-110, R15-UI-055, R15-UI-056, R15-CODE-DATA-006, R15-CODE-DATA-004, R15-LIFECYCLE-017, R15-LIFECYCLE-020, R15-UI-045, R15-DATA-028, R15-DATA-032, R15-DATA-067
+- set-20: batch-6/W1-india-exchange-data [batch-6] (1) R15-DATA-017
+- set-21: batch-6/W2-delegate-runs-runtime [batch-6] (1) R15-LEAD-014
+- set-22: batch-6/W3-unattended-platform-chart [batch-6] (5) R15-LEAD-012, R15-AGENT-052, R15-AGENT-051, R15-CODE-FRONTEND-015, R15-UI-021
+- set-23: batch-6/W4-research-funnel [batch-6] (5) R15-CODE-RESEARCH-002, R15-RESEARCH-017, R15-RESEARCH-018, R15-RESEARCH-012, R15-RESEARCH-016
+- set-24: batch-6/W5-host-actions-portfolio [batch-6] (9) R15-CODE-FRONTEND-011, R15-CODE-FRONTEND-007, R15-CODE-FRONTEND-009, R15-CODE-FRONTEND-010, R15-AGENT-042, R15-DATA-088, R15-CODE-FRONTEND-012, R15-DATA-089, R15-CODE-PLATFORM-022
+- set-25: batch-7/W1-india-exchange-data [batch-7] (7) R15-DATA-027, R15-DATA-014, R15-DATA-076, R15-LEAD-004, R15-DATA-050, R15-DATA-060, R15-LEAD-015
+- set-26: batch-7/W2-delegate-runs-runtime [batch-7] (12) R15-CODE-AGENT-010, R15-AGENT-034, R15-AGENT-037, R15-AGENT-038, R15-AGENT-074, R15-AGENT-036, R15-AGENT-035, R15-LIFECYCLE-013, R15-LIFECYCLE-012, R15-UI-040, R15-CODE-AGENT-011, R15-AGENT-039
+- set-27: batch-7/W3-unattended-chart-workspace [batch-7] (10) R15-AGENT-023, R15-CODE-PLATFORM-018, R15-UI-020, R15-UI-023, R15-UI-031, R15-CODE-FRONTEND-017, R15-UI-026, R15-CODE-FRONTEND-019, R15-DATA-090, R15-UI-046
+- set-28: batch-7/W4-research-funnel [batch-7] (11) R15-RESEARCH-019, R15-DATA-075, R15-RESEARCH-033, R15-RESEARCH-023, R15-RESEARCH-038, R15-RESEARCH-024, R15-UI-038, R15-RESEARCH-020, R15-RESEARCH-021, R15-UI-092, R15-RESEARCH-026
+- set-29: batch-7/W5-agent-writes-portfolio [batch-7] (9) R15-AGENT-041, R15-AGENT-032, R15-UI-017, R15-AGENT-043, R15-AGENT-044, R15-UI-034, R15-UI-035, R15-UI-036, R15-UI-037
+- set-30: batch-8/W1-sidecar-lifecycle-transport [batch-8] (7) R15-UI-012, R15-UI-014, R15-CODE-PLATFORM-011, R15-RESEARCH-032, R15-LIFECYCLE-011, R15-LIFECYCLE-010, R15-LIFECYCLE-023
+- set-31: batch-8/W2-provider-readiness-host-actions [batch-8] (9) R15-UI-013, R15-AGENT-028, R15-UI-057, R15-UI-019, R15-UI-049, R15-CODE-AGENT-006, R15-AGENT-056, R15-AGENT-055, R15-AGENT-081
+- set-32: batch-8/W3-data-error-honesty [batch-8] (6) R15-AGENT-061, R15-AGENT-030, R15-LEAD-005, R15-DATA-081, R15-UI-030, R15-UI-029
+- set-33: batch-8/W4-resolver-exchange-lanes [batch-8] (11) R15-CODE-DATA-003, R15-UI-039, R15-DATA-051, R15-DATA-058, R15-CODE-DATA-002, R15-LIFECYCLE-019, R15-LIFECYCLE-022, R15-AGENT-045, R15-DATA-084, R15-DATA-085, R15-DATA-086
+- set-34: batch-8/W5-agent-runtime-research [batch-8] (6) R15-CODE-AGENT-004, R15-LEAD-019, R15-CODE-AGENT-007, R15-CODE-AGENT-016, R15-LIFECYCLE-014, R15-CODE-RESEARCH-003
+- set-35: batch-9/W1-agent-runtime [batch-9] (5) R15-AGENT-046, R15-CODE-AGENT-008, R15-RESEARCH-027, R15-CODE-AGENT-005, R15-LIFECYCLE-025
+- set-36: batch-9/W2-research-search-news [batch-9] (4) R15-LIFECYCLE-018, R15-DATA-094, R15-UI-033, R15-CROSS-PLATFORM-002
+- set-37: batch-9/W3-fundamentals-identity-earnings [batch-9] (6) R15-LEAD-022, R15-LEAD-023, R15-DATA-052, R15-LEAD-016, R15-DATA-069, R15-UI-015
+- set-38: batch-9/W4-market-lanes-errors-quant [batch-9] (7) R15-DATA-066, R15-DATA-062, R15-LIFECYCLE-021, R15-UI-053, R15-DATA-065, R15-DATA-073, R15-UI-051
+- set-39: batch-9/W5-frontend-shell [batch-9] (7) R15-UI-016, R15-CODE-FRONTEND-016, R15-UI-086, R15-CROSS-PLATFORM-004, R15-UI-058, R15-DATA-092, R15-UI-052
+- set-40: batch-10/W1-runtime-backtest [batch-10] (6) R15-AGENT-050, R15-LEAD-018, R15-CODE-PLATFORM-029, R15-LIFECYCLE-015, R15-UI-010, R15-UI-011
+- set-41: batch-10/W2-catalog-hostactions [batch-10] (4) R15-CODE-AGENT-013, R15-RESEARCH-030, R15-AGENT-084, R15-CODE-PLATFORM-021
+- set-42: batch-10/W3-fundamentals-bse-cache [batch-10] (7) R15-DATA-048, R15-DATA-054, R15-DATA-055, R15-DATA-053, R15-DATA-096, R15-DATA-068, R15-LEAD-024
+- set-43: batch-10/W4-screener-routes-statedocs [batch-10] (5) R15-DATA-087, R15-CROSS-PLATFORM-003, R15-RESEARCH-025, R15-DATA-095, R15-DOCS-016
+- set-44: batch-10/W5-chat-search-workflow [batch-10] (7) R15-AGENT-082, R15-AGENT-088, R15-UI-027, R15-RESEARCH-028, R15-AGENT-063, R15-CODE-PLATFORM-017, R15-CODE-RESEARCH-004
+- set-45: batch-10/W6-chart-notes-blueprint [batch-10] (4) R15-UI-048, R15-LEAD-026, R15-UI-024, R15-DOCS-004
+- set-46: batch-10/W7-panels-marketplace [batch-10] (5) R15-AGENT-053, R15-UI-032, R15-UI-028, R15-UI-018, R15-DATA-077
+- set-47: batch-10/W8-plugins-dock [batch-10] (2) R15-CODE-PLATFORM-012, R15-AGENT-057
+- set-48: batch-11/W1-scripts-build [batch-11] (5) R15-CODE-PLATFORM-026, R15-RELEASE-006, R15-RELEASE-005, R15-CODE-PLATFORM-028, R15-CODE-PLATFORM-027
+- set-49: batch-11/W2-runtime-schema [batch-11] (1) R15-CODE-AGENT-009
+- set-50: batch-11/W3-agent-eval [batch-11] (1) R15-AGENT-007
+- set-51: batch-11/W4-registry-loop [batch-11] (2) R15-LIFECYCLE-026, R15-DATA-071
+- set-52: batch-11/W5-data-reference [batch-11] (1) R15-LEAD-013
+- set-53: batch-11/W6-options-chain [batch-11] (1) R15-DATA-079
+- set-54: batch-11/W7-preferences [batch-11] (1) R15-UI-087
+- set-55: batch-11/W8-frontend-visual [batch-11] (4) R15-UI-085, R15-UI-091, R15-CODE-PLATFORM-023, R15-CODE-PLATFORM-025
+- set-56: lows-P1/agent-runtime [lows-P1] (8) R15-AGENT-071, R15-AGENT-073, R15-AGENT-089, R15-CODE-AGENT-018, R15-CODE-PLATFORM-076, R15-CODE-AGENT-017, R15-CODE-AGENT-029, R15-DOCS-009
+- set-57: lows-P1/agent-tools [lows-P1] (1) R15-AGENT-091
+- set-58: lows-P1/agent-tools-catalog-ledger [lows-P1] (5) R15-AGENT-070, R15-AGENT-066, R15-AGENT-067, R15-CODE-AGENT-026, R15-DOCS-019
+- set-59: lows-P1/backtest [lows-P1] (6) R15-AGENT-079, R15-CODE-PLATFORM-036, R15-CODE-PLATFORM-034, R15-CODE-PLATFORM-035, R15-UI-060, R15-UI-061
+- set-60: lows-P1/frontend-panels-agent-shell [lows-P1] (1) R15-UI-093
+- set-61: lows-P1/frontend-panels-shell-chrome [lows-P1] (3) R15-UI-075, R15-CODE-PLATFORM-070, R15-DOCS-007
+- set-62: lows-P1/frontend-stores [lows-P1] (1) R15-AGENT-087
+- set-63: lows-P1/host-actions-proposed-changes [lows-P1] (3) R15-CODE-FRONTEND-034, R15-CODE-FRONTEND-035, R15-RESEARCH-041
+- set-64: lows-P1/llm-adapters [lows-P1] (1) R15-DOCS-014
+- set-65: lows-P1/mcp-servers [lows-P1] (1) R15-CROSS-PLATFORM-008
+- set-66: lows-P1/plugins [lows-P1] (3) R15-CODE-PLATFORM-049, R15-UI-089, R15-DOCS-022
+- set-67: lows-P1/portfolio [lows-P1] (5) R15-UI-078, R15-CODE-PLATFORM-050, R15-CODE-PLATFORM-051, R15-CODE-PLATFORM-052, R15-UI-079
+- set-68: lows-P1/research-depth-iter-deep [lows-P1] (3) R15-CODE-RESEARCH-005, R15-CODE-RESEARCH-006, R15-RESEARCH-035
+- set-69: lows-P1/research-extraction-synthesis [lows-P1] (2) R15-RESEARCH-042, R15-RESEARCH-040
+- set-70: lows-P1/runs-durable-delegate [lows-P1] (3) R15-CODE-AGENT-031, R15-CODE-AGENT-032, R15-DOCS-021
+- set-71: lows-P1/rust-core [lows-P1] (11) R15-CODE-PLATFORM-055, R15-CODE-PLATFORM-054, R15-CODE-PLATFORM-058, R15-CODE-PLATFORM-059, R15-CODE-PLATFORM-056, R15-CODE-PLATFORM-057, R15-CROSS-PLATFORM-011, R15-LIFECYCLE-037, R15-CODE-PLATFORM-074, R15-LIFECYCLE-038, R15-CODE-PLATFORM-060
+- set-72: lows-P1/scripts-build [lows-P1] (3) R15-RELEASE-009, R15-RELEASE-010, R15-DOCS-023
+- set-73: lows-P1/workflow-engine [lows-P1] (1) R15-DOCS-020
+- set-74: lows-P1/workspace-layout [lows-P1] (2) R15-CROSS-PLATFORM-007, R15-UI-076
+- set-75: lows-P2/agent-runtime [lows-P2] (1) R15-AGENT-072
+- set-76: lows-P2/agent-tools-catalog-ledger [lows-P2] (6) R15-CODE-AGENT-028, R15-CODE-AGENT-027, R15-CODE-AGENT-014, R15-AGENT-068, R15-CODE-AGENT-015, R15-DATA-101
+- set-77: lows-P2/disclosures-witnesses [lows-P2] (1) R15-CODE-DATA-007
+- set-78: lows-P2/frontend-panels-agent-shell [lows-P2] (1) R15-CODE-FRONTEND-022
+- set-79: lows-P2/frontend-panels-shell-chrome [lows-P2] (7) R15-UI-081, R15-CODE-FRONTEND-025, R15-LIFECYCLE-029, R15-CROSS-PLATFORM-009, R15-DOCS-006, R15-LEAD-027, R15-LIFECYCLE-028
+- set-80: lows-P2/frontend-stores [lows-P2] (5) R15-CODE-FRONTEND-026, R15-CODE-FRONTEND-029, R15-CODE-FRONTEND-027, R15-CODE-FRONTEND-030, R15-CODE-FRONTEND-028
+- set-81: lows-P2/fundamentals-profile [lows-P2] (4) R15-LIFECYCLE-030, R15-LIFECYCLE-031, R15-LIFECYCLE-032, R15-LEAD-020
+- set-82: lows-P2/lifecycle-upgrade [lows-P2] (1) R15-CODE-PLATFORM-077
+- set-83: lows-P2/llm-adapters [lows-P2] (2) R15-CODE-AGENT-019, R15-CODE-AGENT-021
+- set-84: lows-P2/market-data-providers-1 [lows-P2] (5) R15-LEAD-017, R15-CODE-DATA-008, R15-CODE-DATA-010, R15-DATA-104, R15-CODE-DATA-013
+- set-85: lows-P2/market-data-providers-2 [lows-P2] (2) R15-AGENT-069, R15-LIFECYCLE-033
+- set-86: lows-P2/mcp-servers [lows-P2] (4) R15-CODE-AGENT-022, R15-CODE-AGENT-023, R15-CODE-AGENT-025, R15-CODE-AGENT-024
+- set-87: lows-P2/plugins [lows-P2] (1) R15-UI-065
+- set-88: lows-P2/research-extraction-synthesis [lows-P2] (4) R15-CODE-RESEARCH-007, R15-RESEARCH-036, R15-CODE-RESEARCH-011, R15-CODE-RESEARCH-008
+- set-89: lows-P2/research-retrieval-relevance [lows-P2] (2) R15-LIFECYCLE-034, R15-LIFECYCLE-035
+- set-90: lows-P2/screener [lows-P2] (5) R15-CODE-DATA-019, R15-CODE-DATA-020, R15-DATA-107, R15-DATA-108, R15-LEAD-029
+- set-91: lows-P2/scripts-build [lows-P2] (8) R15-CODE-PLATFORM-061, R15-CODE-PLATFORM-062, R15-LIFECYCLE-039, R15-RELEASE-008, R15-CROSS-PLATFORM-010, R15-RELEASE-011, R15-DOCS-012, R15-CODE-PLATFORM-064
+- set-92: lows-P2/workspace-layout [lows-P2] (4) R15-CODE-FRONTEND-036, R15-AGENT-078, R15-CODE-FRONTEND-037, R15-UI-070
+- set-93: lows-P3/backtest [lows-P3] (1) R15-UI-062
+- set-94: lows-P3/disclosures-witnesses [lows-P3] (2) R15-CODE-DATA-021, R15-DOCS-013
+- set-95: lows-P3/error-layer [lows-P3] (5) R15-CODE-PLATFORM-039, R15-LIFECYCLE-027, R15-RESEARCH-031, R15-CODE-PLATFORM-038, R15-LEAD-021
+- set-96: lows-P3/frontend-panels-agent-shell [lows-P3] (2) R15-CODE-FRONTEND-021, R15-UI-072
+- set-97: lows-P3/frontend-panels-data-surfaces [lows-P3] (6) R15-DATA-109, R15-CODE-FRONTEND-023, R15-UI-064, R15-CODE-FRONTEND-024, R15-CROSS-PLATFORM-006, R15-DOCS-010
+- set-98: lows-P3/frontend-panels-shell-chrome [lows-P3] (3) R15-UI-067, R15-UI-074, R15-UI-066
+- set-99: lows-P3/fundamentals-profile [lows-P3] (5) R15-CODE-DATA-022, R15-DATA-103, R15-DATA-102, R15-UI-094, R15-CODE-DATA-011
+- set-100: lows-P3/host-actions-proposed-changes [lows-P3] (1) R15-CODE-FRONTEND-032
+- set-101: lows-P3/llm-adapters [lows-P3] (6) R15-CODE-PLATFORM-044, R15-CODE-AGENT-030, R15-CODE-AGENT-020, R15-AGENT-077, R15-AGENT-076, R15-AGENT-075
+- set-102: lows-P3/macro-quant [lows-P3] (8) R15-CODE-PLATFORM-040, R15-CODE-PLATFORM-041, R15-CODE-PLATFORM-042, R15-UI-063, R15-UI-077, R15-DATA-098, R15-CODE-PLATFORM-043, R15-DATA-099
+- set-103: lows-P3/market-data-providers-1 [lows-P3] (1) R15-CODE-DATA-009
+- set-104: lows-P3/market-data-providers-2 [lows-P3] (2) R15-DATA-105, R15-CODE-DATA-012
+- set-105: lows-P3/market-data-providers-3 [lows-P3] (3) R15-CODE-DATA-014, R15-CODE-DATA-015, R15-CODE-DATA-016
+- set-106: lows-P3/plugins [lows-P3] (2) R15-CODE-PLATFORM-047, R15-CODE-PLATFORM-048
+- set-107: lows-P3/research-extraction-synthesis [lows-P3] (1) R15-UI-080
+- set-108: lows-P3/research-retrieval-relevance [lows-P3] (5) R15-CODE-RESEARCH-009, R15-RESEARCH-039, R15-CODE-RESEARCH-010, R15-CODE-RESEARCH-012, R15-DATA-111
+- set-109: lows-P3/resolver [lows-P3] (3) R15-LIFECYCLE-036, R15-CODE-DATA-017, R15-DATA-106
+- set-110: lows-P3/screener [lows-P3] (1) R15-UI-069
+- set-111: lows-P3/sidecar/fundamentals [lows-P3] (1) R15-LEAD-006
+- set-112: lows-P3/workflow-engine [lows-P3] (6) R15-CODE-PLATFORM-065, R15-CODE-PLATFORM-075, R15-CODE-PLATFORM-066, R15-CODE-PLATFORM-067, R15-CODE-PLATFORM-068, R15-CODE-PLATFORM-069
+- set-113: lows-remaining/agent-tools [lows-remaining] (1) R15-LEAD-036
+- set-114: lows-remaining/frontend-panels-shell-chrome [lows-remaining] (3) R15-UI-073, R15-UI-071, R15-UI-068
+- set-115: lows-remaining/host-actions-proposed-changes [lows-remaining] (1) R15-CODE-FRONTEND-033
+- set-116: lows-remaining/rust-core [lows-remaining] (1) R15-CROSS-PLATFORM-012
+- set-117: lows-remaining/workspace-layout [lows-remaining] (1) R15-UI-082
+- set-118: unplanned-1 [unplanned] (1) R15-CODE-AGENT-033
+- set-119: unplanned-2 [unplanned] (3) R15-AGENT-092, R15-AGENT-093, R15-AGENT-094
+- set-120: unplanned-3 [unplanned] (3) R15-AGENT-095, R15-LEAD-031, R15-LEAD-032
+- set-121: unplanned-4 [unplanned] (1) R15-CODE-PLATFORM-030
+- set-122: unplanned-5 [unplanned] (1) R15-DATA-113
+- set-123: unplanned-6 [unplanned] (1) R15-LEAD-051
+- set-124: unplanned-7 [unplanned] (1) R15-DOCS-005
+- set-125: unplanned-8 [unplanned] (1) R15-LEAD-033
+- set-126: unplanned-9 [unplanned] (1) R15-DATA-117
+- set-127: unplanned-10 [unplanned] (2) R15-LEAD-034, R15-LEAD-039
+- set-128: unplanned-11 [unplanned] (1) R15-AGENT-096
+- set-129: unplanned-12 [unplanned] (2) R15-LEAD-043, R15-RESEARCH-010
+- set-130: unplanned-13 [unplanned] (1) R15-DATA-115
+- set-131: unplanned-14 [unplanned] (5) R15-DATA-078, R15-DOCS-018, R15-LEAD-010, R15-LEAD-044, R15-LEAD-045
+- set-132: unplanned-15 [unplanned] (1) R15-DATA-116
+- set-133: unplanned-16 [unplanned] (1) R15-CODE-AGENT-034
+- set-134: unplanned-17 [unplanned] (1) R15-DATA-114
+- set-135: unplanned-18 [unplanned] (2) R15-CODE-PLATFORM-013, R15-CODE-PLATFORM-014
+- set-136: unplanned-19 [unplanned] (1) R15-LEAD-050
+- set-137: unplanned-20 [unplanned] (5) R15-LEAD-028, R15-LEAD-040, R15-LEAD-049, R15-LEAD-059, R15-LEAD-116
+- set-138: unplanned-21 [unplanned] (1) R15-CODE-PLATFORM-024
+- set-139: unplanned-22 [unplanned] (3) R15-CODE-DATA-023, R15-DATA-112, R15-DOCS-017
+- set-140: unplanned-23 [unplanned] (1) R15-RELEASE-007
+- set-141: unplanned-24 [unplanned] (1) R15-LEAD-048

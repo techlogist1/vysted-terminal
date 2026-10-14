@@ -1,0 +1,10 @@
+[
+ {
+  "role": "user",
+  "content": "What is AAPL's market cap?"
+ },
+ {
+  "role": "assistant",
+  "content": "We couldn't retrieve AAPL's market cap due to a provider error (yfinance fundamentals being rate-limited). The terminal's data does not include the current market capitalization of AAPL.\n\n[tool steps: Using fundamentals]"
+ }
+]

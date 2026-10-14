@@ -1,0 +1,17 @@
+=== R15-LEAD-002: timing test /fundamentals/TCS with X-Vysted-Region: IN ===
+--- call 1 ---
+http_code=200 time_total=15.735009
+--- call 2 (should hit ownership witness cache) ---
+http_code=200 time_total=1.111941
+--- call 3 ---
+http_code=200 time_total=1.066954
+860:_WITNESS_TTL_SECONDS = fundamentals_store.TTL_V7_SECONDS
+871:async def _cached_witness(kind: str, symbol: str, fetch: Callable[[], Awaitable[Any]]) -> Any:
+873:    :data:`_WITNESS_TTL_SECONDS`. A failed or empty fetch (``None``) is not
+878:    if hit is not None and now - hit[0] < _WITNESS_TTL_SECONDS:
+977:    ``None`` so :func:`_cached_witness` does not keep it."""
+1007:    Each fetched input is reused per listing for :data:`_WITNESS_TTL_SECONDS`
+1021:        return await _cached_witness(
+1028:        return await _cached_witness(kind, f.symbol, lambda: _statement_witness(fn, f.symbol))
+1033:        return await _cached_witness("dividends", f.symbol, lambda: _dividend_witness(f.symbol))
+1038:        return await _cached_witness(

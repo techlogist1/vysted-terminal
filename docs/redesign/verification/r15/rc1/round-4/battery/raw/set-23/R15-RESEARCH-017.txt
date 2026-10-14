@@ -1,0 +1,30 @@
+heavy research loop raised
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1b9_research017c.py", line 83, in main
+    brief2 = await iter_research.run_heavy_research(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/services/research/iter.py", line 990, in run_heavy_research
+    floor = await _disclosures.gather_floor(tool_call, target=target)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py", line 2340, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1b9_research017c.py", line 41, in boom
+    raise RuntimeError("rc1b9 injected: heavy prologue gather_floor failed")
+RuntimeError: rc1b9 injected: heavy prologue gather_floor failed
+{
+  "elapsed_s": 2.6,
+  "ESCAPED_run_heavy_research_itself": true,
+  "exc_type": "RuntimeError",
+  "exc": "rc1b9 injected: heavy prologue gather_floor failed"
+}
+{
+  "elapsed_s": 0.2,
+  "USER_FACING_run_loop_equivalent": true,
+  "result_type": "<class 'dict'>",
+  "ok": false,
+  "message": "Deep research could not finish \u2014 the heavy research loop failed: RuntimeError: rc1b9 injected: heavy prologue gather_floor failed.",
+  "degraded_reason": "the heavy research loop failed: RuntimeError: rc1b9 injected: heavy prologue gather_floor failed"
+}

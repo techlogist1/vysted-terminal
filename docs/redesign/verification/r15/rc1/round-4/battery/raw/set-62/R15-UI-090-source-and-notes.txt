@@ -1,0 +1,57 @@
+=== NOT full original repro window: today (2026-09-27) is Sunday 02:01 IST, no exchange open anywhere; cert's live repro was Friday 11:07 IST during NSE hours ===
+=== live probe: freshness identical across X-Vysted-Region IN vs US for both NSEI (India index) and AAPL (US) -> region-header-independent, consistent with source fix ===
+=== source verification (the actual fix) ===
+from services.locale import freshness_for, instrument_region
+
+router = APIRouter(prefix="/quotes", tags=["quotes"])
+
+
+def _label_freshness(quote: Quote, asset_class: str) -> Quote:
+    """Stamp the calendar-aware staleness label on a quote (FR-041 / SC-019).
+
+    A quote already passed the provider correctness gate, so it is never
+    fabricated; this adds the live/eod/stale label the UI badges so a legitimate
+    weekend/holiday close is not mistaken for a live tick and a genuinely stale
+    value is shown as stale, never as live. Crypto trades 24/7, so a fresh fetch
+    is always ``live``; equity/ETF freshness is read against the trading calendar
+    of the instrument's own exchange, not the session region (R15-UI-090).
+    """
+    if asset_class == "crypto":
+        quote.freshness = "live"
+        return quote
+    try:
+        region = instrument_region(quote.symbol, quote.provider)
+        quote.freshness = freshness_for(region, quote.timestamp.date(), intraday=True).state
+    except Exception:  # noqa: BLE001 — a label failure must never drop the quote
+        quote.freshness = None
+    return quote
+--- freshness_for (services/locale.py) ---
+def freshness_for(
+    region: str,
+    as_of: date | None,
+    *,
+    intraday: bool,
+    now: datetime | None = None,
+) -> Freshness:
+    """Classify a value's freshness against ``region``'s trading calendar.
+
+    ``intraday`` data taken while the market is open is ``live``; otherwise a
+    value dated to the most-recent session is ``eod`` (normal T+1), and anything
+    older than that by more than the tolerance is ``stale``.
+    """
+    recent = most_recent_session(region, now)
+    if as_of is None:
+        return Freshness("eod", None, True, "no timestamp on the served value")
+    if intraday and is_market_open(region, now) and as_of >= recent:
+        return Freshness("live", as_of, False, "intraday, market open")
+    lag_sessions = trading_sessions_between(as_of, recent, region)
+    if lag_sessions > _STALE_REJECT_SESSIONS:
+        return Freshness(
+            "stale",
+            as_of,
+            True,
+            f"value dated {as_of.isoformat()} is {lag_sessions} sessions behind the "
+            f"last {region} session ({recent.isoformat()})",
+        )
+    return Freshness("eod", as_of, as_of < recent, f"end-of-day close for {as_of.isoformat()}")
+

@@ -1,0 +1,11 @@
+# R15-LIFECYCLE-034 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:39+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p_lows.py lc34 2>&1 | grep -v Warning | grep -v '^  ' | tail -6
+--- output ---
+LOG services.searxng_manager ERROR searxng guided setup failed
+Traceback (most recent call last):
+OSError: [Errno 28] No space left on device
+LC034 state error | reason setup failed: [Errno 28] No space left on device | last_error setup failed: [Errno 28] No space left on device
+logger used in module: ok
+
+EXIT=0 (0.2s)

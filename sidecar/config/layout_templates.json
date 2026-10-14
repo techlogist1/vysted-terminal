@@ -1,0 +1,19 @@
+{
+  "_comment": "The agent's arrange_layout templates: SINGLE SOURCE for which panels each template places. src/lib/layout-templates.ts builds each plan's panel list from this file (positions stay in TS) and services/agent_tools/catalog.py builds the arrange_layout description and pattern enum from it, so the tool never promises a panel the host does not place. Panel roles are the arrangeable panel names in layout-templates.ts (ARRANGEABLE). R15-AGENT-055.",
+  "single-focus": {
+    "panels": ["chart"],
+    "summary": "the chart alone, maximised: a quick look"
+  },
+  "research-cockpit": {
+    "panels": ["chart", "equity-overview", "brief", "news"],
+    "summary": "the chart beside the company overview, the research brief and news: the flagship deep dive"
+  },
+  "compare": {
+    "panels": ["chart"],
+    "summary": "one maximised chart with the second ticker overlaid on it; pass two tickers as `symbols`"
+  },
+  "macro-scan": {
+    "panels": ["macro", "chart", "screener"],
+    "summary": "the macro panel with the chart beside it and the screener below: a market overview"
+  }
+}

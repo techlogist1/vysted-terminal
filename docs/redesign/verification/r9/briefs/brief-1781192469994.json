@@ -1,0 +1,36 @@
+{
+ "query": "",
+ "mode": "FAST",
+ "depth": "quick",
+ "markdown": "## Reliance Industries ($RELIANCE.NS) \u2014 Research Brief\n\n**As of 11 June 2026 (market closed)**\n\n### Latest Price\n\n| Metric | Value |\n|--------|-------|\n| Last traded (NSE) | **\u20b91,263.00** |\n| Change | +\u20b94.20 (+0.33%) |\n| Volume | 13.1M shares |\n| 52-week range | \u20b91,253 \u2013 \u20b91,612 |\n| YTD change | ~-10% |\n\nThe stock closed modestly higher today (+0.33%) after touching a fresh 52-week low of \u20b91,253.2 intraday \u2014 it's now just ~1% off the bottom. The broader downtrend from the Feb high of ~\u20b91,489 has been persistent, with the stock losing ~15% over the past 4 months.\n\n### Key Fundamentals\n\n| Metric | Value |\n|--------|-------|\n| Market Cap | **\u20b917.1 lakh crore** ($205B) |\n| P/E (TTM) | **21.2x** |\n| Forward P/E | **17.5x** |\n| P/B | **1.89x** |\n| EV/EBITDA | **11.8x** |\n| EPS (TTM) | \u20b959.67 |\n| Revenue (TTM) | \u20b910.6T (+12.5% YoY) |\n| Net Income (TTM) | \u20b980,775 Cr (-12.6% YoY) |\n| ROE | **9.1%** |\n| Debt/Equity | **0.37** |\n| Dividend Yield | **0.48%** (\u20b96/share) |\n| Beta | **0.18** |\n\n### Recent Developments\n\n- **\ud83e\udd1d Reliance + Meta AI Data Centre** (Jun 10): Reliance announced a partnership with Meta to develop an AI-enabled data centre in Jamnagar, Gujarat \u2014 a significant step in the Jio-AI ecosystem play [source].\n- **\ud83d\udcc9 Earnings pressure**: Net income declined 12.6% YoY despite 12.5% revenue growth, reflecting margin compression in the O2C (oil-to-chemicals) segment.\n- **\ud83d\udcca Institutional engagement**: Reliance executives participated in the ICICI Securities India Investor Conference 2026 on June 9, with no price-sensitive information shared [source].\n\n### Technical Picture\n\n- **Trend**: Bearish \u2014 trading below all key moving averages (20, 50, 200 DMA). The stock has been in a descending channel since February 2026.\n- **Support**: \u20b91,253 (fresh 52-week low hit today). A break below opens \u20b91,200.\n- **Resistance**: \u20b91,320 (recent swing high), then \u20b91,360 (50 DMA zone).\n- **RSI**: Oversold territory (~32) \u2014 could see a bounce, but the trend remains weak.\n- **MACD**: Below signal line, negative histogram \u2014 bearish momentum intact.\n\n### Valuation Context\n\nAt 21.2x trailing earnings and 17.5x forward, Reliance trades at a discount to its 5-year average P/E of ~25x. The PEG ratio of 0.82x suggests the stock is undervalued relative to its growth rate \u2014 but that growth is currently under pressure from O2C margin headwinds. The retail (JioMart) and digital (Jio) segments continue to scale, and the AI data centre push with Meta adds a new growth vector.\n\n### Key Risks\n\n1. **O2C margin compression** \u2014 global refining margins remain soft\n2. **Jio ARPU stagnation** \u2014 tariff hike timing uncertain\n3. **Regulatory risk** \u2014 telecom and energy sector policy shifts\n4. **52-week low proximity** \u2014 technical breakdown risk if \u20b91,253 fails\n\n### Bottom Line\n\nReliance is a high-quality conglomerate trading at a reasonable valuation with a strong balance sheet (D/E 0.37). The near-term headwinds are real \u2014 earnings are down, the chart is weak, and the stock is testing its 52-week low. But the long-term thesis (Jio + Retail + AI infra) remains intact. For patient investors, the current level offers a decent entry near the bottom of the valuation range. Watch for a close above \u20b91,320 to confirm a short-term reversal.\n\n---\n\n*Click any $TICKER above to load its chart. Want a deeper dive on any angle?*",
+ "sources": [
+  {
+   "url": "vysted://price/RELIANCE.NS",
+   "title": "Vysted price snapshot \u2014 RELIANCE.NS (NSE direct)",
+   "excerpt": "Live price data from NSE direct feed"
+  },
+  {
+   "url": "vysted://fundamentals/RELIANCE.NS",
+   "title": "Vysted fundamentals snapshot \u2014 RELIANCE.NS (Yahoo Finance)",
+   "excerpt": "Fundamental ratios and profile"
+  },
+  {
+   "url": "vysted://news/RELIANCE.NS",
+   "title": "Vysted news pull \u2014 RELIANCE.NS",
+   "excerpt": "Recent news headlines"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/kavinavora_10062026083811_SE_10062026.pdf",
+   "title": "Reliance and Meta to Develop AI-Enabled Data Centre in Jamnagar, Gujarat",
+   "excerpt": "Media release dated June 10, 2026"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/kavinavora_09062026194521_SE_09062026.pdf",
+   "title": "Institutional Investors' Meeting \u2014 ICICI Securities India Investor Conference 2026",
+   "excerpt": "Company update dated June 9, 2026"
+  }
+ ],
+ "sourceCount": 5,
+ "webAvailable": true,
+ "createdAt": 1781192469994
+}

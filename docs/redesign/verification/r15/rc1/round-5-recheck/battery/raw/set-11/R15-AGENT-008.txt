@@ -1,0 +1,69 @@
+CMD: .venv/bin/python3 -c 'measure agent schema+prompt token budget for copilot'
+num_tools: 55
+tool_schema_chars: 41643
+system_prompt_chars: 11512
+approx_tok_schemas: 10410
+approx_tok_prompt: 2878
+EXIT_CODE: 0
+ollama num_ctx line: 55:DEFAULT_NUM_CTX = 16384
+135:        return DEFAULT_NUM_CTX
+158:        request_options.setdefault("num_ctx", DEFAULT_NUM_CTX)
+
+--- LIVE CONFIRMATION: vy.py invoke copilot 'Screen nse-all for stocks with P/E under 15 and tell me the top names' --port 52345 --provider ollama --model llama3.1:8b --autonomy auto (candidate 949c3c9f) ---
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  60.0s] heartbeat: {"kind": "heartbeat"}
+[  69.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "name": "screener_run", "input": {"universe": "nse-all", "criteria": [{"field": "pe_ratio", "operator": "lt", "value": 15}]}}
+[  69.3s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: NSE (all listed): 3,506 symbols", "latency_ms": null, "status": "ok", "index": 1}
+[  69.3s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: prefilter kept 1,488 of 3,506", "latency_ms": null, "status": "ok", "index": 2}
+[  69.5s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 20/270", "latency_ms": null, "status": "ok", "index": 3}
+[  69.5s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 70/270", "latency_ms": null, "status": "ok", "index": 4}
+[  69.6s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 120/270", "latency_ms": null, "status": "ok", "index": 5}
+[  69.6s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 170/270", "latency_ms": null, "status": "ok", "index": 6}
+[  69.6s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 220/270", "latency_ms": null, "status": "ok", "index": 7}
+[  69.6s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: sweeping quotes 270/270", "latency_ms": null, "status": "ok", "index": 8}
+[  76.8s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 25/270", "latency_ms": null, "status": "ok", "index": 9}
+[  82.7s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 50/270", "latency_ms": null, "status": "ok", "index": 10}
+[  88.8s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 75/270", "latency_ms": null, "status": "ok", "index": 11}
+[  94.7s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 100/270", "latency_ms": null, "status": "ok", "index": 12}
+[ 100.3s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 125/270", "latency_ms": null, "status": "ok", "index": 13}
+[ 100.7s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 150/270", "latency_ms": null, "status": "ok", "index": 14}
+[ 100.7s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 175/270", "latency_ms": null, "status": "ok", "index": 15}
+[ 100.7s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 200/270", "latency_ms": null, "status": "ok", "index": 16}
+[ 100.7s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 225/270", "latency_ms": null, "status": "ok", "index": 17}
+[ 100.7s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 250/270", "latency_ms": null, "status": "ok", "index": 18}
+[ 102.6s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: retrying misses 270/270", "latency_ms": null, "status": "ok", "index": 19}
+[ 102.6s] research_step: {"kind": "research_step", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "tool": "screener_run", "step_kind": "tool", "detail": "screener: evaluating 1,488 candidates", "latency_ms": null, "status": "ok", "index": 20}
+[ 102.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_4424cfcdf90a4e82a4bd5e303bbaa279", "name": "screener_run", "ok": true, "error": null}
+[ 112.7s] heartbeat: {"kind": "heartbeat"}
+[ 122.7s] heartbeat: {"kind": "heartbeat"}
+[ 140.9s] done: {"kind": "done", "usage": {"input_tokens": 5885, "output_tokens": 214, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Here are the top 50 stocks from the NSE All universe that have a P/E ratio under 15:
+
+1. SBIN.NS - State Bank of India
+2. LICI.NS - Life Insurance Corporation of India
+3. INFY.NS - Infosys Limited
+4. AXISBANK.NS - Axis Bank Limited
+5. NTPC.NS - NTPC Limited
+6. JSWSTEEL.NS - JSW Steel Limited
+7. ONGC.NS - Oil and Natural Gas Corporation Limited
+8. COALINDIA.NS - Coal India Limited
+9. POWERGRID.NS - Power Grid Corporation of India Limited
+10. HINDZINC.NS - Hindustan Zinc Limited
+
+These stocks have a P/E ratio under 15, indicating they may be undervalued based on their current stock price and earnings per share.
+
+Please note that this is not investment advice and it's always best to do your own research and consult with a financial advisor before making any investment decisions.
+
+=== ok · 140.9s · events {'heartbeat': 8, 'tool_use': 1, 'research_step': 20, 'tool_result': 1, 'delta': 213, 'done': 1} · usage in=5885 out=214 · est $0.00000 · llama3.1:8b
+EXIT_CODE: 0
+
+[exited with code 0]
+
+--- Ollama log grep for 'truncating input prompt' (candidate sidecar.log) ---
+NO MATCH (no truncation occurred)

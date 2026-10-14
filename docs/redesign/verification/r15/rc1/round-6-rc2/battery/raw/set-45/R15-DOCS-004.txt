@@ -1,0 +1,20 @@
+$ head docs/redesign/PRODUCT_DESIGN_DECISIONS.md; ls/grep design-doc-citations.test.ts
+# Vysted R4 — Product Design Decisions (the taste authority)
+
+> **SUPERSEDED (R15-DOCS-004):** §0–§7, §9, §10 describe the "Warm Graphite" palette
+> (warm near-black ramp, amber accent `#d89a4e`, Inter sans) and its specific sizing/hex
+> values. That palette was reversed twice — R6 "Pure Black" (pure-neutral ramp, OpenCode
+> peach accent `#fab283`) and R9 (Linear/Cursor-anchored scale, JetBrains Mono only) — and
+> neither reversal was recorded here. Those sections are **dead**; the current palette,
+> type, and scale authority is **`docs/redesign/VYSTED_DESIGN.md`** (colors, type, spacing
+> tokens) and **`docs/redesign/R9_DESIGN_SYSTEM.md`** (control/spacing scale). §8 and
+> §11–§16 are **still binding** — they describe structural/behavioral patterns (empty
+> states, the `DataTable`/editor/composer/palette patterns, the enforcement gate) through
+> token _names_, which the current palette still defines (see `styles/tokens.css`'s "names
+38:  it("finds zero citations of §0-7, §9, or §10", () => {
+21: * lockstep or the chart drifts (FR-030). See docs/redesign/PRODUCT_DESIGN_DECISIONS.md.
+docs/redesign/DECISIONS.md:39:## R9 — Two-tier research & reference-grade design (2026-06-11)
+docs/redesign/DECISIONS.md:43:| D26 | ROOT CAUSE of the proportion disease found and killed: the R4 numeric `--spacing-N` theme tokens redefined Tailwind spacing at HALF the standard convention for an arbitrary subset of steps — compiled reality was h-6=12px, h-7=28px, h-8=16px (h-7 taller than h-8); 1,897 call sites resolved halved, 51 standard, interleaved on every surface. R9 deletes the overrides and restores standard Tailwind semantics (1 unit = 4px) everywhere; every surface re-tunes against R9_DESIGN_SYSTEM.md.                                   | The operator's eye kept catching what R8's self-graded gate missed; the disease was structural, not taste. Standard semantics = every future contributor's muscle memory works.                                                        |
+docs/redesign/DECISIONS.md:44:| D27 | R9 type scale: ONE modular ratio (~1.2) snapped to whole px — 11/13/16/19/23/28 (six rendered sizes). Utility names kept; caption/body/panel-title share 13px and differ by weight/transform; 12/15/18/22 are dead sizes.                                                                                                                                                                                                                                                                                                               | Brief mandate (single modular scale); hierarchy below 16px via weight+color per Refactoring UI; lowest-churn mapping for ~92 token-consuming files.                                                                                    |
+docs/redesign/DECISIONS.md:45:| D28 | Research-depth heat family: NORMAL=lume #f7f7f7, DEEP=amber-400 peach #fab283, ULTRA=ember #f08a4b — white→peach→ember escalation on the composer send fill + active depth stop only. Operator's "ultra=purple" treated as example, not spec.                                                                                                                                                                                                                                                                                           | One tonal family keeps the monochrome+scarce-accent doctrine; ember is unmistakably hotter while firmly distinct from negative-red (losses).                                                                                           |
+docs/redesign/DECISIONS.md:49:## R9 preconditions (recorded at R8 close-out, 2026-06-11)

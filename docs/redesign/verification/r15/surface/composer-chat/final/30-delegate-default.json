@@ -1,0 +1,734 @@
+{
+  "mode": "default",
+  "prompt": "Summarise what Cochin Shipyard does and its current P/E.",
+  "frames": [
+    {
+      "t": 2.331,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 4.334,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 6.336,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 8.338,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 10.341,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 12.343,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 14.346,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 16.348,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 18.349,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 20.35,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 22.352,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 24.356,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 26.357,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 28.361,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 30.368,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 32.37,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 34.372,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 36.375,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 38.378,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 40.381,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 42.385,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 44.388,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 46.39,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 48.392,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 50.395,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 52.398,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 54.4,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 56.402,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 58.403,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 60.407,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 62.409,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 64.413,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 66.416,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 68.418,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 70.421,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 72.424,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 74.427,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 76.43,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 78.431,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 80.435,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 82.438,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 84.441,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 86.445,
+      "status": "running",
+      "cost": {
+        "tokens": 6524,
+        "spendUsd": 0,
+        "steps": 1
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate6,524 tok · $0.0000"
+    },
+    {
+      "t": 88.448,
+      "status": "running",
+      "cost": {
+        "tokens": 6524,
+        "spendUsd": 0,
+        "steps": 1
+      },
+      "detail": null,
+      "activity": [
+        "fundamentals"
+      ],
+      "rail": "●Vysted CopilotDelegate6,524 tok · $0.0000✕ fundamentals provider error: yfinance fundamentals rate-limited for 'COCHINSHIP.NS': Too Many Requests. Rate limited. Try after a while."
+    },
+    {
+      "t": 90.451,
+      "status": "running",
+      "cost": {
+        "tokens": 6524,
+        "spendUsd": 0,
+        "steps": 1
+      },
+      "detail": null,
+      "activity": [
+        "fundamentals"
+      ],
+      "rail": "●Vysted CopilotDelegate6,524 tok · $0.0000✕ fundamentals provider error: yfinance fundamentals rate-limited for 'COCHINSHIP.NS': Too Many Requests. Rate limited. Try after a while."
+    },
+    {
+      "t": 92.453,
+      "status": "running",
+      "cost": {
+        "tokens": 6524,
+        "spendUsd": 0,
+        "steps": 1
+      },
+      "detail": null,
+      "activity": [
+        "fundamentals"
+      ],
+      "rail": "●Vysted CopilotDelegate6,524 tok · $0.0000✕ fundamentals provider error: yfinance fundamentals rate-limited for 'COCHINSHIP.NS': Too Many Requests. Rate limited. Try after a while."
+    },
+    {
+      "t": 94.455,
+      "status": "running",
+      "cost": {
+        "tokens": 6524,
+        "spendUsd": 0,
+        "steps": 1
+      },
+      "detail": null,
+      "activity": [
+        "fundamentals"
+      ],
+      "rail": "●Vysted CopilotDelegate6,524 tok · $0.0000✕ fundamentals provider error: yfinance fundamentals rate-limited for 'COCHINSHIP.NS': Too Many Requests. Rate limited. Try after a while."
+    },
+    {
+      "t": 96.459,
+      "status": "running",
+      "cost": {
+        "tokens": 6524,
+        "spendUsd": 0,
+        "steps": 1
+      },
+      "detail": null,
+      "activity": [
+        "fundamentals"
+      ],
+      "rail": "●Vysted CopilotDelegate6,524 tok · $0.0000✕ fundamentals provider error: yfinance fundamentals rate-limited for 'COCHINSHIP.NS': Too Many Requests. Rate limited. Try after a while."
+    },
+    {
+      "t": 98.462,
+      "status": "running",
+      "cost": {
+        "tokens": 6524,
+        "spendUsd": 0,
+        "steps": 1
+      },
+      "detail": null,
+      "activity": [
+        "fundamentals"
+      ],
+      "rail": "●Vysted CopilotDelegate6,524 tok · $0.0000✕ fundamentals provider error: yfinance fundamentals rate-limited for 'COCHINSHIP.NS': Too Many Requests. Rate limited. Try after a while."
+    },
+    {
+      "t": 100.466,
+      "status": "running",
+      "cost": {
+        "tokens": 6524,
+        "spendUsd": 0,
+        "steps": 1
+      },
+      "detail": null,
+      "activity": [
+        "fundamentals"
+      ],
+      "rail": "●Vysted CopilotDelegate6,524 tok · $0.0000✕ fundamentals provider error: yfinance fundamentals rate-limited for 'COCHINSHIP.NS': Too Many Requests. Rate limited. Try after a while."
+    },
+    {
+      "t": 102.468,
+      "status": "running",
+      "cost": {
+        "tokens": 6524,
+        "spendUsd": 0,
+        "steps": 1
+      },
+      "detail": null,
+      "activity": [
+        "fundamentals"
+      ],
+      "rail": "●Vysted CopilotDelegate6,524 tok · $0.0000✕ fundamentals provider error: yfinance fundamentals rate-limited for 'COCHINSHIP.NS': Too Many Requests. Rate limited. Try after a while."
+    },
+    {
+      "t": 104.473,
+      "status": "done",
+      "cost": {
+        "tokens": 8374,
+        "spendUsd": 0,
+        "steps": 2
+      },
+      "detail": "completed",
+      "activity": [
+        "fundamentals"
+      ],
+      "rail": ""
+    }
+  ],
+  "budgetEditorText": "Budgettokens$secsteps— first breach aborts the run",
+  "finalRuns": [
+    {
+      "status": "done",
+      "detail": "completed",
+      "cost": {
+        "tokens": 8374,
+        "spendUsd": 0,
+        "steps": 2
+      },
+      "budget": {
+        "maxTokens": 120000,
+        "maxSpendUsd": 1,
+        "maxWallSeconds": 600,
+        "maxSteps": 12
+      },
+      "sidecarRunId": "18160ab86d5446a3a0e6eef81928e048",
+      "provider": "ollama"
+    }
+  ],
+  "sidecarRun": {
+    "id": "18160ab86d5446a3a0e6eef81928e048",
+    "agent_id": "copilot",
+    "agent_name": "Vysted Copilot",
+    "mode": "delegate",
+    "status": "done",
+    "cost": {
+      "tokens": 8374,
+      "spend_usd": 0,
+      "steps": 2
+    },
+    "budget": {
+      "max_tokens": 120000,
+      "max_spend_usd": 1,
+      "max_wall_seconds": 600,
+      "max_steps": 12
+    },
+    "provider": "ollama",
+    "model": "llama3.1:8b",
+    "plan": null,
+    "activity": [
+      {
+        "tool": "fundamentals",
+        "status": "error",
+        "summary": "provider error: yfinance fundamentals rate-limited for 'COCHINSHIP.NS': Too Many Requests. Rate limited. Try after a while."
+      }
+    ],
+    "detail": "completed",
+    "question": null,
+    "created_at": 1791024784,
+    "updated_at": 1791024886,
+    "transcript": [
+      {
+        "role": "user",
+        "content": "Summarise what Cochin Shipyard does and its current P/E."
+      },
+      {
+        "role": "assistant",
+        "content": "[fundamentals → provider error: yfinance fundamentals rate-limited for 'COCHINSHIP.NS': Too Many Requests. Rate limited. Try after a while.]"
+      },
+      {
+        "role": "assistant",
+        "content": "We couldn't retrieve the fundamental details for Cochin Shipyard due to rate limiting.\n\nHowever, I can suggest checking the latest news or announcements from Cochin Shipyard for any updates on their activities and operations. \n\nWould you like me to look up some recent news about Cochin Shipyard?"
+      }
+    ],
+    "checkpoint_messages": 3,
+    "answer": "We couldn't retrieve the fundamental details for Cochin Shipyard due to rate limiting.\n\nHowever, I can suggest checking the latest news or announcements from Cochin Shipyard for any updates on their activities and operations. \n\nWould you like me to look up some recent news about Cochin Shipyard?",
+    "brief": null,
+    "host_actions": []
+  },
+  "chat": [
+    {
+      "role": "user",
+      "content": "Summarise what Cochin Shipyard does and its current P/E."
+    },
+    {
+      "role": "assistant",
+      "content": "Delegated to a background run — track its cost + status in the agents rail above. It works autonomously under your budget. When it finishes, its answer lands in this chat and any changes it proposes go through the same review gate as a live reply."
+    },
+    {
+      "role": "assistant",
+      "content": "We couldn't retrieve the fundamental details for Cochin Shipyard due to rate limiting.\n\nHowever, I can suggest checking the latest news or announcements from Cochin Shipyard for any updates on their activities and operations. \n\nWould you like me to look up some recent news about Cochin Shipyard?"
+    }
+  ],
+  "proposed": [],
+  "domText": "Summarise what Cochin Shipya…YouSummarise what Cochin Shipyard does and its current P/E.Vysted CopilotDelegated to a background run — track its cost + status in the agents rail above. It works autonomously under your budget. When it finishes, its answer lands in this chat and any changes it proposes go through the same review gate as a live reply.Vysted CopilotWe couldn't retrieve the fundamental details for Cochin Shipyard due to rate limiting.However, I can suggest checking the latest news or announcements from Cochin Shipyard for any updates on their activities and operations.Would you like me to look up some recent news about Cochin Shipyard?Budgettokens$secsteps— first breach aborts the runNormalDeepUltraLlama3.1 8B"
+}

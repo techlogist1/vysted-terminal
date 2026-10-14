@@ -1,0 +1,21 @@
+# R15-LEAD-021 at ace7dd7
+$ StatusChrome sidecarError render
+  // R15-LEAD-021: a terminated engine carries a reason (panels already show
+  // it) -- the chip used to read a bare "Sidecar error" with no detail.
+  const connLabel =
+    status === "connected"
+      ? "Connected"
+      : status === "error"
+        ? sidecarError
+          ? `Sidecar error — ${sidecarError}`
+          : "Sidecar error"
+        : "Connecting…";
+
+  return (
+    <div
+      aria-label="Status"
+      className="text-charcoal-500 text-micro flex items-center gap-3 font-mono leading-none"
+$ tests
+src/components/StatusChrome.test.tsx:250:      expect(chip.title).toContain("Sidecar error");
+src/components/StatusChrome.test.tsx:257:      expect(screen.getByTitle("Sidecar: Sidecar error")).toBeInTheDocument();
+src/modules/news/NewsFeedPanel.test.tsx:165:    expect(screen.getByText("Sidecar error 502: all news sources failed")).toBeInTheDocument();

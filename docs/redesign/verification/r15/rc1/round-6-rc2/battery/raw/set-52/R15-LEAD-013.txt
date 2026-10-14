@@ -1,0 +1,31 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p013.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import json, subprocess, re, urllib.request
+d=json.load(open("services/screener_universes/sp500.json"))
+syms=d.get("symbols") or d.get("constituents") or d
+syms=[(s if isinstance(s,str) else s.get("symbol")) for s in syms]
+print("snapshot_date",d.get("snapshot_date"),"count",len(syms))
+S=set(syms)
+print("delisted still present:",[x for x in "MMC FI ANSS CTLT DAY DFS HES HOLX IPG JNPR K MRO WBA CTRA".split() if x in S])
+print("BXP/NVR/UDR present:",{x:(x in S) for x in ("BXP","NVR","UDR")})
+try:
+    req=urllib.request.Request("https://en.wikipedia.org/w/api.php?action=parse&page=List_of_S%26P_500_companies&prop=wikitext&format=json",headers={"User-Agent":"vysted-r15-battery/1.0"})
+    wt=json.load(urllib.request.urlopen(req,timeout=40))["parse"]["wikitext"]["*"]
+    live=set(re.findall(r"\{\{(?:NyseSymbol|NasdaqSymbol|nyse|nasdaq)\|([A-Z.\-]+)\}\}",wt,flags=re.I))|set(re.findall(r"^\|\s*\[\[[^\]]*\]\]\s*$",wt))
+    live={x.upper() for x in live}
+    print("wikipedia tickers parsed:",len(live))
+    if len(live)>400:
+        norm=lambda x:x.replace("-",".").upper()
+        L={norm(x) for x in live}; P={norm(x) for x in S}
+        print("in live not in pack:",sorted(L-P)); print("in pack not in live:",sorted(P-L))
+except Exception as e: print("wikipedia diff unavailable:",type(e).__name__,e)
+--- output ---
+snapshot_date 2026-09-24 count 503
+delisted still present: []
+BXP/NVR/UDR present: {'BXP': True, 'NVR': True, 'UDR': True}
+wikipedia tickers parsed: 502
+in live not in pack: []
+in pack not in live: ['CBOE']
+EXIT=0
+NOTE: the one 'in pack not in live' ticker (CBOE) is a wikitext-regex miss of my scratch parser (502 of 503 parsed); no delisted name present and BXP/NVR/UDR present.

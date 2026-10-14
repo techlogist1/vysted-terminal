@@ -1,0 +1,3 @@
+candidate ace7dd76; command: grep -n -E 'R15-UI-017' src/modules/chat/ChatSidebar.test.tsx; heavy lane runs the vitest
+671:  it("a send with no key leaves no orphaned user turn and keeps the prompt (R15-UI-017)", async () => {
+exit=0

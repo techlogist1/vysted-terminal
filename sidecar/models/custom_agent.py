@@ -23,33 +23,25 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field, field_validator
 
-#: The closed set of tool ids the host currently resolves. Mirrors the
-#: discovery contract in ``sidecar/agents/`` and the Phase-3 plan brief —
-#: keeping this list in code means the router rejects unknown tool ids at the
-#: API boundary rather than letting an invalid agent slip into the store.
-KNOWN_TOOL_IDS: frozenset[str] = frozenset(
-    {
-        "price_data",
-        "fundamentals",
-        "news",
-        "backtest_summary",
-        "macro",
-    }
-)
+from services import model_registry
+from services.agent_tools.catalog import agent_selectable_tool_ids, resolve_tool_ids
 
-#: The seven BYOK provider ids accepted in ``default_provider``. Identical to
-#: the ``LLMProviderId`` discriminated union in ``types/ai.ts``.
-KNOWN_PROVIDER_IDS: frozenset[str] = frozenset(
-    {
-        "anthropic",
-        "openai",
-        "gemini",
-        "groq",
-        "ollama",
-        "deepseek",
-        "xai",
-    }
-)
+#: The closed set of tool ids the host currently resolves — derived from the
+#: single capability catalog (:mod:`services.agent_tools.catalog`) so the
+#: Custom Agent Builder allow-list can never drift from what agents can
+#: actually call (FR-023 / SC-006: 0 unresolvable tools). Previously a stale
+#: hand-maintained set that listed ``news``/``macro`` (which were not real tool
+#: ids and never resolved) while omitting every Phase-6 tool. Every id here
+#: resolves at the host: a registered handler, a per-invocation closure, or a
+#: host action. Safety stays host-enforced regardless of selection; no trading
+#: path exists.
+KNOWN_TOOL_IDS: frozenset[str] = agent_selectable_tool_ids()
+
+#: The BYOK provider ids accepted in ``default_provider`` — derived from the
+#: single-source registry (``config/model_registry.json``) so this allow-list
+#: can never drift from the provider list the LLM layer dispatches. Mirrors the
+#: ``LLMProviderId`` discriminated union in ``types/ai.ts``.
+KNOWN_PROVIDER_IDS: frozenset[str] = frozenset(model_registry.provider_ids())
 
 #: Required prefix for every custom-agent id — prevents collisions with the
 #: 12 first-party agent ids (``buffett``, ``graham``, …) and makes the chat
@@ -63,21 +55,15 @@ class _BaseCustomAgent(BaseModel):
     @field_validator("tools", check_fields=False)
     @classmethod
     def _validate_tools(cls, tools: list[str]) -> list[str]:
-        """Reject any tool id that is not on the host's allow-list."""
-        unknown = [tool for tool in tools if tool not in KNOWN_TOOL_IDS]
+        """Resolve renamed ids to their capability, then reject any id that is
+        not on the host's allow-list. De-duplicated, in the user's order."""
+        resolved, unknown = resolve_tool_ids(tools)
+        unknown += [tool for tool in resolved if tool not in KNOWN_TOOL_IDS]
         if unknown:
             raise ValueError(
                 f"unknown tool ids: {sorted(unknown)!r}; allowed: {sorted(KNOWN_TOOL_IDS)!r}"
             )
-        # De-duplicate while preserving order — JSON serialization is more
-        # ergonomic if the order matches the user's chosen list.
-        seen: set[str] = set()
-        ordered: list[str] = []
-        for tool in tools:
-            if tool not in seen:
-                seen.add(tool)
-                ordered.append(tool)
-        return ordered
+        return resolved
 
     @field_validator("default_provider", check_fields=False)
     @classmethod

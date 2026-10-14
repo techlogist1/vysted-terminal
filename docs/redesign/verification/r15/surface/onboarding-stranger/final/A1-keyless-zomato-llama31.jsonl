@@ -1,0 +1,184 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_593e02815f7246239c29668d54d51660", "name": "market_overview", "input": {"region": "IN"}}
+{"kind": "tool_result", "tool_call_id": "call_593e02815f7246239c29668d54d51660", "name": "market_overview", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Market"}
+{"kind": "delta", "text": " Overview"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "================================"}
+{"kind": "delta", "text": "====="}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "Indices"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": "-----------\n\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " Symbol"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " Name"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " Price"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " Change"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " Change"}
+{"kind": "delta", "text": " Percent"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " ---"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " ---"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " ---"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " ---"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " ---"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " ^"}
+{"kind": "delta", "text": "NSE"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " N"}
+{"kind": "delta", "text": "ifty"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "50"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "22"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "421"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "95"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "198"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "499"}
+{"kind": "delta", "text": "218"}
+{"kind": "delta", "text": "749"}
+{"kind": "delta", "text": "999"}
+{"kind": "delta", "text": "27"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "877"}
+{"kind": "delta", "text": "521"}
+{"kind": "delta", "text": "117"}
+{"kind": "delta", "text": "420"}
+{"kind": "delta", "text": "886"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " ^"}
+{"kind": "delta", "text": "B"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": "SN"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": " Sense"}
+{"kind": "delta", "text": "x"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "71"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "909"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "570"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "589"}
+{"kind": "delta", "text": "062"}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": "002"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "787"}
+{"kind": "delta", "text": "233"}
+{"kind": "delta", "text": "425"}
+{"kind": "delta", "text": "639"}
+{"kind": "delta", "text": "323"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": " |\n\n"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "Head"}
+{"kind": "delta", "text": "lines"}
+{"kind": "delta", "text": "**\n"}
+{"kind": "delta", "text": "------------"}
+{"kind": "delta", "text": "-\n\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " RBI"}
+{"kind": "delta", "text": " governor"}
+{"kind": "delta", "text": " warns"}
+{"kind": "delta", "text": " against"}
+{"kind": "delta", "text": " compl"}
+{"kind": "delta", "text": "acency"}
+{"kind": "delta", "text": " amid"}
+{"kind": "delta", "text": " external"}
+{"kind": "delta", "text": " head"}
+{"kind": "delta", "text": "w"}
+{"kind": "delta", "text": "inds"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " SE"}
+{"kind": "delta", "text": "BI"}
+{"kind": "delta", "text": " examining"}
+{"kind": "delta", "text": " position"}
+{"kind": "delta", "text": " limits"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " non"}
+{"kind": "delta", "text": "-ag"}
+{"kind": "delta", "text": "ri"}
+{"kind": "delta", "text": " contracts"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " boost"}
+{"kind": "delta", "text": " liquidity"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "No"}
+{"kind": "delta", "text": " Market"}
+{"kind": "delta", "text": "-State"}
+{"kind": "delta", "text": " Data"}
+{"kind": "delta", "text": "**\n\n"}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " performance"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "{\""}
+{"kind": "delta", "text": "name"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "get"}
+{"kind": "delta", "text": "_stock"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "parameters"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " {\""}
+{"kind": "delta", "text": "symbol"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "Z"}
+{"kind": "delta", "text": "OM"}
+{"kind": "delta", "text": "ATO"}
+{"kind": "delta", "text": "\"}}"}
+{"kind": "done", "usage": {"input_tokens": 4169, "output_tokens": 177, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,66 @@
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": " holding"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " multiply"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " number"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Cost"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " Number"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Shares"}
+{"kind": "delta", "text": " \u00d7"}
+{"kind": "delta", "text": " Current"}
+{"kind": "delta", "text": " Price"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "="}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": " \u00d7"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": " holding"}
+{"kind": "delta", "text": " costs"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2743, "output_tokens": 67, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,8 @@
+CMD: 3x curl localhost:52363/fundamentals/TCS (X-Vysted-Region: IN), print provider/source/fallback keys
+{'sector_source': 'resolver', 'basis': 'consolidated', 'growth_basis': 'mrq_yoy', 'provider': 'yfinance', 'identity_note': None}
+{'sector_source': 'resolver', 'basis': 'consolidated', 'growth_basis': 'mrq_yoy', 'provider': 'yfinance', 'identity_note': None}
+{'sector_source': 'resolver', 'basis': 'consolidated', 'growth_basis': 'mrq_yoy', 'provider': 'yfinance', 'identity_note': None}
+
+call1 (transient miss) = None | call2 (immediately after) = None (want both None: stable provider)
+call3 past negative TTL = nse (want nse: re-fetches)
+EXIT=0

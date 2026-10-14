@@ -1,0 +1,4 @@
+bars count 240
+partial False
+coverage_start None
+provider bse

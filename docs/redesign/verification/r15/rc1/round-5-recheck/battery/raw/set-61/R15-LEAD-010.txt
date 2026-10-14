@@ -1,0 +1,27 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+method: live GETs against rc1-battery-11's own sidecar (:52351), which
+reaches the shared read-only sec-edgar-mcp on :52154 (real SEC EDGAR data).
+
+1) GET /sec/filings?symbol=AAPL&form_type=10-K&limit=5
+   -> 200, filings include accession "0000320193-25-000079" (filed
+      2025-10-31) and "0000320193-24-000123" (filed 2024-11-01) — same
+      accessions the register entry names.
+
+2) GET /sec/filings/0000320193-25-000079?identifier=AAPL&form_type=10-K
+   -> HTTP_STATUS=200, real filing sections returned (business risk-factor
+      text, word counts, etc.) — no "filing metadata unavailable" 404.
+
+3) GET /sec/filings/0000320193-21-000105?identifier=AAPL&form_type=10-K
+   (a 2021 10-K — the "outside the unfiltered 40-recent window, crowded by
+   Form-4/144 filings" scenario the entry's root_cause describes)
+   -> HTTP_STATUS=200, {"filing":{"accession":"0000320193-21-000105",
+      "form_type":"10-K","filed_date":"2021-10-29",...},"sections":[...]}
+   -> no 404.
+
+Source confirmation: sidecar/routers/sec_filings.py get_filing (line ~108)
+and get_filing_sections (line ~125) both now accept and forward a
+`form_type` query param down to sec_filings_provider.get_filing /
+get_filing_sections as a lookup hint (R15-LEAD-010 comment in the router
+itself), matching the fix_shape.
+
+verdict: holds

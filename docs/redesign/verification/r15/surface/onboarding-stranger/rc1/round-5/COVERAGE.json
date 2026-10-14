@@ -1,0 +1,46 @@
+[
+  {
+    "id": "safety-disclaimer-flow",
+    "area": "onboarding",
+    "surface": "First-launch ToS / disclaimer flow",
+    "entry": "src/modules/safety/DisclaimerFlow.tsx:47 (FirstLaunchTosDialog), :132 (BrokerFirstConnectDialog), :228 (DisclaimerFlow)",
+    "states": ["first-launch-unacked", "acked", "broker-first-connect-warning"],
+    "drive": "browser",
+    "notes": "GET /safety/disclaimer-status, POST /safety/disclaimer-ack. DisclaimerFlow.test.tsx exists. Gate: FIRST_LAUNCH_TOS_ACCOUNT keychain namespace (store/safety.ts:56).",
+    "driven": "partial",
+    "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/round-5/20-tos-body-coderead.txt (TOS_BODY rewritten: no broker/trading/kill-switch language, adds licensing + AI-output + data-accuracy disclosure -- confirms R15-UI-041's residual is resolved by the D81 trading removal, though the register still carries it as not_a_defect). Not re-rendered in jsdom this round (no GUI, budget); code-read + candidate diff against census's quoted TOS text is the evidence."
+  },
+  {
+    "id": "onboarding-flow",
+    "area": "onboarding",
+    "surface": "First-run onboarding wizard",
+    "entry": "src/components/OnboardingFlow.tsx:103",
+    "states": ["welcome(:182)", "cloud(:195, CloudStep :338)", "local(:198, LocalStep :439)", "done(:208, DoneStep :648)"],
+    "drive": "browser",
+    "notes": "LocalStep surfaces hardware-fit + Ollama recommendation. A real model pull is long-running/state-changing, not triggered.",
+    "driven": "ok",
+    "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/round-5/{01,02,03,06,07}-*.json + drives/onboarding-stranger.md rows 1-6. Welcome copy no longer claims 'nothing leaves this computer' (R15-UI-052 fixed); OpenRouter fake-key validate now correctly rejected via /key probe (R15-UI-008 fixed); trailing-space key rejected as invalid not a transport error (R15-UI-057 fixed); Ollama model_not_pulled routes to the Download-model step (R15-AGENT-028 fixed)."
+  },
+  {
+    "id": "onboarding-banner",
+    "area": "onboarding",
+    "surface": "First-run 'add your AI key' banner",
+    "entry": "src/components/OnboardingBanner.tsx:21",
+    "states": ["hidden(probed=false OR hasAnyKey OR dismissed)", "shown(no key in keychain)"],
+    "drive": "browser",
+    "notes": "Driven by real keychain probe (store/provider-keys.ts).",
+    "driven": "ok",
+    "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/round-5/21-banner-gate-coderead.txt -- defaultLaneNotReady now gates on the keyless lane's own readiness probe, not merely 'no key stored' (R15-UI-019 fixed: a working local-model user is no longer nagged). Banner copy also now discloses 'market data and web searches still go to public providers' (R15-UI-052)."
+  },
+  {
+    "id": "hardware-fit-check",
+    "area": "onboarding",
+    "surface": "Local-model hardware-fit scoring (onboarding LocalStep + Settings FitRow)",
+    "entry": "src/lib/hardware-fit.ts; src/components/SettingsPanel.tsx:680 (FitRow)",
+    "states": ["fits", "marginal", "does-not-fit"],
+    "drive": "api",
+    "notes": "GET /system/hardware,/system/local-model-recommendation.",
+    "driven": "ok",
+    "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/round-5/07-system-hardware.json -- same shape/verdicts as census (M1 Pro 16GB, qwen3:8b/qwen2.5:7b/llama3.1:8b green); no regression."
+  }
+]

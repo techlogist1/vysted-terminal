@@ -1,0 +1,4 @@
+name: publish_brief
+input: {'structured': {'derived': 1, 'filings': 2, 'fundamentals': 3, 'news': 4, 'price': 5}, 'markdown': '# NVDA brief'}
+tool_call_id: call1__autobrief
+no-brief result -> None

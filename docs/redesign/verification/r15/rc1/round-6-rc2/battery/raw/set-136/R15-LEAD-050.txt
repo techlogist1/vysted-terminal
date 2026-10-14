@@ -1,0 +1,12 @@
+# R15-LEAD-050 at ace7dd7: in-process row_relevant (candidate venv)
+GE 'GE beats estimates on jet engine demand' -> True expected True 
+GE 'Why GE raised its guidance after strong aftermarke' -> True expected True 
+IT 'IT spending forecast to rise next year across ente' -> False expected False 
+ON 'Turn ON your laptop with these tips' -> False expected False 
+ALL 'ALL you need to know about summer sales' -> False expected False 
+KO 'KO shares climb as volumes recover' -> False expected True MISMATCH
+F 'F150 recall expands to more trucks' -> False expected None 
+EXIT=0
+KO in list: False | GE in list: False
+NOTE: KO row is an extra (non-entry) probe; KO is on the curated common-word list by design (anchored form only).
+ADJACENT (beyond the entry's repro): relevance._entity_signals only credits a ticker mention when len(symbol) >= 3 (relevance.py:668); a 2-letter ticker not contained in the company's brand tokens (KO / Coca-Cola Company) gets no ticker signal, so 'KO shares climb as volumes recover' stays False. GE passes only through its brand token 'ge'.

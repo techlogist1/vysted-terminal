@@ -139,3 +139,97 @@ async def test_validate_key_false_on_auth_error(monkeypatch: pytest.MonkeyPatch)
     _patch(monkeypatch, models=_FakeModels(raise_error=err))
     provider = GroqProvider()
     assert await provider.validate_key("bad") is False
+
+
+@pytest.mark.asyncio
+async def test_stream_chat_humanizes_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    """E9: a stream crash routes through humanize — plain message + machine code,
+    raw text behind detail, never a naked provider blob."""
+
+    class _Boom(_FakeCompletions):
+        async def create(self, **_: Any) -> Any:
+            raise RuntimeError("groq exploded: 429 rate limit")
+
+    def _factory(**_: Any) -> Any:
+        client = _FakeGroq()
+        client.chat = _FakeChat(_Boom([]))
+        return client
+
+    monkeypatch.setattr(groq, "AsyncGroq", _factory)
+    provider = GroqProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="llama-3.3-70b-versatile",
+        )
+    ]
+    err = next(e for e in out if e.kind == "error")
+    assert err.message and "groq exploded" not in err.message
+    assert err.detail is not None and "groq exploded" in err.detail
+    assert err.code is not None
+
+
+class _Fn:
+    def __init__(self, name: str | None, arguments: str | None) -> None:
+        self.name = name
+        self.arguments = arguments
+
+
+class _ToolCallDelta:
+    def __init__(self, index: int, fn: _Fn, id_: str | None = None) -> None:
+        self.index = index
+        self.id = id_
+        self.function = fn
+
+
+class _ToolDelta:
+    def __init__(self, tool_calls: list[_ToolCallDelta]) -> None:
+        self.content = None
+        self.tool_calls = tool_calls
+
+
+async def _groq_tool_round(monkeypatch: pytest.MonkeyPatch, fragments: list[str]) -> Any:
+    """One streamed Groq round whose single tool call's args arrive in fragments."""
+    first, *rest = fragments
+    head = _ToolDelta([_ToolCallDelta(0, _Fn("price_data", first), "call_1")])
+    chunks = [
+        _Chunk([_Choice(head)]),  # type: ignore[arg-type]
+        *(_Chunk([_Choice(_ToolDelta([_ToolCallDelta(0, _Fn(None, f))]))]) for f in rest),  # type: ignore[arg-type]
+        _Chunk([_Choice(_Delta(), finish_reason="tool_calls")]),
+    ]
+    _patch(monkeypatch, chunks=chunks)
+    out = [
+        e
+        async for e in GroqProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="quote RELIANCE")],
+            model="llama-3.3-70b-versatile",
+            api_key="gsk-test",
+        )
+    ]
+    return next(e for e in out if e.kind == "tool_use")
+
+
+@pytest.mark.asyncio
+async def test_truncated_tool_args_stamp_the_sentinel_not_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R15-AGENT-047 (adapter half): a truncated argument fragment must reach the
+    # runtime as an invalid-args result, never as a silent {} call.
+    from services.llm.base import INVALID_ARGS_SENTINEL
+
+    event = await _groq_tool_round(monkeypatch, ['{"symbol": "RELI'])
+    assert event.name == "price_data"
+    assert set(event.input) == {INVALID_ARGS_SENTINEL}
+    assert '{"symbol": "RELI' in event.input[INVALID_ARGS_SENTINEL]
+
+
+@pytest.mark.asyncio
+async def test_fragmented_tool_args_parse_and_empty_args_stay_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event = await _groq_tool_round(monkeypatch, ['{"symbol": "RELI', 'ANCE.NS"}'])
+    assert event.input == {"symbol": "RELIANCE.NS"}
+    # A no-argument call streams no fragments: {} is legal there.
+    event = await _groq_tool_round(monkeypatch, [""])
+    assert event.input == {}

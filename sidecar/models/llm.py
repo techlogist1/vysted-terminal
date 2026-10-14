@@ -21,8 +21,12 @@ from pydantic import BaseModel, ConfigDict, Field
 # Provider + model identifiers
 # ---------------------------------------------------------------------------
 
-#: Closed set of the seven BYOK providers Phase 3 ships.
-LLMProviderId = Literal["anthropic", "openai", "gemini", "groq", "ollama", "deepseek", "xai"]
+#: Closed set of the BYOK providers. ``openrouter`` (added in the JARVIS sprint)
+#: is a unified BROKER — one key, all upstreams — that rides the OpenAI-shaped
+#: adapter via a base-url override, exactly like deepseek/xai.
+LLMProviderId = Literal[
+    "anthropic", "openai", "gemini", "groq", "ollama", "deepseek", "xai", "openrouter"
+]
 
 #: Free-form model identifier — providers ship new models between Vysted
 #: releases, so the host does not enumerate. Strings keep the contract open.
@@ -36,6 +40,70 @@ class LLMProviderInfo(BaseModel):
     label: str
     requires_key: bool
     default_base_url: str | None = None
+    #: Registry default model id for this provider (served to the frontend
+    #: dropdown). Single-sourced from ``config/model_registry.json``.
+    default_model: str = ""
+    #: Selectable model ids for this provider (offline fallback for the UI).
+    known_models: list[str] = Field(default_factory=list)
+
+
+class LLMModelOption(BaseModel):
+    """One model in a LIVE provider catalog (``GET /llm/models``).
+
+    Richer than the bare ``known_models`` string list: carries the metadata the
+    model picker needs to mark a model — most importantly ``supports_tools`` so
+    the agent surface can flag a model that would break host-actions (the whole
+    point of the OpenRouter live-catalog fix). All fields beyond ``id``/``label``
+    are best-effort: ``None`` means "the provider's catalog did not say", never
+    "false".
+    """
+
+    #: The routable model id passed back as ``model`` in a chat request.
+    id: str
+    #: Human-friendly name for the dropdown (falls back to ``id``).
+    label: str
+    #: Max context window, when the catalog reports it.
+    context_length: int | None = None
+    #: ``True``/``False`` when known; ``None`` when the provider's catalog is
+    #: silent on tool-calling support (so the UI marks "unknown", not "no").
+    supports_tools: bool | None = None
+    #: Short human price hint (e.g. ``"$0.30 / $1.20 per 1M"``), when available.
+    pricing: str | None = None
+    #: Native web-search capability of THIS model, derived per-model from the
+    #: OpenRouter catalog (WS5):
+    #:   ``"native"`` — the model exposes its own server-side web search
+    #:     (``web_search_options`` in ``supported_parameters``); ride it and
+    #:     withhold the local search tool.
+    #:   ``"plugin"`` — no per-model native search, but OpenRouter can run its
+    #:     billed ``web`` plugin in front of the model (``pricing.web_search``).
+    #:   ``"none"`` — neither; the agent keeps the local/BYOK search tool
+    #:     (the FR-082 fallback, which never fabricates).
+    #: ``None`` means the catalog did not say (every non-OpenRouter provider).
+    web_search: Literal["native", "plugin", "none"] | None = None
+    #: ``True``/``False`` when the OpenRouter catalog reports structured-output
+    #: support (``response_format``/``structured_outputs`` in ``supported_parameters``);
+    #: ``None`` when unknown. Best-effort metadata, not a gate.
+    supports_structured_outputs: bool | None = None
+    #: ``True``/``False`` when the OpenRouter catalog reports reasoning support
+    #: (``reasoning``/``include_reasoning`` in ``supported_parameters``); ``None``
+    #: when unknown. Best-effort metadata, not a gate.
+    supports_reasoning: bool | None = None
+
+
+class LLMModelCatalog(BaseModel):
+    """``GET /llm/models`` payload — a provider's live (or fallback) model list.
+
+    ``source`` is ``"live"`` when the provider's catalog API answered and
+    ``"fallback"`` when we served the registry ``known_models`` because the live
+    fetch failed or returned nothing. ``note`` is a short honest line for the UI
+    (e.g. "routable on your key · 247 tool-capable" or "live catalog
+    unavailable"). Read-only; carries no credential.
+    """
+
+    provider: LLMProviderId
+    models: list[LLMModelOption] = Field(default_factory=list)
+    source: Literal["live", "fallback"] = "fallback"
+    note: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -66,6 +134,13 @@ class LLMUsage(BaseModel):
     output_tokens: int = 0
     cache_read_input_tokens: int | None = None
     cache_creation_input_tokens: int | None = None
+    #: Native server-side web searches the provider ran on this call, when the
+    #: request carried native search (R15-AGENT-049): priced and capped per run.
+    web_search_requests: int | None = None
+    #: The model that actually produced these tokens, when the provider names
+    #: it (a router slug such as ``openrouter/auto`` picks one per call): the
+    #: spend is priced against it and the chat discloses it (R15-AGENT-075).
+    served_model: str | None = None
 
 
 class LLMDeltaEvent(BaseModel):
@@ -82,6 +157,72 @@ class LLMToolUseEvent(BaseModel):
     tool_call_id: str
     name: str
     input: dict[str, Any] = Field(default_factory=dict)
+    #: Provider state the next round must echo back on this call (Gemini's
+    #: base64 ``thought_signature``). Runtime-internal: never on the SSE wire.
+    provider_meta: dict[str, Any] | None = Field(default=None, exclude=True)
+
+
+class LLMToolResultEvent(BaseModel):
+    """How one dispatched tool call ended, keyed on its ``tool_call_id``
+    (R15-CODE-AGENT-033): the outcome only, never the result payload."""
+
+    kind: Literal["tool_result"] = "tool_result"
+    tool_call_id: str
+    name: str
+    ok: bool
+    #: The result's ``error`` (else ``message``), cut to 200 chars, when not ok.
+    error: str | None = None
+
+
+class LLMResearchStepEvent(BaseModel):
+    """A live research-pipeline step, surfaced WHILE a long tool runs (Track A).
+
+    The deep/fast research tools run for many seconds inside a single tool round;
+    without this the SSE consumer sees the tool fire and then silence until the
+    result. The runtime drains each :class:`~services.research.models.ResearchStep`
+    the tool emits and forwards it as one of these events, so the agent surface
+    can animate a "thinking/working" trace (plan → search → synthesize) in real
+    time. Read-only/cosmetic — it never gates a mutation and carries no secrets.
+    """
+
+    kind: Literal["research_step"] = "research_step"
+    #: The tool round this step belongs to (the originating ``tool_use`` call id).
+    tool_call_id: str
+    #: The tool emitting the step (e.g. ``"deep_research"`` / ``"research"``).
+    tool: str
+    #: One of :data:`services.research.models.STEP_KINDS`
+    #: (plan/tool/search/compress/reflect/synthesize/engine). ``"notice"`` marks a
+    #: runtime notice the chat renders as a transcript chip (C9), never by copy.
+    step_kind: str
+    #: A short human line, e.g. ``"researcher: demand outlook?"``.
+    detail: str
+    #: Wall time of the stage in ms, when measured.
+    latency_ms: int | None = None
+    #: ``"ok"`` / ``"error"`` / ``"skipped"`` — a non-fatal sub-failure is recorded.
+    status: str = "ok"
+    #: Monotonic 1-based step counter within the run (UI ordering/keys).
+    index: int = 0
+
+
+class LLMAgentPlanEvent(BaseModel):
+    """A visible "plan-then-execute" surface for a compound request (Track 6 #2).
+
+    When a tool-capable model handles a compound request, the runtime runs the
+    in-house planner (``services.planner.decompose``) and emits this event BEFORE
+    the tool loop, so the user sees the intended steps up front. It is ADVISORY —
+    the loop still drives execution; ``staged`` host-action steps are pre-queued
+    into the diff/accept gate (never auto-applied beyond the existing AUTO rules,
+    so §6.5 is untouched).
+    """
+
+    kind: Literal["agent_plan"] = "agent_plan"
+    #: The restated goal the plan addresses.
+    goal: str
+    #: Ordered steps: ``{action, args, rationale, staged}`` (``staged`` = whether
+    #: the step is a host-action pre-queued into the review gate).
+    steps: list[dict[str, Any]] = Field(default_factory=list)
+    #: A short note when the planner degraded (e.g. "answering directly").
+    note: str | None = None
 
 
 class LLMThinkingEvent(BaseModel):
@@ -91,19 +232,47 @@ class LLMThinkingEvent(BaseModel):
     text: str
 
 
+class LLMHeartbeatEvent(BaseModel):
+    """Liveness frame while the runtime waits on a provider or a tool.
+
+    Carries nothing: it tells the chat's stall watchdog the sidecar is still
+    working through a long silent wait (R15-AGENT-025).
+    """
+
+    kind: Literal["heartbeat"] = "heartbeat"
+
+
 class LLMDoneEvent(BaseModel):
     """Stream complete; final usage + finish reason if available."""
 
     kind: Literal["done"] = "done"
     usage: LLMUsage | None = None
     finish_reason: str | None = None
+    #: The token window the lane runs in, when it has one (Ollama's num_ctx):
+    #: the composer's context meter reads ``usage`` against it (R15-AGENT-040).
+    context_window: int | None = None
+    #: Estimated USD spend of the whole turn (C11, R15-AGENT-082), priced from
+    #: the one table in ``services.budget_guard``; ``None`` when the model has
+    #: no price or a round reported no usage (unknown, never zero).
+    spend_usd: float | None = None
 
 
 class LLMErrorEvent(BaseModel):
-    """Stream aborted; human-readable detail surfaced to the chat sidebar."""
+    """Stream aborted; human-readable detail surfaced to the chat sidebar.
+
+    ``message`` is the plain-language sentence shown directly to the user.
+    ``action`` is an optional next-step hint. ``detail`` is the raw provider
+    text hidden behind a "Show details" toggle. ``code`` is a stable machine
+    tag for frontend branching (e.g. ``"provider_402"``, ``"auth"``). All extra
+    fields default to ``None`` so existing constructors that only set
+    ``message`` continue to work unchanged (R10, E9).
+    """
 
     kind: Literal["error"] = "error"
     message: str
+    action: str | None = None
+    detail: str | None = None
+    code: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -138,10 +307,18 @@ class LLMKeyValidationRequest(BaseModel):
     provider: LLMProviderId
     api_key: str | None = None
     base_url: str | None = None
+    #: The model the caller is about to use. A keyless local provider (Ollama)
+    #: is ready only when this model is pulled, not merely when the daemon is up.
+    model: str | None = None
+
+
+#: Why a provider is not usable (R15-UI-013): the frontend routes on it.
+LLMValidationReason = Literal["invalid", "not_configured", "unreachable", "model_not_pulled"]
 
 
 class LLMKeyValidationResponse(BaseModel):
     """Validation result — sidecar performs a cheap GET against the provider."""
 
     ok: bool
+    reason: LLMValidationReason | None = None
     detail: str | None = None

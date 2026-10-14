@@ -1,0 +1,13 @@
+Repro: grep sidecar/services/llm/native_search.py SUPPORTS_NATIVE_SEARCH at 1006c6da.
+
+$ grep -n "SUPPORTS_NATIVE_SEARCH" sidecar/services/llm/native_search.py
+58:SUPPORTS_NATIVE_SEARCH: set[str] = {"anthropic", "openai", "gemini", "groq", "openrouter"}
+
+$ grep -n "R15-LEAD-008" sidecar/services/llm/native_search.py
+8:R15-LEAD-008), so xAI has no native rung until it moves to the Agent Tools API
+
+Verdict: holds. "xai" is absent from SUPPORTS_NATIVE_SEARCH, and provider_supports_native_search
+(native_search.py:176-178) gates strictly on membership in that set, so an xAI agent turn can
+never enable provider-level native search anymore, eliminating the path to the 410
+"Live search is deprecated" response. No live xAI key spend needed to confirm — the gate is
+unconditional on the provider id.

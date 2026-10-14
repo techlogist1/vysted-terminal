@@ -1,0 +1,8 @@
+# R15-RESEARCH-041 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; git grep -n 'webAvailable false' -- src/lib/host-actions.test.ts | cut -c1-200
+--- output ---
+src/lib/host-actions.test.ts:556:    // structured-only state survives (webAvailable false). This is the legitimate
+src/lib/host-actions.test.ts:589:  it("briefFromInput with only vysted:// + nsearchives rows -> webAvailable false", () => {
+
+EXIT=0 (0.0s)

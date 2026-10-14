@@ -1,0 +1,6 @@
+YASHOPTICS-SM.NS {'longName': None, 'marketCap': None, 'trailingPE': None, 'trailingEps': None, 'bookValue': None, 'sharesOutstanding': None, 'currency': 'INR', 'quoteType': 'EQUITY'}
+  income cols []
+YASHOPTICS.NS {'longName': 'Yash Optics & Lens Limited', 'marketCap': 2436935168, 'trailingPE': 25.963062, 'trailingEps': None, 'bookValue': 40.089, 'sharesOutstanding': 24765600, 'currency': 'INR', 'quoteType': 'MUTUALFUND'}
+  income cols [Timestamp('2023-03-31 00:00:00'), Timestamp('2022-03-31 00:00:00')]
+SUMAX-SM.NS {'longName': None, 'marketCap': None, 'trailingPE': None, 'trailingEps': None, 'bookValue': None, 'sharesOutstanding': None, 'currency': 'INR', 'quoteType': 'EQUITY'}
+  income cols []

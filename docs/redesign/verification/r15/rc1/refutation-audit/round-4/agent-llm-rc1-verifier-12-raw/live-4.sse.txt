@@ -1,0 +1,4 @@
+data: {"kind": "delta", "text": "{\"name\": \"write_note\", \"parameters\": {\"scope\": \"order-book-valuation\", \"note\": \"HAL order book crossed \u20b91,00,000 crore\"}}"}
+
+data: {"kind": "done", "usage": {"input_tokens": 6028, "output_tokens": 36, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

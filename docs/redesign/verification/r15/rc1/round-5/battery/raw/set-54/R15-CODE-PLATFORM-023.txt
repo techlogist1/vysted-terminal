@@ -1,0 +1,21 @@
+CMD: grep src/modules/portfolio/metrics.ts for sharpe/sortino/calmar/VaR95/beta/correlation implementations; independent python re-implementation of the same formulas against live TCS.NS + ^NSEI 1y history from :52342, sanity-checked (not a vitest run)
+233:export function annualizedVolatility(returns: readonly number[]): number {
+238:export function sharpeRatio(returns: readonly number[]): number {
+246:export function sortinoRatio(returns: readonly number[]): number {
+256:export function maxDrawdown(returns: readonly number[]): number {
+269:export function calmarRatio(returns: readonly number[]): number {
+280:export function historicalVaR95(returns: readonly number[]): number {
+298:export function correlation(a: readonly number[], b: readonly number[]): number {
+306:export function beta(returns: readonly number[], benchmarkReturns: readonly number[]): number {
+---independent python cross-check on live data---
+aligned days: 247
+vol 0.28435 sharpe -1.12108 sortino -1.47959 maxDD -0.40371 calmar -0.78962 VaR95 0.02778 corr 0.36681 beta 0.78528
+all finite: True
+284:  // Sharpe/Sortino/Calmar/VaR/beta/correlation per currency bucket, from 1y of
+1098:                              {metrics.sharpeRatio.toFixed(2)}
+1104:                              {metrics.sortinoRatio.toFixed(2)}
+1116:                              {metrics.calmarRatio.toFixed(2)}
+1138:                        {metrics.correlation.symbols.length > 1 && (
+1144:                                  {metrics.correlation.symbols.map((s) => (
+1155:                                {metrics.correlation.symbols.map((rowSymbol, i) => (
+1160:                                    {metrics.correlation.matrix[i].map((v, j) => (

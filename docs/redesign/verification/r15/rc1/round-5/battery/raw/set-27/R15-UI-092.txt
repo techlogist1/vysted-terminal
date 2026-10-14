@@ -1,0 +1,14 @@
+candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98 in-process repro via /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/.venv/bin/python3, cwd=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar
+=== R15-UI-092 ===
+CMD: source inspection: src/lib/brief-ingest.ts sanitizeCitationMarkers (out-of-range citation handling)
+OUTPUT: ainst 21 sources. A dead
+ * chip must never link anywhere, but a cited-but-broken claim must also never
+ * read as an uncited one (FR-123), so the marker stays, flagged and inert.
+ */
+export function sanitizeCitationMarkers(markdown: string, sourceCount: number): string {
+  return markdown.replace(CITE_MARKER_RE, (whole, digits: string) => {
+    const n = Number(digits);
+    return n >= 1 && n <= sourceCount ? whole : BROKEN_CITE_MARKER;
+  });
+}
+

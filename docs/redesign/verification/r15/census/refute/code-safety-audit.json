@@ -1,0 +1,128 @@
+[
+  {
+    "raw_id": "COD-safety-audit-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds: no frontend listen('kill-switch:requested') exists and fireKillSwitch has no caller, while the Order Entry panel/command, POST /brokers/{id}/orders, /confirm and /mode stay mounted and the TOS still promises a Cmd/Ctrl+Shift+K halt. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading. The trading removal resolves this via the finding's option (b).",
+    "evidence": "src/store/safety.ts:13-17,212-243; src/modules/safety/index.ts:10-12; src/modules/index.ts:52-54; src/modules/broker-connect/index.ts:26-47; sidecar/routers/brokers.py:255,284,327-341; src/modules/safety/DisclaimerFlow.tsx:45; docs/SAFETY_ARCHITECTURE.md:118,243; sidecar/services/broker_base.py:103,251,345",
+    "evidence_checked": "code: grep of src/types/src-tauri for kill-switch listeners/callers (none outside the store), broker-connect module registrations, broker routes, TOS text, SAFETY_ARCHITECTURE table",
+    "repro_check": "grep -rn 'kill-switch' src --include=*.ts* | grep -v test -> only comments + the store's unused fireKillSwitch; no listen() call"
+  },
+  {
+    "raw_id": "COD-safety-audit-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The bug is real: Shortcut::new(SHIFT|SUPER|CONTROL) registers Ctrl+Cmd+Shift+K and HotKey::matches is an exact equality on modifiers, whereas the crate's CmdOrCtrl parse sets SUPER on macOS or CONTROL elsewhere, never both. Downgraded high->medium: today it has no functional consequence because nothing listens for the emitted event (-1), so the only live effect is an OS-wide chord grabbed for a dead event. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading.",
+    "evidence": "src-tauri/src/kill_switch.rs:34-39,52,75; ~/.cargo/registry/src/index.crates.io-*/global-hotkey-0.7.0/src/hotkey.rs:87-98,108-114,212-217; src-tauri/Cargo.lock (global-hotkey 0.7.0)",
+    "evidence_checked": "code: kill_switch.rs + the locked global-hotkey 0.7.0 source (new/matches/parse); grep kill_switch_shortcut in src-tauri/src (no test)",
+    "repro_check": "read hotkey.rs:113 'self.mods == *modifiers & base_mods' -> Cmd+Shift+K (mods SUPER|SHIFT) != SUPER|SHIFT|CONTROL; no Rust test run (no cargo per rules)"
+  },
+  {
+    "raw_id": "COD-safety-audit-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Reproduced: a subscriber that never returns leaves is_fired False after the fire is cancelled, because _fired is set only after the un-timed gather under the lock; ACK_BUDGET_NS has no reader. Downgraded high->medium: latent - the only subscriber is the base _on_kill_switch (no subclass overrides it), which is a sync flag flip + one SQLite insert. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading.",
+    "evidence": "sidecar/services/kill_switch.py:37,109,122-137; sidecar/services/broker_base.py:103,433-457",
+    "evidence_checked": "code + ran a scratch probe against a fresh KillSwitchBus in a temp data dir (not the :52152 stack)",
+    "repro_check": "PYTHONPATH=. VYSTED_DATA_DIR=<scratch>/ddir sidecar/.venv/bin/python <scratch>/probe.py -> 'F3 timeout; is_fired: False'"
+  },
+  {
+    "raw_id": "COD-safety-audit-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Reproduced: subscribe old, subscribe new under the same name, call old unsubscribe -> 0 subscribers, no callback hit; registry.register() does exactly this on replace. Downgraded medium->low: no production path replaces an adapter - register() is only called from ensure_registered(), which returns an existing adapter untouched. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading.",
+    "evidence": "sidecar/services/kill_switch.py:63-77; sidecar/services/brokers/registry.py:80-119; sidecar/services/broker_base.py:103",
+    "evidence_checked": "code + scratch probe on a fresh KillSwitchBus; grep of register() callers outside tests",
+    "repro_check": "PYTHONPATH=. VYSTED_DATA_DIR=<scratch>/ddir sidecar/.venv/bin/python <scratch>/probe.py -> 'F4 subs: 0 hits: []'"
+  },
+  {
+    "raw_id": "COD-safety-audit-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Reproduced: fire + reset with no subscribed adapter writes zero audit rows; the router and bus write nothing and 'kill-switch-reset' has no writer outside the Literal, contradicting audit_log.py's 'every kill-switch fire lands here'. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading. Mechanism scope: the audit log records ONLY trading actions - its sole writers are broker_base.py (orders, kill-switch acks), disclaimer_session.py:39 (first-live-order ack) and brokers/kite.py:160 (mode change); nothing non-trading writes it, so after the removal it has no writers.",
+    "evidence": "sidecar/services/audit_log.py:3-6; sidecar/routers/safety.py:119-139; sidecar/services/kill_switch.py:102-152; sidecar/services/broker_base.py:442-457; sidecar/models/safety.py:71",
+    "evidence_checked": "code + scratch probe in a temp data dir; grep 'kill-switch-reset' in non-test sidecar",
+    "repro_check": "PYTHONPATH=. VYSTED_DATA_DIR=<scratch>/ddir sidecar/.venv/bin/python <scratch>/probe.py -> 'F5 audit rows added: 0'"
+  },
+  {
+    "raw_id": "COD-safety-audit-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: fired state is three instance attributes on a per-process singleton, reset() clears only the bus, and _on_kill_switch latches adapter _read_only=True which reset never undoes. The finding's own mitigation (adapters die with the process) is correct. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading.",
+    "evidence": "sidecar/services/kill_switch.py:52-57,146-152,198; sidecar/routers/safety.py:125-139; sidecar/services/broker_base.py:433-441",
+    "evidence_checked": "code-only (restart repro would require restarting a sidecar, not done); live :52152 status read shows fired:false,lastResult:null",
+    "repro_check": "curl -s 127.0.0.1:52152/safety/kill-switch/status -> {\"fired\":false,\"lastResult\":null}; restart path not exercised"
+  },
+  {
+    "raw_id": "COD-safety-audit-7",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Reproduced at the service layer: fire('emergency','workflow') raises pydantic ValidationError before dispatch and is_fired stays False; the router re-declares the Literal with extra='forbid', so an unknown firedBy is a 422 while kill_switch_emit forwards any string. Latent until a new trigger surface is added. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading.",
+    "evidence": "sidecar/services/kill_switch.py:102,114-118; sidecar/routers/safety.py:85-93; src-tauri/src/kill_switch.rs:89-96; types/safety.ts:39",
+    "evidence_checked": "code + scratch probe; HTTP 422 not re-run (POST to :52152 only via vy.py; the router's Literal+extra=forbid makes it a FastAPI 422 by construction)",
+    "repro_check": "PYTHONPATH=. VYSTED_DATA_DIR=<scratch>/ddir sidecar/.venv/bin/python <scratch>/probe.py -> 'F7 ValidationError is_fired: False'"
+  },
+  {
+    "raw_id": "COD-safety-audit-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Reproduced: one row with action='order-modified' makes audit_log.tail() raise ValidationError (closed Literal on the read model, per-row list comprehension), and the row cannot be deleted because the trigger raises IntegrityError. Mechanism scope: the audit log records ONLY trading actions - its sole writers are broker_base.py (orders, kill-switch acks), disclaimer_session.py:39 (first-live-order ack) and brokers/kite.py:160 (mode change); nothing non-trading writes it, so after the removal it has no writers.",
+    "evidence": "sidecar/services/audit_log.py:106-119,152-166; sidecar/models/safety.py:62-88; sidecar/models/audit_log.py:40-50",
+    "evidence_checked": "code + scratch probe inserting a raw row into a temp-dir audit DB",
+    "repro_check": "PYTHONPATH=. VYSTED_DATA_DIR=<scratch>/ddir sidecar/.venv/bin/python <scratch>/probe.py -> 'F8 tail raises ValidationError' and DELETE -> sqlite3.IntegrityError"
+  },
+  {
+    "raw_id": "COD-safety-audit-9",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: refreshAuditLog sets status 'loading' on every 2 s poll, the viewer renders only loading/ready branches (error -> bare header), auditError is never read by the viewer, and the empty headline always says 'match the filter'. Mechanism scope: the audit log records ONLY trading actions - its sole writers are broker_base.py (orders, kill-switch acks), disclaimer_session.py:39 (first-live-order ack) and brokers/kite.py:160 (mode change); nothing non-trading writes it, so after the removal it has no writers. The panel therefore displays only trading records.",
+    "evidence": "src/store/safety.ts:244-257; src/modules/safety/AuditLogViewer.tsx:23,62-68,141-151",
+    "evidence_checked": "code-only (no GUI allowed); :52152 GET /safety/audit-log returns {\"entries\":[]}, i.e. the empty state is the normal state",
+    "repro_check": "curl -s '127.0.0.1:52152/safety/audit-log?limit=5' -> {\"entries\":[]}; render path read from AuditLogViewer.tsx:141-151"
+  },
+  {
+    "raw_id": "COD-safety-audit-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: the viewer fetches the newest 200 rows and filters client-side, sends a range to export only when both ends are set and never sends broker/action, renders toLocaleTimeString (no date), and range_ has no route or non-test caller. Mechanism scope: the audit log records ONLY trading actions - its sole writers are broker_base.py (orders, kill-switch acks), disclaimer_session.py:39 (first-live-order ack) and brokers/kite.py:160 (mode change); nothing non-trading writes it, so after the removal it has no writers.",
+    "evidence": "src/modules/safety/AuditLogViewer.tsx:24,72-82,202; src/store/safety.ts:263-280; sidecar/services/audit_log.py:169-216; sidecar/routers/safety.py:47-77",
+    "evidence_checked": "code-only; grep range_ callers (tests only)",
+    "repro_check": "grep -rn 'range_(' sidecar -> only tests/test_audit_log.py; tail route signature takes only limit"
+  },
+  {
+    "raw_id": "COD-safety-audit-11",
+    "verdict": "removed_with_feature",
+    "severity_final": "medium",
+    "reason": "Closes with trading removal: the subject is the first-live-order disclaimer gate inside OrderConfirmationDialog (brokerMode ?? 'paper') and the sidecar session-ack/mode route, which exist only to guard broker order confirmation/placement - that surface is being deleted.",
+    "evidence": "src/modules/safety/OrderConfirmationDialog.tsx:89,126-130; sidecar/services/disclaimer_session.py:30-32; sidecar/routers/brokers.py:327-341",
+    "evidence_checked": "confirmed the code is order-confirmation-only; no deep refute per scope-change rule",
+    "repro_check": "n/a (removed_with_feature)"
+  },
+  {
+    "raw_id": "COD-safety-audit-12",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Holds, with a scope correction: the four unhandled paths are real (hydrate IIFE has no catch so setHydrated(true) never runs on a keychain_get rejection; BrokerFirstConnect handleAccept and order handleDecline have try/finally only; exportCsv throws in an onClick promise), but the finding understates the TOS-hydrate consequence - OnboardingFlow opens only when firstLaunchTosAcked is true, so a keychain rejection also silently suppresses first-run onboarding (a non-trading surface that survives the removal). The decline/first-connect/export handlers are trading-only and go with trading.",
+    "evidence": "src/modules/safety/DisclaimerFlow.tsx:55-60,62-76,148-156; src/store/safety.ts:63-66,283-286; src/lib/keychain.ts:63-66; src/components/OnboardingFlow.tsx:103-122; src/app/page.tsx:285-296; src/modules/broker-connect/BrokerConnectPanel.tsx:118,150,177,187",
+    "evidence_checked": "code-only (keychain denial not exercised - GUI prompt)",
+    "repro_check": "read OnboardingFlow.tsx:122 'shouldOpen = tosAcked && (...)' + DisclaimerFlow.tsx:55-60 uncaught await -> tosAcked stays false forever on keychain_get rejection"
+  },
+  {
+    "raw_id": "COD-safety-audit-13",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: types/safety.ts:41-46 says adapters cancel all open orders but the base _on_kill_switch explicitly does not and no subclass overrides it; audit_log.py:12-15 says OperationalError but the trigger raises IntegrityError (reproduced); types/safety.ts:17-18,76-78 point at services/audit_log.py for triggers that live in models/audit_log.py; kill_switch.rs:46-48,69-71,77-78 cite a removed toolbar fallback. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading.",
+    "evidence": "types/safety.ts:17-18,41-46,76-78; sidecar/services/broker_base.py:433-441; sidecar/services/audit_log.py:11-15; sidecar/models/audit_log.py:40-50; src-tauri/src/kill_switch.rs:43-48,66-80; docs/SAFETY_ARCHITECTURE.md:118,243",
+    "evidence_checked": "code + scratch probe of a DELETE against the trigger",
+    "repro_check": "PYTHONPATH=. VYSTED_DATA_DIR=<scratch>/ddir sidecar/.venv/bin/python <scratch>/probe.py -> 'F13 delete raises sqlite3 IntegrityError audit log is append-only: DELETE not permitted'"
+  },
+  {
+    "raw_id": "COD-safety-audit-14",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Dead code confirmed (_unused/Any, ACK_BUDGET_NS, AUDIT_LOG_NAMESPACE only re-exported, AiOrderGateProposal + SafetyStoreSnapshot unreferenced, range_ test-only, the dormant kill-switch store slice). Minor correction: not every broker-list copy is unchecked - EMPTY_STATIC_IP_STATUS is typed Record<BrokerId,...> so tsc enforces completeness, and brokerHandle has a default branch; the unguarded drift risk is the action vocabulary (models/safety.py vs types/safety.ts vs AuditLogViewer KNOWN_ACTIONS/KNOWN_BROKERS). All of it is trading/kill-switch/audit scaffolding that goes with trading.",
+    "evidence": "sidecar/services/kill_switch.py:26,37,216-217; sidecar/models/audit_log.py:56-58; sidecar/models/__init__.py:26,98; types/safety.ts:207-236; src/store/safety.ts:166-177; src/modules/safety/DisclaimerFlow.tsx:205-222; src/modules/safety/AuditLogViewer.tsx:26-53; sidecar/models/safety.py:62-75",
+    "evidence_checked": "code + grep for each symbol's readers across sidecar/src/types/plugins",
+    "repro_check": "grep -rn 'ACK_BUDGET_NS\\|AUDIT_LOG_NAMESPACE\\|SafetyStoreSnapshot\\|AiOrderGateProposal' -> definitions/re-exports only"
+  }
+]

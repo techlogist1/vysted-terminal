@@ -1,0 +1,38 @@
+{"kind": "tool_use", "tool_call_id": "call_05c8bd0c3230438fbbf4118a87b3204f", "name": "resolve_symbol", "input": {"query": "AMAL"}}
+{"kind": "tool_result", "tool_call_id": "call_05c8bd0c3230438fbbf4118a87b3204f", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_ca7a9a89e4f044e0b5bcdd6fdfc94c1e", "name": "price_data", "input": {"symbol": "AMAL.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_ca7a9a89e4f044e0b5bcdd6fdfc94c1e", "name": "price_data", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Amal"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "AM"}
+{"kind": "delta", "text": "AL"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "674"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "It"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " decreased"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "93"}
+{"kind": "delta", "text": "%."}
+{"kind": "done", "usage": {"input_tokens": 11184, "output_tokens": 33, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.017462}

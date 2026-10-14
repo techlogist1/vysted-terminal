@@ -1,0 +1,9 @@
+NO GUI in this run. Same mechanism as R15-AGENT-052 (bus-key vs dockview-id mismatch across chart/equity-overview/backtest), same fix, verified by the same source inspection:
+
+src/components/PanelHost.tsx:285-287: usePanelContextBus.getState().setFocusedSource(panel?.id ?? null) -- uses the raw dockview panel id.
+src/modules/equity-overview/EquityOverviewPanel.tsx:553: const busSource = props.api?.id ?? "equity-overview"; :622 source: busSource -- publishes under the dockview id, not a hardcoded 'equity'.
+src/modules/backtest/BacktestResultView.tsx:413: const BUS_SOURCE = "backtest"; :429 source: BUS_SOURCE -- matches the dockview id 'backtest' (src/config/default-layout.ts), not the old 'backtest-panel'.
+src/modules/chart/ChartPanel.tsx:1046: source: panelId -- matches the dockview id directly, not 'chart-${panelId}'.
+
+OBSERVED: focus id and publisher source key now derive from the same dockview panel id in all three modules named in the register (chart, equity-overview, backtest), removing the naming mismatch that made lastEventBySource[focusedSource] always miss.
+VERDICT: holds (source-level; no browser session available to click-focus panels live this run)

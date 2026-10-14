@@ -1,0 +1,9 @@
+# R15-CODE-FRONTEND-003 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:36+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; echo '(rc2 used a scratch vitest probe; battery does not run vitest: source + pin check)'; grep -n 'Appended to the\|mode.*append' src/lib/host-actions.ts | head -5; grep -rn 'R15-CODE-FRONTEND-003' src --include=*.test.ts --include=*.test.tsx | head -3
+--- output ---
+(rc2 used a scratch vitest probe; battery does not run vitest: source + pin check)
+770:/** The write_note mode: the catalog default is 'append', so only an explicit
+773:  return str(input, "mode") === "replace" ? "replace" : "append";
+
+EXIT=0 (0.0s)

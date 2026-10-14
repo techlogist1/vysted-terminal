@@ -1,0 +1,7 @@
+COMMAND: source-check (no vitest run, per shard rule): grep reloadPlugin in src/lib/plugin-runtime.ts and src/store/marketplace.ts configure()
+EXIT: 0
+OUTPUT:
+plugin-runtime.ts:319 defines reloadPlugin(plugin): Promise<LoadedPluginSnapshot>
+marketplace.ts configure(): 'Restart so initialize() receives the new secrets via PluginConfig.secrets' -> await runtime.reloadPlugin(row.discovered);
+
+Entry was certified ONLY via vitest (batch-10 VERDICTS.md: "vitest plugin-runtime.test 'loadPlugin is idempotent, while reloadPlugin re-runs initialize with fresh secrets'"). Per shard instructions (never run vitest/pytest suites — heavy lane owns them), this entry's verdict is ci_pinned naming src/lib/plugin-runtime.test.ts's test 'loadPlugin is idempotent, while reloadPlugin re-runs initialize with fresh secrets' (line ~175). Source confirms the fix code path (reloadPlugin exists and configure() calls it) is unchanged from what the test certified.

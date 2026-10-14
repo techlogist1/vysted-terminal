@@ -1,0 +1,31 @@
+# R15-AGENT-067 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:09+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v -e Warning -e warnings.warn
+import asyncio
+from services.agent_tools import catalog
+caps=catalog.mcp_capabilities()
+ids={c.id for c in caps}
+print("mcp-projected count",len(ids))
+for t in ("run_custom_backtest","backtest_summary","broker_portfolio"): print(t,"on MCP surface:",t in ids)
+print("internal-only set:",sorted(getattr(catalog,"_MCP_INTERNAL_ONLY",set())))
+print("projected kinds:",{c.kind for c in caps},"all read_only:",all(c.read_only for c in caps))
+from fastmcp import Client
+from services.mcp_server import get_mcp_server
+async def go():
+    async with Client(get_mcp_server()) as c:
+        names=sorted(t.name for t in await c.list_tools())
+    print("live MCP list_tools",len(names),"| run_custom_backtest listed:", "run_custom_backtest" in names,"| backtest_summary listed:","backtest_summary" in names)
+asyncio.run(go())
+PY
+grep -n "def test_mcp_projection_is_explicit_per_entry" "$C/sidecar/tests/"*.py
+--- output ---
+mcp-projected count 31
+run_custom_backtest on MCP surface: False
+backtest_summary on MCP surface: False
+broker_portfolio on MCP surface: False
+internal-only set: ['backtest_summary', 'run_custom_backtest']
+projected kinds: {'read_handler'} all read_only: True
+live MCP list_tools 39 | run_custom_backtest listed: False | backtest_summary listed: False
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/tests/test_mcp_catalog_parity.py:172:def test_mcp_projection_is_explicit_per_entry() -> None:
+
+EXIT=0 (1.3s)

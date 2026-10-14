@@ -1,0 +1,10 @@
+# R15-DATA-034 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:05+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b19_set13.py 034 2>&1 | grep -v Warning
+--- output ---
+== yield=1.5: {'dividend_yield': None, 'meta': {'dividend_yield': ('withheld', 'a dividend yield of 150.00% exceeds the plausible fraction bound of 25% — an ambiguous-unit value; withheld')}}
+== yield=0.9: {'dividend_yield': None, 'meta': {'dividend_yield': ('withheld', 'a dividend yield of 90.00% exceeds the plausible fraction bound of 25% — an ambiguous-unit value; withheld')}}
+== yield=0.03: {'dividend_yield': 0.03, 'meta': {}}
+== grep 2.0 bound: 
+
+EXIT=0 (0.7s)

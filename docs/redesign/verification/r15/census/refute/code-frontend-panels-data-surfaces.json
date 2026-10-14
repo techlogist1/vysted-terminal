@@ -1,0 +1,137 @@
+[
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The agent path holds: write_note (no scope -> General, the Notes panel's default scope) updates the store, but the scope->editor effect early-returns when prevScopeRef.current === scope, so the open editor keeps the old body and the user's next keystroke debounces the stale body back over the agent's text. The workspace-load half is refuted: deserializeWorkspace calls api.fromJSON (no reuseExistingPanels) BEFORE notes.fromBundle, and dockview's fromJSON clear()s and recreates panels, so NotesPanel remounts with a fresh prevScopeRef and loads the new store content. Downgraded to high: the lost text is the agent's addendum (still in the chat transcript), not user-authored content; the flow silently degrades with a false success message.",
+    "evidence": "src/modules/notes/NotesPanel.tsx:139-148, src/modules/notes/NotesPanel.tsx:150-178, src/lib/host-actions.ts:563-566, src/lib/host-actions.ts:1176-1192, src/store/notes.ts:52-80, src/lib/workspace.ts:245-270, src/lib/workspace.ts:344-347, node_modules/.pnpm/dockview-core@6.2.2/node_modules/dockview-core/dist/cjs/dockview/dockviewComponent.js:1360-1410",
+    "evidence_checked": "code-only: read the editor sync + debounced save effects, write_note apply path and noteScope default, notes store, deserializeWorkspace ordering, and dockview-core 6.2.2 fromJSON (clear() without reuseExistingPanels).",
+    "repro_check": "Would run: open Notes on General, trigger write_note{text:'X'} via the agent, observe editor unchanged, type one char, wait 600 ms, read useNotesStore.getState().general (expected: X gone). Not run (GUI-free rule); code path is unambiguous."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-2",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "All three sub-claims hold in code: (a) clearing a note yields editorMarkdown==='' and debouncedMd==='' so the guard at :169 returns and the store/.md keep the old body; (b) Tiptap 3.25 setContent defaults emitUpdate=true, so a scope switch emits an update that replaces editorMarkdown with the new scope's body and restarts the debounce, dropping the previous scope's last edit burst (and the save is keyed to the scope current when the timer fires); (c) useDebounce's cleanup clears the timer on unmount with no flush.",
+    "evidence": "src/modules/notes/NotesPanel.tsx:45-52, src/modules/notes/NotesPanel.tsx:139-178, node_modules/.pnpm/@tiptap+core@3.25.0_@tiptap+pm@3.25.0/node_modules/@tiptap/core/src/commands/setContent.ts:50-63",
+    "evidence_checked": "code-only: read the debounce hook, scope sync, update subscription and save effect; confirmed emitUpdate default in installed @tiptap/core 3.25.0 source.",
+    "repro_check": "Would run a vitest jsdom snippet: mount editor with 'abc', clear content, advance timers 600 ms, assert store still 'abc'. Not run; the guard condition is directly readable."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: drawings are selected by byPanel[panelId] and the chart is a singleton with id 'chart', DrawingSpec has no symbol/timeframe, so every drawing follows every symbol; the chart symbol/timeframe/indicators are local useState and only openResearchSpace loads a symbol (workspace.ts:633), so a normal relaunch opens SPY 1d with the restored drawings. Downgraded to medium: drawings are a secondary annotation layer and the misplacement is visible (not a silently wrong data value), so it is a real defect a demanding user hits, not a core-flow break.",
+    "evidence": "src/modules/chart/ChartPanel.tsx:80-81, src/modules/chart/ChartPanel.tsx:259-262, src/modules/chart/ChartPanel.tsx:298, src/modules/chart/index.ts:19-31, types/drawings.ts:82-99, src/lib/workspace.ts:272-276, src/lib/workspace.ts:633",
+    "evidence_checked": "code-only: read the drawings selector, singleton panel spec, DrawingSpec type, workspace drawings restore, and grepped workspace/page/PanelHost for any chart-symbol restore (only openResearchSpace).",
+    "repro_check": "grep -n 'loadSymbolIntoChart\\|useChartCommandStore' src/lib/workspace.ts src/app/page.tsx src/components/PanelHost.tsx -> only workspace.ts:633 (research space open)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Both palette ticker paths (recents :200, live Tickers :384) call useChartSyncBus.setSymbol only; ChartPanel consumes chart-sync.symbol only when syncSubscriptions.symbol is true, DEFAULT_SUBS.symbol is false, and no code ever sets it except the user's Sync toggle. No other consumer of chart-sync.symbol exists (grep). The always-consumed chart-command channel whose comment claims to serve palette picks is never used by the palette. A primary navigation action is a no-op by default.",
+    "evidence": "src/components/CommandPalette.tsx:161-162, src/components/CommandPalette.tsx:197-201, src/components/CommandPalette.tsx:383-386, src/store/chart-sync.ts:66, src/modules/chart/ChartPanel.tsx:761-793, src/modules/chart/ChartPanel.tsx:1271, src/modules/chart/ChartPanel.tsx:1340",
+    "evidence_checked": "code-only: read palette handlers, chart-sync store defaults, ChartPanel symbol-sync and command effects; grepped all useChartSyncBus/setSubscription users (store/panel-context and workflow only mention it in comments).",
+    "repro_check": "grep -rn 'setSubscription' src/modules/chart -> only the two user toggles at ChartPanel.tsx:1271/1340; no default-on path."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "The keydown listener is on window and deletes the selected drawing on any Delete/Backspace with no check of event.target, contentEditable, the chart container, or the drawing's locked flag; selectedDrawingId persists after focus moves elsewhere (only Escape or re-click clears it).",
+    "evidence": "src/modules/chart/ChartPanel.tsx:689-703, src/modules/chart/ChartPanel.tsx:1070-1079",
+    "evidence_checked": "code-only: read the key handler and selection/lock callbacks.",
+    "repro_check": "Would run: select a drawing chip, focus the chart Symbol input, press Backspace -> drawing removed. Not run (no GUI)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "(a) price = seriesData.close whenever the crosshair is over a bar, coordinateToPrice only off-bar; (b) off-data clicks give time:null and TrendlineRenderer returns when any x is null (resolvePoint maps null time to null x), so the committed drawing is invisible; (c) text kindOptions are hard-coded {text:'label'} and nothing edits kindOptions/label; (d) `locked` is only written and rendered as a toggle, never read by delete or any edit path.",
+    "evidence": "src/modules/chart/ChartPanel.tsx:632-676, src/modules/chart/ChartPanel.tsx:1074-1079, src/modules/chart/ChartPanel.tsx:1554-1563, src/modules/chart/drawings/renderers.ts:32-44, src/modules/chart/drawings/renderers.ts:280-303, src/modules/chart/drawings/base.ts:67-75",
+    "evidence_checked": "code-only: read the click-to-create handler, renderers, resolvePoint, and grepped kindOptions/locked across src (no reader besides the Text renderer and the toggle UI).",
+    "repro_check": "grep -rn 'kindOptions\\|\\.locked' src --include=*.ts* | grep -v test -> only ChartPanel.tsx:669/1075/1554-1563 and renderers.ts:292-296."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-7",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "The indicator effect's catch sets only the error state and never calls clearIndicatorSeries, and clearing happens only inside renderIndicators on success, so the previous symbol's overlay/pane series remain on the new symbol during load and permanently after an indicator failure. renderParabolicSar reads candleDataRef, which the independent history effect sets only on resolve, and SAR is not recomputed when candles arrive.",
+    "evidence": "src/modules/chart/ChartPanel.tsx:364-419, src/modules/chart/ChartPanel.tsx:422-446, src/modules/chart/ChartPanel.tsx:454-492, src/modules/chart/ChartPanel.tsx:494-557, src/modules/chart/ChartPanel.tsx:559-602",
+    "evidence_checked": "code-only: read both load effects, clearIndicatorSeries, renderIndicators and renderParabolicSar.",
+    "repro_check": "Would run: chart AAPL + SMA, switch to a symbol whose /indicators 5xx -> SMA line at AAPL levels persists. Not run (no GUI)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "The catalog schema for set_chart_indicators has items:{type:string} with no enum; host-actions forwards strArray unvalidated and returns 'Set indicators: ...' success; ChartPanel does setSelected(new Set(cmd.indicators)); fetchIndicators joins all keys into one request and the sidecar rejects the whole request on one unknown key, so valid indicators also fail.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1020-1045, src/lib/host-actions.ts:892-902, src/store/chart-command.ts:62-69, src/modules/chart/ChartPanel.tsx:805-820, src/modules/chart/api.ts:22-33",
+    "evidence_checked": "code read + live GET against the isolated sidecar :52152.",
+    "repro_check": "curl -s '127.0.0.1:52152/indicators/AAPL?indicators=rsi,bogus' -> {\"detail\":\"Unknown indicator(s): bogus. Supported: rsi, macd, ...\"} (whole request rejected)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-9",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "DEFAULT_SYMBOLS includes BTC/USDT and ETH/USDT as crypto; the watchlist quotes them correctly via /crypto/ticker, but the row click calls openCompanyOverview(symbol) dropping assetClass, and the chart calls sidecarApi.history(symbol, timeframe) with assetClass defaulted to equity; the equity overview module has no crypto guard. Both slash-symbol path routes 404 on the live sidecar.",
+    "evidence": "src/store/symbols.ts:21-28, src/modules/watchlist/api.ts:30-63, src/modules/watchlist/WatchlistPanel.tsx:470-481, src/lib/host-actions.ts:274-285, src/lib/sidecar-client.ts:266-291, src/modules/chart/ChartPanel.tsx:372",
+    "evidence_checked": "code read + live GETs against :52152; grepped src/modules/equity-overview for crypto/'/' handling (none).",
+    "repro_check": "curl -s '127.0.0.1:52152/quotes/BTC%2FUSDT' -> {\"detail\":\"Not Found\"}; curl -s '127.0.0.1:52152/history/BTC%2FUSDT?timeframe=1d' -> {\"detail\":\"Not Found\"}."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "(a) StarterKit 3 imports only BulletList/ListItem/ListKeymap/OrderedList from extension-list and NotesPanel registers no TaskList/TaskItem (grep: none in src), so the 'Task List' slash action calls an undefined chain command; (b) both suggestion onKeyDown hooks handle only Escape and the popups' active index moves only on mouse hover, so the menus are not keyboard-operable; (c) insertWikiLink inserts plain '[[SYM]]' text with no mark or click handler despite the header promising click-to-chart.",
+    "evidence": "src/modules/notes/slash-commands.ts:43-47, src/modules/notes/NotesPanel.tsx:113-126, src/modules/notes/NotesPanel.tsx:345-417, src/modules/notes/SlashCommandExtension.ts:75-81, src/modules/notes/WikiLinkExtension.ts:1-15, src/modules/notes/WikiLinkExtension.ts:41-48, src/modules/notes/WikiLinkExtension.ts:101-107, node_modules/.pnpm/@tiptap+starter-kit*/node_modules/@tiptap/starter-kit/src/starter-kit.ts:27",
+    "evidence_checked": "code-only: read the slash items, both extensions, the popup render, editor extension list, and the installed StarterKit imports; grepped src for TaskList/TaskItem and ArrowDown handling.",
+    "repro_check": "grep -rn 'TaskList\\|TaskItem' src -> only slash-commands.ts:46; grep -n 'import' starter-kit.ts shows no TaskList."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-11",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "setLink uses window.prompt and treats null as cancel. wry 0.55.1 (the locked version) implements only windowWillClose, runOpenPanelWithParameters, requestMediaCapturePermission and createWebViewWithConfiguration on its WKUIDelegate, with no runJavaScriptTextInputPanelWithPrompt; per WebKit's WKUIDelegate contract an unimplemented text-input panel behaves as Cancel, so prompt returns null. No Tauri dialog plugin or app-side prompt polyfill exists. macOS-only (WebView2 on Windows implements prompt), and one live click would still confirm.",
+    "evidence": "src/modules/notes/NotesToolbar.tsx:144-153, src-tauri/Cargo.lock:6464-6465, src-tauri/Cargo.toml:25, ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wry-0.55.1/src/wkwebview/class/wry_web_view_ui_delegate.rs:64-141",
+    "evidence_checked": "code-only: read the toolbar handler, confirmed wry version in Cargo.lock, grepped the wry 0.55.1 source for TextInputPanel/runJavaScript* (none), grepped src and tauri crates for a prompt polyfill (none).",
+    "repro_check": "grep -rn 'TextInputPanel' wry-0.55.1/src -> no match; live check (click Link in the desktop app) not run under the no-GUI rule."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-12",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Mechanism holds: ChartPanel selects s.crosshair and s.visibleRange as React state and broadcasts a new object on every crosshair move/range change, so the whole panel re-renders at pointer rate even with sync off and no peer. But the only cascading effect (panel-context publish) depends on primitives and does not re-fire, and no jank was measured; the cost is a wasted re-render, and the fix is subsumed by deleting the dead bus (COD-4). Downgraded to low.",
+    "evidence": "src/modules/chart/ChartPanel.tsx:313-325, src/modules/chart/ChartPanel.tsx:846-872, src/modules/chart/ChartPanel.tsx:874-906, src/store/chart-sync.ts:73-80",
+    "evidence_checked": "code-only: read the bus selectors, the broadcast effect and the downstream panel-context publish effect deps.",
+    "repro_check": "Would run React Profiler while moving the mouse over the chart and count ChartPanel commits; not run (no GUI)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-13",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "(a) refresh() returns early while inFlightRef is set, so an entries change during a poll is dropped and the table renders the fetch-time rows snapshot until the next 5 s tick; (b) the autocomplete hook keeps the previous query's candidates until the 140 ms debounce + fetch for the new draft land, and handleAdd picks candidates[acActive] with no check that they match the current draft; for 'TC' the resolver ranks the US 'TC' (Token Cat) first even with region=IN, so a fast 'TCS'+Enter tracks the wrong ticker; (c) the 5 s interval has no error backoff or visibility pause.",
+    "evidence": "src/modules/watchlist/WatchlistPanel.tsx:24, src/modules/watchlist/WatchlistPanel.tsx:140-245, src/modules/watchlist/WatchlistPanel.tsx:470-481, src/lib/symbol-autocomplete.ts:33-90",
+    "evidence_checked": "code read + live GET against :52152 for the autocomplete ranking.",
+    "repro_check": "curl -s '127.0.0.1:52152/resolve/autocomplete?q=TC&region=IN&limit=3' -> first candidate {symbol:'TC', name:'Token Cat Ltd', exchange:'US'}, TCS second."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-14",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "grep finds no consumer of indicator-presets/presetFor outside its own files (its header claims the chart seeds from it; ChartPanel starts with an empty Set), fuzzy.ts is referenced only by fuzzy.test.ts, exportNoteMd has no caller, and nothing reads the per-note .md files persistNoteMd writes.",
+    "evidence": "src/lib/indicator-presets.ts:1-10, src/lib/fuzzy.ts:1-12, src/modules/notes/notes-persistence.ts:55-98, src/modules/notes/NotesPanel.tsx:41, src/modules/chart/ChartPanel.tsx:262",
+    "evidence_checked": "code-only: grepped src and plugins for presetFor/indicator-presets, fuzzyRank/fuzzyScore/lib/fuzzy, exportNoteMd/notes-persistence, and read_text/readTextFile/notes/ readers.",
+    "repro_check": "grep -rln 'fuzzyRank\\|fuzzyScore\\|@/lib/fuzzy' src plugins -> fuzzy.ts, fuzzy.test.ts only; grep exportNoteMd -> definition only."
+  },
+  {
+    "raw_id": "COD-frontend-panels-data-surfaces-15",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "(a) the normalized overlay goes on priceScaleId 'left' while the candles stay absolute on the right, and no leftPriceScale option is set anywhere (lightweight-charts hides it by default), so the % axis is not shown and the two series scale independently; (b) toComparisonLineData sorts but does not de-duplicate, unlike toCandlestickData/toLineData, and lightweight-charts 5.2.0's dev build asserts ascending unique times (setData throws after addSeries, leaving the series unassigned); (c) indicator colour is chosen by lineIndex, so two single-line indicators share INDICATOR_COLORS[0]. Only when duplicates occur does (b) bite, so low stands.",
+    "evidence": "src/modules/chart/ChartPanel.tsx:108-121, src/modules/chart/ChartPanel.tsx:143-206, src/modules/chart/ChartPanel.tsx:511-527, src/modules/chart/ChartPanel.tsx:936-958, node_modules/.pnpm/lightweight-charts@5.2.0/node_modules/lightweight-charts/dist/lightweight-charts.development.mjs:12568",
+    "evidence_checked": "code-only: read the theme, all three converters, the comparison overlay effect and renderIndicators; grepped for leftPriceScale (none); located the LWC ordering assertion.",
+    "repro_check": "grep -n 'leftPriceScale' src/modules/chart/*.tsx src/lib/chart-theme.ts -> no match."
+  }
+]

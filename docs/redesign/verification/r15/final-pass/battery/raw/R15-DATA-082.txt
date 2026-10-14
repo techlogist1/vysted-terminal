@@ -1,0 +1,14 @@
+# R15-DATA-082 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:08+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b19_set13.py 082 2>&1 | grep -v Warning
+echo '$ live /quotes crypto'; curl -s -m 60 "$H/quotes?symbols=BTC/USDT,ETH/USDT&asset_class=crypto" | python3 -c "import sys,json;[print({k:q.get(k) for k in ('symbol','price','provider','freshness')}) for q in json.load(sys.stdin)]"
+--- output ---
+WARNING:services.provider_registry:provider ccxt failed for quote, falling through: ccxt ticker for binance:BTC/USDT carries no last or close price
+== no last/close: ProviderError: ccxt ticker for binance:BTC/USDT carries no last or close price
+WARNING:services.provider_registry:provider ccxt failed for quote, falling through: correctness gate: non-positive price 0.0 for 'BTC/USDT' from 'ccxt:binance'
+== last=0 close=0: CorrectnessError: correctness gate: non-positive price 0.0 for 'BTC/USDT' from 'ccxt:binance'
+$ live /quotes crypto
+{'symbol': 'BTC/USDT', 'price': 84870.01, 'provider': 'ccxt:binance', 'freshness': 'live'}
+{'symbol': 'ETH/USDT', 'price': 2685.02, 'provider': 'ccxt:binance', 'freshness': 'live'}
+
+EXIT=0 (5.7s)

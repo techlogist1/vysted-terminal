@@ -1,0 +1,31 @@
+CMD: cargo test --lib a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason -- --nocapture (src-tauri)
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on artifact directory
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.84s
+     Running unittests src/lib.rs (target/debug/deps/vysted_terminal_lib-e0a531c8885d4b9c)
+[dev-sign] codesign failed for /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src-tauri/target/debug/deps/vysted_terminal_lib-e0a531c8885d4b9c — running unsigned
+
+running 1 test
+[vysted] The data engine could not start (binary not found).
+test tests::a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+
+CMD: cargo test --lib the_boot_wait_keeps_an_earlier_exit_reason -- --nocapture (src-tauri)
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling vysted-terminal v0.8.0 (/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.76s
+     Running unittests src/lib.rs (target/debug/deps/vysted_terminal_lib-e0a531c8885d4b9c)
+[dev-sign] codesign failed for /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src-tauri/target/debug/deps/vysted_terminal_lib-e0a531c8885d4b9c — running unsigned
+
+running 1 test
+[vysted] The data engine stopped (exit code 1).
+test tests::the_boot_wait_keeps_an_earlier_exit_reason ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+
+Both pinned Rust unit tests pass at candidate 9bc600ec. VERDICT: ci_pinned (tests: a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason, the_boot_wait_keeps_an_earlier_exit_reason, src-tauri/src/lib.rs)

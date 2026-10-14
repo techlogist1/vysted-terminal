@@ -1,0 +1,15 @@
+R15-LIFECYCLE-020 @ 68d5573aff9a579af084dcbb124843f2aecff6e8 (isolated sidecar :52602)
+cmd: grep 'screener warm' sidecar log before first run -> 0 lines (no boot sweep: FIXED)
+cmd: curl -X POST :52602/screener/run {universe:nifty50,criteria:[],limit:5} (curl -m 110) -> HTTP000 110.0s while Yahoo 429ing
+log after run (symbol lists truncated):
+2026-09-27 05:31:34,373 INFO httpx: HTTP Request: GET https://query1.finance.yahoo.com/v7/finance/quote?symbols=ADJIA.BO%2CTRANWAY21.BO%2CALFL... "HTTP/1.1 429 Too Many R
+2026-09-27 05:31:34,508 INFO httpx: HTTP Request: GET https://query1.finance.yahoo.com/v7/finance/quote?symbols=SETFSN50.BO%2CSNXT50BEES.BO%2C... "HTTP/1.1 429 Too Many R
+2026-09-27 05:31:34,757 INFO httpx: HTTP Request: GET https://query1.finance.yahoo.com/v7/finance/quote?symbols=RAJKOTINV.BO%2CFABINO.BO%2CJAI... "HTTP/1.1 429 Too Many R
+2026-09-27 05:31:34,946 INFO httpx: HTTP Request: GET https://query1.finance.yahoo.com/v7/finance/quote?symbols=ADSDIAG.BO%2CRCL.BO%2CMAFIA.BO... "HTTP/1.1 429 Too Many R
+2026-09-27 05:31:35,011 INFO httpx: HTTP Request: GET https://query1.finance.yahoo.com/v7/finance/quote?symbols=ISIFAAFG.BO%2CISIFAAFDG.BO%2CP... "HTTP/1.1 429 Too Many R
+2026-09-27 05:31:35,192 INFO httpx: HTTP Request: GET https://query1.finance.yahoo.com/v7/finance/quote?symbols=HEALINV.BO%2CTRANOCE.BO%2CZSOU... "HTTP/1.1 429 Too Many R
+2026-09-27 05:31:35,804 INFO httpx: HTTP Request: GET https://query1.finance.yahoo.com/v7/finance/quote?symbols=SETFSN50.BO%2CSNXT50BEES.BO%2C... "HTTP/1.1 429 Too Many R
+2026-09-27 05:31:36,108 INFO httpx: HTTP Request: GET https://query1.finance.yahoo.com/v7/finance/quote?symbols=ISIFAAFG.BO%2CISIFAAFDG.BO%2CP... "HTTP/1.1 429 Too Many R
+provider-health after warm cycle: yahoo consecutive_throttles=1 opens_total=5 throttles_total=238 (was 236 before run)
+code: screener.py:1316 _warm_follow_region warms default_universe_for_region() (nifty50 for IN) lazily on first run: FIXED
+code: screener.py:1338 _warm_once -> yahoo_batch_provider.fetch_quotes_batch -> yahoo_batch_provider.py:322 provider_health.record_rate_limited(provider_health.YAHOO) = the SAME circuit user requests use (screener.py:550,1070 is_open(YAHOO)). No separate budget / lower-priority weight: fix_shape clause 3 UNFIXED -> NOT CERTIFIED

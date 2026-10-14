@@ -1,0 +1,10 @@
+# ace7dd76
+$ python3 --version; node -e resolveBuildPython()
+Python 3.14.5
+resolveBuildPython -> python3.13
+EXIT=0
+$ resolved interpreter version
+Python 3.13.13
+scripts/sidecar-specs.mjs:19:import { ensureBuildVenv } from "./build-python.mjs";
+scripts/sidecar-specs.mjs:78:  join(import.meta.dirname, "build-python.mjs"),
+scripts/sidecar-specs.mjs:266:  ensureBuildVenv(venvDir, venvPython, run);

@@ -9,9 +9,12 @@ Black-Scholes (``"black-scholes"``)
 Binomial (``"binomial"``)
    ``ql.BinomialVanillaEngine`` with the Cox-Ross-Rubinstein tree.
    Defaults to 200 steps when ``binomial_steps`` is None. Supports both
-   European and American exercise. Greeks come from finite-difference
-   re-pricing (perturb spot ±1 %, vol ±0.5pt, rate ±0.5pt) via the
-   :func:`_greeks_fd` helper.
+   European and American exercise. Delta, gamma and theta come straight
+   from the lattice (``option.delta()``/``.gamma()``/``.theta()`` — CRR
+   computes these from the tree nodes around the root, not by re-pricing
+   whole trees). Vega and rho have no lattice equivalent, so they still
+   come from finite-difference re-pricing (perturb vol ±0.5pt, rate
+   ±0.5pt) via the :func:`_greeks_binomial` helper.
 
 Monte Carlo (``"monte-carlo"``)
    ``ql.MCEuropeanEngine`` with antithetic variance reduction.
@@ -29,7 +32,7 @@ import QuantLib as ql
 
 from models.quant import Greeks, OptionPricingRequest, OptionPricingResult
 
-from ._common import build_bsm_process, ql_option_type, to_ql_date
+from ._common import build_bsm_process, holds_ql_lock, ql_option_type, to_ql_date
 
 #: Default number of CRR binomial tree steps when caller omits.
 DEFAULT_BINOMIAL_STEPS = 200
@@ -46,6 +49,7 @@ DEFAULT_MC_SEED = 42
 # ---------------------------------------------------------------------------
 
 
+@holds_ql_lock
 def price_european_bs(req: OptionPricingRequest) -> OptionPricingResult:
     """Price a European option with the analytic Black-Scholes engine.
 
@@ -93,13 +97,15 @@ def price_european_bs(req: OptionPricingRequest) -> OptionPricingResult:
 # ---------------------------------------------------------------------------
 
 
-def _price_binomial_npv(req: OptionPricingRequest, steps: int) -> float:
-    """Price ``req`` on a fresh CRR binomial tree of ``steps`` nodes.
+def _build_binomial_option(req: OptionPricingRequest, steps: int) -> ql.VanillaOption:
+    """Build and price ``req`` on a fresh CRR binomial tree of ``steps`` nodes.
 
     Builds a new process per call — the global QL settings (evaluation
     date, market data quote handles) are rebuilt inside
-    :func:`build_bsm_process`, so :func:`_greeks_fd` perturbations are
-    isolated by construction.
+    :func:`build_bsm_process`, so :func:`_greeks_binomial`'s vega/rho
+    perturbations are isolated by construction. Returns the priced option
+    object (not just its NPV) so the caller can also read delta/gamma/theta
+    straight off the lattice.
     """
     process = build_bsm_process(
         req.spot,
@@ -115,59 +121,51 @@ def _price_binomial_npv(req: OptionPricingRequest, steps: int) -> float:
         exercise = ql.AmericanExercise(to_ql_date(req.valuation_date), to_ql_date(req.expiry_date))
     option = ql.VanillaOption(payoff, exercise)
     option.setPricingEngine(ql.BinomialVanillaEngine(process, "crr", steps))
-    return option.NPV()
+    return option
 
 
-def _greeks_fd(req: OptionPricingRequest, steps: int) -> Greeks:
-    """Finite-difference Greeks for the binomial engine.
+def _price_binomial_npv(req: OptionPricingRequest, steps: int) -> float:
+    """Price ``req`` on a fresh CRR binomial tree of ``steps`` nodes."""
+    return _build_binomial_option(req, steps).NPV()
 
-    Perturbations are absolute around the input point so the FD is stable
-    across reasonable input ranges:
 
-    * Delta — central difference, ``ΔS = 1 % of spot``.
-    * Gamma — three-point stencil, ``ΔS = 1 % of spot``.
-    * Vega  — central difference, ``Δσ = 0.005`` (0.5 vol points).
-              Returned per unit-vol matching the QuantLib convention (so
-              the panel divides by 100 to show per-1 % move).
-    * Theta — forward difference, ``Δt = 1 day``; sign flipped to match
-              QuantLib's convention (option value drops as expiry nears).
-    * Rho   — central difference, ``Δr = 0.005`` (0.5 rate points).
+def _greeks_binomial(req: OptionPricingRequest, steps: int) -> Greeks:
+    """Greeks for the binomial engine.
+
+    * Delta, gamma, theta — read straight off the CRR lattice
+      (``option.delta()``/``.gamma()``/``.theta()``). The tree keeps the
+      node values around the root (and one extra step back in time), so
+      these come from the tree itself, not from re-pricing whole trees at
+      bumped inputs — that finite-difference approach straddled lattice
+      nodes and gave gamma 1.4-5.6x Black-Scholes (or exactly 0 at odd
+      step counts) and a theta with the wrong sign.
+    * Vega and rho have no lattice equivalent, so they still come from
+      finite-difference re-pricing:
+      * Vega — central difference, ``Δσ = 0.005`` (0.5 vol points).
+               Returned per unit-vol, the QuantLib convention the other
+               engines use; the panels show vega / 100 (per 1 vol point) and
+               theta / 365 (per calendar day) via src/modules/quant/units.ts.
+      * Rho  — central difference, ``Δr = 0.005`` (0.5 rate points).
     """
-    spot_bump = 0.01 * req.spot
-    base = req
-    up_s = base.model_copy(update={"spot": base.spot + spot_bump})
-    dn_s = base.model_copy(update={"spot": base.spot - spot_bump})
-
-    price_base = _price_binomial_npv(base, steps)
-    price_up_s = _price_binomial_npv(up_s, steps)
-    price_dn_s = _price_binomial_npv(dn_s, steps)
-
-    delta = (price_up_s - price_dn_s) / (2.0 * spot_bump)
-    gamma = (price_up_s - 2.0 * price_base + price_dn_s) / (spot_bump * spot_bump)
+    base_option = _build_binomial_option(req, steps)
+    delta = base_option.delta()
+    gamma = base_option.gamma()
+    theta = base_option.theta()
 
     vol_bump = 0.005
-    up_v = base.model_copy(update={"volatility": base.volatility + vol_bump})
-    dn_v = base.model_copy(update={"volatility": base.volatility - vol_bump})
+    up_v = req.model_copy(update={"volatility": req.volatility + vol_bump})
+    dn_v = req.model_copy(update={"volatility": req.volatility - vol_bump})
     vega = (_price_binomial_npv(up_v, steps) - _price_binomial_npv(dn_v, steps)) / (2.0 * vol_bump)
 
     rate_bump = 0.005
-    up_r = base.model_copy(update={"risk_free_rate": base.risk_free_rate + rate_bump})
-    dn_r = base.model_copy(update={"risk_free_rate": base.risk_free_rate - rate_bump})
+    up_r = req.model_copy(update={"risk_free_rate": req.risk_free_rate + rate_bump})
+    dn_r = req.model_copy(update={"risk_free_rate": req.risk_free_rate - rate_bump})
     rho = (_price_binomial_npv(up_r, steps) - _price_binomial_npv(dn_r, steps)) / (2.0 * rate_bump)
-
-    # Theta — forward difference in valuation date by 1 calendar day.
-    from datetime import timedelta
-
-    fwd = base.model_copy(update={"valuation_date": base.valuation_date + timedelta(days=1)})
-    price_fwd = _price_binomial_npv(fwd, steps)
-    # QuantLib's theta convention is "rate of change with respect to t",
-    # which is negative as expiry approaches. Match that sign so the
-    # binomial Greeks line up with the analytic Greeks.
-    theta = -(price_fwd - price_base) * 365.0
 
     return Greeks(delta=delta, gamma=gamma, vega=vega, theta=theta, rho=rho)
 
 
+@holds_ql_lock
 def price_american_binomial(req: OptionPricingRequest) -> OptionPricingResult:
     """Price an option on a Cox-Ross-Rubinstein binomial tree.
 
@@ -176,10 +174,8 @@ def price_american_binomial(req: OptionPricingRequest) -> OptionPricingResult:
     """
     started = time.perf_counter()
     steps = req.binomial_steps if req.binomial_steps is not None else DEFAULT_BINOMIAL_STEPS
-    if steps < 3:
-        raise ValueError(f"binomial steps must be at least 3, got {steps}")
     price = _price_binomial_npv(req, steps)
-    greeks = _greeks_fd(req, steps)
+    greeks = _greeks_binomial(req, steps)
     return OptionPricingResult(
         price=price,
         greeks=greeks,
@@ -194,6 +190,7 @@ def price_american_binomial(req: OptionPricingRequest) -> OptionPricingResult:
 # ---------------------------------------------------------------------------
 
 
+@holds_ql_lock
 def price_european_mc(req: OptionPricingRequest) -> OptionPricingResult:
     """Price a European option with antithetic-variate Monte Carlo.
 
@@ -209,8 +206,6 @@ def price_european_mc(req: OptionPricingRequest) -> OptionPricingResult:
 
     paths = req.monte_carlo_paths if req.monte_carlo_paths is not None else DEFAULT_MC_PATHS
     seed = req.monte_carlo_seed if req.monte_carlo_seed is not None else DEFAULT_MC_SEED
-    if paths < 100:
-        raise ValueError(f"monte carlo paths must be at least 100, got {paths}")
 
     process = build_bsm_process(
         req.spot,
@@ -254,6 +249,7 @@ def price_european_mc(req: OptionPricingRequest) -> OptionPricingResult:
 # ---------------------------------------------------------------------------
 
 
+@holds_ql_lock
 def price(req: OptionPricingRequest) -> OptionPricingResult:
     """Dispatch an option-pricing request to the engine named by ``req.method``."""
     req.validate_domain()

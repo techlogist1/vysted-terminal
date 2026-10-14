@@ -1,0 +1,26 @@
+CMD: source read of src/modules/equity-overview/EquityOverviewPanel.test.tsx:547-560 (pinned test 'a highlight command spotlights that metric's row (R15-AGENT-081)')
+EXIT: 0 (source inspection; frontend unit is vitest-only)
+OUTPUT:
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /NuScale Power Corp/ }));
+    });
+    expect(mockLoad).toHaveBeenCalledWith("SMR", "US");
+    expect(screen.queryByTestId("listing-chooser")).toBeNull();
+  });
+
+  it("a highlight command spotlights that metric's row (R15-AGENT-081)", async () => {
+    mockLoad.mockResolvedValue(overview());
+    render(<EquityOverviewPanel />);
+    await act(async () => {
+      useEquityCommandStore.getState().loadSymbol("AAPL", "pe_ratio");
+    });
+    await flushCommandTick();
+
+    const spotlit = await screen.findByText("P/E", { selector: "[data-highlighted]" });
+    expect(spotlit).toHaveAttribute("data-highlighted", "true");
+    expect(spotlit.closest("tr")?.className).toContain("ring-1");
+    // Exactly one row is spotlit.
+    expect(document.querySelectorAll("[data-highlighted]")).toHaveLength(1);
+  });
+
+VERDICT: ci_pinned -- EquityOverviewPanel.test.tsx::'a highlight command spotlights that metric's row (R15-AGENT-081)' asserts exactly one [data-highlighted] row for a known metric. No HTTP surface for this (client-side React render); heavy lane owns vitest.

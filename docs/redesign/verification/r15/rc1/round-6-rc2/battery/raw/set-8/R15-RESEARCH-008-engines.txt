@@ -1,0 +1,11 @@
+# R15-RESEARCH-008 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:35:25Z, sidecar :52348
+# kind=py
+# command:
+#   import asyncio, logging, time
+#   logging.basicConfig(level=logging.DEBUG)
+#   logging.getLogger('httpx').setLevel(logging.INFO)
+#   from services.search import brave
+#   print([n for n in dir(brave) if not n.startswith('_')][:20])
+# output:
+['BACKEND_ID', 'BeautifulSoup', 'BraveSearchBackend', 'HtmlSerpConfig', 'SearchResult', 'annotations', 'clean_text', 'impersonated_fetch', 'is_organic_url', 'parse_containers']
+# exit=0

@@ -15,7 +15,15 @@
 
 /** Curated universe id. Custom universes are pasted by the user as a
  * ticker list and don't get an id. */
-export type ScreenerUniverseId = "sp500" | "nifty50" | "crypto-top50" | "custom";
+export type ScreenerUniverseId =
+  | "sp500"
+  | "nifty50"
+  | "crypto-top50"
+  | "custom"
+  // R10 (D40): full-market India universes from the bundled resolver masters.
+  | "nse-all"
+  | "bse-all"
+  | "india-all";
 
 /**
  * A universe definition. ``"sp500"`` and ``"nifty50"`` are curated server-side
@@ -58,22 +66,58 @@ export type ScreenerCriterion =
 /** The fields a numeric operator may target. Tracks the
  * ``Fundamentals`` shape's numeric columns plus a few price-derived columns. */
 export type ScreenerNumericField =
+  // Valuation
   | "market_cap"
   | "pe_ratio"
   | "forward_pe"
   | "peg_ratio"
   | "price_to_book"
+  | "price_to_sales"
+  | "ev_to_ebitda"
+  | "book_value"
   | "dividend_yield"
   | "eps"
   | "beta"
+  // Profitability (fractions: 0.20 = 20%)
+  | "roe"
+  | "roa"
+  | "gross_margin"
+  | "operating_margin"
+  | "profit_margin"
+  // Financial health
+  | "debt_to_equity"
+  | "current_ratio"
+  | "quick_ratio"
+  // Growth (fractions)
+  | "revenue_growth"
+  | "earnings_growth"
+  // Range / ownership
   | "fifty_two_week_high"
   | "fifty_two_week_low"
+  | "fifty_two_week_change"
+  | "held_percent_insiders"
+  | "held_percent_institutions"
+  // Price-derived (from the live quote)
   | "price"
   | "change_percent_1d"
   | "volume";
 
 /** The fields an ``"eq"`` operator may target. */
 export type ScreenerStringField = "sector" | "industry" | "currency";
+
+/**
+ * A boolean combinator node — AND/OR over leaf criteria or nested groups.
+ *
+ * Enables OR + nested logic (e.g. ``(P/E < 15 AND ROE > 0.2) OR dividend_yield >
+ * 0.04``) beyond the flat AND-only ``criteria`` list. An EMPTY ``criteria`` array
+ * matches everything (no filter) regardless of ``combinator``, mirroring the flat
+ * path's "no criteria = show all". Recursive — a child may itself be a group.
+ * Hand-mirrors ``CriterionGroup`` in ``sidecar/models/screener.py``.
+ */
+export interface CriterionGroup {
+  combinator: "and" | "or";
+  criteria: (ScreenerCriterion | CriterionGroup)[];
+}
 
 // ---------------------------------------------------------------------------
 // Request / response
@@ -85,10 +129,32 @@ export interface ScreenerRequest {
   universe: ScreenerUniverseId;
   /** Custom tickers when ``universe = "custom"``. Otherwise ignored. */
   custom_symbols?: string[];
-  /** AND-combined criteria. v0.6.0 doesn't support OR / nested grouping. */
+  /** Flat AND-combined criteria (back-compat wire shape). When ``group`` is
+   * present it SUPERSEDES this; keep both in sync for older readers. */
   criteria: ScreenerCriterion[];
+  /** Optional boolean tree (AND/OR, nestable). When present it supersedes the
+   * flat ``criteria``. Lets the UI / agent express OR + grouped logic. */
+  group?: CriterionGroup | null;
+  /**
+   * Optional custom formula (R7 Pillar 3) — a free-text boolean expression
+   * evaluated SERVER-SIDE per universe member, AND-combined with the
+   * criteria/group. Grammar: field refs (snake_case + documented aliases),
+   * arithmetic, comparisons, and/or/not, abs/min/max — mirrored client-side by
+   * ``src/lib/screener-expr.ts`` for instant caret-position validation. A row
+   * missing a referenced field is skipped and itemized ``missing_field:<f>``.
+   */
+  formula?: string | null;
   /** Maximum rows to return (default 200, max 1000). */
   limit: number;
+  /**
+   * R15-UI-006: applied server-side BEFORE the `limit` cut, so a re-sort can
+   * change which rows survive the cut, not just their order on the already-
+   * served page. Defaults to `"market_cap"` / `"desc"` (byte-identical to the
+   * pre-sort_by ranking). A row missing `sort_by` sorts last regardless of
+   * `sort_dir`.
+   */
+  sort_by?: ScreenerNumericField;
+  sort_dir?: "asc" | "desc";
 }
 
 /** One row in the screener results table. */
@@ -99,13 +165,75 @@ export interface ScreenerResultRow {
   industry: string | null;
   market_cap: number | null;
   pe_ratio: number | null;
+  // Optional in the TS mirror (the sidecar always sends them, but older blobs /
+  // test fixtures may omit them) — the table + CSV treat absent as "—".
+  forward_pe?: number | null;
+  peg_ratio?: number | null;
+  price_to_book?: number | null;
+  /** Dividend yield as a fraction (0.012 = 1.2%). */
+  dividend_yield?: number | null;
+  /** Return on equity as a fraction (0.20 = 20%). */
+  roe?: number | null;
+  /** Debt-to-equity ratio (1.5 = 150%). */
+  debt_to_equity?: number | null;
   price: number | null;
   change_percent_1d: number | null;
   /** Volume (most recent close). */
   volume: number | null;
-  /** Per-criterion match scores keyed by criterion index — surfaced in the
-   * results table for column hover-explain. */
-  matched_criteria: number[];
+  // --- R11 (D52/D57) honest-basis block — optional for older payloads. ---
+  /** Listing currency of the currency-denominated fields (market_cap, price). */
+  currency?: string | null;
+  /**
+   * Serving basis of this row's values: "live" — every field fresh this run;
+   * "mixed" — some fields fresh, some stale/snapshot; "snapshot" — served from
+   * the bundled seed pack or stale cache tiers (see `data_as_of`).
+   */
+  data_basis?: string | null;
+  /** Epoch seconds of the OLDEST stamp among the fields the screen used —
+   * the honest "as of" for the row when `data_basis !== "live"`. */
+  data_as_of?: number | null;
+}
+
+/**
+ * One itemized skip — a universe member that never reached evaluation.
+ *
+ * The R4 batch fast path (FR-126 / SC-034) replaced the old "silently drop
+ * 242/506" behaviour with a complete ledger: every symbol the screener could
+ * not evaluate is itemized here with a machine-readable ``reason`` so the UI can
+ * surface coverage honestly. ``skipped_count === skip_details.length`` always.
+ *
+ * Hand-mirrors ``SkipDetail`` in ``sidecar/models/screener.py``.
+ */
+export interface SkipDetail {
+  symbol: string;
+  /**
+   * Why the symbol was skipped:
+   *   - ``"timeout"`` — the upstream fetch timed out.
+   *   - ``"not_found"`` — Yahoo returned no row for the symbol.
+   *   - ``"no_data"`` — a row came back but carried no usable price / payload.
+   *   - ``"rate_limited"`` — the upstream throttled the request (HTTP 429).
+   *   - ``"correctness_gate"`` — the provider refused to fabricate a value.
+   *   - ``"missing_field:<field>"`` — a criterion or the custom ``formula``
+   *     referenced a field neither the batch row nor the per-symbol enrichment
+   *     could supply.
+   */
+  reason: string;
+}
+
+/**
+ * Response shape from ``POST /screener/formula/validate`` (R7 Pillar 3) — the
+ * server-side inline-validation surface for the custom formula grammar. Never
+ * an HTTP error for a bad formula; the message + 0-based caret ``position``
+ * ride the body. Hand-mirrors ``FormulaValidation`` in
+ * ``sidecar/models/screener.py``.
+ */
+export interface FormulaValidation {
+  ok: boolean;
+  error: string | null;
+  /** 0-based character offset of the error in the formula text. */
+  position: number | null;
+  /** Canonical (snake_case) fields the formula references, sorted. */
+  fields: string[];
 }
 
 /** Response shape from ``POST /screener/run``. */
@@ -115,8 +243,74 @@ export interface ScreenerResult {
   evaluated_count: number;
   /** Symbols dropped (timeout / provider error) before evaluation. */
   skipped_count: number;
+  /**
+   * Itemized skip ledger (R4 / FR-126 / SC-034) — one entry per dropped symbol
+   * with a machine-readable reason. ``skipped_count === skip_details.length``.
+   * Optional in the mirror (older blobs / fixtures may omit it) — absent reads
+   * as "no itemization available", an empty array as "nothing skipped".
+   */
+  skip_details?: SkipDetail[];
   /** Total rows returned (≤ ``limit``). */
   result_count: number;
+  /**
+   * R15-UI-006: the count that matched the criteria BEFORE the `limit` cut —
+   * `result_count` alone cannot tell the UI "there are more". Optional in the
+   * mirror (older blobs / fixtures may omit it).
+   */
+  matched_count?: number;
   rows: ScreenerResultRow[];
   duration_ms: number;
+  /**
+   * R10 (D40) honest-coverage block — optional in the mirror for older blobs.
+   * `partial` = the budget, a cancel or upstream throttling/timeouts left
+   * members unevaluated; `coverage` is the one human line ("screened 1,840 of
+   * 2,100 — 260 unavailable");
+   * `freshness` stamps the serving data tiers (epoch seconds).
+   */
+  partial?: boolean;
+  coverage?: string | null;
+  freshness?: {
+    quotes_as_of?: number;
+    valuation_as_of?: number;
+    deep_as_of?: number;
+    /** R11 (D52): present when any row served from the bundled snapshot. */
+    seed_as_of?: number;
+  } | null;
+  /**
+   * R11 (D52/D53) honest-basis block — optional for older payloads.
+   * `basis_counts` = result rows per serving basis ({live, mixed, snapshot});
+   * `throttled` = the run detected upstream throttling and degraded to
+   * stale/snapshot basis (the UI surfaces an honest notice).
+   */
+  basis_counts?: Record<string, number> | null;
+  throttled?: boolean;
+}
+
+/**
+ * One progress frame on the `POST /screener/run/stream` SSE channel (R10, D40).
+ * Frames stream as `{"event":"progress",...}` then one terminal frame: either
+ * `{"event":"result",...}` carrying the full ScreenerResult or — on an engine
+ * crash — one `{"event":"error",...}` (see ScreenerErrorFrame). Client
+ * disconnect cancels the run.
+ */
+export interface ScreenerProgressFrame {
+  event: "progress";
+  /** The engine phase: "universe" | "prefilter" | "sweep" | "enrich" | "evaluate". */
+  phase: string;
+  done: number;
+  total: number;
+  /** One human line ("sweeping quotes 850/2,100"). */
+  detail: string;
+}
+
+/**
+ * The terminal error frame on the `POST /screener/run/stream` SSE channel,
+ * emitted INSTEAD of the result frame when the engine crashes. `message` is
+ * safe to render: a ProviderError's text (the same string the unary
+ * `POST /screener/run` returns as its 502 detail) or a sanitized one-liner —
+ * never raw provider/debug output.
+ */
+export interface ScreenerErrorFrame {
+  event: "error";
+  message: string;
 }

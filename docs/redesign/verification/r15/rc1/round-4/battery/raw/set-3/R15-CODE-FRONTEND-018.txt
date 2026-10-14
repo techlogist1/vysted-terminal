@@ -1,0 +1,6 @@
+NOT RUN LIVE: frontend-only (savedScreens slice registration), same constraint.
+SOURCE CHECK (candidate HEAD 1006c6da):
+  grep 'savedScreens' src/lib/workspace.ts -> present in PERSISTED_SLICES (key: savedScreens) at line ~300 block, wired identically to every other slice.
+PINNED TEST (ci_pinned):
+  src/lib/workspace.test.ts:1584 it("saved screens survive serialize, a fresh store and deserialize")
+VERDICT BASIS: source shows savedScreens is now a registered PERSISTED_SLICES entry (previously absent per the register's repro grep); pinned test above.

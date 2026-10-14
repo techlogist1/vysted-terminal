@@ -1,0 +1,4 @@
+CMD: grep -rn 'PLATFORM-053' src --include=*.test.*
+src/modules/portfolio/metrics.test.ts:86:    // R15-CODE-PLATFORM-053 (case the fix was not written against): a
+src/modules/portfolio/metrics.test.ts:108:    // R15-DATA-042 / R15-CODE-PLATFORM-053: weight and concentration are a
+EXIT=0

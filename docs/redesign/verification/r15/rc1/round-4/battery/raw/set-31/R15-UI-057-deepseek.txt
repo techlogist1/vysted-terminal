@@ -1,0 +1,2 @@
+curl -s --max-time 10 -X POST http://127.0.0.1:52352/llm/keys/validate -H 'Content-Type: application/json' -d '{"provider":"deepseek","api_key":"sk-trailing-space-test-key "}'
+{"ok":false,"reason":"invalid","detail":"DeepSeek rejected this key."}EXIT:0

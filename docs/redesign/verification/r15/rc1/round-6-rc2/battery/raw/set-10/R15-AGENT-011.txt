@@ -1,0 +1,30 @@
+# R15-AGENT-011 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:32:16Z, sidecar :52348
+# kind=sh
+# command:
+#   echo '$ grep -rn "backtest/runs" src/ types/ plugins/'
+#   grep -rn "backtest/runs" src/ types/ plugins/ | cut -c1-200
+#   echo '$ grep auto-backtest-call / run_id open_panel in runtime + frontend'
+#   grep -rn "auto-backtest\|_auto_open_backtest\|auto_backtest" sidecar/services/agent_runtime.py | head -5
+#   grep -rn "run_id" src/lib/host-actions*.ts* src/store/backtest.ts 2>/dev/null | head -8
+#   echo '$ curl /backtest/runs'; curl -s -m10 http://127.0.0.1:52348/backtest/runs | head -c 200; echo
+# output:
+$ grep -rn "backtest/runs" src/ types/ plugins/
+src/lib/host-actions.test.ts:1641:    expect(sidecarGetMock).toHaveBeenCalledWith("/backtest/runs/bt-1");
+src/store/backtest.ts:95:   * from `GET /backtest/runs/{runId}` as a complete run and make it active.
+src/store/backtest.ts:313:    const result = await sidecarGet<BacktestResult>(`/backtest/runs/${encodeURIComponent(runId)}`);
+types/backtest.ts:143:/** Full backtest result returned by `GET /backtest/runs/{id}`. */
+$ grep auto-backtest-call / run_id open_panel in runtime + frontend
+sidecar/services/agent_runtime.py:1259:def _auto_open_backtest_event(
+sidecar/services/agent_runtime.py:1277:        tool_call_id=f"auto-backtest-{tool_call.tool_call_id}",
+sidecar/services/agent_runtime.py:3267:            auto_open = _auto_open_backtest_event(tool_call, result_str)
+src/lib/host-actions.test.ts:852:      execution: { run_id: "run-1", requested_depth: "normal", loop: "fast" },
+src/lib/host-actions.test.ts:859:      execution: { run_id: "run-1", requested_depth: "normal", loop: "fast" },
+src/lib/host-actions.test.ts:885:      execution: { run_id: "run-2", requested_depth: "normal", loop: "fast" },
+src/lib/host-actions.test.ts:937:      execution: { run_id: "run-b", requested_depth: "normal", loop: "research-model" },
+src/lib/host-actions.test.ts:943:describe("publish_brief same-run shrink guard (R9 D33, R10 run_id-scoped)", () => {
+src/lib/host-actions.test.ts:967:      execution: { run_id: "run-s", requested_depth: "deep", loop: "iter" },
+src/lib/host-actions.test.ts:1024:      execution: { run_id: "run-x", requested_depth: "deep", loop: "iter" },
+src/lib/host-actions.test.ts:1052:      execution: { run_id: "run-y", requested_depth: "deep", loop: "iter" },
+$ curl /backtest/runs
+{"runs":[]}
+# exit=0

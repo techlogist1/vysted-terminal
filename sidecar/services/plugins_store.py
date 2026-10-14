@@ -11,6 +11,11 @@ Schema is the runtime ``PluginPersistedConfig`` shape mirrored 1:1 from
 
 - ``plugin_id`` — primary key, the stable plugin id.
 - ``enabled`` — INTEGER 0/1; defaults to 1 once the plugin first appears.
+- ``installed`` — INTEGER 0/1; the marketplace install-state flag (FR-054).
+  Defaults to 1 so any config persisted before this column existed reads as
+  installed. ``CREATE TABLE IF NOT EXISTS`` cannot add the column to a table
+  created by a pre-FR-054 build, so :func:`_migrate` ALTERs it in on connect;
+  existing rows backfill to installed=1. A fresh data directory just works too.
 - ``settings_json`` — opaque JSON blob the host never inspects.
 - ``granted_secret_ids_json`` — JSON array of secret ids the user granted to
   this plugin (resolved to values via the OS keychain when initializing).
@@ -26,6 +31,7 @@ from typing import Any
 
 from config import get_data_dir
 from models.plugins import PluginConfigPayload
+from services import schema_version
 
 DB_FILENAME = "plugins.db"
 
@@ -33,15 +39,44 @@ _SCHEMA = """
 CREATE TABLE IF NOT EXISTS plugin_configs (
     plugin_id TEXT PRIMARY KEY,
     enabled INTEGER NOT NULL DEFAULT 1,
+    installed INTEGER NOT NULL DEFAULT 1,
     settings_json TEXT NOT NULL DEFAULT '{}',
     granted_secret_ids_json TEXT NOT NULL DEFAULT '[]'
 )
 """
 
 
+# Columns added after the table's original (pre-FR-054) shape. ``CREATE TABLE
+# IF NOT EXISTS`` is a no-op against an existing table, so a database written by
+# an older build lacks these and every read raised ``sqlite3.OperationalError:
+# no such column: installed``. SQLite permits adding a NOT NULL column when a
+# constant DEFAULT is supplied, so existing rows backfill to the DDL default.
+_ADDED_COLUMNS = {
+    "installed": "ALTER TABLE plugin_configs ADD COLUMN installed INTEGER NOT NULL DEFAULT 1",
+}
+
+
 def _db_path() -> str:
     """Resolve the plugins database path under the current data directory."""
     return str(get_data_dir() / DB_FILENAME)
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Add post-creation columns to a pre-existing table (idempotent)."""
+    existing = {row["name"] for row in conn.execute("PRAGMA table_info(plugin_configs)")}
+    for column, ddl in _ADDED_COLUMNS.items():
+        if column not in existing:
+            conn.execute(ddl)
+
+
+def _step_1(conn: sqlite3.Connection) -> None:
+    """The schema as it stood before versioning, plus its column guard."""
+    conn.execute(_SCHEMA)
+    _migrate(conn)
+
+
+#: Forward-only migrations, one per ``user_version`` (R15-LIFECYCLE-024).
+_STEPS = (_step_1,)
 
 
 @contextmanager
@@ -51,20 +86,12 @@ def _connect() -> Iterator[sqlite3.Connection]:
     Path resolved per call so tests pointing ``VYSTED_DATA_DIR`` at a
     ``tmp_path`` always hit their own database.
     """
-    conn = sqlite3.connect(_db_path())
-    conn.row_factory = sqlite3.Row
+    conn, _ = schema_version.open_migrated(_db_path(), _STEPS, row_factory=sqlite3.Row)
     try:
-        conn.execute(_SCHEMA)
         yield conn
         conn.commit()
     finally:
         conn.close()
-
-
-def _ensure_schema() -> None:
-    """Create the ``plugin_configs`` table if it does not yet exist (idempotent)."""
-    with _connect():
-        pass
 
 
 def _row_to_payload(row: sqlite3.Row) -> PluginConfigPayload:
@@ -76,6 +103,7 @@ def _row_to_payload(row: sqlite3.Row) -> PluginConfigPayload:
     return PluginConfigPayload(
         plugin_id=row["plugin_id"],
         enabled=bool(row["enabled"]),
+        installed=bool(row["installed"]),
         settings=settings,
         granted_secret_ids=granted,
     )
@@ -85,7 +113,7 @@ def list_configs() -> list[PluginConfigPayload]:
     """Return every stored plugin config, ordered by plugin id."""
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT plugin_id, enabled, settings_json, granted_secret_ids_json "
+            "SELECT plugin_id, enabled, installed, settings_json, granted_secret_ids_json "
             "FROM plugin_configs ORDER BY plugin_id"
         ).fetchall()
     return [_row_to_payload(row) for row in rows]
@@ -95,7 +123,7 @@ def get_config(plugin_id: str) -> PluginConfigPayload | None:
     """Return one plugin's config, or ``None`` if it has never been persisted."""
     with _connect() as conn:
         row = conn.execute(
-            "SELECT plugin_id, enabled, settings_json, granted_secret_ids_json "
+            "SELECT plugin_id, enabled, installed, settings_json, granted_secret_ids_json "
             "FROM plugin_configs WHERE plugin_id = ?",
             (plugin_id,),
         ).fetchone()
@@ -110,14 +138,21 @@ def upsert_config(payload: PluginConfigPayload) -> PluginConfigPayload:
         conn.execute(
             """
             INSERT INTO plugin_configs
-                (plugin_id, enabled, settings_json, granted_secret_ids_json)
-            VALUES (?, ?, ?, ?)
+                (plugin_id, enabled, installed, settings_json, granted_secret_ids_json)
+            VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(plugin_id) DO UPDATE SET
                 enabled = excluded.enabled,
+                installed = excluded.installed,
                 settings_json = excluded.settings_json,
                 granted_secret_ids_json = excluded.granted_secret_ids_json
             """,
-            (payload.plugin_id, 1 if payload.enabled else 0, settings_json, granted_json),
+            (
+                payload.plugin_id,
+                1 if payload.enabled else 0,
+                1 if payload.installed else 0,
+                settings_json,
+                granted_json,
+            ),
         )
     stored = get_config(payload.plugin_id)
     if stored is None:  # pragma: no cover - upsert always yields a row

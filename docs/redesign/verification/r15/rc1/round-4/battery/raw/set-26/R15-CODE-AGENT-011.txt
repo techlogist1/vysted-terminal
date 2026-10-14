@@ -1,0 +1,38 @@
+=== CODE-AGENT-011 + AGENT-036 (single-answer cycle) ===
+{
+  "CODE-AGENT-011": {
+    "status_after_ask": "paused",
+    "question": "Which ticker would you like a price for?",
+    "status_after_answer": "done",
+    "tool_ran_after_answer": true
+  },
+  "AGENT-036": {
+    "prompt_field": "ORIGINAL PROMPT get me a price",
+    "turns_order_after_1st_answer": [
+      "[ask_user \u2192 Which ticker would you like a price for?]",
+      "MSFT please",
+      "[price_data \u2192 tool 'price_data' is not available in this bui",
+      "Done."
+    ],
+    "single_cycle_prompt": "ORIGINAL PROMPT",
+    "single_cycle_turns": [
+      "[ask_user \u2192 Which ticker would you like a price for?]",
+      "ANSWER ONE",
+      "[price_data \u2192 tool 'price_data' is not available in this bui",
+      "Done."
+    ]
+  }
+}
+
+=== AGENT-036 (two-cycle answer test) ===
+{
+  "final_status": "done",
+  "prompt_field_unchanged": "ORIGINAL PROMPT",
+  "turns_in_order": [
+    "[ask_user \u2192 Q1?]",
+    "ANSWER ONE",
+    "[ask_user \u2192 Q2?]",
+    "ANSWER TWO",
+    "Final."
+  ]
+}

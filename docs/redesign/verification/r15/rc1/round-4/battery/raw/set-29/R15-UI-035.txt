@@ -1,0 +1,2 @@
+Committed pinned test: src/modules/portfolio/PortfolioPanel.test.tsx:430 'Delete works in a portfolio switched to after mount (R15-UI-035)'.
+NOT RUN: vitest (role forbids running vitest/pytest suites).

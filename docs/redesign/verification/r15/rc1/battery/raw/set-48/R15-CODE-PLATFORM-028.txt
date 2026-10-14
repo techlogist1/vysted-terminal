@@ -1,0 +1,3 @@
+cmd: grep -n "scripts/\*\*" vitest.config.ts; ls scripts/*.test.mjs
+output: vitest.config.ts:11 include list has "scripts/**/*.test.mjs"; 4 script test files present: audit-design-tokens.test.mjs, sidecar-freshness-gate.test.mjs, sidecar-specs.test.mjs, sidecar-staleness.test.mjs.
+verdict: ci_pinned (frontend/scripts vitest suite, not independently re-run outside the committed test files this shard)

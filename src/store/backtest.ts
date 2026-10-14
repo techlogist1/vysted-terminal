@@ -43,8 +43,11 @@ import type {
 /** Catalogue load status — separate from per-run state. */
 export type BacktestCatalogueStatus = "idle" | "loading" | "ready" | "error";
 
-/** Per-run lifecycle status — drives the result view's progress chrome. */
-export type BacktestRunStatus = "pending" | "streaming" | "complete" | "error";
+/**
+ * Per-run lifecycle status — drives the result view's progress chrome.
+ * ``idle`` is a run the user stopped before it finished (R15-UI-011).
+ */
+export type BacktestRunStatus = "idle" | "pending" | "streaming" | "complete" | "error";
 
 /** One backtest run's slice. The result view reads this. */
 export interface BacktestRunState {
@@ -56,12 +59,14 @@ export interface BacktestRunState {
   /** Most recent progress event. */
   barsProcessed: number;
   totalBars: number;
-  /** Live trade log — appended on each ``trade`` event. */
+  /** Trade log — populated from the final result on ``run-complete``. */
   trades: BacktestTrade[];
   /** Final result, populated on ``run-complete``. */
   result: BacktestResult | null;
   /** Human-readable error message on ``run-error``. */
   error: string | null;
+  /** Why an ``idle`` run ended early ("Stopped"). */
+  note?: string;
   /** Timestamps for progress chrome. */
   startedAt: number;
   finishedAt: number | null;
@@ -84,6 +89,13 @@ interface BacktestStoreState {
    * real run id replaces this on the first ``run-start`` event.
    */
   startRun: (request: BacktestRequest, options?: { signal?: AbortSignal }) => Promise<string>;
+
+  /**
+   * Load a run this panel did not start (e.g. an agent's `run_custom_backtest`)
+   * from `GET /backtest/runs/{runId}` as a complete run and make it active.
+   * Rejects when the sidecar has no such run.
+   */
+  loadRun: (runId: string) => Promise<void>;
 
   /** Switch the active run shown in the panel. */
   setActiveRunId: (runId: string | null) => void;
@@ -199,25 +211,6 @@ export const useBacktestStore = create<BacktestStoreState>((set) => ({
         });
         return;
       }
-      if (event.kind === "trade") {
-        set((state) => {
-          const slot = state.runs[event.runId] ?? state.runs[resolvedRunId];
-          if (!slot) {
-            return state;
-          }
-          const id = slot.runId;
-          return {
-            runs: {
-              ...state.runs,
-              [id]: {
-                ...slot,
-                trades: [...slot.trades, event.trade],
-              },
-            },
-          };
-        });
-        return;
-      }
       if (event.kind === "run-complete") {
         set((state) => {
           const slot = state.runs[event.runId] ?? state.runs[resolvedRunId];
@@ -268,6 +261,25 @@ export const useBacktestStore = create<BacktestStoreState>((set) => ({
     try {
       await consumeBacktestStream(request, handleEvent, options?.signal);
     } catch (err: unknown) {
+      if (options?.signal?.aborted) {
+        set((state) => {
+          const slot = state.runs[resolvedRunId];
+          return slot
+            ? {
+                runs: {
+                  ...state.runs,
+                  [resolvedRunId]: {
+                    ...slot,
+                    status: "idle",
+                    note: "Stopped",
+                    finishedAt: Date.now(),
+                  },
+                },
+              }
+            : state;
+        });
+        return resolvedRunId;
+      }
       const isSidecarDown =
         err instanceof TypeError && /fetch|Failed to fetch|NetworkError/i.test(err.message);
       const message = isSidecarDown
@@ -295,6 +307,28 @@ export const useBacktestStore = create<BacktestStoreState>((set) => ({
     }
 
     return resolvedRunId;
+  },
+
+  loadRun: async (runId) => {
+    const result = await sidecarGet<BacktestResult>(`/backtest/runs/${encodeURIComponent(runId)}`);
+    set((state) => ({
+      runs: {
+        ...state.runs,
+        [runId]: {
+          runId,
+          request: result.request,
+          status: "complete",
+          barsProcessed: 0,
+          totalBars: PENDING_TOTAL_BARS,
+          trades: result.trades,
+          result,
+          error: null,
+          startedAt: result.startedAt,
+          finishedAt: result.startedAt + result.durationMs,
+        },
+      },
+      activeRunId: runId,
+    }));
   },
 
   setActiveRunId: (runId) => set({ activeRunId: runId }),
@@ -336,7 +370,14 @@ export async function consumeBacktestStream(
     signal,
   });
   if (!response.ok || !response.body) {
-    throw new Error(`Backtest stream failed (${response.status})`);
+    // A 422 names the offending param (R15-UI-010); keep that over the bare status.
+    const detail = await response
+      .json()
+      .then((body: { detail?: unknown }) => body.detail)
+      .catch(() => undefined);
+    throw new Error(
+      typeof detail === "string" ? detail : `Backtest stream failed (${response.status})`,
+    );
   }
   const reader = response.body.getReader();
   const decoder = new TextDecoder("utf-8");

@@ -1,0 +1,50 @@
+# R15-CODE-RESEARCH-006 at e032be7d
+cmd: grep -n '_MIN_HEAVY_ANGLES\|_MIN_ANGLES\|min_angles\|is_panel' services/research/*.py services/agent_tools/deep_research.py
+services/research/iter.py:95:_MIN_ANGLES = 2
+services/research/iter.py:957:    angles = max(_MIN_ANGLES, min(int(angles), _MAX_ANGLES))
+services/agent_tools/deep_research.py:85:#: lockstep with ``iter._MIN_ANGLES``; the actual per-depth angle counts live in
+services/agent_tools/deep_research.py:87:_MIN_HEAVY_ANGLES = 2
+services/agent_tools/deep_research.py:216:    heavy = profile.angles >= _MIN_HEAVY_ANGLES
+services/agent_tools/deep_research.py:271:    heavy = profile.angles >= _MIN_HEAVY_ANGLES
+services/agent_tools/deep_research.py:340:    if profile.angles >= _MIN_HEAVY_ANGLES:
+services/agent_tools/deep_research.py:414:    loop_label = "heavy" if profile.angles >= _MIN_HEAVY_ANGLES else "iter"
+services/agent_tools/deep_research.py:440:    out["mode"] = "heavy" if profile.angles >= _MIN_HEAVY_ANGLES else "deep"
+
+## depth.py:25-30 docstring claim
+Every knob the loops expose scales with depth through ONE
+:class:`DepthProfile` table — rounds, researcher fan-out, panel width, the
+iter working-report char cap, the default wall budget, coverage strictness,
+the finance ``site:`` query bias, and whether the cross-check round runs.
+Callers resolve a profile via :func:`profile_for` and thread its fields; no
+second copy of these numbers exists anywhere.
+
+## deep_research.py:84-87
+#: The panel threshold: a profile with ``angles >= 2`` runs Heavy mode. Kept in
+#: lockstep with ``iter._MIN_ANGLES``; the actual per-depth angle counts live in
+#: ``services.research.depth.PROFILES`` (the ONE knob table).
+_MIN_HEAVY_ANGLES = 2
+
+## iter.py:92-96
+#: Heavy mode angle bounds. The paper-grade panel uses a small N (~3 independent
+#: Research Agents + one Synthesis Agent); 2 is the floor for "heavy" to mean a
+#: panel at all, 3 the ceiling so the budget fan-out stays sane.
+_MIN_ANGLES = 2
+_MAX_ANGLES = 3
+
+## DepthProfile fields (depth.py:85-100) - no min_angles/is_panel
+class DepthProfile:
+    """The scaled knob set one depth runs with — read-only, table-driven."""
+
+    #: Canonical depth id (``normal`` / ``deep`` / ``ultra``).
+    depth: str
+    #: Which loop serves it: ``fast`` | ``iter`` | ``heavy``.
+    loop: str
+    #: Research rounds budgeted for the loop (sizes the step ceiling).
+    rounds: int
+    #: Researcher fan-out per round.
+    researchers: int
+    #: Heavy-panel width (1 = no panel; >=2 = the expert panel).
+    angles: int
+    #: Char cap on the iter working report (0 = n/a for the fast pass).
+    report_char_cap: int
+    #: Default wall-clock budget in seconds (0 = n/a for the fast pass).

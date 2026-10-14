@@ -1,0 +1,52 @@
+## S1-3 scheduler/MCP run_workflow sinks
+ugrep: warning: sidecar/routers/workflows.py: No such file or directory
+sidecar/services/workflow_scheduler.py:136:        result = await workflow_engine.run_workflow(spec, inputs=inputs)
+sidecar/services/mcp_server.py:277:    async def run_workflow(spec_json: str) -> dict[str, Any]:
+sidecar/services/mcp_server.py:301:            result = await workflow_engine.run_workflow(spec)
+## S1-4 default_model
+src/store/agents.ts
+## S2-3 SEC focus context
+src/modules/sec/SecFilingsPanel.tsx:164:  // R15-AGENT-053: publish the active identifier + tab so the copilot can
+src/modules/sec/SecFilingsPanel.test.tsx:188:  it("publishes the active identifier + tab to the panel context bus (R15-AGENT-053)", async () => {
+## S5-2 greeks tool
+5:Pydantic request, dispatch, and return ``model_dump(mode="json")`` so
+60:    return {"ok": True, "result": result.model_dump(mode="json")}
+73:    return {"ok": True, "result": result.model_dump(mode="json")}
+86:    return {"ok": True, "result": result.model_dump(mode="json")}
+104:    return {"ok": True, "result": result.model_dump(mode="json")}
+130:    return {"ok": True, "result": chain.model_dump(mode="json"), "strikes_listed": len(strikes)}
+203:async def run_workflow(
+204-    spec: WorkflowSpec,
+205-    *,
+206-    inputs: dict[str, Any] | None = None,
+207-    on_event: EventCallback | None = None,
+208-) -> WorkflowRunResult:
+209-    """Run a workflow end-to-end. Returns the aggregated result.
+## S1-4
+62:  defaultModel?: string | null;
+75:  default_model?: string | null;
+87:  default_model?: string | null;
+101:    defaultModel: row.default_model ?? null,
+128:    defaultModel: null,
+## S2-3
+  }, [setActiveAccession]);
+
+  const hasOpenFiling = activeAccession !== null;
+
+  // R15-AGENT-053: publish the active identifier + tab so the copilot can
+  // see what's on screen; the identifier is also clickable → the chart.
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "sec-filings",
+      kind: "snapshot",
+      payload: {
+        identifier: activeIdentifier,
+        formFilter,
+        tab,
+        filingCount: filings.filings.length,
+      },
+      emittedAt: Date.now(),
+    });

@@ -1,0 +1,1 @@
+R15-AGENT-029 / R15-CODE-PLATFORM-037: vitest run src/modules/chat/streaming.test.ts (part of the combined 5-file run) -> included in the 90 passing tests. See vitest-chat-runs.txt (grep 'streaming.test').

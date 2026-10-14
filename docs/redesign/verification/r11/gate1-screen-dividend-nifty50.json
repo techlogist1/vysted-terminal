@@ -1,0 +1,291 @@
+{
+ "universe": "nifty50",
+ "evaluated_count": 49,
+ "skipped_count": 1,
+ "skip_details": [
+  {
+   "symbol": "TATAMOTORS.NS",
+   "reason": "rate_limited"
+  }
+ ],
+ "result_count": 11,
+ "rows": [
+  {
+   "symbol": "TCS.NS",
+   "name": "Tata Consultancy Services Limited",
+   "sector": "Technology",
+   "industry": "Information Technology Services",
+   "market_cap": 7444214841344.0,
+   "pe_ratio": 15.1242285,
+   "forward_pe": 12.559977,
+   "peg_ratio": 2.2306,
+   "price_to_book": 6.941633,
+   "dividend_yield": 0.0592,
+   "roe": 0.48395002,
+   "debt_to_equity": 0.10389,
+   "price": 2057.5,
+   "change_percent_1d": -1.8415151948857358,
+   "volume": 3666985.0,
+   "matched_criteria": [
+    0,
+    1
+   ],
+   "currency": "INR",
+   "data_basis": "live",
+   "data_as_of": null
+  },
+  {
+   "symbol": "INFY.NS",
+   "name": "Infosys Limited",
+   "sector": "Technology",
+   "industry": "Information Technology Services",
+   "market_cap": 4329518923776.0,
+   "pe_ratio": 14.1723,
+   "forward_pe": 13.1202545,
+   "peg_ratio": 1.9564,
+   "price_to_book": 4.6698956,
+   "dividend_yield": 0.0467,
+   "roe": 0.31439,
+   "debt_to_equity": 0.09827,
+   "price": 1069.3,
+   "change_percent_1d": -0.23325247247620828,
+   "volume": 13022221.0,
+   "matched_criteria": [
+    0,
+    1
+   ],
+   "currency": "INR",
+   "data_basis": "live",
+   "data_as_of": null
+  },
+  {
+   "symbol": "ITC.NS",
+   "name": "ITC Limited",
+   "sector": "Consumer Defensive",
+   "industry": "Tobacco",
+   "market_cap": 3516395159552.0,
+   "pe_ratio": 16.988499,
+   "forward_pe": 15.903507,
+   "peg_ratio": 1.78,
+   "price_to_book": 4.8497467,
+   "dividend_yield": 0.0554,
+   "roe": 0.2934,
+   "debt_to_equity": 0.03293,
+   "price": 280.65,
+   "change_percent_1d": -2.805194805194813,
+   "volume": 21593793.0,
+   "matched_criteria": [
+    0,
+    1
+   ],
+   "currency": "INR",
+   "data_basis": "live",
+   "data_as_of": null
+  },
+  {
+   "symbol": "NTPC.NS",
+   "name": "NTPC Limited",
+   "sector": "Utilities",
+   "industry": "Utilities - Regulated Electric",
+   "market_cap": 3381227683840.0,
+   "pe_ratio": 11.459086,
+   "forward_pe": 12.3123665,
+   "peg_ratio": null,
+   "price_to_book": 1.6648842,
+   "dividend_yield": 0.032,
+   "roe": 0.13695,
+   "debt_to_equity": 1.18127,
+   "price": 348.7,
+   "change_percent_1d": -1.5527950310559007,
+   "volume": 9572223.0,
+   "matched_criteria": [
+    0,
+    1
+   ],
+   "currency": "INR",
+   "data_basis": "live",
+   "data_as_of": null
+  },
+  {
+   "symbol": "ONGC.NS",
+   "name": "Oil and Natural Gas Corporation Limited",
+   "sector": "Energy",
+   "industry": "Oil & Gas Integrated",
+   "market_cap": 3107328884736.0,
+   "pe_ratio": 7.498482,
+   "forward_pe": 5.6936517,
+   "peg_ratio": null,
+   "price_to_book": 0.8358714,
+   "dividend_yield": 0.0758,
+   "roe": 0.12703,
+   "debt_to_equity": 0.42548,
+   "price": 247.0,
+   "change_percent_1d": 1.1548857400278456,
+   "volume": 24753835.0,
+   "matched_criteria": [
+    0,
+    1
+   ],
+   "currency": "INR",
+   "data_basis": "live",
+   "data_as_of": null
+  },
+  {
+   "symbol": "HCLTECH.NS",
+   "name": "HCL Technologies Limited",
+   "sector": "Technology",
+   "industry": "Information Technology Services",
+   "market_cap": 3099726184448.0,
+   "pe_ratio": 18.679276,
+   "forward_pe": 14.301877,
+   "peg_ratio": 2.39,
+   "price_to_book": 4.1441007,
+   "dividend_yield": 0.08220000000000001,
+   "roe": 0.23357001,
+   "debt_to_equity": 0.06935,
+   "price": 1145.6,
+   "change_percent_1d": -1.934600239684997,
+   "volume": 3091794.0,
+   "matched_criteria": [
+    0,
+    1
+   ],
+   "currency": "INR",
+   "data_basis": "live",
+   "data_as_of": null
+  },
+  {
+   "symbol": "COALINDIA.NS",
+   "name": "Coal India Limited",
+   "sector": "Energy",
+   "industry": "Thermal Coal",
+   "market_cap": 2644118601728.0,
+   "pe_ratio": 8.5061455,
+   "forward_pe": 7.4721866,
+   "peg_ratio": 0.87,
+   "price_to_book": 2.2198365,
+   "dividend_yield": 0.0513,
+   "roe": 0.28124002,
+   "debt_to_equity": 0.11628999999999999,
+   "price": 429.05,
+   "change_percent_1d": 0.023312740412640805,
+   "volume": 3686631.0,
+   "matched_criteria": [
+    0,
+    1
+   ],
+   "currency": "INR",
+   "data_basis": "live",
+   "data_as_of": null
+  },
+  {
+   "symbol": "POWERGRID.NS",
+   "name": "Power Grid Corporation of India Limited",
+   "sector": "Utilities",
+   "industry": "Utilities - Regulated Electric",
+   "market_cap": 2601378906112.0,
+   "pe_ratio": 13.915423,
+   "forward_pe": 14.018449,
+   "peg_ratio": null,
+   "price_to_book": 2.5876346,
+   "dividend_yield": 0.0431,
+   "roe": 0.16492,
+   "debt_to_equity": 1.50993,
+   "price": 279.7,
+   "change_percent_1d": -1.6353085985581268,
+   "volume": 7306244.0,
+   "matched_criteria": [
+    0,
+    1
+   ],
+   "currency": "INR",
+   "data_basis": "live",
+   "data_as_of": null
+  },
+  {
+   "symbol": "TATASTEEL.NS",
+   "name": "Tata Steel Limited",
+   "sector": "Basic Materials",
+   "industry": "Steel",
+   "market_cap": 2347201724416.0,
+   "pe_ratio": 21.757227,
+   "forward_pe": 10.010638,
+   "peg_ratio": null,
+   "price_to_book": 2.2995527,
+   "dividend_yield": 0.021099999999999997,
+   "roe": 0.11156999,
+   "debt_to_equity": 0.8901699999999999,
+   "price": 188.2,
+   "change_percent_1d": -0.8377680594341133,
+   "volume": 17816943.0,
+   "matched_criteria": [
+    0,
+    1
+   ],
+   "currency": "INR",
+   "data_basis": "live",
+   "data_as_of": null
+  },
+  {
+   "symbol": "WIPRO.NS",
+   "name": "Wipro Limited",
+   "sector": "Technology",
+   "industry": "Information Technology Services",
+   "market_cap": 1708484853760.0,
+   "pe_ratio": 13.751592,
+   "forward_pe": 12.045218,
+   "peg_ratio": 1.1838,
+   "price_to_book": 2.0437818,
+   "dividend_yield": 0.0983,
+   "roe": 0.15439999,
+   "debt_to_equity": 0.22853,
+   "price": 172.72,
+   "change_percent_1d": -0.16184971098265963,
+   "volume": 16482564.0,
+   "matched_criteria": [
+    0,
+    1
+   ],
+   "currency": "INR",
+   "data_basis": "live",
+   "data_as_of": null
+  },
+  {
+   "symbol": "TECHM.NS",
+   "name": "Tech Mahindra Limited",
+   "sector": "Technology",
+   "industry": "Information Technology Services",
+   "market_cap": 1265662951424.0,
+   "pe_ratio": 26.39084,
+   "forward_pe": 16.813679,
+   "peg_ratio": 1.86,
+   "price_to_book": 4.2726254,
+   "dividend_yield": 0.0352,
+   "roe": 0.16608,
+   "debt_to_equity": 0.07269,
+   "price": 1428.8,
+   "change_percent_1d": -1.291882556131264,
+   "volume": 1489170.0,
+   "matched_criteria": [
+    0,
+    1
+   ],
+   "currency": "INR",
+   "data_basis": "live",
+   "data_as_of": null
+  }
+ ],
+ "duration_ms": 11.612499947659671,
+ "partial": false,
+ "coverage": "screened 49 of 50 \u2014 1 unavailable",
+ "freshness": {
+  "quotes_as_of": 1783522869.105736,
+  "valuation_as_of": 1783523076.666027,
+  "deep_as_of": 1783523076.666027,
+  "seed_as_of": 1781382051.126626
+ },
+ "basis_counts": {
+  "live": 11
+ },
+ "throttled": true
+}

@@ -1,0 +1,4 @@
+resolve_symbol slow: status bound max loop lag 0.017s
+fundamentals._canonicalize slow: max loop lag 0.002s _Canonicalization
+resolve_symbol raising -> {'ok': False, 'status': 'unresolved', 'reason': 'resolver error: resolver exploded'}
+canonicalize raising -> _Canonicalization(canonical_symbol=None, note=None, honest_not_found=None, candidates=[])

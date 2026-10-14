@@ -1,0 +1,30 @@
+CMD: GET /workspace list; POST save name starting __; DELETE __autosave__
+--- GET /workspace (list; note __autosave__ presence) ---
+["__autosave__","b9v-ws2"] HTTP:200
+--- POST save name '__mine' (expect reserved-name rejection) ---
+{"status":"saved","name":"__mine"} HTTP:200
+--- DELETE __autosave__ (expect reserved-name rejection, not actual delete) ---
+ HTTP:204
+--- confirm __autosave__ still present after failed delete ---
+["__mine","b9v-ws2"] HTTP:200
+583:    // workspace file (or the `__autosave__` slot) still resolves its memory.
+619:  // persists under `__autosave__` but a space's memory must converge on the
+738:  // The reserved slots (`__autosave__`) are internal, never a user workspace.
+742:/** A user-chosen workspace name: non-empty, never a reserved `__` slot (R15-UI-046). */
+749:    throw new WorkspaceError(`Names starting with "__" are reserved; choose another name.`);
+987:      // The reserved slot's name is internal — present the restored cockpit
+988:      // under the neutral "default" name, not "__autosave__".
+1039: * Schedule a save of the current cockpit to the reserved autosave slot. A
+CORRECTION: raw sidecar HTTP calls above bypass the client-side guard (src/lib/workspace.ts saveWorkspace/deleteWorkspace), which is where R15-UI-046's fix lives, not the sidecar router. The sidecar itself has no reserved-name check (by design — the guard is a frontend-only convenience, confirmed: raw POST __mine -> 200, raw DELETE __autosave__ -> 204).
+Committed pinned test found: src/lib/workspace.test.ts:1389 'hides the reserved __autosave__ slot and refuses reserved names (R15-UI-046)' — asserts saveWorkspace('__mine') and deleteWorkspace('__autosave__') both reject with /reserved/, and that listWorkspaces() filters __autosave__ out.
+VERDICT: ci_pinned (src/lib/workspace.test.ts:1389); the guard mechanism (src/lib/workspace.ts:742-749 WorkspaceError on __ prefix) is present unchanged in the candidate source.
+613:    throw new WorkspaceError("The panel layout is not ready yet.");
+658:    throw new WorkspaceError("The panel layout is not ready yet.");
+675:    throw new WorkspaceError("The panel layout is not ready yet.");
+736:    throw new WorkspaceError("Could not parse the workspace list response (malformed JSON).");
+746:    throw new WorkspaceError("A workspace name is required.");
+749:    throw new WorkspaceError(`Names starting with "__" are reserved; choose another name.`);
+785:    throw new WorkspaceError("A workspace name is required.");
+795:    throw new WorkspaceError(`Could not parse workspace "${trimmed}" (malformed JSON).`);
+1174:    throw new WorkspaceError("A ticker is required for a research space.");
+1178:    throw new WorkspaceError("The panel layout is not ready yet.");

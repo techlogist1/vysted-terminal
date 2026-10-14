@@ -1,0 +1,1 @@
+vy: refusing — non-GET calls are only allowed against R15 isolated sidecars (ports 52100-52399)

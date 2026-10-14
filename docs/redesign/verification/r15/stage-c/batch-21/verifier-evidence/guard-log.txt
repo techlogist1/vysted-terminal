@@ -1,0 +1,6 @@
+2026-09-25 23:11:07,905 INFO services.agent_runtime: tool-citation guard replaced an untraced claim: "SIFY's trailing twelve months (TTM) revenue is $143.67 million as of Q4 2023, according to the latest available data."
+2026-09-25 23:15:44,658 INFO services.agent_runtime: tool-citation guard replaced an untraced claim: '| Wipro | ₹433.30 |'
+2026-09-25 23:15:44,659 INFO services.agent_runtime: tool-citation guard replaced an untraced claim: '| HCL Technologies | ₹928.10 |'
+2026-09-25 23:15:44,659 INFO services.agent_runtime: tool-citation guard replaced an untraced claim: '| Tech Mahindra | ₹544.85 |'
+2026-09-25 23:24:05,004 INFO services.agent_runtime: tool-citation guard replaced an untraced claim: 'TCS: ₹11,142.65'
+2026-09-25 23:24:05,728 INFO services.agent_runtime: tool-citation guard replaced an untraced claim: 'SBI: ₹734.35 (price_data call failed)'

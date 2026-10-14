@@ -1,0 +1,14 @@
+command: grep -n 'focusedSource\|setFocusedSource' src/components/PanelHost.tsx; grep -n 'source:.*panelId|busSource|BUS_SOURCE' the three publishers
+exit: 0
+output:
+286:          usePanelContextBus.getState().setFocusedSource(panel?.id ?? null);
+-- ChartPanel.tsx --
+245:  const panelId = usePanelId(props.api);
+1046:      source: panelId,
+-- EquityOverviewPanel.tsx --
+553:  const busSource = props.api?.id ?? "equity-overview";
+-- BacktestResultView.tsx --
+413:const BUS_SOURCE = "backtest";
+
+PanelHost.onDidActivePanelChange sets focusedSource to panel.id (the dockview id); ChartPanel now publishes under source:panelId (its own dockview id via usePanelId), EquityOverviewPanel under props.api?.id, BacktestResultView under the literal 'backtest' (its fixed dockview id) -- all three now match the dockview-id convention PanelHost focuses on, closing the R15-AGENT-052/R15-CODE-FRONTEND-015 (this file: R15-CODE-FRONTEND-015) mismatch (previously chart-${panelId}/'equity'/'backtest-panel').
+verdict: holds

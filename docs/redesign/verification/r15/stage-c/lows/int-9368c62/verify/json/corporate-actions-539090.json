@@ -1,0 +1,23 @@
+{
+ "symbol": "539090",
+ "count": 1,
+ "actions": [
+  {
+   "symbol": "539090",
+   "kind": "bonus",
+   "purpose": "Bonus issue 9:5",
+   "ratio": "9:5",
+   "amount_per_share": null,
+   "ex_date": "2017-08-28",
+   "record_date": "2017-08-29",
+   "payment_date": null,
+   "exchange": "BSE"
+  }
+ ],
+ "sources": [
+  "BSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": null
+}

@@ -1,0 +1,9 @@
+{
+  "universe": "nse-all",
+  "criteria": [
+    {"field": "sector", "operator": "eq", "value": "Technology"},
+    {"field": "market_cap", "operator": "lt", "value": 50000000000},
+    {"field": "pe_ratio", "operator": "lt", "value": 20},
+    {"field": "roe", "operator": "gt", "value": 0.15}
+  ]
+}

@@ -1,0 +1,9 @@
+=== R15-DATA-067: GET /earnings/upcoming?days=60 ===
+CMD: curl -s -m 60 'http://127.0.0.1:52344/earnings/upcoming?days=60'
+<class 'dict'> ['start_date', 'end_date', 'events', 'as_of']
+INFY.NS None None
+CMD: curl -s -m 60 'http://127.0.0.1:52344/earnings/upcoming?days=60' -H 'X-Vysted-Region: US'
+count: 10
+{'symbol': 'JPM', 'company_name': 'JPMorgan Chase & Co.', 'scheduled_date': '2026-10-13', 'time_of_day': 'unknown', 'fiscal_period': None, 'eps_estimate_mean': 5.91102, 'eps_estimate_stddev': None, 'estimate_analyst_count': 9, 'currency': 'USD', 'provider': 'yfinance'}
+{'symbol': 'TSLA', 'company_name': 'Tesla, Inc.', 'scheduled_date': '2026-10-22', 'time_of_day': 'unknown', 'fiscal_period': None, 'eps_estimate_mean': 0.44848, 'eps_estimate_stddev': None, 'estimate_analyst_count': 25, 'currency': 'USD', 'provider': 'yfinance'}
+{'symbol': 'AAPL', 'company_name': 'Apple Inc.', 'scheduled_date': '2026-10-30', 'time_of_day': 'unknown', 'fiscal_period': None, 'eps_estimate_mean': 1.98124, 'eps_estimate_stddev': None, 'estimate_analyst_count': 27, 'currency': 'USD', 'provider': 'yfinance'}

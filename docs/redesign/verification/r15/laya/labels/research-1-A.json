@@ -1,0 +1,426 @@
+{
+ "shard": "research-1",
+ "labels": [
+  {
+   "id": "research-1",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-2",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-3",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-4",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-5",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "filing title unnamed; tied by brief sources and timestamps"
+  },
+  {
+   "id": "research-6",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-7",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "filing title unnamed; tied by brief sources and timestamps"
+  },
+  {
+   "id": "research-8",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-9",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "filing title unnamed; tied by brief sources and timestamps"
+  },
+  {
+   "id": "research-10",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-11",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-12",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-13",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-14",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-15",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-16",
+   "answer": "no",
+   "confidence": 0.6,
+   "note": "solar/storage projects do not fit missile maker; likely colliding entity"
+  },
+  {
+   "id": "research-17",
+   "answer": "no",
+   "confidence": 0.6,
+   "note": "diesel/oil pricing content does not fit this defence PSU"
+  },
+  {
+   "id": "research-18",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "names BDL but repeats off-entity energy-project claim"
+  },
+  {
+   "id": "research-19",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-20",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-21",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-22",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "mostly HAL; Middle East expansion line may be off-entity"
+  },
+  {
+   "id": "research-23",
+   "answer": "no",
+   "confidence": 0.65,
+   "note": "deepwater Cyprus/Latin America reads as Halliburton ticker collision"
+  },
+  {
+   "id": "research-24",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-25",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-26",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-27",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "numbers-only cross-check; figures match the brief"
+  },
+  {
+   "id": "research-28",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "filing title unnamed; tied by brief sources and timestamps"
+  },
+  {
+   "id": "research-29",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-30",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-31",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-32",
+   "answer": "yes",
+   "confidence": 0.85,
+   "note": "Advanced Light Helicopter is an HAL product"
+  },
+  {
+   "id": "research-33",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-34",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-35",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-36",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-37",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-38",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-39",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-40",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-41",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-42",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "filing title unnamed; tied by brief sources and timestamps"
+  },
+  {
+   "id": "research-43",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "filing title unnamed; tied by brief sources and timestamps"
+  },
+  {
+   "id": "research-44",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-45",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "filing title unnamed; tied by brief sources and timestamps"
+  },
+  {
+   "id": "research-46",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-47",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-48",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-49",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-50",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-51",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-52",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-53",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-54",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-55",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "numbers-only cross-check; figures match the brief"
+  },
+  {
+   "id": "research-56",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-57",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-58",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-59",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-60",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-61",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-62",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "MedTech divestment claim uncertain for Blue Star"
+  },
+  {
+   "id": "research-63",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-64",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-65",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-66",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "filing title unnamed; tied by brief sources and timestamps"
+  },
+  {
+   "id": "research-67",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "filing title unnamed; tied by brief sources and timestamps"
+  },
+  {
+   "id": "research-68",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "filing title unnamed; tied by brief sources and timestamps"
+  },
+  {
+   "id": "research-69",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-70",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-71",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-72",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-73",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-74",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-75",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-76",
+   "answer": "yes",
+   "confidence": 0.8
+  },
+  {
+   "id": "research-77",
+   "answer": "yes",
+   "confidence": 0.9,
+   "note": "about Cochin Shipyard; revenue/income units look inflated"
+  },
+  {
+   "id": "research-78",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-79",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "research-80",
+   "answer": "skip",
+   "confidence": 0.9,
+   "note": "chat closing line, not evidence"
+  }
+ ]
+}

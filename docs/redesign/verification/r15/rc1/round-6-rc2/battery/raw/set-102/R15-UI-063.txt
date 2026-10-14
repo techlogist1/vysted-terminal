@@ -1,0 +1,5 @@
+$ node --experimental-strip-types: call date-defaults.ts at now
+{"now":"2026-10-03T01:11:59.433Z","option":{"valuationDate":"2026-10-03","expiryDate":"2026-11-17"},"bond":{"issueDate":"2026-10-03","maturityDate":"2036-10-03","settlementDate":"2026-10-03"},"yc":{"valuationDate":"2026-10-03"}}
+exit=0
+$ grep literals in non-test quant panels
+grep exit=1 (1=none)

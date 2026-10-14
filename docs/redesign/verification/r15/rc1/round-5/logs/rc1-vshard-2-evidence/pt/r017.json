@@ -1,0 +1,29 @@
+{
+ "snapshot_structured": {
+  "deep": {
+   "ok": false,
+   "execution_loop": "iter",
+   "degraded_reason": "the iter research loop failed: ValueError: snapshot_structured exploded"
+  },
+  "ultra": {
+   "ok": false,
+   "execution_loop": "heavy",
+   "degraded_reason": "the heavy research loop failed: ValueError: snapshot_structured exploded"
+  }
+ },
+ "resolve_target": {
+  "deep": {
+   "ok": false,
+   "execution_loop": "iter",
+   "degraded_reason": "the iter research loop failed: ValueError: resolve_target exploded"
+  },
+  "ultra": {
+   "ok": false,
+   "execution_loop": "heavy",
+   "degraded_reason": "the heavy research loop failed: ValueError: resolve_target exploded"
+  }
+ },
+ "cross_check_ultra": {
+  "ESCAPED": "ValueError: cross_check exploded"
+ }
+}

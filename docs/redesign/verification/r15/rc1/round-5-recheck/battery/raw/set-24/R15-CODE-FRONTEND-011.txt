@@ -1,0 +1,22 @@
+COMMAND: grep -n "R15-CODE-FRONTEND-011" src/lib/host-actions.test.ts
+CONTEXT: batch-6/VERDICTS.md certified this id via a scratch (uncommitted)
+vitest file that no longer exists. Re-checking on candidate 949c3c9f: a
+COMMITTED, named pinned test now covers this exact behavior (one parsed
+intent shared by describeHostAction/applyHostAction, bound at enqueue time).
+Per the shard's rule ("never run vitest suites; an entry certified only
+through a pinned test -> verdict ci_pinned naming the test"), not executed.
+1557:// ── R15-CODE-FRONTEND-011/007: one parsed intent, targets bound at enqueue ──
+1559:describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)", () => {
+
+describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)", () => {
+  const screenerPanel = {
+    api: { component: "screener-panel", close: vi.fn(), setActive: vi.fn() },
+  };
+  const chartPanel = {
+    id: "chart",
+    api: { component: "chart-panel", close: vi.fn(), setActive: vi.fn() },
+  };
+
+
+EXIT: 0 (grep confirmed the named describe block exists; test not run)
+VERDICT: ci_pinned -- src/lib/host-actions.test.ts:1559 describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)")

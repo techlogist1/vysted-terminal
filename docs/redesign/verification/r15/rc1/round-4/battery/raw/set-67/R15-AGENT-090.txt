@@ -1,0 +1,45 @@
+=== R15-AGENT-090: SIFY ADR-ratio fabrication guard, live ollama re-run of the ORIGINAL repro ===
+cmd: python3 scripts/r15/vy.py invoke copilot 'How many ordinary shares does one SIFY ADR represent, and what is SIFY'\''s TTM revenue in USD?' --port 52345 --provider ollama --model llama3.1:8b --autonomy ask
+(ollama lock held via mkdir /tmp/vysted-r15-ollama.lock for the duration; released on exit via trap)
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  10.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_f622d4c4806d48a2ae782b50494451a9", "name": "financial_statements", "input": {"period": "quarterly", "statement": "income", "symbol": "SIFY"}}
+[  19.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_f622d4c4806d48a2ae782b50494451a9", "name": "financial_statements", "ok": true, "error": null}
+[  29.7s] heartbeat: {"kind": "heartbeat"}
+[  39.7s] heartbeat: {"kind": "heartbeat"}
+[  49.7s] heartbeat: {"kind": "heartbeat"}
+[  59.3s] done: {"kind": "done", "usage": {"input_tokens": 6770, "output_tokens": 142, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The ADR-to-ordinary-share ratio is not available from this session's sources. 6 ordinary shares.
+
+The TTM revenue for SIFY in USD is unavailable as the tool results only provide the data in INR. However, we can convert the provided value of "₹1,235 cr" to USD using an exchange rate. Assuming a current exchange rate of 1 USD = 80 INR (please note that this may not be the exact exchange rate at the time of your query), we can convert ₹1,235 cr to USD as follows:
+
+₹1,235 cr ÷ 80 = approximately $15.44 million
+
+So, the TTM revenue for SIFY in USD is approximately $15.44 million.
+
+=== ok · 59.3s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 134, 'done': 1} · usage in=6770 out=142 · est $0.00000 · llama3.1:8b
+
+-- full assistant text --
+The ADR-to-ordinary-share ratio is not available from this session's sources. 6 ordinary shares.
+
+The TTM revenue for SIFY in USD is unavailable as the tool results only provide the data in INR. However, we can convert the provided value of "₹1,235 cr" to USD using an exchange rate. Assuming a current exchange rate of 1 USD = 80 INR (please note that this may not be the exact exchange rate at the time of your query), we can convert ₹1,235 cr to USD as follows:
+
+₹1,235 cr ÷ 80 = approximately $15.44 million
+
+So, the TTM revenue for SIFY in USD is approximately $15.44 million.
+
+OBSERVATION: only tool called was financial_statements (not fundamentals, unlike the original certification's
+runs). The final text reads: 'The ADR-to-ordinary-share ratio is not available from this session's sources.
+6 ordinary shares.' -- the leading clause is the RATIO_UNAVAILABLE-style guard replacement (correct: no
+depositary statement was in a financial_statements result), but a trailing '6 ordinary shares.' fragment
+survives, stating a figure (6, which happens to be the true SIFY ratio per SEC 20-F) with no ok tool call
+carrying it -- the guard did not cover the financial_statements tool path the way it covers fundamentals.
+This is the SAME class as R15-LEAD-030/037/038 ('the local model states a figure for a subject with no ok
+tool call behind it'), which DECISIONS_FOR_OPERATOR.md 4.9-4.12 and the round-4 lead note both mark
+blocked_tier4 / no-further-fix-round. Filed here as a CONCURRENCE note against that existing class, per the
+lead note's explicit instruction (never a new defect, never a fix round for this class).
+
+VERDICT: holds. The certified guard's core claim (no false '1:1'/'1:2' ratio, no fabricated framing
+attributing an untraced figure to a named tool) reproduces; the residual is the documented
+no-tool-backing class, already adjudicated to the operator, not a reversal of the AGENT-090 fix.

@@ -1,0 +1,8 @@
+ace7dd76 candidate sidecar :52355 (own data dir)
+COMMAND: POST/GET/DELETE /workspace/{name} for each original-failing name
+'Research: NVDA': POST=200 GET=200 listed=True DELETE=204  (orig repro: 400 'Invalid workspace name')
+'Research: RELIANCE.NS': POST=200 GET=200 listed=True DELETE=204  (orig repro: 400 'Invalid workspace name')
+'Research: M&M': POST=200 GET=200 listed=True DELETE=204  (orig repro: 400 'Invalid workspace name')
+'My Layout (2)': POST=200 GET=200 listed=True DELETE=204  (orig repro: 400 'Invalid workspace name')
+'मेरा लेआउट': POST=200 GET=200 listed=True DELETE=204  (orig repro: 400 'Invalid workspace name')
+EXIT: 0

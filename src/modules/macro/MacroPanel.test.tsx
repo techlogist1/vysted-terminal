@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { MacroCatalog, MacroSeriesExtended } from "../../../types/macro";
@@ -15,6 +15,7 @@ const chartApi = {
 vi.mock("lightweight-charts", () => ({
   createChart: vi.fn(() => chartApi),
   LineSeries: "Line",
+  LineStyle: { Dashed: 2 },
 }));
 
 vi.mock("@/lib/sidecar-client", () => ({
@@ -31,6 +32,7 @@ vi.mock("@/lib/sidecar-client", () => ({
 import { sidecarGet } from "@/lib/sidecar-client";
 
 import { useMacroStore } from "@/store/macro";
+import { usePanelContextBus } from "@/store/panel-context";
 
 import { MacroPanel } from "./MacroPanel";
 
@@ -63,6 +65,7 @@ const SAMPLE_CATALOG: MacroCatalog = {
 
 beforeEach(() => {
   useMacroStore.getState().reset();
+  usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
   vi.clearAllMocks();
 });
 
@@ -108,5 +111,48 @@ describe("MacroPanel", () => {
     render(<MacroPanel />);
     await waitFor(() => expect(screen.getByTestId("macro-error")).toBeInTheDocument());
     expect(screen.getByText(/FRED is down/)).toBeInTheDocument();
+  });
+
+  it("a provider tab loads that provider's own default once, never through the cold-boot retry (R15-UI-030)", async () => {
+    vi.useFakeTimers();
+    const ecbDefault = "FM.D.U2.EUR.4F.KR.MRR_FR.LEV";
+    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+      if (path === "/macro/DGS10") return SAMPLE_SERIES;
+      if (path === "/macro/catalog") return SAMPLE_CATALOG;
+      // A transient-looking failure: the retry hook WOULD re-fire this.
+      throw new TypeError("Failed to fetch");
+    });
+    render(<MacroPanel />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    fireEvent.click(screen.getByTestId("macro-provider-ecb"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60000);
+    });
+    const seriesCalls = vi
+      .mocked(sidecarGet)
+      .mock.calls.filter(([path]) => path !== "/macro/catalog");
+    expect(seriesCalls).toEqual([
+      ["/macro/DGS10", { provider: "fred" }],
+      [`/macro/${encodeURIComponent(ecbDefault)}`, { provider: "ecb" }],
+    ]);
+    expect(screen.getByTestId("macro-error")).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it("publishes the active provider + series id to the panel context bus (R15-AGENT-053)", async () => {
+    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+      if (path === "/macro/DGS10") return SAMPLE_SERIES;
+      if (path === "/macro/catalog") return SAMPLE_CATALOG;
+      return null;
+    });
+    render(<MacroPanel />);
+    await waitFor(() => {
+      const payload = usePanelContextBus.getState().lastEventBySource.macro?.payload as
+        | { provider: string; seriesId: string }
+        | undefined;
+      expect(payload).toEqual({ provider: "fred", seriesId: "DGS10" });
+    });
   });
 });

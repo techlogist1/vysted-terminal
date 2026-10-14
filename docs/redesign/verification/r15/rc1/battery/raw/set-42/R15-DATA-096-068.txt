@@ -1,0 +1,13 @@
+=== DATA-096 cache timing (AAPL income) ===
+cold: 1173ms
+warm: 15ms
+IDENTICAL
+=== DATA-068 as_of populated ===
+--/earnings/AAPL/history--
+True 2026-09-26T01:19:54.277054Z
+--/fundamentals/AAPL/ratings/history--
+True 2026-09-26T01:19:54.890633Z
+--/fundamentals/AAPL/ratings/individual--
+True 2026-09-26T01:19:55.613376Z
+--/fundamentals/AAPL/ratings/price-target-history--
+True 2026-09-26T01:19:56.023131Z

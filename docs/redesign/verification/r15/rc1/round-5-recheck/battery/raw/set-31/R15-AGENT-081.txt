@@ -1,0 +1,53 @@
+CMD: sed -n '815,835p' src/modules/equity-overview/EquityOverviewPanel.tsx
+  // no-synchronous-setState-in-effect rule, as the autocomplete effect does).
+  useEffect(() => {
+    if (!equityCommand) {
+      return;
+    }
+    const { symbol, region, highlightMetric } = equityCommand;
+    const handle = setTimeout(() => {
+      setDraft(symbol);
+      setSpotlight(resolveMetric(highlightMetric));
+      void doLoad(symbol, region);
+    }, 0);
+    return () => clearTimeout(handle);
+  }, [equityCommand, doLoad]);
+
+  const quote = data?.quote ?? null;
+  const fundamentals = data?.fundamentals ?? null;
+  const ratings = data?.ratings ?? null;
+  // The INSTRUMENT's currency (R8 §6) — money fields format in it, never the
+  // region/locale default. Fundamentals state the trading currency; the quote
+  // currency is the fallback. Statement sizes use the statement currency (C2).
+  const instrumentCurrency = fundamentals?.currency ?? quote?.currency ?? null;
+
+CMD: sed -n '1710,1720p' src/lib/host-actions.ts
+      return done("Reset the panel arrangement to the default (drawings and modules kept)");
+    }
+    case "open_company_overview": {
+      const { symbol, highlight } = intent;
+      if (!symbol) {
+        return fail("no symbol given");
+      }
+      openCompanyOverview(symbol, resolveMetric(highlight) ?? undefined);
+      return done(`Opened ${symbol}'s overview${spotlightNote(highlight)}`);
+    }
+    case "publish_brief": {
+
+CMD: sed -n '40,55p' src/store/equity-command.test.ts
+        seen.push(s.command.symbol);
+      }
+    });
+    expect(seen).toEqual([]); // retained state, no spurious replay event
+    expect(useEquityCommandStore.getState().command?.symbol).toBe("SAKSOFT.NS");
+    unsub();
+  });
+
+  it("carries highlightMetric through and drops it on the next plain issue", () => {
+    const { loadSymbol } = useEquityCommandStore.getState();
+    loadSymbol("TATASTEEL.NS", "pe_ratio");
+    expect(useEquityCommandStore.getState().command?.highlightMetric).toBe("pe_ratio");
+    loadSymbol("TATASTEEL.NS");
+    expect(useEquityCommandStore.getState().command?.highlightMetric).toBeUndefined();
+  });
+});

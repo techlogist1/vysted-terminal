@@ -1,0 +1,6 @@
+$ python3 -c agent_runtime._resolve_tool_surface(copilot spec, 'agent', prompt) over the register's own 15-phrase repro list
+read_only=False  n_tools=55 portfolio_write_kept=True | Delete TCS from my portfolio
+read_only=False  n_tools=55 portfolio_write_kept=True | Update my RELIANCE cost basis to 1180
+read_only=False  n_tools=55 portfolio_write_kept=True | My RELIANCE lot is actually 12 shares
+read_only=False  n_tools=55 portfolio_write_kept=True | I bought 10 shares of INFY at 1500, track it in my portfolio
+read_only=False  n_tools=55 portfolio_write_kept=True | Put 25 HDFC Bank at 1600 in my paper portfolio

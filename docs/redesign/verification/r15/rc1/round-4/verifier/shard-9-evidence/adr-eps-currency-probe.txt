@@ -1,0 +1,10 @@
+PDD currency USD financialCurrency CNY trailingEps(annual) 9.28 price 77.57 trailingPE 8.358836
+  earnings_estimate avg (quarter rows): [18.84143, 20.27226]
+NVO currency USD financialCurrency DKK trailingEps(annual) 3.99 price 38.8 trailingPE 9.724311
+  earnings_estimate avg (quarter rows): [5.0045, 4.41025]
+TSM currency USD financialCurrency TWD trailingEps(annual) 13.43 price 450.61 trailingPE 33.552494
+  earnings_estimate avg (quarter rows): [4.4614, 4.96647]
+AAPL currency USD financialCurrency USD trailingEps(annual) 8.73 price 341.07 trailingPE 39.068733
+  earnings_estimate avg (quarter rows): [1.97754, 2.90471]
+PDD estimates {"symbol":"PDD","fiscal_period":null,"eps_estimate_mean":18.84143,"eps_estimate_median":null,"eps_estimate_high":21.22954,"eps_estimate_low":16.789,"eps_estimate_stddev":null,"estimate_analyst_count":11,"revenue_estimate_mean":115643262410.0,"revenue_estimate_median":null,"revenue_estimate_high":119104000000.0,"revenue_estimate_low":107748197330.0,"revenue_analyst_count":12,"currency":"USD","revenue_currency":"CNY","provider":"yfinance","as_of":"2026-09-26T23:43:51.266518Z"}
+NVO estimates {"symbol":"NVO","fiscal_period":null,"eps_estimate_mean":5.0045,"eps_estimate_median":null,"eps_estimate_high":5.33,"eps_estimate_low":4.68,"eps_estimate_stddev":null,"estimate_analyst_count":4,"revenue_estimate_mean":72894182410.0,"revenue_estimate_median":null,"revenue_estimate_high":75687854000.0,"revenue_estimate_low":71078044030.0,"revenue_analyst_count":10,"currency":"USD","revenue_currency":"DKK","provider":"yfinance","as_of":"2026-09-26T23:43:45.788897Z"}

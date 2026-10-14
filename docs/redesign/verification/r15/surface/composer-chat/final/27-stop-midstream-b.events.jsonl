@@ -1,0 +1,13 @@
+{"t":2.599,"_request":{"agentId":"copilot","prompt":"research Mazagon Dock Shipbuilders in depth — order book and margins","contextSnapshot":{"focusedSource":null,"bySource":{"__terminal__":{"focusedPanel":null,"focusedSymbol":"^NSEI","charts":[],"watchlist":{"symbols":["^NSEI","RELIANCE.NS","TCS.NS","HDFCBANK.NS"],"selected":null},"portfolio":{"positionCount":0,"totalValue":null,"activePortfolioId":"default","activePortfolioName":"Portfolio","holdings":[]},"brief":{"phase":"empty"},"otherPanels":[],"openPanels":[],"region":"IN","capturedAt":1791024608442},"__notes__":{"general":"","bySymbol":{}}},"capturedAt":1791024608442},"provider":"ollama","model":"llama3.1:8b","mode":"agent","autonomy":"auto","options":{"history":[],"deepResearchBackend":"native","researchDepth":"deep"}}}
+{"t":4.834,"event":{"kind":"tool_use","toolCallId":"call_7d5bbaff587b48f2a2632952d8ad2cbe","name":"research","input":{"query":"Mazagon Dock Shipbuilders — order book and margins","depth":"deep"}}}
+{"t":4.914,"event":{"kind":"research_step","toolCallId":"call_7d5bbaff587b48f2a2632952d8ad2cbe","tool":"research","stepKind":"engine","detail":"research:begin fbfdf4f813e142818c0385788b636b01 depth=deep query=Mazagon Dock Shipbuilders — order book and margins","status":"ok","index":1}}
+{"t":4.914,"event":{"kind":"research_step","toolCallId":"call_7d5bbaff587b48f2a2632952d8ad2cbe","tool":"research","stepKind":"engine","detail":"Your active model — ollama/llama3.1:8b · IterResearch (evolving report)","status":"ok","index":2}}
+{"t":11.741,"event":{"kind":"research_step","toolCallId":"call_7d5bbaff587b48f2a2632952d8ad2cbe","tool":"research","stepKind":"plan","detail":"round 1: seeded 3 sub-question(s) (planning rides round 2)","latencyMs":0,"status":"ok","index":3}}
+{"t":21.743,"event":{"kind":"heartbeat"}}
+{"t":31.745,"event":{"kind":"heartbeat"}}
+{"t":41.748,"event":{"kind":"heartbeat"}}
+{"t":51.748,"event":{"kind":"heartbeat"}}
+{"t":61.752,"event":{"kind":"heartbeat"}}
+{"t":71.753,"event":{"kind":"heartbeat"}}
+{"t":75.021,"_stopClicked":true}
+{"t":77.588,"onError":"This operation was aborted"}

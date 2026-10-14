@@ -1,0 +1,6 @@
+=== GET watchlist before ===
+{"detail":"Not Found"}
+=== POST add MAZDOCK (resolved symbol, per host-action fix) ===
+{"detail":"Not Found"}
+=== GET watchlist after (read back ack) ===
+{"detail":"Not Found"}

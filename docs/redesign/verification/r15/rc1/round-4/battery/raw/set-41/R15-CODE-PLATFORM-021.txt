@@ -1,0 +1,11 @@
+CMD: curl -s -o /dev/null -w '%{http_code}
+' -m 20 -X POST http://127.0.0.1:52343/portfolio/positions -d '{}'
+405
+CMD: PUT /portfolio/positions/AAPL
+404
+CMD: DELETE /portfolio/positions/AAPL
+404
+CMD: GET /portfolio/positions
+[]
+
+VERDICT: holds — live on :52343: POST /portfolio/positions -> 405, PUT /portfolio/positions/AAPL -> 404, DELETE /portfolio/positions/AAPL -> 404, GET /portfolio/positions -> 200 []. Matches batch-10 cert exactly. grep of src/ for a POST/PUT/DELETE fetch on /portfolio returns nothing — no frontend caller of the removed write routes.

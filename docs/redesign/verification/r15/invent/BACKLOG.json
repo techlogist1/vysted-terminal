@@ -1,0 +1,3965 @@
+{
+ "meta": {
+  "title": "R15 invent: ranked backlog",
+  "worker_model": "claude-opus-5-5[1m]",
+  "date": "2026-09-23",
+  "branch": "004-r4-experience-rebuild",
+  "spec": "docs/redesign/verification/r15/tooling/PROMPT_offmachine_s2.md section 6 (JUDGE panel)",
+  "inputs": {
+   "seat_ideas": 70,
+   "seats": [
+    "bloomberg",
+    "retail",
+    "forensic",
+    "quant",
+    "hn-sceptic",
+    "journalist",
+    "sellside",
+    "designer"
+   ],
+   "tier_a_opportunities_surviving": 6,
+   "tier_a_struck": [
+    "OPP-5"
+   ],
+   "total_ranked_inputs": 76
+  },
+  "backlog_items": 58,
+  "size_bands": {
+   "S": "2-4 days",
+   "S-M": "4-5 days",
+   "M": "5-8 days",
+   "M-L": "9-12 days",
+   "L": "12+ days"
+  },
+  "size_days_meaning": "Build days to release grade for a small agent team, tests and fixtures included, excluding listed dependencies and prerequisite defect fixes.",
+  "portfolio_write_meaning": "After the 23 Sep trading removal, the order-safety question becomes: does the item write the user's tracked portfolio, and through what gate. Today the proposed-changes gate stages data-writes in ASK mode only; AUTO auto-applies every non-order kind (src/store/proposed-changes.ts:113-119, COD-host-actions-proposed-changes-3), accept re-resolves the target (…-1), there is no undo (WLD-agent-native-ux-2) and cost_basis is unvalidated (WLD-harness-tools-3).",
+  "tiers": {
+   "1": "Ship first: trust made visible, and the substrates everything else stands on",
+   "2": "The Jarvis layer: watching, memory and receipts on the spine",
+   "3": "Differentiators on the spine",
+   "4": "Later: narrower audience, heavier, or composed of items above",
+   "5": "Parked: blocked, gutted by the scope change, or not worth the risk now"
+  },
+  "tier_totals": {
+   "1": {
+    "items": 8,
+    "days": 39
+   },
+   "2": {
+    "items": 12,
+    "days": 68
+   },
+   "3": {
+    "items": 15,
+    "days": 79
+   },
+   "4": {
+    "items": 19,
+    "days": 98
+   },
+   "5": {
+    "items": 4,
+    "days": 30
+   }
+  }
+ },
+ "items": [
+  {
+   "rank": 1,
+   "id": "BL-01",
+   "tier": 1,
+   "tier_label": "Ship first: trust made visible, and the substrates everything else stands on",
+   "name": "Witnessed by default",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "designer-1"
+    ],
+    "absorbed": []
+   },
+   "audience": "all (keyless first)",
+   "jarvis_axis": [
+    "receipts",
+    "initiative"
+   ],
+   "one_liner": "Run the existing zero-token witness fan-out (ownership, growth, earnings basis, 52-week range, market cap) on the overview page through one read-only GET, and render data conflicts inline in the fundamentals cell, so a keyless user sees Yahoo's 141x-wrong institutions figure beside the BSE filing's value instead of as plain fact.",
+   "size": {
+    "band": "S",
+    "days": 3,
+    "band_range": "2-4 days",
+    "note": "One route over snapshot_structured, one cell variant, one 1-day cache key."
+   },
+   "lifecycle_cost": "Adds one consumer to witnesses that already carry their own upkeep (exchange endpoint drift, circuit breakers); a witness regression now shows on the most-visited page, which is where it should show. Exchange load per overview open is bounded by a 1-day per-symbol cache and the existing breaker.",
+   "design_system": {
+    "status": "on",
+    "note": "Uses the ConflictLine data_conflict / definitional tones (brief-blocks.tsx:129-176) inside the existing FundamentalValueCell; no new visual language."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": "Read-only GET route."
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [],
+   "closes_findings": [
+    {
+     "raw_id": "DAT-P12-1",
+     "severity": "critical",
+     "note": "DAT-P12-1 (discloses on the overview)"
+    },
+    {
+     "raw_id": "DAT-P14-2",
+     "severity": "critical",
+     "note": "DAT-P14-2 (discloses on the overview)"
+    },
+    {
+     "raw_id": "DAT-S3-1",
+     "severity": "high",
+     "note": "DAT-S3-1 (discloses on the overview)"
+    },
+    {
+     "raw_id": "DAT-P16-1",
+     "severity": "medium",
+     "note": "DAT-P16-1"
+    },
+    {
+     "raw_id": "DAT-S4-2",
+     "severity": "medium",
+     "note": "DAT-S4-2"
+    },
+    {
+     "raw_id": "DAT-P8-4",
+     "severity": "medium",
+     "note": "DAT-P8-4"
+    }
+   ],
+   "judge_notes": [
+    "Mechanism verified 2026-09-23: the overview renders Yahoo held_percent_insiders / held_percent_institutions directly (EquityOverviewPanel.tsx:142) while the ownership witness (ownership_check.py, which covers insiders vs promoter group and institutions) runs only inside snapshot_structured (fast.py:261), whose callers are all LLM-started research (iter.py:339,915; deep.py:1035; fast.py:622); routers/fundamentals.py imports no witness.",
+    "The symptom is already in the register as an admitted family: DAT-P12-1 and DAT-P14-2 (critical: overview 'Insiders' 51.18% and 46.6% against exchange promoter 0% and 29.67%, served with field_meta status 'ok'), DAT-S3-1 (high), DAT-P16-1, DAT-S4-2, DAT-P8-4. The DAT-P16-1 refute confirms the research path already discloses exactly this gap as a data_conflict; the overview path never runs the witness. BL-01 is the zero-token mechanism that discloses it where the user looks. The defect lane may still choose to render the SEBI promoter-group value as the primary figure; the screener's field label (DAT-S1-2) is a separate fix."
+   ],
+   "biggest_risk": "Bank and definitional conflicts fire on nearly every open and drown the signal; inline only data_conflict, show definitional pairs on hover.",
+   "why_this_rank": "Highest value per day in the set: the product's one real moat (six battery-born witnesses) is hidden behind a paid LLM turn while the first page a keyless user opens shows the uncorrected number (two admitted critical findings), and one route plus one cell variant discloses it at zero tokens."
+  },
+  {
+   "rank": 2,
+   "id": "BL-02",
+   "tier": 1,
+   "tier_label": "Ship first: trust made visible, and the substrates everything else stands on",
+   "name": "A disclosure feed you can build on",
+   "kind": "substrate",
+   "sources": {
+    "primary": [],
+    "absorbed": [],
+    "substrate_of": "sellside 'Covered-Name Feed' (substrate of sellside-1,3,5,6,7,9) and the forensic 'Tape' window parameter + dual timestamps (substrate of forensic-1,2,4,6,9); also bloomberg-1, retail-8, hn-sceptic-6, journalist-6"
+   },
+   "audience": "all (substrate)",
+   "jarvis_axis": [
+    "watching",
+    "receipts"
+   ],
+   "one_liner": "Make the exchange announcements feed complete and routable before anything watches it: page the BSE lane by count in windows of six months or less instead of a hard 30-day page-1 request, keep SUBCATNAME and the submission / dissemination timestamps on Announcement (plus the types/data.ts mirror), retry AttachLive 404s against AttachHis, and state the window covered in the response.",
+   "size": {
+    "band": "S",
+    "days": 3,
+    "band_range": "2-4 days",
+    "note": "Service + model change and fixtures; no UI."
+   },
+   "lifecycle_cost": "BSE JSON shape and SUBCATNAME vocabulary drift (the module docstring dates its observation, corporate_disclosures.py:15-23); the window ceiling (a 12.7-month strPrevDate returned empty in the sellside probe) must be re-probed each release; one fixture per payload shape.",
+   "design_system": {
+    "status": "n/a",
+    "note": "No UI."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "Announcement lives in sidecar/models + types/data.ts, not types/plugin.ts."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [],
+   "closes_findings": [
+    {
+     "raw_id": "DAT-P7-1",
+     "severity": "high",
+     "note": "DAT-P7-1"
+    },
+    {
+     "raw_id": "DAT-P9-5",
+     "severity": "medium",
+     "note": "DAT-P9-5"
+    },
+    {
+     "raw_id": "COD-disclosures-witnesses-10",
+     "severity": "medium",
+     "note": "COD-disclosures-witnesses-10"
+    }
+   ],
+   "judge_notes": [
+    "Not filed as its own finding: filings older than a few weeks 404 on AttachLive and serve on AttachHis (sellside live probe), while corporate_disclosures.py:84 always builds AttachLive. The register only mentions it in passing (DAT-P13-24 notes the P13 battery trap 'bse_attachment_path_attachhis_not_attachlive'); INT-deferred-84-1 is about intermittent serving, not migration. Worth a raw finding of its own.",
+    "DAT-P7-1 and DAT-P9-5 were admitted with the corrected mechanism: the hard 30-day window (_BSE_ANN_WINDOW_DAYS = 30, corporate_disclosures.py:88), not an NSE-first assumption."
+   ],
+   "biggest_risk": "Wider windows multiply requests per symbol; page by count under the existing breaker pacing, and never let a partial page read as complete.",
+   "why_this_rank": "Every watcher, tripwire, transcript, results-day and forensic idea reads this feed, and today it returns an empty 200 for any BSE filer quiet for 30 days (JUMBO): watching a feed that silently drops history is worse than not watching, so this ships before the watcher."
+  },
+  {
+   "rank": 3,
+   "id": "BL-03",
+   "tier": 1,
+   "tier_label": "Ship first: trust made visible, and the substrates everything else stands on",
+   "name": "Reasons about you: your position and your notes in every answer",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "OPP-7"
+    ],
+    "absorbed": [],
+    "also_from": "read_note capability as specified in forensic-6 (new_parts) and the WLD-harness-context-3 fix shape"
+   },
+   "audience": "all with holdings",
+   "jarvis_axis": [
+    "memory",
+    "initiative"
+   ],
+   "one_liner": "When the user asks about a symbol they hold, the agent and the research brief see the position (quantity, average cost, weight in the book) and the user's own note on that symbol through a read-only, internal-only read_note capability: the local-first answer to 'it retrieves, it does not reason about you'.",
+   "size": {
+    "band": "S-M",
+    "days": 4,
+    "band_range": "4-5 days",
+    "note": "read_note read_handler (internal-only, not MCP-projected), a per-symbol preamble line, a 'your position' line in the brief."
+   },
+   "lifecycle_cost": "Notes enter the prompt, so a size cap, secret-strip and an untrusted-text fence (scrub.wrap_untrusted, already used inside research) are day-one requirements; the preamble line needs a token budget as notes grow.",
+   "design_system": {
+    "status": "on",
+    "note": "A 'your position' line inside the existing brief metric blocks."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "Adds a read_handler capability; mark it internal-only so private notes do not project to the external MCP surface."
+   },
+   "portfolio_write": {
+    "status": "reads",
+    "note": "Reads the frontend portfolio snapshot that already rides the request (get_portfolio, agent_runtime.py:1182-1187); writes nothing."
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [],
+   "closes_findings": [
+    {
+     "raw_id": "WLD-agent-native-ux-1",
+     "severity": "high",
+     "note": "WLD-agent-native-ux-1"
+    },
+    {
+     "raw_id": "WLD-harness-context-3",
+     "severity": "high",
+     "note": "WLD-harness-context-3"
+    }
+   ],
+   "judge_notes": [
+    "OPP-7 verified: the preamble carries only 'Portfolio: N positions, total value' (agent_runtime.py:413-423); no research pipeline reads the position. Remaining work is as the ledger says, plus the notes read that five seats need."
+   ],
+   "biggest_risk": "Notes can carry pasted web or Telegram text; unfenced they become an injection path into a loop that can auto-apply portfolio edits (WLD-harness-context-4). Fence notes as user data, never instructions.",
+   "why_this_rank": "The cheapest broad upgrade in the set (every answer about a held name improves), it closes two admitted high findings, and it unblocks five seats' thesis and rulebook ideas that all hit the same wall: the agent can write your notes but never read them."
+  },
+  {
+   "rank": 4,
+   "id": "BL-04",
+   "tier": 1,
+   "tier_label": "Ship first: trust made visible, and the substrates everything else stands on",
+   "name": "The Watch: wake sweep and a 'while you were away' card that states its blind spots",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "bloomberg-1"
+    ],
+    "absorbed": [
+     "retail-8",
+     "hn-sceptic-6",
+     "journalist-6",
+     "OPP-1 (trigger half)"
+    ]
+   },
+   "audience": "all with holdings or a watchlist",
+   "jarvis_axis": [
+    "initiative",
+    "watching",
+    "receipts"
+   ],
+   "one_liner": "A per-symbol cursor sweep of announcements, results intimations and shareholding filings for holdings and watchlist on launch, wake and focus (no cron: the laptop sleeps), classified deterministically with a visible 'unclassified' bucket, ranked by category x position weight, surfaced as a card before the composer plus one preamble line, with a per-symbol coverage proof and a blind-spots line; OS notification only for material classes.",
+   "size": {
+    "band": "M",
+    "days": 8,
+    "band_range": "5-8 days",
+    "note": "Store with row cap and age vacuum (2 d); sweep route, renderer scope push and lifespan loop (2 d); classifier table and fixtures (1.5 d); coverage proof and blind spots (1 d); card and preamble line (1 d); a production intent source for the notification bridge (0.5 d)."
+   },
+   "lifecycle_cost": "The highest of the spine items. NSE's cookie-dance lane and BSE's JSON change without notice; the classifier table rots and needs a fixture per new SUBCATNAME; per-launch fan-out from the user's IP must be capped (1 req/s/host, per-day cache). A dead lane must read 'blind since <ts> on NSE', never silence. The store needs a row cap and vacuum on day one (L5: nothing in data_cache.db has ever been deleted).",
+   "design_system": {
+    "status": "on",
+    "note": "A card in the chat empty-state slot plus an optional Tape panel registered as a PanelSpec; existing tokens."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "Adds a tape_since read_handler."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": "v1 writes nothing. journalist-6's 'the bonus changed your cost basis, here is the proposed edit' waits for BL-14 and, when built, stages as a data-write that must be excluded from AUTO (COD-host-actions-proposed-changes-3) and bound to its portfolio and holding at enqueue (COD-host-actions-proposed-changes-1)."
+   },
+   "depends_on": [
+    "BL-02"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [
+    {
+     "raw_id": "WLD-T-1",
+     "severity": "high",
+     "note": "WLD-T-1"
+    },
+    {
+     "raw_id": "COD-frontend-stores-2",
+     "severity": "high",
+     "note": "COD-frontend-stores-2"
+    },
+    {
+     "raw_id": "COD-workflow-engine-5",
+     "severity": "medium",
+     "note": "COD-workflow-engine-5"
+    }
+   ],
+   "judge_notes": [
+    "Scope must be pushed from the renderer. Holdings of record live in the frontend workspace blob (src/store/portfolios.ts:14-15); the sidecar portfolio_db that the forensic Tape, hn-sceptic-6 and journalist-6 call 'sidecar-side already' is a write-only ledger fed only by agent writes (COD-host-actions-proposed-changes-9, admitted).",
+    "OPP-1's 'OS-notification sink already wired end to end' does not hold: the bridge reads useWorkflowStore, which no production code writes (COD-frontend-stores-2 and COD-workflow-engine-5, both admitted; grep 2026-09-23 finds no production writer). The OS send works; the feed is dead. The opp-ledger verify pass matched line text and marked OPP-1 held."
+   ],
+   "biggest_risk": "Silence that reads as 'nothing happened', and alert fatigue from boilerplate small-cap filings: count routine items, list material ones, notify only material classes.",
+   "why_this_rank": "This is the step from 'answers' to 'watches', which is both the benchmark's named gap and an admitted high table-stakes finding, and about fifteen ranked items are evaluations over the same tape; it ranks below BL-01 to BL-03 only because those are cheaper and it needs BL-02 first."
+  },
+  {
+   "rank": 5,
+   "id": "BL-05",
+   "tier": 1,
+   "tier_label": "Ship first: trust made visible, and the substrates everything else stands on",
+   "name": "Number firewall with a rupee scale witness",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "hn-sceptic-1",
+     "OPP-2"
+    ],
+    "absorbed": []
+   },
+   "audience": "all",
+   "jarvis_axis": [
+    "receipts"
+   ],
+   "one_liner": "Every numeric token in chat and brief prose is marked sourced (matches a tool-result leaf within tolerance), derived (one recognised operation over sourced leaves, CAGR included, formula on hover) or orphan (struck in chat, redacted in brief metric prose, labelled 'from model memory' when the turn had no tool calls). The grammar reads rupees (Rs / ₹, crore / lakh / lakh-crore, Cr / L, Indian grouping 1,05,130), and for any figure bound to a PDF page the page's declared unit header ('₹ in lakhs') is the scale witness. Zero tokens.",
+   "size": {
+    "band": "M",
+    "days": 8,
+    "band_range": "5-8 days",
+    "note": "Rupee grammar + parity vectors (1.5 d), derivation search (1.5 d), number_receipts on the stream + renderers (2 d), unit-header parser + scale witness (3 d)."
+   },
+   "lifecycle_cost": "Tolerance tuning in the first month and new number formats; a parity vector file (as screener_formula keeps for its TS twin); a fixture list of unit-header phrasings. No network, no model.",
+   "design_system": {
+    "status": "on-extends",
+    "note": "Adds a hover underline / strike state to chat markdown and BriefBody prose; needs an R9 conformance review."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "number_receipts rides the final stream event."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-06 (for the page-bound scale witness only; the prose firewall ships without it)"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [
+    "OPP-2's 'scale tokens are already recognised in extraction (extract.py:75,86-87)' cites _PDF_FINANCE_KEYWORDS, a page-selection keyword list, not a unit parser; no deterministic document-figure extraction exists, so the 'third witness on a shipped contract' needs a unit-header parser plus a figure-to-page binding (BL-06). The ledger's size S is about 3 of this item's 8 days.",
+    "hn-sceptic-1 verified: company_narrative._NUMBER_RE reads $ and K/M/B/T only (company_narrative.py:64-77) and _verify_text's only route caller is routers/fundamentals.py:168."
+   ],
+   "biggest_risk": "False orphans on legitimate multi-step arithmetic train users to ignore the strike; recognise CAGR and common derivations and label no-tool turns 'from model memory'.",
+   "why_this_rank": "It turns the benchmark's most-cited failure (a 1000x scale misread) into a stated guarantee at digit granularity, runs free on every answer, and is the grammar Red Pen and the results-day note both need; it sits at 5 only because the prose half is M-sized."
+  },
+  {
+   "rank": 6,
+   "id": "BL-06",
+   "tier": 1,
+   "tier_label": "Ship first: trust made visible, and the substrates everything else stands on",
+   "name": "Page receipts",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "journalist-7 (page-anchor half)"
+    ],
+    "absorbed": [
+     "forensic-7 (page-provenance gap)",
+     "hn-sceptic-2 (page identity through extraction)"
+    ]
+   },
+   "audience": "all",
+   "jarvis_axis": [
+    "receipts"
+   ],
+   "one_liner": "Keep page identity through extract_pdf_text (it computes pages_used at extract.py:506, then flattens paragraphs), have citecheck return the page it matched, add optional page and quote to BriefSource (mirrored in sidecar/models in the same commit), and open citations at #page=N, so every figure in a brief hovers to its page and quoted line.",
+   "size": {
+    "band": "S-M",
+    "days": 5,
+    "band_range": "4-5 days",
+    "note": "Extraction change, citecheck page return, contract fields, page chip."
+   },
+   "lifecycle_cost": "Attachment URLs move (BL-02 retries AttachHis); page markers cost evidence tokens, keep them terse; always cite the PDF index the link opens, never the printed folio.",
+   "design_system": {
+    "status": "on",
+    "note": "A page chip on the existing citation markers."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "types/brief.ts is not Tier-1."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Scanned PDFs have no text layer and no OCR exists in the sidecar; the receipt must say 'scanned: figure from the aggregator, not this page' rather than fake an anchor.",
+   "why_this_rank": "Page-grain receipts are the floor's coding-agent idiom and the substrate every verbatim-on-page check needs (guidance ledger, AR reader, locker, scale witness); modest cost, broad leverage."
+  },
+  {
+   "rank": 7,
+   "id": "BL-07",
+   "tier": 1,
+   "tier_label": "Ship first: trust made visible, and the substrates everything else stands on",
+   "name": "Coverage honesty: say what the app could not see",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "journalist-2",
+     "designer-6"
+    ],
+    "absorbed": []
+   },
+   "audience": "all (keyless first)",
+   "jarvis_axis": [
+    "receipts",
+    "initiative"
+   ],
+   "one_liner": "A deterministic, zero-token 'What I could not see' block at the end of a brief (pages read of N, scanned pages, failed lanes, citations removed, depth downgraded) plus a 4-px coverage strip under the overview header (Price / Statements / Shareholding / Filings / Corporate actions / Estimates) fed by per-leg status, FieldMeta counts and GET /system/provider-health, which no frontend reads today.",
+   "size": {
+    "band": "S-M",
+    "days": 4,
+    "band_range": "4-5 days",
+    "note": "coverage object per run + brief block (2 d); strip component + coverage(symbol) selector (2 d)."
+   },
+   "lifecycle_cost": "Near zero: it reports counters the pipeline already keeps. Each new lane or source must declare its segment and failure signal or it does not appear.",
+   "design_system": {
+    "status": "on-extends",
+    "note": "A short brief block (on) plus one new quiet strip component on existing tokens (conformance review)."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [
+    "designer-6's demo trips the breaker with POST /system/provider-health/trip, a rig mutation route the census says should not ship in production (COD-market-data-providers-2-11, admitted low). The strip must read the GET only."
+   ],
+   "biggest_risk": "Boilerplate: print only non-trivial gaps, one to four lines, with numbers; keep the strip quiet so it does not read as a 'your data is bad' banner.",
+   "why_this_rank": "The honest limitation paragraph, written by the app itself, is the cheapest antidote to 'sources create false certainty'; it works keyless and makes the full segments trustworthy because the empty ones are labelled."
+  },
+  {
+   "rank": 8,
+   "id": "BL-08",
+   "tier": 1,
+   "tier_label": "Ship first: trust made visible, and the substrates everything else stands on",
+   "name": "Start recording: point-in-time EOD and fundamentals observations",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "quant-1 (recorder half)"
+    ],
+    "absorbed": []
+   },
+   "audience": "all (substrate); quant first",
+   "jarvis_axis": [
+    "memory",
+    "receipts"
+   ],
+   "one_liner": "Stop overwriting. Append every daily NSE and BSE bhavcopy row the app already parses and then forgets after a 7-day cache, keyed (trade_date, symbol, series); record changed non-price fundamentals fields with observed_at and provider; heal sleep gaps by walking missing trade dates on wake; write a visible gap marker when a day fails to parse. No surface yet.",
+   "size": {
+    "band": "S-M",
+    "days": 4,
+    "band_range": "4-5 days",
+    "note": "eod_bars append in bhavcopy_refresh_once, fund_obs change-data-capture on _upsert, gap backfill, Settings size row + compaction switch; move the BSE raw archive under --data-dir (bse_provider.py:155-163)."
+   },
+   "lifecycle_cost": "About 2,700 rows a day, roughly 40 MB a year before compression (quant estimate): a size row and a 'compact older than N years' switch on day one (L5). A bhavcopy format change (July 2024 precedent) must write a gap marker, never a silent empty day. Fundamentals are point-in-time only from install day and must be labelled 'observed since <date>'.",
+   "design_system": {
+    "status": "n/a",
+    "note": "A Settings size row only."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Being read as history it is not; every consumer must carry 'observed since'.",
+   "why_this_rank": "The only item whose value is denominated in elapsed time: every day it is not running is as-observed history no later build can recover, so the recorder ranks far above the surfaces that read it (drift, exit door, radar, incubator, as-of screens)."
+  },
+  {
+   "rank": 9,
+   "id": "BL-09",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Tripwires: kill criteria compiled once, watched for free",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "forensic-6"
+    ],
+    "absorbed": [
+     "hn-sceptic-5",
+     "bloomberg-9",
+     "quant-9",
+     "OPP-1 (thesis-watcher half)"
+    ]
+   },
+   "audience": "all with a thesis",
+   "jarvis_axis": [
+    "memory",
+    "watching",
+    "initiative",
+    "receipts"
+   ],
+   "one_liner": "The user writes exit conditions in prose in the symbol note; one LLM call selects and parameterises rules from a closed menu, each carrying its source sentence, as a proposed change; accepted tripwires are evaluated deterministically at every sweep over the tape, shareholding and results data at zero tokens, and a firing quotes the user's own sentence beside the filing page. Sentences outside the menu stay visible as reminders, never 'armed'.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Event fields in the screener_formula FIELD set (+ TS twin), compile prompt, tripwire store, evaluator at sweep, armed/reminder UI, synonym table as data."
+   },
+   "lifecycle_cost": "The field vocabulary becomes a contract: stored tripwires carry a vocabulary version and fail loudly on rename; the per-event-class synonym table ('cessation' vs 'resignation') is data to tune; a dead lane must show 'blind since'.",
+   "design_system": {
+    "status": "on-extends",
+    "note": "A 'my rules' section on the symbol note with an unmistakable armed vs reminder state (new state; conformance review)."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "Extends the formula field vocabulary, not the plugin contract."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": "Tripwire rows live in their own store, created through the proposed-changes gate."
+   },
+   "depends_on": [
+    "BL-03",
+    "BL-04",
+    "BL-13 (for pledge and holder criteria)"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "False comfort: a user believes an uncheckable sentence is armed; armed vs reminder must be unmistakable.",
+   "why_this_rank": "Five seats converged on it independently; it is the floor's thesis-versus-filings item with the model removed from the part that must never be wrong, which on a BYOK laptop that sleeps is the only honest way to watch."
+  },
+  {
+   "rank": 10,
+   "id": "BL-10",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Red Pen: paste anyone's numbers, get a marked-up verdict",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "journalist-1"
+    ],
+    "absorbed": [
+     "bloomberg-6",
+     "hn-sceptic-3"
+    ]
+   },
+   "audience": "all",
+   "jarvis_axis": [
+    "receipts",
+    "initiative"
+   ],
+   "one_liner": "Paste a Telegram tip, a broker note or another AI's answer: numeric tokens are extracted with the BL-05 grammar, one tool-less LLM call binds each to {symbol, metric enum, period} under a code-enforced verbatim-substring rule, and each claim runs against fundamentals, field_meta and the matching witness to return OK / CONTRADICTED (both sources named) / DIFFERENT BASIS / STALE / CANNOT CHECK. Exposed as a check_claims read_handler that auto-projects to MCP, so Claude Desktop or Cursor can use Vysted as a fact-checker.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Labelled source map, binding call + verbatim gate, verdict engine over witnesses, composer paste/file intake (none exists), marked-up block."
+   },
+   "lifecycle_cost": "The metric enum and witness set grow together, and every new witness is a new verdict for free; the hostile battery becomes its regression suite and is refreshed each release.",
+   "design_system": {
+    "status": "on",
+    "note": "A marked-up-text block in BriefBody."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "check_claims read_handler projects to MCP by the catalog rule."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": "Optionally files the verdict under the symbol note via write_note (a data-write through the gate), which needs COD-host-actions-proposed-changes-2 (a mode-less write_note replaces the note) fixed first."
+   },
+   "depends_on": [
+    "BL-05"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "WLD-harness-context-4",
+     "severity": "high",
+     "note": "WLD-harness-context-4"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "A confident CONTRADICTED on a basis mismatch (consolidated vs standalone, TTM vs FY) is worse than silence: CONTRADICTED only on same basis and period, otherwise BASIS or CANNOT CHECK. Pasted text is untrusted input; the binding call carries no host-action tools.",
+   "why_this_rank": "The one demo that needs no elapsed time or history (a rival's paragraph corrected with the exchange page one click away), and it turns the witness layer outward; it waits on the BL-05 grammar, which is why it is not higher."
+  },
+  {
+   "rank": 11,
+   "id": "BL-11",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Proof Open: the first minute is a demonstration",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "designer-2"
+    ],
+    "absorbed": []
+   },
+   "audience": "new users (keyless)",
+   "jarvis_axis": [
+    "receipts"
+   ],
+   "one_liner": "A keyless first-run step before the key form: name a company, and in about 8 s a 'What we checked' card shows each witness as agrees / disagrees, here are both / couldn't check, why, using the sidecar's own reason strings; key setup moves after it.",
+   "size": {
+    "band": "S",
+    "days": 2,
+    "band_range": "2-4 days",
+    "note": "One onboarding step in the existing state machine + one card (reused as the BL-07 strip's expanded view)."
+   },
+   "lifecycle_cost": "Low; shares BL-01's route. The demo decays if an exchange lane breaks, so add the witnessed route to the sidecar smoke test.",
+   "design_system": {
+    "status": "on",
+    "note": "One onboarding step and one card on existing tokens."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-01"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "An all-agree large cap makes the moment look empty; render '6 of 6 sources agree, here is what was compared' and suggest a BSE-only example.",
+   "why_this_rank": "Two days turn the accuracy claim into something a sceptic verifies in the first minute with no key, which is the positioning made visible; it is only as good as BL-01 underneath."
+  },
+  {
+   "rank": 12,
+   "id": "BL-12",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Turn receipt",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "designer-9"
+    ],
+    "absorbed": []
+   },
+   "audience": "all BYOK users",
+   "jarvis_axis": [
+    "receipts"
+   ],
+   "one_liner": "One tertiary monospace line under every agent turn (tools, sources by origin, checks ok / disagree, tokens, $ as a lower bound while research calls are unmetered, wall time, context n/10) with the context segment warning before the 10-message window silently drops history.",
+   "size": {
+    "band": "S",
+    "days": 2,
+    "band_range": "2-4 days",
+    "note": "TurnReceipt component, pure receiptFor(message), context segment; excludes the metering fix."
+   },
+   "lifecycle_cost": "Near zero once metering is right; the risk is line creep, so hard-cap it at one line.",
+   "design_system": {
+    "status": "on",
+    "note": "One tertiary mono line on existing tokens."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "COD-research-extraction-synthesis-2",
+     "severity": "high",
+     "note": "COD-research-extraction-synthesis-2 (for an exact $; until then the segment reads 'at least')"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [
+    "Surfaces WLD-harness-context-2 (admitted: a silent 10-message window) as a visible limit; it does not fix it."
+   ],
+   "biggest_risk": "A precise-looking wrong dollar figure; always a lower bound until research calls are metered.",
+   "why_this_rank": "Two days to show BYOK users the two things chat products hide most, cost and forgetting, and it turns an admitted defect (the silent history cut) into a stated limit."
+  },
+  {
+   "rank": 13,
+   "id": "BL-13",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Cap-table X-ray: names, beneficial owners, encumbrance, holder counts, pledge trend",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "forensic-3"
+    ],
+    "absorbed": [
+     "retail-6"
+    ]
+   },
+   "audience": "all (small-cap first)",
+   "jarvis_axis": [
+    "memory",
+    "receipts",
+    "watching"
+   ],
+   "one_liner": "Parse named holders, significant beneficial owners, the three-way encumbrance / warrant / lock-in flags and per-category shareholder counts out of the SEBI shareholding XBRL the app already downloads each quarter (it reads one concept of 83 today), diff them quarter on quarter with each cell linked to its XBRL, flag the conjunction 'retail holders multiplying while promoters and large holders shrink', derive the 4-quarter pledge trend once the numeric concept is confirmed on a pledged filer, and remember holder names only across names the user touched.",
+   "size": {
+    "band": "M",
+    "days": 7,
+    "band_range": "5-8 days",
+    "note": "Parser extension + one cache schema bump, additive ShareholdingPattern fields + types mirror, name normaliser, diff block, ownership card, one probe of a pledged filer."
+   },
+   "lifecycle_cost": "SEBI revises the SHP taxonomy every couple of years (the parser already absorbed one silent schema change, bse_provider.py:703-716): pin fixtures per taxonomy version and degrade unknown concepts to 'not parsed'. BSE-only lane; NSE-only names keep today's summary and must say so.",
+   "design_system": {
+    "status": "on",
+    "note": "A diff table block in BriefBody and a card on the ownership section."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "Additive model fields; types mirror in the same commit."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [],
+   "closes_findings": [
+    {
+     "raw_id": "WLD-T-8",
+     "severity": "high",
+     "note": "WLD-T-8 (once the pledge concept is confirmed)"
+    },
+    {
+     "raw_id": "WLD-T-10",
+     "severity": "medium",
+     "note": "WLD-T-10 / COD-disclosures-witnesses-6 (fix the tool description that denies FII/DII in the same commit)"
+    }
+   ],
+   "judge_notes": [],
+   "biggest_risk": "False identity between same-name entities (PAN is not disclosed): never assert sameness, say 'same name string', show both filings.",
+   "why_this_rank": "Promoter, pledge and holder data is the most gameable number in an Indian small-cap and the axis a 16-broker clone does not cover; the data is already on disk, so this is India-disclosure depth for the price of a parser extension, and it feeds tripwires and rule packs."
+  },
+  {
+   "rank": 14,
+   "id": "BL-14",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Corporate-action chain",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "quant-6"
+    ],
+    "absorbed": []
+   },
+   "audience": "all",
+   "jarvis_axis": [
+    "receipts"
+   ],
+   "one_liner": "Parse the bonus / split / rights subjects the NSE corporate-actions feed already returns (dividend_actions.py keeps only dividends) plus a new BSE CorporateAction lane for BSE-only scrips into a per-symbol factor chain, corroborate each factor against the bhavcopy ex-date discontinuity (single-witness factors shown amber, never silently applied), and derive adjusted series locally with an as-traded / adjusted toggle and a receipt per factor.",
+   "size": {
+    "band": "S-M",
+    "days": 5,
+    "band_range": "4-5 days",
+    "note": "Subject parser + fixture file + visible 'unparsed action' list, BSE lane, factor store, chart toggle and ex-date markers."
+   },
+   "lifecycle_cost": "Subject strings are free text ('Bonus 7:24', 'Face Value Split From Rs 10 To Rs 2'); rights and demergers will sometimes be unresolvable and must show as such. PrvsClsgPric ex-date semantics must be checked against three known 2026 actions before it is trusted as a witness.",
+   "design_system": {
+    "status": "on",
+    "note": "Ex-date markers and a basis toggle on the chart; canvas colours stay single-sourced in chart-theme.ts."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": "v1 is read-only. A later 'your share count / cost basis per share changed' proposal (BL-04) would be a data-write through the gate and needs COD-host-actions-proposed-changes-1 and -3 first."
+   },
+   "depends_on": [
+    "BL-08 (for derived series; the parser and BSE lane stand alone)"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [
+    {
+     "raw_id": "DAT-P14-4",
+     "severity": "high",
+     "note": "DAT-P14-4"
+    }
+   ],
+   "judge_notes": [],
+   "biggest_risk": "A wrongly applied factor rewrites price history; amber until two witnesses agree.",
+   "why_this_rank": "It closes an admitted high data gap (JONJUA's two 2026 bonuses are invisible) and it is what stops a bonus reading as a crash in the Tip Ledger, Exit Door, drift classification and the Watch's cost-basis note."
+  },
+  {
+   "rank": 15,
+   "id": "BL-15",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Results-day first take (deterministic results-grid extraction)",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "sellside-1"
+    ],
+    "absorbed": []
+   },
+   "audience": "all with holdings; sell-side first",
+   "jarvis_axis": [
+    "watching",
+    "receipts",
+    "memory"
+   ],
+   "one_liner": "When a watched name files results, locate the SEBI comparative P&L grid in the PDF, map rows to line ids with a per-archetype dictionary (lender, holding company, manufacturer), refuse to extract without a unit header (the BL-05 scale witness), label standalone vs consolidated, and publish a variance table against the prior quarter and the same quarter last year with a page receipt per cell, plus three lines of number-gated prose. Comparison with the user's own estimate arrives with BL-26.",
+   "size": {
+    "band": "M",
+    "days": 7,
+    "band_range": "5-8 days",
+    "note": "Table locator, per-archetype row matcher, unit-header refusal, results_flash read_handler, variance block, fixture corpus seed."
+   },
+   "lifecycle_cost": "Filers change grid layouts; SME filers under Reg 33 print half-yearly; scanned PDFs exist. A growing fixture corpus, one per new layout; about a day a quarter of upkeep across a 30-name list.",
+   "design_system": {
+    "status": "on",
+    "note": "Existing metric and table brief blocks plus a variance block type."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "results_flash read_handler."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-02",
+    "BL-04",
+    "BL-05",
+    "BL-06"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "The row matcher maps 'Total income' onto 'Revenue from operations' on a lender or holding company; per-archetype maps and an amber 'matched by similarity' state.",
+   "why_this_rank": "Results day is a floor item and this is the deterministic extraction the guidance ledger, the Living Model, SUE and brief falsifiers all resolve against; the vendor alternative is unsafe for exactly these names (statements for SME ticker collisions serve a US company's numbers, DAT-P3-1 and siblings, admitted critical)."
+  },
+  {
+   "rank": 16,
+   "id": "BL-16",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Guidance ledger: what management said against what printed",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "OPP-4"
+    ],
+    "absorbed": [
+     "hn-sceptic-7",
+     "sellside-3 (horizon drift and the haircut number)",
+     "bloomberg-4 (guidance-vs-delivery half)"
+    ]
+   },
+   "audience": "all; sell-side and forensic first",
+   "jarvis_axis": [
+    "memory",
+    "receipts",
+    "watching"
+   ],
+   "one_liner": "For each earnings-call transcript and investor presentation already arriving in the BSE feed (SUBCATNAME 'Earnings Call Transcript'; one de-wrapped hop for cover-letter filers), an LLM proposes guidance rows {metric, range, unit, horizon phrase, speaker, page, verbatim} that code drops unless the verbatim is on the cited page. Accepted rows resolve deterministically against printed results as HIT / MISS / PUSHED (the horizon word moved later with the range unchanged) / DROPPED (stopped being said, hn-sceptic-7's FADED), with a per-management delivered-to-guided factor shown only at n of 4 or more and a coverage line ('2 of 8 quarters readable').",
+   "size": {
+    "band": "M-L",
+    "days": 10,
+    "band_range": "9-12 days",
+    "note": "Transcript routing + one-hop fetch, extractor + verbatim gate, closed horizon lexicon, resolver, FADED text search, ledger block, coverage statement."
+   },
+   "lifecycle_cost": "Medium. Transcript formats vary; website-hosted transcripts rot (cache them via BL-22); bounded LLM extraction cost per transcript (about 30 names x 4 calls a year); many small caps hold no calls or file scans, and coverage must be stated, never implied.",
+   "design_system": {
+    "status": "on",
+    "note": "A ledger / timeline block with page chips."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": "Accepted rows go to their own store through the gate."
+   },
+   "depends_on": [
+    "BL-02",
+    "BL-06",
+    "BL-15"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [
+    {
+     "raw_id": "WLD-T-6",
+     "severity": "medium",
+     "note": "WLD-T-6 (in part: a transcript path, not a vendor)"
+    }
+   ],
+   "judge_notes": [
+    "OPP-4's 'blocked on having the transcript at all (WLD-T-6)' no longer holds: the sellside live probe found transcripts in the BSE feed the app already calls, and the WLD-T-6 refute downgraded the finding to medium because research already routes concall questions to that feed. The real blockers are the dropped subcategory and AttachLive rot (BL-02). Size M-L, not L."
+   ],
+   "biggest_risk": "An extraction invents a range management never gave (verbatim gate plus user acceptance); hedged language makes KEPT / BROKEN a judgement call, so auto-resolve only rows with a number and a horizon.",
+   "why_this_rank": "The floor's 'nobody shows guidance against delivery across quarters' and the single most valuable research artifact in the set, but it stands on three substrates (BL-02, BL-06, BL-15), hence 16."
+  },
+  {
+   "rank": 17,
+   "id": "BL-17",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Tip Ledger",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "retail-1"
+    ],
+    "absorbed": []
+   },
+   "audience": "retail (the largest Indian cohort)",
+   "jarvis_axis": [
+    "memory",
+    "watching",
+    "receipts",
+    "initiative"
+   ],
+   "one_liner": "Drop a Telegram Desktop JSON export or paste one tip: calls are regex-parsed (LLM only for residue), resolved with the resolver's confidence bands and rename lane (below-band calls listed, never scored), scored against exchange history at day 3 / 30 / 60 with corporate-action adjustment, checked for a pre-message run-up, frozen with the price at that moment so a later delete cannot erase it, and optionally shadow-tracked in a named portfolio instead of bought; a per-source scorecard carries a printed survivorship caveat.",
+   "size": {
+    "band": "M",
+    "days": 8,
+    "band_range": "5-8 days",
+    "note": "File/paste intake (dragDropEnabled:false stays), parser, tips store, history backfill, run-up fingerprint, checkpoint job on wake, panel, shadow path."
+   },
+   "lifecycle_cost": "Telegram's export format has been stable since 2018 (low); the real cost is corporate-action correctness forever (BL-14) and resolver drift on renamed or colliding tickers.",
+   "design_system": {
+    "status": "on",
+    "note": "A Tip Ledger panel registered as a PanelSpec; existing table and card blocks."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "writes-via-gate",
+    "note": "The optional shadow position uses portfolio_add_position into a separate named portfolio through the proposed-changes gate (data-write). Needs COD-host-actions-proposed-changes-3 (else AUTO applies it unreviewed), -1 (else the shadow lands in whichever portfolio is active at accept time) and WLD-harness-tools-3 (validate cost_basis; here the price at the tip is known, so pass it explicitly)."
+   },
+   "depends_on": [
+    "BL-14"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "COD-host-actions-proposed-changes-3",
+     "severity": "high",
+     "note": "COD-host-actions-proposed-changes-3"
+    },
+    {
+     "raw_id": "COD-host-actions-proposed-changes-1",
+     "severity": "high",
+     "note": "COD-host-actions-proposed-changes-1"
+    },
+    {
+     "raw_id": "WLD-harness-tools-3",
+     "severity": "high",
+     "note": "WLD-harness-tools-3"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "A wrong resolve produces a confident wrong verdict about a source the user trusts: band-gated scoring, unresolved listed, receipts on every row, user correction, arithmetic-only wording (never 'scam').",
+   "why_this_rank": "The only idea that attacks the cause of the largest retail cohort's losses rather than the symptoms, and it only works local-first (a hosted product would be publishing named tipsters' records); it is not higher because a wrong resolve is the most damaging error this product can make and it needs BL-14."
+  },
+  {
+   "rank": 18,
+   "id": "BL-18",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Brief diff: ask again, see what changed",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "journalist-4"
+    ],
+    "absorbed": []
+   },
+   "audience": "all returning users",
+   "jarvis_axis": [
+    "memory"
+   ],
+   "one_liner": "Re-researching a name renders a 'changed since <date>' strip at the top of the brief (new filings, flipped filing-fact metrics, new conflicts) with market-moved values separated and everything unchanged collapsed to a count, via a pure diffBriefs(prior, next) helper on stable keys.",
+   "size": {
+    "band": "S",
+    "days": 3,
+    "band_range": "2-4 days",
+    "note": "Pure helper + unit vectors, strip block, per-symbol last-brief file (shared with BL-41)."
+   },
+   "lifecycle_cost": "Low: a pure frontend function; it breaks only if it diffs display labels instead of stable keys. The brief store holds one brief per panel and carries the prior only into the in-flight run (src/store/brief.ts:45-53), so a per-symbol last-brief file keeps the prior across panel reuse and relaunch.",
+   "design_system": {
+    "status": "on",
+    "note": "A strip block at the top of BriefBody."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-02 (for 'announcements since the prior')"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Price-derived metrics change daily; lead with filing facts or the strip becomes the wall of prose it replaces.",
+   "why_this_rank": "Three days of pure frontend buys 'the unit of review is the change, not the transcript' for every returning user, and it is box one of Page One."
+  },
+  {
+   "rank": 19,
+   "id": "BL-19",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Undo and ghost edits",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "designer-7"
+    ],
+    "absorbed": []
+   },
+   "audience": "all who let the agent edit",
+   "jarvis_axis": [
+    "receipts",
+    "memory"
+   ],
+   "one_liner": "Capture a pre-image for every applied agent change (AUTO included), push it onto a bounded undo stack, let Cmd-Z reverse the agent's last change to a panel (refused with a reason if the user has edited the target since), and render pending changes as ghost rows and insertions inside the watchlist and notes where they land.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Per-kind pre-image capture, undo store + keymap, stale-target refusal, ghost renderers for watchlist and notes first."
+   },
+   "lifecycle_cost": "Every new data-write host action must declare a pre-image or it cannot be proposed (a compile-time rule in describeHostAction's switch); ghost renderers are per panel (four today).",
+   "design_system": {
+    "status": "on-extends",
+    "note": "Adds a ghost / pending state (reduced opacity, dashed rule) to panel rows; R9 conformance review, not a reopen."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "restorative",
+    "note": "Undo re-applies a holding pre-image through the existing store seams, user-initiated, with a stale-target refusal; the pre-image must be bound to {portfolioId, holdingId} (COD-host-actions-proposed-changes-1)."
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "COD-host-actions-proposed-changes-1",
+     "severity": "high",
+     "note": "COD-host-actions-proposed-changes-1"
+    }
+   ],
+   "closes_findings": [
+    {
+     "raw_id": "WLD-agent-native-ux-2",
+     "severity": "medium",
+     "note": "WLD-agent-native-ux-2"
+    }
+   ],
+   "judge_notes": [],
+   "biggest_risk": "Undo that clobbers a later user edit; refuse when the target changed since apply.",
+   "why_this_rank": "The tracked portfolio is the one money-relevant write surface left after the trading removal and an accepted or AUTO-applied delete is unrecoverable today; reversibility has to exist before any idea that writes the book at scale or grants autonomy (BL-39)."
+  },
+  {
+   "rank": 20,
+   "id": "BL-20",
+   "tier": 2,
+   "tier_label": "The Jarvis layer: watching, memory and receipts on the spine",
+   "name": "Trust bench and 'Audit me'",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "journalist-8"
+    ],
+    "absorbed": [
+     "hn-sceptic-4 (trust-bench half)",
+     "OPP-3 (deliverable c: the public benchmark page)"
+    ]
+   },
+   "audience": "reviewers, sceptics, new users",
+   "jarvis_axis": [
+    "receipts"
+   ],
+   "one_liner": "Freeze a structural subset of the R15 hostile battery (identity, exchange, board, face value, scale, 'has no NSE line', each with as_of) into a bundled fixture; a keyless command-palette 'Trust audit' runs the existing handlers and witnesses against it and prints resolved correctly / conflicts disclosed / wrong and silent with the failures in full, and pnpm trust-bench writes the same report to a committed TRUST.md each release: the public benchmark page, failures left in.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Fixture freeze, runner over handlers, report-card block, script + TRUST.md writer."
+   },
+   "lifecycle_cost": "Real: truth packs rot (renames, delistings, new collisions). Packs carry as_of, the report greys out anything older than two quarters, and a refresh is one agent-day per release on the release checklist.",
+   "design_system": {
+    "status": "on",
+    "note": "A report-card block."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "It looks like a stunt if the failures never shrink, and it hands rivals copy; it only works if the README numbers are the numbers the button prints.",
+   "why_this_rank": "Every rival's accuracy claim is a sentence and this is a button a keyless reviewer presses in minute five, doubling as the regression suite for BL-05 and BL-10; it is marketing-shaped, so it follows the items that make the numbers better."
+  },
+  {
+   "rank": 21,
+   "id": "BL-21",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "The Figure and the Why key",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "designer-4"
+    ],
+    "absorbed": [
+     "OPP-3 (deliverable b: per-figure attribution on metric cards)"
+    ]
+   },
+   "audience": "all",
+   "jarvis_axis": [
+    "receipts"
+   ],
+   "one_liner": "A design-system <Fig> primitive replaces native title= tooltips with a focusable figure; ? opens an in-cell lineage card (inputs, provider, as-of, basis, witness verdicts, filing link, copy as citation) with no LLM, and a second ? optionally adds one model line. Adopted on overview fundamentals, then brief metric cards (OPP-3 b), then watchlist rows.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Primitive + lineage card + overview adoption (5 d); each further panel about half a day."
+   },
+   "lifecycle_cost": "Every new metric must declare its lineage or its card says 'lineage not recorded'; a vitest lists Figs without lineage.",
+   "design_system": {
+    "status": "on-extends",
+    "note": "Extends the design system with one primitive and one card on existing tokens (R9 conformance review)."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "An additive derivation field on FieldMeta (documented as additive, fundamentals.py:36-37)."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-01"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "? collides with typing; bind it only while a Fig has focus.",
+   "why_this_rank": "It is the single surface every other seat's receipt should render into (firewall verdicts, page anchors, revision flags), and it ranks after the items that produce those receipts."
+  },
+  {
+   "rank": 22,
+   "id": "BL-22",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Evidence locker",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "forensic-7 (locker half)"
+    ],
+    "absorbed": [
+     "hn-sceptic-2 (persistence and revised-filing detection)"
+    ]
+   },
+   "audience": "all; forensic first",
+   "jarvis_axis": [
+    "receipts",
+    "memory"
+   ],
+   "one_liner": "Persist the page text (bytes optional) of every filing the agent reads under its sha256 with fetch time and page map, pin anything cited by a saved brief, claim, tripwire or promise, open citations from disk offline, and raise 'the document changed under you' with a page-text diff when a re-fetch hashes differently.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Locker store with LRU cap and pinning, optional sha256 / fetchedAt on BriefSource, hash compare on re-visit, chip states."
+   },
+   "lifecycle_cost": "Disk: a few GB a year for a heavy user if bytes are kept, about 100 KB per 60-page filing as compressed text. The LRU cap and pinning are budgeted on day one (L5). Hash bytes, not text, because pypdf text drifts across versions.",
+   "design_system": {
+    "status": "on",
+    "note": "The citation chip gains 'stored' and 'changed' states."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-06"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Scanned filings are stored faithfully and remain unreadable; the chip must say 'stored, not machine-readable'.",
+   "why_this_rank": "Receipts that survive the source (AttachLive URLs already rot within weeks, per the sellside probe) and the one thing a hosted product structurally will not do, keep the user's evidence offline; it underpins the guidance ledger, the redline and forkable research."
+  },
+  {
+   "rank": 23,
+   "id": "BL-23",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Gatekeeper exits",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "forensic-1"
+    ],
+    "absorbed": []
+   },
+   "audience": "all with holdings; forensic first",
+   "jarvis_axis": [
+    "watching",
+    "initiative",
+    "receipts"
+   ],
+   "one_liner": "A tape class for auditor, CFO, company-secretary and independent-director exits (SUBCATNAME plus headline, no LLM); notify only on a mid-term auditor exit or two or more gatekeeper exits in 180 days; on open, the agent reads the 1-3 page resignation letter and quotes the stated reason with its page.",
+   "size": {
+    "band": "S",
+    "days": 3,
+    "band_range": "2-4 days",
+    "note": "Classifier classes + cluster rules + timeline card, on the Watch."
+   },
+   "lifecycle_cost": "SUBCATNAME vocabulary drifts: a visible unclassified bucket and a fixture-pinned classifier test. NSE's 'Updates' category is coarser, so NSE-only SME names get a weaker tape and must say so.",
+   "design_system": {
+    "status": "on",
+    "note": "A timeline card."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-02",
+    "BL-04"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Alert fatigue from routine board churn; only the cluster and mid-term rules notify.",
+   "why_this_rank": "The cheapest high-signal forensic event class once the tape exists, and a cluster inside a 180-day window across 30 names is exactly what no human holds in their head."
+  },
+  {
+   "rank": 24,
+   "id": "BL-24",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Exit Door: can I actually get out",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "retail-3"
+    ],
+    "absorbed": [
+     "bloomberg-2"
+    ]
+   },
+   "audience": "retail and small-cap holders",
+   "jarvis_axis": [
+    "initiative",
+    "watching",
+    "receipts"
+   ],
+   "one_liner": "A per-holding liquidity glyph: days to exit at a stated participation rate from delivery volume (total volume, labelled, when delivery is unavailable), zero-volume session count, SME lot arithmetic, the longest lower-band lock streak, and a tape event the day a holding moves from EQ to BE / BZ (trade-for-trade), plus a read_handler so the agent can answer 'can I get out of X?'.",
+   "size": {
+    "band": "S-M",
+    "days": 4,
+    "band_range": "4-5 days",
+    "note": "Delivery parse from the security-wise bhavcopy fallback (BhavRow has no delivery field), calc, glyph column + hover card, read_handler."
+   },
+   "lifecycle_cost": "Near zero beyond the EOD ingest. Delivery columns exist only on the fallback host; if it blocks, degrade to total volume and say so. SME lot size has no bundled source (unverified) and must degrade to 'lot size unknown'. BSE-only names use the BSE bhavcopy lane.",
+   "design_system": {
+    "status": "on",
+    "note": "A glyph column and hover card in the portfolio panel."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "reads",
+    "note": "Reads the manual tracked portfolio."
+   },
+   "depends_on": [
+    "BL-08",
+    "BL-04 (for the series-flip event)"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [
+    "retail-3's Kite holdings read (sidecar/routers/brokers.py GET holdings, models/broker_reads.py) is on the 23 Sep trading-removal surface and is struck; the manual portfolio is sufficient."
+   ],
+   "biggest_risk": "It reads as a sell signal; it is a property of the market for the stock, not a view on the company.",
+   "why_this_rank": "The single number that would have stopped most tip-driven small-cap losses, computed from data the app already parses, and small once the recorder runs."
+  },
+  {
+   "rank": 25,
+   "id": "BL-25",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Filing clock",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "forensic-2"
+    ],
+    "absorbed": []
+   },
+   "audience": "all; forensic first",
+   "jarvis_axis": [
+    "watching",
+    "receipts"
+   ],
+   "one_liner": "Days from quarter end to results across quarters, filings after 21:00 or on a Friday night, rescheduled board meetings, corrigenda and late shareholding submissions, rendered as a BriefDerivedValue-shaped series (formula and basis) with every timestamp linked; colour only a monotonic drift of three or more quarters; no LLM.",
+   "size": {
+    "band": "S",
+    "days": 3,
+    "band_range": "2-4 days",
+    "note": "A ~150-line derivation module, one header chip + hover, a statutory-deadline constants block."
+   },
+   "lifecycle_cost": "Near zero: timestamps are the most stable payload fields; statutory deadlines live in one constants block with a source comment.",
+   "design_system": {
+    "status": "on",
+    "note": "A header chip in the existing metric-card grid."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-02 (dual timestamps and history beyond 30 days)"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [
+    "History depth: BSE windows must be paged at six months or less (sellside probe); whether windows older than about a year return at all is unprobed, so the clock may only see what the recorder accumulates."
+   ],
+   "biggest_risk": "Over-reading noise: show the series, never a score.",
+   "why_this_rank": "It measures the filer's behaviour, which no aggregator field contains, at near-zero upkeep; it sits below gatekeeper exits because the signal is slower and needs quarters of history."
+  },
+  {
+   "rank": 26,
+   "id": "BL-26",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Living model",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "sellside-2"
+    ],
+    "absorbed": [
+     "sellside-3 (apply-haircut to the model)"
+    ]
+   },
+   "audience": "sell-side and serious buy-side",
+   "jarvis_axis": [
+    "memory",
+    "initiative",
+    "receipts"
+   ],
+   "one_liner": "A small per-company driver model (30 lines or fewer, per-archetype template) in a local Model Store: actuals auto-filled from results filings with page receipts (BL-15), estimate changes on an append-only revision trail (reason and triggering filing), agent edits only as proposed diffs, a model_read capability so every brief compares against the user's number, and .xlsx export with live formulas through the Rust atomic-write path (not the dead <a download> path of WLD-T-2).",
+   "size": {
+    "band": "M",
+    "days": 8,
+    "band_range": "5-8 days",
+    "note": "Model Store (lines / cells / revisions), cell references in the formula grammar, grid panel, model_read, model-edit host action, xlsx writer."
+   },
+   "lifecycle_cost": "Templates drift as businesses change shape (lines must be addable without breaking history); schema migrations from day one (the repo has CREATE TABLE IF NOT EXISTS only); an xlsx writer is a new sidecar dependency against the 120 MB footprint target.",
+   "design_system": {
+    "status": "on",
+    "note": "A new dockview grid panel, held deliberately small under R9 density rules."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "model_read reaches custom agents through the allow-list derivation."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": "Writes the Model Store (user research data) through the gate, not the tracked portfolio."
+   },
+   "depends_on": [
+    "BL-15"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "A worse Excel nobody opens: do not compete on grid features; compete on filings filling actuals, reasons on revisions and the agent reading the model.",
+   "why_this_rank": "It answers screener.in's real switching cost (the fillable Excel model) with the one file a cloud product has to ask permission for, the analyst's own model, kept local; its audience is the pro seat and it stands on BL-15."
+  },
+  {
+   "rank": 27,
+   "id": "BL-27",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Rulebook: it holds you to your own words",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "journalist-5"
+    ],
+    "absorbed": [
+     "bloomberg-5"
+    ]
+   },
+   "audience": "disciplined investors",
+   "jarvis_axis": [
+    "memory",
+    "initiative"
+   ],
+   "one_liner": "A 'Rules' note bucket that rides the snapshot (capped) holds the user's policy in plain English; quantitative rules compile once (shown verbatim, user-accepted) to the no-eval formula grammar with book-level fields (position weight, sector weight, days to exit, promoter %), and every proposed portfolio add or watchlist add, including the agent's own suggestions, arrives with an objection quoting the rule, its date and the figure. It annotates; it never blocks.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Rules bucket + snapshot + preamble, compile step with diff, book-level field resolver, objection on proposed-change cards."
+   },
+   "lifecycle_cost": "Rules referencing fields the model lacks must fail loudly at compile time; the formula TS twin stays in lockstep (an existing cost); a rule overridden twice asks once whether to retire it.",
+   "design_system": {
+    "status": "on",
+    "note": "An objection line on proposed-change cards."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": "It annotates portfolio proposals at the gate, which only works if data-writes actually stop there, i.e. after COD-host-actions-proposed-changes-3 (AUTO auto-applies data-writes today, so the objection would arrive after the fact)."
+   },
+   "depends_on": [
+    "BL-03",
+    "BL-24 (days-to-exit field)"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "COD-host-actions-proposed-changes-3",
+     "severity": "high",
+     "note": "COD-host-actions-proposed-changes-3"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Nagging and mis-compiled rules: one objection per action, never on reads, compiled rules shown verbatim.",
+   "why_this_rank": "Discipline aimed at the user rather than the market, reusing the grammar, gate and notes the product already has; it needs BL-03 and the AUTO fix, and serves the disciplined minority."
+  },
+  {
+   "rank": 28,
+   "id": "BL-28",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Red-flag rule packs",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "forensic-9"
+    ],
+    "absorbed": []
+   },
+   "audience": "forensic investors; later all",
+   "jarvis_axis": [
+    "watching",
+    "memory",
+    "receipts",
+    "initiative"
+   ],
+   "one_liner": "Detection-as-code for Indian small-cap governance: small readable rule files describing event sequences over the tape (for example rating downgrade, then CFO exit, then results delayed), each citing the regulator order it was distilled from, evaluated privately against the user's holdings and returning 'steps matched' with a filing per step, never a verdict. A first-party pack of about 12 rules reviewed line by line by the operator, and a CI lint (schema, citation present, a fixture that fires).",
+   "size": {
+    "band": "M",
+    "days": 7,
+    "band_range": "5-8 days",
+    "note": "Rule schema + validator, windowed sequence matcher, pack loader, matched-rules block, CI lint (engine S-M); the starter pack is careful writing."
+   },
+   "lifecycle_cost": "The corpus is the asset and the liability: review, versioning, deprecation. Event-class vocabulary changes must be additive or packs break.",
+   "design_system": {
+    "status": "on",
+    "note": "A 'matched rules' block with per-step receipts."
+   },
+   "plugin_contract": {
+    "status": "uses-as-is",
+    "note": "Third-party packs ship through contributesData as a DataSource of kind 'custom'; a dedicated 'rules' kind would change types/plugin.ts (Tier-4). Do not add it."
+   },
+   "portfolio_write": {
+    "status": "reads",
+    "note": "Evaluates against holdings; writes nothing."
+   },
+   "depends_on": [
+    "BL-04",
+    "BL-13",
+    "BL-23"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [
+    "The seat's moat argument 'AGPL + the plugin contract' is stale: on 23 Sep the core was relicensed to PolyForm Strict 1.0.0 (commit 0c63d46) and CONTRIBUTING.md closed contributions. types/plugin.ts is now Apache-2.0, so third-party packs can still ship as plugins, but a community corpus lives outside the repo."
+   ],
+   "biggest_risk": "A rule reads as an accusation: observable sequences only, primary citations, steps matched, never a verdict; the operator reviews the first pack.",
+   "why_this_rank": "The strongest long-run moat in the forensic set (a hosted platform cannot publish 'matches a fraud pattern' about a listed company, a local evaluator publishes nothing), but it is only as good as the tape and event classes under it and carries the highest reputational risk of any rule-based item."
+  },
+  {
+   "rank": 29,
+   "id": "BL-29",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Track record: the app keeps score on itself and its providers",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "journalist-3"
+    ],
+    "absorbed": [
+     "hn-sceptic-4 (in-app conflict-ledger half)"
+    ]
+   },
+   "audience": "all",
+   "jarvis_axis": [
+    "memory",
+    "receipts"
+   ],
+   "one_liner": "Persist every figure the agent states (period, as-of, provider, source) and every witness conflict by provider and segment in a local ledger; re-check deterministically when a new brief for the same symbol publishes (same metric and period with a different value is a graded miss, a different period is a change); the agent answers 'how far should I trust your market cap on SME names' from its own measured history. A read-only track_record capability and a Settings page.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "claims + conflict ledger store with schema version, re-check on publish, capability, Settings table, preamble line."
+   },
+   "lifecycle_cost": "Grows forever unless capped per symbol and aged out; needs a schema version from day one (there is no migration story in the repo).",
+   "design_system": {
+    "status": "on",
+    "note": "A Settings table and one preamble line."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-15 (primary filings to grade against; optional)"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Grading unfairly in either direction: only same-period, same-basis contradictions from a primary filing count as a miss, and the page shows the denominator.",
+   "why_this_rank": "'I have been wrong about this before' is the least chatbot-like sentence an assistant can say, and it upgrades the capped, source-less claims ledger into memory with provenance; mid-ranked because the value accrues over months."
+  },
+  {
+   "rank": 30,
+   "id": "BL-30",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "The number changed: drift ledger",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "quant-2"
+    ],
+    "absorbed": [
+     "bloomberg-3"
+    ]
+   },
+   "audience": "all",
+   "jarvis_axis": [
+    "watching",
+    "receipts",
+    "memory"
+   ],
+   "one_liner": "From the fund_obs recorder (BL-08), classify every change to a filing-anchored field as explained by a filing, explained by a corporate action, a basis flip, or an unexplained vendor revision (with a statement period-hash to catch restated past periods), show which saved screens and published brief claims flip because of it, and put an 'as you saw it on <date>' chip on the brief.",
+   "size": {
+    "band": "S-M",
+    "days": 4,
+    "band_range": "4-5 days",
+    "note": "Classifier, impact join over saved screens and claims, drift card, fixture suite of benign drifts."
+   },
+   "lifecycle_cost": "Noise is the killer: per-field tolerance bands (rounding, FX, TTM roll) tuned in the first month, then a fixture suite of known-benign drifts; unexplained-only by default; two consecutive confirming observations before it speaks.",
+   "design_system": {
+    "status": "on",
+    "note": "A drift card and a chip on the brief."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-08",
+    "BL-14",
+    "BL-02"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "False alarms on TTM rolls get it muted.",
+   "why_this_rank": "The most common root of 'the numbers look wrong' made visible, nearly free once the recorder runs, but it needs weeks of observations before it can say anything."
+  },
+  {
+   "rank": 31,
+   "id": "BL-31",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Seven Pages: annual-report reader",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "retail-7"
+    ],
+    "absorbed": [
+     "forensic-7 (section-seek deep-read half)"
+    ]
+   },
+   "audience": "beginners and forensic readers",
+   "jarvis_axis": [
+    "receipts",
+    "memory"
+   ],
+   "one_liner": "A section-seek reader that finds the auditor's report, key audit matters, CARO, related-party, contingent-liability, managerial-remuneration and cash-flow sections anywhere in a 250-page annual report (the lane reads 60 pages and keeps 6 today, extract.py:65,68, so the back of an AR is unreachable), reads a few pages around each heading, pins every finding to a PDF page with the quote verified on that page, and explains a new term once per user, as a durable budget-guarded run.",
+   "size": {
+    "band": "M",
+    "days": 7,
+    "band_range": "5-8 days",
+    "note": "Section locator + targeted deep read that leaves the global cap alone, AR locator, learnedTerms in the workspace blob (four-call-site rule), seven-card output."
+   },
+   "lifecycle_cost": "Heading conventions vary and drift; per-report BYOK token cost is real; the per-scrip AR locator endpoint is unverified.",
+   "design_system": {
+    "status": "on",
+    "note": "Seven cards with page chips."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-06",
+    "BL-22 (optional)"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "COD-research-extraction-synthesis-2",
+     "severity": "high",
+     "note": "COD-research-extraction-synthesis-2 (so the budget ceiling can fire on research LLM calls)"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "An off-by-one page (PDF index vs printed folio) destroys the receipt; scanned micro-cap reports must say 'I can read 3 of your 7 pages'.",
+   "why_this_rank": "It reaches the pages a forensic reader reads first and a beginner never finds, and it is the substrate of the AR redline; mid-ranked because the locator is unverified and scanned ARs are common in the target names."
+  },
+  {
+   "rank": 32,
+   "id": "BL-32",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Alerts with a track record",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "bloomberg-7"
+    ],
+    "absorbed": []
+   },
+   "audience": "all",
+   "jarvis_axis": [
+    "watching",
+    "receipts",
+    "initiative"
+   ],
+   "one_liner": "Alerts written in plain English compile to a visible rule and are dry-run against the stored tape before arming ('this would have fired 3 times on your book, here they are', with the tape's honest depth stated), then evaluate at sweep time only.",
+   "size": {
+    "band": "S-M",
+    "days": 4,
+    "band_range": "4-5 days",
+    "note": "Alert rule store + create_alert proposed change + dry-run evaluator, on the tripwire engine."
+   },
+   "lifecycle_cost": "Dry-run depth is shallow on day one and must be stated; it deepens only as the tape accumulates.",
+   "design_system": {
+    "status": "on",
+    "note": ""
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-04",
+    "BL-09"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "An unstated shallow history becomes false comfort.",
+   "why_this_rank": "It shows the noise rate Bloomberg's ALRT never shows, cheaply once tripwires exist; it ranks after tripwires because it is the generic version of the same engine."
+  },
+  {
+   "rank": 33,
+   "id": "BL-33",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Operator radar",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "retail-2"
+    ],
+    "absorbed": []
+   },
+   "audience": "retail and small-cap holders",
+   "jarvis_axis": [
+    "watching",
+    "initiative",
+    "receipts"
+   ],
+   "one_liner": "On wake, catch up missed sessions from the exchange daily archives and run deterministic shape rules on held and watched names (series migration to trade-for-trade, upper-band lock streaks, volume above k times the median, price moves with a silent filings feed, delivery collapsing while price rises) with the bhavcopy rows and the empty announcements window as receipts; the LLM only narrates rules that fired.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Rules over the recorded session data, delivery parse, SME series admitted for watched symbols; an ASM/GSM lane only if an endpoint is confirmed."
+   },
+   "lifecycle_cost": "NSE has changed the bhavcopy format once already; 'last successful ingest N sessions ago' must be visible through provider_health; the BSE delivery lane is unknown.",
+   "design_system": {
+    "status": "on",
+    "note": "A radar card."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-08",
+    "BL-02",
+    "BL-24"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "False positives on genuine re-ratings teach a nervous user to sell winners: 'shape, thresholds and rows', never 'manipulated'.",
+   "why_this_rank": "It makes the join nobody does (movement with no filing) on data the app already ingests, for the user most exposed to operators; it sits below Exit Door because its failure mode (a false alarm on a winner) costs the user money."
+  },
+  {
+   "rank": 34,
+   "id": "BL-34",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Honesty card and trial ledger for backtests",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "quant-3"
+    ],
+    "absorbed": []
+   },
+   "audience": "quant and backtest users",
+   "jarvis_axis": [
+    "receipts",
+    "memory",
+    "initiative"
+   ],
+   "one_liner": "Every backtest ships a deterministic audit (the fill delta against next-open, since fills happen at the signal bar's close today; the provider and adjustment basis that bar_loader currently discards; a dated India fee preset; volume participation; a survivorship flag; n) plus a persisted count of variants tried on the symbol set that deflates the headline Sharpe into a banded verdict (anecdote / suggestive / robust), fed to strategy_critic as facts.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Honesty block, trial ledger store, fee preset, critic wiring; excludes the COD-backtest-1 fix."
+   },
+   "lifecycle_cost": "Statutory charges change with budgets (a dated fee table with an as-of label); the trial ledger needs a 'new hypothesis' reset or it punishes honest exploration.",
+   "design_system": {
+    "status": "on",
+    "note": "An honesty block in BacktestResultView."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-08 (for participation)"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "COD-backtest-1",
+     "severity": "critical",
+     "note": "COD-backtest-1 (admitted critical: multi-symbol metrics mis-annualised per bar)"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Deflation maths with false precision: a banded verdict with the formula one click away.",
+   "why_this_rank": "The cheapest credibility win for the backtest audience and it contradicts its own headline number, but backtesting is peripheral to the research-first positioning and a critical metrics defect must be fixed under it first."
+  },
+  {
+   "rank": 35,
+   "id": "BL-35",
+   "tier": 3,
+   "tier_label": "Differentiators on the spine",
+   "name": "Priced in: what the market cap already assumes",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "sellside-4"
+    ],
+    "absorbed": []
+   },
+   "audience": "all; sell-side first",
+   "jarvis_axis": [
+    "initiative",
+    "receipts"
+   ],
+   "one_liner": "A deterministic reverse DCF (an implied-ROE form for lenders and holding companies by sector rule) states the growth and margin the current market cap implies at a user-visible cost of equity, beside 5-year history, guidance (BL-16) and the user's model (BL-26), as a full sensitivity grid: never a target price, rating or 'undervalued'.",
+   "size": {
+    "band": "S",
+    "days": 3,
+    "band_range": "2-4 days",
+    "note": "Solver + implied-ROE variant, priced_in read_handler, grid block, Settings default."
+   },
+   "lifecycle_cost": "Low: deterministic maths over existing fields; it breaks only if the fundamentals contract changes.",
+   "design_system": {
+    "status": "on",
+    "note": "A sensitivity-grid block."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "priced_in read_handler projects to MCP."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-16 (guidance column; optional, v1 ships the history column alone)",
+    "BL-26 (model column; optional)"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "DAT-P3-1",
+     "severity": "critical",
+     "note": "DAT-P3-1"
+    },
+    {
+     "raw_id": "DAT-P4-1",
+     "severity": "critical",
+     "note": "DAT-P4-1"
+    },
+    {
+     "raw_id": "DAT-P5-1",
+     "severity": "critical",
+     "note": "DAT-P5-1"
+    },
+    {
+     "raw_id": "DAT-P6-1",
+     "severity": "critical",
+     "note": "DAT-P6-1"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "False precision and the look of regulated research (SEBI RA regulations: unverified seat knowledge); always the whole grid, never a single cell.",
+   "why_this_rank": "Three days for the question a PM pays for, but its history column reads exactly the statement data the census found serving a different company on SME ticker collisions (admitted critical), so it waits behind that fix."
+  },
+  {
+   "rank": 36,
+   "id": "BL-36",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Forkable research (.vybrief) and the receipt bundle",
+   "kind": "merged",
+   "sources": {
+    "primary": [
+     "hn-sceptic-8"
+    ],
+    "absorbed": [
+     "journalist-7 (receipt-bundle half)"
+    ]
+   },
+   "audience": "sharers, reviewers, support",
+   "jarvis_axis": [
+    "receipts",
+    "memory"
+   ],
+   "one_liner": "A thin versioned bundle (structured legs, execution record, number receipts, locker hashes, per-figure URL / page / quote / fetch time, tool trace, no secrets since the key never persists) that any install can Verify by deterministic replay and re-hash at zero tokens: one format for sharing, for re-verifying your own old work, and for the redacted diagnostics bundle behind 'the numbers look wrong'.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Envelope + format_version, export and import through the Rust atomic path (never <a download>, WLD-T-2), verify replay, report block."
+   },
+   "lifecycle_cost": "A file format is a forever promise: keep it a thin envelope with a format_version; replay breaks when a provider dies, and the verify report names the leg that no longer reproduces.",
+   "design_system": {
+    "status": "on",
+    "note": "Export / import actions and a verify-report block."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-05",
+    "BL-22"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Most retail users never share a file; it has to pay for itself as the diagnostics bundle.",
+   "why_this_rank": "It answers lifecycle question L3 (no redacted diagnostics bundle exists) and makes research portable, but it sits on the firewall and the locker."
+  },
+  {
+   "rank": 37,
+   "id": "BL-37",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Calm protocol",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "retail-5"
+    ],
+    "absorbed": []
+   },
+   "audience": "retail",
+   "jarvis_axis": [
+    "initiative",
+    "memory",
+    "receipts"
+   ],
+   "one_liner": "When a holding falls hard during the watchlist's quote poll, run a fixed five-check triage as tool calls (filing today, sector peers, index, volume, radar), say 'market' or 'company' with receipts and check times, quote back the selling rule the user wrote when calm, and re-run on the next announcements TTL.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Drop trigger, deterministic checklist runner, rules field, triage card, notification intent."
+   },
+   "lifecycle_cost": "Only while the app is open (no daemon), which must be stated; sector-map staleness mislabels peers over time.",
+   "design_system": {
+    "status": "on",
+    "note": "A triage card."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-03",
+    "BL-04",
+    "BL-33 (optional)"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "A 'looks like the market' read minutes before a filing lands: the card carries its check time and re-runs.",
+   "why_this_rank": "Initiative at the moment a human thinks worst, but it fires only while the app is open during market hours and it composes pieces that rank above it."
+  },
+  {
+   "rank": 38,
+   "id": "BL-38",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Instant cockpit",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "designer-3"
+    ],
+    "absorbed": []
+   },
+   "audience": "all",
+   "jarvis_axis": [
+    "watching",
+    "memory"
+   ],
+   "one_liner": "Mirror the autosave layout and a bounded last-seen value map into the app-data dir through a Rust read command (a two-name allow-list) so the cockpit paints in under 200 ms before the sidecar binds, each cached figure stamped with its age in a tertiary tone until it fades to live, never flashing.",
+   "size": {
+    "band": "M",
+    "days": 5,
+    "band_range": "5-8 days",
+    "note": "Rust read command, mirror writes on the autosave debounce, 'cached' freshness state, sidecar-wins reconcile."
+   },
+   "lifecycle_cost": "Two-writer drift between the mirror and the sidecar (the sidecar always wins; a version stamp); SerializedWorkspace changes must keep the older-blob guard.",
+   "design_system": {
+    "status": "on-extends",
+    "note": "Adds a 'cached' freshness state to StalenessBadge (conformance review)."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "An ordinary Rust command; tauri.conf.json is not touched."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "COD-rust-core-1",
+     "severity": "high",
+     "note": "COD-rust-core-1"
+    },
+    {
+     "raw_id": "COD-workspace-layout-3",
+     "severity": "high",
+     "note": "COD-workspace-layout-3"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [
+    "Blocked by two admitted high defects: setup() joins both MCP port-waits on the main thread, freezing the window for about 35 s on every cold boot (COD-rust-core-1), so nothing can paint early; and autosave is not gated on restore (COD-workspace-layout-3), so the mirror would copy a partial blob."
+   ],
+   "biggest_risk": "A cached price read as live during market hours.",
+   "why_this_rank": "The best first impression of a fast terminal, but two admitted high defects stand between it and the screen, and fixing those alone captures most of the win."
+  },
+  {
+   "rank": 39,
+   "id": "BL-39",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Earned autonomy",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "designer-8"
+    ],
+    "absorbed": []
+   },
+   "audience": "all who use AUTO",
+   "jarvis_axis": [
+    "memory",
+    "initiative"
+   ],
+   "one_liner": "Replace the global ask / auto switch with per-kind autonomy and a persisted accept / reject tally; after a clean record (for example 23 of 23 chart changes) the agent offers once to stop asking for that kind, downgrades on the first reject, shows the ledger in Settings, and never offers for writes to the tracked portfolio.",
+   "size": {
+    "band": "S",
+    "days": 3,
+    "band_range": "2-4 days",
+    "note": "Per-kind map, tally in the workspace blob, offer line, Settings table; build together with the COD-hapc-3 whitelist."
+   },
+   "lifecycle_cost": "Low: one map, one tally, one table; the thresholds are the operator's call.",
+   "design_system": {
+    "status": "on",
+    "note": "One offer line and a Settings table."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "governs-gate",
+    "note": "Tracked-portfolio data-writes are permanently excluded from auto-apply; this is the per-kind whitelist COD-host-actions-proposed-changes-3 asks for, plus a record."
+   },
+   "depends_on": [
+    "BL-19"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "COD-host-actions-proposed-changes-3",
+     "severity": "high",
+     "note": "COD-host-actions-proposed-changes-3"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "It can read as the product nudging you toward less oversight: offered once per kind, a permanent 'don't ask', a visible ledger.",
+   "why_this_rank": "Nearly free once the AUTO whitelist fix lands and good design, but the fix carries the value and the tally is polish; never grant autonomy for something you cannot undo, so it follows BL-19."
+  },
+  {
+   "rank": 40,
+   "id": "BL-40",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "GO bar and learned routines",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "bloomberg-8"
+    ],
+    "absorbed": []
+   },
+   "audience": "power users",
+   "jarvis_axis": [
+    "memory",
+    "initiative"
+   ],
+   "one_liner": "'<TICKER> <FN>' parsed deterministically in under 100 ms ahead of the fuzzy palette (SHP, ANN, FA, RES, EXIT, TAPE and so on, each mapped to an existing host action), a 'next time: TANLA SHP' hint after agent turns that reduce to one function, and a bounded host-action history that offers to bind a repeated morning sequence as one routine.",
+   "size": {
+    "band": "S-M",
+    "days": 4,
+    "band_range": "4-5 days",
+    "note": "Function table, ~40-line parser, hint line, history ring + repeat detector."
+   },
+   "lifecycle_cost": "A small versioned function vocabulary; adding a function is a data change.",
+   "design_system": {
+    "status": "on",
+    "note": "A parse-preview line in the palette."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Mnemonic collisions with real NSE symbols: ticker-first grammar and a visible parse preview.",
+   "why_this_rank": "Real speed for power users at zero tokens, but it serves the terminal-native minority and the routine-learning half carries nag risk."
+  },
+  {
+   "rank": 41,
+   "id": "BL-41",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Page One",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "sellside-8"
+    ],
+    "absorbed": []
+   },
+   "audience": "all",
+   "jarvis_axis": [
+    "initiative",
+    "memory"
+   ],
+   "one_liner": "Every brief opens with three boxes (what changed since the last brief on this symbol, BL-18; what is priced in, BL-35; one dated falsifier that resolves against a future filing) with background folded away, and a deterministic filler score (sentences with no number, entity or date) fed back once into the research loop.",
+   "size": {
+    "band": "S",
+    "days": 3,
+    "band_range": "2-4 days",
+    "note": "Three-box renderer, falsifier field (additive in types/brief.ts), filler scorer."
+   },
+   "lifecycle_cost": "The heuristic needs tuning as the research agent's style drifts; unresolvable falsifiers must expire honestly.",
+   "design_system": {
+    "status": "on",
+    "note": "A three-box renderer on existing blocks."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-18",
+    "BL-35",
+    "BL-15 (falsifier resolution)"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "A crude filler metric punishes useful qualitative context: it demotes and reports, never deletes; the rewrite round costs an extra LLM call (off in FAST).",
+   "why_this_rank": "A composition of items that rank above it, worth doing once those exist."
+  },
+  {
+   "rank": 42,
+   "id": "BL-42",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Pre-print card and your forecast record",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "bloomberg-4 (pre-commit and calibration half)"
+    ],
+    "absorbed": []
+   },
+   "audience": "active holders",
+   "jarvis_axis": [
+    "initiative",
+    "memory",
+    "receipts"
+   ],
+   "one_liner": "The evening before a holding reports (wake-driven), lay out what management guided with page receipts and ask the user for three numbers; freeze them once the results announcement exists and grade print against guidance against the user, keeping a calibration record across quarters.",
+   "size": {
+    "band": "S-M",
+    "days": 5,
+    "band_range": "4-5 days",
+    "note": "Expectations store (frozen at the results timestamp), grade block, calibration view."
+   },
+   "lifecycle_cost": "Scanned results PDFs mean the print column often reads 'unparsed, enter manually, see p.N', which must be a designed state.",
+   "design_system": {
+    "status": "on",
+    "note": "A grade block (print / guided / yours / delta)."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-04",
+    "BL-15",
+    "BL-16"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "A degraded print column presented as a failure.",
+   "why_this_rank": "It makes the user commit before the print and keeps score on them, which is memory with teeth, but everything it shows comes from BL-15 and BL-16."
+  },
+  {
+   "rank": 43,
+   "id": "BL-43",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "One number, one truth",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "designer-5"
+    ],
+    "absorbed": []
+   },
+   "audience": "all",
+   "jarvis_axis": [
+    "watching"
+   ],
+   "one_liner": "A client-side figure registry keyed by (symbol, metric, basis) that every <Fig> and every extracted brief claim registers into; when two open panels disagree beyond tolerance, both get a link glyph explaining why (for example a brief that predates JONJUA's bonus).",
+   "size": {
+    "band": "S",
+    "days": 3,
+    "band_range": "2-4 days",
+    "note": "Registry store, pure tolerance comparator, glyph + sibling highlight."
+   },
+   "lifecycle_cost": "Only figures rendered through <Fig> take part; the tolerance table needs care as metrics are added.",
+   "design_system": {
+    "status": "on",
+    "note": "A link glyph and sibling highlight."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-21"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "False positives from timing skew; price-class metrics compare only across different as-of days.",
+   "why_this_rank": "Cheap once <Fig> exists and it catches exactly the stale-brief-after-a-bonus case, but it only covers what BL-21 has adopted."
+  },
+  {
+   "rank": 44,
+   "id": "BL-44",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Surprise without analysts (SUE)",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "quant-8"
+    ],
+    "absorbed": []
+   },
+   "audience": "holders of uncovered names",
+   "jarvis_axis": [
+    "watching",
+    "initiative"
+   ],
+   "one_liner": "Seasonal-random-walk standardised earnings surprise from the company's own 8-quarter history (no consensus needed), triggered by results for holdings and watchlist, with an after-hours-aware first tradable session and a two-source gate (filing PDF plus vendor quarterly) or a 'single-source, provisional' label.",
+   "size": {
+    "band": "S-M",
+    "days": 4,
+    "band_range": "4-5 days",
+    "note": "SUE computation + sigma bar, trigger on results, two-source gate, basis pinning per company."
+   },
+   "lifecycle_cost": "PDF table extraction is the fragile joint (BL-15's fixtures); consolidated vs standalone pinned per company.",
+   "design_system": {
+    "status": "on",
+    "note": "A sigma-bar card."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-15",
+    "BL-51 (optional drift tracker)"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "DAT-P3-1",
+     "severity": "critical",
+     "note": "DAT-P3-1"
+    },
+    {
+     "raw_id": "DAT-P4-1",
+     "severity": "critical",
+     "note": "DAT-P4-1"
+    },
+    {
+     "raw_id": "DAT-P5-1",
+     "severity": "critical",
+     "note": "DAT-P5-1"
+    },
+    {
+     "raw_id": "DAT-P6-1",
+     "severity": "critical",
+     "note": "DAT-P6-1"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "A mis-extracted PAT yields a confident wrong sigma; the vendor quarterly second source is itself unreliable on SME ticker collisions.",
+   "why_this_rank": "Surprise for exactly the names nobody covers, but it is a statistic on top of BL-15 and only as clean as the quarterly history under it."
+  },
+  {
+   "rank": 45,
+   "id": "BL-45",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Proceeds ledger",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "sellside-9"
+    ],
+    "absorbed": []
+   },
+   "audience": "small-cap holders",
+   "jarvis_axis": [
+    "watching",
+    "memory",
+    "receipts"
+   ],
+   "one_liner": "Parse the quarterly Monitoring Agency Reports and Reg 32 deviation statements small caps already file into a per-issue ledger (object, promised, deployed, deviation, agency comments) with a monotonic-cumulative check, and flag stalled or reallocated objects and growth in 'general corporate purposes'.",
+   "size": {
+    "band": "S-M",
+    "days": 5,
+    "band_range": "4-5 days",
+    "note": "Table parsers + fixtures, proceeds table, one user-accepted objects extraction per issue, stalled-object card."
+   },
+   "lifecycle_cost": "Few formats, slow-changing regulation and a quarterly cadence: the cheapest parser here to keep alive.",
+   "design_system": {
+    "status": "on",
+    "note": "A ledger block."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-02"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Cumulative vs quarterly column confusion (a monotonicity check blocks the row); sub-threshold issues have no monitoring agency and must say so.",
+   "why_this_rank": "It watches a filing nobody reads and, with the cheap-paper calendar, closes the capital-raise loop; narrower audience than the items above."
+  },
+  {
+   "rank": 46,
+   "id": "BL-46",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Cheap-paper calendar",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "forensic-4"
+    ],
+    "absorbed": []
+   },
+   "audience": "small-cap and forensic holders",
+   "jarvis_axis": [
+    "memory",
+    "initiative",
+    "receipts"
+   ],
+   "one_liner": "When a company allots preferential shares or warrants, extract allottees, price and per-tranche lock-in dates from the filing once (a durable budget-bounded run), let the user accept them through the gate, then raise the unlock at T-30 and T-7 with the page; cross-check open entries against the SHP XBRL lock-in and warrant flags (BL-13).",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Extraction prompt + schema, calendar table on the tape, one proposed-change kind, supply-events strip."
+   },
+   "lifecycle_cost": "Extraction is the only LLM step and it is human-accepted once; scanned allotment letters become 'could not read, enter manually'; lock-in dates are always read, never computed from ICDR rules.",
+   "design_system": {
+    "status": "on",
+    "note": "A supply-events strip on the portfolio panel."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": "Calendar rows live in their own store through the gate."
+   },
+   "depends_on": [
+    "BL-04",
+    "BL-13"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Multi-tranche allotments and partly-paid warrants make 'the' date plural: per-tranche rows.",
+   "why_this_rank": "The micro-cap supply-overhang event given a date: high value for the forensic seat, narrow for everyone else."
+  },
+  {
+   "rank": 47,
+   "id": "BL-47",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Peer set and read-across",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "sellside-6"
+    ],
+    "absorbed": []
+   },
+   "audience": "sell-side; comps for all",
+   "jarvis_axis": [
+    "watching",
+    "memory",
+    "receipts"
+   ],
+   "one_liner": "A user-owned typed value chain per covered name (peer, customer, supplier, parent, subsidiary) seeded from the local sector columns, driving a comps table over up to about 15 names from the local store (compare_symbols caps at 4) and a quote-or-nothing read-across card when any node files results, a transcript or a monthly update.",
+   "size": {
+    "band": "M",
+    "days": 7,
+    "band_range": "5-8 days",
+    "note": "Edge table, peer_comps handler, structured footnotes, read-across card with verbatim gate."
+   },
+   "lifecycle_cost": "Edges go stale (an annual review prompt); taxonomy differs across sources, which is why edges are user-owned.",
+   "design_system": {
+    "status": "on",
+    "note": "A comps table and a read-across card."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-02",
+    "BL-04",
+    "BL-26 (for FY+1 columns)"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Read-across noise: typed edges only, and a card that finds nothing relevant is filed silently.",
+   "why_this_rank": "Watching beyond your own names is how sell-side finds its best calls and the comps table alone is broadly useful; the read-across half is pro-seat."
+  },
+  {
+   "rank": 48,
+   "id": "BL-48",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Dodge ledger and who's in the room",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "sellside-7"
+    ],
+    "absorbed": []
+   },
+   "audience": "sell-side and corporate-access users",
+   "jarvis_axis": [
+    "memory",
+    "initiative",
+    "receipts"
+   ],
+   "one_liner": "Pair each analyst question with management's answer in transcripts, label ANSWERED / DEFLECTED by deterministic features with the rule shown, track repeat deflections across calls, write a pre-meeting question bank when an Analyst / Investor Meet intimation is filed, and chart the roster of firms asking questions each quarter as a discovery or abandonment signal.",
+   "size": {
+    "band": "M",
+    "days": 7,
+    "band_range": "5-8 days",
+    "note": "Speaker-turn parser + fixtures, firm alias list, answer-feature scorer, roster table, intimation parser."
+   },
+   "lifecycle_cost": "Moderator phrasing varies; the firm alias list needs upkeep; about one fixture per new transcript format.",
+   "design_system": {
+    "status": "on",
+    "note": "A Q&A table and a roster sparkline."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": "The question bank lands in notes via write_note (a data-write), which needs COD-host-actions-proposed-changes-2 fixed first."
+   },
+   "depends_on": [
+    "BL-02",
+    "BL-16"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "COD-host-actions-proposed-changes-2",
+     "severity": "high",
+     "note": "COD-host-actions-proposed-changes-2"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Labelling a legitimate no-guidance answer as a dodge: the rule is shown, the cross-call pattern outweighs any single label, and the user can dismiss a label with a reason.",
+   "why_this_rank": "A genuinely new signal (the institutional-discovery roster) that no Indian tool tracks, but it serves the corporate-access seat and needs transcript coverage that is thin on small caps."
+  },
+  {
+   "rank": 49,
+   "id": "BL-49",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "User-addable MCP servers",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "OPP-6"
+    ],
+    "absorbed": []
+   },
+   "audience": "power users and plugin authors",
+   "jarvis_axis": [
+    "initiative"
+   ],
+   "one_liner": "A user-configured MCP server list over the generic McpClient that already exists (mcp_client.py:218), each server declared read-only by the user and its tool output fenced as untrusted, so adding a filings or data server is paste-a-URL rather than write-an-adapter.",
+   "size": {
+    "band": "S-M",
+    "days": 5,
+    "band_range": "4-5 days",
+    "note": "Config store + settings UI + spawn/connect + fence; excludes the fence and AUTO fixes it depends on."
+   },
+   "lifecycle_cost": "Third-party servers change tool schemas without notice; the app cannot audit a remote server's read-only claim the way it audits in-tree wrappers (inspect.getmembers and router.routes), so enforcement is the fence plus no host-action tools reachable from their output.",
+   "design_system": {
+    "status": "on",
+    "note": "A settings list."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "Untouched if built as sidecar configuration; do not model it as a plugin capability (Tier-4)."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": "No direct writes, but third-party tool text entering the main loop can steer portfolio writes under AUTO today, so it must land after the fence and the AUTO whitelist."
+   },
+   "depends_on": [],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "WLD-harness-context-4",
+     "severity": "high",
+     "note": "WLD-harness-context-4"
+    },
+    {
+     "raw_id": "COD-host-actions-proposed-changes-3",
+     "severity": "high",
+     "note": "COD-host-actions-proposed-changes-3"
+    }
+   ],
+   "closes_findings": [
+    {
+     "raw_id": "WLD-T-5",
+     "severity": "medium",
+     "note": "WLD-T-5"
+    }
+   ],
+   "judge_notes": [
+    "Its evidence thinned twice after the ledger was written: the broker servers were struck by the 23 Sep removal, and the WLD-T-5 refute downgraded the gap to medium ('universal tool layer' means MCP as a server; nothing promises consuming user-added servers). The surviving motivating examples are screener.in scrapers, which OPP-13 in the same ledger says not to add."
+   ],
+   "biggest_risk": "A new prompt-injection path into a loop that can still auto-apply portfolio deletes.",
+   "why_this_rank": "Extensibility is in the DNA and the client half is built, but the remaining evidence is ToS-grey scrapers and it opens a new injection path, so it waits behind the fence."
+  },
+  {
+   "rank": 50,
+   "id": "BL-50",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Factor X-ray",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "quant-7"
+    ],
+    "absorbed": []
+   },
+   "audience": "all with a portfolio; quant first",
+   "jarvis_axis": [
+    "initiative",
+    "watching"
+   ],
+   "one_liner": "Cross-sectional percentile ranks (value, quality, momentum, size, low volatility, delivery %) over the whole local India store give each holding and the book a factor-exposure strip with stated coverage and data_as_of, a factor_exposure capability, and a daily watch when an exposure crosses an extreme.",
+   "size": {
+    "band": "S-M",
+    "days": 5,
+    "band_range": "4-5 days",
+    "note": "Rank computation with frozen versioned definitions, capability, strip, threshold watch."
+   },
+   "lifecycle_cost": "Rank definitions frozen and versioned; thin BSE-only coverage renders 'unranked', never the 50th percentile.",
+   "design_system": {
+    "status": "on",
+    "note": "An exposure strip on the portfolio panel."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "reads",
+    "note": "Reads the manual tracked portfolio."
+   },
+   "depends_on": [
+    "BL-08"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "DAT-P3-1",
+     "severity": "critical",
+     "note": "DAT-P3-1"
+    },
+    {
+     "raw_id": "DAT-P4-1",
+     "severity": "critical",
+     "note": "DAT-P4-1"
+    },
+    {
+     "raw_id": "DAT-P5-1",
+     "severity": "critical",
+     "note": "DAT-P5-1"
+    },
+    {
+     "raw_id": "DAT-P6-1",
+     "severity": "critical",
+     "note": "DAT-P6-1"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [
+    "The seat's broker_portfolio read (catalog.py:911) is on the trading-removal surface and is struck; the manual portfolio is sufficient."
+   ],
+   "biggest_risk": "Ranks launder vendor errors into confident percentiles.",
+   "why_this_rank": "'Your portfolio is one trade' is a real insight, but percentiles over vendor fundamentals inherit the statement-lane defects and the momentum and volatility legs need months of recorded EOD."
+  },
+  {
+   "rank": 51,
+   "id": "BL-51",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Incubator: frozen rules with an out-of-sample record",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "quant-4"
+    ],
+    "absorbed": []
+   },
+   "audience": "quant",
+   "jarvis_axis": [
+    "watching",
+    "memory",
+    "receipts"
+   ],
+   "one_liner": "Freeze a saved screen or DSL rule; the terminal evaluates it every session on the recorded tape (replaying missed days on wake, stamped replayed_on_wake) into an append-only, hash-chained signal log in a new database and reports in-sample vs out-of-sample decay. It scores; it never proposes or places anything.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Frozen-rule store, append-only signal log (trigger idiom copied into a new DB; the §6.5 audit-log files are not touched), wake replay, Incubator tab."
+   },
+   "lifecycle_cost": "Rule definitions versioned against the evaluator: a semantics change must refuse to continue an old rule; one evaluation per rule per day; small disk.",
+   "design_system": {
+    "status": "on",
+    "note": "An Incubator tab in the backtest panel."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-08"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "A forward record read as advice: n and dispersion beside every number.",
+   "why_this_rank": "Its value is measured in wall-clock months and it serves the systematic seat; the recorder it needs ranks high precisely so this can exist later."
+  },
+  {
+   "rank": 52,
+   "id": "BL-52",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "As-of screens",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "quant-1 (surface half)"
+    ],
+    "absorbed": []
+   },
+   "audience": "quant and screener users",
+   "jarvis_axis": [
+    "memory",
+    "receipts"
+   ],
+   "one_liner": "An as_of parameter on screener_run and an 'as of' chip on the screener panel answer 'run my screen as it looked on 1 July' from what this machine observed, with a survivorship-free universe (every symbol with a row that day) and rename stitching through nse_symbol_change.lookup_current(symbol, as_of).",
+   "size": {
+    "band": "S",
+    "days": 3,
+    "band_range": "2-4 days",
+    "note": "Parameter + chip + labelling; worthless until BL-08 has months of data."
+   },
+   "lifecycle_cost": "Labelled 'observed since <date>' or it becomes the lie it exists to prevent; compaction policy from BL-08.",
+   "design_system": {
+    "status": "on",
+    "note": "A chip."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-08"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Users assume vendor history is point-in-time; label every result.",
+   "why_this_rank": "The surface is cheap but has nothing to show until the recorder has months of history, so it ranks far below the recorder."
+  },
+  {
+   "rank": 53,
+   "id": "BL-53",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Between the prints",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "sellside-5"
+    ],
+    "absorbed": []
+   },
+   "audience": "sell-side",
+   "jarvis_axis": [
+    "watching",
+    "initiative",
+    "receipts"
+   ],
+   "one_liner": "A quarter-to-date nowcast from monthly dispatch releases, business updates and order-win filings: a user-accepted extraction spec per filer runs deterministically each month, compared with the model's quarter estimate as a required-run-rate bar, with order inflow summed onto the last stated order book for book-to-bill.",
+   "size": {
+    "band": "M",
+    "days": 7,
+    "band_range": "5-8 days",
+    "note": "Tallies table, schema-once extraction with a re-confirm state, rupee amount parser with unit witness, QTD card."
+   },
+   "lifecycle_cost": "Per-filer specs break when a PR team redesigns the release (the re-confirm state), about an hour a month of curation across 30 names; many small caps file nothing between prints.",
+   "design_system": {
+    "status": "on",
+    "note": "A QTD card."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-02",
+    "BL-26",
+    "BL-47"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "A false read-across when a supplier's mix shifts: user-owned edge weights, and it never writes the model.",
+   "why_this_rank": "Unique (no other seat nowcasts), but it stands on the Model Store and the peer set and carries standing curation cost."
+  },
+  {
+   "rank": 54,
+   "id": "BL-54",
+   "tier": 4,
+   "tier_label": "Later: narrower audience, heavier, or composed of items above",
+   "name": "Annual-report redline",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "forensic-8"
+    ],
+    "absorbed": []
+   },
+   "audience": "forensic readers",
+   "jarvis_axis": [
+    "receipts",
+    "memory"
+   ],
+   "one_liner": "A git diff for the notes to accounts: locate the auditor's report, the related-party note and contingent liabilities in this year's and last year's annual report, produce deterministic difflib hunks first, let the LLM only label materiality while quoting both sides verbatim, and show both pages side by side; any empty page in a section marks it unreadable.",
+   "size": {
+    "band": "M",
+    "days": 8,
+    "band_range": "5-8 days",
+    "note": "Held to three sections on BL-31 and BL-22: locator, hunk generator, materiality prompt, diff block, run recipe."
+   },
+   "lifecycle_cost": "Heading conventions vary; table-heavy notes diff badly as text (layout retry); a 'section not found, open at the notes index' fallback.",
+   "design_system": {
+    "status": "on",
+    "note": "A typed diff block in BriefBody."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-31",
+    "BL-22"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Scanned ARs and fused table cells produce garbage hunks that look like findings.",
+   "why_this_rank": "The coding-agent idiom transplanted whole onto the document aggregators cannot normalise, but it is the heaviest reader item and the most exposed to scanned-PDF garbage."
+  },
+  {
+   "rank": 55,
+   "id": "BL-55",
+   "tier": 5,
+   "tier_label": "Parked: blocked, gutted by the scope change, or not worth the risk now",
+   "name": "Accounts linter with reasoned suppressions",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "forensic-5"
+    ],
+    "absorbed": []
+   },
+   "audience": "forensic",
+   "jarvis_axis": [
+    "memory",
+    "receipts"
+   ],
+   "one_liner": "Classic forensic checks as rule ids with their inputs shown (CFO/PAT, receivable and inventory days, other-income share, cash vs book tax, CWIP ageing, profit without sales) instead of a score; the user suppresses a finding with a written reason and an accepted level, and the rule re-fires quoting that reason when the gap widens (OPP-8 delivered as inspectable rules).",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Once unblocked: rule format + ~10 rules, statement-field resolver, lint block, suppression UI, lint_accounts capability."
+   },
+   "lifecycle_cost": "Rules are versioned data; the cost is statement coverage for micro-caps.",
+   "design_system": {
+    "status": "on",
+    "note": "A lint block."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": "lint_accounts read_handler."
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-09 (shared rule engine)"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "WLD-T-4",
+     "severity": "high",
+     "note": "WLD-T-4"
+    },
+    {
+     "raw_id": "DAT-P3-1",
+     "severity": "critical",
+     "note": "DAT-P3-1"
+    },
+    {
+     "raw_id": "DAT-P4-1",
+     "severity": "critical",
+     "note": "DAT-P4-1"
+    },
+    {
+     "raw_id": "DAT-P5-1",
+     "severity": "critical",
+     "note": "DAT-P5-1"
+    },
+    {
+     "raw_id": "DAT-P6-1",
+     "severity": "critical",
+     "note": "DAT-P6-1"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "'no-data' everywhere on exactly the names it is for; a rule with missing inputs must report no-data, never pass.",
+   "why_this_rank": "PARKED: a strong design, but its inputs for the target names are either not agent-reachable (WLD-T-4) or a different company's numbers (DAT-P3-1 family, admitted critical); do not build ahead of the statement lane."
+  },
+  {
+   "rank": 56,
+   "id": "BL-56",
+   "tier": 5,
+   "tier_label": "Parked: blocked, gutted by the scope change, or not worth the risk now",
+   "name": "Personas on probation",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "hn-sceptic-9"
+    ],
+    "absorbed": []
+   },
+   "audience": "persona users",
+   "jarvis_axis": [
+    "memory"
+   ],
+   "one_liner": "Every persona and custom agent ends with one falsifiable, dated statement about reported fundamentals (never price or buy / sell); it resolves deterministically on wake, and the persona header carries a Brier and calibration record, refusing to show a score under n = 10.",
+   "size": {
+    "band": "M",
+    "days": 6,
+    "band_range": "5-8 days",
+    "note": "Validated forecast tail, forecasts store + resolver with VOID expiry, calibration view, header line."
+   },
+   "lifecycle_cost": "Small-cap resolution coverage is thin; unresolved forecasts expire as VOID; months of small n.",
+   "design_system": {
+    "status": "on",
+    "note": "A persona header line."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-04",
+    "BL-15"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "The optics of 'predictions' in a finance app.",
+   "why_this_rank": "PARKED: a clever answer to 'twelve billionaire cosplay prompts', but it gives the user nothing usable for months and carries optics risk; Page One's falsifier (BL-41) captures the same discipline for the research agent itself."
+  },
+  {
+   "rank": 57,
+   "id": "BL-57",
+   "tier": 5,
+   "tier_label": "Parked: blocked, gutted by the scope change, or not worth the risk now",
+   "name": "Rule forge: event studies from any predictive sentence",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "quant-5"
+    ],
+    "absorbed": []
+   },
+   "audience": "quant",
+   "jarvis_axis": [
+    "initiative",
+    "receipts"
+   ],
+   "one_liner": "A predictive sentence in a brief gets a flask button: the LLM drafts a typed EventSpec once, the user approves it, and a deterministic event study over exchange disclosures returns CAR, n, t-stat, hit rate, top-3 contribution and the filing behind every event, usually concluding 'not distinguishable from noise'.",
+   "size": {
+    "band": "L",
+    "days": 14,
+    "band_range": "12+ days",
+    "note": "Event-study engine, EventSpec + approval, category map + fixtures, accruing cross-sectional announcement archive, capability."
+   },
+   "lifecycle_cost": "Announcement categories drift (a category map with an unclassified bucket and fixtures); a cross-sectional announcement archive has to accrue.",
+   "design_system": {
+    "status": "on",
+    "note": "A CAR chart block."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "none",
+    "note": ""
+   },
+   "depends_on": [
+    "BL-08",
+    "BL-02",
+    "BL-34"
+   ],
+   "prerequisite_fixes": [],
+   "closes_findings": [],
+   "judge_notes": [],
+   "biggest_risk": "Cross-sectional history per category is unprobed and the current fetcher is per-symbol; with thin history it is an anecdote detector for months.",
+   "why_this_rank": "PARKED: intellectually the most honest research feature in the quant set, but L-sized on an unprobed data dependency; revisit once the recorder and the feed have accrued history."
+  },
+  {
+   "rank": 58,
+   "id": "BL-58",
+   "tier": 5,
+   "tier_label": "Parked: blocked, gutted by the scope change, or not worth the risk now",
+   "name": "'I noticed you bought'",
+   "kind": "idea",
+   "sources": {
+    "primary": [
+     "retail-4"
+    ],
+    "absorbed": []
+   },
+   "audience": "retail",
+   "jarvis_axis": [
+    "memory",
+    "initiative"
+   ],
+   "one_liner": "When a holding appears in the tracked portfolio, ask one line of 'why', freeze the world at that moment (price, basis-noted P/E, promoter %, exit-door reading, radar flags), and come back months later with a review of reasons given against returns.",
+   "size": {
+    "band": "S-M",
+    "days": 4,
+    "band_range": "4-5 days",
+    "note": "Manual-portfolio variant only: ask-card, frozen snapshot, periodic review brief."
+   },
+   "lifecycle_cost": "A tiny bounded store; corporate actions must never read as a buy (BL-14).",
+   "design_system": {
+    "status": "on",
+    "note": "An ask-card and a review brief."
+   },
+   "plugin_contract": {
+    "status": "untouched",
+    "note": ""
+   },
+   "portfolio_write": {
+    "status": "reads",
+    "note": "Reads holdings; writes the 'why' into the symbol note via write_note (a data-write), which needs COD-host-actions-proposed-changes-2."
+   },
+   "depends_on": [
+    "BL-03",
+    "BL-14"
+   ],
+   "prerequisite_fixes": [
+    {
+     "raw_id": "COD-host-actions-proposed-changes-2",
+     "severity": "high",
+     "note": "COD-host-actions-proposed-changes-2"
+    }
+   ],
+   "closes_findings": [],
+   "judge_notes": [
+    "The seat's core mechanism, diffing successive read-only broker holdings snapshots (GET /brokers/{id}/holdings), is on the 23 Sep trading-removal surface. What survives is the manual portfolio, where the user enters the holding in-app, so the 'noticed' moment collapses to 'ask when you add it'."
+   ],
+   "biggest_risk": "Nagging: one card per new name, dismissible forever.",
+   "why_this_rank": "PARKED: the trading removal took its watching half, and the surviving decision journal is a nice-to-have."
+  }
+ ],
+ "source_index": [
+  {
+   "source": "bloomberg-1",
+   "item": "BL-04",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "bloomberg-2",
+   "item": "BL-24",
+   "role": "absorbed",
+   "note": "Same idea as retail-3; its series-flip event rides BL-04."
+  },
+  {
+   "source": "bloomberg-3",
+   "item": "BL-30",
+   "role": "absorbed",
+   "note": "Revision witness = the drift ledger; its 'as you saw it' chip lands there."
+  },
+  {
+   "source": "bloomberg-4",
+   "item": "BL-42",
+   "role": "primary",
+   "note": "Split: the guidance-vs-delivery half is absorbed by BL-16; the pre-commit and calibration record is BL-42."
+  },
+  {
+   "source": "bloomberg-5",
+   "item": "BL-27",
+   "role": "absorbed",
+   "note": "Mandate and Rulebook are the same mechanism."
+  },
+  {
+   "source": "bloomberg-6",
+   "item": "BL-10",
+   "role": "absorbed",
+   "note": "Red Pen (three seats)."
+  },
+  {
+   "source": "bloomberg-7",
+   "item": "BL-32",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "bloomberg-8",
+   "item": "BL-40",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "bloomberg-9",
+   "item": "BL-09",
+   "role": "absorbed",
+   "note": "Kill criteria = tripwires (five seats)."
+  },
+  {
+   "source": "retail-1",
+   "item": "BL-17",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "retail-2",
+   "item": "BL-33",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "retail-3",
+   "item": "BL-24",
+   "role": "primary",
+   "note": "Kite-holdings dependency struck (trading removal)."
+  },
+  {
+   "source": "retail-4",
+   "item": "BL-58",
+   "role": "primary",
+   "note": "Broker-diff core struck (trading removal); manual variant parked."
+  },
+  {
+   "source": "retail-5",
+   "item": "BL-37",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "retail-6",
+   "item": "BL-13",
+   "role": "absorbed",
+   "note": "Holder counts + conjunction rule ride the SHP XBRL parser extension."
+  },
+  {
+   "source": "retail-7",
+   "item": "BL-31",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "retail-8",
+   "item": "BL-04",
+   "role": "absorbed",
+   "note": "The card-before-composer surface of the Watch."
+  },
+  {
+   "source": "forensic-1",
+   "item": "BL-23",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "forensic-2",
+   "item": "BL-25",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "forensic-3",
+   "item": "BL-13",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "forensic-4",
+   "item": "BL-46",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "forensic-5",
+   "item": "BL-55",
+   "role": "primary",
+   "note": "Parked: blocked on the statement lane."
+  },
+  {
+   "source": "forensic-6",
+   "item": "BL-09",
+   "role": "primary",
+   "note": "Its read_note prerequisite lands in BL-03."
+  },
+  {
+   "source": "forensic-7",
+   "item": "BL-22",
+   "role": "primary",
+   "note": "Split: page-provenance gap -> BL-06; section-seek reader -> BL-31; locker -> BL-22."
+  },
+  {
+   "source": "forensic-8",
+   "item": "BL-54",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "forensic-9",
+   "item": "BL-28",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "quant-1",
+   "item": "BL-08",
+   "role": "primary",
+   "note": "Split: the recorder is BL-08 (tier 1); the as-of screen surface is BL-52."
+  },
+  {
+   "source": "quant-2",
+   "item": "BL-30",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "quant-3",
+   "item": "BL-34",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "quant-4",
+   "item": "BL-51",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "quant-5",
+   "item": "BL-57",
+   "role": "primary",
+   "note": "Parked."
+  },
+  {
+   "source": "quant-6",
+   "item": "BL-14",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "quant-7",
+   "item": "BL-50",
+   "role": "primary",
+   "note": "broker_portfolio dependency struck (trading removal)."
+  },
+  {
+   "source": "quant-8",
+   "item": "BL-44",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "quant-9",
+   "item": "BL-09",
+   "role": "absorbed",
+   "note": "Thesis CI = tripwires."
+  },
+  {
+   "source": "hn-sceptic-1",
+   "item": "BL-05",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "hn-sceptic-2",
+   "item": "BL-22",
+   "role": "absorbed",
+   "note": "Split: page identity through extraction -> BL-06; persistence + revised-filing detection -> BL-22."
+  },
+  {
+   "source": "hn-sceptic-3",
+   "item": "BL-10",
+   "role": "absorbed",
+   "note": "Claim Checker = Red Pen."
+  },
+  {
+   "source": "hn-sceptic-4",
+   "item": "BL-20",
+   "role": "absorbed",
+   "note": "Split: trust bench -> BL-20; in-app conflict ledger -> BL-29."
+  },
+  {
+   "source": "hn-sceptic-5",
+   "item": "BL-09",
+   "role": "absorbed",
+   "note": "Tripwires."
+  },
+  {
+   "source": "hn-sceptic-6",
+   "item": "BL-04",
+   "role": "absorbed",
+   "note": "Its coverage proof and blind-spots line are a required part of the Watch."
+  },
+  {
+   "source": "hn-sceptic-7",
+   "item": "BL-16",
+   "role": "absorbed",
+   "note": "Promise ledger + FADED = the guidance ledger."
+  },
+  {
+   "source": "hn-sceptic-8",
+   "item": "BL-36",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "hn-sceptic-9",
+   "item": "BL-56",
+   "role": "primary",
+   "note": "Parked."
+  },
+  {
+   "source": "journalist-1",
+   "item": "BL-10",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "journalist-2",
+   "item": "BL-07",
+   "role": "primary",
+   "note": "Co-primary with designer-6."
+  },
+  {
+   "source": "journalist-3",
+   "item": "BL-29",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "journalist-4",
+   "item": "BL-18",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "journalist-5",
+   "item": "BL-27",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "journalist-6",
+   "item": "BL-04",
+   "role": "absorbed",
+   "note": "The Handover = the Watch; its cost-basis proposal waits for BL-14 and the gate fixes."
+  },
+  {
+   "source": "journalist-7",
+   "item": "BL-06",
+   "role": "primary",
+   "note": "Split: page anchors -> BL-06; receipt-bundle manifest -> BL-36."
+  },
+  {
+   "source": "journalist-8",
+   "item": "BL-20",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "sellside-1",
+   "item": "BL-15",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "sellside-2",
+   "item": "BL-26",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "sellside-3",
+   "item": "BL-16",
+   "role": "absorbed",
+   "note": "Split: horizon drift + haircut number -> BL-16; apply-haircut-to-model -> BL-26."
+  },
+  {
+   "source": "sellside-4",
+   "item": "BL-35",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "sellside-5",
+   "item": "BL-53",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "sellside-6",
+   "item": "BL-47",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "sellside-7",
+   "item": "BL-48",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "sellside-8",
+   "item": "BL-41",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "sellside-9",
+   "item": "BL-45",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "designer-1",
+   "item": "BL-01",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "designer-2",
+   "item": "BL-11",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "designer-3",
+   "item": "BL-38",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "designer-4",
+   "item": "BL-21",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "designer-5",
+   "item": "BL-43",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "designer-6",
+   "item": "BL-07",
+   "role": "primary",
+   "note": "Co-primary with journalist-2."
+  },
+  {
+   "source": "designer-7",
+   "item": "BL-19",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "designer-8",
+   "item": "BL-39",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "designer-9",
+   "item": "BL-12",
+   "role": "primary",
+   "note": ""
+  },
+  {
+   "source": "OPP-1",
+   "item": "BL-04",
+   "role": "absorbed",
+   "note": "Split: trigger layer -> BL-04; thesis watcher -> BL-09. 'Sink wired end to end' corrected (bridge has no production feeder)."
+  },
+  {
+   "source": "OPP-2",
+   "item": "BL-05",
+   "role": "primary",
+   "note": "Co-primary with hn-sceptic-1; proximity claim corrected (no unit parser exists)."
+  },
+  {
+   "source": "OPP-3",
+   "item": "BL-21",
+   "role": "absorbed",
+   "note": "Split: (a) already shipped (ConflictLine, brief-blocks.tsx:129-176); (b) per-figure attribution -> BL-21; (c) public benchmark page -> BL-20."
+  },
+  {
+   "source": "OPP-4",
+   "item": "BL-16",
+   "role": "primary",
+   "note": "Transcript blocker corrected (transcripts already in the BSE feed)."
+  },
+  {
+   "source": "OPP-6",
+   "item": "BL-49",
+   "role": "primary",
+   "note": "Evidence thinned by the trading removal and the WLD-T-5 refute."
+  },
+  {
+   "source": "OPP-7",
+   "item": "BL-03",
+   "role": "primary",
+   "note": ""
+  }
+ ],
+ "excluded": [
+  {
+   "source": "OPP-5",
+   "status": "struck 2026-09-23 by the opp-ledger verify pass",
+   "note": "One-click keyless broker connect: its whole subject is connecting a broker, which the operator's 23 Sep decision removed from the product. Not ranked."
+  }
+ ],
+ "judge_corrections_to_inputs": [
+  {
+   "subject": "OPP-1",
+   "item": "BL-04",
+   "text": "'OS-notification sink already wired end to end' does not hold: src/lib/desktop-notification.ts reads useWorkflowStore, which no production code writes (COD-frontend-stores-2, COD-workflow-engine-5, both admitted; grep 2026-09-23). The OS send works; the feed is dead. The verify pass matched line text and marked OPP-1 held."
+  },
+  {
+   "subject": "OPP-2",
+   "item": "BL-05",
+   "text": "The cited 'scale tokens already recognised in extraction (extract.py:75,86-87)' are _PDF_FINANCE_KEYWORDS, a page-selection list, not a unit parser. No deterministic document-figure extraction exists, so the witness needs a unit-header parser and a figure-to-page binding (BL-06). Folded into BL-05."
+  },
+  {
+   "subject": "OPP-4",
+   "item": "BL-16",
+   "text": "'Blocked on having the transcript at all (WLD-T-6)' is superseded: the sellside live probe found transcripts in the BSE feed the app already calls (SUBCATNAME 'Earnings Call Transcript'), and the WLD-T-6 refute downgraded it to medium. The blockers are the dropped subcategory and AttachLive rot (BL-02). Size M-L, not L."
+  },
+  {
+   "subject": "OPP-6",
+   "item": "BL-49",
+   "text": "After the broker examples were struck, the WLD-T-5 refute also downgraded the gap to medium (a generic McpClient exists, mcp_client.py:218; 'universal tool layer' means MCP as a server). The surviving examples are screener.in scrapers, which OPP-13 says not to add. Ranked 49."
+  },
+  {
+   "subject": "forensic Tape, hn-sceptic-6, journalist-6",
+   "item": "BL-04",
+   "text": "'The portfolio is sidecar-side already (portfolio_db)' is wrong: holdings of record live in the workspace blob (src/store/portfolios.ts:14-15), and the sidecar /portfolio/positions ledger is write-only, fed only by agent writes (COD-host-actions-proposed-changes-9, admitted). Watch scope must be pushed from the renderer."
+  },
+  {
+   "subject": "retail-3, retail-4, quant-7",
+   "item": "BL-24, BL-58, BL-50",
+   "text": "Broker reads they cite (Kite holdings via routers/brokers.py, GET /brokers/{id}/holdings, broker_portfolio at catalog.py:911) are on the 23 Sep trading-removal surface and are struck. retail-3 and quant-7 survive on the manual portfolio; retail-4 loses its core and is parked."
+  },
+  {
+   "subject": "forensic-9",
+   "item": "BL-28",
+   "text": "The 'AGPL + plugin contract' moat argument is stale: the core was relicensed to PolyForm Strict 1.0.0 on 23 Sep (commit 0c63d46) and contributions are closed; types/plugin.ts is Apache-2.0, so third-party packs still ship as plugins."
+  },
+  {
+   "subject": "designer-6",
+   "item": "BL-07",
+   "text": "Its demo trips the breaker via POST /system/provider-health/trip, a rig mutation route the census says should not ship (COD-market-data-providers-2-11). The strip reads the GET only."
+  }
+ ],
+ "unfiled_defects_for_the_register": [
+  {
+   "subject": "BSE AttachLive 404s for filings older than a few weeks; AttachHis serves them",
+   "item": "BL-02",
+   "evidence": "sidecar/services/corporate_disclosures.py:84 always builds AttachLive; sellside live probe (10 and 17 Aug 2026 filings: 404 on AttachLive, 200 PDF on AttachHis). The register only mentions it in passing (DAT-P13-24 cites the P13 battery trap bse_attachment_path_attachhis_not_attachlive); INT-deferred-84-1 is about intermittent serving, not migration.",
+   "suggested_severity": "high (the research PDF lane reads dead links for every BSE filing older than a few weeks)"
+  }
+ ],
+ "prerequisite_fixes_rollup": [
+  {
+   "raw_id": "COD-backtest-1",
+   "severity": "critical",
+   "blocks": [
+    "BL-34"
+   ]
+  },
+  {
+   "raw_id": "COD-host-actions-proposed-changes-1",
+   "severity": "high",
+   "blocks": [
+    "BL-17",
+    "BL-19"
+   ]
+  },
+  {
+   "raw_id": "COD-host-actions-proposed-changes-2",
+   "severity": "high",
+   "blocks": [
+    "BL-48",
+    "BL-58"
+   ]
+  },
+  {
+   "raw_id": "COD-host-actions-proposed-changes-3",
+   "severity": "high",
+   "blocks": [
+    "BL-17",
+    "BL-27",
+    "BL-39",
+    "BL-49"
+   ]
+  },
+  {
+   "raw_id": "COD-research-extraction-synthesis-2",
+   "severity": "high",
+   "blocks": [
+    "BL-12",
+    "BL-31"
+   ]
+  },
+  {
+   "raw_id": "COD-rust-core-1",
+   "severity": "high",
+   "blocks": [
+    "BL-38"
+   ]
+  },
+  {
+   "raw_id": "COD-workspace-layout-3",
+   "severity": "high",
+   "blocks": [
+    "BL-38"
+   ]
+  },
+  {
+   "raw_id": "DAT-P3-1",
+   "severity": "critical",
+   "blocks": [
+    "BL-35",
+    "BL-44",
+    "BL-50",
+    "BL-55"
+   ]
+  },
+  {
+   "raw_id": "DAT-P4-1",
+   "severity": "critical",
+   "blocks": [
+    "BL-35",
+    "BL-44",
+    "BL-50",
+    "BL-55"
+   ]
+  },
+  {
+   "raw_id": "DAT-P5-1",
+   "severity": "critical",
+   "blocks": [
+    "BL-35",
+    "BL-44",
+    "BL-50",
+    "BL-55"
+   ]
+  },
+  {
+   "raw_id": "DAT-P6-1",
+   "severity": "critical",
+   "blocks": [
+    "BL-35",
+    "BL-44",
+    "BL-50",
+    "BL-55"
+   ]
+  },
+  {
+   "raw_id": "WLD-T-4",
+   "severity": "high",
+   "blocks": [
+    "BL-55"
+   ]
+  },
+  {
+   "raw_id": "WLD-harness-context-4",
+   "severity": "high",
+   "blocks": [
+    "BL-10",
+    "BL-49"
+   ]
+  },
+  {
+   "raw_id": "WLD-harness-tools-3",
+   "severity": "high",
+   "blocks": [
+    "BL-17"
+   ]
+  }
+ ],
+ "closes_rollup": [
+  {
+   "raw_id": "COD-disclosures-witnesses-10",
+   "severity": "medium",
+   "closed_by": [
+    "BL-02"
+   ]
+  },
+  {
+   "raw_id": "COD-frontend-stores-2",
+   "severity": "high",
+   "closed_by": [
+    "BL-04"
+   ]
+  },
+  {
+   "raw_id": "COD-workflow-engine-5",
+   "severity": "medium",
+   "closed_by": [
+    "BL-04"
+   ]
+  },
+  {
+   "raw_id": "DAT-P12-1",
+   "severity": "critical",
+   "closed_by": [
+    "BL-01"
+   ]
+  },
+  {
+   "raw_id": "DAT-P14-2",
+   "severity": "critical",
+   "closed_by": [
+    "BL-01"
+   ]
+  },
+  {
+   "raw_id": "DAT-P14-4",
+   "severity": "high",
+   "closed_by": [
+    "BL-14"
+   ]
+  },
+  {
+   "raw_id": "DAT-P16-1",
+   "severity": "medium",
+   "closed_by": [
+    "BL-01"
+   ]
+  },
+  {
+   "raw_id": "DAT-P7-1",
+   "severity": "high",
+   "closed_by": [
+    "BL-02"
+   ]
+  },
+  {
+   "raw_id": "DAT-P8-4",
+   "severity": "medium",
+   "closed_by": [
+    "BL-01"
+   ]
+  },
+  {
+   "raw_id": "DAT-P9-5",
+   "severity": "medium",
+   "closed_by": [
+    "BL-02"
+   ]
+  },
+  {
+   "raw_id": "DAT-S3-1",
+   "severity": "high",
+   "closed_by": [
+    "BL-01"
+   ]
+  },
+  {
+   "raw_id": "DAT-S4-2",
+   "severity": "medium",
+   "closed_by": [
+    "BL-01"
+   ]
+  },
+  {
+   "raw_id": "WLD-T-1",
+   "severity": "high",
+   "closed_by": [
+    "BL-04"
+   ]
+  },
+  {
+   "raw_id": "WLD-T-10",
+   "severity": "medium",
+   "closed_by": [
+    "BL-13"
+   ]
+  },
+  {
+   "raw_id": "WLD-T-5",
+   "severity": "medium",
+   "closed_by": [
+    "BL-49"
+   ]
+  },
+  {
+   "raw_id": "WLD-T-6",
+   "severity": "medium",
+   "closed_by": [
+    "BL-16"
+   ]
+  },
+  {
+   "raw_id": "WLD-T-8",
+   "severity": "high",
+   "closed_by": [
+    "BL-13"
+   ]
+  },
+  {
+   "raw_id": "WLD-agent-native-ux-1",
+   "severity": "high",
+   "closed_by": [
+    "BL-03"
+   ]
+  },
+  {
+   "raw_id": "WLD-agent-native-ux-2",
+   "severity": "medium",
+   "closed_by": [
+    "BL-19"
+   ]
+  },
+  {
+   "raw_id": "WLD-harness-context-3",
+   "severity": "high",
+   "closed_by": [
+    "BL-03"
+   ]
+  }
+ ]
+}

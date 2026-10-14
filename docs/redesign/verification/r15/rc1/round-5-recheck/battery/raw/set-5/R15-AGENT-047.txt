@@ -1,0 +1,8 @@
+=== R15-AGENT-047 repro: Groq/Ollama adapter arg-integrity, no silent {} coercion ===
+candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, in-process, sidecar venv
+groq truncated -> {'__vysted_invalid_args__': 'arguments were not valid JSON: {"symbol": "RELI'}
+ollama truncated (str) -> {'__vysted_invalid_args__': 'arguments were not valid JSON: {"symbol": "RELI'}
+ollama empty string -> {}
+groq empty string -> {}
+PASS: no silent coercion of malformed JSON to {}; empty stays {}
+exit: 0

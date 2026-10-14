@@ -1,0 +1,23 @@
+COMMAND(s):
+  see DATA-060-SIFY-shareholding.json
+  see DATA-060-SIFY-announcements.json
+  see DATA-050-SIFY.json
+  see DATA-060-AAPL-shareholding.json
+EXIT: 0 (curl completed)
+OUTPUT:
+--- DATA-060-SIFY-shareholding.json ---
+{"symbol":"SIFY","count":0,"patterns":[],"coverage":"covered","note":"SIFY is not an NSE/BSE instrument; its major (5%+) holders are read from its 20-F filed 2026-06-26 (Item 7.A), not an Indian shareholding pattern","provider":"sec-20f","major_shareholders":[{"holder":"Infinity Capital Ventures, LP","percent":7.56,"as_of":"2026-03-31"},{"holder":"Vegesna Family Trust, LP","percent":0.34,"as_of":"2026-03-31"},{"holder":"Raju Vegesna Infotech & Industries Private Limited, Visakhapatnam","percent":7.9,"as_of":"2026-03-31"},{"holder":"Ramanand Core Investment Company Private Limited, Visakhapatnam","percent":67.98,"as_of":"2026-03-31"}],"source_url":"https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm"}
+HTTP_CODE:200
+
+--- DATA-060-SIFY-announcements.json ---
+{"symbol":"SIFY","exchange":null,"count":0,"announcements":[],"sources":[],"errors":{},"windows":{},"coverage":"not_applicable","note":"SIFY is not an NSE/BSE instrument; Indian exchange disclosures do not apply"}
+HTTP_CODE:200
+
+--- DATA-050-SIFY.json ---
+{"symbol":"SIFY","count":0,"events":[],"sources":[],"errors":{},"coverage":"not_applicable","note":"SIFY is not an NSE/BSE instrument; Indian exchange disclosures do not apply"}
+HTTP_CODE:200
+
+--- DATA-060-AAPL-shareholding.json ---
+{"symbol":"AAPL","count":0,"patterns":[],"coverage":"not_applicable","note":"AAPL is not an NSE/BSE instrument; Indian exchange disclosures do not apply","provider":null,"major_shareholders":[],"source_url":null}
+HTTP_CODE:200
+

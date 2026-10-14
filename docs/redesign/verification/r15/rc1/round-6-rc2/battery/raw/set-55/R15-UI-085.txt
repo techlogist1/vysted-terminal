@@ -1,0 +1,7 @@
+# rc1-battery-22 raw R15-UI-085 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -rn 'text-charcoal-600' src --include=*.tsx | grep -v '\.test\.' | cut -c1-200; echo ---; grep -rn 'text-charcoal-700' src --include=*.tsx | grep -v '\.test\.' | cut -c1-160 | head
+src/components/SettingsPanel.tsx:531:                        className="text-charcoal-400 hover:text-charcoal-100 disabled:text-charcoal-600 rounded-control p-1"
+src/components/SettingsPanel.tsx:540:                        className="text-charcoal-400 hover:text-charcoal-100 disabled:text-charcoal-600 rounded-control p-1"
+src/modules/chat/ChatSidebar.tsx:2195:              : "disabled:text-charcoal-600",
+---
+EXIT=0

@@ -1,0 +1,7 @@
+# probe at ace7dd76 (candidate worktree), run 05:55:38
+$ grep -rn 'R15-CODE-FRONTEND-017' src --include=*.test.ts | head -6
+src/store/earnings.test.ts:149:  it("drops a 7-day window that lands after the 30-day one (R15-CODE-FRONTEND-017)", async () => {
+src/store/sec.test.ts:101:  it("a slower response for the previous symbol never overwrites the newer one (R15-CODE-FRONTEND-017)", async () => {
+src/store/sec.test.ts:148:    // R15-CODE-FRONTEND-017: `loadFilingDetail` no longer writes
+src/store/sec.test.ts:168:  // R15-CODE-FRONTEND-017 / R15-UI-015 (triage-c rc1-vshard-3:4): loadFilings
+src/store/sec.test.ts:248:  it("I1: a late rejection for a previous issuer does not paint its error over the current one (R15-CODE-FRONTEND-017)", async () => {

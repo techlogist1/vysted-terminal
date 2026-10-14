@@ -1,0 +1,635 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+import type { DockviewApi } from "dockview";
+import { afterAll, describe, expect, it, vi } from "vitest";
+
+import { dispatchLayoutMenuCommand } from "@/store/command-palette";
+import { useWorkspaceStore } from "@/store/workspace";
+
+import templateCatalog from "../../sidecar/config/layout_templates.json";
+import { DEFAULT_PANELS } from "@/config/default-layout";
+import { collectPanels } from "@/lib/module-registry";
+import { vystedModules } from "@/modules";
+import {
+  ARRANGEABLE,
+  RAIL_PANELS,
+  applyCustomLayout,
+  applyLayoutMode,
+  applyLayoutTemplate,
+  applyResearchSpaceLayout,
+  fitLayoutTemplate,
+  applyContentAwareLayout,
+  planContentAware,
+  planCustom,
+  planLayout,
+  LAYOUT_TEMPLATE_IDS,
+  MENU_PAYLOAD_TO_MODE,
+  resolvePanelToken,
+  type LayoutTemplate,
+} from "./layout-templates";
+
+describe("planCustom (Track B — 'one panel here, one there')", () => {
+  it("places two panels side by side (2nd to the right of the anchor)", () => {
+    const plan = planCustom([{ panel: "chart" }, { panel: "news" }]);
+    expect(plan.panels.map((p) => p.id)).toEqual(["chart", "news"]);
+    expect(plan.panels[0].position).toBeUndefined(); // anchor
+    expect(plan.panels[1].position).toEqual({ referencePanel: "chart", direction: "right" });
+    expect(plan.focus).toBe("chart");
+  });
+
+  it("honours explicit per-panel direction + reference", () => {
+    const plan = planCustom([
+      { panel: "chart" },
+      { panel: "watchlist", direction: "right" },
+      { panel: "news", direction: "below", reference: "watchlist" },
+    ]);
+    expect(plan.panels[2].position).toEqual({ referencePanel: "watchlist", direction: "below" });
+  });
+
+  it("resolves loose aliases and drops unknown / duplicate panels", () => {
+    const plan = planCustom([
+      { panel: "equity" }, // alias → equity-overview
+      { panel: "totally-not-a-panel" }, // dropped
+      { panel: "equity-overview" }, // duplicate of the alias → dropped
+      { panel: "watch" }, // alias → watchlist
+    ]);
+    expect(plan.panels.map((p) => p.id)).toEqual(["equity-overview", "watchlist"]);
+  });
+
+  it("defaults the 3rd+ panels to stacking below the previous", () => {
+    const plan = planCustom([{ panel: "chart" }, { panel: "news" }, { panel: "portfolio" }]);
+    expect(plan.panels[2].position).toEqual({ referencePanel: "news", direction: "below" });
+  });
+});
+
+describe("resolvePanelToken", () => {
+  it("maps canonical ids and aliases, rejects unknowns", () => {
+    expect(resolvePanelToken("chart")).toEqual({ id: "chart", component: "chart-panel" });
+    expect(resolvePanelToken("Equity Overview")?.id).toBe("equity-overview");
+    expect(resolvePanelToken("holdings")?.id).toBe("portfolio");
+    expect(resolvePanelToken("nope")).toBeNull();
+  });
+});
+
+describe("planLayout", () => {
+  it("single-focus: just the chart, maximized", () => {
+    const plan = planLayout("single-focus");
+    expect(plan.panels).toEqual([{ id: "chart", component: "chart-panel" }]);
+    expect(plan.maximize).toBe("chart");
+    expect(plan.focus).toBe("chart");
+  });
+
+  it("research-cockpit (flagship): chart anchor + right column equity/brief/news", () => {
+    const plan = planLayout("research-cockpit");
+    expect(plan.panels).toEqual([
+      { id: "chart", component: "chart-panel" },
+      {
+        id: "equity-overview",
+        component: "equity-overview-panel",
+        position: { referencePanel: "chart", direction: "right" },
+      },
+      {
+        id: "brief",
+        component: "brief-panel",
+        position: { referencePanel: "equity-overview", direction: "below" },
+      },
+      {
+        id: "news",
+        component: "news-panel",
+        position: { referencePanel: "brief", direction: "below" },
+      },
+    ]);
+    // The cited brief docks BESIDE the chart (right column), focused, never a tab.
+    expect(plan.focus).toBe("brief");
+    expect(plan.maximize).toBeUndefined();
+    // The brief docks in the cockpit (B6 brief-docking carry-forward cleared).
+    expect(plan.panels.some((p) => p.id === "brief")).toBe(true);
+  });
+
+  it("compare: single chart-focused layout, maximized (overlay is driven elsewhere)", () => {
+    const plan = planLayout("compare", { symbols: ["NVDA", "AMD"] });
+    // ONLY the chart — the dual-symbol overlay rides the chart-command channel,
+    // not a second panel.
+    expect(plan.panels).toEqual([{ id: "chart", component: "chart-panel" }]);
+    expect(plan.maximize).toBe("chart");
+    expect(plan.focus).toBe("chart");
+    expect(plan.panels).toHaveLength(1);
+  });
+
+  it("macro-scan: macro anchor + chart right + screener below", () => {
+    const plan = planLayout("macro-scan");
+    expect(plan.panels).toEqual([
+      { id: "macro", component: "macro-panel" },
+      {
+        id: "chart",
+        component: "chart-panel",
+        position: { referencePanel: "macro", direction: "right" },
+      },
+      {
+        id: "screener-panel",
+        component: "screener-panel",
+        position: { referencePanel: "macro", direction: "below" },
+      },
+    ]);
+    expect(plan.focus).toBe("macro");
+    expect(plan.maximize).toBeUndefined();
+  });
+
+  it("uses component ids (the -panel suffix), distinct from panel ids", () => {
+    const templates: LayoutTemplate[] = [
+      "single-focus",
+      "research-cockpit",
+      "compare",
+      "macro-scan",
+    ];
+    for (const t of templates) {
+      for (const panel of planLayout(t).panels) {
+        // screener's REGISTERED module id already carries the -panel suffix
+        // (id === component for it); every other panel id is the short name.
+        if (panel.id === "screener-panel") {
+          expect(panel.component).toBe("screener-panel");
+        } else {
+          expect(panel.component).toBe(`${panel.id}-panel`);
+        }
+      }
+    }
+  });
+
+  it("every planned position references a panel earlier in the same plan", () => {
+    const templates: LayoutTemplate[] = [
+      "single-focus",
+      "research-cockpit",
+      "compare",
+      "macro-scan",
+    ];
+    for (const t of templates) {
+      const plan = planLayout(t);
+      const seen = new Set<string>();
+      for (const panel of plan.panels) {
+        if (panel.position?.referencePanel) {
+          expect(seen.has(panel.position.referencePanel)).toBe(true);
+        }
+        seen.add(panel.id);
+      }
+    }
+  });
+});
+
+/**
+ * Light smoke for the imperative applier against a MINIMAL fake dockview api —
+ * we don't reconstruct dockview's full gridview, just assert the applier calls
+ * the right api surface (getPanel/addPanel + focus/maximize) per the plan.
+ */
+function makeFakeApi() {
+  const panels = new Map<
+    string,
+    {
+      id: string;
+      group: { id: string };
+      api: { setActive: ReturnType<typeof vi.fn>; moveTo: ReturnType<typeof vi.fn> };
+    }
+  >();
+  const addPanel = vi.fn((opts: { id: string; component: string }) => {
+    const panel = {
+      id: opts.id,
+      group: { id: `group-${opts.id}` },
+      api: { setActive: vi.fn(), moveTo: vi.fn() },
+    };
+    panels.set(opts.id, panel);
+    return panel;
+  });
+  const api = {
+    get panels() {
+      return Array.from(panels.values());
+    },
+    getPanel: vi.fn((id: string) => panels.get(id)),
+    addPanel,
+    clear: vi.fn(() => panels.clear()),
+    hasMaximizedGroup: vi.fn(() => false),
+    exitMaximizedGroup: vi.fn(),
+    maximizeGroup: vi.fn(),
+  };
+  return api as typeof api & DockviewApi;
+}
+
+describe("applyLayoutTemplate (smoke)", () => {
+  it("adds the planned panels and maximizes for single-focus", () => {
+    const api = makeFakeApi();
+    applyLayoutTemplate(api, "single-focus");
+    expect(api.addPanel).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "chart", component: "chart-panel" }),
+    );
+    expect(api.maximizeGroup).toHaveBeenCalledTimes(1);
+  });
+
+  it("places all four research-cockpit panels with resolved positions", () => {
+    const api = makeFakeApi();
+    applyLayoutTemplate(api, "research-cockpit");
+    const ids = api.addPanel.mock.calls.map((c) => (c[0] as { id: string }).id);
+    expect(ids).toEqual(["chart", "equity-overview", "brief", "news"]);
+    // equity-overview placed right of chart (chart added first in the same pass)
+    const equityCall = api.addPanel.mock.calls.find(
+      (c) => (c[0] as { id: string }).id === "equity-overview",
+    );
+    expect((equityCall?.[0] as { position?: unknown }).position).toEqual({
+      referencePanel: "chart",
+      direction: "right",
+    });
+    // focuses the cited brief (the right-column anchor), does not maximize
+    expect(api.maximizeGroup).not.toHaveBeenCalled();
+    expect(api.getPanel("brief")?.api.setActive).toHaveBeenCalled();
+  });
+
+  it("is idempotent: re-applying reuses open panels instead of re-adding", () => {
+    const api = makeFakeApi();
+    applyLayoutTemplate(api, "research-cockpit");
+    const firstAddCount = api.addPanel.mock.calls.length;
+    applyLayoutTemplate(api, "research-cockpit");
+    // No NEW addPanel calls on the second pass — all panels already exist.
+    expect(api.addPanel.mock.calls.length).toBe(firstAddCount);
+  });
+
+  it("drops a position whose reference panel isn't present", () => {
+    const api = makeFakeApi();
+    // macro-scan: chart + screener both reference macro. If macro fails to seed
+    // (simulated by seeding only chart/screener path), the planner still places
+    // macro first, so positions resolve — assert the normal resolved path here.
+    applyLayoutTemplate(api, "macro-scan");
+    const screenerCall = api.addPanel.mock.calls.find(
+      (c) => (c[0] as { id: string }).id === "screener-panel",
+    );
+    expect((screenerCall?.[0] as { position?: unknown }).position).toEqual({
+      referencePanel: "macro",
+      direction: "below",
+    });
+  });
+});
+
+describe("appliers run synchronously (R15-AGENT-078)", () => {
+  const originalRaf = globalThis.requestAnimationFrame;
+  afterAll(() => {
+    globalThis.requestAnimationFrame = originalRaf;
+  });
+
+  it("applyLayoutTemplate/applyCustomLayout apply without a rAF flush", () => {
+    // A frame that never fires (an occluded window): the layout must still land.
+    globalThis.requestAnimationFrame = vi.fn(() => 0);
+    const templateApi = makeFakeApi();
+    applyLayoutTemplate(templateApi, "research-cockpit");
+    expect(templateApi.panels.map((p) => p.id)).toEqual([
+      "chart",
+      "equity-overview",
+      "brief",
+      "news",
+    ]);
+
+    const customApi = makeFakeApi();
+    applyCustomLayout(customApi, [{ panel: "chart" }, { panel: "news" }]);
+    expect(customApi.panels.map((p) => p.id)).toEqual(["chart", "news"]);
+
+    const fitApi = makeFakeApiWithWidth(900);
+    fitLayoutTemplate(fitApi, "research-cockpit");
+    expect(fitApi.panels.map((p) => p.id)).toEqual(["chart", "brief"]);
+    expect(globalThis.requestAnimationFrame).not.toHaveBeenCalled();
+  });
+});
+
+/** A fake api with a configurable viewport width for the fit-aware tests. */
+function makeFakeApiWithWidth(width: number) {
+  const api = makeFakeApi() as ReturnType<typeof makeFakeApi> & { width: number; height: number };
+  Object.defineProperty(api, "width", { value: width, configurable: true });
+  Object.defineProperty(api, "height", { value: 900, configurable: true });
+  return api;
+}
+
+describe("fitLayoutTemplate (Track 4 — fit-aware arrangement)", () => {
+  it("keeps the full research-cockpit on a wide display", () => {
+    const api = makeFakeApiWithWidth(1920);
+    const result = fitLayoutTemplate(api, "research-cockpit");
+    expect(result).toEqual({ applied: "research-cockpit", downgraded: false });
+    const ids = api.addPanel.mock.calls.map((c) => (c[0] as { id: string }).id);
+    expect(ids).toEqual(["chart", "equity-overview", "brief", "news"]);
+  });
+
+  it("downgrades research-cockpit to chart + brief essentials on a narrow display", () => {
+    const api = makeFakeApiWithWidth(900);
+    const result = fitLayoutTemplate(api, "research-cockpit");
+    expect(result).toEqual({ applied: "essentials-research", downgraded: true });
+    const ids = api.addPanel.mock.calls.map((c) => (c[0] as { id: string }).id);
+    // Only the essentials — the brief is NEVER hidden on a research turn.
+    expect(ids).toEqual(["chart", "brief"]);
+    expect(api.getPanel("brief")?.api.setActive).toHaveBeenCalled();
+  });
+
+  it("collapses macro-scan to a single focus on a narrow display", () => {
+    const api = makeFakeApiWithWidth(900);
+    const result = fitLayoutTemplate(api, "macro-scan");
+    expect(result).toEqual({ applied: "single-focus", downgraded: true });
+    expect(api.maximizeGroup).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not downgrade when the viewport hasn't measured yet (width 0)", () => {
+    const api = makeFakeApiWithWidth(0);
+    const result = fitLayoutTemplate(api, "research-cockpit");
+    expect(result.downgraded).toBe(false);
+    expect(result.applied).toBe("research-cockpit");
+  });
+});
+
+describe("applyResearchSpaceLayout (003 per-stock research space)", () => {
+  it("clears the cockpit then tiles chart + overview + brief + notes on a wide display", () => {
+    const api = makeFakeApiWithWidth(1920);
+    applyResearchSpaceLayout(api);
+    expect(api.clear).toHaveBeenCalledTimes(1);
+    const ids = api.addPanel.mock.calls.map((c) => (c[0] as { id: string }).id);
+    expect(ids).toEqual(["chart", "equity-overview", "brief", "notes"]);
+    // brief is the focused anchor of the research surface
+    expect(api.getPanel("brief")?.api.setActive).toHaveBeenCalled();
+  });
+
+  it("drops the equity overview on a narrow display (chart + brief + notes)", () => {
+    const api = makeFakeApiWithWidth(900);
+    applyResearchSpaceLayout(api);
+    const ids = api.addPanel.mock.calls.map((c) => (c[0] as { id: string }).id);
+    expect(ids).toEqual(["chart", "brief", "notes"]);
+  });
+});
+
+describe("applyPlan moves already-open panels (R7 fake-split fix)", () => {
+  /** A fake api seeded with ALREADY-OPEN panels sharing one group (tabs). */
+  function makeSeededApi(ids: string[]) {
+    const sharedGroup = { id: "group-1" };
+    const panels = new Map<
+      string,
+      {
+        id: string;
+        group: { id: string };
+        api: { setActive: ReturnType<typeof vi.fn>; moveTo: ReturnType<typeof vi.fn> };
+      }
+    >();
+    for (const id of ids) {
+      panels.set(id, {
+        id,
+        group: sharedGroup,
+        api: { setActive: vi.fn(), moveTo: vi.fn() },
+      });
+    }
+    const api = {
+      get panels() {
+        return Array.from(panels.values());
+      },
+      getPanel: vi.fn((id: string) => panels.get(id)),
+      addPanel: vi.fn(),
+      hasMaximizedGroup: vi.fn(() => false),
+      exitMaximizedGroup: vi.fn(),
+      maximizeGroup: vi.fn(),
+    };
+    return { api: api as typeof api & DockviewApi, panels };
+  }
+
+  it("splits two panels that are open as tabs when asked side by side", () => {
+    const { api, panels } = makeSeededApi(["chart", "settings"]);
+    applyCustomLayout(api, [{ panel: "chart" }, { panel: "settings" }]);
+    // The second panel must MOVE to the right of the anchor — the old code
+    // left both as tabs and the agent narrated a split that never happened.
+    const moved = panels.get("settings")!.api.moveTo;
+    expect(moved).toHaveBeenCalledTimes(1);
+    expect(moved).toHaveBeenCalledWith(
+      expect.objectContaining({ position: "right", skipSetActive: true }),
+    );
+    // The anchor stays put.
+    expect(panels.get("chart")!.api.moveTo).not.toHaveBeenCalled();
+    expect(api.addPanel).not.toHaveBeenCalled();
+  });
+
+  it("does not churn a panel already 'within' its reference group", () => {
+    const { api, panels } = makeSeededApi(["chart", "news"]);
+    applyCustomLayout(api, [{ panel: "chart" }, { panel: "news", direction: "within" }]);
+    expect(panels.get("news")!.api.moveTo).not.toHaveBeenCalled();
+  });
+});
+
+describe("planContentAware (R9 — content-aware arrange)", () => {
+  const SIGNALS = { briefChars: 0, notesChars: 0, watchlistRows: 7 };
+  const WIDE = 1440;
+
+  it("brief with real content dominates; chart goes wide; watchlist parks in the rail", () => {
+    const plan = planContentAware(
+      ["chart", "brief", "watchlist"],
+      { ...SIGNALS, briefChars: 5000 },
+      WIDE,
+    );
+    expect(plan.panels.map((p) => p.id)).toEqual(["brief", "chart", "watchlist"]);
+    expect(plan.panels[0].position).toBeUndefined();
+    expect(plan.panels[0].widthFraction).toBeCloseTo(0.52);
+    expect(plan.panels[1].position).toEqual({ referencePanel: "brief", direction: "right" });
+    expect(plan.panels[1].widthFraction).toBeCloseTo(0.3);
+    expect(plan.panels[2].position).toEqual({ referencePanel: "chart", direction: "right" });
+    expect(plan.panels[2].widthFraction).toBeCloseTo(0.18);
+    expect(plan.focus).toBe("brief");
+    expect(plan.maximize).toBeUndefined();
+  });
+
+  it("an empty brief does NOT dominate — the chart anchors instead", () => {
+    const plan = planContentAware(["chart", "brief", "watchlist"], SIGNALS, WIDE);
+    expect(plan.panels[0].id).toBe("chart");
+    expect(plan.panels[1].id).toBe("brief");
+    expect(plan.focus).toBe("chart");
+  });
+
+  it("extra mains tab into the wide column; extra rails stack then tab", () => {
+    const plan = planContentAware(
+      ["news", "watchlist", "chart", "equity-overview", "portfolio", "earnings-calendar"],
+      SIGNALS,
+      WIDE,
+    );
+    const byId = Object.fromEntries(plan.panels.map((p) => [p.id, p]));
+    expect(plan.panels[0].id).toBe("chart");
+    expect(byId["portfolio"].position).toEqual({ referencePanel: "chart", direction: "right" });
+    // 3rd main tabs into the wide column instead of slicing a 4th column
+    expect(byId["equity-overview"].position).toEqual({
+      referencePanel: "portfolio",
+      direction: "within",
+    });
+    // rails: head right of the wide column, second below it, rest tab in
+    expect(byId["news"].position).toEqual({ referencePanel: "portfolio", direction: "right" });
+    expect(byId["watchlist"].position).toEqual({ referencePanel: "news", direction: "below" });
+    expect(byId["earnings-calendar"].position).toEqual({
+      referencePanel: "watchlist",
+      direction: "within",
+    });
+  });
+
+  it("narrow viewport collapses to two columns with everything else tabbed", () => {
+    const plan = planContentAware(
+      ["chart", "brief", "watchlist", "news"],
+      { ...SIGNALS, briefChars: 5000 },
+      960,
+    );
+    expect(plan.panels.map((p) => p.id)).toEqual(["brief", "chart", "watchlist", "news"]);
+    expect(plan.panels[1].position).toEqual({ referencePanel: "brief", direction: "right" });
+    expect(plan.panels[2].position).toEqual({ referencePanel: "chart", direction: "within" });
+    expect(plan.panels[3].position).toEqual({ referencePanel: "chart", direction: "within" });
+  });
+
+  it("a single open panel is maximized", () => {
+    const plan = planContentAware(["chart"], SIGNALS, WIDE);
+    expect(plan.maximize).toBe("chart");
+  });
+
+  it("rail-only cockpit promotes the first rail to anchor", () => {
+    const plan = planContentAware(["watchlist", "news"], SIGNALS, WIDE);
+    expect(plan.panels[0].id).toBe("watchlist");
+    expect(plan.panels[1].id).toBe("news");
+    expect(plan.panels[1].position?.direction).toBe("right");
+  });
+
+  it("is deterministic (same input → same output) and drops duplicates", () => {
+    const a = planContentAware(["chart", "chart", "watchlist"], SIGNALS, WIDE);
+    const b = planContentAware(["chart", "watchlist"], SIGNALS, WIDE);
+    expect(a).toEqual(b);
+  });
+});
+
+describe("applyContentAwareLayout (imperative, width fractions)", () => {
+  it("re-tiles open panels and sizes the columns via setSize", () => {
+    vi.useFakeTimers();
+    const moved: Array<{ id: string; position: unknown }> = [];
+    const sized: Array<{ id: string; width: number }> = [];
+    const groups: Record<string, object> = {
+      chart: { g: "chart" },
+      brief: { g: "brief" },
+      watchlist: { g: "watchlist" },
+    };
+    const mkPanel = (id: string) => ({
+      id,
+      group: groups[id],
+      api: {
+        moveTo: (args: { position: unknown }) => moved.push({ id, position: args.position }),
+        setSize: (args: { width: number }) => sized.push({ id, width: args.width }),
+        setActive: () => {},
+      },
+    });
+    const panels = [mkPanel("brief"), mkPanel("chart"), mkPanel("watchlist")];
+    const api = {
+      width: 1440,
+      panels,
+      getPanel: (id: string) => panels.find((p) => p.id === id),
+      addPanel: () => {
+        throw new Error("content-aware arrange must never open panels");
+      },
+      hasMaximizedGroup: () => false,
+      exitMaximizedGroup: () => {},
+    } as unknown as DockviewApi;
+
+    const result = applyContentAwareLayout(api, {
+      briefChars: 5000,
+      notesChars: 0,
+      watchlistRows: 5,
+    });
+    vi.runAllTimers();
+    vi.useRealTimers();
+
+    expect(result).toEqual({ anchor: "brief", count: 3 });
+    expect(sized).toEqual([
+      { id: "brief", width: Math.round(1440 * 0.52) },
+      { id: "chart", width: Math.round(1440 * 0.3) },
+      { id: "watchlist", width: Math.round(1440 * 0.18) },
+    ]);
+    expect(moved.length).toBeGreaterThan(0);
+  });
+});
+
+describe("one plan per template id (R15-AGENT-055)", () => {
+  const templates = Object.entries(templateCatalog).filter(([id]) => !id.startsWith("_")) as [
+    LayoutTemplate,
+    { panels: string[] },
+  ][];
+
+  it("planLayout places exactly the panels layout_templates.json lists (the catalog's source)", () => {
+    expect([...LAYOUT_TEMPLATE_IDS].sort()).toEqual(templates.map(([id]) => id).sort());
+    for (const [id, entry] of templates) {
+      expect(planLayout(id).panels.map((p) => p.id)).toEqual(
+        entry.panels.map((role) => resolvePanelToken(role)!.id),
+      );
+    }
+  });
+
+  // R15-AGENT-055: the menu modes used to be keyed by the AGENT template ids
+  // (research-cockpit, single-focus, macro-scan, compare) even though their
+  // panel sets differ from `planLayout` of the same id — one id, two
+  // different layouts. The menu payloads are now the mode's OWN ids
+  // (fundamental/technical/macro/compare-desk), disjoint from
+  // `LAYOUT_TEMPLATE_IDS`, so this test uses the new ids and the reason is
+  // the mechanism above.
+  it("every native-menu payload maps to exactly one mode plan, cleared then tiled", () => {
+    const expected: Record<string, string[]> = {
+      fundamental: ["chart", "equity-overview", "brief"],
+      technical: ["chart", "watchlist", "news"],
+      macro: ["macro", "chart", "screener-panel"],
+      "compare-desk": ["chart", "equity-overview"],
+    };
+    expect(Object.keys(MENU_PAYLOAD_TO_MODE).sort()).toEqual(Object.keys(expected).sort());
+    expect(new Set(Object.values(MENU_PAYLOAD_TO_MODE)).size).toBe(4);
+    for (const [payload, ids] of Object.entries(expected)) {
+      const added: string[] = [];
+      const api = {
+        panels: [],
+        clear: vi.fn(),
+        getPanel: () => undefined,
+        addPanel: vi.fn(({ id }: { id: string }) => added.push(id)),
+        hasMaximizedGroup: () => false,
+      };
+      applyLayoutMode(api as unknown as DockviewApi, MENU_PAYLOAD_TO_MODE[payload]);
+      expect(api.clear).toHaveBeenCalledTimes(1);
+      expect(added).toEqual(ids);
+    }
+  });
+
+  it("never conflates an agent template id with a menu mode: dispatchLayoutMenuCommand(templateId) is either false or exactly planLayout(templateId)'s set", () => {
+    for (const id of LAYOUT_TEMPLATE_IDS) {
+      const added: string[] = [];
+      const api = {
+        panels: [],
+        clear: vi.fn(),
+        getPanel: () => undefined,
+        addPanel: vi.fn(({ id: panelId }: { id: string }) => added.push(panelId)),
+        hasMaximizedGroup: () => false,
+      };
+      useWorkspaceStore.setState({ dockviewApi: api as unknown as DockviewApi });
+      const result = dispatchLayoutMenuCommand(id);
+      if (result) {
+        expect(added).toEqual(planLayout(id as LayoutTemplate).panels.map((p) => p.id));
+      } else {
+        expect(result).toBe(false);
+      }
+    }
+  });
+
+  it("every layout:<x> menu id installed in lib.rs is a MENU_PAYLOAD_TO_MODE key, or 'default'", () => {
+    const rust = readFileSync(join(__dirname, "../../src-tauri/src/lib.rs"), "utf8");
+    const ids = [...rust.matchAll(/"layout:([a-z-]+)"/g)].map((m) => m[1]);
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of ids) {
+      expect(id === "default" || id in MENU_PAYLOAD_TO_MODE).toBe(true);
+    }
+  });
+});
+
+describe("panel id/component tables match the registry (R15-CODE-FRONTEND-036)", () => {
+  it("every ARRANGEABLE/PANEL/DEFAULT_PANELS {id, component} equals a registered PanelSpec", () => {
+    const registered = collectPanels(vystedModules).map(({ id, component }) => ({ id, component }));
+    const pairs = [...Object.values(ARRANGEABLE), ...DEFAULT_PANELS].map(({ id, component }) => ({
+      id,
+      component,
+    }));
+    for (const pair of pairs) {
+      expect(registered).toContainEqual(pair);
+    }
+    // ...and the arrange table covers every registered panel.
+    const arrangeable = new Set(Object.values(ARRANGEABLE).map((p) => p.id));
+    expect(registered.filter((p) => !arrangeable.has(p.id))).toEqual([]);
+    expect([...RAIL_PANELS].filter((id) => !arrangeable.has(id))).toEqual([]);
+  });
+});

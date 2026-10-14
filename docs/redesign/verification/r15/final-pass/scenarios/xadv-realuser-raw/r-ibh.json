@@ -1,0 +1,684 @@
+{
+ "ok": true,
+ "query": "Indiabulls Housing Finance",
+ "resolved": {
+  "ok": true,
+  "query": "Indiabulls Housing Finance",
+  "region": "IN",
+  "status": "bound",
+  "reason": "score 0.99 >= accept at band 4",
+  "resolved": {
+   "symbol": "SAMMAANCAP",
+   "name": "Sammaan Capital Limited",
+   "exchange": "NSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "SAMMAANCAP.NS",
+   "confidence": 0.99,
+   "isin": "INE148I01020",
+   "bse_code": "535789",
+   "industry": "Financial Services / Housing Finance Company",
+   "former_name": "IBULHSGFIN",
+   "board": "mainboard",
+   "exchange_group": "A",
+   "face_value": 2.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "SAMMAANCAP",
+    "name": "Sammaan Capital Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "SAMMAANCAP.NS",
+    "confidence": 0.99,
+    "isin": "INE148I01020",
+    "bse_code": "535789",
+    "industry": "Financial Services / Housing Finance Company",
+    "former_name": "IBULHSGFIN",
+    "board": "mainboard",
+    "exchange_group": "A",
+    "face_value": 2.0
+   },
+   {
+    "symbol": "MANRAJH",
+    "name": "Manraj Housing Finance Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "MANRAJH.BO",
+    "confidence": 0.6923,
+    "isin": "INE948I01015",
+    "bse_code": "530537",
+    "industry": null,
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "X",
+    "face_value": 10.0
+   },
+   {
+    "symbol": "STARHFL",
+    "name": "Star Housing Finance Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "STARHFL.BO",
+    "confidence": 0.68,
+    "isin": "INE526R01028",
+    "bse_code": "539017",
+    "industry": null,
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "X",
+    "face_value": 5.0
+   },
+   {
+    "symbol": "PNBHOUSING",
+    "name": "PNB Housing Finance Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "PNBHOUSING.NS",
+    "confidence": 0.6792,
+    "isin": "INE572E01012",
+    "bse_code": "540173",
+    "industry": "Financial Services / Housing Finance Company",
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "A",
+    "face_value": 10.0
+   },
+   {
+    "symbol": "AADHARHFC",
+    "name": "Aadhar Housing Finance Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "AADHARHFC.NS",
+    "confidence": 0.6429,
+    "isin": "INE883F01010",
+    "bse_code": "544176",
+    "industry": "Financial Services / Housing Finance Company",
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "A",
+    "face_value": 10.0
+   },
+   {
+    "symbol": "LICHSGFIN",
+    "name": "LIC Housing Finance Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "LICHSGFIN.NS",
+    "confidence": 0.6415,
+    "isin": "INE115A01026",
+    "bse_code": "500253",
+    "industry": "Financial Services / Housing Finance Company",
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "A",
+    "face_value": 2.0
+   }
+  ]
+ },
+ "symbol": "SAMMAANCAP",
+ "structured": {
+  "price": {
+   "ok": false,
+   "provider": null,
+   "error": "price timed out after 6s \u2014 dropped",
+   "reason": "provider_error"
+  },
+  "fundamentals": {
+   "ok": false,
+   "provider": null,
+   "error": "fundamentals timed out after 6s \u2014 dropped",
+   "reason": "provider_error"
+  },
+  "derived": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "drawdown_from_high": {
+     "value": null,
+     "label": "Below 52-week high",
+     "basis": "vs 52w high",
+     "formula": "(52w high - price) / 52w high",
+     "unit": "fraction"
+    },
+    "fifty_two_week_change": {
+     "value": null,
+     "label": "52-week price change (Yahoo)",
+     "basis": "trailing 52 weeks",
+     "unit": "fraction"
+    },
+    "dividend_yield": {
+     "value": null,
+     "label": "Dividend yield",
+     "basis": "fraction of price",
+     "unit": "fraction"
+    },
+    "dividend_per_share": {
+     "value": null,
+     "label": "Dividend per share",
+     "basis": "per share, listing currency",
+     "unit": "currency"
+    },
+    "revenue_growth": {
+     "value": null,
+     "label": "Revenue growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction"
+    },
+    "earnings_growth": {
+     "value": null,
+     "label": "Earnings growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction"
+    },
+    "market_cap": {
+     "value": null,
+     "label": "Market cap",
+     "basis": "provider market cap",
+     "unit": "currency"
+    },
+    "conflicts": []
+   }
+  },
+  "news": {
+   "ok": true,
+   "provider": null,
+   "data": []
+  },
+  "filings": {
+   "ok": true,
+   "provider": "nse+bse",
+   "data": {
+    "symbol": "SAMMAANCAP",
+    "exchange": null,
+    "coverage": "covered",
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "count": 20,
+    "announcements": [
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "NSE",
+      "headline": "Sammaan Capital Limited has informed the Exchange regarding 'Pursuant to Regulation 57 of Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015 ( Listing Regulations ), we hereby certify that our Company has made timely payment of interest amount in respect of the Secured Redeemable Non-Convertible Debentures issued by our Company, through Public Issue, and listed on the Stock Exchanges. For details, refer attachment.'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_01102026184635_SCL_Retail_Intimation_57_01102026_NA2.pdf",
+      "ts": "2026-10-01T18:46:47+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "NSE",
+      "headline": "Sammaan Capital Limited has informed the Exchange regarding Appointment of Mr. P. S. Negi (DIN: 11918934) as LIC Nominee Director on the Board of the Company with effect from September 30, 2026.",
+      "category": "Appointment",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_30092026221747_SCL_Change_in_director_Intimation_30Sep2026.pdf",
+      "ts": "2026-09-30T22:18:26+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f9b8902e-80bb-401f-9dcd-96448be16283.pdf",
+      "ts": "2026-09-30T22:16:32.670000+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/eed68e08-8eb1-4c8f-a849-f943e50fe4ba.pdf",
+      "ts": "2026-09-30T20:11:14.450000+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "NSE",
+      "headline": "Sammaan Capital Limited has informed the Exchange regarding Proceedings of Annual General Meeting held on September 30, 2026. Further, the company has submitted the Exchange a copy of Srutinizers report along with voting results.",
+      "category": "Shareholders meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_30092026195955_SCL_21st_AGM_Proceedings_Outcome_30Sep2026.pdf",
+      "ts": "2026-09-30T20:00:49+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "NSE",
+      "headline": "Please find enclosed copies of the newspaper advertisements of the notice published today, i.e. September 30, 2026 in  Financial Express  (English Edition, Delhi) and  Jansatta  (Hindi Edition, Delhi), in compliance of the order dated September 21, 2026 passed by the Hon ble National Company Law Tribunal, New Delhi Bench in the Second Motion Petition relating to the proposed Scheme of Arrangement between the Resulting Company, i.e. Sammaan Capital Limited and the Demerged Company, i.e. Sammaan Finserve Limited and their respective shareholders and creditors.",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_30092026190006_SCL_Newspaper_Advertisement_30Sep2026.pdf",
+      "ts": "2026-09-30T19:00:15+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "NSE",
+      "headline": "Sammaan Capital Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+      "category": "Trading Window",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_30092026185249_SCL_Closure_of_Trading_Window30September2026.pdf",
+      "ts": "2026-09-30T18:52:57+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "NSE",
+      "headline": "Sammaan Capital Limited has informed the Exchange regarding 'Pursuant to Regulation 57 of Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015, we hereby certify that our Company has made timely payment of interest amount in respect of the Secured Redeemable Non-Convertible Debentures, issued by our Company, through Public Issue, and listed on the Stock Exchanges'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_30092026184750_SCL_Exchange_Retail_intimation_57_30092026_XR5.pdf",
+      "ts": "2026-09-30T18:47:59+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "BSE",
+      "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/02265c4f-f1aa-4b2f-aa57-d2b4b89fd8dc.pdf",
+      "ts": "2026-09-30T18:26:43.687000+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "BSE",
+      "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/70a7934a-7fac-4b3c-a11b-c5647f3dc026.pdf",
+      "ts": "2026-09-26T16:06:21.457000+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "NSE",
+      "headline": "Sammaan Capital Limited has informed the Exchange regarding 'Pursuant to Regulation 57 of Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015, we hereby certify that our Company has made timely payment of interest amount in respect of the Secured Redeemable Non-Convertible Debentures, issued by our Company, through Public Issue, and listed on the Stock Exchanges'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_26092026160235_SCL_Exchange_intimation_57_26092026_NN5_.pdf",
+      "ts": "2026-09-26T16:02:48+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "BSE",
+      "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3aca5806-0505-46c7-8d43-f9db63bb166d.pdf",
+      "ts": "2026-09-26T15:50:19.773000+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "BSE",
+      "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d02167c6-fe78-4ba0-a440-72d0ce8a7c82.pdf",
+      "ts": "2026-09-26T15:42:46.560000+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "BSE",
+      "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ccdb031b-69d7-465e-b800-0beedaab876b.pdf",
+      "ts": "2026-09-26T15:15:05.463000+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "NSE",
+      "headline": "It is hereby informed that the Hon ble National Company Law Tribunal, New Delhi Bench vide its Order dated September 21, 2026, has admitted the Second Motion Petition in connection with the proposed Scheme of Arrangement between the Company and Sammaan Finserve Limited and has fixed the next date of hearing as November 16, 2026. The Company has received the Order on September 25, 2026. For details refer attached PDF.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_25092026184549_SCL_Regulation_30_SMP_Order_25Sep2026.pdf",
+      "ts": "2026-09-25T18:52:29+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "NSE",
+      "headline": "Sammaan Capital Limited has informed the Exchange regarding 'Pursuant to Regulation 57 of Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015, we hereby certify that our Company has made timely payment of scheduled principal and interest amount in respect of the Secured Redeemable Non-Convertible Debentures, issued by our Company, through Public Issue, and listed on the Stock Exchanges'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_25092026175934_SCL_Retail_intimation_-57__25092026_PM2.pdf",
+      "ts": "2026-09-25T17:59:52+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "BSE",
+      "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3725bf47-8c67-4a25-b50f-2a4c973a0980.pdf",
+      "ts": "2026-09-25T16:59:30.380000+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "BSE",
+      "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7d0ad007-c179-479a-a608-2ef5be8eaeed.pdf",
+      "ts": "2026-09-25T16:45:09.413000+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "BSE",
+      "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3346bf77-6ce8-4488-9130-24c4913e7662.pdf",
+      "ts": "2026-09-25T16:05:51.790000+05:30"
+     },
+     {
+      "symbol": "SAMMAANCAP",
+      "exchange": "NSE",
+      "headline": "Sammaan Capital Limited has informed the Exchange regarding 'Pursuant to the applicable provisions of the Listing Regulations, we wish to inform that in terms of the Board authorization dated May 20, 2026, read with resolution passed by the Securities Issuance and Investment Committee on September 22, 2026, Sammaan Capital Limited (the  Company ) has today i.e. on September 25, 2026, allotted: (i) 25,000 secured, rated, listed, taxable, redeemable, fully paid-up, non-convertible debenture under series I (hereinafter  Series I NCDs  or  Series I Debentures ) of the face value of INR 1,00,000 each aggregating to INR 250,00,00,000 (Indian Rupees Two Hundred and Fifty Crores only), under existing ISIN INE148I07TY9; (ii) 25,000 secured, rated, listed, taxable, redeemable, fully paid-up, non-convertible debenture under series II (hereinafter  Series II NCDs  or  Series II Debentures ) of the face value of INR 1,00,000 each aggregating to INR 250,00,00,000 (Indian Rupees Two Hundred and Fifty Crores only), under existing ISIN INE148I07XA1; and (iii) 25,000 secured, rated, listed, taxable, redeemable, fully paid-up, non-convertible debenture under series III (hereinafter  Series III NCDs  or  Series III Debentures ) of the face value of INR 1,00,000 each aggregating to INR 250,00,00,000 (Indian Rupees Two Hundred and Fifty Crores only), under existing ISIN INE148I07YM4, on a private placement basis '.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_25092026125046_SCL_NCD_Allotment_Intimation_25092026.pdf",
+      "ts": "2026-09-25T12:53:05+05:30"
+     }
+    ]
+   }
+  },
+  "source_floor": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "cited": 0,
+    "floor": 3
+   },
+   "note": "0 sources (below 3)"
+  }
+ },
+ "web": {
+  "available": false,
+  "citations": [],
+  "results": [],
+  "reason": "timeout",
+  "note": "Web search did not answer within 8s \u2014 structured data only"
+ },
+ "suggested_layout": "research-cockpit",
+ "suggested_indicators": [
+  "ma",
+  "volume",
+  "rsi",
+  "macd"
+ ],
+ "execution_loop": "fast",
+ "depth": "normal",
+ "execution": {
+  "run_id": "768c11773b8c4ecaa4f2c21a2ad2f0f6",
+  "requested_depth": "normal",
+  "loop": "fast",
+  "backend": null,
+  "started_at": 1791020565.9043992,
+  "finished_at": 1791020573.934444,
+  "degraded_reason": null
+ },
+ "brief": {
+  "query": "Indiabulls Housing Finance",
+  "symbol": "SAMMAANCAP",
+  "mode": "fast",
+  "depth": "quick",
+  "execution": {
+   "run_id": "768c11773b8c4ecaa4f2c21a2ad2f0f6",
+   "requested_depth": "normal",
+   "loop": "fast",
+   "backend": null,
+   "started_at": 1791020565.9043992,
+   "finished_at": 1791020573.934444,
+   "degraded_reason": null
+  },
+  "markdown": "",
+  "sources": [],
+  "structured": {
+   "price": {
+    "ok": false,
+    "provider": null,
+    "error": "price timed out after 6s \u2014 dropped",
+    "reason": "provider_error"
+   },
+   "fundamentals": {
+    "ok": false,
+    "provider": null,
+    "error": "fundamentals timed out after 6s \u2014 dropped",
+    "reason": "provider_error"
+   },
+   "derived": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "drawdown_from_high": {
+      "value": null,
+      "label": "Below 52-week high",
+      "basis": "vs 52w high",
+      "formula": "(52w high - price) / 52w high",
+      "unit": "fraction"
+     },
+     "fifty_two_week_change": {
+      "value": null,
+      "label": "52-week price change (Yahoo)",
+      "basis": "trailing 52 weeks",
+      "unit": "fraction"
+     },
+     "dividend_yield": {
+      "value": null,
+      "label": "Dividend yield",
+      "basis": "fraction of price",
+      "unit": "fraction"
+     },
+     "dividend_per_share": {
+      "value": null,
+      "label": "Dividend per share",
+      "basis": "per share, listing currency",
+      "unit": "currency"
+     },
+     "revenue_growth": {
+      "value": null,
+      "label": "Revenue growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction"
+     },
+     "earnings_growth": {
+      "value": null,
+      "label": "Earnings growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction"
+     },
+     "market_cap": {
+      "value": null,
+      "label": "Market cap",
+      "basis": "provider market cap",
+      "unit": "currency"
+     },
+     "conflicts": []
+    }
+   },
+   "news": {
+    "ok": true,
+    "provider": null,
+    "data": []
+   },
+   "filings": {
+    "ok": true,
+    "provider": "nse+bse",
+    "data": {
+     "symbol": "SAMMAANCAP",
+     "exchange": null,
+     "coverage": "covered",
+     "sources": [
+      "NSE",
+      "BSE"
+     ],
+     "errors": {},
+     "count": 20,
+     "announcements": [
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "NSE",
+       "headline": "Sammaan Capital Limited has informed the Exchange regarding 'Pursuant to Regulation 57 of Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015 ( Listing Regulations ), we hereby certify that our Company has made timely payment of interest amount in respect of the Secured Redeemable Non-Convertible Debentures issued by our Company, through Public Issue, and listed on the Stock Exchanges. For details, refer attachment.'.",
+       "category": "Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_01102026184635_SCL_Retail_Intimation_57_01102026_NA2.pdf",
+       "ts": "2026-10-01T18:46:47+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "NSE",
+       "headline": "Sammaan Capital Limited has informed the Exchange regarding Appointment of Mr. P. S. Negi (DIN: 11918934) as LIC Nominee Director on the Board of the Company with effect from September 30, 2026.",
+       "category": "Appointment",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_30092026221747_SCL_Change_in_director_Intimation_30Sep2026.pdf",
+       "ts": "2026-09-30T22:18:26+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f9b8902e-80bb-401f-9dcd-96448be16283.pdf",
+       "ts": "2026-09-30T22:16:32.670000+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "BSE",
+       "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+       "category": "AGM/EGM",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/eed68e08-8eb1-4c8f-a849-f943e50fe4ba.pdf",
+       "ts": "2026-09-30T20:11:14.450000+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "NSE",
+       "headline": "Sammaan Capital Limited has informed the Exchange regarding Proceedings of Annual General Meeting held on September 30, 2026. Further, the company has submitted the Exchange a copy of Srutinizers report along with voting results.",
+       "category": "Shareholders meeting",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_30092026195955_SCL_21st_AGM_Proceedings_Outcome_30Sep2026.pdf",
+       "ts": "2026-09-30T20:00:49+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "NSE",
+       "headline": "Please find enclosed copies of the newspaper advertisements of the notice published today, i.e. September 30, 2026 in  Financial Express  (English Edition, Delhi) and  Jansatta  (Hindi Edition, Delhi), in compliance of the order dated September 21, 2026 passed by the Hon ble National Company Law Tribunal, New Delhi Bench in the Second Motion Petition relating to the proposed Scheme of Arrangement between the Resulting Company, i.e. Sammaan Capital Limited and the Demerged Company, i.e. Sammaan Finserve Limited and their respective shareholders and creditors.",
+       "category": "Copy of Newspaper Publication",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_30092026190006_SCL_Newspaper_Advertisement_30Sep2026.pdf",
+       "ts": "2026-09-30T19:00:15+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "NSE",
+       "headline": "Sammaan Capital Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+       "category": "Trading Window",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_30092026185249_SCL_Closure_of_Trading_Window30September2026.pdf",
+       "ts": "2026-09-30T18:52:57+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "NSE",
+       "headline": "Sammaan Capital Limited has informed the Exchange regarding 'Pursuant to Regulation 57 of Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015, we hereby certify that our Company has made timely payment of interest amount in respect of the Secured Redeemable Non-Convertible Debentures, issued by our Company, through Public Issue, and listed on the Stock Exchanges'.",
+       "category": "Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_30092026184750_SCL_Exchange_Retail_intimation_57_30092026_XR5.pdf",
+       "ts": "2026-09-30T18:47:59+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "BSE",
+       "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/02265c4f-f1aa-4b2f-aa57-d2b4b89fd8dc.pdf",
+       "ts": "2026-09-30T18:26:43.687000+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "BSE",
+       "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/70a7934a-7fac-4b3c-a11b-c5647f3dc026.pdf",
+       "ts": "2026-09-26T16:06:21.457000+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "NSE",
+       "headline": "Sammaan Capital Limited has informed the Exchange regarding 'Pursuant to Regulation 57 of Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015, we hereby certify that our Company has made timely payment of interest amount in respect of the Secured Redeemable Non-Convertible Debentures, issued by our Company, through Public Issue, and listed on the Stock Exchanges'.",
+       "category": "Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_26092026160235_SCL_Exchange_intimation_57_26092026_NN5_.pdf",
+       "ts": "2026-09-26T16:02:48+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "BSE",
+       "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3aca5806-0505-46c7-8d43-f9db63bb166d.pdf",
+       "ts": "2026-09-26T15:50:19.773000+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "BSE",
+       "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d02167c6-fe78-4ba0-a440-72d0ce8a7c82.pdf",
+       "ts": "2026-09-26T15:42:46.560000+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "BSE",
+       "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ccdb031b-69d7-465e-b800-0beedaab876b.pdf",
+       "ts": "2026-09-26T15:15:05.463000+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "NSE",
+       "headline": "It is hereby informed that the Hon ble National Company Law Tribunal, New Delhi Bench vide its Order dated September 21, 2026, has admitted the Second Motion Petition in connection with the proposed Scheme of Arrangement between the Company and Sammaan Finserve Limited and has fixed the next date of hearing as November 16, 2026. The Company has received the Order on September 25, 2026. For details refer attached PDF.",
+       "category": "Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_25092026184549_SCL_Regulation_30_SMP_Order_25Sep2026.pdf",
+       "ts": "2026-09-25T18:52:29+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "NSE",
+       "headline": "Sammaan Capital Limited has informed the Exchange regarding 'Pursuant to Regulation 57 of Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015, we hereby certify that our Company has made timely payment of scheduled principal and interest amount in respect of the Secured Redeemable Non-Convertible Debentures, issued by our Company, through Public Issue, and listed on the Stock Exchanges'.",
+       "category": "Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_25092026175934_SCL_Retail_intimation_-57__25092026_PM2.pdf",
+       "ts": "2026-09-25T17:59:52+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "BSE",
+       "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3725bf47-8c67-4a25-b50f-2a4c973a0980.pdf",
+       "ts": "2026-09-25T16:59:30.380000+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "BSE",
+       "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7d0ad007-c179-479a-a608-2ef5be8eaeed.pdf",
+       "ts": "2026-09-25T16:45:09.413000+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "BSE",
+       "headline": "Compliances-Reg. 57 (1) - Certificate of interest payment/Principal in case of NCD",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3346bf77-6ce8-4488-9130-24c4913e7662.pdf",
+       "ts": "2026-09-25T16:05:51.790000+05:30"
+      },
+      {
+       "symbol": "SAMMAANCAP",
+       "exchange": "NSE",
+       "headline": "Sammaan Capital Limited has informed the Exchange regarding 'Pursuant to the applicable provisions of the Listing Regulations, we wish to inform that in terms of the Board authorization dated May 20, 2026, read with resolution passed by the Securities Issuance and Investment Committee on September 22, 2026, Sammaan Capital Limited (the  Company ) has today i.e. on September 25, 2026, allotted: (i) 25,000 secured, rated, listed, taxable, redeemable, fully paid-up, non-convertible debenture under series I (hereinafter  Series I NCDs  or  Series I Debentures ) of the face value of INR 1,00,000 each aggregating to INR 250,00,00,000 (Indian Rupees Two Hundred and Fifty Crores only), under existing ISIN INE148I07TY9; (ii) 25,000 secured, rated, listed, taxable, redeemable, fully paid-up, non-convertible debenture under series II (hereinafter  Series II NCDs  or  Series II Debentures ) of the face value of INR 1,00,000 each aggregating to INR 250,00,00,000 (Indian Rupees Two Hundred and Fifty Crores only), under existing ISIN INE148I07XA1; and (iii) 25,000 secured, rated, listed, taxable, redeemable, fully paid-up, non-convertible debenture under series III (hereinafter  Series III NCDs  or  Series III Debentures ) of the face value of INR 1,00,000 each aggregating to INR 250,00,00,000 (Indian Rupees Two Hundred and Fifty Crores only), under existing ISIN INE148I07YM4, on a private placement basis '.",
+       "category": "Updates",
+       "attachment_url": "https://nsearchives.nseindia.com/corporate/IHFL_25092026125046_SCL_NCD_Allotment_Intimation_25092026.pdf",
+       "ts": "2026-09-25T12:53:05+05:30"
+      }
+     ]
+    }
+   },
+   "source_floor": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "cited": 0,
+     "floor": 3
+    },
+    "note": "0 sources (below 3)"
+   }
+  },
+  "cost": null,
+  "web_available": false,
+  "note": "Web search did not answer within 8s \u2014 structured data only",
+  "web_reason": "timeout",
+  "backend": null
+ }
+}

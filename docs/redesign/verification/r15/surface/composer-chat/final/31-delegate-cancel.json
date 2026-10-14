@@ -1,0 +1,185 @@
+{
+  "mode": "cancel",
+  "prompt": "Summarise what Cochin Shipyard does and its current P/E.",
+  "frames": [
+    {
+      "t": 2.325,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 4.331,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 6.333,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 8.338,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 10.341,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 12.344,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 14.345,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 16.347,
+      "status": "running",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": null,
+      "activity": [],
+      "rail": "●Vysted CopilotDelegate"
+    },
+    {
+      "t": 18.359,
+      "status": "cancelled",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "detail": "cancelled by user",
+      "activity": [],
+      "rail": ""
+    }
+  ],
+  "budgetEditorText": "Budgettokens$secsteps— first breach aborts the run",
+  "cancelResult": {
+    "ok": true
+  },
+  "finalRuns": [
+    {
+      "status": "cancelled",
+      "detail": "cancelled by user",
+      "cost": {
+        "tokens": 0,
+        "spendUsd": 0,
+        "steps": 0
+      },
+      "budget": {
+        "maxTokens": 120000,
+        "maxSpendUsd": 1,
+        "maxWallSeconds": 600,
+        "maxSteps": 12
+      },
+      "sidecarRunId": "6ed80497dd74471480c044bbda1d4f5b",
+      "provider": "ollama"
+    }
+  ],
+  "sidecarRun": {
+    "id": "6ed80497dd74471480c044bbda1d4f5b",
+    "agent_id": "copilot",
+    "agent_name": "Vysted Copilot",
+    "mode": "delegate",
+    "status": "cancelled",
+    "cost": {
+      "tokens": 0,
+      "spend_usd": 0,
+      "steps": 0
+    },
+    "budget": {
+      "max_tokens": 120000,
+      "max_spend_usd": 1,
+      "max_wall_seconds": 600,
+      "max_steps": 12
+    },
+    "provider": "ollama",
+    "model": "llama3.1:8b",
+    "plan": null,
+    "activity": [],
+    "detail": "cancelled by user",
+    "question": null,
+    "created_at": 1791024909,
+    "updated_at": 1791024925,
+    "transcript": [
+      {
+        "role": "user",
+        "content": "Summarise what Cochin Shipyard does and its current P/E."
+      }
+    ],
+    "checkpoint_messages": 1,
+    "answer": null,
+    "brief": null,
+    "host_actions": []
+  },
+  "chat": [
+    {
+      "role": "user",
+      "content": "Summarise what Cochin Shipyard does and its current P/E."
+    },
+    {
+      "role": "assistant",
+      "content": "Delegated to a background run — track its cost + status in the agents rail above. It works autonomously under your budget. When it finishes, its answer lands in this chat and any changes it proposes go through the same review gate as a live reply."
+    }
+  ],
+  "proposed": [],
+  "domText": "Summarise what Cochin Shipya…YouSummarise what Cochin Shipyard does and its current P/E.Vysted CopilotDelegated to a background run — track its cost + status in the agents rail above. It works autonomously under your budget. When it finishes, its answer lands in this chat and any changes it proposes go through the same review gate as a live reply.Budgettokens$secsteps— first breach aborts the runNormalDeepUltraLlama3.1 8B"
+}

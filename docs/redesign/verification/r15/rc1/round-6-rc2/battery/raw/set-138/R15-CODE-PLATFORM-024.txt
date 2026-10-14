@@ -1,0 +1,23 @@
+COMMAND: cat src-tauri/capabilities/default.json; grep tauri-plugin-fs src-tauri/Cargo.toml package.json; grep -rn 'downloadCsv\|plugin:fs\|save(' src/lib/csv.ts
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capability for the Vysted Terminal main window.",
+  "windows": ["main"],
+  "permissions": ["core:default", "notification:default", "shell:allow-open"]
+}
+---
+grep-exit=1
+docs/BLUEPRINT.md:78:  `write_bytes_atomic`), not the `tauri-plugin-fs` capability (R15-CODE-PLATFORM-024:
+
+**Rust layer (Tauri 2.x core):**
+- Desktop shell (windowing, OS integration)
+- File system access — custom atomic-write commands (`write_text_atomic`,
+  `write_bytes_atomic`), not the `tauri-plugin-fs` capability (R15-CODE-PLATFORM-024:
+  no `fs:*` permission is granted in `src-tauri/capabilities/default.json`, but notes
+  persistence and CSV/PNG/PDF exports both write real files through these commands, a
+  webview Blob download is only the non-Tauri dev fallback)
+- Secure key storage (OS keychain integration on each platform)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src-tauri/src/lib.rs:620:fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src-tauri/src/lib.rs:693:            write_bytes_atomic,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src-tauri/src/lib.rs:792:        wait_for_port_with_retries, write_bytes_atomic, write_text_atomic, SidecarPhase,

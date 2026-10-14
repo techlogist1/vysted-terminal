@@ -1,0 +1,115 @@
+{"kind": "tool_use", "tool_call_id": "call_62c8f47e16554a8a8cbaaf8a01324108", "name": "financial_statements", "input": {"statement": "income", "period": "quarterly", "symbol": "SIFYUS"}}
+{"kind": "tool_result", "tool_call_id": "call_62c8f47e16554a8a8cbaaf8a01324108", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " quarterly"}
+{"kind": "delta", "text": " income"}
+{"kind": "delta", "text": " statement"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "US"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " fundamentals"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "{\""}
+{"kind": "delta", "text": "name"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "financial"}
+{"kind": "delta", "text": "_stat"}
+{"kind": "delta", "text": "ements"}
+{"kind": "tool_use", "tool_call_id": "call_7892726d7c20476a8c3f1f1352ba5008", "name": "financial_statements", "input": {"statement": "cashflow", "symbol": "SIFYUS"}}
+{"kind": "tool_result", "tool_call_id": "call_7892726d7c20476a8c3f1f1352ba5008", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "delta", "text": "According"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " y"}
+{"kind": "delta", "text": "finance"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " results"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " contain"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " metric"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources.\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " look"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " cash"}
+{"kind": "delta", "text": " flow"}
+{"kind": "delta", "text": " statement"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " see"}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " provides"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " relevant"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " cash"}
+{"kind": "delta", "text": " flow"}
+{"kind": "delta", "text": " statement"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " contain"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " metric"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " number"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " ordinary"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "DR"}
+{"kind": "delta", "text": " either"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources."}
+{"kind": "done", "usage": {"input_tokens": 3017, "output_tokens": 157, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

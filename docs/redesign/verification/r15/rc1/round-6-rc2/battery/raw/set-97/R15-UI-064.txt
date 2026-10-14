@@ -1,0 +1,5 @@
+# probe at ace7dd76 (candidate worktree), run 05:52:23
+$ grep -n 'R15-UI-064' src/modules/chart/ChartPanel.tsx src/modules/chart/ChartPanel.test.tsx src/lib/chart-theme.ts | head
+src/modules/chart/ChartPanel.test.tsx:1238:  it("a % comparison overlay gets sorted, de-duplicated points on a VISIBLE left scale (R15-UI-064)", async () => {
+src/modules/chart/ChartPanel.test.tsx:1275:  it("two single-line indicators never share a colour (R15-UI-064)", async () => {
+$ grep -n 'INDICATOR_COLORS' -A10 src/lib/chart-theme.ts | head -14

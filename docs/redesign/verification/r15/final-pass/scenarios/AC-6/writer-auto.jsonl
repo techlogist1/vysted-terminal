@@ -1,0 +1,53 @@
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_d976a5cc3a9d4f30a2816dd06002bbea", "name": "portfolio_add_position", "input": {"symbol": "TCS", "quantity": 5, "cost_basis": 3500, "purchased_at": "2026-10-03", "asset_class": "equity"}}
+{"kind": "tool_use", "tool_call_id": "call_9bd74d8a2e2d4963aa8ec503f022b086", "name": "write_note", "input": {"scope": "global", "mode": "append", "text": "TCS added to portfolio"}}
+{"kind": "tool_result", "tool_call_id": "call_d976a5cc3a9d4f30a2816dd06002bbea", "name": "portfolio_add_position", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_9bd74d8a2e2d4963aa8ec503f022b086", "name": "write_note", "ok": true, "error": null}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " now"}
+{"kind": "delta", "text": " contains"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " basis"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "350"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "A"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " added"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " added"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": ".\"\n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " changes"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " checking"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " Portfolio"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 435, "output_tokens": 48, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,588 @@
+{"kind": "tool_use", "tool_call_id": "call_b83191de212b432cacf4176587184598", "name": "research", "input": {"query": "Cochin Shipyard \u2014 order book, margins and valuation", "depth": "quick"}}
+{"kind": "research_step", "tool_call_id": "call_b83191de212b432cacf4176587184598", "tool": "research", "step_kind": "engine", "detail": "research:begin 5c9314c3b85a44e285607dc1ceb698a6 depth=normal query=Cochin Shipyard \u2014 order book, margins and valuation", "latency_ms": null, "status": "ok", "index": 1}
+{"kind": "research_step", "tool_call_id": "call_b83191de212b432cacf4176587184598", "tool": "research", "step_kind": "plan", "detail": "resolving \"Cochin Shipyard \u2014 order book, margins and valuation\"", "latency_ms": null, "status": "ok", "index": 2}
+{"kind": "research_step", "tool_call_id": "call_b83191de212b432cacf4176587184598", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 COCHINSHIP", "latency_ms": 1965, "status": "ok", "index": 3}
+{"kind": "research_step", "tool_call_id": "call_b83191de212b432cacf4176587184598", "tool": "research", "step_kind": "tool", "detail": "pulling market data for COCHINSHIP", "latency_ms": null, "status": "ok", "index": 4}
+{"kind": "research_step", "tool_call_id": "call_b83191de212b432cacf4176587184598", "tool": "research", "step_kind": "search", "detail": "searching the web for Cochin Shipyard Limited", "latency_ms": null, "status": "ok", "index": 5}
+{"kind": "research_step", "tool_call_id": "call_b83191de212b432cacf4176587184598", "tool": "research", "step_kind": "tool", "detail": "price timed out after 6s \u2014 dropped", "latency_ms": 6001, "status": "error", "index": 6}
+{"kind": "research_step", "tool_call_id": "call_b83191de212b432cacf4176587184598", "tool": "research", "step_kind": "tool", "detail": "fundamentals timed out after 6s \u2014 dropped", "latency_ms": 6001, "status": "error", "index": 7}
+{"kind": "research_step", "tool_call_id": "call_b83191de212b432cacf4176587184598", "tool": "research", "step_kind": "tool", "detail": "pulled 2/4 data sources", "latency_ms": 6016, "status": "ok", "index": 8}
+{"kind": "research_step", "tool_call_id": "call_b83191de212b432cacf4176587184598", "tool": "research", "step_kind": "search", "detail": "6 web source(s)", "latency_ms": 7767, "status": "ok", "index": 9}
+{"kind": "research_step", "tool_call_id": "call_b83191de212b432cacf4176587184598", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 10}
+{"kind": "tool_use", "tool_call_id": "call_b83191de212b432cacf4176587184598__autobrief", "name": "publish_brief", "input": {"query": "Cochin Shipyard \u2014 order book, margins and valuation", "symbol": "COCHINSHIP", "mode": "fast", "depth": "quick", "execution": {"run_id": "5c9314c3b85a44e285607dc1ceb698a6", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790302900.2374809, "finished_at": 1790302909.9788768, "degraded_reason": null}, "markdown": "", "sources": [{"url": "https://www.screener.in/company/COCHINSHIP/", "title": "Cochin Shipyard Ltd share price | About Cochin Shipyard | Key Insights - Screener", "excerpt": "", "domain": "screener.in", "published_at": null}, {"url": "https://www.moneycontrol.com/india/stockpricequote/ship-building/cochinshipyard/CS", "title": "Cochin Shipyard Share Price, Cochin Shipyard Stock Price, Cochin Shipyard Ltd. Stock Price, Share Price, Live BSE/NSE, Cochin Shipyard Ltd. Bids Offers. Buy/Sell Cochin Shipyard Ltd. news & tips, & F&O Quotes, NSE/BSE Forecast News and Live Quotes - Moneycontrol.com", "excerpt": "", "domain": "moneycontrol.com", "published_at": null}, {"url": "https://www.google.com/finance/beta/quote/COCHINSHIP:NSE", "title": "Cochin Shipyard Ltd (COCHINSHIP) Stock Price & News - Google Finance", "excerpt": "", "domain": "google.com", "published_at": null}, {"url": "https://www.nseindia.com/get-quotes/equity?symbol=COCHINSHIP", "title": "Cochin Shipyard Limited Share Price Today, Stock Price, Live NSE News, Quotes, Tips \u2013 NSE India", "excerpt": "", "domain": "nseindia.com", "published_at": null}, {"url": "https://groww.in/stocks/cochin-shipyard-ltd", "title": "Cochin Shipyard Share Price, Stock Price, LIVE NSE/BSE - Groww", "excerpt": "", "domain": "groww.in", "published_at": null}, {"url": "https://www.moneyworks4me.com/indianstocks/mid-cap/construction-infrastructure/ship-building/cochin-shipyard/company-info", "title": "Cochin Shipyard Ltd (COCHINSHIP) Share Analysis \u2013 Order Book, Quality & Valuation Zone & DeciZen Rating | MoneyWorks4Me", "excerpt": "", "domain": "moneyworks4me.com", "published_at": null}], "structured": {"price": {"ok": false, "provider": null, "error": "price timed out after 6s \u2014 dropped", "reason": "provider_error"}, "fundamentals": {"ok": false, "provider": null, "error": "fundamentals timed out after 6s \u2014 dropped", "reason": "provider_error"}, "derived": {"ok": true, "provider": "derived", "data": {"drawdown_from_high": {"value": null, "label": "Below 52-week high", "basis": "vs 52w high", "formula": "(52w high - price) / 52w high", "unit": "fraction"}, "fifty_two_week_change": {"value": null, "label": "52-week price change (Yahoo)", "basis": "trailing 52 weeks", "unit": "fraction"}, "dividend_yield": {"value": null, "label": "Dividend yield", "basis": "fraction of price", "unit": "fraction"}, "dividend_per_share": {"value": null, "label": "Dividend per share", "basis": "per share, listing currency", "unit": "currency"}, "revenue_growth": {"value": null, "label": "Revenue growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction"}, "earnings_growth": {"value": null, "label": "Earnings growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction"}, "market_cap": {"value": null, "label": "Market cap", "basis": "provider market cap", "unit": "currency"}, "conflicts": []}}, "news": {"ok": true, "provider": null, "data": []}, "filings": {"ok": true, "provider": "nse+bse", "data": {"symbol": "COCHINSHIP", "exchange": null, "coverage": "covered", "sources": ["NSE", "BSE"], "errors": {}, "count": 20, "announcements": [{"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Disclosure pursuant to Regulation 30 of the SEBI LODR Regulations", "category": "Acquisition", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_24092026153822_SE_Intimation_sd.pdf", "ts": "2026-09-24T15:38:34+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015", "category": "Trading Window", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_24092026153139_Trading_Window_Closure_SE_Intimation_Sep_2026_sd.pdf", "ts": "2026-09-24T15:31:53+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Transcript", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_18092026110658_SE_Intimation_sd.pdf", "ts": "2026-09-18T11:07:19+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Agreements", "category": "Agreements", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_11092026213638_SE_Intimation_Sgd.pdf", "ts": "2026-09-11T21:37:21+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Updates on Joint Venture", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8605bd8a-6fda-4be8-bf43-4078a8e3fe45.pdf", "ts": "2026-09-11T21:34:30.030000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Link of Recording", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_10092026165613_SE_Intimation_sd.pdf", "ts": "2026-09-10T16:56:26+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Investor Presentation", "category": "Investor Presentation", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_10092026103615_SE_Intimation_sd.pdf", "ts": "2026-09-10T10:36:31+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange regarding 'Comments Of  The Board Of Directors Of The Company Pursuant To SEBI Master Circular Dated January 30, 2026'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_09092026115928_Board_Comments_Q1FY27_sd.pdf", "ts": "2026-09-09T11:59:44+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "CSL Board approves the proposal for forming a joint venture with Drydocks World Dubai   FZCO (DDW)", "category": "Outcome of Board Meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_09092026113101_SE_Intimation_Cov_Pag_BM_Outcome_sd.pdf", "ts": "2026-09-09T11:33:03+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Schedule of meet", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_07092026170256_SE_Intimation_sd.pdf", "ts": "2026-09-07T17:04:10+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Copy of Newspaper Publication", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_05092026132536_SE_Intimation_Sgd.pdf", "ts": "2026-09-05T13:25:48+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Intimation Of Record Date For Payment Of Final Dividend For FY 2025-26", "category": "Corp. Action", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e06c6e32-e938-4a7d-b5bb-548b79673525.pdf", "ts": "2026-09-04T11:29:54.777000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange that Record date for the purpose of Dividend  is 18-Sep-2026.", "category": "Record Date", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_04092026112457_SE_Intimation_Record_Date_Sgd.pdf", "ts": "2026-09-04T11:25:21+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Business Responsibility and Sustainability Reporting (BRSR)", "category": "Others", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e63e7e8f-ea8b-4b50-8d53-1878b791a19c.pdf", "ts": "2026-09-04T11:12:47.807000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange regarding Notice of Annual General Meeting to be held on September 29, 2026", "category": "Shareholders meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_04092026110043_SE_Intimation_54th_AGM_Notice_Sgd.pdf", "ts": "2026-09-04T11:00:57+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Reg. 34 (1) Annual Report.", "category": "Others", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/aba1459d-eea7-4d24-9b40-e52540f83926.pdf", "ts": "2026-09-04T10:56:11.670000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Copy of Newspaper Publication", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_02092026144931_SE_Intimation_Sgd.pdf", "ts": "2026-09-02T14:49:43+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Disclosure Pursuant To Regulation 30 Of The SEBI LODR Regulations", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/11fbfecc-3e24-4810-b794-23aa68f52aa4.pdf", "ts": "2026-08-27T13:04:05.407000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Action(s) taken or orders passed", "category": "Action(s) taken or orders passed", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_27082026130027_SE_Intimation_27_08_2026_sd.pdf", "ts": "2026-08-27T13:00:50+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Copy of Newspaper Publication", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_22082026114942_SE_Intimation_Sgd.pdf", "ts": "2026-08-22T11:50:12+05:30"}]}}}, "cost": null, "web_available": true, "note": null, "web_reason": null, "backend": "keyless-fallback"}}
+{"kind": "tool_use", "tool_call_id": "call_d757ee93f86c44d19e7698d4c6a3f576", "name": "fundamentals", "input": {"symbol": "COCHINSHIP"}}
+{"kind": "tool_use", "tool_call_id": "call_7fbe2f9f6ffd47abae5373f0a76f480d", "name": "price_data", "input": {"symbol": "COCHINSHIP", "timeframe": "1d", "range": "1y"}}
+{"kind": "tool_use", "tool_call_id": "call_0ec5e54fa3204885af193faee0912419", "name": "corporate_announcements", "input": {"symbol": "COCHINSHIP", "limit": 5}}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Here's"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "C"}
+{"kind": "delta", "text": "och"}
+{"kind": "delta", "text": "in"}
+{"kind": "delta", "text": " Ship"}
+{"kind": "delta", "text": "yard"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Val"}
+{"kind": "delta", "text": "uation"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Key"}
+{"kind": "delta", "text": " Metrics"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Market"}
+{"kind": "delta", "text": " Capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "36"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "042"}
+{"kind": "delta", "text": " cro"}
+{"kind": "delta", "text": "res"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Price"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "52"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "92"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Forward"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "30"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "65"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Price"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "Book"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "14"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Price"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-S"}
+{"kind": "delta", "text": "ales"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "14"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " Per"}
+{"kind": "delta", "text": " Share"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "EPS"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "86"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Dividend"}
+{"kind": "delta", "text": " Yield"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "82"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Annual"}
+{"kind": "delta", "text": " dividend"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "11"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ")\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Marg"}
+{"kind": "delta", "text": "ins"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Gross"}
+{"kind": "delta", "text": " Margin"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "33"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "39"}
+{"kind": "delta", "text": "%\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Operating"}
+{"kind": "delta", "text": " Margin"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "14"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "70"}
+{"kind": "delta", "text": "%\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Profit"}
+{"kind": "delta", "text": " Margin"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "48"}
+{"kind": "delta", "text": "%\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Growth"}
+{"kind": "delta", "text": " Metrics"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Revenue"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "TT"}
+{"kind": "delta", "text": "M"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "047"}
+{"kind": "delta", "text": " cro"}
+{"kind": "delta", "text": "res"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Net"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "TT"}
+{"kind": "delta", "text": "M"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "680"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "14"}
+{"kind": "delta", "text": " cro"}
+{"kind": "delta", "text": "res"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Revenue"}
+{"kind": "delta", "text": " Growth"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Yo"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": "%\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " Growth"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Yo"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "19"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "37"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "not"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": " decline"}
+{"kind": "delta", "text": ")\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Recent"}
+{"kind": "delta", "text": " Corporate"}
+{"kind": "delta", "text": " Ann"}
+{"kind": "delta", "text": "ouncements"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "["}
+{"kind": "delta", "text": "Disclosure"}
+{"kind": "delta", "text": " regarding"}
+{"kind": "delta", "text": " Acquisition"}
+{"kind": "delta", "text": "]("}
+{"kind": "delta", "text": "https"}
+{"kind": "delta", "text": "://"}
+{"kind": "delta", "text": "n"}
+{"kind": "delta", "text": "search"}
+{"kind": "delta", "text": "ives"}
+{"kind": "delta", "text": ".n"}
+{"kind": "delta", "text": "se"}
+{"kind": "delta", "text": "india"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "/c"}
+{"kind": "delta", "text": "orpor"}
+{"kind": "delta", "text": "ate"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "As"}
+{"kind": "delta", "text": "wi"}
+{"kind": "delta", "text": "473"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "_"}
+{"kind": "delta", "text": "240"}
+{"kind": "delta", "text": "920"}
+{"kind": "delta", "text": "261"}
+{"kind": "delta", "text": "538"}
+{"kind": "delta", "text": "22"}
+{"kind": "delta", "text": "_SE"}
+{"kind": "delta", "text": "_Int"}
+{"kind": "delta", "text": "imation"}
+{"kind": "delta", "text": "_sd"}
+{"kind": "delta", "text": ".pdf"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ")\n"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "["}
+{"kind": "delta", "text": "Trading"}
+{"kind": "delta", "text": " Window"}
+{"kind": "delta", "text": " Closure"}
+{"kind": "delta", "text": "]("}
+{"kind": "delta", "text": "https"}
+{"kind": "delta", "text": "://"}
+{"kind": "delta", "text": "n"}
+{"kind": "delta", "text": "search"}
+{"kind": "delta", "text": "ives"}
+{"kind": "delta", "text": ".n"}
+{"kind": "delta", "text": "se"}
+{"kind": "delta", "text": "india"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "/c"}
+{"kind": "delta", "text": "orpor"}
+{"kind": "delta", "text": "ate"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "As"}
+{"kind": "delta", "text": "wi"}
+{"kind": "delta", "text": "473"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "_"}
+{"kind": "delta", "text": "240"}
+{"kind": "delta", "text": "920"}
+{"kind": "delta", "text": "261"}
+{"kind": "delta", "text": "531"}
+{"kind": "delta", "text": "39"}
+{"kind": "delta", "text": "_"}
+{"kind": "delta", "text": "Trading"}
+{"kind": "delta", "text": "_Window"}
+{"kind": "delta", "text": "_"}
+{"kind": "delta", "text": "Closure"}
+{"kind": "delta", "text": "_SE"}
+{"kind": "delta", "text": "_Int"}
+{"kind": "delta", "text": "imation"}
+{"kind": "delta", "text": "_S"}
+{"kind": "delta", "text": "ep"}
+{"kind": "delta", "text": "_"}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "_sd"}
+{"kind": "delta", "text": ".pdf"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ")\n"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "["}
+{"kind": "delta", "text": "Transcript"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Analysts"}
+{"kind": "delta", "text": " Meet"}
+{"kind": "delta", "text": "]("}
+{"kind": "delta", "text": "https"}
+{"kind": "delta", "text": "://"}
+{"kind": "delta", "text": "n"}
+{"kind": "delta", "text": "search"}
+{"kind": "delta", "text": "ives"}
+{"kind": "delta", "text": ".n"}
+{"kind": "delta", "text": "se"}
+{"kind": "delta", "text": "india"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "/c"}
+{"kind": "delta", "text": "orpor"}
+{"kind": "delta", "text": "ate"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "As"}
+{"kind": "delta", "text": "wi"}
+{"kind": "delta", "text": "473"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "_"}
+{"kind": "delta", "text": "180"}
+{"kind": "delta", "text": "920"}
+{"kind": "delta", "text": "261"}
+{"kind": "delta", "text": "106"}
+{"kind": "delta", "text": "58"}
+{"kind": "delta", "text": "_SE"}
+{"kind": "delta", "text": "_Int"}
+{"kind": "delta", "text": "imation"}
+{"kind": "delta", "text": "_sd"}
+{"kind": "delta", "text": ".pdf"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "18"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ")\n"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "["}
+{"kind": "delta", "text": "Ag"}
+{"kind": "delta", "text": "reements"}
+{"kind": "delta", "text": " Disclosure"}
+{"kind": "delta", "text": "]("}
+{"kind": "delta", "text": "https"}
+{"kind": "delta", "text": "://"}
+{"kind": "delta", "text": "n"}
+{"kind": "delta", "text": "search"}
+{"kind": "delta", "text": "ives"}
+{"kind": "delta", "text": ".n"}
+{"kind": "delta", "text": "se"}
+{"kind": "delta", "text": "india"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "/c"}
+{"kind": "delta", "text": "orpor"}
+{"kind": "delta", "text": "ate"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "As"}
+{"kind": "delta", "text": "wi"}
+{"kind": "delta", "text": "473"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "_"}
+{"kind": "delta", "text": "110"}
+{"kind": "delta", "text": "920"}
+{"kind": "delta", "text": "262"}
+{"kind": "delta", "text": "136"}
+{"kind": "delta", "text": "38"}
+{"kind": "delta", "text": "_SE"}
+{"kind": "delta", "text": "_Int"}
+{"kind": "delta", "text": "imation"}
+{"kind": "delta", "text": "_S"}
+{"kind": "delta", "text": "gd"}
+{"kind": "delta", "text": ".pdf"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "11"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ")\n"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "["}
+{"kind": "delta", "text": "Joint"}
+{"kind": "delta", "text": " Venture"}
+{"kind": "delta", "text": " Updates"}
+{"kind": "delta", "text": "]("}
+{"kind": "delta", "text": "https"}
+{"kind": "delta", "text": "://"}
+{"kind": "delta", "text": "www"}
+{"kind": "delta", "text": ".b"}
+{"kind": "delta", "text": "se"}
+{"kind": "delta", "text": "india"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "/xml"}
+{"kind": "delta", "text": "-data"}
+{"kind": "delta", "text": "/c"}
+{"kind": "delta", "text": "orp"}
+{"kind": "delta", "text": "fil"}
+{"kind": "delta", "text": "ing"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "Attach"}
+{"kind": "delta", "text": "His"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "860"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "bd"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "a"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "f"}
+{"kind": "delta", "text": "da"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "be"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "-b"}
+{"kind": "delta", "text": "f"}
+{"kind": "delta", "text": "43"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "407"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "a"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "e"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "fe"}
+{"kind": "delta", "text": "45"}
+{"kind": "delta", "text": ".pdf"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "11"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ")\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Summary"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "C"}
+{"kind": "delta", "text": "och"}
+{"kind": "delta", "text": "in"}
+{"kind": "delta", "text": " Ship"}
+{"kind": "delta", "text": "yard"}
+{"kind": "delta", "text": " shows"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " robust"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " presence"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " substantial"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " significant"}
+{"kind": "delta", "text": " gross"}
+{"kind": "delta", "text": " profit"}
+{"kind": "delta", "text": " margins"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " faces"}
+{"kind": "delta", "text": " challenges"}
+{"kind": "delta", "text": " reflected"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " notable"}
+{"kind": "delta", "text": " decline"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " earnings"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " For"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": "-depth"}
+{"kind": "delta", "text": " analysis"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " consider"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " announcements"}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " shed"}
+{"kind": "delta", "text": " light"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " potential"}
+{"kind": "delta", "text": " business"}
+{"kind": "delta", "text": " developments"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "\u2019d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " look"}
+{"kind": "delta", "text": " into"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " different"}
+{"kind": "delta", "text": " aspect"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " further"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " just"}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": "!"}
+{"kind": "research_step", "tool_call_id": "call_b83191de212b432cacf4176587184598__autobrief", "tool": "publish_brief", "step_kind": "notice", "detail": "The brief panel did not confirm the publish \u2014 treat it as NOT rendered until get_terminal_state shows it.", "latency_ms": null, "status": "error", "index": 1}
+{"kind": "done", "usage": {"input_tokens": 18711, "output_tokens": 570, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.026577}

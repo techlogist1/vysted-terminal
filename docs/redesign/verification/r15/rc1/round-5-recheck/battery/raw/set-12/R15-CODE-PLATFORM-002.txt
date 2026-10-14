@@ -1,0 +1,30 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+method: live POST /workflow/run against rc1-battery-11's own sidecar (:52351,
+sourced from the candidate worktree, own data dir) with a graph built ONLY
+from the palette's own specs (node-registry.ts BUILT_IN_NODE_SPECS ports +
+BUILT_IN_NODE_CONFIG_FIELDS default config keys): fetch_quote -> json_path
+(path "price", input port "value") -> logic.compare (op "neq") + logic.branch
+(input port "value") -> flow.sleep (config "seconds":1) -> action.notify_desktop
+(config "message_template":"{value}").
+
+cmd: curl -s -m 25 -N -X POST http://127.0.0.1:52351/workflow/run -d @wf_full.json
+
+raw SSE output (final node events):
+data: {"kind":"node-output","nodeId":"jp","outputs":{"extracted":341.07000732421875},...}
+data: {"kind":"node-output","nodeId":"br","outputs":{"true_path":341.07000732421875},...}
+data: {"kind":"node-output","nodeId":"cmp","outputs":{"result":true},...}
+data: {"kind":"node-output","nodeId":"sl","outputs":{"value":341.07000732421875,"slept":1.0},...}
+data: {"kind":"node-output","nodeId":"nt","outputs":{"notified":true,"title":"b11-battery","message":"341.07000732421875","intent":"desktop-notification"},...}
+data: {"kind":"run-complete",...}
+
+observed: json_path.extracted is the real price (not None); logic.compare "neq"
+returns a boolean (not "unknown op ne"); branch.true_path carries the value
+(not None); flow.sleep slept 1.0s (not 0.0); notify_desktop.message is the
+rendered value (not ""). Matches batch-4 VERDICTS.md certification exactly.
+
+Also re-ran fetch_history -> compute.indicator {indicator_id:"rsi"} (symbol
+AAPL, period 3mo, interval 1d): returned a populated RSI(14) time series
+(non-empty "result" with dated values), confirming the indicator_id config
+key and "series"/"result" ports are wired correctly too.
+
+verdict: holds

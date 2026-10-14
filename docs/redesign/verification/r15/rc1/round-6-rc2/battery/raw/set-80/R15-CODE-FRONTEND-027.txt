@@ -1,0 +1,27 @@
+# R15-CODE-FRONTEND-027 at ace7dd76 (pinned test existence + source check; vitest not run, heavy lane owns)
+$ grep -n -F 'refreshCustom' src/store/agents.test.ts
+15:describe("useAgentsStore.refreshCustom", () => {
+16:  it("refreshCustom 404 -> customStatus error", async () => {
+21:    await useAgentsStore.getState().refreshCustom();
+exit=0
+$ grep -n -F 'describe(' src/lib/sidecar-client.test.ts
+13:describe("a failed sidecar boot", () => {
+69:describe("getSidecarBaseUrl readiness gate", () => {
+137:describe("per-instrument region override", () => {
+191:describe("sidecarRequest error layer", () => {
+295:describe("custom-agents refresh transport", () => {
+356:describe("sidecarRequest omits the research key on its default REST path", () => {
+397:describe("no crypto WebSocket helper (R15-DATA-109)", () => {
+408:describe("request timeouts", () => {
+exit=0
+$ grep -n -F 'sidecar' src/store/workflow.test.ts
+7:// (sidecarRequestInit + sidecarFetch, R15-CODE-FRONTEND-027).
+8:vi.mock("@/lib/sidecar-client", async () => {
+10:    await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
+305:  it("rejects when the sidecar returns a non-2xx response", async () => {
+exit=0
+$ grep -n -F 'it(' src/modules/node-editor/schedule-control.test.tsx
+41:  it("creates an interval schedule for the saved workflow and lists it", async () => {
+65:  it("refuses an interval under the 5-minute floor", async () => {
+74:  it("R15-CODE-FRONTEND-027: toggling PATCHes through the shared verb; a failure shows its sentence", async () => {
+exit=0

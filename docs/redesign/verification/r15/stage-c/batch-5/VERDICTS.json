@@ -1,0 +1,85 @@
+{
+  "certified": [
+    "R15-DATA-020",
+    "R15-DATA-023",
+    "R15-DATA-024",
+    "R15-DATA-025",
+    "R15-DATA-056",
+    "R15-AGENT-060",
+    "R15-AGENT-062",
+    "R15-AGENT-058",
+    "R15-CODE-RESEARCH-001",
+    "R15-DATA-074",
+    "R15-DATA-026",
+    "R15-DATA-057",
+    "R15-DATA-097",
+    "R15-LEAD-011",
+    "R15-DATA-064",
+    "R15-DATA-063",
+    "R15-DATA-015",
+    "R15-DATA-037",
+    "R15-LEAD-009",
+    "R15-DATA-072",
+    "R15-AGENT-020",
+    "R15-AGENT-040",
+    "R15-AGENT-026",
+    "R15-RESEARCH-014",
+    "R15-AGENT-025",
+    "R15-AGENT-048",
+    "R15-AGENT-033",
+    "R15-AGENT-031",
+    "R15-UI-054",
+    "R15-CODE-PLATFORM-004",
+    "R15-CODE-PLATFORM-019",
+    "R15-CODE-PLATFORM-005",
+    "R15-CODE-AGENT-012",
+    "R15-AGENT-059",
+    "R15-CODE-PLATFORM-020",
+    "R15-LEAD-001",
+    "R15-LEAD-003",
+    "R15-DATA-110",
+    "R15-UI-055",
+    "R15-UI-056",
+    "R15-CODE-DATA-004",
+    "R15-CODE-DATA-006",
+    "R15-LIFECYCLE-017",
+    "R15-LIFECYCLE-020",
+    "R15-UI-045",
+    "R15-DATA-028",
+    "R15-DATA-032",
+    "R15-DATA-067"
+  ],
+  "needs_gui": [
+    "R15-CODE-AGENT-001",
+    "R15-LIFECYCLE-008"
+  ],
+  "not_certified": [
+    {
+      "id": "R15-LEAD-010",
+      "reason": "Regression. The panel path works (a listed 10-K opens with the form hint: AAPL 0000320193-25-000079 loaded live), but the no-hint path now asks sec-edgar-mcp for 1,000 unfiltered filings, which fails upstream every time (limit 200/400/1000: 'read operation timed out' or 'cannot unpack non-iterable NoneType'; 40/60/100 succeed). The agent's sec_filing_content tool (copilot, researcher) never passes a hint, so it now fails for every filing: AAPL Form 4 0001140361-26-036226 and MSFT 10-Q 0001193125-26-191507 return ok:false on the target and ok:true on base. GET /sec/filings/{acc} without form_type: target 502 in 14 s, base 200 in 1 s."
+    },
+    {
+      "id": "R15-DATA-017",
+      "reason": "Half fixed. JNPR and DHOOTTRANS disclosures now return 200 with data, SUMAX quotes/history via NSE and 'Sumax Engineering Limited' resolves to SUMAX (yahoo SUMAX-SM.NS). But every NSE Emerge name's disclosures now come back 200 and empty instead of 502: nse_provider._fetch_corporate_list hard-codes index=equities, while NSE serves SME filings under index=sme (SUMAX 7 announcements + 1 SHP, QUALIANCE 7, SHANTIINOR 2 live on NSE; the app returns 0 with no error)."
+    },
+    {
+      "id": "R15-CODE-PLATFORM-018",
+      "reason": "Not fixed in effect. The quant nodes/tools now call asyncio.to_thread, but QuantLib's SWIG calls hold the GIL, so the event loop still freezes: a quant.price_option workflow node (binomial, 20,000 steps) blocked GET /health for 6.4 s (60,000 steps: 54 s); the sync /quant route blocks it the same way (6.4 s). Base: 9.1 s. Needs a process pool (or a GIL-releasing build)."
+    },
+    {
+      "id": "R15-AGENT-052",
+      "reason": "Not delivered (integrator CHANGELOG). Publishers still key the bus 'chart-${panelId}' (ChartPanel.tsx:885/912), 'equity' (EquityOverviewPanel.tsx:691) and 'backtest-panel' (BacktestResultView.tsx:424), while PanelHost focuses the dockview ids 'chart'/'equity-overview'."
+    },
+    {
+      "id": "R15-AGENT-051",
+      "reason": "No live effect until AGENT-052. The live snapshot's charts carry bus keys ('chart-chart', 'chart-chart-2') that never equal focusedPanel ('chart-2'), so the preamble cannot find the focused chart. Rendered with that snapshot shape: 'Chart: SPY ... Focused panel: chart-2. When the user says \"this\" ... they mean SPY' while chart-2 shows INFY."
+    },
+    {
+      "id": "R15-CODE-FRONTEND-015",
+      "reason": "No live effect until AGENT-052. focusedSymbolFromBus is now the single derivation, but it looks up bus[focusedSource] by dockview id and the real panels publish under other keys. The committed test publishes under 'equity-overview', which the real Equity Overview never does. Live: the badge and chips show no symbol, and the snapshot falls back to charts[0]."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-5-int@a4c5039a1463109f9465c4b0030fd64258502349"
+}

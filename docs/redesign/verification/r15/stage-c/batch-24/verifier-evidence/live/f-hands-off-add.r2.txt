@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  39.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_d8c10df51f334764ab99697bdcc8e9f1", "name": "portfolio_add_position", "input": {"symbol": "SBIN", "quantity": 20, "cost_basis": 800, "asset_class": "equity"}}
+[  39.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_d8c10df51f334764ab99697bdcc8e9f1", "name": "portfolio_add_position", "ok": true, "error": null}
+[  42.7s] research_step: {"kind": "research_step", "tool_call_id": "call_d8c10df51f334764ab99697bdcc8e9f1", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position SBIN. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  42.7s] done: {"kind": "done", "usage": {"input_tokens": 2929, "output_tokens": 40, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I've staged the addition of 20 shares of SBIN at ₹800 in your portfolio for review. Please check the proposal bar to confirm this change and accept it for it to be applied.
+
+=== ok · 42.7s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 40, 'research_step': 1, 'done': 1} · usage in=2929 out=40 · est $0.00000 · llama3.1:8b

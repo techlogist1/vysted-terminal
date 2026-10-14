@@ -1,0 +1,17 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: grep pinned vitest for UI-030 (MacroPanel real-hook behaviour is frontend-only; no sidecar endpoint reproduces it)
+116:  it("a provider tab loads that provider's own default once, never through the cold-boot retry (R15-UI-030)", async () => {
+117-    vi.useFakeTimers();
+118-    const ecbDefault = "FM.D.U2.EUR.4F.KR.MRR_FR.LEV";
+119-    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+120-      if (path === "/macro/DGS10") return SAMPLE_SERIES;
+121-      if (path === "/macro/catalog") return SAMPLE_CATALOG;
+122-      // A transient-looking failure: the retry hook WOULD re-fire this.
+123-      throw new TypeError("Failed to fetch");
+124-    });
+125-    render(<MacroPanel />);
+126-    await act(async () => {
+127-      await vi.advanceTimersByTimeAsync(0);
+128-    });
+live backend side: GET /macro/catalog?provider=ecb -> 200
+EXIT=0

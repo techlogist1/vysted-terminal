@@ -1,0 +1,17 @@
+# R15-RESEARCH-033 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:33+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p033.py 2>&1 | grep -v Warning
+--- output ---
+heavy research explorer 2 (Competitive position, market, and demand for TCS thesis) crashed
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb2/sc/p033.py", line 12, in explorer
+    if len(calls)==2: raise RuntimeError("explorer boom")
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: explorer boom
+brief type ResearchBrief
+ok expert panel: 3 parallel angle(s)
+error explorer angle 2 (Competitive position, market, and demand for TCS) failed: RuntimeError: explorer boom
+ok synthesized 2 angle report(s) into one brief (single-call)
+emitted error steps: ['explorer angle 2 (Competitive position, market, and demand for TCS) failed: RuntimeError: explorer boom']
+
+EXIT=0 (1.5s)

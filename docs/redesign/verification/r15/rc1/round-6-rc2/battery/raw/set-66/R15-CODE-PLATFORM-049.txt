@@ -1,0 +1,7 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ grep -n 'plugin-secret\|keychainDelete\|deleteSecret\|vysted-search-exa' src/store/marketplace.ts | head -20; grep -rn 'R15-CODE-PLATFORM-049' src --include=*.test.ts* | head -5
+exit=0
+21:import { deleteSecret, getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
+193:          config.grantedSecretIds.map((account) => deleteSecret(account).catch(() => undefined)),
+225:            await deleteSecret(account).catch(() => undefined);
+src/store/marketplace.test.ts:107:  it("remove(vysted-news) deletes each granted secret; disable does not (R15-CODE-PLATFORM-049)", async () => {

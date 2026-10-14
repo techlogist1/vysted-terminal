@@ -1,0 +1,25 @@
+# /disclosures/shareholding on own :52312 (4c6dfe8c export), X-Vysted-Region IN; 2026-09-26T12:22:57Z
+== TCS
+{"symbol":"TCS","count":20,"patterns":[{"symbol":"TCS","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":71.77,"fii_percent":null,"dii_percent":null,"institutions_percent":null,"public_percent":28.23,"public_basis":"incl. institutions","public_non_institutional_percent":null,"employee_trusts_percent":0.0,"submission_date":"2026-07-21","xbrl_url":"https://nsearchives.nseindia.com/c
+HTTP 200
+== RELIANCE
+{"symbol":"RELIANCE","count":22,"patterns":[{"symbol":"RELIANCE","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":50.48,"fii_percent":null,"dii_percent":null,"institutions_percent":null,"public_percent":49.52,"public_basis":"incl. institutions","public_non_institutional_percent":null,"employee_trusts_percent":0.0,"submission_date":"2026-07-16","xbrl_url":"https://nsearchives.nsei
+HTTP 200
+== AMAL
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+== DAL
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+== NAPEROL
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+== JUMBO
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+== ELCIDIN
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+== JNPR
+{"symbol":"JNPR","count":1,"patterns":[{"symbol":"JNPR","quarter_end":"2026-08-05","quarter_basis":null,"promoter_percent":85.94,"fii_percent":null,"dii_percent":null,"institutions_percent":null,"public_percent":14.06,"public_basis":"incl. institutions","public_non_institutional_percent":null,"employee_trusts_percent":0.0,"submission_date":"2026-08-06","xbrl_url":"https://nsearchives.nseindia.com/
+HTTP 200

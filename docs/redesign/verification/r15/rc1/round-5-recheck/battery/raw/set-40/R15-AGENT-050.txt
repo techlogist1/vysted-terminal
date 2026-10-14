@@ -1,0 +1,15 @@
+=== R15-AGENT-050 repro: in-process re-run of anthropic.py's _split_system_and_messages ===
+Live python call (sidecar venv, candidate 949c3c9f), input: 3 system messages
+(persona, date, terminal preamble) + a user turn + an assistant tool_calls turn +
+a tool result:
+
+system blocks: [{'type': 'text', 'text': 'PERSONA BLOCK', 'cache_control': {'type': 'ephemeral'}}, {'type': 'text', 'text': 'DATE BLOCK'}, {'type': 'text', 'text': 'TERMINAL PREAMBLE BLOCK'}]
+last rest entry: {'role': 'user', 'content': [{'type': 'tool_result', 'tool_use_id': 't1', 'content': 'result data', 'cache_control': {'type': 'ephemeral'}}]}
+
+Source (anthropic.py:65-131): each system message becomes its OWN block (not
+joined into one string); cache_control is set ONLY on system_blocks[0] (the
+stable persona block) so the per-turn date/preamble after it never invalidate
+the cache breakpoint, and a second breakpoint rides the last tool_result block.
+
+VERDICT: holds. Matches batch-10's probe5 exactly (persona cache_control
+ephemeral, date/preamble uncached, second breakpoint on the last tool result).

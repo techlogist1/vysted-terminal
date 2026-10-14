@@ -1,0 +1,28 @@
+ace7dd76 candidate sidecar :52355; no key sent, no spend
+COMMAND: vy.py invoke copilot hi --provider openai --model gpt-4o-mini --mode agent --autonomy ask --no-key --port 52355 ; groq not offered by vy.py (invalid choice), deepseek substituted (eager-validating family); direct /llm/chat openai
+== provider openai
+[   0.0s] error: {"kind": "error", "message": "No OpenAI API key is set \u2014 add it in Settings.", "action": "Add your OpenAI API key in Settings.", "detail": "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.", "code": "auth"}
+[   0.0s] done: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 0.0s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · gpt-4o-mini
+
+exit=0
+== provider groq
+usage: vy invoke [-h] --provider {openrouter,openai,deepseek,ollama}
+== deepseek via vy.py
+[   0.0s] error: {"kind": "error", "message": "No DeepSeek API key is set \u2014 add it in Settings.", "action": "Add your DeepSeek API key in Settings.", "detail": "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.", "code": "auth"}
+[   0.0s] done: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 0.0s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · gpt-4o-mini
+
+== direct /llm/chat provider=openai no key
+data: {"kind": "error", "message": "No OpenAI API key is set \u2014 add it in Settings.", "action": "Add your OpenAI API key in Settings.", "detail": "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.", "code": "auth"}
+
+
+EXIT=0

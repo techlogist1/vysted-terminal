@@ -1,0 +1,102 @@
+[
+  {
+    "raw_id": "DAT-P6-1",
+    "title": "Financial-statement endpoints (income/balance/cashflow) for ICON return a different company's numbers than the quote/fundamentals endpoints",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "P6_ICON",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/ICON/income (and /balance, /cashflow) for Icon Facilitators Ltd (BSE 544426, India, Mar-FY, half-yearly filer, always profitable FY22-26 per screener) -> returns Dec-31 calendar-year-end periods, weighted-average share counts of 3,903-397,776, and NEGATIVE net income for 2024/2025 (-210,000 and -4,197,000), none of which match the Indian entity.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:547-2007 (income/balance/cashflow bodies, provider 'openbb-mcp'); cross-checked against docs/redesign/verification/r15/battery/packs/P6_ICON.json:'latest_results'/'traps.eps_series_not_restated_1000x' (Icon Facilitators' real net profit series 0.94/1.92/1.76/4.47/4.42 INR crore, all positive, March fiscal year)",
+    "notes": "Mechanism: pack's own traps.three_way_in_app_ticker_collision (packs/P6_ICON.json:'traps'[0]) documents that the app's own us_instruments.json master resolves the bare string 'ICON' to a second, unrelated company ('Icon Energy Corp', US). The /fundamentals/ICON top-level summary (yfinance-sourced, collected.json:239-546) IS correctly scoped to the Indian entity -- market cap, shares outstanding (7,859,600), revenue_ttm and book_value all reconcile to Icon Facilitators' real figures -- so the resolver itself is not misfiring for that call. But the three openbb-mcp-backed statement sub-routes return numbers with the shape of a different, tiny, loss-making, Dec-FY company. Consequence: any panel or agent tool that renders 'Financials' (income statement / balance sheet / cash flow history) for this BSE SME stock would show a stranger's numbers as this company's numbers -- exactly the class of wrong-money-data-shown-as-true defect the R15 brief flags as the top data-trust risk. Smallest fix shape: audit the /fundamentals/{symbol}/income|balance|cashflow route's symbol resolution for the openbb-mcp provider specifically (it appears to key off something other than the ISIN/BSE-code-scoped resolution used by the top-level /fundamentals and /disclosures routes) and add a same-entity sanity check (e.g. shares_outstanding order-of-magnitude match, fiscal-year-end match) before serving statement data for an ambiguous ticker."
+  },
+  {
+    "raw_id": "DAT-P6-2",
+    "title": "EPS (TTM) shown for ICON is ~7% too high and does not reconcile with the app's own net income / share count on the same payload",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P6_ICON",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/ICON -> eps: 6.03. Outside truth (screener, Groww, independently agreeing): EPS FY26 = 5.62-5.63. Also: the same payload's own net_income_ttm (43,538,000) / shares_outstanding (7,859,600) = 5.54, which matches neither 6.03 nor the outside value.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:259 (eps field), :272-275 (net_income_ttm, shares_outstanding); docs/redesign/verification/r15/battery/packs/P6_ICON.json:'eps_ttm' (screener 5.62, Groww 5.63, both source_url-backed)",
+    "notes": "Same definition (FY26 TTM EPS), same as-of period, genuine value disagreement with two independent, mutually-corroborating outside sources, and it does not even self-reconcile against the app's own displayed net income and share count -- three separate signals pointing the same direction. This is the direct root cause of the pe_ttm mismatch (DAT-P6-4): 64.15 / 6.03 = 10.64x vs the correct 64.15 / 5.62-5.63 = 11.4-11.55x, meaning a value screener using Vysted's numbers would rank this stock as cheaper than it actually is. Smallest fix shape: trace yfinance's trailingEps source for ICON.BO and reconcile it against the same payload's own net_income_ttm/shares_outstanding computation; prefer the internally-consistent derived value or surface the discrepancy rather than picking one silently."
+  },
+  {
+    "raw_id": "DAT-P6-3",
+    "title": "Results-calendar endpoint fails outright for a BSE-only SME stock with a misleading NSE-specific error, even though real half-yearly results exist",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P6_ICON",
+    "repro": "GET http://127.0.0.1:52152/disclosures/results?symbol=ICON -> HTTP 502, body {\"detail\": \"nse_direct: 'ICON' is not a known NSE instrument\"}. Icon Facilitators is legitimately BSE-listed (bse_code 544426) with no NSE listing at all (confirmed on both sides) and has four genuine half-yearly result periods on record (Sep 2024 through Mar 2026) per screener.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:2155-2166; docs/redesign/verification/r15/battery/packs/P6_ICON.json:'latest_results' (full H2 FY26 figures: sales 34.45cr, net profit 2.89cr, eps 3.68, opm 12.02%, plus 3 prior half-years, all screener-sourced)",
+    "notes": "Mechanism: the results/earnings-calendar route appears to be hardcoded to (or defaults to) an NSE-only data path, and fails hard for a stock that was never expected to have an NSE listing rather than falling back to BSE. Consequence: the app cannot surface ANY results data for this route on a real, actively-reporting, BSE-only SME name, and the error text actively misattributes the cause ('not a known NSE instrument') rather than saying 'BSE-only, no results-calendar coverage.' A user or agent tool calling this route for any BSE-SME name would hit the same wall. Smallest fix shape: route /disclosures/results by exchange (use the resolver's exchange field) and either serve a BSE-sourced results path or return an honest 'not available for BSE-only listings yet' rather than a wrong-exchange error."
+  },
+  {
+    "raw_id": "DAT-P6-4",
+    "title": "P/E (TTM) shown for ICON is ~7-8% too low, as a direct consequence of the EPS mismatch (DAT-P6-2)",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P6_ICON",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/ICON -> pe_ratio: 10.638474. Outside truth: screener 11.4x, Groww 11.55x (both agree closely with each other).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:250 (pe_ratio); docs/redesign/verification/r15/battery/packs/P6_ICON.json:'pe_ttm'",
+    "notes": "Same definition, same as-of period, genuine mismatch corroborated by two independent outside sources. Root cause is the EPS error (DAT-P6-2): fixing eps_ttm should fix this field too, so the two findings should be resolved together, not as independent bugs."
+  },
+  {
+    "raw_id": "DAT-P6-5",
+    "title": "ROCE is entirely absent from the fundamentals schema for ICON (and, on this evidence, structurally)",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P6_ICON",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/ICON -> response body has no roce/roceTtm/returnOnCapitalEmployed key anywhere (only roe and roa are present alongside the margin fields). Screener prints ROCE 23.3% prominently in its headline ratio strip for this stock.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:239-538 (full fundamentals body -- no roce field present); docs/redesign/verification/r15/battery/packs/P6_ICON.json:'roce'",
+    "notes": "ROCE is one of the most commonly used ratios by Indian small-cap/value investors (the exact audience this product targets) and screener.in -- the product's own explicit benchmark -- surfaces it as a headline metric. Its total absence from the fundamentals payload (not null-for-this-stock, but no key at all) is a real completeness gap for a product whose stated bar is 'screener.in-grade' data density. Smallest fix shape: compute ROCE (EBIT / average capital employed) from the same balance-sheet/income data already available and add it alongside roe/roa in the fundamentals schema."
+  },
+  {
+    "raw_id": "DAT-P6-6",
+    "title": "Day volume is null in the quote for ICON despite the quote otherwise being fully populated for the same session",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P6_ICON",
+    "repro": "GET http://127.0.0.1:52152/quotes/ICON?asset_class=equity -> volume: null, while price/change/change_percent/timestamp for the same 2026-09-18 session are all correctly populated. Outside truth: 9,600 shares, corroborated by screener, Groww AND INDmoney all independently.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:218-238 (quote body, volume: null on line 227); docs/redesign/verification/r15/battery/packs/P6_ICON.json:'price.volume'",
+    "notes": "A silent blank on a field the world has (and triple-corroborates) for the exact same session the app otherwise renders correctly. On a name this illiquid (9,600 shares / ~INR 6.2 lakh traded), volume is one of the few real signals available (per the pack's own 'illiquidity' trap, a missing volume also makes any liquidity/technical-indicator gating impossible to apply correctly). Smallest fix shape: check why the BSE quote provider path that supplies price/change is not also supplying the same day's traded volume that these third-party aggregators clearly have."
+  },
+  {
+    "raw_id": "DAT-P6-7",
+    "title": "Trailing-12m dividend per share is null instead of a confirmed true zero",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P6_ICON",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/ICON -> dividend_per_share_ttm: null, field_meta reason 'provider did not publish this field'. Outside truth: screener's own annual P&L shows Dividend Payout % = 0.00% in every year FY22 through FY26 -- a confirmed, sourced, real zero, not an unknown.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:281 (dividend_per_share_ttm), :377-383 (field_meta 'unavailable'); docs/redesign/verification/r15/battery/packs/P6_ICON.json:'dividend.paid_trailing_12m_per_share'",
+    "notes": "The app conflates 'we don't know' with 'this company pays zero dividends,' the same missing-value-rendered-as-zero-or-vice-versa class of trap the pack's own collector flags elsewhere for a third-party aggregator (INDmoney's P/E-shown-as-0 trap) -- except here it runs the opposite direction (a real, confirmed zero is shown as unknown). A user relying on this field for a 'no dividend' screen would see a blank instead of the confirmed answer. Smallest fix shape: when the underlying provider has no dividend history at all for a name, and the company's own filed payout ratio is 0% across all available years, surface 0 rather than null (or at minimum distinguish 'confirmed zero' from 'provider gap' in field_meta, the way the app already does for other fields)."
+  },
+  {
+    "raw_id": "DAT-P6-8",
+    "title": "Dividend yield is null instead of a confirmed true zero",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P6_ICON",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/ICON -> dividend_yield: null, field_meta 'provider did not publish this field'. Outside truth: 0.00%, triple-corroborated by screener, Groww and INDmoney.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:257,370-376 (dividend_yield + field_meta); docs/redesign/verification/r15/battery/packs/P6_ICON.json:'dividend.yield'",
+    "notes": "Same defect class and same root cause as DAT-P6-7 (confirmed-zero rendered as unknown), on the dividend_yield field specifically. Should likely be fixed together with DAT-P6-7 (both dividend fields probably fall through the same provider-gap code path)."
+  },
+  {
+    "raw_id": "DAT-P6-9",
+    "title": "Beta is null instead of a sourced value",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P6_ICON",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/ICON -> beta: null, field_meta 'provider did not publish this field'. Outside truth: 0.68 (INDmoney, single source but carries a real source_url).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:391-397 (beta field_meta); docs/redesign/verification/r15/battery/packs/P6_ICON.json:'price.beta_ltm'",
+    "notes": "Lowest-confidence of the medium findings here -- only one outside source carries this figure, and beta is commonly provider-specific/uncorroborated across vendors, so this may simply be yfinance genuinely not publishing beta for a BSE SME name with ~14.5 months of trading history (too short a window for some beta methodologies) rather than an app defect. Recorded per the DIFF stage's literal rule (an outside source_url exists) but flagged as the weakest-evidence item in this file; the lead may reasonably downgrade or fold this into a broader 'beta coverage on thin-history names' note rather than a standalone fix."
+  },
+  {
+    "raw_id": "DAT-P6-10",
+    "title": "Announcement headline text is corrupted: a literal double-quote replaces an apostrophe",
+    "severity": "low",
+    "area": "data",
+    "subsystem": "P6_ICON",
+    "repro": "GET http://127.0.0.1:52152/disclosures/announcements?symbol=ICON&limit=25 -> the 2026-09-07 entry's headline field contains a raw embedded double-quote character mid-word ('Scrutinizer\\\"s Report'), requiring backslash-escaping in the JSON response, where the correct text (confirmed by the same filing on screener, and by ordinary English) is \"Scrutinizer's Report\" with a plain apostrophe.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P6_ICON.json:2091; docs/redesign/verification/r15/battery/packs/P6_ICON.json:'last_3_announcements'[0].headline",
+    "notes": "Same underlying filing on both sides (identical date 2026-09-07 and identical PDF GUID 8f71db28-e67f-422b-9f0a-40e6c84a4019), so this is not a different document -- the headline text itself is corrupted, most plausibly a Unicode right-single-quotation-mark (') in BSE's original announcement text being mis-transliterated to an ASCII double-quote somewhere in the app's disclosure ingestion pipeline rather than to a straight apostrophe. Cosmetic (the headline is still legible and the GUID/date are correct), but it is a real text-normalization bug in a user-facing string, and the same mis-transliteration would presumably recur on any other BSE announcement whose original text uses a typographic apostrophe. Smallest fix shape: check the announcement-ingestion normalization step for how it maps non-ASCII apostrophe/quote characters."
+  }
+]

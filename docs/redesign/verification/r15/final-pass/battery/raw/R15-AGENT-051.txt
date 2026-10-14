@@ -1,0 +1,19 @@
+# R15-AGENT-051 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:07+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services import agent_runtime as ar
+ts={"charts":[{"panelId":"c1","symbol":"SPY","timeframe":"1d","indicators":[]},{"panelId":"c2","symbol":"INFY","timeframe":"1d","indicators":["ema:9"]}],"focusedPanel":"c2","focusedSymbol":"INFY"}
+print(ar._render_terminal_preamble(ts)); print('---- equity-overview focused, one chart SPY')
+print(ar._render_terminal_preamble({"charts":[{"panelId":"c1","symbol":"SPY","timeframe":"1d","indicators":[]}],"focusedPanel":"equity-overview","focusedSymbol":"INFY"}))
+PY
+--- output ---
+## What the user is looking at
+Focused chart: INFY (1d, ema:9).
+When the user says "this" or "it", they mean INFY unless they name another symbol. Never invent figures — call a tool to fetch them.
+---- equity-overview focused, one chart SPY
+## What the user is looking at
+Chart: SPY (1d, no indicators).
+Focused panel: equity-overview.
+When the user says "this" or "it", they mean INFY unless they name another symbol. Never invent figures — call a tool to fetch them.
+
+EXIT=0 (1.3s)

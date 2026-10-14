@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  38.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_ece89626d717481eb64a6058f2a43caa", "name": "portfolio_update_position", "input": {"asset_class": "equity", "cost_basis": 1640, "position_id": "HDFCBANK (local)", "purchased_at": "", "quantity": 40, "symbol": "HDFCBANK"}}
+[  38.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_ece89626d717481eb64a6058f2a43caa", "name": "portfolio_update_position", "ok": true, "error": null}
+[  41.6s] research_step: {"kind": "research_step", "tool_call_id": "call_ece89626d717481eb64a6058f2a43caa", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_update_position HDFCBANK. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  41.6s] done: {"kind": "done", "usage": {"input_tokens": 2977, "output_tokens": 36, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Your cost basis for HDFCBANK is ₹1,640 per share. I've proposed this update for your review; accept it to confirm the change in your portfolio summary.
+
+=== ok · 41.6s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 36, 'research_step': 1, 'done': 1} · usage in=2977 out=36 · est $0.00000 · llama3.1:8b

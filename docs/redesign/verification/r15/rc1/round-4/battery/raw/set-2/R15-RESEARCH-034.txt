@@ -1,0 +1,4 @@
+=== R15-RESEARCH-034: in-process _reflect_says_complete repro ===
+orig repro (should be False): False
+'COMPLETE' (should be True): True
+'no gaps' (should be True): True

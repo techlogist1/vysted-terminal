@@ -1,0 +1,11 @@
+[
+ {
+  "raw_id": "LIFE-L6-LONGSESSION-1",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "I tried to refute it on four counts and none held. It is not a decaying-%cpu artifact: cumulative CPU time went 8:10.43 -> 10:53.62 over 272 s, a steady 60%. It is not memory-pressure fault cost: 92% is user time. It is not the threadpool running sync handlers: ps -M puts 10:49.65 of 10:53.62 on the main thread, and main.py:142 runs uvicorn (the asyncio loop) there. It is not only request-time work: the soak's requests fill ~60 s of the 272 s window, so at least 100 s of CPU fell between them. A second look found one partial contributor: provider_registry.py:406-407 calls sync provider functions directly on the loop inside async routes (fundamentals.py:89, quotes.py:53/65). That explains loop CPU during requests but not between cycles, so the finding stands with its root cause still unattributed; medium kept (continuous battery/thermal cost on a laptop app, no latency harm yet proven: /health stays 1-8 ms).",
+  "evidence": "sidecar/main.py:138-142, sidecar/services/provider_registry.py:404-408, sidecar/routers/fundamentals.py:89, sidecar/routers/quotes.py:53, sidecar/routers/quotes.py:65, sidecar/routers/portfolio.py:22-43 (sync handlers -> threadpool), sidecar/app.py:127-134, sidecar/services/fundamentals_warm.py:199,301,373",
+  "evidence_checked": "Code opened at HEAD for the lines above. Passive ps readings of the soak's own sidecar pid 64164 (etime/utime/time at 13:41, 15:21, 15:45, 16:59, 18:13; ps -M per-thread split at 18:13), soak-mem.jsonl, L1-stranger idle sampler. No request was sent to :52229 and no profiler was attached (both forbidden for this stage), so the source of the between-cycle CPU is unverified. The finding says so and does not claim a cause.",
+  "repro_check": "ps -p <main_worker> -o etime=,utime=,time= twice a few minutes apart plus ps -M -p <main_worker> | sed -n 2p: 163.2 s CPU over 272 s wall (60%), main thread 10:49.65 of 10:53.62 total. Confirming the cause needs `sample <pid> 10` or `py-spy dump` during an idle gap between soak cycles, before the soak stops its stack at ~15:49:42 IST."
+ }
+]

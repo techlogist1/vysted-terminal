@@ -1,0 +1,18 @@
+# R15-CODE-AGENT-028 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:19+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C/sidecar"; ls services/agent_tools/registry_v0_6_5.py services/agent_tools/registry_v0_6_0.py 2>&1
+grep -rn "registry_v0_6\|register_v0_6_5" app.py main.py services | head; echo "grep exit $?"
+grep -n "register_v0_6_0_tools" app.py main.py
+grep -rn "registry_v0_6_5" tests | head -3
+--- output ---
+ls: services/agent_tools/registry_v0_6_0.py: No such file or directory
+ls: services/agent_tools/registry_v0_6_5.py: No such file or directory
+services/agent_tools/__init__.py:187:    former ``registry_v0_6_0`` module (R15-CODE-AGENT-028): that module was a
+Binary file services/agent_tools/__pycache__/__init__.cpython-313.pyc matches
+grep exit 0
+app.py:212:    agent_tools.register_v0_6_0_tools()
+main.py:51:    agent_tools.register_v0_6_0_tools()
+Binary file tests/__pycache__/test_no_trading_surface.cpython-313-pytest-9.0.3.pyc matches
+tests/test_no_trading_surface.py:66:    "services.agent_tools.registry_v0_6_5",
+
+EXIT=0 (0.5s)

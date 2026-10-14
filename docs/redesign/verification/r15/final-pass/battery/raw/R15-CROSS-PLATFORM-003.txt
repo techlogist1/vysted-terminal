@@ -1,0 +1,22 @@
+# R15-CROSS-PLATFORM-003 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:02+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import platform
+from services import hardware_fit as hf
+orig=platform.system
+platform.system=lambda: 'Windows'
+print('forced Windows:',hf.detect_device(force=True).to_dict())
+platform.system=orig
+print('real mac:',hf.detect_device(force=True).to_dict())
+PY
+grep -n '_detect_windows\|GlobalMemoryStatusEx' "$C/sidecar/services/hardware_fit.py" | head -4; grep -n 'def test_detect_windows_uses_real_ram_via_ctypes' "$C/sidecar/tests/"*.py
+--- output ---
+forced Windows: {'ramBytes': 8589934592, 'ramGib': 8.0, 'gpuBudgetBytes': 4724464025, 'gpuBudgetGib': 4.4, 'totalCores': 8, 'perfCores': 8, 'isAppleSilicon': False, 'arch': 'arm64', 'chip': 'arm', 'osName': 'Windows', 'osVersion': '25.3.0', 'reserveBytes': 4294967296, 'estimated': True}
+real mac: {'ramBytes': 17179869184, 'ramGib': 16.0, 'gpuBudgetBytes': 11338713661, 'gpuBudgetGib': 10.6, 'totalCores': 8, 'perfCores': 6, 'isAppleSilicon': True, 'arch': 'arm64', 'chip': 'Apple M1 Pro', 'osName': 'macOS', 'osVersion': '26.3', 'reserveBytes': 4294967296, 'estimated': False}
+91:    #: ``GlobalMemoryStatusEx`` was unreachable.
+223:def _detect_windows() -> DeviceProfile:
+224:    """Real RAM via ``kernel32!GlobalMemoryStatusEx`` (ctypes, no new
+235:        if not kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/tests/test_hardware_fit.py:146:def test_detect_windows_uses_real_ram_via_ctypes(monkeypatch: pytest.MonkeyPatch) -> None:
+
+EXIT=0 (0.1s)

@@ -1,0 +1,8 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ echo bogus-key; curl -s -m 30 -H 'X-Vysted-Newsapi-Key: bogus0123456789abcdef' localhost:52342/news/sources/status; echo; echo nokey; curl -s -m 10 localhost:52342/news/sources/status; echo; curl -s -m 10 -o /dev/null -w 'newsapi.org direct http=%{http_code}\n' 'https://newsapi.org/v2/top-headlines?country=us&apiKey=bogus0123456789abcdef'
+exit=0
+bogus-key
+{"newsapi":"unauthorized"}
+nokey
+{"newsapi":"absent"}
+newsapi.org direct http=401

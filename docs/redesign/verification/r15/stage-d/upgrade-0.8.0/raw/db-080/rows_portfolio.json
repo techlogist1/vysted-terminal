@@ -1,0 +1,3 @@
+[{"id":1,"symbol":"AAPL","quantity":25.0,"cost_basis":172.3499999999999944,"asset_class":"equity","opened_at":"2026-03-14T15:30:00","note":"Core holding - bought on the March dip; trim above 260."},
+{"id":2,"symbol":"BTC/USDT","quantity":0.4199999999999999845,"cost_basis":61250.5,"asset_class":"crypto","opened_at":"2026-05-02T09:00:00","note":"Long-term crypto sleeve, cold wallet."},
+{"id":3,"symbol":"NVDA","quantity":45.0,"cost_basis":121.0999999999999944,"asset_class":"equity","opened_at":null,"note":"Added 5 on the pullback."}]

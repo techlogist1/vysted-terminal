@@ -1,0 +1,3 @@
+status= done
+detail= completed (step ceiling 1 reached (1 taken) on the final round)
+answer= Analysis complete: NVDA looks rich.

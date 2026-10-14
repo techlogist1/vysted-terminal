@@ -1,0 +1,142 @@
+[
+  {
+    "id": "panel-chart",
+    "area": "panels",
+    "surface": "Chart panel",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/01-chart-30m-aapl.json, /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/02-chart-30m-reliance.json, /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/03-indicators-spy-30m.json \u2014 30m timeframe now returns 286 bars for AAPL and RELIANCE.NS (was 0/0 in census); indicators compute on 30m too. R15-DATA-064 fixed."
+  },
+  {
+    "id": "panel-watchlist",
+    "area": "panels",
+    "surface": "Watchlist panel",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/23-watchlist-20-in-cold.json (78s cold), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/24-watchlist-20-in-warm.json (0.013s warm) \u2014 EOD cache now serves warm re-polls near-instantly; cold cost is the expected one-time fetch. R15-DATA-066 fixed."
+  },
+  {
+    "id": "panel-news",
+    "area": "panels",
+    "surface": "News panel",
+    "driven": "partial",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/19-news-bdl.json, /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/19b-news-bdl-ns.json \u2014 bare 'BDL' and 'BDL.NS' both now return 0 articles (previously wrongly returned Flanigan's Enterprises US headlines tagged BDL); the wrong-company mistag is gone but not independently confirmed against a genuinely covered IN symbol within this drive's time budget."
+  },
+  {
+    "id": "panel-equity-overview",
+    "area": "panels",
+    "surface": "Equity Overview panel",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/18-eo-narrative-reliance.json \u2014 keyless narrative path returns an honest 'No AI provider configured' reason, no fabricated summary."
+  },
+  {
+    "id": "panel-agent-builder",
+    "area": "panels",
+    "surface": "Agent Builder panel",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/25..31-agentbuilder-*.json \u2014 create/duplicate/invalid-tool-422/list/update-reject-invalid/delete/404-after-delete all correct on own sidecar :52323. Tool allow-list now exposes ~50 catalog tools (matches AGENT-093/catalog fixes)."
+  },
+  {
+    "id": "panel-backtest",
+    "area": "panels",
+    "surface": "Backtest panel",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/32-backtest-strategies.json, /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/33-backtest-run-spy.json (trend_following, 0 trades \u2014 no signal, not a bug), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/34-backtest-run-meanrev-spy.json (13 trades, sharpe 0.696), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/35-backtest-oor-window.json (out-of-range window=999 now 422s cleanly: 'window must be between 5 and 200'). R15-UI-010 fixed."
+  },
+  {
+    "id": "panel-broker-connect",
+    "area": "panels",
+    "surface": "Broker Connect panel",
+    "driven": "NOT TESTED",
+    "reason": "removed_with_feature \u2014 trading is out of the product (D81); broker connect exists only to gate order placement, out of scope per task rules."
+  },
+  {
+    "id": "panel-broker-order-entry",
+    "area": "panels",
+    "surface": "Broker Order Entry panel",
+    "driven": "NOT TESTED",
+    "reason": "removed_with_feature \u2014 trading is out of the product (D81); never exercised per task rules."
+  },
+  {
+    "id": "panel-macro",
+    "area": "panels",
+    "surface": "Macro panel",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/07-macro-imf-catalog.json (8 real IMF entries incl. India-adjacent series), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/08-macro-imf-series.json (200, real WEO projections through 2031) \u2014 all 8 IMF catalog entries previously 404'd, now resolve with ?provider=imf."
+  },
+  {
+    "id": "panel-sec-filings",
+    "area": "panels",
+    "surface": "SEC Filings panel",
+    "driven": "partial",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/04-sec-filings-list-aapl.json (ok), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/05-sec-sections-aapl.json (real filing text, non-empty \u2014 R15-DATA-038 fixed), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/06-sec-insider-aapl.json (9 rows returned, count no longer 0 \u2014 R15-DATA-038 fixed) BUT every row's reporter_name/shares/price_per_share/transaction_value/transaction_code is blank and the Direction column colors the absent value green (text-positive) \u2014 see finding rc1-drive-panels-layouts:1."
+  },
+  {
+    "id": "panel-earnings-calendar",
+    "area": "panels",
+    "surface": "Earnings Calendar panel",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/09-earnings-upcoming-default.json, /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/10-earnings-history-infy.json \u2014 INFY now resolves to INFY.NS with EPS and revenue both labelled INR (R15-DATA-113 fixed); reported_date now distinct from period_end (R15-LEAD-016 fixed); the frontend no longer renders a computed Q-label at all (R15-DATA-067 fixed by removing the buggy label, confirmed via grep \u2014 no fiscal_period/quarter-label code path left in EarningsCalendarPanel.tsx/EarningsSurpriseChart.tsx)."
+  },
+  {
+    "id": "panel-analyst-ratings",
+    "area": "panels",
+    "surface": "Analyst Ratings panel",
+    "driven": "partial",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/16-ratings-history-reliance.json (empty), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/17-pth-reliance.json (1 Consensus point), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/20-ratings-individual-reliance.json (empty), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/21-pth-aapl.json (12+ real per-firm targets), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/22-ratings-history-aapl.json (real per-firm rating history) \u2014 US symbols now show real individual analyst detail (R15-DATA-069 fixed); IN symbols (RELIANCE.NS) still show only a Consensus price-target snapshot and no rating-trend/individual rows at all, consistent with AAPL vs RELIANCE.NS both hitting the same code path and only AAPL having upstream per-firm yfinance data \u2014 read as a genuine upstream coverage gap for Indian tickers, not a code defect, but not independently proven honest-labelled within this drive's budget."
+  },
+  {
+    "id": "panel-option-pricer",
+    "area": "panels",
+    "surface": "Option Pricer panel",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/12-binomial-price-200steps.json (gamma 0.018842, theta -6.4296), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/13-binomial-price-201steps.json (gamma 0.018797, theta -6.4190, no crash), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/14-bs-price.json (gamma 0.018762, theta -6.4140) \u2014 binomial gamma/theta now within ~1% of Black-Scholes at both 200 and 201 steps, correct (negative) theta sign, no 0/crash at 201 steps. R15-DATA-011 fixed."
+  },
+  {
+    "id": "panel-greeks-dashboard",
+    "area": "panels",
+    "surface": "Greeks Dashboard panel",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/45-greeks-dashboard.json \u2014 matches the Black-Scholes price/greeks call exactly (analytic-only endpoint, no method param). No regression."
+  },
+  {
+    "id": "panel-bond-pricer",
+    "area": "panels",
+    "surface": "Bond Pricer panel",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/46-bond-pricer.json \u2014 clean/dirty price, accrued interest, duration/modified-duration/convexity all populated with reasonable values. No regression."
+  },
+  {
+    "id": "panel-yield-curve",
+    "area": "panels",
+    "surface": "Yield Curve panel",
+    "driven": "broken",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/15-yieldcurve-dup-pillar.json, /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/15-yieldcurve-dup-pillar.headers.txt \u2014 a duplicate-tenor pillar still 500s with no CORS header exposed (content-type text/plain, no access-control-allow-origin). This is the already-open, low-severity R15-UI-077 (register status 'open', lows-round triage confirmed 'still_reproduces'); confirmed reproducing again this round, no fix round warranted per lead note (lows round only)."
+  },
+  {
+    "id": "layouts-arrange-templates",
+    "area": "layouts",
+    "surface": "Agent 'arrange' layout templates",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/44-vitest-arrange-panelcontext-workspace.txt \u2014 src/lib/layout-templates.test.ts: all tests pass (pure-function planLayout/fitLayoutTemplate/applyLayoutMode against a mocked DockviewApi, unchanged from census's 'ok' baseline)."
+  },
+  {
+    "id": "layouts-macos-menu-bridge",
+    "area": "layouts",
+    "surface": "Native macOS Layout menu bridge",
+    "driven": "NEEDS-GUI",
+    "reason": "Emits a real native menu click end-to-end; only reachable inside the Tauri shell. Outside it the handler is a documented no-op (menu-bridge.ts dynamic import fails). Not headlessly drivable."
+  },
+  {
+    "id": "layouts-workspace-save-load",
+    "area": "layouts",
+    "surface": "Save/Load workspace + New Research Space",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/36-ws-save-basic.json (200), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/37-ws-save-colon.json ('Research: X' now saves 200, was 400 in census), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/38-ws-save-300char.json (300-char name now a clean 400 with a stated reason, was a 500 in census), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/39-ws-list.json, /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/40-ws-get-missing.json (clean 404), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/41-ws-get-basic.json (round-trip equal), /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/42-ws-list-after-corrupt.json + /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/43-ws-get-corrupt.json (a hand-corrupted file is listed then quarantined to '.corrupt-<ts>' on the failed GET \u2014 matches R15-DATA-090's fix exactly, including its already-documented residual that the response is a plain 404 rather than a status naming the quarantine, per that entry's own round-3 verifier note; not re-filed). /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/44-vitest-arrange-panelcontext-workspace.txt: src/lib/workspace.test.ts all pass."
+  },
+  {
+    "id": "panel-context-publishers",
+    "area": "panels",
+    "surface": "Per-module panel-context publishers",
+    "driven": "ok",
+    "evidence": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/panels-layouts/rc1/round-5/44-vitest-arrange-panelcontext-workspace.txt \u2014 src/modules/panel-context-publishers.test.tsx: all pass (101/101 across the three vitest files run together)."
+  }
+]

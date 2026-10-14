@@ -1,0 +1,14 @@
+# R15-AGENT-079 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:12+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services.backtest_dsl import compile_rule
+for s in ['SMA(20) > 50 AND close > 1','SMA(20) > 50 and close > 1','SMA(20) > 50 Or close > 1']:
+    try: compile_rule(s); print('OK',s)
+    except Exception as e: print('ERR',s,type(e).__name__,e)
+PY
+--- output ---
+OK SMA(20) > 50 AND close > 1
+OK SMA(20) > 50 and close > 1
+OK SMA(20) > 50 Or close > 1
+
+EXIT=0 (0.1s)

@@ -1,0 +1,387 @@
+{
+ "steps": [
+  {
+   "name": "seed-restore",
+   "pass": true,
+   "detail": {
+    "holdings": 0,
+    "watchlist": [
+     "SPY",
+     "QQQ",
+     "BTC/USDT",
+     "ETH/USDT",
+     "NVDA",
+     "AAPL"
+    ]
+   }
+  },
+  {
+   "name": "add-3-via-panel-form",
+   "pass": true,
+   "detail": [
+    {
+     "id": "h-3afe83f2-587c-4f8c-b0b1-4469a7ccfdc2",
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "note": null
+    },
+    {
+     "id": "h-674352ae-f462-4dc4-957f-c9228564a57a",
+     "symbol": "AAPL",
+     "quantity": 5,
+     "costBasis": 180,
+     "note": null
+    },
+    {
+     "id": "h-8d7048a2-0aab-4740-a630-0b6d87ab6cc9",
+     "symbol": "MSFT",
+     "quantity": 3,
+     "costBasis": 400,
+     "note": "gate8 r5: core holding, added via the panel form"
+    }
+   ]
+  },
+  {
+   "name": "persist+readback-after-add",
+   "pass": true,
+   "detail": {
+    "status": 200,
+    "readback": [
+     {
+      "id": "h-3afe83f2-587c-4f8c-b0b1-4469a7ccfdc2",
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "note": null
+     },
+     {
+      "id": "h-674352ae-f462-4dc4-957f-c9228564a57a",
+      "symbol": "AAPL",
+      "quantity": 5,
+      "costBasis": 180,
+      "note": null
+     },
+     {
+      "id": "h-8d7048a2-0aab-4740-a630-0b6d87ab6cc9",
+      "symbol": "MSFT",
+      "quantity": 3,
+      "costBasis": 400,
+      "note": "gate8 r5: core holding, added via the panel form"
+     }
+    ]
+   }
+  },
+  {
+   "name": "csv-columns",
+   "pass": true,
+   "detail": {
+    "header": [
+     "Symbol",
+     "Quantity",
+     "Cost basis",
+     "Asset class",
+     "Currency",
+     "Price",
+     "Market value",
+     "P&L",
+     "P&L %",
+     "Weight %",
+     "Note"
+    ],
+    "rows": [
+     [
+      "RELIANCE.NS",
+      "10",
+      "1200",
+      "equity",
+      "INR",
+      "1226",
+      "12260",
+      "260",
+      "2.166666666666667",
+      "",
+      ""
+     ],
+     [
+      "AAPL",
+      "5",
+      "180",
+      "equity",
+      "USD",
+      "341.07000732421875",
+      "1705.3500366210938",
+      "805.3500366210938",
+      "89.48333740234375",
+      "",
+      ""
+     ],
+     [
+      "MSFT",
+      "3",
+      "400",
+      "equity",
+      "USD",
+      "516.1699829101562",
+      "1548.5099487304688",
+      "348.50994873046875",
+      "29.042495727539062",
+      "",
+      "gate8 r5: core holding, added via the panel form"
+     ]
+    ]
+   }
+  },
+  {
+   "name": "pnl-recompute-from-quotes",
+   "pass": true,
+   "detail": {
+    "pnlCheck": [
+     {
+      "sym": "RELIANCE.NS",
+      "qty": "10",
+      "cost": "1200",
+      "currency": "INR",
+      "panelPrice": 1226,
+      "rawPrice": 1226,
+      "rawProvider": "nse_direct",
+      "rawTs": "2026-09-25T00:00:00Z",
+      "panelMV": 12260,
+      "panelPnl": 260,
+      "panelPnlPct": 2.166666666666667,
+      "recomputePnlFromPanelPrice": 260,
+      "recomputePnlFromRawQuote": 260,
+      "pnlMatchesPanelPrice": true,
+      "priceDriftPct": 0,
+      "note": ""
+     },
+     {
+      "sym": "AAPL",
+      "qty": "5",
+      "cost": "180",
+      "currency": "USD",
+      "panelPrice": 341.07000732421875,
+      "rawPrice": 341.07000732421875,
+      "rawProvider": "yfinance",
+      "rawTs": "2026-09-25T20:00:01Z",
+      "panelMV": 1705.3500366210938,
+      "panelPnl": 805.3500366210938,
+      "panelPnlPct": 89.48333740234375,
+      "recomputePnlFromPanelPrice": 805.3500366210938,
+      "recomputePnlFromRawQuote": 805.3500366210938,
+      "pnlMatchesPanelPrice": true,
+      "priceDriftPct": 0,
+      "note": ""
+     },
+     {
+      "sym": "MSFT",
+      "qty": "3",
+      "cost": "400",
+      "currency": "USD",
+      "panelPrice": 516.1699829101562,
+      "rawPrice": 516.1699829101562,
+      "rawProvider": "yfinance",
+      "rawTs": "2026-09-25T20:00:01Z",
+      "panelMV": 1548.5099487304688,
+      "panelPnl": 348.50994873046875,
+      "panelPnlPct": 29.042495727539062,
+      "recomputePnlFromPanelPrice": 348.50994873046875,
+      "recomputePnlFromRawQuote": 348.50994873046875,
+      "pnlMatchesPanelPrice": true,
+      "priceDriftPct": 0,
+      "note": "gate8 r5: core holding, added via the panel form"
+     }
+    ],
+    "mixedCurrencies": true,
+    "byCurrency": [
+     {
+      "currency": "INR",
+      "marketValue": 12260,
+      "pnl": 260,
+      "resolvedCost": 12000,
+      "pnlPercent": 2.166666666666667
+     },
+     {
+      "currency": "USD",
+      "marketValue": 3253.8599853515625,
+      "pnl": 1153.8599853515625,
+      "resolvedCost": 2100,
+      "pnlPercent": 54.94571358816964
+     }
+    ]
+   }
+  },
+  {
+   "name": "update-and-delete-via-panel",
+   "pass": true,
+   "detail": [
+    {
+     "id": "h-674352ae-f462-4dc4-957f-c9228564a57a",
+     "symbol": "AAPL",
+     "quantity": 7,
+     "costBasis": 175,
+     "note": null
+    },
+    {
+     "id": "h-8d7048a2-0aab-4740-a630-0b6d87ab6cc9",
+     "symbol": "MSFT",
+     "quantity": 3,
+     "costBasis": 400,
+     "note": "gate8 r5: core holding, added via the panel form"
+    }
+   ]
+  },
+  {
+   "name": "persist+readback-after-update-delete",
+   "pass": true,
+   "detail": {
+    "status": 200,
+    "readback": [
+     {
+      "id": "h-674352ae-f462-4dc4-957f-c9228564a57a",
+      "symbol": "AAPL",
+      "quantity": 7,
+      "costBasis": 175,
+      "note": null
+     },
+     {
+      "id": "h-8d7048a2-0aab-4740-a630-0b6d87ab6cc9",
+      "symbol": "MSFT",
+      "quantity": 3,
+      "costBasis": 400,
+      "note": "gate8 r5: core holding, added via the panel form"
+     }
+    ]
+   }
+  },
+  {
+   "name": "restore-roundtrip",
+   "pass": true,
+   "detail": [
+    {
+     "id": "h-674352ae-f462-4dc4-957f-c9228564a57a",
+     "symbol": "AAPL",
+     "quantity": 7,
+     "costBasis": 175,
+     "note": null
+    },
+    {
+     "id": "h-8d7048a2-0aab-4740-a630-0b6d87ab6cc9",
+     "symbol": "MSFT",
+     "quantity": 3,
+     "costBasis": 400,
+     "note": "gate8 r5: core holding, added via the panel form"
+    }
+   ]
+  },
+  {
+   "name": "csv-after-update-matches-holdings",
+   "pass": true,
+   "detail": [
+    [
+     "AAPL",
+     "7",
+     "175",
+     "equity",
+     "USD",
+     "341.07000732421875",
+     "2387.4900512695312",
+     "1162.4900512695312",
+     "94.89714704241071",
+     "60.66",
+     ""
+    ],
+    [
+     "MSFT",
+     "3",
+     "400",
+     "equity",
+     "USD",
+     "516.1699829101562",
+     "1548.5099487304688",
+     "348.50994873046875",
+     "29.042495727539062",
+     "39.34",
+     "gate8 r5: core holding, added via the panel form"
+    ]
+   ]
+  },
+  {
+   "name": "notes-crud",
+   "pass": true,
+   "detail": {
+    "create": true,
+    "update": true,
+    "delete": true,
+    "final": {
+     "general": "",
+     "bySymbol": {
+      "MSFT": ""
+     },
+     "focusSymbol": ""
+    }
+   }
+  },
+  {
+   "name": "watchlist-crud",
+   "pass": true,
+   "detail": {
+    "before": [
+     "SPY",
+     "QQQ",
+     "BTC/USDT",
+     "ETH/USDT",
+     "NVDA",
+     "AAPL"
+    ],
+    "afterAdd": [
+     "SPY",
+     "QQQ",
+     "BTC/USDT",
+     "ETH/USDT",
+     "NVDA",
+     "AAPL",
+     "INFY.NS"
+    ],
+    "afterRemove": [
+     "SPY",
+     "QQQ",
+     "BTC/USDT",
+     "ETH/USDT",
+     "NVDA",
+     "AAPL"
+    ]
+   }
+  },
+  {
+   "name": "context-snapshot",
+   "pass": true,
+   "detail": {
+    "positionCount": 2,
+    "totalValue": 3936,
+    "activePortfolioId": "default",
+    "activePortfolioName": "Portfolio",
+    "holdings": [
+     {
+      "id": "h-674352ae-f462-4dc4-957f-c9228564a57a",
+      "symbol": "AAPL",
+      "quantity": 7,
+      "costBasis": 175,
+      "assetClass": "equity",
+      "marketValue": 2387.4900512695312,
+      "pnl": 1162.4900512695312
+     },
+     {
+      "id": "h-8d7048a2-0aab-4740-a630-0b6d87ab6cc9",
+      "symbol": "MSFT",
+      "quantity": 3,
+      "costBasis": 400,
+      "assetClass": "equity",
+      "marketValue": 1548.5099487304688,
+      "pnl": 348.50994873046875
+     }
+    ]
+   }
+  }
+ ]
+}

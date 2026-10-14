@@ -12,7 +12,9 @@
  * to lay out the day strip (before-open / during / after-close / unknown). */
 export type EarningsTimeOfDay = "before-open" | "during-market" | "after-close" | "unknown";
 
-/** Fiscal-period label — e.g. ``"Q1 2026"``, ``"FY 2025"``. */
+/** Fiscal-period label — e.g. ``"Q1 2026"``, ``"FY 2025"``. Every
+ * `fiscal_period` field is null unless the provider supplies the period — it
+ * is never inferred from a report date (R15-DATA-067). */
 export interface FiscalPeriod {
   /** ``"Q1" | "Q2" | "Q3" | "Q4" | "FY"``. */
   quarter: "Q1" | "Q2" | "Q3" | "Q4" | "FY";
@@ -30,15 +32,18 @@ export interface EarningsEvent {
   /** ISO-8601 date the company is expected to report. */
   scheduled_date: string;
   time_of_day: EarningsTimeOfDay;
-  fiscal_period: FiscalPeriod;
+  fiscal_period: FiscalPeriod | null;
   /** Consensus EPS estimate (analyst-mean), in the reporting currency. */
   eps_estimate_mean: number | null;
-  /** Estimate dispersion (standard deviation of analyst forecasts). */
+  /** Estimate dispersion (standard deviation of analyst forecasts) — null
+   * unless the provider measures it (R15-DATA-032: never a high/low proxy). */
   eps_estimate_stddev: number | null;
-  /** Number of contributing analysts. */
-  estimate_analyst_count: number;
-  /** Currency for the estimates (e.g. ``"USD"``). */
-  currency: string;
+  /** Number of contributing analysts; null when the provider gives no count. */
+  estimate_analyst_count: number | null;
+  /** The EPS estimate's own currency — null when the filer's true EPS
+   * currency can't be determined (R15-DATA-113); see
+   * {@link EarningsSurprise.currency}. */
+  currency: string | null;
   provider: string;
 }
 
@@ -53,10 +58,14 @@ export interface EarningsEvent {
  */
 export interface EarningsSurprise {
   symbol: string;
-  /** ISO-8601 date the company reported (may differ from the originally
-   * scheduled date if rescheduled). */
-  reported_date: string;
-  fiscal_period: FiscalPeriod;
+  /** The fiscal quarter end (R15-LEAD-016) — the sort key / chart x-axis;
+   * unlike `reported_date` it is never null. */
+  period_end: string;
+  /** ISO-8601 date the company actually reported, when found within 0-120
+   * days of `period_end` — null otherwise. Distinct from `period_end`: a
+   * company can report weeks after its quarter closes. */
+  reported_date: string | null;
+  fiscal_period: FiscalPeriod | null;
   /** Actual reported EPS. */
   eps_actual: number;
   /** Pre-report consensus mean. */
@@ -69,7 +78,19 @@ export interface EarningsSurprise {
   revenue_actual: number | null;
   revenue_estimate_mean: number | null;
   revenue_surprise_pct: number | null;
-  currency: string;
+  /** The EPS fields' own currency — a foreign reporter's per-share EPS is
+   * sometimes denominated in the reporting currency, not the trading
+   * currency the ADR/ADS trades in (PDD/NVO/JD). Scale-checked against
+   * `trailingEps` before trusting Yahoo's `financialCurrency`; null when the
+   * scale check can't determine it — never a guessed label (R15-DATA-113). */
+  currency: string | null;
+  /** The revenue fields' own currency — a foreign reporter's statement-size
+   * revenue is denominated in the reporting currency, not the trading
+   * currency `currency` carries. Scale-checked against `totalRevenue` before
+   * trusting Yahoo's `financialCurrency` (R15-DATA-113). `undefined` on a
+   * pre-fix cached row — fall back to `currency`; `null` when the currency
+   * could not be determined at all — render no currency code. */
+  revenue_currency?: string | null;
   provider: string;
 }
 
@@ -83,20 +104,27 @@ export interface EarningsSurprise {
  */
 export interface EarningsEstimateDetail {
   symbol: string;
-  fiscal_period: FiscalPeriod;
-  eps_estimate_mean: number;
+  fiscal_period: FiscalPeriod | null;
+  /** R15-LEAD-039: nullable, same shape as the revenue triple below — Yahoo's
+   * calendar payload omits these for several liquid non-US names (RDY, TM,
+   * SONY); each field is independently nullable, never a hard failure. */
+  eps_estimate_mean: number | null;
   eps_estimate_median: number | null;
-  eps_estimate_high: number;
-  eps_estimate_low: number;
+  eps_estimate_high: number | null;
+  eps_estimate_low: number | null;
   eps_estimate_stddev: number | null;
-  estimate_analyst_count: number;
-  /** Same fields for revenue. */
+  estimate_analyst_count: number | null;
+  /** Same fields for revenue (median/stddev null unless the provider supplies
+   * them; the count is the revenue frame's own, never the EPS count). */
   revenue_estimate_mean: number | null;
   revenue_estimate_median: number | null;
   revenue_estimate_high: number | null;
   revenue_estimate_low: number | null;
-  revenue_analyst_count: number;
-  currency: string;
+  revenue_analyst_count: number | null;
+  /** See {@link EarningsSurprise.currency} (R15-DATA-113). */
+  currency: string | null;
+  /** See {@link EarningsSurprise.revenue_currency} (R15-DATA-113). */
+  revenue_currency?: string | null;
   provider: string;
   /** ISO-8601 timestamp of the most recent estimate refresh from the
    * upstream provider. */
@@ -114,26 +142,43 @@ export interface EarningsUpcomingResponse {
   /** End of the requested window (inclusive). */
   end_date: string;
   events: EarningsEvent[];
+  /**
+   * When this window was actually fetched from the provider (R15-DATA-068)
+   * — a cache hit carries the ORIGINAL fetch time, not the read time.
+   */
+  as_of: string | null;
 }
 
 /** Returned by ``/earnings/{symbol}/surprises``. */
 export interface EarningsSurprisesResponse {
   symbol: string;
   surprises: EarningsSurprise[];
+  /** R15-DATA-068 — see {@link EarningsUpcomingResponse.as_of}. */
+  as_of: string | null;
 }
 
 /** Returned by ``/earnings/{symbol}/history``. */
 export interface EarningsHistoryEntry {
-  fiscal_period: FiscalPeriod;
-  reported_date: string;
+  fiscal_period: FiscalPeriod | null;
+  /** The fiscal quarter end (R15-LEAD-016) — the sort key, NOT the
+   * announcement date. */
+  period_end: string;
+  /** The actual announcement date, when found within 0-120 days of
+   * `period_end` — null otherwise. */
+  reported_date: string | null;
   eps_actual: number;
   eps_estimate_mean: number | null;
   revenue_actual: number | null;
   revenue_estimate_mean: number | null;
-  currency: string;
+  /** See {@link EarningsSurprise.currency} (R15-DATA-113). */
+  currency: string | null;
+  /** See {@link EarningsSurprise.revenue_currency} (R15-DATA-113). */
+  revenue_currency?: string | null;
 }
 
 export interface EarningsHistoryResponse {
   symbol: string;
   history: EarningsHistoryEntry[];
+  /** R15-DATA-068 — see {@link EarningsUpcomingResponse.as_of}. */
+  as_of: string | null;
 }

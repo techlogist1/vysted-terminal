@@ -1,0 +1,25 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_80712f377e184d22a62c8b12b2e17e13", "name": "news", "input": {"symbols": ["NVDA"]}}
+[  24.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_80712f377e184d22a62c8b12b2e17e13", "name": "news", "ok": true, "error": null}
+[  34.9s] heartbeat: {"kind": "heartbeat"}
+[  60.7s] done: {"kind": "done", "usage": {"input_tokens": 5342, "output_tokens": 307, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Here are the latest news articles on NVIDIA:
+
+1. "Tech stocks gain after tech titan dinner with Trump and China's Xi Jinping: AlphaCheck" - Yahoo! Finance
+2. "Stock Market Today (Sept. 25, 2026): S&P 500 edges higher amid easing oil prices" - The Street
+3. "Trump and Xi Buy Time on Trade. Farm and Chip Stocks Are Watching Closely." - 247wallst.com
+4. "Rigetti Computing (RGTI) Rides Quantum Momentum, Does The Valuation Already Look Full?" - Yahoo! Finance
+5. "Why Vertiv Holdings Co (VRT) Is Back In The Spotlight" - Yahoo! Finance
+6. "Elon Musk Makes Massive Nvidia Move at SpaceX" - Yahoo! Finance
+7. "189%: The Year to Date Number That Pushed AMD Into the Trillion Dollar Club" - 247wallst.com
+8. "NSCALE RAISES $3.36B IN PRE-IPO CONVERTIBLE FINANCING" - Yahoo! Finance
+9. "Technology Stocks Are Back, Because Nothing Else Is" - Yahoo! Finance
+10. "Nvidia Stock Rises After Elon Musk’s SpaceX Chip Surprise" - Yahoo! Finance
+11. "Nvidia Vs. AMD: Who Wins The Critical Coming 6 Month Period?" - 247wallst.com
+
+Note that these articles are from various sources, including Yahoo! Finance and 247wallst.com.
+
+=== ok · 60.7s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 307, 'done': 1} · usage in=5342 out=307 · est $0.00000 · llama3.1:8b

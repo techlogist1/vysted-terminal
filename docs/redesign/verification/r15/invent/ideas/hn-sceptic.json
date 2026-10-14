@@ -1,0 +1,199 @@
+[
+  {
+    "idea_id": "hn-sceptic-1",
+    "name": "Number Firewall — no digit without a parent",
+    "one_liner": "Generalise the one deterministic number gate from the overview narrative to every agent turn and brief: each numeric token is sourced (matches a tool-result leaf), derived (one binary op over two sourced leaves, formula shown) or orphan (struck with a chip), at zero tokens and with rupee/crore/lakh awareness.",
+    "on_floor_list": false,
+    "rides_on": [
+      "sidecar/services/company_narrative.py:209-248 (_verify_text; only call sites :487,:491, sole route caller sidecar/routers/fundamentals.py:168)",
+      "sidecar/services/company_narrative.py:64-77 (_NUMBER_RE: $ and K/M/B/T only — no crore/lakh/₹)",
+      "sidecar/services/company_narrative.py:49-50 (existing rel/abs tolerances)",
+      "sidecar/services/agent_runtime.py:1571-1587 (every tool result already held as a role=tool message in the loop)",
+      "sidecar/models/fundamentals.py:19-43 (FieldMeta ok/withheld/unavailable source set)",
+      "sidecar/services/research/citecheck.py:40,43 (the LLM spot-audit it supersedes: 8 claims, needs 15 s wall)",
+      "src/modules/chat/chat-markdown.ts",
+      "src/modules/research/brief-blocks.tsx:1061 (BriefBody)"
+    ],
+    "new_parts": [
+      "₹ / Rs / crore / lakh / Cr / L / mn scale tokens + Indian digit grouping (1,05,130) in the number regex, with a parity vector file",
+      "derivation search (a/b, a-b, (a-b)/b, a*b, CAGR) over sourced leaves under a leaf cap",
+      "number_receipts array on the final stream event",
+      "hover/strike renderer in chat and brief prose; 'from model memory' label for turns with no tool calls"
+    ],
+    "jarvis_axis": ["receipts"],
+    "size": "M",
+    "risk": "False orphans on legitimate multi-step model arithmetic train users to ignore the strike; mitigated by the no-tool-turn 'model memory' label and recognised derivations."
+  },
+  {
+    "idea_id": "hn-sceptic-2",
+    "name": "Evidence Locker — the filing you relied on, hashed and kept",
+    "one_liner": "Persist the page text the run already verifies against (today an in-memory dict discarded at run end) with sha256, fetch time and page number, so every citation opens offline from disk and a silently revised exchange filing is detected and diffed.",
+    "on_floor_list": false,
+    "rides_on": [
+      "sidecar/services/research/deep.py:331-354 (_Findings.evidence raw-evidence store, in-memory for the run)",
+      "sidecar/services/search/extract.py:506 (pages_used computed) and :517-518 (page identity flattened away)",
+      "sidecar/services/search/extract.py:352-355,398 (scanned-page honesty signal)",
+      "sidecar/services/corporate_disclosures.py:21-23 (documented AttachLive/AttachHis URL migration)",
+      "types/brief.ts:230 (BriefSource)",
+      "sidecar/services/runs_store.py:55 (CREATE TABLE IF NOT EXISTS store precedent)"
+    ],
+    "new_parts": [
+      "evidence_locker SQLite store {sha256, url, fetched_at, page_no, zlib text}; LRU cap with pinning for rows cited by a saved brief/claim/tripwire/promise",
+      "extract_pdf_text returns [(page_no, paragraph)]",
+      "optional locker:{sha256,page} on BriefSource (additive, not the plugin contract)",
+      "filing_revised event + page-text diff on hash mismatch; 're-verify' action"
+    ],
+    "jarvis_axis": ["memory", "receipts"],
+    "size": "M",
+    "risk": "Scanned Indian filings have no text layer, so the locker holds only a hash plus an honest image-only marker and the receipt is weaker; no OCR in v1."
+  },
+  {
+    "idea_id": "hn-sceptic-3",
+    "name": "Claim Checker — paste anyone's number, get a verdict",
+    "one_liner": "Point the ULTRA extract/re-check/verdict shape at foreign text (a tweet, a broker note, another AI's answer) and at the structured witnesses instead of the web: MATCHES / CONTRADICTED / DIFFERENT BASIS / STALE / CANNOT CHECK, exposed as one catalog capability that auto-projects to MCP so Claude Desktop or Cursor can use Vysted as a fact-checker.",
+    "on_floor_list": false,
+    "rides_on": [
+      "sidecar/services/research/verify.py:1-16 (ULTRA cross-check: own briefs vs fresh web only)",
+      "sidecar/services/earnings_quality.py:3-11, sidecar/services/growth_check.py:3-12, sidecar/services/ownership_check.py:9-15, sidecar/services/market_cap_witness.py:12-18, sidecar/services/research/range_check.py:12-17 (the witnesses)",
+      "types/brief.ts:121 (conflict_kind definitional_expected vs data_conflict)",
+      "sidecar/services/agent_tools/catalog.py (read_handler capability auto-projects)",
+      "sidecar/services/mcp_server.py:146-148 (catalog → MCP projection)",
+      "docs/MCP_INTEGRATION.md:78-97 (--mcp-stdio entrypoint)"
+    ],
+    "new_parts": [
+      "check_claims read_handler capability + handler",
+      "one small LLM binding call {symbol, metric enum, period} with a code-enforced verbatim-substring rule (the model labels, never introduces a number)",
+      "verdict card; keyless manual-binding path"
+    ],
+    "jarvis_axis": ["receipts", "initiative"],
+    "size": "M",
+    "risk": "Period binding errors (TTM vs FY vs MRQ) produce confident false CONTRADICTED; an unbound period must downgrade to CANNOT CHECK."
+  },
+  {
+    "idea_id": "hn-sceptic-4",
+    "name": "The Scoreboard — the app measures its own wrongness",
+    "one_liner": "Append every witness conflict to a local ledger so the agent can answer 'how far should I trust your market cap on SME names' from its own measured history, and ship a zero-LLM `pnpm trust-bench` that diffs the 24-name hostile battery against outside-truth packs into a committed TRUST.md with the failures left in.",
+    "on_floor_list": false,
+    "rides_on": [
+      "sidecar/services/research/semantics.py:292-350,362-440,537-596,666,748-784,787,992 (conflict legs + derive_semantics; conflicts die with the brief today)",
+      "sidecar/services/agent_runtime.py:329-353 (prior-stated-values preamble block to sit beside)",
+      "docs/redesign/verification/r15/battery/manifest.json (24 names) + battery/packs/*.json (outside truth with as_of + source_url)"
+    ],
+    "new_parts": [
+      "conflict_ledger SQLite table {ts, symbol, segment, field, provider, provider_value, witness, witness_value, kind}, age-bounded",
+      "aggregate line in the terminal preamble + Settings → Trust table",
+      "pnpm trust-bench script + TRUST.md, as-of-aware tolerances, stale packs grey out"
+    ],
+    "jarvis_axis": ["memory", "receipts"],
+    "size": "M",
+    "risk": "Outside-truth packs age (quarterly agent refresh is the keep-alive cost) and publishing your own failures hands rivals marketing copy."
+  },
+  {
+    "idea_id": "hn-sceptic-5",
+    "name": "Tripwires — kill-criteria compiled to code, zero tokens while watching",
+    "one_liner": "The agent compiles the user's written exit conditions into predicates in the existing no-eval screener grammar, the user approves them in the diff gate, and a deterministic keyless sidecar loop fires an OS notification with the filing page when one trips — the model is never in the watch loop because the BYOK key is unavailable unattended by design.",
+    "on_floor_list": true,
+    "rides_on": [
+      "sidecar/services/screener_formula.py:1-30 (no-eval recursive-descent grammar + src/lib/screener-expr.ts twin)",
+      "sidecar/services/agent_tools/catalog.py:1374-1395 (write_note, symbol-scoped thesis)",
+      "src/store/proposed-changes.ts:92 (diff/accept gate)",
+      "sidecar/services/corporate_disclosures.py:265 (get_announcements)",
+      "sidecar/routers/disclosures.py:39 (15-minute TTL)",
+      "sidecar/services/provider_health.py:140-151 (breaker pacing)",
+      "sidecar/app.py:153 (lifespan teardown next to run_manager.shutdown)",
+      "src/lib/desktop-notification.ts:45-56 (OS notification bridge)",
+      "sidecar/services/run_manager.py:36-38 (key lives only on the in-memory task closure)"
+    ],
+    "new_parts": [
+      "event fields in the formula FIELD set (announcement.category, headline match, promoter delta, results.opm)",
+      "tripwires store + single asyncio watcher loop",
+      "curated per-event-class synonym table shipped as data",
+      "'blind since <ts> on <lane>' status so a dead poller is never silent"
+    ],
+    "jarvis_axis": ["initiative", "watching", "memory"],
+    "size": "M-L",
+    "risk": "Unstandardised NSE/BSE category and headline wording makes text predicates miss ('cessation' vs 'resignation'); needs the synonym table plus Idea 6's unmatched-but-material bucket."
+  },
+  {
+    "idea_id": "hn-sceptic-6",
+    "name": "Lid-closed honesty — a catch-up that states its own blind spots",
+    "one_liner": "A sleeping laptop cannot watch, so make reconstruction accountable: on wake, fetch announcements for holdings ∪ watchlist since last_seen_at, prove per-symbol coverage (or page deeper / declare the gap), rank deterministically by category × position weight, and show one card that also lists what it could not see.",
+    "on_floor_list": false,
+    "rides_on": [
+      "sidecar/services/corporate_disclosures.py:251 (_dedup_key: symbol, headline-hash, date)",
+      "sidecar/services/corporate_disclosures.py:265 (get_announcements with limit)",
+      "sidecar/models/announcements.py:54-56 (per-lane errors already reported honestly)",
+      "sidecar/services/portfolio_db.py:27-35 (quantity + cost_basis)",
+      "src/lib/desktop-notification.ts:45-56"
+    ],
+    "new_parts": [
+      "last_seen_at + announcement seen-ledger, pruned at 180 d",
+      "coverage proof (oldest item predates last_seen_at, or fewer than limit returned; else page deeper)",
+      "category weight table with a counted-not-listed 'routine' class",
+      "'since you were away' card with a blind-spots line"
+    ],
+    "jarvis_axis": ["initiative", "watching"],
+    "size": "S-M",
+    "risk": "Noise from boilerplate small-cap filings (trading-window closures, newspaper clippings) unless the routine class is tuned."
+  },
+  {
+    "idea_id": "hn-sceptic-7",
+    "name": "Promise Ledger with the dog that did not bark",
+    "one_liner": "Management promises stored as verbatim, code-verified quotes pinned to a locker page, resolved KEPT/BROKEN deterministically against results — plus FADED, a pure text search showing a plan that quietly vanished from the last N calls.",
+    "on_floor_list": true,
+    "rides_on": [
+      "sidecar/services/research/disclosures.py:4-5,19-22 (transcripts and presentations arrive as attachment_url rows, read by the PDF lane)",
+      "sidecar/services/search/extract.py:506 (page-aware PDF extraction)",
+      "hn-sceptic-2 (Evidence Locker page text + hashes)"
+    ],
+    "new_parts": [
+      "promises store {symbol, quote, locker_sha, page, metric?, target?, deadline?, stated_on, status}",
+      "LLM extraction gated by a verbatim-substring check against locker page text",
+      "deterministic numeric resolver + FADED mention search",
+      "promise timeline panel with a transcript-coverage statement ('2 of 8 quarters readable')"
+    ],
+    "jarvis_axis": ["memory", "receipts"],
+    "size": "L",
+    "risk": "Hedged management language makes KEPT/BROKEN a judgement call; auto-resolve only promises with a number and a date, and small-cap transcript coverage is thin or scanned."
+  },
+  {
+    "idea_id": "hn-sceptic-8",
+    "name": "Forkable research — a brief you can git diff, replay without an LLM, and attach to a bug report",
+    "one_liner": "A thin versioned bundle (structured legs + execution record + number receipts + locker hashes + tool trace, no secrets) that any other Vysted install can Verify by deterministic replay at zero tokens — one format for sharing, re-verifying your own old work, and the redacted diagnostics bundle.",
+    "on_floor_list": false,
+    "rides_on": [
+      "types/brief.ts:47-176 (structured legs, derived metrics, conflicts)",
+      "types/brief.ts:185-200 (BriefExecution: runId, requested depth, loop, degradedReason)",
+      "sidecar/services/run_manager.py:36-38 (the key is never persisted, so the bundle is secret-free by construction)",
+      "hn-sceptic-1 (number receipts), hn-sceptic-2 (locker hashes)"
+    ],
+    "new_parts": [
+      ".vybrief envelope with format_version",
+      "export/import actions",
+      "Verify = deterministic replay of structured tool calls + re-hash of cited filings, with a per-leg reproducibility report"
+    ],
+    "jarvis_axis": ["receipts", "memory"],
+    "size": "M",
+    "risk": "A file format is a forever promise and most retail users never share files; it must pay for itself as the diagnostics bundle and self-re-verify button."
+  },
+  {
+    "idea_id": "hn-sceptic-9",
+    "name": "Personas on probation — forecasts logged, resolved, Brier-scored",
+    "one_liner": "Every persona and custom agent must end with one falsifiable, dated statement about reported fundamentals (never price or buy/sell); it resolves deterministically on wake, and the persona header carries its calibration record — including 'n too small to say'.",
+    "on_floor_list": false,
+    "rides_on": [
+      "sidecar/agents/buffett.json (a persona today is a prompt + price_data, fundamentals, news)",
+      "sidecar/services/agents_store.py:42 (custom agents join the same league table)",
+      "hn-sceptic-6 (wake hook for resolution)"
+    ],
+    "new_parts": [
+      "validated forecast tail {symbol, metric, comparator, value, by_date, confidence}",
+      "forecasts store + deterministic resolver with VOID expiry",
+      "Brier score + calibration curve per agent; no score shown under n=10",
+      "persona header record line; copilot may quote it when routing"
+    ],
+    "jarvis_axis": ["memory"],
+    "size": "M",
+    "risk": "Optics of 'predictions' in a finance app and months of small n; keep to reported fundamentals, label it an agent evaluation harness, never aggregate into a recommendation."
+  }
+]

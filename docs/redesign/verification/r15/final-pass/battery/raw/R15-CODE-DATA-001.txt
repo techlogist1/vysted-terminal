@@ -1,0 +1,15 @@
+# R15-CODE-DATA-001 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:31:31+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+echo '$ GET /resolve?q=FOCUS (IN) candidates'; curl -s -m 60 -H 'X-Vysted-Region: IN' "$H/resolve?q=FOCUS" | python3 -c "import sys,json;d=json.load(sys.stdin);[print({k:c.get(k) for k in ('symbol','name','exchange','isin','bse_code')}) for c in d.get('candidates',[])]"
+echo '$ GET /disclosures/shareholding?symbol=FOCUS (IN)'; curl -s -m 100 -w ' @@%{http_code}' -H 'X-Vysted-Region: IN' "$H/disclosures/shareholding?symbol=FOCUS" | python3 -c "import sys,json;t=sys.stdin.read();b,h=t.rsplit(' @@',1);d=json.loads(b);print('HTTP',h,'count',d.get('count'),'split_source set:',sorted({str(p.get('split_source')) for p in d.get('patterns',[])}),'first',d['patterns'][0].get('quarter_end') if d.get('patterns') else None)"
+echo '$ control RELIANCE'; curl -s -m 100 -H 'X-Vysted-Region: IN' "$H/disclosures/shareholding?symbol=RELIANCE" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('count'), [(p.get('split_source'),p.get('quarter_end')) for p in d.get('patterns',[])[:3]])"
+--- output ---
+$ GET /resolve?q=FOCUS (IN) candidates
+{'symbol': 'FOCUS', 'name': 'Focus Lighting and Fixtures Limited', 'exchange': 'NSE', 'isin': None, 'bse_code': None}
+{'symbol': 'FOCUS', 'name': 'Focus Business Solution Ltd', 'exchange': 'BSE', 'isin': 'INE0DXR01010', 'bse_code': '543312'}
+$ GET /disclosures/shareholding?symbol=FOCUS (IN)
+HTTP 200 count 21 split_source set: ['None'] first 2026-06-30
+$ control RELIANCE
+22 [('BSE', '2026-06-30'), ('BSE', '2026-03-31'), ('BSE', '2025-12-31')]
+
+EXIT=0 (0.1s)

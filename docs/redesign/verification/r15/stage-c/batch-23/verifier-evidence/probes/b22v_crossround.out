@@ -1,0 +1,2 @@
+backtick: leak=False orphan_fence=True -> 'Let me fetch that.\n\n```\nThe price_data tool returned no data for this in this turn.\n\n'
+tilde: leak=False orphan_fence=True -> 'Let me fetch that.\n\n~~~\nThe price_data tool returned no data for this in this turn.\n\n'

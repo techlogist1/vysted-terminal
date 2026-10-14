@@ -1,0 +1,12 @@
+# R15-RESEARCH-037 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:14:03+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+rm -f $B/out/R15-RESEARCH-037.txt; "$IP" $B/sc/b15_s2.py >/dev/null 2>&1; echo "script exit $?"; cat $B/out/R15-RESEARCH-037.txt
+--- output ---
+script exit 0
+d38b5d1a candidate venv, cwd sidecar
+COMMAND: priority_note on an UNRANKED list [general, sec.gov, reuters]
+EXIT: 0
+OUTPUT:
+Citation preference — when several sources support a claim, cite the most authoritative: primary record (exchange/regulator/filings/IR): [2]; tier-1 press: [3].
+
+EXIT=0 (1.0s)

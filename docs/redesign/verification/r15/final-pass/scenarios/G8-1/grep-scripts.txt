@@ -1,0 +1,14 @@
+scripts/sidecar-staleness.test.mjs:7:// A path in `failPath` fails statSync with ENOENT, simulating a file deleted
+scripts/agent_eval/scenarios.json:16:    "prompt": "Give me AAPL's P/E, market cap and profit margins.",
+scripts/r15/route_fuzz.py:12:NEVER calls order / kill-switch / docker-setup / ollama-pull / teardown / any write route:
+scripts/r15/route_fuzz.py:36:    "/kill-switch",
+scripts/r15/route_fuzz.py:94:    "broker_id": "paper",
+scripts/r15/route_fuzz.py:122:    "broker_id",
+scripts/r15/route_fuzz.py:593:        "/brokers/{broker_id}/orders",
+scripts/r15/route_fuzz.py:594:        "/safety/kill-switch/status",
+scripts/r15/history_secrets_scan.py:48:        "broker-secret-literal",
+scripts/r15/register.py:41:BROKERS_ADAPTERS_FILE = "code-brokers-adapters.json"
+scripts/r15/register.py:84:    # code-brokers-adapters.json is never refuted per-finding (PROMPT_refute.md) — it bulk-closes
+scripts/r15/register.py:87:        if r["_file"] == BROKERS_ADAPTERS_FILE and rid not in verdicts:
+scripts/r15/register.py:187:            if r["_file"] != BROKERS_ADAPTERS_FILE
+scripts/git-hooks/pre-push:89:        "broker-secret-literal",

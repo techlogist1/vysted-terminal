@@ -1,0 +1,16 @@
+# ace7dd76 source check of bus keys vs dockview ids
+$ grep panel ids in default-layout and publisher source keys
+33:  { id: "chart", component: "chart-panel", title: "Chart" },
+35:    id: "equity-overview",
+src/modules/backtest/BacktestResultView.tsx:413:const BUS_SOURCE = "backtest";
+src/modules/backtest/BacktestResultView.tsx:429:      source: BUS_SOURCE,
+src/modules/backtest/BacktestResultView.tsx:442:      unregisterPanelContext(BUS_SOURCE);
+src/modules/chart/ChartPanel.tsx:1051:      source: panelId,
+src/modules/chart/ChartPanel.tsx:1077:      unregisterPanelContext(panelId);
+src/modules/equity-overview/EquityOverviewPanel.tsx:35:// --- formatters (single source: @/lib/format) -----------------------------
+src/modules/equity-overview/EquityOverviewPanel.tsx:661:      source: busSource,
+src/modules/equity-overview/EquityOverviewPanel.tsx:671:      unregisterPanelContext(busSource);
+$ named tests
+src/modules/panel-context-publishers.test.tsx
+src/modules/chat/ChatSidebar.test.tsx
+src/modules/chart/ChartPanel.test.tsx

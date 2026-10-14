@@ -1,0 +1,5 @@
+CMD: POST /llm/chat provider=openrouter, fake api_key, options={depth:'deep', brandNewComposerControl:'x'} -> expect 401 auth frame, not a TypeError crash
+data: {"kind": "error", "message": "The OpenRouter API key was rejected \u2014 check it in Settings.", "action": "Re-enter the API key in Settings.", "detail": "Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}", "code": "auth"}
+
+
+HTTP:200

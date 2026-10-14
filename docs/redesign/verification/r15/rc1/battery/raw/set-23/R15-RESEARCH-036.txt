@@ -1,0 +1,6 @@
+=== R15-RESEARCH-036 (status: open): _PROMPT_KEYS drift guard ===
+1231:_PROMPT_KEYS = (
+1257:_GROWTH_PROMPT_KEYS = frozenset(
+1311:    for key in _PROMPT_KEYS:
+1314:            line = _render(item, growth=key in _GROWTH_PROMPT_KEYS)
+

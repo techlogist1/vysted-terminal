@@ -1,0 +1,5 @@
+CMD: pytest -v test_research_verify.py::test_slow_verdicts_cannot_carry_the_round_past_its_wall (candidate sha 1006c6da694ede5776c3dabbd27b305aeb56b5ad, sidecar/tests)
+---MATCHED LINES---
+tests/test_research_verify.py::test_slow_verdicts_cannot_carry_the_round_past_its_wall PASSED [ 28%]
+tests/test_research_verify.py::test_verdicts_reached_in_budget_are_kept_and_the_tail_is_unverified PASSED [ 35%]
+tests/test_research_verify.py::test_guard_breach_between_verdicts_stops_the_loop PASSED [ 42%]

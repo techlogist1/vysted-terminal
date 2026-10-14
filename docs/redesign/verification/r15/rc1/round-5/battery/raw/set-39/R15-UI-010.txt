@@ -1,0 +1,16 @@
+cmd: GET /backtest/strategies (own sidecar :52358) -- mean_reversion.window carries minimum:5, maximum:200
+cmd: POST /backtest/run {strategyId:mean_reversion, symbols:[AAPL], startDate/endDate, params:{window:<val>}}
+=== window=0 ===
+{"detail":"`window` must be between 5 and 200"}
+HTTP_STATUS:422
+=== window=-5 ===
+{"detail":"`window` must be between 5 and 200"}
+HTTP_STATUS:422
+=== window="" ===
+{"detail":"`window` must be an integer"}
+HTTP_STATUS:422
+=== window=1000000 ===
+{"detail":"`window` must be between 5 and 200"}
+HTTP_STATUS:422
+
+static check: src/modules/backtest/BacktestPanel.test.tsx:464 'clamps an out-of-range entry to the bound and a cleared one to the default on blur' present on candidate (frontend-only, ci_pinned; not re-run per role instructions -- heavy lane owns vitest)

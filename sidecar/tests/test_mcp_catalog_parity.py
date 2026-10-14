@@ -1,0 +1,180 @@
+"""SC-004 parity audit — one capability catalog, two consumers, zero divergence.
+
+The internal copilot surface and the external MCP surface are both PROJECTIONS
+of ``services.agent_tools.catalog`` (Constitution Principle II; FR-020/021/022).
+These tests are the standing audit that the two surfaces never drift: a
+capability added once is reachable by both, by the same name, with matching
+read-only semantics — and the only internal/MCP divergence is the deliberate
+local-only surface (host actions, per-invocation reads, the run_id-scoped
+backtest digest).
+"""
+
+from __future__ import annotations
+
+import asyncio
+from typing import get_args
+
+from services import mcp_server
+from services.agent_tools.catalog import (
+    CAPABILITY_CATALOG,
+    ToolKind,
+    internal_tool_ids,
+    mcp_capabilities,
+    mcp_tool_ids,
+)
+
+# Framework/runtime tools that are intentionally MCP-only (not internal-copilot
+# capabilities): agent discovery/invocation, workspace + workflow surfaces.
+_RUNTIME_ONLY = {
+    "list_agents",
+    "invoke_agent",
+    "list_workspaces",
+    "get_workspace",
+    "run_workflow",
+    "list_workflows",
+    # R7 hackability — the agent's workflow-AUTHORING surface (hand-written,
+    # MCP-only, like its run/list siblings; CLAUDE.md: workflow tools are not
+    # catalog read_handlers).
+    "save_workflow",
+    "list_runs",
+}
+
+
+def _mcp_tools() -> list[object]:
+    mcp_server._reset_for_tests()
+    server = mcp_server.get_mcp_server()
+    try:
+        return asyncio.run(server.list_tools())
+    finally:
+        mcp_server._reset_for_tests()
+
+
+def test_every_catalog_mcp_capability_is_exposed_on_mcp() -> None:
+    names = {tool.name for tool in _mcp_tools()}
+    missing = [cap.id for cap in mcp_capabilities() if cap.id not in names]
+    assert missing == [], f"catalog capabilities not exposed on MCP: {missing}"
+
+
+def test_mcp_data_tools_equal_the_catalog_projection() -> None:
+    """No hand-maintained data tool exists outside the catalog (no divergence)."""
+    names = {tool.name for tool in _mcp_tools()}
+    data_tools = names - _RUNTIME_ONLY
+    assert data_tools == set(mcp_tool_ids())
+
+
+def test_mcp_read_only_hint_matches_the_catalog() -> None:
+    """read_only drives the external readOnlyHint (one declaration, FR-021)."""
+    for tool in _mcp_tools():
+        cap = CAPABILITY_CATALOG.get(tool.name)
+        if cap is None:
+            continue  # runtime-only tool — not a catalog capability
+        annotations = tool.to_mcp_tool().annotations
+        assert annotations is not None, f"{tool.name}: missing annotations"
+        assert annotations.readOnlyHint == cap.read_only, (
+            f"{tool.name}: readOnlyHint {annotations.readOnlyHint} != catalog {cap.read_only}"
+        )
+
+
+def test_the_catalog_mcp_surface_is_read_only() -> None:
+    """R15-AGENT-083: in 0.9 no mutating or host-side capability reaches MCP.
+
+    Asserted over the live catalog and the live server, so a host action
+    (every one ``read_only=False``) can never be projected by a rule change.
+    """
+    leaked = [
+        cap.id for cap in mcp_capabilities() if not cap.read_only or cap.kind != "read_handler"
+    ]
+    assert leaked == [], f"mutating/local capabilities on the MCP surface: {leaked}"
+    host_actions = {c.id for c in CAPABILITY_CATALOG.values() if c.kind == "host_action"}
+    assert host_actions, "the catalog declares host actions; the check must not be vacuous"
+    assert host_actions.isdisjoint(tool.name for tool in _mcp_tools())
+
+
+def test_mcp_input_schema_matches_the_catalog() -> None:
+    """The external schema is the catalog schema verbatim (single source)."""
+    for tool in _mcp_tools():
+        cap = CAPABILITY_CATALOG.get(tool.name)
+        if cap is None:
+            continue
+        assert tool.to_mcp_tool().inputSchema == cap.input_schema, (
+            f"{tool.name}: MCP input schema diverged from the catalog"
+        )
+
+
+def test_mcp_surface_is_a_subset_of_internal_modulo_local_only() -> None:
+    """Every MCP capability is also internal; the only divergence is local-only."""
+    internal = set(internal_tool_ids())
+    assert set(mcp_tool_ids()).issubset(internal)
+
+    internal_only = internal - set(mcp_tool_ids())
+    expected_internal_only = {
+        cap.id
+        for cap in CAPABILITY_CATALOG.values()
+        if cap.internal
+        and (
+            cap.kind in ("per_invocation", "host_action")
+            or cap.id in ("backtest_summary", "run_custom_backtest")
+        )
+    }
+    assert internal_only == expected_internal_only, (
+        f"unexpected internal/MCP divergence: {internal_only ^ expected_internal_only}"
+    )
+
+
+def test_run_custom_backtest_not_read_only_on_mcp() -> None:
+    """R15-AGENT-066: run_custom_backtest caches its run in this session, so the
+    MCP listing never advertises it with readOnlyHint=true (it stays local with
+    backtest_summary, the only reader of its run_id)."""
+    listed = {tool.name for tool in _mcp_tools()}
+    assert "run_custom_backtest" not in listed
+    assert "run_custom_backtest" not in mcp_tool_ids()
+
+
+#: Every capability on the external MCP surface, named one by one (R15-AGENT-067).
+#: The catalog projects by kind, so a new read_handler would otherwise reach
+#: external clients unreviewed: adding it here (or to the catalog's
+#: _MCP_INTERNAL_ONLY) is the per-entry decision.
+_MCP_EXPOSED = {
+    "analyst_history",
+    "analyst_individual",
+    "compare_symbols",
+    "compute_greeks",
+    "corporate_actions",
+    "corporate_announcements",
+    "earnings_call_transcript",
+    "earnings_estimates",
+    "earnings_history",
+    "earnings_upcoming",
+    "exchange_deals",
+    "financial_statements",
+    "fundamentals",
+    "macro_search",
+    "macro_series",
+    "market_overview",
+    "news",
+    "option_chain",
+    "price_bond",
+    "price_data",
+    "price_option",
+    "price_target_history",
+    "research",
+    "resolve_symbol",
+    "screener_run",
+    "sec_filing_content",
+    "sec_filings_list",
+    "sec_insider_transactions",
+    "shareholding_pattern",
+    "web_search",
+    "yield_curve_value",
+}
+
+
+def test_mcp_projection_is_explicit_per_entry() -> None:
+    assert set(mcp_tool_ids()) == _MCP_EXPOSED
+
+
+def test_toolkind_has_no_unprojected_mcp_endpoint() -> None:
+    """R15-CODE-AGENT-026: every ToolKind member is used by a catalog entry, so no
+    dead kind (the former mcp_endpoint, which the projection routed nowhere) waits
+    to swallow a future capability."""
+    assert set(get_args(ToolKind)) == {cap.kind for cap in CAPABILITY_CATALOG.values()}

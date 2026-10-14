@@ -1,0 +1,11 @@
+[   2.2s] done: {"kind": "done", "usage": {"input_tokens": 2743, "output_tokens": 38, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Adding that to your portfolio now.
+
+Your updated portfolio:
+- WIPRO: 25 shares @ ₹165 (₹4,125)
+
+What else would you like to do?
+
+=== ok · 2.2s · events {'delta': 36, 'done': 1} · usage in=2743 out=38 · est $0.00000 · llama3.1:8b

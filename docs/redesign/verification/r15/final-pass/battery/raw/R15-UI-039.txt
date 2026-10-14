@@ -1,0 +1,11 @@
+# R15-UI-039 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:19:36+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/resolve/autocomplete?q=GUJGASLTD'
+[exit 0] [0.01s]
+{"query":"GUJGASLTD","region":"IN","candidates":[{"symbol":"GUJENERGY","name":"GUJARAT ENERGY LIMITED","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"GUJENERGY.NS","confidence":1.0,"isin":"INE844O01030","bse_code":"539336","industry":null,"former_name":"GUJGASLTD","board":"mainboard","exchange_group":"A","face_value":2.0,"rename":{"renamed_from":"GUJGASLTD","renamed_to":"GUJENERGY","effective_date":"2026-07-01","note":"GUJGASLTD was renamed to GUJENERGY on NSE (effective 2026-07-01); the resolver answers the current symbol."}}]}
+[http 200 0.004667s]
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/resolve/autocomplete?q=ZOMATO'
+[exit 0] [0.01s]
+{"query":"ZOMATO","region":"IN","candidates":[{"symbol":"ETERNAL","name":"ETERNAL LIMITED","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"ETERNAL.NS","confidence":1.0,"isin":"INE758T01015","bse_code":"543320","industry":"Consumer Services / E-Retail/ E-Commerce","former_name":"ZOMATO","board":"mainboard","exchange_group":"A","face_value":1.0,"rename":{"renamed_from":"ZOMATO","renamed_to":"ETERNAL","effective_date":"2025-04-09","note":"ZOMATO was renamed to ETERNAL on NSE (effective 2025-04-09); the resolver answers the current symbol."}}]}
+[http 200 0.003987s]

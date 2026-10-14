@@ -1,0 +1,18 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_08e7d19221bf478c8cd546ff0e2f107b", "name": "fundamentals", "input": {"__vysted_invalid_args__": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}}
+[  37.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_08e7d19221bf478c8cd546ff0e2f107b", "name": "fundamentals", "ok": false, "error": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}
+[  43.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_5d8eb2cd62a94e03b6e297b80ba0dddf", "name": "fundamentals", "input": {"symbol": "HDFCBANK.NS"}}
+[  53.1s] heartbeat: {"kind": "heartbeat"}
+[  53.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_5d8eb2cd62a94e03b6e297b80ba0dddf", "name": "fundamentals", "ok": true, "error": null}
+[  63.9s] heartbeat: {"kind": "heartbeat"}
+[  73.9s] heartbeat: {"kind": "heartbeat"}
+[  76.6s] done: {"kind": "done", "usage": {"input_tokens": 5919, "output_tokens": 29, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+It looks like the `fundamentals` tool requires a symbol argument. Let me try calling it again.
+
+HDFCBANK.NS's P/E ratio is 16.07 and its market cap is ₹1,134,044 cr.
+
+=== ok · 76.6s · events {'heartbeat': 6, 'tool_use': 2, 'tool_result': 2, 'delta': 50, 'done': 1} · usage in=5919 out=29 · est $0.00000 · llama3.1:8b

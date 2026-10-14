@@ -1,0 +1,4 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, in-process python (cand sidecar/.venv), scratch b16_r.py
+relevance defines own _host_matches: False; relevance.finance is finance module: True; finance.host_matches('sub.pinterest.com',{'pinterest.com'})=True; ('notpinterest.com')=False
+JUNK_HOSTS sample=['facebook.com', 'instagram.com', 'pinterest.com', 'quora.com', 'scribd.com']
+grep in relevance.py for 'def _host_matches': False

@@ -1,0 +1,7 @@
+in-process python: correctness_gate.symbols_match / _match_key for fresh -SM cases
+symbols_match('SHERA', 'SHERA-SM.NS') = True  expected=True  OK
+symbols_match('RICHA', 'RICHA-SM.NS') = True  expected=True  OK
+symbols_match('ONYX', 'ONYX-SM.NS') = True  expected=True  OK
+symbols_match('USHAFIN', 'USHAFIN-SM.NS') = True  expected=True  OK
+symbols_match('SHERA', 'RICHA-SM.NS') = False  expected=False  OK
+symbols_match('SMR', 'SMR.NS') = True  expected=True  OK

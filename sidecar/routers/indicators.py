@@ -14,8 +14,11 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Query
 
 from models.indicators import IndicatorResponse
+from routers.history import _label_series_freshness
 from services import indicators as indicator_service
 from services import provider_registry
+from services.correctness_gate import EmptySeriesError
+from services.research.fast import _suggested_indicators
 
 router = APIRouter(prefix="/indicators", tags=["indicators"])
 
@@ -25,8 +28,9 @@ def _parse_indicators(raw: str) -> list[str]:
     return [token.strip() for token in raw.split(",") if token.strip()]
 
 
-# NOTE: the static ``GET /indicators`` route is declared before ``/{symbol}``
-# so FastAPI matches it first rather than treating "indicators" as a symbol.
+# NOTE: both static routes (``""`` and ``"/suggested"``) are declared before
+# ``/{symbol}`` so FastAPI matches them first rather than treating their path
+# segment as a symbol.
 
 
 @router.get("")
@@ -35,7 +39,18 @@ def list_indicators() -> dict[str, list[str]]:
     return {"indicators": list(indicator_service.SUPPORTED_INDICATORS)}
 
 
-@router.get("/{symbol}")
+@router.get("/suggested")
+def suggested_indicators(
+    timeframe: str = "1d", asset_class: str = "equity"
+) -> dict[str, list[str]]:
+    """The chart's opening indicator set for an (asset class, timeframe) pair
+    (FR-092 / R15-UI-091) — a fresh, untouched chart seeds from this so its
+    defaults are never blank. ``_suggested_indicators`` is the ONE source
+    (also used by the research cockpit's own suggestion) — no second table."""
+    return {"indicators": _suggested_indicators(timeframe=timeframe, asset_class=asset_class)}
+
+
+@router.get("/{symbol:path}")  # a crypto pair carries "/" (R15-DATA-081)
 def get_indicators(
     symbol: str,
     indicators: str = Query(
@@ -61,5 +76,15 @@ def get_indicators(
             ),
         )
 
-    series = provider_registry.get_history(symbol, timeframe, range_, asset_class)
+    try:
+        series = provider_registry.get_history(symbol, timeframe, range_, asset_class)
+    except EmptySeriesError:
+        # The /history downgrade (R15-DATA-063): no bars is an honest empty
+        # chart, not a 502 overlay error beside it.
+        return IndicatorResponse(symbol=symbol, timeframe=timeframe, provider="none", indicators=[])
+    # R15-DATA-063: the provider registry never labels freshness itself — only
+    # /history's own downgrade path did, so every live /indicators response
+    # carried freshness=null. Label it the same way /history does before
+    # compute() copies series.freshness onto the response.
+    series = _label_series_freshness(series, asset_class, timeframe)
     return indicator_service.compute(series, requested)

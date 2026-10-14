@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "LS2-WS",
+  "layout": {
+    "grid": {
+      "root": "a"
+    },
+    "panels": {}
+  },
+  "watchlist": [
+    {
+      "symbol": "INFY.NS",
+      "assetClass": "equity"
+    }
+  ]
+}

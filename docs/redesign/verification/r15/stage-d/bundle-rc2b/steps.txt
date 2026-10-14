@@ -1,0 +1,11 @@
+worktree start 23:20:06
+worktree end 23:20:09 exit=0
+install start 23:20:09
+install end 23:20:14 exit=0
+sidecars start 23:20:14
+sidecars end 23:25:38 exit=0
+tauri start 23:25:38
+tauri end 23:28:36 exit=0
+smoke start 23:28:36
+smoke end 23:31:05 exit=0
+EXIT=0

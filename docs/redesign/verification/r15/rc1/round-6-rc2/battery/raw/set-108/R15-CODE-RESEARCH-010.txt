@@ -1,0 +1,6 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, in-process python (cand sidecar/.venv), scratch b16_r.py
+Brave MRO=['BraveSearchBackend', '_HtmlSerpBackend', 'SearchBackend']; Mojeek MRO=['MojeekSearchBackend', '_HtmlSerpBackend', 'SearchBackend']
+Brave.search is Mojeek.search: True (both inherited from _HtmlSerpBackend: True)
+BraveSearchBackend HTTP 429 via shared base -> reason='rate_limited'
+MojeekSearchBackend HTTP 429 via shared base -> reason='rate_limited'
+line counts: brave.py=96 mojeek.py=91; shared base html_serp.py=141

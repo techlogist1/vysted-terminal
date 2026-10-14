@@ -1,0 +1,22 @@
+=== R15-UI-046: __autosave__ exposure (clean re-run) ===
+-- sidecar GET /workspace: raw list includes __autosave__ (list uses glob, no filtering) --
+["__autosave__","b5-perm","b5v-ws"]
+-- sidecar has NO reserved-name guard: DELETE /workspace/__autosave__ succeeds at the API layer --
+HTTP:204
+-- list after delete (sidecar allowed it) --
+["b5-perm","b5v-ws"]
+-- sidecar has NO reserved-name guard on save either: POST name=__mine succeeds at the API layer --
+{"status":"saved","name":"__mine"}
+-- the guard is FRONTEND-ONLY (src/lib/workspace.ts userWorkspaceName, R15-UI-046 comment) --
+/** A user-chosen workspace name: non-empty, never a reserved `__` slot (R15-UI-046). */
+function userWorkspaceName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new WorkspaceError("A workspace name is required.");
+  }
+  if (isReservedLayoutName(trimmed)) {
+    throw new WorkspaceError(`Names starting with "__" are reserved; choose another name.`);
+  }
+-- Settings > Layouts filters __-prefixed names before display (src/components/SettingsPanel.tsx) --
+72:import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
+1731:      setNames(all.filter((n) => !isReservedLayoutName(n)).sort());

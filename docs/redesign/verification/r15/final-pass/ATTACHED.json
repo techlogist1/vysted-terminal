@@ -1,0 +1,121 @@
+[
+ {
+  "key": "maintainer:att-ls1-coldboot",
+  "id": "R15-LEAD-123",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/LS-1.md"
+ },
+ {
+  "key": "maintainer:att-ac5-origin",
+  "id": "R15-CODE-AGENT-001",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/AC-5/origin-probes.txt"
+ },
+ {
+  "key": "investor:att-ds1-bareamal",
+  "id": "R15-DATA-002",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/DS-1.md"
+ },
+ {
+  "key": "maintainer:att-ui3-foreign",
+  "id": "R15-UI-090",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/UI-3/calendar-matrix.txt"
+ },
+ {
+  "key": "investor:att-rs4-decisions41",
+  "id": "DECISIONS 4.1 (rc1-battery-4:1, FR-070 FAST budget)",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/RS-4.md"
+ },
+ {
+  "key": "maintainer:att-ls3-openbbkill",
+  "id": "R15-DATA-061",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/LS-3/kill-probes.txt"
+ },
+ {
+  "key": "drive-research-briefs:att-lead060",
+  "id": "R15-LEAD-060",
+  "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/final/06-direct-code-repros.txt"
+ },
+ {
+  "key": "drive-research-briefs:att-research043",
+  "id": "R15-RESEARCH-043",
+  "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/final/replay-03b-ultra-first-brief.json"
+ },
+ {
+  "key": "drive-research-briefs:att-lead128",
+  "id": "R15-LEAD-128",
+  "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/final/05-normal-tataelxsi-llama-clean.stdout.txt"
+ },
+ {
+  "key": "drive-research-briefs:att-agent027",
+  "id": "R15-AGENT-027",
+  "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/final/07-badkey-humanize.stdout.txt"
+ },
+ {
+  "key": "drive-screener:att-1",
+  "id": "R15-LEAD-069",
+  "evidence_file": "docs/redesign/verification/r15/surface/screener/final/50-attachments.md"
+ },
+ {
+  "key": "drive-screener:att-2",
+  "id": "R15-LEAD-076",
+  "evidence_file": "docs/redesign/verification/r15/surface/screener/final/50-attachments.md"
+ },
+ {
+  "key": "drive-panels-layouts:att-news-reliance",
+  "id": "R15-DATA-030",
+  "evidence_file": "docs/redesign/verification/r15/surface/panels-layouts/final/F-news-RELIANCE.NS.txt"
+ },
+ {
+  "key": "drive-panels-layouts:att-sec-in-502",
+  "id": "R15-DATA-061",
+  "evidence_file": "docs/redesign/verification/r15/surface/panels-layouts/final/F-sec-filings-RELIANCE.txt"
+ },
+ {
+  "key": "drive-settings-plugins:import-fontsize-only-toast",
+  "id": "R15-LEAD-089",
+  "evidence_file": "docs/redesign/verification/r15/surface/settings-plugins/final/05-harness-settings-replay.json"
+ },
+ {
+  "key": "drive-settings-plugins:privacy-copy-overpromise",
+  "id": "R15-LEAD-068",
+  "evidence_file": "docs/redesign/verification/r15/surface/settings-plugins/final/06-lead068-privacy-copy.txt"
+ },
+ {
+  "key": "drive-onboarding-stranger:att-keychain-denied",
+  "id": "R15-UI-044",
+  "evidence_file": "docs/redesign/verification/r15/surface/onboarding-stranger/final/20-onboarding-replay.json#T11_keychain_denied"
+ },
+ {
+  "key": "drive-onboarding-stranger:att-ollama-unreachable-start-copy",
+  "id": "R15-LEAD-133",
+  "evidence_file": "docs/redesign/verification/r15/surface/onboarding-stranger/final/http-log.jsonl#U02"
+ },
+ {
+  "key": "drive-failure-inducer:att-agent027-groq413",
+  "id": "R15-AGENT-027",
+  "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/final/60-agent027-humanize-probe.txt"
+ },
+ {
+  "key": "drive-failure-inducer:att-lead071-outage-cached-empty",
+  "id": "R15-LEAD-071",
+  "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/final/31-earnings-outage-cached-empty.txt"
+ },
+ {
+  "key": "FI-FINAL-HANG-NETWORK-COPY",
+  "id": "R15-AGENT-027",
+  "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/final/52-junk-hang.txt",
+  "by": "final-triage"
+ },
+ {
+  "key": "F-DOCS-009",
+  "id": "R15-DOCS-003",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/DOCS_VS_REALITY.md",
+  "by": "final-triage"
+ },
+ {
+  "key": "drive-research-briefs:4",
+  "id": "DECISIONS 4.1 (rc1-battery-4:1, FR-070 FAST budget)",
+  "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/final/05-normal-tataelxsi-llama-clean.stdout.txt",
+  "by": "final-triage",
+  "note": "price half already attached to R15-LEAD-128"
+ }
+]

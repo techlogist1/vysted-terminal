@@ -1,0 +1,24 @@
+COMMAND: curl -s -o /dev/null -w '%{http_code}' --max-time 15 https://vysted.com ; https://terminal.vysted.com; grep BLUEPRINT.md domain structure lines; ls repo root for web/site/www/vercel.json
+OUTPUT:
+000 exit=6 https://vysted.com
+000 exit=6 https://terminal.vysted.com
+**Org name:** Vysted
+**Product name:** Vysted Terminal (the flagship; future products plug under the org)
+**Domain structure (planned, not yet resolved):**
+- vysted.com — org/lab landing page
+- terminal.vysted.com — Vysted Terminal product page + download
+
+**Voice:** Research lab style (Tauric Research, OpenBB, Anthropic). Serious, technical credibility. Not startup-pitch energy. Not retail-app energy.
+
+**Tagline candidates** (TBD — not v1.0 critical path):
+"web": No such file or directory (os error 2)
+"site": No such file or directory (os error 2)
+"www": No such file or directory (os error 2)
+"vercel.json": No such file or directory (os error 2)
+
+Grab the latest `.dmg` from the
+[Releases](https://github.com/techlogist1/vysted-terminal/releases) page (Apple Silicon /
+M-series — an Intel build isn't published yet), open it, and drag **Vysted Terminal** to
+Applications.
+
+Because the app is **source-available and unsigned** (no paid Apple Developer certificate),

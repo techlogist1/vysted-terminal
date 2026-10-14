@@ -1,0 +1,6 @@
+$ POST /screener/formula/validate {"formula":"pe_ratio < 15 and r%oe > 0.1"}
+{"ok":false,"error":"unexpected character '%'","position":19,"fields":[]} HTTP=200
+$ POST /workspace {"name":"Research: NVDA","workspace":{}}
+{"status":"saved","name":"Research: NVDA"} HTTP=200
+$ GET /workspace/does-not-exist-zz
+{"detail":"Workspace 'does-not-exist-zz' not found."} HTTP=404

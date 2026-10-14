@@ -1,0 +1,7 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+run at: 2026-09-27 (this gate round, rc1-battery-11)
+method: fresh in-process python call against sidecar/.venv on the candidate worktree, importing and calling the actual fixed function(s) with sample input matching the register entry's own stated repro figures/text (no live LLM call; deterministic function-level probe of the exact code path the fix touches)
+cmd: sidecar/.venv/bin/python3 battery11_set2_research.py (run from candidate worktree root, sidecar on sys.path)
+
+--- R15-RESEARCH-034 ---
+PASS _reflect_says_complete('Price action is not covered yet')=False (want False); _reflect_says_complete('COMPLETE')=True (want True); _reflect_says_complete('No gaps remain')=True (want True)

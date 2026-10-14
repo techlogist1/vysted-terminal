@@ -1,0 +1,9 @@
+types/ai.ts:40: * The BYOK providers. `openrouter` (JARVIS sprint) is a unified BROKER — one key,
+types/screener.ts:84:  | "gross_margin"
+types/screener.ts:85:  | "operating_margin"
+types/screener.ts:86:  | "profit_margin"
+types/analyst.ts:40:  /** Analyst firm / brokerage that published the change (e.g. ``"Morgan
+types/data.ts:123: * (`*_margin`, `roe`, `roa`, `*_growth`, `held_percent_*`, `fifty_two_week_change`,
+types/data.ts:192:  gross_margin: number | null;
+types/data.ts:193:  operating_margin: number | null;
+types/data.ts:194:  profit_margin: number | null;

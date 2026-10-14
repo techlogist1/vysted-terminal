@@ -1,0 +1,11 @@
+# R15-CODE-FRONTEND-009 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:11+0530
+
+$ git merge-base --is-ancestor 5e14731 HEAD && echo 'closure 5e14731 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 5e14731 NOT an ancestor'
+[exit 0] [0.02s]
+closure 5e14731 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-FRONTEND-009\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/lib/host-actions.test.ts:1416:  it("save_screen saves the agent's recipe, not the on-screen draft, and says when it replaces (R15-CODE-FRONTEND-009)", () => {
+

@@ -2,6 +2,7 @@ import type { DockviewApi, IDockviewPanel } from "dockview";
 import { create } from "zustand";
 
 import { applyDefaultLayout } from "@/config/default-layout";
+import { RAIL_PANELS } from "@/lib/layout-templates";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useModulesStore } from "@/store/modules";
 
@@ -26,18 +27,68 @@ export function isReservedLayoutName(name: string): boolean {
   return name.startsWith("__");
 }
 
+/**
+ * Placement position for a newly-opened panel: a primary-content panel tabs
+ * `within` the main / centre group (anchored on the chart or equity overview,
+ * else any open non-rail panel) so a wide panel never lands in a cramped rail
+ * cell. Rail panels — and the case where no centre anchor is open yet (the
+ * panel is the first to mount) — return `undefined` for dockview's default
+ * placement.
+ */
+function mainGroupPosition(
+  api: DockviewApi,
+  panelId: string,
+): { referencePanel: string; direction: "within" } | undefined {
+  if (RAIL_PANELS.has(panelId)) {
+    return undefined;
+  }
+  const anchorId =
+    ["chart", "equity-overview"].find((id) => api.getPanel(id)) ??
+    api.panels.find((p) => !RAIL_PANELS.has(p.id))?.id;
+  return anchorId ? { referencePanel: anchorId, direction: "within" } : undefined;
+}
+
 interface WorkspaceState {
   /** Name of the active workspace. */
   name: string;
+  /**
+   * The symbol of the active research space, or `null` when the active
+   * workspace is not a research space. The TYPED replacement for the fragile
+   * `"Research: "` name-prefix detection — set by `deserializeWorkspace` /
+   * `createResearchSpace` from `SerializedWorkspace.researchSymbol`, and keyed
+   * by the per-space agent-memory archive (`src/store/research-spaces.ts`).
+   */
+  researchSymbol: string | null;
   /** The dockview layout API, set by `PanelHost` once the layout mounts. */
   dockviewApi: DockviewApi | null;
+  /**
+   * Why autosave is failing, set after 3 consecutive failures and cleared by
+   * the next success; `StatusChrome` shows it as a "not saving" badge.
+   */
+  lastAutosaveError: string | null;
+  setLastAutosaveError: (error: string | null) => void;
   setName: (name: string) => void;
+  /** Set (or clear, with `null`) the active research space's symbol. */
+  setResearchSymbol: (symbol: string | null) => void;
   setDockviewApi: (api: DockviewApi | null) => void;
-  /** Open a panel by its `PanelSpec` id, or focus it if already open. */
-  openPanel: (panelId: string) => void;
+  /**
+   * Open a panel by its `PanelSpec` id, or focus it if already open. Resolves
+   * through ENABLED modules only: returns false (nothing opened) for a
+   * disabled module's panel, an unknown id, or no mounted layout.
+   */
+  openPanel: (panelId: string) => boolean;
   /** Close a panel by id, if open. */
   closePanel: (panelId: string) => void;
-  /** Clear the cockpit and re-apply the bundled default layout. */
+  /**
+   * Re-apply the bundled default panel arrangement — layout only: chart
+   * drawings, chart views and module enablement are kept (R15-AGENT-056).
+   */
+  resetLayout: () => void;
+  /**
+   * The explicit factory reset (Settings / menu): re-enables every module,
+   * deletes every chart drawing and view, re-applies the default layout and
+   * renames the workspace "default".
+   */
   resetToDefaultLayout: () => void;
 }
 
@@ -49,17 +100,25 @@ interface WorkspaceState {
  */
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   name: "default",
+  researchSymbol: null,
   dockviewApi: null,
+  lastAutosaveError: null,
+  setLastAutosaveError: (lastAutosaveError) => set({ lastAutosaveError }),
   setName: (name) => set({ name }),
+  setResearchSymbol: (researchSymbol) => set({ researchSymbol }),
   setDockviewApi: (dockviewApi) => set({ dockviewApi }),
   openPanel: (panelId) => {
     const api = get().dockviewApi;
     if (!api) {
-      return;
+      return false;
     }
-    const spec = useModulesStore.getState().findPanel(panelId);
+    const modules = useModulesStore.getState();
+    const spec = modules.enabledPanels().find((panel) => panel.id === panelId);
     if (!spec) {
-      return;
+      if (process.env.NODE_ENV !== "production" && !modules.findPanel(panelId)) {
+        console.error(`openPanel: no registered panel "${panelId}" (a component id?)`);
+      }
+      return false;
     }
     // Seed the opened panel's size from the spec's declared defaultSize (a
     // proportional starting ratio; dockview redistributes from there).
@@ -72,37 +131,45 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         height: spec.defaultSize.h * GRID_UNIT_PX,
       });
     };
+    // Panel-placement policy: a primary-content
+    // panel (everything except the side-rail data panels) tabs INTO the main /
+    // center group beside the chart instead of landing in dockview's last-focused
+    // slot — which can be a cramped rail cell where a wide panel (Settings,
+    // Marketplace, a backtest) is unusable. Rail panels keep the default side-
+    // stack placement; if no center anchor is open yet, fall back to the default.
+    const position = mainGroupPosition(api, panelId);
     if (spec.singleton !== false) {
       // Singleton panel: focus the open instance, otherwise add a fresh one.
       const existing = api.getPanel(panelId);
       if (existing) {
         existing.api.setActive();
-        return;
+        return true;
       }
-      applySize(api.addPanel({ id: spec.id, component: spec.component, title: spec.title }));
-      return;
+      applySize(
+        api.addPanel({ id: spec.id, component: spec.component, title: spec.title, position }),
+      );
+      return true;
     }
-    // Non-singleton (Phase 2 chart): mint a unique panel id so multiple
-    // instances can coexist and dockview's id-uniqueness invariant holds.
+    // Non-singleton panel: mint a unique panel id so multiple instances can
+    // coexist and dockview's id-uniqueness invariant holds. (Currently no
+    // registered spec opts in — the chart abandoned its Phase-2 multi-instance
+    // flag and is singleton again — but the branch stays for future multi-panels.)
     const uniqueId = `${spec.id}-${Date.now().toString(36)}-${Math.random()
       .toString(36)
       .slice(2, 6)}`;
-    applySize(api.addPanel({ id: uniqueId, component: spec.component, title: spec.title }));
+    applySize(
+      api.addPanel({ id: uniqueId, component: spec.component, title: spec.title, position }),
+    );
+    return true;
   },
   closePanel: (panelId) => {
     get().dockviewApi?.getPanel(panelId)?.api.close();
   },
-  resetToDefaultLayout: () => {
+  resetLayout: () => {
     const api = get().dockviewApi;
     if (!api) {
       return;
     }
-    // A true factory reset: re-enable every module (the default state — modules
-    // are enabled unless explicitly `false`) so a prior workspace that disabled
-    // a module doesn't leave its panel missing from the "default" layout, and
-    // drop stale chart drawings (regression-95 BUG-2).
-    useModulesStore.getState().setEnabledMap({});
-    useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
     api.clear();
     const enabledPanelIds = new Set(
       useModulesStore
@@ -111,6 +178,19 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         .map((panel) => panel.id),
     );
     applyDefaultLayout(api, enabledPanelIds);
-    set({ name: "default" });
+  },
+  resetToDefaultLayout: () => {
+    if (!get().dockviewApi) {
+      return;
+    }
+    // A true factory reset: re-enable every module (the default state — modules
+    // are enabled unless explicitly `false`) so a prior workspace that disabled
+    // a module doesn't leave its panel missing from the "default" layout, and
+    // drop stale chart drawings (regression-95 BUG-2).
+    useModulesStore.getState().setEnabledMap({});
+    useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
+    useChartDrawingsStore.getState().replaceViews({});
+    get().resetLayout();
+    set({ name: "default", researchSymbol: null });
   },
 }));

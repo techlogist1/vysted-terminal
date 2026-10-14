@@ -1,0 +1,2 @@
+Committed pinned test: src/modules/portfolio/PortfolioPanel.test.tsx:394 'an edit ends when the portfolio switches; Save then writes nothing silently (R15-UI-034)'; :454 'Save on a holding removed mid-edit says nothing was saved (R15-UI-034)'.
+NOT RUN: vitest (role forbids running vitest/pytest suites).

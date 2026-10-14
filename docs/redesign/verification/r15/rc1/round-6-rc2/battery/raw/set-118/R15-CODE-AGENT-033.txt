@@ -1,0 +1,10 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ cd sidecar && PYTHONPATH=. ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b2_033.py 2>&1; grep -n 'tool_result' services/agent_runtime.py | head -3
+exit=0
+legacy stream (no tool_result): []
+errored tool_result stream: ["option_chain errored: invalid argument: Invalid isoformat string: 'nearest'"]
+ok tool_result stream: []
+error then successful retry: []
+1504:def _tool_result_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolResultEvent:
+1993:def _ratio_claim_traced(sentence: str, tool_results: list[str], in_context: bool) -> bool:
+2023:    return any(claimed <= _sourced_counts(result) for result in tool_results)

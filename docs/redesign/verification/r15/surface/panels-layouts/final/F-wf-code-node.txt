@@ -1,0 +1,16 @@
+POST(SSE) /workflow/run
+status=200
+{"spec": {"id": "wf-r15-code", "name": "R15 code node", "version": 1, "updatedAt": 1790133241458, "nodes": [{"id": "k", "type": "transform.code", "position": {"x": 0, "y": 0}, "config": {"expression": "2 ^ 10 + 1"}}, {"id": "k2", "type": "transform.code", "position": {"x": 0, "y": 100}, "config": {"expression": "7 ** 10 ** 7"}}], "edges": []}, "inputs": {}}
+---
+data: {"kind":"run-start","runId":"5378aeb2-be7a-4363-9189-f58062bddb03","startedAt":1791025544917}
+
+data: {"kind":"node-start","runId":"5378aeb2-be7a-4363-9189-f58062bddb03","nodeId":"k","nodeType":"transform.code","startedAt":1791025544917}
+
+data: {"kind":"node-start","runId":"5378aeb2-be7a-4363-9189-f58062bddb03","nodeId":"k2","nodeType":"transform.code","startedAt":1791025544917}
+
+data: {"kind":"node-output","runId":"5378aeb2-be7a-4363-9189-f58062bddb03","nodeId":"k","outputs":{"value":1025},"durationMs":0.234541}
+
+data: {"kind":"node-error","runId":"5378aeb2-be7a-4363-9189-f58062bddb03","nodeId":"k2","message":"power result too large (over 10000 bits)","durationMs":0.154083}
+
+data: {"kind":"run-error","runId":"5378aeb2-be7a-4363-9189-f58062bddb03","message":"failures in nodes: ['k2']","durationMs":0.408083}
+

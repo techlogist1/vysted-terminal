@@ -1,0 +1,103 @@
+int pattern == dv_fix_regex.FIX.pattern: True
+base pattern == dv SHIP.pattern: True
+[67          ] want_strip=True  base=True  int=True  | Without calling any tool, add 10 SBIN at ₹800 to my portfolio and tell me the total.
+[67          ] want_strip=True  base=True  int=True  | Don't use any tools, add 7 INFY to my holdings
+[67          ] want_strip=True  base=True  int=True  | Never use tools for this: add 5 TCS at ₹3,000 to my holdings.
+[67          ] want_strip=True  base=True  int=True  | DON'T USE TOOLS. Sell 5 ITC at ₹420 from my portfolio.
+[67          ] want_strip=True  base=True  int=True  | no tool calls — I sold 4 TCS at ₹3,200, update my position and tell me what I got.
+[67          ] want_strip=True  base=True  int=True  | No tools please. I bought 25 WIPRO at ₹165 today — put them in my portfolio.
+[67          ] want_strip=True  base=True  int=True  | Do not call tools. Remove my HDFCBANK holding.
+[67          ] want_strip=True  base=False int=False | Answer without any tools: I sold 5 TCS shares at ₹3,100 each. Restate my total proceeds.
+[67          ] want_strip=True  base=False int=False | Do not call a tool. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.
+[67          ] want_strip=True  base=False int=False | Don’t use any tools. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.
+[67          ] want_strip=True  base=False int=False | Avoid calling any functions. I bought 40 ITC shares at ₹415, add them to my holdings and tell me what I spent.
+[67          ] want_strip=True  base=False int=False | Skip the tools for this one — I hold 12 HDFCBANK at ₹1,600; add 3 more at ₹1,650, what is my average?
+[67          ] want_strip=True  base=False int=False | Zero tool calls please: I want to add 7 INFY at ₹1,500 to my portfolio — just tell me the total cost.
+[67          ] want_strip=True  base=False int=False | I hold 40 HDFCBANK at ₹1,640; answer only from what I gave you: what is my cost basis?
+[67          ] want_strip=True  base=False int=False | Refrain from calling any tools and restate my 5 TCS at ₹3,100.
+[67          ] want_strip=True  base=False int=False | Without using functions, add 3 HDFCBANK at ₹1,650 to my holdings and tell me the total.
+[67          ] want_strip=True  base=False int=False | No function calls. I bought 15 WIPRO at ₹250; total cost?
+[67          ] want_strip=True  base=False int=False | Please don’t invoke any tool — record nothing, just tell me 5 × ₹3,100.
+[67          ] want_strip=True  base=False int=False | Hands off the tools: add 20 SBIN at ₹800 to my portfolio.
+[67          ] want_strip=True  base=False int=False | No external calls. Record a buy of 5 RELIANCE at ₹1,200 in my portfolio.
+[67          ] want_strip=True  base=False int=False | Don't look anything up; I sold 3 INFY at ₹1,010 — update my holdings.
+[67          ] want_strip=True  base=False int=False | Without any function calls, delete my TCS position.
+[67          ] want_strip=True  base=False int=False | Tools off for this one: what is TCS.NS trading at right now?
+[67          ] want_strip=True  base=False int=False | Please don't touch any tools, just tell me INFY.NS's current price.
+[67          ] want_strip=False base=False int=False | Don't just use the tools blindly — check the TCS.NS price and explain the move.
+[67          ] want_strip=False base=False int=False | Never call the tools twice for one symbol; get the INFY.NS price.
+[67          ] want_strip=False base=False int=False | Don't call functions you don't need, just get me SBIN.NS's latest price.
+[67          ] want_strip=False base=False int=False | No lookups needed for TCS, I know it; what is ITC.NS trading at?
+[67          ] want_strip=False base=False int=False | Never use the search tools, only the quote: INFY.NS price?
+[67          ] want_strip=False base=False int=False | Don't use the tools for arithmetic; get the TCS.NS price.
+[67          ] want_strip=False base=False int=False | Do not call the tools again for TCS, just get INFY.NS price.
+[67          ] want_strip=False base=True  int=False | I never said don't use tools — get RELIANCE.NS price.
+[67          ] want_strip=False base=True  int=False | Don't use any tools other than price data: TCS.NS close?
+[67          ] want_strip=False base=True  int=False | Don't use tools for the math, but do fetch the TCS.NS price.
+[67          ] want_strip=False base=True  int=False | No tools except price_data for TCS.NS
+[67          ] want_strip=False base=True  int=False | Don't use tools you don't need; get the ITC.NS price.
+[67          ] want_strip=False base=True  int=False | Don't call tools twice — what is HDFCBANK.NS at?
+[67          ] want_strip=False base=True  int=False | Do not use tools from the web, only the quote: WIPRO.NS price?
+[67          ] want_strip=False base=False int=False | Get the latest price of SBIN.NS and state it in one sentence that calls the company SBI.
+[67          ] want_strip=False base=False int=False | Get the latest price of TCS.NS and state it in one sentence.
+[67          ] want_strip=False base=False int=False | What is INFY.NS trading at right now? One line.
+[67          ] want_strip=False base=False int=False | Fetch ITC.NS with price_data and tell me its current price.
+[67          ] want_strip=False base=False int=False | Latest HDFCBANK.NS price please, just the number and the date.
+[67          ] want_strip=False base=False int=False | Use price_data for WIPRO.NS and give me the current price and today's change.
+[67          ] want_strip=True  base=True  int=True  | I sold 5 TCS shares at ₹3,100 each. Without calling any tool, restate my sale price and my total proceeds.
+[67          ] want_strip=True  base=True  int=True  | Please answer without using any tools: I own 30 ITC shares at ₹410 and will add 10 more at ₹420. What's my new average cost?
+[67          ] want_strip=True  base=True  int=True  | No tools please. I bought 15 WIPRO shares at ₹250 and sold them at ₹262. What was my profit?
+[67          ] want_strip=True  base=True  int=True  | Don't use any tools, add 7 INFY to my holdings
+[67          ] want_strip=True  base=True  int=True  | no tool calls — I sold 4 TCS at ₹3,200, what did I get?
+[67          ] want_strip=True  base=True  int=True  | DON'T USE TOOLS. Sell 5 ITC at ₹420 from my portfolio.
+[67          ] want_strip=True  base=True  int=True  | Never use tools for this: add 5 TCS at ₹3,000 to my holdings.
+[67          ] want_strip=True  base=True  int=True  | I hold 40 HDFCBANK at ₹1,640; just answer from what I gave you: what is my cost basis?
+[67          ] want_strip=False base=False int=False | Just get the latest price from the market for the stocks in this message: TCS.NS, INFY.NS
+[67          ] want_strip=False base=False int=False | Only use data from price_data for the above symbols: TCS.NS
+[67          ] want_strip=False base=False int=False | Why did you not use the tools? Get the TCS.NS price now.
+[67          ] want_strip=False base=False int=False | Don't forget to use the tools to get the latest TCS.NS price.
+[67          ] want_strip=False base=False int=False | Do not answer without using the tools: what is TCS.NS trading at?
+[67          ] want_strip=False base=False int=False | Never guess, always call the tools: what is INFY.NS trading at
+[67          ] want_strip=False base=False int=False | Don't use web search, get TCS.NS price
+[67          ] want_strip=False base=False int=False | Add 10 TCS at 3,200 to my portfolio
+[67          ] want_strip=False base=False int=False | What tools do you have?
+[67          ] want_strip=False base=False int=False | I don't trust your memory, use the tools to fetch INFY.NS fundamentals
+[67          ] want_strip=False base=False int=False | Could you use the tools to get HDFCBANK.NS price?
+[67          ] want_strip=False base=False int=False | Don't rely on memory; get TCS.NS price with the tools.
+[67          ] want_strip=False base=False int=False | No need to avoid the tools this time: what is SBIN.NS at?
+[67          ] want_strip=False base=False int=False | What is TCS.NS at? Don't call the news tool.
+[67          ] want_strip=False base=False int=False | Without calling the fundamentals tool, use price_data for TCS.NS.
+[fresh-data  ] want_strip=False base=True  int=False | Don't use tools other than the quote lookup — what's INFY.NS trading at?
+[fresh-data  ] want_strip=False base=True  int=False | Don't call tools you can skip; just fetch the SBIN.NS quote.
+[fresh-data  ] want_strip=False base=True  int=False | Don't call tools twice. Fetch the WIPRO.NS price once.
+[fresh-data  ] want_strip=False base=True  int=False | Don't use tools for the maths, but do look up the ITC.NS quote.
+[fresh-data  ] want_strip=False base=True  int=False | I never said don't use tools. Get me the HDFCBANK.NS price.
+[fresh-data  ] want_strip=False base=True  int=False | My advisor said don't use tools, but I want the live RELIANCE.NS price.
+[fresh-data  ] want_strip=False base=True  int=False | You said no tools earlier — ignore that and fetch the TCS.NS price.
+[fresh-data  ] want_strip=False base=True  int=False | Do not use tools beyond the price lookup: SBIN.NS close?
+[fresh-data  ] want_strip=False base=True  int=False | No tools except the quote tool, please: WIPRO.NS price?
+[fresh-data  ] want_strip=False base=True  int=False | Without using tools like web search, give me the ITC.NS price from price_data.
+[fresh-data  ] want_strip=False base=True  int=False | Don't use any tools except price_data for RELIANCE.NS.
+[fresh-data  ] want_strip=False base=True  int=False | Never use tools blindly; check the INFY.NS price with price_data.
+[fresh-data  ] want_strip=False base=True  int=False | Don't use tools unnecessarily, but I do need the live TCS.NS price.
+[fresh-data  ] want_strip=False base=True  int=False | Do not call tools in a loop — one price_data call for HDFCBANK.NS is enough.
+[fresh-data  ] want_strip=False base=True  int=True   <- INT OVER-STRIP | He says don't use tools, but please fetch the TCS.NS price.
+[fresh-data  ] want_strip=False base=True  int=True   <- INT OVER-STRIP | Don't use any tools, except price_data for the TCS.NS price.
+[fresh-data  ] want_strip=False base=True  int=True   <- INT OVER-STRIP | No tools, other than the price lookup: what's SBIN.NS at?
+[fresh-data  ] want_strip=False base=True  int=True   <- INT OVER-STRIP | Don't use tools. Just kidding — get me the INFY.NS price.
+[fresh-notool] want_strip=True  base=True  int=True  | Don't use any tools; I bought 12 ITC at ₹270, what did I spend?
+[fresh-notool] want_strip=True  base=True  int=True  | No tools at all please. 8 WIPRO at ₹160 — total cost?
+[fresh-notool] want_strip=True  base=True  int=True  | Without calling any tools, tell me 20 × ₹983.
+[fresh-notool] want_strip=True  base=True  int=True  | Do not use tools! Add up 3 SBIN at ₹980 and 2 SBIN at ₹990.
+[fresh-notool] want_strip=True  base=True  int=True  | never call tools here: what's my average if I bought 10 at 100 and 10 at 120?
+[fresh-notool] want_strip=True  base=True  int=True  | Please answer without using tools. I hold 6 TCS at ₹2,000; value at ₹2,100?
+[fresh-notool] want_strip=True  base=True  int=True  | Don't call any tools, just compute 15% of ₹40,000.
+[fresh-notool] want_strip=True  base=True  int=True  | Just answer from what I gave you. I sold 3 INFY at ₹1,010; proceeds?
+[fresh-notool] want_strip=True  base=True  int=True  | no tool calls. restate: I own 50 HDFCBANK at ₹735.
+[fresh-notool] want_strip=True  base=True  int=True  | Don't use tools for this one. 4 RELIANCE at ₹1,226 — total?
+[fresh-notool] want_strip=True  base=True  int=False  <- lost strip (fails safe) | Don't use any tools for my calculation: I bought 5 ITC at ₹420, total?
+[fresh-notool] want_strip=True  base=True  int=False  <- lost strip (fails safe) | Do not call tools when answering: 7 × ₹269?
+
+67 {'n': 67, 'base_over': 7, 'int_over': 0, 'base_miss': 17, 'int_miss': 17, 'NEW_STRIP': 0, 'lost_strip': 0}
+fresh-data {'n': 18, 'base_over': 18, 'int_over': 4, 'base_miss': 0, 'int_miss': 0, 'NEW_STRIP': 0, 'lost_strip': 0}
+fresh-notool {'n': 12, 'base_over': 0, 'int_over': 0, 'base_miss': 0, 'int_miss': 2, 'NEW_STRIP': 0, 'lost_strip': 2}

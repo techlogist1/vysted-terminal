@@ -1,0 +1,26 @@
+# R15-UI-010 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:25:40+0530
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-3880790290025227294.json 'http://127.0.0.1:52861/backtest/run' | tail -c 400
+[exit 0] [0.02s]
+{"detail":"`window` must be between 5 and 200"}
+[http 422 0.001131s]
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-827065097981644884.json 'http://127.0.0.1:52861/backtest/run' | tail -c 400
+[exit 0] [0.01s]
+{"detail":"`window` must be between 5 and 200"}
+[http 422 0.000974s]
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-6729182406279537753.json 'http://127.0.0.1:52861/backtest/run' | tail -c 400
+[exit 0] [0.01s]
+{"detail":"`window` must be an integer"}
+[http 422 0.001150s]
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-306740831864191419.json 'http://127.0.0.1:52861/backtest/run' | tail -c 400
+[exit 0] [0.01s]
+{"detail":"`window` must be between 5 and 200"}
+[http 422 0.001008s]
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: US' 'http://127.0.0.1:52861/backtest/strategies' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);s=[x for x in (d if isinstance(d,list) else d.get('strategies',[])) if 'mean' in json.dumps(x)];print(json.dumps(s)[:1200])"
+[exit 0] [0.03s]
+[{"id": "mean_reversion", "name": "Mean Reversion (Z-Score)", "description": "Enter long when the N-day return z-score drops below entry_z; exit when it recovers above exit_z. Fixed share size.", "paramsSchema": {"type": "object", "properties": {"window": {"type": "integer", "default": 20, "minimum": 5, "maximum": 200, "description": "Rolling window for the z-score (bars)."}, "entry_z": {"type": "number", "default": -2.0, "description": "Enter long when z drops below this (typically negative)."}, "exit_z": {"type": "number", "default": 0.0, "description": "Exit when z rises above this."}, "position_size": {"type": "number", "default": 100, "minimum": 1, "description": "Fixed share quantity per trade."}}}}]
+

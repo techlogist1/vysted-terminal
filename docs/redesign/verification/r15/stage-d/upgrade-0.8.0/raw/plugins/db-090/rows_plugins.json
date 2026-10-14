@@ -1,0 +1,2 @@
+[{"plugin_id":"vysted-news","enabled":0,"settings_json":"{\"sources\": [\"reuters\", \"wsj\"], \"sentiment\": \"on\", \"maxItems\": 40}","granted_secret_ids_json":"[\"newsapi-key\"]","installed":1},
+{"plugin_id":"yfinance","enabled":1,"settings_json":"{\"defaultExchange\": \"binance\", \"refreshSeconds\": 15, \"showVolume\": true}","granted_secret_ids_json":"[]","installed":1}]

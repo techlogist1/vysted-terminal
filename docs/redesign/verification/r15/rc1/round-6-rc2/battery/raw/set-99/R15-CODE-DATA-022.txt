@@ -1,0 +1,7 @@
+ace7dd76 candidate venv, cwd sidecar
+COMMAND: FieldMeta(status='unavaliable') / controls
+EXIT: 0
+OUTPUT:
+'unavaliable' -> REJECTED ValidationError 1 validation error for FieldMeta
+'ok' -> ok
+'unavailable' -> unavailable

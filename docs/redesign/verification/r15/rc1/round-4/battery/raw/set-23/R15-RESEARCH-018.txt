@@ -1,0 +1,4 @@
+{"label": "KAYNES-secfilings", "sub_question": "What do recent SEC filings and insider trades show?", "tools_called": ["corporate_announcements", "web_search", "corporate_announcements"]}
+{"label": "KAYNES-sector", "sub_question": "What is the sector outlook for electronics manufacturing?", "tools_called": ["news", "web_search"]}
+{"label": "KAYNES-second", "sub_question": "Is there a second-quarter guidance change?", "tools_called": ["news", "web_search", "corporate_announcements"]}
+{"label": "AAPL-secfilings-control", "sub_question": "What do recent SEC filings and insider trades show?", "tools_called": ["sec_filings_list", "web_search"]}

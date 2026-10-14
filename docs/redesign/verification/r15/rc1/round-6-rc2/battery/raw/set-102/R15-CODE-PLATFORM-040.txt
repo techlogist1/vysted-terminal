@@ -1,0 +1,10 @@
+$ grep -rn price_asian_mc|price_barrier_mc|quant.monte_carlo|from .monte_carlo (excl venv, node_modules, docs)
+exit=1
+__pycache__
+__init__.py
+_common.py
+bonds.py
+greeks.py
+options.py
+pool.py
+yield_curve.py

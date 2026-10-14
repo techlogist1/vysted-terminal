@@ -1,0 +1,61 @@
+{
+  "prompt": "research Mazagon Dock Shipbuilders in depth — order book and margins",
+  "autonomy": "auto",
+  "elapsed_s": 43.163,
+  "stopped": true,
+  "messages": [
+    {
+      "id": "29a3546a-cb36-4c76-a6f8-71c5f9399f77",
+      "role": "user",
+      "content": "research Mazagon Dock Shipbuilders in depth — order book and margins",
+      "createdAt": 1791024469532
+    },
+    {
+      "id": "e220b26d-b312-4bc2-a9d6-b758ba73b8e8",
+      "role": "assistant",
+      "content": "",
+      "agentId": "copilot",
+      "providerId": "ollama",
+      "modelId": null,
+      "pending": false,
+      "createdAt": 1791024469532,
+      "stopped": true,
+      "usage": null
+    }
+  ],
+  "proposed": [],
+  "notices": {
+    "errorFrames": {},
+    "notices": {},
+    "compactions": {}
+  },
+  "before": {
+    "watchlist": [
+      "^NSEI",
+      "RELIANCE.NS",
+      "TCS.NS",
+      "HDFCBANK.NS"
+    ],
+    "notes": {
+      "g": "",
+      "s": {}
+    }
+  },
+  "after": {
+    "watchlist": [
+      "^NSEI",
+      "RELIANCE.NS",
+      "TCS.NS",
+      "HDFCBANK.NS"
+    ],
+    "notes": {
+      "g": "",
+      "s": {}
+    },
+    "screener": {
+      "formula": "",
+      "criteria": "[{\"field\":\"pe_ratio\",\"operator\":\"lt\",\"value\":20},{\"field\":\"market_cap\",\"operator\":\"gt\",\"value\":100000000000},{\"field\":\"sector\",\"operator\":\"eq\",\"value\":\"Technology\"}]"
+    }
+  },
+  "domText": "research Mazagon Dock Shipbu…Youresearch Mazagon Dock Shipbuilders in depth — order book and marginsVysted CopilotstoppedNormalDeepUltraLlama3.1 8B"
+}

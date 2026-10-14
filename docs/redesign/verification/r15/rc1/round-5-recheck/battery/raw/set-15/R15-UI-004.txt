@@ -1,0 +1,26 @@
+command: sed -n '116,140p' src/modules/portfolio/PortfolioPanel.test.tsx  (this entry's repro is a jsdom render assertion; vitest suites are owned by the heavy lane in this shard, so the check performed here is reading the exact pinning test's assertions rather than executing the suite)
+exit: 0 (read succeeded)
+output:
+117:  it("R15-UI-004: a failed live-quote fetch shows the banner and Retry re-fetches", async () => {
+118-    // Persistent rejection: the initial (empty-holdings) mount fetch and the
+119-    // post-add refetch both reject — the banner is gated on holdings.length,
+120-    // not on which call rejected.
+121-    mockFetchQuotes.mockRejectedValue(new Error("network down"));
+122-    render(<PortfolioPanel />);
+123-    await addHolding("aapl", "10", "150");
+124-
+125-    expect(await screen.findByText(/Couldn.t refresh live quotes/)).toBeInTheDocument();
+126-    const retry = screen.getByRole("button", { name: "Retry" });
+127-
+128-    mockFetchQuotes.mockResolvedValueOnce({
+129-      quotes: new Map([["AAPL", quote("AAPL", 200)]]),
+130-      failed: 0,
+131-    });
+132-    await act(async () => {
+133-      fireEvent.click(retry);
+134-    });
+135-
+136-    expect(screen.queryByText(/Couldn.t refresh live quotes/)).not.toBeInTheDocument();
+137-    // Mount (0 holdings) + post-add refetch + the Retry click.
+
+verdict: ci_pinned -- src/modules/portfolio/PortfolioPanel.test.tsx:116 'R15-UI-004: a failed live-quote fetch shows the banner and Retry re-fetches' (asserts /Couldn't refresh live quotes/ banner appears, Retry click re-fetches and clears it).

@@ -1,0 +1,33 @@
+### custom pe_ratio asc
+keys ['universe', 'evaluated_count', 'skipped_count', 'skip_details', 'result_count', 'matched_count', 'duration_ms', 'partial', 'coverage', 'freshness', 'basis_counts', 'throttled']
+count fields {'evaluated_count': 5, 'skipped_count': 1, 'result_count': 5, 'matched_count': 5, 'basis_counts': {'live': 5}}
+INFY.NS 13.298214 4192105660416.0
+TCS.NS 15.08323 7507531530240.0
+NIFTYBEES.NS 19.616566 None
+RELIANCE.NS 21.142494 15801867304960.0
+PAYTM.NS 163.96039 1058858991616.0
+skips null
+### custom pe_ratio desc
+keys ['universe', 'evaluated_count', 'skipped_count', 'skip_details', 'result_count', 'matched_count', 'duration_ms', 'partial', 'coverage', 'freshness', 'basis_counts', 'throttled']
+count fields {'evaluated_count': 5, 'skipped_count': 1, 'result_count': 5, 'matched_count': 5, 'basis_counts': {'live': 5}}
+PAYTM.NS 163.96039 1058858991616.0
+RELIANCE.NS 21.142494 15801867304960.0
+NIFTYBEES.NS 19.616566 None
+TCS.NS 15.08323 7507531530240.0
+INFY.NS 13.298214 4192105660416.0
+skips null
+### custom market_cap asc
+PAYTM.NS 1058858991616.0
+INFY.NS 4192105660416.0
+TCS.NS 7507531530240.0
+RELIANCE.NS 15801867304960.0
+NIFTYBEES.NS None
+skip_details [{"symbol": "ZZZNOTREAL.NS", "reason": "not_found"}]
+### custom market_cap desc
+RELIANCE.NS 15801867304960.0
+TCS.NS 7507531530240.0
+INFY.NS 4192105660416.0
+PAYTM.NS 1058858991616.0
+NIFTYBEES.NS None
+skip_details [{"symbol": "ZZZNOTREAL.NS", "reason": "not_found"}]
+{"detail":[{"type":"missing","loc":["body","criteria",0,"NumericThresholdCriterion","operator"],"msg":"Field required","input":{"field":"pe_ratio","op":"gt","value":100000}},{"type":"extra_forbidden","loc":["body","criteria",0,"NumericThresholdCriterion","op"],"msg":"Extra inputs are not permitted","input":"gt"},{"type":"missing","loc":["body","criteria",0,"NumericBetweenCriterion","operator"],"msg":"Field required","input":{"field":"pe_ratio","op":"gt","value":100000}},{"type":"model_attributes

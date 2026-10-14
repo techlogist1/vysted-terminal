@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vysted R4 — reference vs. app comparison sheet</title>
+    <style>
+      :root {
+        --bg: #110f0c;
+        --panel: #1e1a15;
+        --border: #3e372d;
+        --fg: #f6f3eb;
+        --dim: #ada294;
+        --tertiary: #847b6d;
+        --amber: #d89a4e;
+        --pos: #3fbf6f;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Inter", sans-serif;
+        line-height: 1.55;
+        padding: 40px clamp(16px, 4vw, 64px) 80px;
+      }
+      h1 { font-size: 28px; font-weight: 590; letter-spacing: -0.012em; margin: 0 0 6px; }
+      h2 { font-size: 18px; font-weight: 590; margin: 48px 0 4px; }
+      .sub { color: var(--dim); max-width: 70ch; }
+      .meta { color: var(--tertiary); font-size: 13px; }
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin: 16px 0 8px;
+      }
+      .pair figure { margin: 0; }
+      .pair figcaption {
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--tertiary);
+        margin: 0 0 8px;
+      }
+      .pair img {
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        display: block;
+        background: #000;
+      }
+      .note { color: var(--dim); font-size: 14px; margin: 10px 0 0; max-width: 80ch; }
+      .ok { color: var(--pos); }
+      .amber { color: var(--amber); }
+      ul { color: var(--dim); max-width: 80ch; }
+      code { font-family: ui-monospace, "Geist Mono", monospace; color: var(--fg); font-size: 0.92em; }
+      table { border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+      td, th { border: 1px solid var(--border); padding: 6px 12px; text-align: left; }
+      th { color: var(--dim); font-weight: 510; }
+      @media (max-width: 900px) { .pair { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <h1>Vysted R4 — reference vs. app</h1>
+    <p class="sub">
+      Each app surface beside the reference it targets (Perplexity home + Cursor). Captured on the
+      real running Tauri app via the bridge-independent Quartz path, after the R4 experience-layer
+      rebuild. The design target: warm near-black, a single restrained amber accent, no glow, three
+      contrast tiers, clean sans for prose/chrome with mono kept for numeric data.
+    </p>
+    <p class="meta">Captures: 2560×1664 (Retina). Open this file in a browser for 1:1 pairs.</p>
+
+    <h2>1 · Home / composer <span class="meta">— vs. Perplexity home</span></h2>
+    <div class="pair">
+      <figure>
+        <figcaption>Reference — Perplexity</figcaption>
+        <img src="../references/perplexity-home.png" alt="Perplexity home reference" />
+      </figure>
+      <figure>
+        <figcaption>Vysted — empty composer</figcaption>
+        <img src="app-01-empty-composer.png" alt="Vysted empty composer" />
+      </figure>
+    </div>
+    <p class="note">
+      Warm near-black canvas, centered prompt, suggestion chips below the composer, one restrained
+      <span class="amber">amber</span> accent. Prose + chrome render in clean sans (Inter); numeric
+      data keeps the mono face.
+    </p>
+
+    <h2>2 · Chat + content cockpit <span class="meta">— vs. Cursor agent</span></h2>
+    <div class="pair">
+      <figure>
+        <figcaption>Reference — Cursor (agent)</figcaption>
+        <img src="../references/cursor-agent.png" alt="Cursor agent reference" />
+      </figure>
+      <figure>
+        <figcaption>Vysted — research brief cockpit</figcaption>
+        <img src="app-03-brief-cockpit.png" alt="Vysted brief cockpit" />
+      </figure>
+    </div>
+    <p class="note">
+      Chat column left, content panel right (a research brief). Brief prose is sans; the Key Metrics
+      table stays mono + tabular. Source/depth chips and the "EOD AS OF" session badge sit quiet;
+      the <span class="amber">amber</span> appears only on the active markers.
+    </p>
+
+    <h2>3 · Command palette <span class="meta">— vs. Cursor plan / structured surface</span></h2>
+    <div class="pair">
+      <figure>
+        <figcaption>Reference — Cursor (plan)</figcaption>
+        <img src="../references/cursor-plan.png" alt="Cursor plan reference" />
+      </figure>
+      <figure>
+        <figcaption>Vysted — ⌘K palette (query: "notes")</figcaption>
+        <img src="app-02-cmdk-notes.png" alt="Vysted command palette" />
+      </figure>
+    </div>
+    <p class="note">
+      A centered modal over a dimmed canvas, grouped results (Actions / Panels), dim descriptions
+      under each item. Typing "notes" ranks the Notes action + panel at the top — no wall of agents.
+    </p>
+
+    <h2>Verified function (driven on the running app)</h2>
+    <table>
+      <tr><th>Check</th><th>Result</th><th>Evidence</th></tr>
+      <tr><td>Warm canvas + amber accent + zero glow</td><td class="ok">VERIFIED</td><td>live computed style: body <code>rgb(17,15,12)</code>, <code>--accent-rgb 216 154 78</code>, <code>background-image: none</code></td></tr>
+      <tr><td>⌘K ranks "notes" correctly</td><td class="ok">VERIFIED</td><td>top items: Open Notes (action), Notes (panel); zero agents in results</td></tr>
+      <tr><td>Notes export MD / PNG / PDF</td><td class="ok">VERIFIED</td><td><code>exports/notes/general.md</code> (UTF-8), <code>general.png</code> (PNG 600×1308), <code>general.pdf</code> (PDF, 2 pages)</td></tr>
+      <tr><td>Brief export MD / PDF</td><td class="ok">VERIFIED</td><td><code>exports/research/route-ns.md</code> (brief markdown), <code>route-ns.pdf</code> (PDF, 6 pages)</td></tr>
+      <tr><td>Screener cold-path backoff</td><td class="ok">VERIFIED</td><td>live log: throttled cycles 1→2→3 backing off 76s→136s→271s (no longer hammering every 40s)</td></tr>
+      <tr><td>Chrome/prose sans, data mono</td><td class="ok">VERIFIED</td><td>live: body font "Inter", empty-state prose "Inter"; metric tables keep explicit mono+tabular</td></tr>
+    </table>
+
+    <h2>Fresh-reviewer verdicts</h2>
+    <p class="note">Two blind reviewers (given only the references + app shots, no project context):</p>
+    <ul>
+      <li><strong>Round 1</strong> (pre-iteration): "close, minor deltas, leaning different on two axes" — flagged colder-than-warm canvas (2/5), cramped composer (2/5), and monospace prose reading as "code terminal" (2/5).</li>
+      <li><strong>Round 2</strong> (post-iteration): <strong>"close, minor deltas — the bones are right."</strong> Warmth <span class="ok">4/5</span> ("the hardest thing to get right and it's right"), typography <span class="ok">4/5</span> ("no mono-on-prose sins; mono correctly fenced to numeric data"), contrast <span class="ok">4/5</span>. Residual deltas: the <span class="amber">amber</span> accent reads warmer than the references' teal/mustard (a deliberate brand choice — the brief mandated Cursor's amber), and the chrome is denser than the airy references (the product is a finance terminal, not a single-column reader).</li>
+    </ul>
+    <p class="note">
+      <strong>Honest synthesis:</strong> the app now shares the references' <em>visual family</em> on
+      every fundamental — warm flat near-black, clean proportional sans for prose/chrome with mono
+      fenced to numeric data, a disciplined 2–3-tier contrast, a single restrained accent, zero glow
+      primitives, and a composer-led empty state with suggestion chips. It is not pixel-identical to
+      Perplexity/Cursor, nor should it be: it is a denser, amber-branded finance terminal. The two
+      residual reviewer deltas (accent temperature, chrome density) are a brand decision and the
+      product's nature, not regressions.
+    </p>
+  </body>
+</html>

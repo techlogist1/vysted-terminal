@@ -1,0 +1,4 @@
+announced (yielded tool_use): 6
+dispatched (handler calls): 6
+last text: I stopped after 6 tool rounds without reaching a final answer. Ask me to continue, or narrow the request.
+event kinds: ['tool_use', 'tool_use', 'tool_use', 'tool_use', 'tool_use', 'tool_use', 'delta', 'done']

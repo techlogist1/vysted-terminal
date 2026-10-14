@@ -1,0 +1,8 @@
+# R15-CODE-FRONTEND-028 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n -F 'R15-CODE-FRONTEND-028' src/store/research-spaces.test.ts src/lib/workspace.test.ts
+--- output ---
+src/store/research-spaces.test.ts:124:  it("R15-CODE-FRONTEND-028: an errored reply round-trips with its status; a pending one is not captured", () => {
+src/lib/workspace.test.ts:471:  it("R15-CODE-FRONTEND-028: agent spaces survive serialize -> deserialize", () => {
+
+EXIT=0 (0.0s)

@@ -1,0 +1,11 @@
+# R15-AGENT-005 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:08+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b4_005.py 2>&1 | grep -v Warning
+--- output ---
+('gemini', None, 'gemini-2.5-pro') with tools: False | one-shot (no function tools): True
+('groq', None, 'llama-3.3-70b-versatile') with tools: False | one-shot (no function tools): False
+('xai', None, None) with tools: False | one-shot (no function tools): False
+('groq', None, 'groq/compound') with tools: True | one-shot (no function tools): True
+('gemini', None, 'gemini-3-pro-preview') with tools: True | one-shot (no function tools): True
+
+EXIT=0 (1.1s)

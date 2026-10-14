@@ -1,0 +1,4 @@
+COMMAND: python -c one search failing both attempts (ATTEMPTS_PER_ENGINE) leaves breaker closed w/ 1 failure; second failed search opens it
+EXIT: 0
+OUTPUT:
+after_search1: state=closed failures=1; after_search2: state=open

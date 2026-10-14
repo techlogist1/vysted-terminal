@@ -1,0 +1,18 @@
+$ GET /quotes/506597.BO
+{"symbol":"AMAL","price":699.85,"change":10.200000000000045,"change_percent":1.479011092583201,"volume":6197.0,"open":689.65,"high":704.9,"low":688.15,"prev_close":689.65,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"b
+HTTP 200
+$ GET /fundamentals/506597.BO
+{"symbol":"AMAL.BO","name":"Amal Ltd","sector":"Basic Materials","industry":"Chemicals","sector_source":"yfinance","currency":"INR","financial_currency":null,"ratio_price":703.0,"market_cap":8690951168.0,"pe_ratio":29.291666,"forward_pe":null,"peg_ratio":null,
+HTTP 200
+$ GET /history/506597.BO?range=1y
+{"symbol":"AMAL","timeframe":"1d","bars":[{"timestamp":"2025-09-18T00:00:00Z","open":878.3,"high":885.3,"low":876.0,"close":879.75,"volume":5185.0},{"timestamp":"2025-09-19T00:00:00Z","open":882.0,"high":888.9,"low":854.0,"close":872.75,"volume":6709.0},{"time
+HTTP 200
+$ GET /quotes/544774.BO
+{"symbol":"SMR","price":93.05,"change":3.049999999999997,"change_percent":3.3888888888888857,"volume":9000.0,"open":92.65,"high":98.1,"low":92.65,"prev_close":90.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"bse","fr
+HTTP 200
+$ GET /fundamentals/544774.BO
+{"symbol":"SMR.BO","name":"SMR Jewels Limited","sector":"Consumer Cyclical","industry":"Luxury Goods","sector_source":"yfinance","currency":"INR","financial_currency":null,"ratio_price":93.05,"market_cap":1735730944.0,"pe_ratio":16.675629,"forward_pe":null,"pe
+HTTP 200
+$ GET /history/544774.BO?range=1y
+{"symbol":"SMR","timeframe":"1d","bars":[{"timestamp":"2026-06-08T00:00:00Z","open":102.95,"high":108.05,"low":102.4,"close":103.05,"volume":154000.0},{"timestamp":"2026-06-09T00:00:00Z","open":100.0,"high":100.1,"low":97.9,"close":97.9,"volume":31000.0},{"tim
+HTTP 200

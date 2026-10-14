@@ -1,0 +1,2 @@
+data: {"kind": "error", "message": "The model gemma3:4b is not downloaded in Ollama.", "action": "Run `ollama pull gemma3:4b`, or pick an installed model in Settings.", "detail": "model 'gemma3:4b' not found (status code: 404)", "code": "model_not_pulled"}
+

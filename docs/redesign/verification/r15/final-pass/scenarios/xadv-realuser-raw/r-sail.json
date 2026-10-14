@@ -1,0 +1,1317 @@
+{
+ "ok": true,
+ "query": "SailPoint",
+ "resolved": {
+  "ok": true,
+  "query": "SailPoint",
+  "region": "IN",
+  "status": "bound",
+  "reason": "score 0.97 >= accept at band 3",
+  "resolved": {
+   "symbol": "SAIL",
+   "name": "SailPoint, Inc.",
+   "exchange": "US",
+   "region": "US",
+   "asset_class": "equity",
+   "yahoo_symbol": "SAIL",
+   "confidence": 0.97,
+   "isin": "US78781J1097",
+   "bse_code": null,
+   "industry": null,
+   "former_name": "SailPoint Parent, LP",
+   "board": null,
+   "exchange_group": null,
+   "face_value": null
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "SAIL",
+    "name": "SailPoint, Inc.",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "SAIL",
+    "confidence": 0.97,
+    "isin": "US78781J1097",
+    "bse_code": null,
+    "industry": null,
+    "former_name": "SailPoint Parent, LP",
+    "board": null,
+    "exchange_group": null,
+    "face_value": null
+   },
+   {
+    "symbol": "HIPOLIN",
+    "name": "Hipolin Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "HIPOLIN.BO",
+    "confidence": 0.6,
+    "isin": "INE963A01011",
+    "bse_code": "530853",
+    "industry": null,
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "XT",
+    "face_value": 10.0
+   },
+   {
+    "symbol": "SNA",
+    "name": "Snap-on Inc",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "SNA",
+    "confidence": 0.6,
+    "isin": null,
+    "bse_code": null,
+    "industry": null,
+    "former_name": "SNAP ON TOOLS CORP",
+    "board": null,
+    "exchange_group": null,
+    "face_value": null
+   },
+   {
+    "symbol": "SNAL",
+    "name": "Snail, Inc.",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "SNAL",
+    "confidence": 0.6,
+    "isin": null,
+    "bse_code": null,
+    "industry": null,
+    "former_name": null,
+    "board": null,
+    "exchange_group": null,
+    "face_value": null
+   }
+  ]
+ },
+ "symbol": "SAIL",
+ "structured": {
+  "price": {
+   "ok": true,
+   "provider": "nse_direct",
+   "data": {
+    "symbol": "SAIL",
+    "price": 174.5,
+    "change": -6.990000000000009,
+    "change_percent": -3.8514518706264855,
+    "volume": 26206885.0,
+    "open": 180.5,
+    "high": 181.67,
+    "low": 170.67,
+    "prev_close": 181.49,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-10-01T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "SAIL.NS",
+    "name": "Steel Authority of India Limited",
+    "sector": "Basic Materials",
+    "industry": "Metals & Mining / Iron & Steel",
+    "sector_source": "resolver",
+    "currency": "INR",
+    "financial_currency": null,
+    "ratio_price": 174.5,
+    "market_cap": 720776658944.0,
+    "pe_ratio": 16.859903,
+    "forward_pe": 11.0012455,
+    "peg_ratio": null,
+    "price_to_book": 1.1951972,
+    "price_to_sales": 0.648561,
+    "ev_to_ebitda": 7.662,
+    "book_value": 146.001,
+    "dividend_yield": 0.013500000000000002,
+    "dividend_per_share": 2.35,
+    "eps": 10.34,
+    "beta": 1.047,
+    "fifty_two_week_high": 209.7,
+    "fifty_two_week_low": 124.0,
+    "fifty_two_week_change": 0.31578946,
+    "fifty_two_week_high_date": "2026-05-14",
+    "fifty_two_week_low_date": "2025-12-19",
+    "listing_date": "1995-07-06",
+    "first_trade_date": "1996-01-01",
+    "forward_pe_fiscal_year": "2027-03-31",
+    "roe": 0.07078465480413838,
+    "roa": null,
+    "gross_margin": 0.51803,
+    "operating_margin": 0.09877,
+    "profit_margin": 0.03844,
+    "debt_to_equity": 0.52899,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": 0.07180401497166858,
+    "basis": null,
+    "revenue_ttm": 1111347500000.0,
+    "net_income_ttm": 42722700000.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 4130525289.0,
+    "revenue_growth": 0.012495679305726154,
+    "earnings_growth": 1.2080233151575386,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.65098,
+    "held_percent_institutions": 0.16954,
+    "dividend_per_share_ttm": 2.35,
+    "revenue_growth_computed": 0.012495679305726154,
+    "earnings_growth_computed": 1.2080233151575386,
+    "growth_computed_quarters": {
+     "mrq": "2026-06-30",
+     "prior": "2025-06-30"
+    },
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector_source": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ratio_price": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-01T09:45:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-01T09:45:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-01T09:45:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-01T09:45:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-10-01T09:45:00+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-01T09:45:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-01T09:45:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-01T09:45:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_yield": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-01T09:45:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "beta": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-01T09:45:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "listing_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "first_trade_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe_fiscal_year": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "net income (TTM) / stockholders equity"
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roce": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "annual EBIT / (total assets - current liabilities)"
+     },
+     "basis": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "held_percent_insiders": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_institutions": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-10-03T09:50:38.854541+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "reason": null,
+      "label": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null,
+    "ownership_exchange": {
+     "promoter_percent": 65.0,
+     "institutions_percent": 23.95,
+     "public_percent": 35.0,
+     "as_of_quarter": "2026-06-30",
+     "source": "NSE",
+     "institutions_source": "BSE",
+     "institutions_as_of": "2026-06-30"
+    },
+    "earnings_quality": {
+     "reported_net_income": 33728000000.0,
+     "normalized_income": 39627224087.83911,
+     "unusual_items": -7880400000.0,
+     "tax_effect": -1981175912.160887,
+     "one_off_net": -5899224087.839111,
+     "distortion_fraction": 0.17490583751894898,
+     "period": "2026-03-31"
+    },
+    "market_cap_witness": {
+     "shares_outstanding": 4130092113.0,
+     "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)",
+     "scrip_code": "500113",
+     "as_of": "2026-06-11"
+    }
+   }
+  },
+  "derived": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "drawdown_from_high": {
+     "value": 0.1678588459704339,
+     "label": "Below 52-week high",
+     "basis": "vs 52w high",
+     "formula": "(52w high - price) / 52w high",
+     "unit": "fraction",
+     "display": "16.79%"
+    },
+    "fifty_two_week_change": {
+     "value": 0.31578946,
+     "label": "52-week price change (Yahoo)",
+     "basis": "trailing 52 weeks",
+     "unit": "fraction",
+     "display": "31.58%"
+    },
+    "dividend_yield": {
+     "value": 0.01346704871060172,
+     "label": "Dividend yield",
+     "basis": "fraction of price",
+     "formula": "dividend per share / price",
+     "unit": "fraction",
+     "display": "1.35%"
+    },
+    "dividend_per_share": {
+     "value": 2.35,
+     "label": "Dividend per share",
+     "basis": "per share, INR",
+     "unit": "currency",
+     "display": "\u20b92.35"
+    },
+    "revenue_growth": {
+     "value": 0.012495679305726154,
+     "label": "Revenue growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction",
+     "display": "1.25%"
+    },
+    "earnings_growth": {
+     "value": 1.2080233151575386,
+     "label": "Earnings growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction",
+     "display": "120.80%"
+    },
+    "promoter_percent_exchange": {
+     "value": 0.65,
+     "label": "Promoter group (exchange filing)",
+     "basis": "NSE shareholding filing, 2026-06-30",
+     "unit": "fraction",
+     "display": "65.00%"
+    },
+    "institutions_percent_exchange": {
+     "value": 0.2395,
+     "label": "Institutional holding (exchange filing)",
+     "basis": "BSE shareholding filing, 2026-06-30",
+     "unit": "fraction",
+     "display": "23.95%"
+    },
+    "market_cap": {
+     "value": 720776658944.0,
+     "label": "Market cap",
+     "basis": "provider market cap",
+     "unit": "currency",
+     "display": "\u20b972,078 cr"
+    },
+    "conflicts": [
+     {
+      "field": "identity",
+      "kind": "identity_conflict",
+      "similarity": 0.0,
+      "sources": [
+       {
+        "provider": "resolver (canonical master)",
+        "value": "SailPoint, Inc."
+       },
+       {
+        "provider": "yfinance",
+        "value": "Steel Authority of India Limited"
+       }
+      ],
+      "note": "The fundamentals provider (yfinance) reports the company name 'Steel Authority of India Limited' for SAIL, which materially disagrees with the resolver's canonical name 'SailPoint, Inc.' (token-set similarity 0% < 50%). This can indicate a symbol rename or a mis-resolution; the identities are NOT reconciled automatically.",
+      "symbol": "SAIL",
+      "conflict_kind": "data_conflict"
+     }
+    ]
+   }
+  },
+  "news": {
+   "ok": true,
+   "provider": null,
+   "data": []
+  },
+  "filings": {
+   "ok": false,
+   "provider": null,
+   "error": "filings timed out after 6s \u2014 dropped",
+   "reason": "provider_error"
+  },
+  "source_floor": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "cited": 0,
+    "floor": 3
+   },
+   "note": "0 sources (below 3)"
+  }
+ },
+ "web": {
+  "available": false,
+  "citations": [],
+  "results": [],
+  "reason": "rate_limited",
+  "note": "Web search was rate-limited \u2014 retry in a moment",
+  "detail": "keyless web search has no engine available right now \u2014 DuckDuckGo: cooling down (5s); Brave: rate-limiting; Mojeek: rate-limiting. Wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route."
+ },
+ "suggested_layout": "research-cockpit",
+ "suggested_indicators": [
+  "ma",
+  "volume",
+  "rsi",
+  "macd"
+ ],
+ "execution_loop": "fast",
+ "depth": "normal",
+ "execution": {
+  "run_id": "764f2c7de7c94e05ae08d9c48d1dc25b",
+  "requested_depth": "normal",
+  "loop": "fast",
+  "backend": null,
+  "started_at": 1791021037.3042428,
+  "finished_at": 1791021046.125957,
+  "degraded_reason": null
+ },
+ "brief": {
+  "query": "SailPoint",
+  "symbol": "SAIL",
+  "mode": "fast",
+  "depth": "quick",
+  "execution": {
+   "run_id": "764f2c7de7c94e05ae08d9c48d1dc25b",
+   "requested_depth": "normal",
+   "loop": "fast",
+   "backend": null,
+   "started_at": 1791021037.3042428,
+   "finished_at": 1791021046.125957,
+   "degraded_reason": null
+  },
+  "markdown": "",
+  "sources": [],
+  "structured": {
+   "price": {
+    "ok": true,
+    "provider": "nse_direct",
+    "data": {
+     "symbol": "SAIL",
+     "price": 174.5,
+     "change": -6.990000000000009,
+     "change_percent": -3.8514518706264855,
+     "volume": 26206885.0,
+     "open": 180.5,
+     "high": 181.67,
+     "low": 170.67,
+     "prev_close": 181.49,
+     "currency": "INR",
+     "market_state": "CLOSED",
+     "timestamp": "2026-10-01T00:00:00Z",
+     "provider": "nse_direct",
+     "freshness": null
+    }
+   },
+   "fundamentals": {
+    "ok": true,
+    "provider": "yfinance",
+    "data": {
+     "symbol": "SAIL.NS",
+     "name": "Steel Authority of India Limited",
+     "sector": "Basic Materials",
+     "industry": "Metals & Mining / Iron & Steel",
+     "sector_source": "resolver",
+     "currency": "INR",
+     "financial_currency": null,
+     "ratio_price": 174.5,
+     "market_cap": 720776658944.0,
+     "pe_ratio": 16.859903,
+     "forward_pe": 11.0012455,
+     "peg_ratio": null,
+     "price_to_book": 1.1951972,
+     "price_to_sales": 0.648561,
+     "ev_to_ebitda": 7.662,
+     "book_value": 146.001,
+     "dividend_yield": 0.013500000000000002,
+     "dividend_per_share": 2.35,
+     "eps": 10.34,
+     "beta": 1.047,
+     "fifty_two_week_high": 209.7,
+     "fifty_two_week_low": 124.0,
+     "fifty_two_week_change": 0.31578946,
+     "fifty_two_week_high_date": "2026-05-14",
+     "fifty_two_week_low_date": "2025-12-19",
+     "listing_date": "1995-07-06",
+     "first_trade_date": "1996-01-01",
+     "forward_pe_fiscal_year": "2027-03-31",
+     "roe": 0.07078465480413838,
+     "roa": null,
+     "gross_margin": 0.51803,
+     "operating_margin": 0.09877,
+     "profit_margin": 0.03844,
+     "debt_to_equity": 0.52899,
+     "current_ratio": null,
+     "quick_ratio": null,
+     "roce": 0.07180401497166858,
+     "basis": null,
+     "revenue_ttm": 1111347500000.0,
+     "net_income_ttm": 42722700000.0,
+     "free_cash_flow": null,
+     "shares_outstanding": 4130525289.0,
+     "revenue_growth": 0.012495679305726154,
+     "earnings_growth": 1.2080233151575386,
+     "growth_basis": "mrq_yoy",
+     "held_percent_insiders": 0.65098,
+     "held_percent_institutions": 0.16954,
+     "dividend_per_share_ttm": 2.35,
+     "revenue_growth_computed": 0.012495679305726154,
+     "earnings_growth_computed": 1.2080233151575386,
+     "growth_computed_quarters": {
+      "mrq": "2026-06-30",
+      "prior": "2025-06-30"
+     },
+     "field_meta": {
+      "name": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "sector": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "industry": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "sector_source": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "currency": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "ratio_price": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-01T09:45:00+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "market_cap": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-01T09:45:00+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "pe_ratio": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-01T09:45:00+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "forward_pe": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-01T09:45:00+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "peg_ratio": {
+       "status": "unavailable",
+       "provider": "yfinance",
+       "as_of": "2026-10-01T09:45:00+00:00",
+       "reason": "provider did not publish this field",
+       "label": null,
+       "basis_note": null
+      },
+      "price_to_book": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-01T09:45:00+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "price_to_sales": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-01T09:45:00+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "ev_to_ebitda": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-01T09:45:00+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "book_value": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "dividend_yield": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-01T09:45:00+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "dividend_per_share": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "eps": {
+       "status": "ok",
+       "provider": "nse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+       "basis_note": null
+      },
+      "beta": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "fifty_two_week_high": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "fifty_two_week_low": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "fifty_two_week_change": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-01T09:45:00+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "fifty_two_week_high_date": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "fifty_two_week_low_date": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "listing_date": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "first_trade_date": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "forward_pe_fiscal_year": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "roe": {
+       "status": "ok",
+       "provider": "derived",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": "net income (TTM) / stockholders equity"
+      },
+      "roa": {
+       "status": "unavailable",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": "provider did not publish this field",
+       "label": null,
+       "basis_note": null
+      },
+      "gross_margin": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "operating_margin": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "profit_margin": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "debt_to_equity": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "current_ratio": {
+       "status": "unavailable",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": "provider did not publish this field",
+       "label": null,
+       "basis_note": null
+      },
+      "quick_ratio": {
+       "status": "unavailable",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": "provider did not publish this field",
+       "label": null,
+       "basis_note": null
+      },
+      "roce": {
+       "status": "ok",
+       "provider": "derived",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": "annual EBIT / (total assets - current liabilities)"
+      },
+      "basis": {
+       "status": "unavailable",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": "provider did not publish this field",
+       "label": null,
+       "basis_note": null
+      },
+      "revenue_ttm": {
+       "status": "ok",
+       "provider": "nse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+       "basis_note": null
+      },
+      "net_income_ttm": {
+       "status": "ok",
+       "provider": "nse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+       "basis_note": null
+      },
+      "free_cash_flow": {
+       "status": "unavailable",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": "provider did not publish this field",
+       "label": null,
+       "basis_note": null
+      },
+      "shares_outstanding": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "revenue_growth": {
+       "status": "ok",
+       "provider": "nse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "consolidated, period to 2026-06-30 vs the same period to 2025-06-30",
+       "basis_note": null
+      },
+      "earnings_growth": {
+       "status": "ok",
+       "provider": "nse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "consolidated, period to 2026-06-30 vs the same period to 2025-06-30",
+       "basis_note": null
+      },
+      "held_percent_insiders": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "held_percent_institutions": {
+       "status": "ok",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": null,
+       "label": null,
+       "basis_note": null
+      },
+      "identity_note": {
+       "status": "unavailable",
+       "provider": "yfinance",
+       "as_of": "2026-10-03T09:50:38.854541+00:00",
+       "reason": "provider did not publish this field",
+       "label": null,
+       "basis_note": null
+      },
+      "dividend_per_share_ttm": {
+       "status": "ok",
+       "provider": "yfinance",
+       "reason": null,
+       "label": null
+      }
+     },
+     "provider": "yfinance",
+     "identity_note": null,
+     "ownership_exchange": {
+      "promoter_percent": 65.0,
+      "institutions_percent": 23.95,
+      "public_percent": 35.0,
+      "as_of_quarter": "2026-06-30",
+      "source": "NSE",
+      "institutions_source": "BSE",
+      "institutions_as_of": "2026-06-30"
+     },
+     "earnings_quality": {
+      "reported_net_income": 33728000000.0,
+      "normalized_income": 39627224087.83911,
+      "unusual_items": -7880400000.0,
+      "tax_effect": -1981175912.160887,
+      "one_off_net": -5899224087.839111,
+      "distortion_fraction": 0.17490583751894898,
+      "period": "2026-03-31"
+     },
+     "market_cap_witness": {
+      "shares_outstanding": 4130092113.0,
+      "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)",
+      "scrip_code": "500113",
+      "as_of": "2026-06-11"
+     }
+    }
+   },
+   "derived": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "drawdown_from_high": {
+      "value": 0.1678588459704339,
+      "label": "Below 52-week high",
+      "basis": "vs 52w high",
+      "formula": "(52w high - price) / 52w high",
+      "unit": "fraction",
+      "display": "16.79%"
+     },
+     "fifty_two_week_change": {
+      "value": 0.31578946,
+      "label": "52-week price change (Yahoo)",
+      "basis": "trailing 52 weeks",
+      "unit": "fraction",
+      "display": "31.58%"
+     },
+     "dividend_yield": {
+      "value": 0.01346704871060172,
+      "label": "Dividend yield",
+      "basis": "fraction of price",
+      "formula": "dividend per share / price",
+      "unit": "fraction",
+      "display": "1.35%"
+     },
+     "dividend_per_share": {
+      "value": 2.35,
+      "label": "Dividend per share",
+      "basis": "per share, INR",
+      "unit": "currency",
+      "display": "\u20b92.35"
+     },
+     "revenue_growth": {
+      "value": 0.012495679305726154,
+      "label": "Revenue growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction",
+      "display": "1.25%"
+     },
+     "earnings_growth": {
+      "value": 1.2080233151575386,
+      "label": "Earnings growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction",
+      "display": "120.80%"
+     },
+     "promoter_percent_exchange": {
+      "value": 0.65,
+      "label": "Promoter group (exchange filing)",
+      "basis": "NSE shareholding filing, 2026-06-30",
+      "unit": "fraction",
+      "display": "65.00%"
+     },
+     "institutions_percent_exchange": {
+      "value": 0.2395,
+      "label": "Institutional holding (exchange filing)",
+      "basis": "BSE shareholding filing, 2026-06-30",
+      "unit": "fraction",
+      "display": "23.95%"
+     },
+     "market_cap": {
+      "value": 720776658944.0,
+      "label": "Market cap",
+      "basis": "provider market cap",
+      "unit": "currency",
+      "display": "\u20b972,078 cr"
+     },
+     "conflicts": [
+      {
+       "field": "identity",
+       "kind": "identity_conflict",
+       "similarity": 0.0,
+       "sources": [
+        {
+         "provider": "resolver (canonical master)",
+         "value": "SailPoint, Inc."
+        },
+        {
+         "provider": "yfinance",
+         "value": "Steel Authority of India Limited"
+        }
+       ],
+       "note": "The fundamentals provider (yfinance) reports the company name 'Steel Authority of India Limited' for SAIL, which materially disagrees with the resolver's canonical name 'SailPoint, Inc.' (token-set similarity 0% < 50%). This can indicate a symbol rename or a mis-resolution; the identities are NOT reconciled automatically.",
+       "symbol": "SAIL",
+       "conflict_kind": "data_conflict"
+      }
+     ]
+    }
+   },
+   "news": {
+    "ok": true,
+    "provider": null,
+    "data": []
+   },
+   "filings": {
+    "ok": false,
+    "provider": null,
+    "error": "filings timed out after 6s \u2014 dropped",
+    "reason": "provider_error"
+   },
+   "source_floor": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "cited": 0,
+     "floor": 3
+    },
+    "note": "0 sources (below 3)"
+   }
+  },
+  "cost": null,
+  "web_available": false,
+  "note": "Web search was rate-limited \u2014 retry in a moment",
+  "web_reason": "rate_limited",
+  "backend": null
+ }
+}

@@ -1,0 +1,4 @@
+data: {"candidates":[{"content":{"parts":[{"text":"RELIANCE is on your chart"}],"role":"model"},"index":0}],"usageMetadata":{"promptTokenCount":2410,"totalTokenCount":2414},"modelVersion":"gemini-3-pro-preview","responseId":"Yx3TaPq0Mdyg1dkP8r2x4Ac"}
+
+data: {"candidates":[{"content":{"parts":[{"text":" and you have no notes on it yet."}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":2410,"candidatesTokenCount":14,"totalTokenCount":2424},"modelVersion":"gemini-3-pro-preview","responseId":"Yx3TaPq0Mdyg1dkP8r2x4Ac"}
+

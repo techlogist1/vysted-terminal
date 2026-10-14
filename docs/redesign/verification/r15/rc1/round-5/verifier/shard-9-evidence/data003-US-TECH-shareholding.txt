@@ -1,0 +1,3 @@
+### 16:47:40 curl -H X-Vysted-Region: US http://127.0.0.1:52609/disclosures/shareholding?symbol=TECH
+{"symbol":"TECH","count":0,"patterns":[],"coverage":"not_applicable","note":"TECH is not an NSE/BSE instrument; Indian exchange disclosures do not apply; its 20-F holders could not be read (MCP server 'sec-edgar-mcp' call_tool(get_recent_filings) failed: McpError('Timed out while waiting for response to ClientRequest. Waited 60.0 seconds.'))","provider":null,"major_shareholders":[],"source_url":null}
+HTTP 200 61.948830s

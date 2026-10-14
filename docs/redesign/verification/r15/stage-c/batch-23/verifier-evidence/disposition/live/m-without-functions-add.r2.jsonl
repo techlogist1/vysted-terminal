@@ -1,0 +1,44 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_c8e6082fe5914ce9af5a28d775c0c040", "name": "portfolio_add_position", "input": {"symbol": "HDFCBANK", "quantity": 3, "cost_basis": 1650}}
+{"kind": "tool_result", "tool_call_id": "call_c8e6082fe5914ce9af5a28d775c0c040", "name": "portfolio_add_position", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " added"}
+{"kind": "delta", "text": " HDF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "650"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " apply"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " proposal"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " user"}
+{"kind": "delta", "text": " interface"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "The get_portfolio tool returned no data for this in this turn.\n\n"}
+{"kind": "research_step", "tool_call_id": "call_c8e6082fe5914ce9af5a28d775c0c040", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position HDFCBANK. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 2927, "output_tokens": 95, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

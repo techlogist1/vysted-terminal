@@ -1,0 +1,13 @@
+# R15-CODE-DATA-008 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:30+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/probe84.py 008 2>&1 | grep -v -i warning
+--- output ---
+provider bad1 failed for quote, falling through: parse
+provider bad2 failed for quote, falling through: none
+provider bad1 failed for quote, falling through: parse
+provider bad2 failed for quote, falling through: none
+sync -> good
+async -> good
+PASS (ValueError/TypeError from two non-last providers fell through to 'good')
+
+EXIT=0 (1.2s)

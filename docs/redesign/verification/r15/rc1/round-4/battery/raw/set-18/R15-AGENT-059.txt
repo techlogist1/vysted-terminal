@@ -1,0 +1,21 @@
+=== R15-AGENT-059 probe (candidate 1006c6da) ===
+import asyncio, sys, os
+sys.path.insert(0, ".")
+os.environ["VYSTED_SIDECAR_INTERNAL_BASE_URL"] = "http://127.0.0.1:1"  # nothing listens here -> connect error
+from services.mcp_server import _get_list
+
+async def main():
+    r1 = await _get_list("/agents", "agents")
+    r2 = await _get_list("/workflow/saved", "workflows")
+    r3 = await _get_list("/runs", "runs")
+    print("list_agents on unreachable backend:", r1)
+    print("list_workflows on unreachable backend:", r2)
+    print("list_runs on unreachable backend:", r3)
+
+asyncio.run(main())
+OUTPUT (backend forced unreachable via VYSTED_SIDECAR_INTERNAL_BASE_URL=http://127.0.0.1:1):
+list_agents on unreachable backend: {'ok': False, 'error': 'GET /agents failed: All connection attempts failed'}
+list_workflows on unreachable backend: {'ok': False, 'error': 'GET /workflow/saved failed: All connection attempts failed'}
+list_runs on unreachable backend: {'ok': False, 'error': 'GET /runs failed: All connection attempts failed'}
+
+VERDICT: holds. list_agents/list_workflows/list_runs (all through the shared _get_list helper) report {ok:false,error:...} on an HTTPError instead of an empty list.

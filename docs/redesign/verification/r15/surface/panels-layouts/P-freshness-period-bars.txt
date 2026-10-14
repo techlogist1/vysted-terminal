@@ -1,0 +1,7 @@
+# services.locale.freshness_for on period bars — what routers/history.py:_label_series_freshness stamps from bars[-1].timestamp
+# yfinance stamps weekly/monthly bars at PERIOD START; nse_direct at PERIOD END (see P-http-log: chart-SPY-1mo last=2026-09-01, chart-RELIANCE.NS-1wk last=2026-09-27)
+2026-09-23 | weekly bar 2026-09-21 (current week) -> eod | monthly bar 2026-09-01 (current month) -> Freshness(state='stale', as_of=datetime.date(2026, 9, 1), is_stale=True, note='value dated 2026-09-01 is 16 sessions behind the last IN session (2026-09-23)')
+2026-09-24 | weekly bar 2026-09-21 (current week) -> eod | monthly bar 2026-09-01 (current month) -> Freshness(state='stale', as_of=datetime.date(2026, 9, 1), is_stale=True, note='value dated 2026-09-01 is 17 sessions behind the last IN session (2026-09-24)')
+2026-09-25 | weekly bar 2026-09-21 (current week) -> stale | monthly bar 2026-09-01 (current month) -> Freshness(state='stale', as_of=datetime.date(2026, 9, 1), is_stale=True, note='value dated 2026-09-01 is 18 sessions behind the last IN session (2026-09-25)')
+future-dated nse_direct weekly bar 2026-09-27 on 2026-09-23 -> Freshness(state='eod', as_of=datetime.date(2026, 9, 27), is_stale=False, note='end-of-day close for 2026-09-27')
+future-dated nse_direct monthly bar 2026-09-30 on 2026-09-23 -> Freshness(state='eod', as_of=datetime.date(2026, 9, 30), is_stale=False, note='end-of-day close for 2026-09-30')

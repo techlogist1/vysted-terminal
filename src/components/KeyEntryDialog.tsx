@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { KeyRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { isSecretStoreUnavailable, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
+import { validateProvider } from "@/lib/provider-validation";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import type { LLMProviderId } from "../../types/ai";
 
@@ -32,18 +32,16 @@ export interface KeyEntryDialogProps {
   onSaved?: (providerId: LLMProviderId) => void;
 }
 
-interface ValidationResponse {
-  ok: boolean;
-  detail?: string | null;
-}
-
-type Status = "idle" | "validating" | "valid" | "invalid" | "save-error";
+type Status = "idle" | "validating" | "valid" | "invalid" | "save-error" | "store-unavailable";
 
 export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyEntryDialogProps) {
   const providers = useLLMProvidersStore((state) => state.providers);
   const [key, setKey] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  const [promotedNote, setPromotedNote] = useState<string | null>(null);
+  // The in-flight validation, so Cancel (or closing) abandons it.
+  const inFlight = useRef<AbortController | null>(null);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
@@ -52,9 +50,12 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
     // calls only fire on a transition (when ``open`` flips to ``false``),
     // not on every render, so there is no cascade risk in practice.
     if (!open) {
+      inFlight.current?.abort();
+      inFlight.current = null;
       setKey("");
       setStatus("idle");
       setErrorDetail(null);
+      setPromotedNote(null);
     }
   }, [open]);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -62,45 +63,96 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
   const provider = providers.find((p) => p.id === providerId) ?? null;
 
   async function handleSave() {
-    if (!providerId) {
+    // A pasted key often carries a trailing space/newline; it is not part of
+    // the key (R15-UI-057) — the same trim onboarding applies.
+    const secret = key.trim();
+    if (!providerId || !secret) {
       return;
     }
     setStatus("validating");
     setErrorDetail(null);
+    const controller = new AbortController();
+    inFlight.current = controller;
     try {
-      // Validate via the sidecar — cheap probe against the provider's
-      // models endpoint. ``POST /llm/keys/validate`` returns ok/detail.
-      const validation = await postValidate(providerId, key);
+      const validation = await validateProvider(providerId, {
+        apiKey: secret,
+        signal: controller.signal,
+      });
       if (!validation.ok) {
         setStatus("invalid");
         setErrorDetail(validation.detail ?? "Key was not accepted by the provider.");
         return;
       }
-      await setSecret(KEYCHAIN_NAMESPACES.llmProvider(providerId), key);
+      await setSecret(KEYCHAIN_NAMESPACES.llmProvider(providerId), secret);
+      // A keyed lane beats a keyless default that cannot answer (R15-UI-049);
+      // the same path serves Settings and `/key`.
+      if (await useLLMProvidersStore.getState().promoteKeyedProvider(providerId)) {
+        setPromotedNote(`Default provider is now ${provider?.label ?? providerId}.`);
+      }
       setStatus("valid");
       onSaved?.(providerId);
       // Close after a short pause so the user sees the success state.
       setTimeout(() => onOpenChange(false), 500);
     } catch (err) {
+      if (controller.signal.aborted) {
+        return; // Cancelled — the dialog is closing.
+      }
+      if (isSecretStoreUnavailable(err)) {
+        setStatus("store-unavailable");
+        return;
+      }
       setStatus("save-error");
       setErrorDetail(err instanceof Error ? err.message : "Failed to save key.");
+    } finally {
+      if (inFlight.current === controller) {
+        inFlight.current = null;
+      }
     }
+  }
+
+  // When the provider requires no key, show a simpler "ready to use" body.
+  if (provider?.requiresKey === false) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0">
+          <DialogHeader className="border-charcoal-700 border-b px-6 py-3">
+            <DialogTitle className="text-charcoal-200 text-panel-title flex items-center gap-2 font-mono">
+              <KeyRound size={14} className="text-charcoal-300" aria-hidden="true" />
+              {provider.label}
+            </DialogTitle>
+            <DialogDescription className="text-charcoal-400 text-caption mt-1 font-mono">
+              No API key required for this provider.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 px-6 py-4">
+            <p className="text-charcoal-300 text-body font-mono">
+              This provider does not require an API key — it is ready to use.
+            </p>
+            <div className="flex justify-end pt-1">
+              <Button size="sm" onClick={() => onOpenChange(false)}>
+                Got it
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0 shadow-2xl">
-        <DialogHeader className="border-charcoal-700 border-b px-5 py-3">
-          <DialogTitle className="text-charcoal-200 flex items-center gap-2 font-mono text-sm font-medium">
-            <KeyRound className="size-3.5 text-amber-400" aria-hidden="true" />
+      <DialogContent className="border-charcoal-700 bg-charcoal-900 max-w-md gap-0 p-0">
+        <DialogHeader className="border-charcoal-700 border-b px-6 py-3">
+          <DialogTitle className="text-charcoal-200 text-panel-title flex items-center gap-2 font-mono">
+            <KeyRound size={14} className="text-charcoal-300" aria-hidden="true" />
             {provider ? `${provider.label} API key` : "Provider API key"}
           </DialogTitle>
-          <DialogDescription className="text-charcoal-400 mt-1 font-mono text-xs">
+          <DialogDescription className="text-charcoal-400 text-caption mt-1 font-mono">
             Stored in the OS keychain; never written to disk by Vysted.
           </DialogDescription>
         </DialogHeader>
         <form
-          className="flex flex-col gap-3 px-5 py-4"
+          className="flex flex-col gap-3 px-6 py-4"
           onSubmit={(event) => {
             event.preventDefault();
             void handleSave();
@@ -111,33 +163,33 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
             value={key}
             autoFocus
             onChange={(event) => setKey(event.target.value)}
-            placeholder={provider?.requiresKey === false ? "(no key required)" : "sk-..."}
-            disabled={!provider || provider.requiresKey === false}
+            placeholder="sk-..."
+            disabled={!provider}
             aria-label="API key"
-            className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-9 rounded-md px-3 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
+            className="border-charcoal-700 bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 h-8 border px-3 font-mono outline-none disabled:opacity-50"
           />
           {status === "invalid" && (
-            <p className="text-negative font-mono text-xs">{errorDetail ?? "Invalid key."}</p>
+            <p className="text-negative text-caption font-mono">{errorDetail ?? "Invalid key."}</p>
           )}
           {status === "save-error" && (
-            <p className="text-negative font-mono text-xs">{errorDetail}</p>
+            <p className="text-negative text-caption font-mono">{errorDetail}</p>
           )}
-          {status === "valid" && <p className="text-positive font-mono text-xs">Saved.</p>}
+          {status === "store-unavailable" && (
+            <p className="text-negative text-caption font-mono">
+              Secret store unavailable: no OS keychain is reachable, so the key was not saved. On
+              Linux, start a Secret Service provider (GNOME Keyring or KWallet) and try again.
+            </p>
+          )}
+          {status === "valid" && (
+            <p className="text-positive text-caption font-mono">
+              Saved.{promotedNote ? ` ${promotedNote}` : ""}
+            </p>
+          )}
           <div className="flex justify-end gap-2 pt-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-              disabled={status === "validating"}
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              size="sm"
-              disabled={status === "validating" || !key || provider?.requiresKey === false}
-            >
+            <Button type="submit" size="sm" disabled={status === "validating" || !key.trim()}>
               {status === "validating" ? "Validating…" : "Save"}
             </Button>
           </div>
@@ -145,20 +197,4 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
       </DialogContent>
     </Dialog>
   );
-}
-
-async function postValidate(provider: LLMProviderId, apiKey: string): Promise<ValidationResponse> {
-  const base = await getSidecarBaseUrl();
-  const url = new URL("/llm/keys/validate", base);
-  const response = await fetch(url.toString(), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ provider, api_key: apiKey }),
-  });
-  if (!response.ok) {
-    return { ok: false, detail: `sidecar returned ${response.status}` };
-  }
-  // Mirror the sidecar wire shape.
-  const body = (await response.json()) as { ok: boolean; detail?: string | null };
-  return { ok: body.ok, detail: body.detail ?? null };
 }

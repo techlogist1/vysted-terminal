@@ -1,0 +1,146 @@
+import { createElement } from "react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { writeFileSync } from "node:fs";
+
+vi.mock("@/lib/csv", async (importActual) => ({
+  ...(await importActual<typeof import("@/lib/csv")>()),
+  downloadCsv: vi.fn(async () => ({ path: "/scratch/out.csv", fellBack: false })),
+}));
+
+const OUT = process.env.GATE8_OUT!;
+const PORT = process.env.GATE8_PORT!;
+const log: Record<string, unknown> = {};
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+test("gate8 portfolio e2e phase 1", async () => {
+  window.history.replaceState({}, "", `/?sidecar-port=${PORT}`);
+  const { PortfolioPanel } = await import("@/modules/portfolio/PortfolioPanel");
+  const { usePortfoliosStore } = await import("@/store/portfolios");
+  const { useSettingsStore } = await import("@/store/settings");
+  const { useNotesStore } = await import("@/store/notes");
+  const { useSymbolsStore } = await import("@/store/symbols");
+  const { useWorkspaceStore } = await import("@/store/workspace");
+  const ws = await import("@/lib/workspace");
+  const { captureAgentContext } = await import("@/modules/chat/context-provider");
+  const csvModule = await import("@/lib/csv");
+  const dl = vi.mocked(csvModule.downloadCsv);
+
+  useSettingsStore.setState({ region: "IN" });
+  usePortfoliosStore.setState({
+    portfolios: [{ id: "default", name: "Portfolio", holdings: [] }],
+    activeId: "default",
+  });
+  const holdings = () => {
+    const s = usePortfoliosStore.getState();
+    return s.portfolios.find((p) => p.id === s.activeId)!.holdings;
+  };
+  render(createElement(PortfolioPanel));
+
+  const add = async (sym: string, qty: string, cost: string, note?: string) => {
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: sym } });
+    fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: qty } });
+    fireEvent.change(screen.getByLabelText("Avg cost / share"), { target: { value: cost } });
+    if (note) fireEvent.change(screen.getByLabelText("Note"), { target: { value: note } });
+    await act(async () => {
+      fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
+    });
+  };
+  await add("reliance.ns", "10", "1100");
+  await add("aapl", "5", "300");
+  await add("tcs.ns", "3", "2500", "core IT hold, gate8 r4");
+  log.afterAdd = structuredClone(holdings());
+
+  const exportCsv = async (nRows: number) => {
+    for (let i = 0; i < 60; i++) {
+      dl.mockClear();
+      await act(async () => {
+        fireEvent.click(screen.getByLabelText("Export portfolio to CSV"));
+      });
+      await act(async () => { await sleep(50); });
+      const call = dl.mock.calls.at(-1);
+      if (call) {
+        const rows = (call[1] as string).split("\n").slice(1);
+        const priced = rows.filter((r) => r.split(",")[5] !== "");
+        if (rows.length === nRows && priced.length === nRows) return { filename: call[0], csv: call[1] };
+      }
+      await act(async () => { await sleep(1000); });
+    }
+    const call = dl.mock.calls.at(-1);
+    return { filename: call?.[0], csv: call?.[1], incomplete: true };
+  };
+  log.csv1 = await exportCsv(3);
+
+  // update AAPL via the row Edit control
+  fireEvent.click(screen.getByLabelText("Edit AAPL"));
+  fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: "8" } });
+  fireEvent.change(screen.getByLabelText("Avg cost / share"), { target: { value: "310" } });
+  await act(async () => {
+    fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
+  });
+  log.afterUpdate = structuredClone(holdings());
+  // delete RELIANCE.NS via the two-step row control
+  const del = screen.getByLabelText("Delete RELIANCE.NS");
+  await act(async () => { fireEvent.click(del); });
+  await act(async () => { fireEvent.click(del); });
+  log.afterDelete = structuredClone(holdings());
+  log.csv2 = await exportCsv(2);
+
+  // notes CRUD
+  const n = useNotesStore.getState();
+  n.setGeneral("gate8 r4 thesis");
+  n.setSymbolNote("tcs", "margin watch");
+  const notesCreated = useNotesStore.getState().toBundle();
+  useNotesStore.getState().setSymbolNote("TCS", "margin watch, updated");
+  const notesUpdated = useNotesStore.getState().toBundle();
+  useNotesStore.getState().setSymbolNote("AAPL", "temp");
+  useNotesStore.getState().setSymbolNote("AAPL", "");
+  log.notes = { created: notesCreated, updated: notesUpdated, afterDelete: useNotesStore.getState().toBundle(),
+    withNotes: useNotesStore.getState().symbolsWithNotes() };
+
+  // watchlist CRUD
+  const w0 = structuredClone(useSymbolsStore.getState().entries);
+  useSymbolsStore.getState().addSymbol("infy", "equity", "IN");
+  useSymbolsStore.getState().addSymbol("msft", "equity", "US");
+  const wAdded = structuredClone(useSymbolsStore.getState().entries);
+  useSymbolsStore.getState().removeSymbol("MSFT", "US");
+  log.watchlist = { initial: w0, added: wAdded, afterRemove: structuredClone(useSymbolsStore.getState().entries) };
+
+  // persistence: the autosave write path (buildWorkspacePayload == serializeWorkspace) + the launch restore
+  const stub = {
+    toJSON: () => ({ grid: { root: { type: "branch", data: [] }, width: 0, height: 0, orientation: "HORIZONTAL" }, panels: {} }),
+    fromJSON: () => {}, panels: [], getPanel: () => undefined, removePanel: () => {},
+  };
+  useWorkspaceStore.setState({ dockviewApi: stub as never });
+  const before = {
+    portfolios: structuredClone(usePortfoliosStore.getState().portfolios),
+    notes: useNotesStore.getState().toBundle(),
+    watchlist: structuredClone(useSymbolsStore.getState().entries),
+  };
+  const payload = ws.serializeWorkspace("__autosave__");
+  const base = `http://127.0.0.1:${PORT}`;
+  const post = await fetch(`${base}/workspace`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: "__autosave__", workspace: payload }),
+  });
+  log.persistPost = post.status;
+  const saved = await (await fetch(`${base}/workspace/__autosave__`)).json();
+  usePortfoliosStore.setState({ portfolios: [{ id: "default", name: "Portfolio", holdings: [] }], activeId: "default" });
+  useNotesStore.setState({ general: "", bySymbol: {} });
+  useSymbolsStore.setState({ entries: [] });
+  let restoreThrew: string | null = null;
+  try { ws.deserializeWorkspace(saved); } catch (e) { restoreThrew = String(e); }
+  const after = {
+    portfolios: structuredClone(usePortfoliosStore.getState().portfolios),
+    notes: useNotesStore.getState().toBundle(),
+    watchlist: structuredClone(useSymbolsStore.getState().entries),
+  };
+  log.persist = { restoreThrew, before, after,
+    equal: JSON.stringify(before) === JSON.stringify(after),
+    savedPortfolios: saved.portfolios };
+
+  // agent context snapshot, wire shape (streaming.ts)
+  const snap = captureAgentContext();
+  log.snapshot = { focused_source: snap.focusedSource, by_source: snap.bySource, captured_at: snap.capturedAt };
+  writeFileSync(OUT, JSON.stringify(log, null, 1));
+  cleanup();
+});

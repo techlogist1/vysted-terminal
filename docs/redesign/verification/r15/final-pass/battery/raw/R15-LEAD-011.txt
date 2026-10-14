@@ -1,0 +1,10 @@
+# R15-LEAD-011 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:07+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in %5ENSEI %5EBSESN; do echo -n "\$ GET /history/$s [IN]: "; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/history/$s?range=1y" | python3 -c "import sys,json;d=json.load(sys.stdin);print('bars',len(d.get('bars',[])),'provider',d.get('provider'),'reason',d.get('reason'))"; done
+"$IP" -c "from services import yfinance_provider as y; print('_yahoo_symbol(^NSEI)=',y._yahoo_symbol('^NSEI') if y._yahoo_symbol.__code__.co_argcount==1 else y._yahoo_symbol('^NSEI','IN'))" 2>&1 | grep -v Warning | tail -2
+--- output ---
+$ GET /history/%5ENSEI [IN]: bars 246 provider yfinance reason None
+$ GET /history/%5EBSESN [IN]: bars 246 provider yfinance reason None
+_yahoo_symbol(^NSEI)= ^NSEI
+
+EXIT=0 (1.3s)

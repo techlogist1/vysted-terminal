@@ -1,0 +1,3 @@
+=== single quote of a nonexistent symbol (404 sentence, not raw yfinance) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP_STATUS:404

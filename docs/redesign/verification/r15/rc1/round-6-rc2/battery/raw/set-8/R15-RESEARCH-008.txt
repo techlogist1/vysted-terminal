@@ -1,0 +1,17 @@
+# R15-RESEARCH-008 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:34:01Z, sidecar :52348
+# kind=py
+# command:
+#   import asyncio, time, json
+#   from services.agent_tools.web_search import _web_search
+#   async def main():
+#       for q in ['recent news about Dixon Technologies','Dixon Technologies Q1 results']:
+#           t=time.monotonic()
+#           r=await _web_search({'query':q})
+#           el=time.monotonic()-t
+#           rows=r.get('results') or r.get('rows') or []
+#           print('%.1fs'%el,'ok',r.get('ok'),'rows',len(rows),'keys',sorted(r.keys())[:8],'| first:',[ (x.get('title') or '')[:50] for x in rows[:3]], r.get('message') or r.get('error') or '')
+#   asyncio.run(main())
+# output:
+9.8s ok False rows 0 keys ['message', 'ok', 'query', 'reason'] | first: [] keyless web search has no engine available right now — DuckDuckGo: rate-limiting; Brave: rate-limiting; Mojeek: rate-limiting. Wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route.
+8.9s ok False rows 0 keys ['message', 'ok', 'query', 'reason'] | first: [] keyless web search has no engine available right now — DuckDuckGo: rate-limiting; Brave: rate-limiting; Mojeek: rate-limiting. Wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route.
+# exit=0

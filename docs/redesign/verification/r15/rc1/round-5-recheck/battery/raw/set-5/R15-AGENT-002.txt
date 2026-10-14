@@ -1,0 +1,7 @@
+=== R15-AGENT-002 repro: cancel-on-disconnect for _dispatch_tool_with_progress ===
+candidate sha 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, in-process asyncio script, sidecar venv
+script: repro_agent002.py (saved alongside)
+right after aclose(): tool finished = False
+0.6s later: tool finished = False
+
+exit: 0

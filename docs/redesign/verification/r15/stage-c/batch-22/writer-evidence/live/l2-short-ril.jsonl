@@ -1,0 +1,44 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_6caa11d5500f4ee4beb2d112da3e11f6", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+{"kind": "tool_use", "tool_call_id": "call_29e6abda42424df8b0749a97135478c0", "name": "price_data", "input": {"symbol": "RELIANCE.ZZ"}}
+{"kind": "tool_result", "tool_call_id": "call_6caa11d5500f4ee4beb2d112da3e11f6", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_29e6abda42424df8b0749a97135478c0", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'RELIANCE.ZZ' from 'yfinance'"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "208"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " R"}
+{"kind": "delta", "text": "IL"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " our"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " missing"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " name"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 7099, "output_tokens": 34, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

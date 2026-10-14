@@ -1,0 +1,29 @@
+[  55.7s] tool_use research {"depth": "quick", "query": "Cochin Shipyard"}
+[  56.1s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin 472c0c1809c840168682ed596d7bf911 depth=normal query=Cochin Shipyard", "latency_ms": null, "status": "ok", "index": 1, "_t": 56.09}
+[  56.1s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolving \"Cochin Shipyard\"", "latency_ms": null, "status": "ok", "index": 2, "_t": 56.09}
+[  56.1s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 COCHINSHIP", "latency_ms": 314, "status": "ok", "index": 3, "_t": 56.09}
+[  56.1s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulling market data for COCHINSHIP", "latency_ms": null, "status": "ok", "index": 4, "_t": 56.09}
+[  76.2s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulled 4/4 data sources", "latency_ms": 20109, "status": "ok", "index": 5, "_t": 76.18}
+[  76.2s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "searching the web for Cochin Shipyard Limited", "latency_ms": null, "status": "ok", "index": 6, "_t": 76.18}
+[  83.9s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "6 web source(s)", "latency_ms": 7737, "status": "ok", "index": 7, "_t": 83.92}
+[  83.9s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 8, "_t": 83.92}
+[  83.9s] tool_use publish_brief {"query": "Cochin Shipyard", "symbol": "COCHINSHIP", "mode": "fast", "depth": "quick", "execution": {"run_id": "472c0c1809c840168682ed596d7bf911", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790128198.063881, "finished_at": 1790128226.2405188, "degraded_reason": null
+
+=== TEXT ===
+Cochin Shipyard Limited is a company that specializes in shipbuilding and allied services. It is listed on the NSE (National Stock Exchange) with the symbol COCHINSHIP.
+
+The current share price of Cochin Shipyard Limited is ₹1388.9.
+
+The P/E ratio of Cochin Shipyard Limited is 53.625484.
+
+The market capitalization of Cochin Shipyard Limited is ₹365,392,920,576.
+
+These figures are as of September 22nd, 2026, and may have changed since then. I can provide more information if needed.
+
+Additionally, Cochin Shipyard Limited has announced its quarterly results, which show a revenue growth of 0.024% and an earnings growth of -0.193%. The company's promoter group holds 67.91% of the shares, while institutional holding is at 9.79%.
+
+The company's latest news includes announcements under Regulation 30 (LODR) such as earnings call transcripts, investor presentations, and corporate actions like dividend payments.
+
+Please let me know if you'd like more information on Cochin Shipyard Limited or its financials.
+
+=== ok 207.1s kinds={'tool_use': 2, 'research_step': 8, 'delta': 232, 'done': 1} usage={'input_tokens': 10103, 'output_tokens': 233, 'cache_read_input_tokens': None, 'cache_creation_input_tokens': None}

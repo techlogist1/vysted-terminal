@@ -1,0 +1,14 @@
+# R15-UI-005 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:50+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'R15-UI-005' src/modules/portfolio/PortfolioPanel.test.tsx src/modules/chat/context-provider.test.ts | head; grep -n 'no live quotes\|totalValueNote' src/modules/portfolio/PortfolioPanel.tsx src/modules/chat/context-provider.ts | head -5
+--- output ---
+src/modules/portfolio/PortfolioPanel.test.tsx:141:  it("R15-UI-005: no live quote resolves -> null total with a note, never a fabricated 0", async () => {
+src/modules/portfolio/PortfolioPanel.test.tsx:175:  it("R15-UI-005: an all-unresolved portfolio publishes totalValue null, never 0, and never fakes concentration/P&L", async () => {
+src/modules/portfolio/PortfolioPanel.tsx:409:  const totalValueNote = summary.mixedCurrencies
+src/modules/portfolio/PortfolioPanel.tsx:415:        ? "no live quotes resolved"
+src/modules/portfolio/PortfolioPanel.tsx:456:        totalValueNote,
+src/modules/portfolio/PortfolioPanel.tsx:470:    totalValueNote,
+src/modules/portfolio/PortfolioPanel.tsx:969:                  : "— (no live quotes)"}
+
+EXIT=0 (0.0s)

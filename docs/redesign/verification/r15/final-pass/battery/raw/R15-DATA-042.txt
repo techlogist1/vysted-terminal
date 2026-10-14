@@ -1,0 +1,8 @@
+# R15-DATA-042 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'R15-DATA-042' src --include=*.test.* | cut -c1-200
+--- output ---
+src/modules/portfolio/metrics.test.ts:108:    // R15-DATA-042 / R15-CODE-PLATFORM-053: weight and concentration are a
+src/modules/portfolio/PortfolioPanel.test.tsx:592:  it("R15-DATA-042: CSV export gets a Currency column and a blank Weight % when mixed", async () => {
+
+EXIT=0 (0.0s)

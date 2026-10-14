@@ -1,0 +1,30 @@
+# R15-CODE-AGENT-031 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:29+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+D=$(mktemp -d "$B/out/runs031.XXXX"); VYSTED_DATA_DIR=$D "$IP" - <<'PY' 2>&1 | grep -v -e Warning -e 'TestClient as TestClient'
+import re
+from services import runs_store as rs
+from models.run import RunBudget
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from routers import runs as rr
+for i in range(105):
+    rs.create_run(run_id=f'r{i:03d}', agent_id='copilot', agent_name='Vysted Copilot', budget=RunBudget(), model='m')
+app=FastAPI(); app.include_router(rr.router); c=TestClient(app)
+r=c.get('/runs'); rows=r.json().get('runs',[])
+print('== GET /runs', r.status_code, 'rows', len(rows), 'LIST_LIMIT', rs.LIST_LIMIT)
+print('== camelCase keys in /runs rows:', sorted({k for row in rows for k in row if re.search('[A-Z]',k)}))
+print('== sample row keys:', sorted(rows[0].keys()))
+print('== checkpoint_json in list rows:', any('checkpoint' in k for row in rows for k in row))
+d=c.get('/runs/'+rows[0]['id']); print('== GET /runs/{id}', d.status_code, 'camelCase keys:', [k for k in d.json() if re.search('[A-Z]',k)])
+PY
+rm -rf "$D"
+echo '== live GET /runs on own sidecar'; curl -s -m 20 "$H/runs" | cut -c1-200
+--- output ---
+== GET /runs 200 rows 100 LIST_LIMIT 100
+== camelCase keys in /runs rows: []
+== sample row keys: ['activity', 'agent_id', 'agent_name', 'budget', 'cost', 'created_at', 'detail', 'id', 'mode', 'model', 'plan', 'provider', 'question', 'status', 'updated_at']
+== checkpoint_json in list rows: False
+== GET /runs/{id} 200 camelCase keys: []
+== live GET /runs on own sidecar
+{"runs":[]}
+EXIT=0 (1.4s)

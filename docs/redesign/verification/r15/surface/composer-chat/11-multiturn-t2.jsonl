@@ -1,0 +1,89 @@
+{"_meta": {"t0": 1790128401.5565429, "status": 200, "request": {"prompt": "How does it compare with Mazagon Dock on valuation \u2014 which one is cheaper?", "context_snapshot": {"focused_source": "chart-1", "by_source": {"__terminal__": {"focusedPanel": "chart-1", "capturedAt": 0, "charts": [{"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}], "focusedChart": {"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}, "watchlist": {"symbols": ["KPITTECH", "BDL", "CAMS"], "selected": "KPITTECH"}, "portfolio": {"positionCount": 1, "totalValue": null, "activePortfolioName": "Main", "holdings": [{"id": "h1", "symbol": "BDL", "quantity": 10, "costBasis": 1450, "assetClass": "equity", "marketValue": null, "pnl": null}]}, "openPanels": ["chart", "watchlist", "brief"], "brief": {"phase": "empty"}, "viewport": {"width": 1920, "height": 1080}}}, "captured_at": 1790128401556}, "provider": "ollama", "model": "llama3.1:8b", "mode": "agent", "autonomy": "ask", "options": {"history": "<2 turns>", "deepResearchBackend": "auto", "research_depth": "normal"}}}}
+{"kind": "tool_use", "tool_call_id": "", "name": "compare_symbols", "input": {"symbols": ["COCHINSHIP", "MAZAGONDOCK"], "asset_class": "equity"}, "_t": 143.73}
+{"kind": "delta", "text": "It", "_t": 220.96}
+{"kind": "delta", "text": " looks", "_t": 220.99}
+{"kind": "delta", "text": " like", "_t": 221.04}
+{"kind": "delta", "text": " Maz", "_t": 221.11}
+{"kind": "delta", "text": "agon", "_t": 221.15}
+{"kind": "delta", "text": " Dock", "_t": 221.2}
+{"kind": "delta", "text": " does", "_t": 221.25}
+{"kind": "delta", "text": " not", "_t": 221.31}
+{"kind": "delta", "text": " have", "_t": 221.36}
+{"kind": "delta", "text": " a", "_t": 221.42}
+{"kind": "delta", "text": " current", "_t": 221.46}
+{"kind": "delta", "text": " quote", "_t": 221.51}
+{"kind": "delta", "text": " available", "_t": 221.56}
+{"kind": "delta", "text": ".", "_t": 221.62}
+{"kind": "delta", "text": " I", "_t": 221.67}
+{"kind": "delta", "text": " can", "_t": 221.72}
+{"kind": "delta", "text": " still", "_t": 221.78}
+{"kind": "delta", "text": " provide", "_t": 221.83}
+{"kind": "delta", "text": " the", "_t": 221.88}
+{"kind": "delta", "text": " comparison", "_t": 221.93}
+{"kind": "delta", "text": " for", "_t": 221.98}
+{"kind": "delta", "text": " Co", "_t": 222.03}
+{"kind": "delta", "text": "chin", "_t": 222.09}
+{"kind": "delta", "text": " Ship", "_t": 222.14}
+{"kind": "delta", "text": "yard", "_t": 222.19}
+{"kind": "delta", "text": " Limited", "_t": 222.24}
+{"kind": "delta", "text": ".\n\n", "_t": 222.29}
+{"kind": "delta", "text": "C", "_t": 222.35}
+{"kind": "delta", "text": "och", "_t": 222.4}
+{"kind": "delta", "text": "in", "_t": 222.45}
+{"kind": "delta", "text": " Ship", "_t": 222.51}
+{"kind": "delta", "text": "yard", "_t": 222.55}
+{"kind": "delta", "text": " Limited", "_t": 222.61}
+{"kind": "delta", "text": "'s", "_t": 222.66}
+{"kind": "delta", "text": " P", "_t": 222.71}
+{"kind": "delta", "text": "/E", "_t": 222.76}
+{"kind": "delta", "text": " ratio", "_t": 222.81}
+{"kind": "delta", "text": " is", "_t": 222.87}
+{"kind": "delta", "text": " ", "_t": 222.92}
+{"kind": "delta", "text": "53", "_t": 222.98}
+{"kind": "delta", "text": ".", "_t": 223.03}
+{"kind": "delta", "text": "625", "_t": 223.08}
+{"kind": "delta", "text": "484", "_t": 223.13}
+{"kind": "delta", "text": ",", "_t": 223.18}
+{"kind": "delta", "text": " and", "_t": 223.24}
+{"kind": "delta", "text": " its", "_t": 223.29}
+{"kind": "delta", "text": " market", "_t": 223.34}
+{"kind": "delta", "text": " capital", "_t": 223.39}
+{"kind": "delta", "text": "ization", "_t": 223.45}
+{"kind": "delta", "text": " is", "_t": 223.5}
+{"kind": "delta", "text": " \u20b9", "_t": 223.56}
+{"kind": "delta", "text": "365", "_t": 223.61}
+{"kind": "delta", "text": ",", "_t": 223.66}
+{"kind": "delta", "text": "392", "_t": 223.71}
+{"kind": "delta", "text": ",", "_t": 223.76}
+{"kind": "delta", "text": "920", "_t": 223.82}
+{"kind": "delta", "text": ",", "_t": 223.87}
+{"kind": "delta", "text": "576", "_t": 223.92}
+{"kind": "delta", "text": ".\n\n", "_t": 223.97}
+{"kind": "delta", "text": "If", "_t": 224.02}
+{"kind": "delta", "text": " you", "_t": 224.08}
+{"kind": "delta", "text": "'d", "_t": 224.13}
+{"kind": "delta", "text": " like", "_t": 224.18}
+{"kind": "delta", "text": " to", "_t": 224.23}
+{"kind": "delta", "text": " proceed", "_t": 224.29}
+{"kind": "delta", "text": " with", "_t": 224.34}
+{"kind": "delta", "text": " researching", "_t": 224.39}
+{"kind": "delta", "text": " Maz", "_t": 224.44}
+{"kind": "delta", "text": "agon", "_t": 224.49}
+{"kind": "delta", "text": " Dock", "_t": 224.55}
+{"kind": "delta", "text": " or", "_t": 224.6}
+{"kind": "delta", "text": " exploring", "_t": 224.65}
+{"kind": "delta", "text": " other", "_t": 224.7}
+{"kind": "delta", "text": " companies", "_t": 224.75}
+{"kind": "delta", "text": ",", "_t": 224.81}
+{"kind": "delta", "text": " please", "_t": 224.86}
+{"kind": "delta", "text": " let", "_t": 224.91}
+{"kind": "delta", "text": " me", "_t": 224.96}
+{"kind": "delta", "text": " know", "_t": 225.02}
+{"kind": "delta", "text": " how", "_t": 225.07}
+{"kind": "delta", "text": " I", "_t": 225.12}
+{"kind": "delta", "text": " can", "_t": 225.17}
+{"kind": "delta", "text": " assist", "_t": 225.23}
+{"kind": "delta", "text": " you", "_t": 225.28}
+{"kind": "delta", "text": ".", "_t": 225.33}
+{"kind": "done", "usage": {"input_tokens": 3043, "output_tokens": 86, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop", "_t": 225.4}
+{"_summary": {"status": "ok", "secs": 230.4, "kinds": {"tool_use": 1, "delta": 85, "done": 1}, "usage": {"input_tokens": 3043, "output_tokens": 86, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}}}

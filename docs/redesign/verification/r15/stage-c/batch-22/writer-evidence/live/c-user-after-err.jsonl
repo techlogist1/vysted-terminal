@@ -1,0 +1,90 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_e0f68392411c4073bf823b1c7820a994", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}}
+{"kind": "tool_use", "tool_call_id": "call_e121f417376c4a1a8a537a64a59efcc9", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}}
+{"kind": "tool_result", "tool_call_id": "call_e0f68392411c4073bf823b1c7820a994", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+{"kind": "tool_result", "tool_call_id": "call_e121f417376c4a1a8a537a64a59efcc9", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " prices"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " will"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " want"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " proceed"}
+{"kind": "delta", "text": " without"}
+{"kind": "delta", "text": " knowing"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " some"}
+{"kind": "delta", "text": " general"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " how"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " obtain"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " prices"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " REL"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "ANCE"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " calling"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "`"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " no"}
+{"kind": "delta", "text": " arguments"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " valid"}
+{"kind": "delta", "text": " operation"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " requires"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " least"}
+{"kind": "delta", "text": " one"}
+{"kind": "delta", "text": " argument"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " fetching"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2952, "output_tokens": 83, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

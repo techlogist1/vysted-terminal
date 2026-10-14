@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_35f3bcc515614ff0a5adfc4147a120ad", "name": "get_terminal_state", "input": {}}
+[  27.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_78ee256baa904f138ba7415670fbb3c0", "name": "price_data", "input": {"symbol": "ZOMATO.NS", "timeframe": "1d"}}
+[  34.5s] done: {"kind": "done", "usage": {"input_tokens": 2810, "output_tokens": 62, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Sorry to hear that we couldn't retrieve the price data for Zomato's stock due to a provider error. We'll try to find an alternative source.
+
+Let me check again with a different tool. {"name": "get_stock_quote", "parameters": {"symbol":"ZOMATO.NS"}}
+
+=== ok · 34.5s · events {'heartbeat': 2, 'tool_use': 2, 'delta': 61, 'done': 1} · usage in=2810 out=62 · est $0.00000 · llama3.1:8b

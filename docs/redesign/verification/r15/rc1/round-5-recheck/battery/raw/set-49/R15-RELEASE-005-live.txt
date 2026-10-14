@@ -1,0 +1,5 @@
+binary: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src-tauri/binaries/vysted-sidecar-aarch64-apple-darwin
+sourceDirs: "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar"
+isStale (before touching seed): false
+seed file: sidecar/services/screener_universes/us_fundamentals_seed.json.gz
+isStale (after bumping seed mtime to now): true

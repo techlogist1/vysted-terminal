@@ -68,6 +68,17 @@ export interface PluginPersistenceAdapter {
   save(config: PluginPersistedConfig): Promise<void>;
 }
 
+/**
+ * Host glue the runtime drives so a plugin's contributions (dockview panels,
+ * cmd+K commands, custom agents) follow its lifecycle: `attach` runs whenever
+ * the plugin becomes active, `detach` when it is disabled or removed. A
+ * rejection marks the plugin errored with the reason.
+ */
+export interface PluginHostBridge {
+  attach(pluginId: string): Promise<void>;
+  detach(pluginId: string): Promise<void>;
+}
+
 /** Optional clock + id resolver — exists so tests can pin time and the dataDir. */
 export interface PluginRuntimeContext {
   /** Returns the current time in epoch ms; defaults to `Date.now`. */
@@ -82,6 +93,11 @@ export interface PluginRuntimeContext {
   persistence?: PluginPersistenceAdapter;
   /** Resolves granted secret ids to actual values; defaults to a no-op (empty map). */
   resolveSecrets?: (ids: string[]) => Promise<Record<string, string>>;
+  /** Surfaces/withdraws plugin contributions; defaults to a no-op. */
+  host?: PluginHostBridge;
+  /** Whether a never-persisted plugin is installed + enabled. The host passes
+   *  the catalog's `enabledByDefault`; a bare runtime (tests) defaults to on. */
+  defaultEnabled?: (pluginId: string) => boolean;
 }
 
 interface RuntimeListener {
@@ -107,7 +123,46 @@ function defaultContext(context?: PluginRuntimeContext): Required<PluginRuntimeC
     hostVersion: context?.hostVersion ?? "0.0.0",
     persistence: context?.persistence ?? new InMemoryPersistence(),
     resolveSecrets: context?.resolveSecrets ?? (async () => ({})),
+    host: context?.host ?? { attach: async () => {}, detach: async () => {} },
+    defaultEnabled: context?.defaultEnabled ?? (() => true),
   };
+}
+
+/** Parse a `major.minor.patch` semver into a numeric triple (pre-release/build ignored).
+ *  Strips a leading `>=`/`>`/`^`/`~`/`=` first so a manifest written as `">=0.8.0"`
+ *  parses to its floor `[0,8,0]` instead of `[0,0,0]`. `<` is deliberately NOT
+ *  stripped (R15-CODE-PLATFORM-048): every comparison this feeds
+ *  ({@link hostSatisfies}) is `>=`, so silently stripping `<` would parse
+ *  `"<0.9.0"` as `0.9.0` and then apply `>=`, inverting the manifest's actual
+ *  constraint — an unsupported operator must fail loudly instead. */
+function parseSemver(version: string): [number, number, number] {
+  const cleaned = version.trim().replace(/^[\^~>=\s]+/, "");
+  const core = cleaned.split("+")[0].split("-")[0];
+  const parts = core.split(".").map((p) => Number.parseInt(p, 10));
+  return [
+    Number.isFinite(parts[0]) ? parts[0] : 0,
+    Number.isFinite(parts[1]) ? parts[1] : 0,
+    Number.isFinite(parts[2]) ? parts[2] : 0,
+  ];
+}
+
+/**
+ * True iff `host` >= `required` by major.minor.patch comparison. The host
+ * (Vysted Terminal) satisfies a plugin's `requiredHostVersion` only when it is
+ * at least that version. Deliberately simple — Vysted versions are plain
+ * `x.y.z`; ranges/caret/tilde are not part of the manifest contract. A `<`
+ * prefix is an unsupported range operator, not a satisfiable requirement —
+ * always false, regardless of the host version.
+ */
+export function hostSatisfies(host: string, required: string): boolean {
+  if (required.trim().startsWith("<")) {
+    return false;
+  }
+  const [h0, h1, h2] = parseSemver(host);
+  const [r0, r1, r2] = parseSemver(required);
+  if (h0 !== r0) return h0 > r0;
+  if (h1 !== r1) return h1 > r1;
+  return h2 >= r2;
 }
 
 /** Read-only snapshot of one plugin's runtime state — what UI subscribers see. */
@@ -161,10 +216,22 @@ export class PluginRuntime {
    * accessors (`getDataSources` / `getPanels` / `getCommands` / etc.) — the
    * runtime calls them only when the matching `capabilities` flag is set.
    *
+   * `preloadedConfig` (R15-LIFECYCLE-027): pass the persisted config the
+   * caller already fetched (or `null` when it fetched and found none) so this
+   * call skips its own `persistence.load` round-trip — the boot loop reads
+   * every plugin's config once to decide whether to load it, and previously
+   * loaded it again here, serially, for every installed+enabled plugin. Omit
+   * the argument to have this call fetch it itself (the default, and what
+   * `installPlugin`/`enablePlugin`/`reloadPlugin` still do after their own
+   * config write).
+   *
    * On success, transitions the record to `active`; on failure, to `error`
    * with the captured message.
    */
-  async loadPlugin(plugin: DiscoveredPlugin): Promise<LoadedPluginSnapshot> {
+  async loadPlugin(
+    plugin: DiscoveredPlugin,
+    preloadedConfig?: PluginPersistedConfig | null,
+  ): Promise<LoadedPluginSnapshot> {
     let record = this.plugins.get(plugin.manifest.id);
     if (!record) {
       record = this.discover(plugin) as LoadedPlugin;
@@ -173,17 +240,27 @@ export class PluginRuntime {
       return record;
     }
 
+    // FR-054 / SC-015: reject an incompatible plugin AT LOAD — never silently
+    // load it. Surfaces as `error` with the reason; the plugin never reaches
+    // `active` and contributes nothing.
+    const incompatibility = this.checkCompatibility(plugin);
+    if (incompatibility) {
+      return this.transitionToError(
+        plugin.manifest.id,
+        new Error(incompatibility),
+        "compatibility",
+      );
+    }
+
     this.transition(plugin.manifest.id, "initializing");
 
     let persisted: PluginPersistedConfig;
     try {
-      const stored = await this.context.persistence.load(plugin.manifest.id);
-      persisted = stored ?? {
-        pluginId: plugin.manifest.id,
-        enabled: true,
-        settings: {},
-        grantedSecretIds: [],
-      };
+      const stored =
+        preloadedConfig !== undefined
+          ? preloadedConfig
+          : await this.context.persistence.load(plugin.manifest.id);
+      persisted = stored ?? this.defaultConfig(plugin.manifest.id);
       // Persist the default the first time we see this plugin so a second
       // launch finds an explicit row (not falling back through the default).
       if (!stored) {
@@ -191,6 +268,12 @@ export class PluginRuntime {
       }
     } catch (error) {
       return this.transitionToError(plugin.manifest.id, error, "config-load");
+    }
+
+    if (!persisted.installed) {
+      // Not installed via the marketplace — keep it discovered/stopped and
+      // contribute nothing (FR-050). The marketplace `installPlugin` flips this.
+      return this.transition(plugin.manifest.id, "stopped");
     }
 
     if (!persisted.enabled) {
@@ -220,7 +303,13 @@ export class PluginRuntime {
       return this.transitionToError(plugin.manifest.id, error, "initialize");
     }
 
-    return this.transition(plugin.manifest.id, "active", "loaded");
+    const active = this.transition(plugin.manifest.id, "active", "loaded");
+    try {
+      await this.context.host.attach(plugin.manifest.id);
+    } catch (error) {
+      return this.transitionToError(plugin.manifest.id, error, "attach");
+    }
+    return active;
   }
 
   /**
@@ -245,6 +334,115 @@ export class PluginRuntime {
       return this.transitionToError(pluginId, error, "shutdown");
     }
     return this.transition(pluginId, "stopped", "stopped");
+  }
+
+  /**
+   * Restart a plugin (shutdown, then a fresh `initialize()`) so it picks up
+   * changed settings or newly granted secrets. A disabled plugin stays stopped.
+   */
+  async reloadPlugin(plugin: DiscoveredPlugin): Promise<LoadedPluginSnapshot> {
+    await this.unloadPlugin(plugin.manifest.id);
+    return this.loadPlugin(plugin);
+  }
+
+  // ----- Marketplace lifecycle (FR-050) -----
+
+  /** The config of a never-persisted plugin — the one shared default. */
+  private defaultConfig(pluginId: string): PluginPersistedConfig {
+    const on = this.context.defaultEnabled(pluginId);
+    return { pluginId, installed: on, enabled: on, settings: {}, grantedSecretIds: [] };
+  }
+
+  /** Load (or update) the per-plugin persisted config, merging `patch` over
+   *  the stored row or, for a never-seen plugin, the shared default. */
+  private async patchConfig(
+    pluginId: string,
+    patch: Partial<PluginPersistedConfig>,
+  ): Promise<void> {
+    const current = (await this.context.persistence.load(pluginId)) ?? this.defaultConfig(pluginId);
+    await this.context.persistence.save({ ...current, ...patch, pluginId });
+  }
+
+  /** Marketplace: merge a patch into the plugin's persisted config (e.g. the
+   *  granted secret ids set by the credentials hub on configure). */
+  async updateConfig(pluginId: string, patch: Partial<PluginPersistedConfig>): Promise<void> {
+    await this.patchConfig(pluginId, patch);
+  }
+
+  /** Read the plugin's persisted config (the shared default if never persisted). */
+  async readConfig(pluginId: string): Promise<PluginPersistedConfig> {
+    return (await this.context.persistence.load(pluginId)) ?? this.defaultConfig(pluginId);
+  }
+
+  /** Install a plugin via the marketplace: persist installed+enabled, then load. */
+  async installPlugin(plugin: DiscoveredPlugin): Promise<LoadedPluginSnapshot> {
+    await this.patchConfig(plugin.manifest.id, { installed: true, enabled: true });
+    this.discover(plugin);
+    return this.loadPlugin(plugin);
+  }
+
+  /** Enable an installed plugin: persist enabled, then load it. */
+  async enablePlugin(plugin: DiscoveredPlugin): Promise<LoadedPluginSnapshot> {
+    await this.patchConfig(plugin.manifest.id, { installed: true, enabled: true });
+    return this.loadPlugin(plugin);
+  }
+
+  /** Disable a plugin: persist enabled:false, unload it and withdraw its
+   *  contributions (it stays installed). */
+  async disablePlugin(pluginId: string): Promise<void> {
+    await this.patchConfig(pluginId, { enabled: false });
+    await this.unloadPlugin(pluginId);
+    await this.detach(pluginId);
+  }
+
+  /** Remove a plugin entirely: persist installed:false + enabled:false, unload
+   *  it and withdraw its contributions. */
+  async removePlugin(pluginId: string): Promise<void> {
+    await this.patchConfig(pluginId, { installed: false, enabled: false });
+    await this.unloadPlugin(pluginId);
+    await this.detach(pluginId);
+  }
+
+  private async detach(pluginId: string): Promise<void> {
+    try {
+      await this.context.host.detach(pluginId);
+    } catch (error) {
+      // A not-yet-discovered id (boot still discovering) has no record to mark.
+      if (this.plugins.has(pluginId)) {
+        this.transitionToError(pluginId, error, "detach");
+      }
+    }
+  }
+
+  /**
+   * Validate that a discovered plugin is compatible with the host BEFORE it is
+   * initialized (FR-054 / SC-015). Returns an error message describing the
+   * incompatibility, or `null` when the plugin is safe to load:
+   *  - the manifest id MUST equal the instance `pluginId`;
+   *  - the manifest version MUST equal the instance `version`;
+   *  - the host version MUST satisfy the manifest `requiredHostVersion`.
+   * The marketplace cannot be trusted without these — a mismatched or
+   * host-incompatible plugin is rejected at load, not silently run.
+   */
+  private checkCompatibility(plugin: DiscoveredPlugin): string | null {
+    const { manifest, instance } = plugin;
+    if (manifest.id !== instance.pluginId) {
+      return `manifest id "${manifest.id}" does not match plugin instance id "${instance.pluginId}"`;
+    }
+    if (manifest.version !== instance.version) {
+      return `manifest version "${manifest.version}" does not match plugin instance version "${instance.version}"`;
+    }
+    if (!hostSatisfies(this.context.hostVersion, manifest.requiredHostVersion)) {
+      // Name the real operator (R15-CODE-PLATFORM-048): hardcoding ">=" here
+      // read as if a "<0.9.0" manifest asked for ">= <0.9.0" — nonsense that
+      // hid the fact that "<" is simply unsupported.
+      const required = manifest.requiredHostVersion.trim();
+      const detail = required.startsWith("<")
+        ? `"${required}" (an unsupported range operator — only a floor, ">=", is supported)`
+        : `>= ${required}`;
+      return `plugin requires host version ${detail} but host is ${this.context.hostVersion}`;
+    }
+    return null;
   }
 
   // ----- Capability accessors (negotiation by flag) -----
@@ -356,19 +554,28 @@ export class PluginRuntime {
       this.transitionToError(record.manifest.id, error, "healthCheck");
       return;
     }
+    // R15-CODE-PLATFORM-047: re-read the CURRENT record post-await rather than
+    // writing back the pre-await `record` — a disable/error transition that
+    // landed while `healthCheck()` was in flight must not be reverted to
+    // `active` by this stale-record overwrite. Bail if the plugin is gone or
+    // no longer active; only `healthHistory` is mutated otherwise.
+    const current = this.plugins.get(record.manifest.id);
+    if (!current || current.state !== "active") {
+      return;
+    }
     const sample: HealthSample = {
       status: status.status,
       message: status.message,
       recordedAt: this.context.now(),
     };
-    const previous = record.healthHistory[record.healthHistory.length - 1];
-    const newHistory = [...record.healthHistory, sample].slice(-HEALTH_HISTORY_LIMIT);
-    this.plugins.set(record.manifest.id, {
-      ...record,
+    const previous = current.healthHistory[current.healthHistory.length - 1];
+    const newHistory = [...current.healthHistory, sample].slice(-HEALTH_HISTORY_LIMIT);
+    this.plugins.set(current.manifest.id, {
+      ...current,
       healthHistory: newHistory,
     });
     if (!previous || previous.status !== sample.status) {
-      this.emit("health-changed", record.manifest.id, status.message);
+      this.emit("health-changed", current.manifest.id, status.message);
     }
   }
 

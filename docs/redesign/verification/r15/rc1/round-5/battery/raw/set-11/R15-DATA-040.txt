@@ -1,0 +1,7 @@
+Command: curl -s -X POST http://127.0.0.1:52352/backtest/run -H "Content-Type: application/json" \
+  -d '{"strategyId":"mean_reversion","params":{"window":20,"entry_z":-2.0,"exit_z":0.0,"position_size":10},"symbols":["AAPL","MSFT","ZZZZZNOTREAL"],"startDate":"2025-01-01","endDate":"2025-06-01","initialCapital":100000}'
+Exit: 0, HTTP 200 (SSE stream: run-start, run-complete)
+Observed: result.warnings = ["No price history loaded for ZZZZZNOTREAL in 2025-01-01..2025-06-01 (provider error or empty series); metrics cover 2 of 3 symbols."]
+result.request.symbols still echoes all three ["AAPL","MSFT","ZZZZZNOTREAL"] (as before), but warnings now names the excluded symbol and how many symbols the metrics actually cover, matching fix_shape.
+Source confirms: sidecar/services/backtest_engine.py:485-498 builds `missing` from `request.symbols` vs `loaded` (bars actually returned) and appends the warning; bar_loader.py:145-148 still returns [] on ProviderError (unchanged) but the silent-partial-result class is now surfaced via warnings.
+Verdict: HOLDS.

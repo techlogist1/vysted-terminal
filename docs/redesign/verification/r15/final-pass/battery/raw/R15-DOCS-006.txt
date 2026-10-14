@@ -1,0 +1,11 @@
+# R15-DOCS-006 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n "no 'static-export'" src/lib/source-guards.test.ts; echo '$ original false-claim sites'; grep -n 'ONE search surface' src/components/SettingsPanel.tsx; echo "exit=$?"; grep -n 'three-place' src/lib/chart-theme.ts; echo "exit=$?"; grep -rn 'SSR-safe\|static-export' src --include=*.ts --include=*.tsx | grep -v '\.test\.' | wc -l
+--- output ---
+81:  it("no 'static-export'/'SSR-safe' claim under src/ outside the shrinking allowlist", () => {
+$ original false-claim sites
+exit=1
+exit=1
+      10
+
+EXIT=0 (0.1s)

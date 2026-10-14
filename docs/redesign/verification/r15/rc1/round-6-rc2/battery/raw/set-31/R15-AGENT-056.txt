@@ -1,0 +1,63 @@
+# R15-AGENT-056 at ace7dd7
+$ grep arrange_layout default tests + gate text
+62:        "arrange_layout",
+83:    expect(isHostActionMutation("arrange_layout")).toBe(true);
+102:    const reset = describeHostAction("arrange_layout", { pattern: "default" });
+104:    const maximise = describeHostAction("arrange_layout", { pattern: "focus", panel: "chart" });
+113:    expect(applyHostAction("arrange_layout", { pattern: "default" })).toMatch(/default/i);
+115:    expect(applyHostAction("arrange_layout", { pattern: "focus", panel: "chart" })).toBeNull();
+143:  // R15-CODE-FRONTEND-033 (P7 pin): the focus branch of arrange_layout must
+147:  it("arrange_layout pattern=focus resolves a panel ALIAS, matching focus_panel", () => {
+160:    expect(applyHostAction("arrange_layout", { pattern: "focus", panel: "screener" })).toBe(
+438:  it("arrange_layout describes the named templates (B2)", () => {
+439:    const research = describeHostAction("arrange_layout", {
+447:    const compare = describeHostAction("arrange_layout", {
+src/store/workspace.ts:92:  resetToDefaultLayout: () => void;
+src/store/workspace.ts:182:  resetToDefaultLayout: () => {
+src/lib/host-actions.ts:1302:        title: "Reset the panel arrangement (drawings and modules kept)",
+src/lib/host-actions.ts:1304:        after: "Layout: the default panel arrangement (chart drawings and modules kept)",
+src/lib/host-actions.ts:1723:      return done("Reset the panel arrangement to the default (drawings and modules kept)");
+$ sed -n 178,200p src/store/workspace.ts
+        .map((panel) => panel.id),
+    );
+    applyDefaultLayout(api, enabledPanelIds);
+  },
+  resetToDefaultLayout: () => {
+    if (!get().dockviewApi) {
+      return;
+    }
+    // A true factory reset: re-enable every module (the default state — modules
+    // are enabled unless explicitly `false`) so a prior workspace that disabled
+    // a module doesn't leave its panel missing from the "default" layout, and
+    // drop stale chart drawings (regression-95 BUG-2).
+    useModulesStore.getState().setEnabledMap({});
+    useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
+    useChartDrawingsStore.getState().replaceViews({});
+    get().resetLayout();
+    set({ name: "default", researchSymbol: null });
+  },
+}));
+$ grep -n "drawings" src/lib/host-actions.test.ts src/store/workspace.test.ts | head
+src/store/workspace.test.ts:5:import { useChartDrawingsStore } from "@/store/chart-drawings";
+src/store/workspace.test.ts:98:  it("resetToDefaultLayout (Settings / menu) is the factory reset: drawings and module choices go", () => {
+src/lib/host-actions.test.ts:40:import { useChartDrawingsStore } from "@/store/chart-drawings";
+src/lib/host-actions.test.ts:60:        "add_chart_drawing",
+src/lib/host-actions.test.ts:1728:      /default panel arrangement \(chart drawings and modules kept\)/,
+src/lib/host-actions.test.ts:1729:      /panel arrangement to the default \(drawings and modules kept\)/,
+$ sed -n 1712,1726p src/lib/host-actions.ts
+        }
+        return done(`Arranged the ${mode.replace("-", " ")} layout`);
+      }
+      // The agent's default/unknown arrange is layout-only: a cosmetic tool must
+      // never delete drawings or re-enable modules (R15-AGENT-056); the factory
+      // reset stays the explicit Settings/menu action. Anything else is a
+      // genuinely unrecognised pattern — fail loudly instead of resetting.
+      if (pattern !== "default") {
+        return fail(`unrecognised layout "${pattern}"`);
+      }
+      ws.resetLayout();
+      return done("Reset the panel arrangement to the default (drawings and modules kept)");
+    }
+    case "open_company_overview": {
+      const { symbol, highlight } = intent;
+$ sed -n 1720,1745p src/lib/host-actions.test.ts

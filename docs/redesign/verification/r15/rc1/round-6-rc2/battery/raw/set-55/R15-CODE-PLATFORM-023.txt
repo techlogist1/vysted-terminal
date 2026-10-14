@@ -1,0 +1,10 @@
+# rc1-battery-22 raw R15-CODE-PLATFORM-023 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ export PATH=/Users/lokavyasingh/.nvm/versions/node/v24.15.0/bin:/Users/lokavyasingh/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Users/lokavyasingh/.local/bin:/Users/lokavyasingh/Library/pnpm:/Users/lokavyasingh/.cargo/bin:/Users/lokavyasingh/.orbstack/bin:/Users/lokavyasingh/.orbstack/bin; node /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/p22_023.mts; python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/p22_023.py; grep -n 'Risk' src/modules/portfolio/PortfolioPanel.tsx | head -5
+{"n":246,"vol":0.3068563768829883,"sharpe":-0.9682389900886818,"sortino":-1.32422110260494,"maxDD":-0.4169132441709079,"calmar":-0.712643008130632,"var95":0.03087547043718497,"corr":0.300289343569549,"beta":0.6894549891554298}
+{"vol": 0.3068563768829883, "sharpe": -0.9682389900886818, "maxDD": -0.4169132441709079, "corr": 0.30028934356954895, "beta": 0.6894549891554299, "sortino_alt": -1.32422110260494, "calmar": -0.712643008130632, "var95_idx": 0.031180968564146205}
+39:  computeCurrencyRisk,
+41:  type CurrencyRiskMetrics,
+272:  interface RiskEntry {
+274:    metrics: CurrencyRiskMetrics | null;
+306:  const [riskByCurrency, setRiskByCurrency] = useState<Map<string, RiskEntry>>(new Map());
+EXIT=0

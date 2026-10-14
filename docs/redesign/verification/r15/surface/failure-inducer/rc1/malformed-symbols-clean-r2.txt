@@ -1,0 +1,9 @@
+=== /quotes/%20%20%20 (clean, no netdown) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP:404
+=== /quotes/%24%24%24 (clean) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP:404
+=== /quotes/AAPL (clean, valid US ticker) ===
+{"symbol":"AAPL","price":341.07,"change":5.159999999999968,"change_percent":1.5361257479681962,"volume":29649787.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:01Z","provider":"yfinance","freshness":"eod"}
+HTTP:200

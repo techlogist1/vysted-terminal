@@ -1,0 +1,9 @@
+$ python3 -c measure copilot's tool-schema + prompt token estimate vs num_ctx, and the per-tool-result cap
+n_tools (full grant): 55
+schema chars: 41582 (~ 10395 tok)
+system prompt chars: 11512 (~ 2878 tok)
+DEFAULT_NUM_CTX: 16384
+read-intent turn tool count: 42
+$ python3 -c _model_facing_content with an oversized result + a real window
+len out: 8267
+tail: xxxxxxxxxxxxxxx…[21808 chars elided — call again with a narrower query or a smaller limit]

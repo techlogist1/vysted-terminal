@@ -1,0 +1,5 @@
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src-tauri/src/lib.rs:391:fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src-tauri/src/lib.rs:416:/// strategy as `write_text_atomic`). The WKWebView/Chromium webview blocks the
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src-tauri/src/lib.rs:422:fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src-tauri/src/lib.rs:513:            write_text_atomic,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src-tauri/src/lib.rs:514:            write_bytes_atomic,

@@ -1,0 +1,9 @@
+# R15-AGENT-042 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:09+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'R15-AGENT-042' src --include=*.ts --include=*.tsx | head
+--- output ---
+src/lib/host-actions.test.ts:1291:  it("two lots of one symbol: an id picks its lot; the symbol alone refuses, naming both (R15-AGENT-042)", async () => {
+src/modules/portfolio/PortfolioPanel.tsx:428:      // same-symbol lots could not say which (R15-AGENT-042).
+src/modules/portfolio/PortfolioPanel.test.tsx:162:  it("publishes each holding's id so the agent can name one of two same-symbol lots (R15-AGENT-042)", async () => {
+
+EXIT=0 (0.0s)

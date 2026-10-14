@@ -1,0 +1,11 @@
+# R15-LEAD-021 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'Sidecar error' src/components/StatusChrome.tsx src/components/StatusChrome.test.tsx | cut -c1-200
+--- output ---
+src/components/StatusChrome.tsx:233:  // it) -- the chip used to read a bare "Sidecar error" with no detail.
+src/components/StatusChrome.tsx:239:          ? `Sidecar error — ${sidecarError}`
+src/components/StatusChrome.tsx:240:          : "Sidecar error"
+src/components/StatusChrome.test.tsx:250:      expect(chip.title).toContain("Sidecar error");
+src/components/StatusChrome.test.tsx:257:      expect(screen.getByTitle("Sidecar: Sidecar error")).toBeInTheDocument();
+
+EXIT=0 (0.0s)

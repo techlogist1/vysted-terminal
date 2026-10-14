@@ -1,0 +1,8 @@
+=== chat on unpulled gemma3:4b via vy.py invoke copilot ===
+[   0.0s] error: {"kind": "error", "message": "The model gemma3:4b is not downloaded in Ollama.", "action": "Run `ollama pull gemma3:4b`, or pick an installed model in Settings.", "detail": "model 'gemma3:4b' not found (status code: 404)", "code": "model_not_pulled"}
+[   0.0s] done: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 0.0s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · gemma3:4b

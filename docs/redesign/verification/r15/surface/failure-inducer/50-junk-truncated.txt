@@ -1,0 +1,7 @@
+[   0.9s] done: {"kind": "done", "usage": null, "finish_reason": null}
+
+=== ASSISTANT TEXT ===
+RELIANCE closed at Rs 1,4
+
+=== ok · 0.9s · events {'delta': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · junk-truncated
+exit=0

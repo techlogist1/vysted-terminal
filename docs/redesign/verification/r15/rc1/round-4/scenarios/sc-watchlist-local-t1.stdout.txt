@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+It looks like your watchlist is empty. Would you like to add a symbol to it?
+
+=== ok · 37.2s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 20, 'done': 1} · usage in=2810 out=20 · est $0.00000 · llama3.1:8b

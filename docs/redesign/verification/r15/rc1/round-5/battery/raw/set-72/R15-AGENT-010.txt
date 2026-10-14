@@ -1,0 +1,76 @@
+=== R15-AGENT-010: source read symbol_resolver.py (_live_lookup timeout wiring) ===
+# the resolver. It gets (a) a small in-process LRU keyed on (query, region) so
+# an agent iterating the same unresolved names never re-hits the network, and
+# (b) a failure cooldown — after ANY lookup failure the live rung is skipped
+# entirely for a short window (returning [] immediately) instead of hammering
+# a throttled/blocked upstream once per unresolved query.
+_LIVE_CACHE_MAX_ENTRIES = 128
+_LIVE_FAILURE_COOLDOWN_SECONDS = 60.0
+# yfinance 1.3.0's Search defaults to timeout=30. Passing timeout= here bounds
+# the main request but NOT the cookie/crumb leg underneath it (yfinance's
+# _get_cookie_and_crumb / _get_crumb_basic / _get_crumb_csrf take no timeout
+# override and keep the hard-coded 30 s), so a cold process with no cached
+# crumb can still hang up to 30 s. The wall-clock deadline on
+# _LIVE_SEARCH_POOL's future.result() below is what actually bounds the call;
+# this constant remains the timeout= kwarg passed into yf.Search itself. Live
+# misses measure 0.4-2.2 s in practice; 5 s leaves headroom without masking a
+# real miss.
+_LIVE_SEARCH_TIMEOUT_SECONDS = 5.0
+# ponytail: a hung yf.Search still occupies its pool worker until yfinance's
+# own 30 s cookie/crumb timeout gives up underneath it (future.cancel() only
+# drops a submit that hasn't started yet); max_workers=4 caps how many
+# workers can be stuck at once, upgrade to a smaller pool + queue rejection
+# if concurrent misses ever exceed that.
+_LIVE_SEARCH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="yf-search")
+# R15-LEAD-040: resolve()'s fuzzy _scan_names is CPU-bound (0.25-0.9s) and a US
+# best also makes a blocking network call (~0.8s); every call site ran it on
+# the shared default to_thread executor (min(32, cpu+4) workers), so N
+
+            search = yf.Search(
+                query, max_results=5, news_count=0, timeout=_LIVE_SEARCH_TIMEOUT_SECONDS
+            )
+            return getattr(search, "quotes", None) or []
+
+        future = _LIVE_SEARCH_POOL.submit(_run_search)
+        try:
+            quotes = future.result(timeout=_LIVE_SEARCH_TIMEOUT_SECONDS)
+        except TimeoutError:
+            future.cancel()
+            raise
+    except Exception as exc:  # noqa: BLE001 - any live-lookup failure is non-fatal
+        with _live_cache_lock:
+            _live_cooldown_until = time.monotonic() + _LIVE_FAILURE_COOLDOWN_SECONDS
+
+=== live timing probe: /resolve?q=zzqxnonexistentco9999 ===
+http_code=200 time_total=1.101285
+
+=== pinned test present ===
+603:def test_live_lookup_passes_an_explicit_short_search_timeout(monkeypatch) -> None:  # noqa: ANN001
+def test_live_lookup_passes_an_explicit_short_search_timeout(monkeypatch) -> None:  # noqa: ANN001
+    """R15-AGENT-010: yf.Search must not inherit yfinance's timeout=30 default —
+    a hung Yahoo would otherwise hold the resolver's worker thread (and its
+    caller) for 30 s per miss."""
+    import yfinance as yf
+
+    recorded_kwargs: dict[str, object] = {}
+
+    class _KwargsRecordingSearch:
+        quotes: list[dict] = []
+
+        def __init__(self, *_a: object, **kwargs: object) -> None:
+            recorded_kwargs.update(kwargs)
+
+    monkeypatch.setattr(yf, "Search", _KwargsRecordingSearch)
+    symbol_resolver._live_cache.clear()
+    symbol_resolver._live_cooldown_until = 0.0
+    assert symbol_resolver._live_lookup("zzqx nonexistent co", "IN") == []
+    assert recorded_kwargs["timeout"] <= 10
+
+
+def test_live_lookup_is_wall_clock_bounded_when_search_hangs(monkeypatch) -> None:  # noqa: ANN001
+    """R15-AGENT-010 (verdict-corrected): yfinance's cookie/crumb leg
+    (_get_cookie_and_crumb / _get_crumb_basic / _get_crumb_csrf) keeps the
+    hard-coded 30 s default even when Search's own timeout= kwarg is short —
+    the kwarg never reaches those legs. _live_lookup must bound the call by
+    wall clock (the pool future's timeout=) instead of trusting the kwarg
+    alone, and the cooldown must still arm on that timeout."""

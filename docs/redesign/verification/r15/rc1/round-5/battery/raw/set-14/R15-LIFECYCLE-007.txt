@@ -1,0 +1,11 @@
+-- searxng_manager.py docker resolution --
+140:#: PATH, which is minimal/empty when the app is launched from Finder/Dock (or
+146:    "/usr/local/bin/docker",
+147:    "/opt/homebrew/bin/docker",
+148:    str(Path.home() / ".orbstack" / "bin" / "docker"),
+149:    "/Applications/Docker.app/Contents/Resources/bin/docker",
+155:    found = shutil.which("docker")
+164:async def _run_docker(*args: str, timeout: float = _DOCKER_TIMEOUT_SECS) -> tuple[int, str, str]:
+259:    — indistinguishable from genuinely-empty at the health-probe layer, which
+323:        if "orbstack" in name.lower():
+573:    async def detect(self) -> DockerProbe:

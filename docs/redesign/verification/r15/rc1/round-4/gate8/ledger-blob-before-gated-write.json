@@ -1,0 +1,1 @@
+{"list": [{"id": "default", "name": "Portfolio", "holdings": [{"id": "h-5b7ce62a-3f49-4481-9410-631dc48fb4c7", "symbol": "AAPL", "quantity": 8, "costBasis": 310, "assetClass": "equity"}, {"id": "h-2691f46d-f386-41cd-ad11-1203f3218f6e", "symbol": "TCS.NS", "quantity": 3, "costBasis": 2500, "assetClass": "equity", "note": "core IT hold, gate8 r4"}]}], "activeId": "default"}

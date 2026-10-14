@@ -1,0 +1,19 @@
+# ace7dd76
+$ grep R15-CODE-FRONTEND-015 + focused symbol derivation
+src/modules/chat/ChatSidebar.test.tsx:600:  it("a focused Equity Overview's ticker drives the badge, the chips and the snapshot (R15-CODE-FRONTEND-015)", async () => {
+src/modules/chat/context-provider.ts:262: * the snapshot's `focusedSymbol` (R15-CODE-FRONTEND-015).
+src/modules/chat/context-provider.ts:127:  focusedSymbol: string | null;
+src/modules/chat/context-provider.ts:262: * the snapshot's `focusedSymbol` (R15-CODE-FRONTEND-015).
+src/modules/chat/context-provider.ts:264:export function focusedSymbolFromBus(
+src/modules/chat/context-provider.ts:266:  focusedSource: string | null,
+src/modules/chat/context-provider.ts:268:  if (!focusedSource) {
+src/modules/chat/context-provider.ts:271:  const payload = asRecord(bus[focusedSource]?.payload);
+src/modules/chat/context-provider.ts:357:    focusedSource: terminalState.focusedPanel,
+src/modules/chat/context-provider.ts:436:  const focusedPanel = bus.focusedSource;
+src/modules/chat/context-provider.ts:439:  const focusedSymbol =
+src/modules/chat/context-provider.ts:440:    focusedSymbolFromBus(bySource, focusedPanel) ??
+src/modules/chat/context-provider.ts:484:    focusedSymbol,
+src/modules/chat/SuggestionChips.tsx:8:import { focusedSymbolFromBus } from "./context-provider";
+src/modules/chat/SuggestionChips.tsx:46:/** The focused panel's symbol off the panel-context bus (`focusedSymbolFromBus`). */
+src/modules/chat/SuggestionChips.tsx:48:  const focusedSource = usePanelContextBus((s) => s.focusedSource);
+src/modules/chat/SuggestionChips.tsx:51:    () => focusedSymbolFromBus(lastEventBySource, focusedSource)?.toUpperCase() ?? null,

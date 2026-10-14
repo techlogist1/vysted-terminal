@@ -1,0 +1,65 @@
+[
+  {
+    "raw_id": "DAT-P14-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The defect is real: revenue_ttm/net_income_ttm are verbatim yfinance totalRevenue/netIncomeToCommon, stamped field_meta status 'ok' with no basis label, for a company whose filings cannot produce a true TTM (only Dec-25/Mar-26/Jun-26 quarters exist; Jul-Sep 2025 sits inside a half-year filing). But the value is not shown to be wrong: the FY26 annual (21.21 cr / 8.07 cr) is a different period, so the '12.7% below' comparison is as-of/definitional skew by the diff stage's own rules. The true Jul-25..Jun-26 revenue must lie in [22.25, 25.56] cr (3 filed quarters + 0..3.31 cr of H1), and the app's 23.90 cr is inside that range. Severity is corrected from high to medium: this is an unlabelled interpolation presented as fact, not a demonstrably wrong figure.",
+    "evidence": "sidecar/services/yfinance_provider.py:391-392; docs/redesign/verification/r15/battery/packs/P14_JONJUA.json:509-517 (prior_quarters), :518-525 (fy26_annual_standalone), :626-628 (trap T6); https://www.screener.in/company/542446/ (re-fetched 2026-09-23T01:23:12Z: quarters Dec 2025 / Mar 2026 / Jun 2026 only, sales 1.54/16.36/4.35, net profit 1.23/5.72/1.24; Mar 2026 annual sales 21.21, net profit 8.07; no TTM column)",
+    "evidence_checked": "Opened the yfinance mapping. Re-ran GET /fundamentals/JONJUA on :52152, which gives the same values with field_meta status ok and label null. Re-fetched screener.in once to confirm the 3-quarter series and the FY26 annual.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/JONJUA at 2026-09-23T01:21Z -> revenue_ttm 239033504.0, net_income_ttm 87482000.0, growth_basis mrq_yoy, field_meta.revenue_ttm {status: ok, label: null}. Feasible true TTM = 22.25 + [0, 3.31] cr, and 23.90 lies inside it."
+  },
+  {
+    "raw_id": "DAT-P14-2",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Holds and re-reproduced live. The plain /fundamentals route serves yfinance heldPercentInsiders 0.46623 with field_meta status 'ok', and the panel renders it as 'Insiders' 46.6%. The app's own BSE-sourced shareholding shows promoter 29.67% for the latest pattern, and no recent quarter supports 46.6% (the series reads 29.67, 28.67, 42.93, 44.1, 44.1, 22.89 ...). The ownership_check cross-check that exists for exactly this failure mode is called only from research/fast.py, never on the plain route. This is the same root cause and the same verdict as DAT-P12-1.",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:141; sidecar/services/yfinance_provider.py:398; sidecar/services/ownership_check.py:1-37 ('DISCLOSES, never substitutes'; wiring is snapshot-builder only); sidecar/services/research/fast.py:323-355 (only caller of get_exchange_ownership)",
+    "evidence_checked": "Opened the cited code and grepped for ownership_check callers (only research/fast.py and semantics.py). Re-ran both GETs against :52152.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/JONJUA -> held_percent_insiders 0.46623, field_meta status ok. curl -s '127.0.0.1:52152/disclosures/shareholding?symbol=JONJUA' -> latest pattern promoter_percent 29.67, source BSE."
+  },
+  {
+    "raw_id": "DAT-P14-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The 502 is real. get_results_calendar calls only nse_provider.get_results_calendar, with no exchange gate and no BSE lane, and the router turns the ProviderError into a raw 502. The mechanism is misframed, though: this is an NSE-only feed by design (docstring 'The NSE results/board-meeting calendar', query described as 'NSE ticker'), so every BSE-only name has a coverage gap; it is not a routing bug that ignores a resolved exchange. Severity is corrected to medium, consistent with DAT-P2-7 and DAT-P7-2: no frontend code calls /disclosures/results, and the only in-product consumer (research) degrades softly. The calendar also carries no result figures, so the 'just-filed Q1 FY27 numbers' were never on this surface.",
+    "evidence": "sidecar/services/corporate_disclosures.py:335-358; sidecar/routers/disclosures.py:74-92; sidecar/services/research/disclosures.py:185-203 (soft-fail wrapper); grep of src/ for 'disclosures/results' -> no match",
+    "evidence_checked": "Opened the service, router and research wrapper. Grepped src/ for consumers. Re-ran the repro against :52152.",
+    "repro_check": "curl -s -w '%{http_code}' '127.0.0.1:52152/disclosures/results?symbol=JONJUA' at 2026-09-23T01:21Z -> 502 {\"detail\":\"nse_direct: 'JONJUA' is not a known NSE instrument\"}"
+  },
+  {
+    "raw_id": "DAT-P14-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. No router exposes corporate actions: grepping sidecar/routers for corporate_action/bonus/split finds only unrelated string splits. nse_provider.get_corporate_actions exists, but it is NSE-only, and its only consumer (dividend_actions) extracts future-dated dividends alone. Bonuses, splits and rights are never modelled, and a BSE-only name like JONJUA gets nothing. For a scrip with two 2026 bonus issues (5:40, 7:24), per-share history and holdings context go silently stale. High fits 'a promise central to the product is missing' (screener.in-grade coverage).",
+    "evidence": "sidecar/routers/*.py (grep: no corporate-action/bonus route); sidecar/services/nse_provider.py:617-627 (get_corporate_actions, NSE-only); sidecar/services/dividend_actions.py:1-40 (only consumer: dividend subjects, future record dates); docs/redesign/verification/r15/battery/packs/P14_JONJUA.json:410-483",
+    "evidence_checked": "Grepped routers, services and the capability catalog for corporate-action/bonus surfaces. Opened nse_provider.get_corporate_actions and dividend_actions.",
+    "repro_check": "grep -rni 'corporate_action\\|bonus' sidecar/routers/*.py -> no route. The catalog has corporate_announcements only (headlines), with no corporate-actions capability."
+  },
+  {
+    "raw_id": "DAT-P14-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds, and it is the same class as DAT-P7-4 (admitted, medium). roe is a raw yfinance returnOnEquity pass-through: live it is null, with field_meta 'unavailable / provider did not publish this field', and no fallback is computed. The Fundamentals model has no roce field at all. Screener carries ROE 19.9% and ROCE 19.64% (Mar-2026) cleanly.",
+    "evidence": "sidecar/services/yfinance_provider.py:381 (roe=_num(info.get('returnOnEquity'))); sidecar/models/fundamentals.py:81 (roe; no roce anywhere in the model); docs/redesign/verification/r15/battery/packs/P14_JONJUA.json:206-220",
+    "evidence_checked": "Opened the provider mapping and grepped the model for roe/roce. Re-ran GET /fundamentals/JONJUA on :52152.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/JONJUA -> roe null, field_meta.roe {status: unavailable, reason: 'provider did not publish this field'}; no roce key in the body"
+  },
+  {
+    "raw_id": "DAT-P14-6",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "This is a taxonomy (definitional) difference, not a same-definition mismatch, so the diff stage's own rules say it is not a finding. The app serves the Yahoo/Morningstar taxonomy with yfinance provenance; BSE uses its own macro-sector scheme. BSE's own industry group for this scrip, per the pack, is 'Commercial Services & Supplies', which is a GICS Industrials industry, so 'Industrials / Specialty Business Services' puts JONJUA in the same business-services neighbourhood rather than 'the wrong universe entirely'. The pack also records that both exchange labels misdescribe the actual business, so no single classification is ground truth here. This is consistent with DAT-P4-5, where the same yfinance label was refuted for the same reason.",
+    "evidence": "docs/redesign/verification/r15/battery/packs/P14_JONJUA.json:84-94 (BSE IGroup 'Commercial Services & Supplies'; note 'BOTH ARE MISLEADING vs the actual described business'); live GET /fundamentals/JONJUA field_meta.sector {provider: yfinance}",
+    "evidence_checked": "Read the pack's sector/industry entries and re-ran GET /fundamentals/JONJUA on :52152 (sector Industrials, industry Specialty Business Services, provider yfinance). Checked the sibling verdicts DAT-P4-5 (refuted) and DAT-P8-1, where the cross-universe mismatch (Basic Materials vs Financial Services) was admitted.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/JONJUA -> sector 'Industrials', industry 'Specialty Business Services', field_meta.sector provider yfinance. This is a different taxonomy from BSE's 'Services / Consulting Services', within the same business-services group."
+  },
+  {
+    "raw_id": "DAT-P14-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The headline claim does not hold. The Equity Overview panel never renders dividend_per_share_ttm: it renders 'Dividend / share' = dividend_per_share 0.07 and 'Dividend yield' 2.16%. Those match the pack's bonus-adjusted DPS (0.0688) and screener's 2.16% yield exactly, so the dividend the user received is not shown as blank. dividend_per_share_ttm is null on the plain /fundamentals route by design; only research/fast.py fills it. What holds is the record/ex/payment date gap: dividend_actions reads only NSE corporate actions and only future-dated dividends, so a BSE-only name has no dividend event dates anywhere (the same gap as DAT-P9-3). Severity is lowered to low.",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:132-133 (renders dividend_per_share, dividend_yield; no dividend_per_share_ttm); sidecar/services/research/fast.py:207-230 (_apply_dividend_ttm: only filler of the TTM field); sidecar/services/dividend_actions.py:1-40 (NSE feed, future record dates only); docs/redesign/verification/r15/battery/packs/P14_JONJUA.json:288-319 (bonus_adjusted_value 0.0688; yield 2.16 = screener)",
+    "evidence_checked": "Opened the panel field list, the research TTM filler and dividend_actions. Grepped src/ and types/ for dividend_per_share_ttm and record/ex-date fields. Re-ran GET /fundamentals/JONJUA on :52152.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/JONJUA -> dividend_per_share 0.07, dividend_yield 0.0216, dividend_per_share_ttm null. Panel keys at EquityOverviewPanel.tsx:132-133 render the first two."
+  }
+]

@@ -1,0 +1,9 @@
+# R15-CODE-FRONTEND-027 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n -F 'refreshCustom 404' src/store/agents.test.ts; grep -n -F 'custom-agents refresh transport' src/lib/sidecar-client.test.ts; grep -rln 'schedule' src/store/*.test.ts | head -3
+--- output ---
+16:  it("refreshCustom 404 -> customStatus error", async () => {
+319:describe("custom-agents refresh transport", () => {
+src/store/earnings.test.ts
+
+EXIT=0 (0.0s)

@@ -1,0 +1,18 @@
+{
+ "pe < 20 and roe > 15%": {
+  "error": "pe < 20 and roe > 15% ^ unexpected character '%'",
+  "text": "Custom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemizedpe < 20 and roe > 15% ^ unexpected character '%'Examplesvalue + qualityyield, low debtcalm compounders"
+ },
+ "roe > 0.2 and de < 0.5": {
+  "error": null,
+  "text": "Custom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemizedFields: debt_to_equity, roe — run the screener to apply.Examplesvalue + qualityyield, low debtcalm compounders"
+ },
+ "roce > 0.15": {
+  "error": "roce > 0.15 ^ unknown field 'roce' — fields: market_cap, pe_ratio, forward_pe, peg_ratio, price_to_book, price_to_sales, ev_to_ebitda, book_value, dividend_yield, eps, beta, roe, roa, gross_margin, operating_margin, profit_margin, debt_to_equity, current_ratio, quick_ratio, revenue_growth, earnings_growth, fifty_two_week_high, fifty_two_week_low, fifty_two_week_change, held_percent_insiders, held_percent_institutions, price, change_percent_1d, volume; functions: abs, max, min",
+  "text": "Custom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemizedroce > 0.15 ^ unknown field 'roce' — fields: market_cap, pe_ratio, forward_pe, peg_ratio, price_to_book, price_to_sales, ev_to_ebitda, book_value, dividend_yield, eps, beta, roe, roa, gross_margin, operating_margin, profit_margin, debt_to_equity, current_ratio, quick_ratio, revenue_growth, earnings_gr"
+ },
+ "pe + (roe > 0.1) > 5": {
+  "error": null,
+  "text": "Custom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemizedFields: pe_ratio, roe — run the screener to apply.Examplesvalue + qualityyield, low debtcalm compounders"
+ }
+}

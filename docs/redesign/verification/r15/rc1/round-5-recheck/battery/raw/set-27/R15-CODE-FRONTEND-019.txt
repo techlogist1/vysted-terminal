@@ -1,0 +1,24 @@
+--- fresh case (CODE-FRONTEND-019): make workspaces dir unwritable, then POST /workspace ---
+dr-xr-xr-x@ - lokavyasingh 27 Sep 19:37 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-data-rc1-battery-8/workspaces
+HTTP/1.1 507 Insufficient Storage
+date: Sun, 27 Sep 2026 14:10:53 GMT
+server: uvicorn
+content-length: 61
+content-type: application/json
+vary: Origin
+
+{"detail":"Could not write the workspace: Permission denied"}
+--- restored writable, save now succeeds ---
+HTTP/1.1 200 OK
+date: Sun, 27 Sep 2026 14:10:53 GMT
+server: uvicorn
+content-length: 34
+content-type: application/json
+vary: Origin
+
+{"status":"saved","name":"b8v-ws"}
+--- frontend leg (source-confirmed, not vitest-executed per role rule) ---
+src/lib/workspace.ts:1046-1093 flushAutosave(): 'if (!response.ok) throw await sidecarFailure(...)' (non-2xx no longer ignored);
+catch increments autosaveFailures, sets lastAutosaveError only at >= AUTOSAVE_FAILURES_BEFORE_BADGE (3); resets to null+0 on success.
+
+VERDICT: holds. Server leg reproduced live: workspaces dir chmod 555 -> POST /workspace = 507 'Could not write the workspace: Permission denied' (workspace.py:22-28 _storage_failure); restoring writability -> 200 saved. Frontend leg confirmed by source read (flushAutosave now checks response.ok and surfaces the error after 3 consecutive failures) -- matches the batch-7 certification exactly.

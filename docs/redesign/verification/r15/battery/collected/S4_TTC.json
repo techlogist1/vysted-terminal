@@ -1,0 +1,2458 @@
+{
+ "slot": "S4",
+ "symbol": "TTC",
+ "manifest_name": "Toss The Coin Ltd",
+ "exchange": "BSE",
+ "bse_code": "544303",
+ "collected_at": "2026-09-19T15:33:06+0530",
+ "sidecar": "http://127.0.0.1:52152",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52152/resolve?q=TTC",
+   "status": 200,
+   "elapsed_ms": 46,
+   "body": {
+    "ok": true,
+    "query": "TTC",
+    "region": "IN",
+    "resolved": {
+     "symbol": "TTC",
+     "name": "Toss The Coin Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "TTC.BO",
+     "confidence": 1.0,
+     "isin": "INE0XAY01012",
+     "bse_code": "544303",
+     "industry": null,
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "TTC",
+      "name": "Toss The Coin Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "TTC.BO",
+      "confidence": 1.0,
+      "isin": "INE0XAY01012",
+      "bse_code": "544303",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "TTC",
+      "name": "TORO CO",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "TTC",
+      "confidence": 1.0,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52152/resolve?q=Toss+The+Coin+Ltd",
+   "status": 200,
+   "elapsed_ms": 4307,
+   "body": {
+    "ok": true,
+    "query": "Toss The Coin Ltd",
+    "region": "IN",
+    "resolved": {
+     "symbol": "TTC",
+     "name": "Toss The Coin Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "TTC.BO",
+     "confidence": 1.0,
+     "isin": "INE0XAY01012",
+     "bse_code": "544303",
+     "industry": null,
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "TTC",
+      "name": "Toss The Coin Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "TTC.BO",
+      "confidence": 1.0,
+      "isin": "INE0XAY01012",
+      "bse_code": "544303",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "TYROON",
+      "name": "Tyroon Tea Company Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "TYROON.BO",
+      "confidence": 0.6667,
+      "isin": "INE945B01016",
+      "bse_code": "526945",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "ODYCORP",
+      "name": "Odyssey Corporation Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ODYCORP.BO",
+      "confidence": 0.65,
+      "isin": "INE839E01023",
+      "bse_code": "531996",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "PHYTO",
+      "name": "Phyto Chem India Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "PHYTO.BO",
+      "confidence": 0.6486,
+      "isin": "INE037C01010",
+      "bse_code": "524808",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "SYSCHEM",
+      "name": "Syschem India Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SYSCHEM.BO",
+      "confidence": 0.6471,
+      "isin": "INE121D01036",
+      "bse_code": "531173",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "LACTOSE",
+      "name": "Lactose India Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "LACTOSE.BO",
+      "confidence": 0.6471,
+      "isin": "INE058I01013",
+      "bse_code": "524202",
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52152/resolve?q=544303",
+   "status": 200,
+   "elapsed_ms": 2,
+   "body": {
+    "ok": true,
+    "query": "544303",
+    "region": "IN",
+    "resolved": {
+     "symbol": "TTC",
+     "name": "Toss The Coin Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "TTC.BO",
+     "confidence": 1.0,
+     "isin": "INE0XAY01012",
+     "bse_code": "544303",
+     "industry": null,
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "TTC",
+      "name": "Toss The Coin Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "TTC.BO",
+      "confidence": 1.0,
+      "isin": "INE0XAY01012",
+      "bse_code": "544303",
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52152/quotes/TTC?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 1260,
+   "body": {
+    "symbol": "TTC",
+    "price": 161.15,
+    "change": -8.349999999999994,
+    "change_percent": -4.926253687315631,
+    "volume": null,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-18T00:00:00Z",
+    "provider": "bse",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52152/fundamentals/TTC",
+   "status": 200,
+   "elapsed_ms": 3053,
+   "body": {
+    "symbol": "TTC.BO",
+    "name": "Toss the Coin Limited",
+    "sector": "Communication Services",
+    "industry": "Advertising Agencies",
+    "currency": "INR",
+    "market_cap": 304573504.0,
+    "pe_ratio": 11.261355,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 2.1486094,
+    "price_to_sales": 2.0724502,
+    "ev_to_ebitda": 6.281,
+    "book_value": 75.002,
+    "dividend_yield": 0.0496,
+    "dividend_per_share": 8.0,
+    "eps": 14.31,
+    "beta": null,
+    "fifty_two_week_high": 445.0,
+    "fifty_two_week_low": 135.0,
+    "fifty_two_week_change": -0.49402988,
+    "roe": 0.19914,
+    "roa": 0.12786001,
+    "gross_margin": 0.98926,
+    "operating_margin": 0.17649001,
+    "profit_margin": 0.18400998,
+    "debt_to_equity": 0.00184,
+    "current_ratio": 8.667,
+    "quick_ratio": 7.852,
+    "revenue_ttm": 146963008.0,
+    "net_income_ttm": 27042000.0,
+    "free_cash_flow": -42250.0,
+    "shares_outstanding": 1890000.0,
+    "revenue_growth": 0.82,
+    "earnings_growth": 11.099,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.75197,
+    "held_percent_institutions": 0.04571,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "forward_pe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "dividend_yield": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "dividend_per_share": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "beta": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "roa": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "current_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "quick_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "free_cash_flow": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_insiders": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_institutions": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": null,
+      "label": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:02:53.802214+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52152/fundamentals/TTC/income",
+   "status": 200,
+   "elapsed_ms": 1762,
+   "body": {
+    "symbol": "TTC",
+    "periods": [
+     "2025-10-31",
+     "2024-10-31",
+     "2023-10-31",
+     "2022-10-31"
+    ],
+    "lines": [
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2025-10-31": 4510400000.0,
+       "2024-10-31": 4583800000.0,
+       "2023-10-31": 4553200000.0,
+       "2022-10-31": 4514700000.0
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2025-10-31": 4510400000.0,
+       "2024-10-31": 4583800000.0,
+       "2023-10-31": 4553200000.0,
+       "2022-10-31": 4514700000.0
+      }
+     },
+     {
+      "label": "cost_of_revenue",
+      "values": {
+       "2025-10-31": 3005600000.0,
+       "2024-10-31": 3034500000.0,
+       "2023-10-31": 2975600000.0,
+       "2022-10-31": 3010100000.0
+      }
+     },
+     {
+      "label": "gross_profit",
+      "values": {
+       "2025-10-31": 1504800000.0,
+       "2024-10-31": 1549300000.0,
+       "2023-10-31": 1577600000.0,
+       "2022-10-31": 1504600000.0
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2025-10-31": 1013800000.0,
+       "2024-10-31": 1016000000.0,
+       "2023-10-31": 995600000.0,
+       "2022-10-31": 928900000.0
+      }
+     },
+     {
+      "label": "operating_expense",
+      "values": {
+       "2025-10-31": 1013800000.0,
+       "2024-10-31": 1016000000.0,
+       "2023-10-31": 995600000.0,
+       "2022-10-31": 928900000.0
+      }
+     },
+     {
+      "label": "operating_income",
+      "values": {
+       "2025-10-31": 491000000.0,
+       "2024-10-31": 533300000.0,
+       "2023-10-31": 582000000.0,
+       "2022-10-31": 575700000.0
+      }
+     },
+     {
+      "label": "interest_expense_non_operating",
+      "values": {
+       "2025-10-31": 59100000.0,
+       "2024-10-31": 61900000.0,
+       "2023-10-31": 58700000.0,
+       "2022-10-31": 35700000.0
+      }
+     },
+     {
+      "label": "net_non_operating_interest_income_expense",
+      "values": {
+       "2025-10-31": -59100000.0,
+       "2024-10-31": -61900000.0,
+       "2023-10-31": -58700000.0,
+       "2022-10-31": -35700000.0
+      }
+     },
+     {
+      "label": "impairment_of_capital_assets",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": null,
+       "2023-10-31": 151300000.0,
+       "2022-10-31": null
+      }
+     },
+     {
+      "label": "write_off",
+      "values": {
+       "2025-10-31": 81100000.0,
+       "2024-10-31": 0.0,
+       "2023-10-31": 151300000.0,
+       "2022-10-31": 0.0
+      }
+     },
+     {
+      "label": "special_income_charges",
+      "values": {
+       "2025-10-31": -81100000.0,
+       "2024-10-31": 0.0,
+       "2023-10-31": -151300000.0,
+       "2022-10-31": 0.0
+      }
+     },
+     {
+      "label": "other_non_operating_income_expenses",
+      "values": {
+       "2025-10-31": 26800000.0,
+       "2024-10-31": 41400000.0,
+       "2023-10-31": 28500000.0,
+       "2022-10-31": 12500000.0
+      }
+     },
+     {
+      "label": "other_income_expense",
+      "values": {
+       "2025-10-31": -54300000.0,
+       "2024-10-31": 41400000.0,
+       "2023-10-31": -122800000.0,
+       "2022-10-31": 12500000.0
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2025-10-31": 377600000.0,
+       "2024-10-31": 512800000.0,
+       "2023-10-31": 400500000.0,
+       "2022-10-31": 552500000.0
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2025-10-31": 61500000.0,
+       "2024-10-31": 93900000.0,
+       "2023-10-31": 70800000.0,
+       "2022-10-31": 109200000.0
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2025-10-31": 316100000.0,
+       "2024-10-31": 418900000.0,
+       "2023-10-31": 329700000.0,
+       "2022-10-31": 443300000.0
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2025-10-31": 316100000.0,
+       "2024-10-31": 418900000.0,
+       "2023-10-31": 329700000.0,
+       "2022-10-31": 443300000.0
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2025-10-31": 316100000.0,
+       "2024-10-31": 418900000.0,
+       "2023-10-31": 329700000.0,
+       "2022-10-31": 443300000.0
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2025-10-31": 316100000.0,
+       "2024-10-31": 418900000.0,
+       "2023-10-31": 329700000.0,
+       "2022-10-31": 443300000.0
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2025-10-31": 316100000.0,
+       "2024-10-31": 418900000.0,
+       "2023-10-31": 329700000.0,
+       "2022-10-31": 443300000.0
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2025-10-31": 3.18,
+       "2024-10-31": 4.04,
+       "2023-10-31": 3.16,
+       "2022-10-31": 4.23
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2025-10-31": 3.17,
+       "2024-10-31": 4.01,
+       "2023-10-31": 3.13,
+       "2022-10-31": 4.2
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2025-10-31": 99500000.0,
+       "2024-10-31": 103800000.0,
+       "2023-10-31": 104400000.0,
+       "2022-10-31": 104822000.0
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2025-10-31": 99800000.0,
+       "2024-10-31": 104400000.0,
+       "2023-10-31": 105300000.0,
+       "2022-10-31": 105649000.0
+      }
+     },
+     {
+      "label": "total_operating_income_as_reported",
+      "values": {
+       "2025-10-31": 409900000.0,
+       "2024-10-31": 533300000.0,
+       "2023-10-31": 430700000.0,
+       "2022-10-31": 575700000.0
+      }
+     },
+     {
+      "label": "total_expenses",
+      "values": {
+       "2025-10-31": 4019400000.0,
+       "2024-10-31": 4050500000.0,
+       "2023-10-31": 3971200000.0,
+       "2022-10-31": 3939000000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2025-10-31": 316100000.0,
+       "2024-10-31": 418900000.0,
+       "2023-10-31": 329700000.0,
+       "2022-10-31": 443300000.0
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2025-10-31": 383991181.144068,
+       "2024-10-31": 418900000.0,
+       "2023-10-31": 454219900.0,
+       "2022-10-31": 443300000.0
+      }
+     },
+     {
+      "label": "interest_expense",
+      "values": {
+       "2025-10-31": 59100000.0,
+       "2024-10-31": 61900000.0,
+       "2023-10-31": 58700000.0,
+       "2022-10-31": 35700000.0
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2025-10-31": -59100000.0,
+       "2024-10-31": -61900000.0,
+       "2023-10-31": -58700000.0,
+       "2022-10-31": -35700000.0
+      }
+     },
+     {
+      "label": "ebit",
+      "values": {
+       "2025-10-31": 436700000.0,
+       "2024-10-31": 574700000.0,
+       "2023-10-31": 459200000.0,
+       "2022-10-31": 588200000.0
+      }
+     },
+     {
+      "label": "ebitda",
+      "values": {
+       "2025-10-31": 579600000.0,
+       "2024-10-31": 702900000.0,
+       "2023-10-31": 578400000.0,
+       "2022-10-31": 697000000.0
+      }
+     },
+     {
+      "label": "reconciled_cost_of_revenue",
+      "values": {
+       "2025-10-31": 3005600000.0,
+       "2024-10-31": 3034500000.0,
+       "2023-10-31": 2975600000.0,
+       "2022-10-31": 3010100000.0
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2025-10-31": 142900000.0,
+       "2024-10-31": 128200000.0,
+       "2023-10-31": 119200000.0,
+       "2022-10-31": 108800000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2025-10-31": 316100000.0,
+       "2024-10-31": 418900000.0,
+       "2023-10-31": 329700000.0,
+       "2022-10-31": 443300000.0
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2025-10-31": -81100000.0,
+       "2024-10-31": 0.0,
+       "2023-10-31": -151300000.0,
+       "2022-10-31": 0.0
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2025-10-31": -81100000.0,
+       "2024-10-31": 0.0,
+       "2023-10-31": -151300000.0,
+       "2022-10-31": 0.0
+      }
+     },
+     {
+      "label": "normalized_ebitda",
+      "values": {
+       "2025-10-31": 660700000.0,
+       "2024-10-31": 702900000.0,
+       "2023-10-31": 729700000.0,
+       "2022-10-31": 697000000.0
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2025-10-31": 0.162871,
+       "2024-10-31": 0.183112,
+       "2023-10-31": 0.177,
+       "2022-10-31": 0.198
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2025-10-31": -13208818.855932,
+       "2024-10-31": 0.0,
+       "2023-10-31": -26780100.0,
+       "2022-10-31": 0.0
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52152/fundamentals/TTC/balance",
+   "status": 200,
+   "elapsed_ms": 1052,
+   "body": {
+    "symbol": "TTC",
+    "periods": [
+     "2025-10-31",
+     "2024-10-31",
+     "2023-10-31",
+     "2022-10-31",
+     "2021-10-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2025-10-31": 341000000.0,
+       "2024-10-31": 199500000.0,
+       "2023-10-31": 193100000.0,
+       "2022-10-31": 188200000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "cash_cash_equivalents_and_short_term_investments",
+      "values": {
+       "2025-10-31": 341000000.0,
+       "2024-10-31": 199500000.0,
+       "2023-10-31": 193100000.0,
+       "2022-10-31": 188200000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "gross_accounts_receivable",
+      "values": {
+       "2025-10-31": 337100000.0,
+       "2024-10-31": 415200000.0,
+       "2023-10-31": 352500000.0,
+       "2022-10-31": 293300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "allowance_for_doubtful_accounts_receivable",
+      "values": {
+       "2025-10-31": -4800000.0,
+       "2024-10-31": -4300000.0,
+       "2023-10-31": -3000000.0,
+       "2022-10-31": -3300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2025-10-31": 332300000.0,
+       "2024-10-31": 410900000.0,
+       "2023-10-31": 349500000.0,
+       "2022-10-31": 290000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "duefrom_related_parties_current",
+      "values": {
+       "2025-10-31": 21600000.0,
+       "2024-10-31": 26000000.0,
+       "2023-10-31": 34400000.0,
+       "2022-10-31": 17700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "other_receivables",
+      "values": {
+       "2025-10-31": 24300000.0,
+       "2024-10-31": 22800000.0,
+       "2023-10-31": 23500000.0,
+       "2022-10-31": 25000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "net_receivables",
+      "values": {
+       "2025-10-31": 378200000.0,
+       "2024-10-31": 459700000.0,
+       "2023-10-31": 407400000.0,
+       "2022-10-31": 332700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "raw_materials",
+      "values": {
+       "2025-10-31": 353100000.0,
+       "2024-10-31": 384800000.0,
+       "2023-10-31": 400300000.0,
+       "2022-10-31": 482900000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "finished_goods",
+      "values": {
+       "2025-10-31": 785400000.0,
+       "2024-10-31": 827500000.0,
+       "2023-10-31": 844200000.0,
+       "2022-10-31": 738100000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "inventories_adjustments_allowances",
+      "values": {
+       "2025-10-31": -217700000.0,
+       "2024-10-31": -173400000.0,
+       "2023-10-31": -156700000.0,
+       "2022-10-31": -169900000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "inventories",
+      "values": {
+       "2025-10-31": 920800000.0,
+       "2024-10-31": 1038900000.0,
+       "2023-10-31": 1087800000.0,
+       "2022-10-31": 1051100000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "prepaid_assets",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": null,
+       "2023-10-31": null,
+       "2022-10-31": 103279000.0,
+       "2021-10-31": 35124000.0
+      }
+     },
+     {
+      "label": "other_current_assets",
+      "values": {
+       "2025-10-31": 65100000.0,
+       "2024-10-31": 66800000.0,
+       "2023-10-31": 110500000.0,
+       "2022-10-31": 103400000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "total_current_assets",
+      "values": {
+       "2025-10-31": 1705100000.0,
+       "2024-10-31": 1764900000.0,
+       "2023-10-31": 1798800000.0,
+       "2022-10-31": 1675400000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "properties",
+      "values": {
+       "2025-10-31": 0.0,
+       "2024-10-31": 0.0,
+       "2023-10-31": 0.0,
+       "2022-10-31": 0.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "land_and_improvements",
+      "values": {
+       "2025-10-31": 78300000.0,
+       "2024-10-31": 72800000.0,
+       "2023-10-31": 69000000.0,
+       "2022-10-31": 59600000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "buildings_and_improvements",
+      "values": {
+       "2025-10-31": 414400000.0,
+       "2024-10-31": 372100000.0,
+       "2023-10-31": 355800000.0,
+       "2022-10-31": 324300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2025-10-31": 823700000.0,
+       "2024-10-31": 780100000.0,
+       "2023-10-31": 722600000.0,
+       "2022-10-31": 662300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "other_properties",
+      "values": {
+       "2025-10-31": 369800000.0,
+       "2024-10-31": 349600000.0,
+       "2023-10-31": 385700000.0,
+       "2022-10-31": 302000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2025-10-31": 65100000.0,
+       "2024-10-31": 116900000.0,
+       "2023-10-31": 133200000.0,
+       "2022-10-31": 144400000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2025-10-31": 1751300000.0,
+       "2024-10-31": 1691500000.0,
+       "2023-10-31": 1666300000.0,
+       "2022-10-31": 1492600000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2025-10-31": -1020800000.0,
+       "2024-10-31": -932200000.0,
+       "2023-10-31": -899300000.0,
+       "2022-10-31": -844800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2025-10-31": 730500000.0,
+       "2024-10-31": 759300000.0,
+       "2023-10-31": 767000000.0,
+       "2022-10-31": 647800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "goodwill",
+      "values": {
+       "2025-10-31": 450900000.0,
+       "2024-10-31": 450300000.0,
+       "2023-10-31": 450800000.0,
+       "2022-10-31": 583300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "other_intangible_assets",
+      "values": {
+       "2025-10-31": 390300000.0,
+       "2024-10-31": 498700000.0,
+       "2023-10-31": 540100000.0,
+       "2022-10-31": 585800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2025-10-31": 841200000.0,
+       "2024-10-31": 949000000.0,
+       "2023-10-31": 990900000.0,
+       "2022-10-31": 1169100000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "investmentsin_associatesat_cost",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": null,
+       "2023-10-31": null,
+       "2022-10-31": 39349000.0,
+       "2021-10-31": 20671000.0
+      }
+     },
+     {
+      "label": "investments_in_other_ventures_under_equity_method",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": null,
+       "2023-10-31": null,
+       "2022-10-31": 39349000.0,
+       "2021-10-31": 20671000.0
+      }
+     },
+     {
+      "label": "investmentsin_joint_venturesat_cost",
+      "values": {
+       "2025-10-31": 41000000.0,
+       "2024-10-31": 49200000.0,
+       "2023-10-31": 50600000.0,
+       "2022-10-31": 39300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "long_term_equity_investment",
+      "values": {
+       "2025-10-31": 41000000.0,
+       "2024-10-31": 49200000.0,
+       "2023-10-31": 50600000.0,
+       "2022-10-31": 39300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "investments_and_advances",
+      "values": {
+       "2025-10-31": 41000000.0,
+       "2024-10-31": 49200000.0,
+       "2023-10-31": 50600000.0,
+       "2022-10-31": 39300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_assets",
+      "values": {
+       "2025-10-31": 105800000.0,
+       "2024-10-31": 45000000.0,
+       "2023-10-31": 14200000.0,
+       "2022-10-31": 5300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_assets",
+      "values": {
+       "2025-10-31": 105800000.0,
+       "2024-10-31": 45000000.0,
+       "2023-10-31": 14200000.0,
+       "2022-10-31": 5300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "other_non_current_assets",
+      "values": {
+       "2025-10-31": 15200000.0,
+       "2024-10-31": 15400000.0,
+       "2023-10-31": 22800000.0,
+       "2022-10-31": 19100000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "total_non_current_assets",
+      "values": {
+       "2025-10-31": 1733700000.0,
+       "2024-10-31": 1817900000.0,
+       "2023-10-31": 1845500000.0,
+       "2022-10-31": 1880600000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2025-10-31": 3438800000.0,
+       "2024-10-31": 3582800000.0,
+       "2023-10-31": 3644300000.0,
+       "2022-10-31": 3556000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "accounts_payable",
+      "values": {
+       "2025-10-31": 367600000.0,
+       "2024-10-31": 452700000.0,
+       "2023-10-31": 430000000.0,
+       "2022-10-31": 578700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "payables",
+      "values": {
+       "2025-10-31": 367600000.0,
+       "2024-10-31": 452700000.0,
+       "2023-10-31": 430000000.0,
+       "2022-10-31": 578700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "interest_payable",
+      "values": {
+       "2025-10-31": 8200000.0,
+       "2024-10-31": 11400000.0,
+       "2023-10-31": 11600000.0,
+       "2022-10-31": 11400000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "current_accrued_expenses",
+      "values": {
+       "2025-10-31": 428800000.0,
+       "2024-10-31": 434400000.0,
+       "2023-10-31": 400400000.0,
+       "2022-10-31": 367800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "payables_and_accrued_expenses",
+      "values": {
+       "2025-10-31": 796400000.0,
+       "2024-10-31": 887100000.0,
+       "2023-10-31": 830400000.0,
+       "2022-10-31": 946500000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "pensionand_other_post_retirement_benefit_plans_current",
+      "values": {
+       "2025-10-31": 96700000.0,
+       "2024-10-31": 58600000.0,
+       "2023-10-31": 98700000.0,
+       "2022-10-31": 101400000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "other_current_borrowings",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": 10000000.0,
+       "2023-10-31": null,
+       "2022-10-31": null,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "current_debt",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": 10000000.0,
+       "2023-10-31": null,
+       "2022-10-31": null,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "current_capital_lease_obligation",
+      "values": {
+       "2025-10-31": 19300000.0,
+       "2024-10-31": 20300000.0,
+       "2023-10-31": 19500000.0,
+       "2022-10-31": 15700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "current_debt_and_capital_lease_obligation",
+      "values": {
+       "2025-10-31": 19300000.0,
+       "2024-10-31": 30300000.0,
+       "2023-10-31": 19500000.0,
+       "2022-10-31": 15700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "current_liabilities",
+      "values": {
+       "2025-10-31": 912400000.0,
+       "2024-10-31": 976000000.0,
+       "2023-10-31": 948600000.0,
+       "2022-10-31": 1063600000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "long_term_debt",
+      "values": {
+       "2025-10-31": 921500000.0,
+       "2024-10-31": 911800000.0,
+       "2023-10-31": 1031500000.0,
+       "2022-10-31": 990800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "long_term_capital_lease_obligation",
+      "values": {
+       "2025-10-31": 100300000.0,
+       "2024-10-31": 99100000.0,
+       "2023-10-31": 112100000.0,
+       "2022-10-31": 63600000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_and_capital_lease_obligation",
+      "values": {
+       "2025-10-31": 1021800000.0,
+       "2024-10-31": 1010900000.0,
+       "2023-10-31": 1143600000.0,
+       "2022-10-31": 1054400000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_liabilities",
+      "values": {
+       "2025-10-31": 800000.0,
+       "2024-10-31": 500000.0,
+       "2023-10-31": 400000.0,
+       "2022-10-31": 44300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_liabilities",
+      "values": {
+       "2025-10-31": 800000.0,
+       "2024-10-31": 500000.0,
+       "2023-10-31": 400000.0,
+       "2022-10-31": 44300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "other_non_current_liabilities",
+      "values": {
+       "2025-10-31": 50500000.0,
+       "2024-10-31": 43500000.0,
+       "2023-10-31": 40800000.0,
+       "2022-10-31": 42000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "total_non_current_liabilities_net_minority_interest",
+      "values": {
+       "2025-10-31": 1073100000.0,
+       "2024-10-31": 1054900000.0,
+       "2023-10-31": 1184800000.0,
+       "2022-10-31": 1140700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2025-10-31": 1985500000.0,
+       "2024-10-31": 2030900000.0,
+       "2023-10-31": 2133400000.0,
+       "2022-10-31": 2204300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "preferred_stock",
+      "values": {
+       "2025-10-31": 0.0,
+       "2024-10-31": 0.0,
+       "2023-10-31": 0.0,
+       "2022-10-31": 0.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2025-10-31": 97900000.0,
+       "2024-10-31": 101500000.0,
+       "2023-10-31": 103800000.0,
+       "2022-10-31": 104000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2025-10-31": 97900000.0,
+       "2024-10-31": 101500000.0,
+       "2023-10-31": 103800000.0,
+       "2022-10-31": 104000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2025-10-31": 1390500000.0,
+       "2024-10-31": 1496400000.0,
+       "2023-10-31": 1444100000.0,
+       "2022-10-31": 1280800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "other_equity_adjustments",
+      "values": {
+       "2025-10-31": -35100000.0,
+       "2024-10-31": -46000000.0,
+       "2023-10-31": -37000000.0,
+       "2022-10-31": -33100000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "gains_losses_not_affecting_retained_earnings",
+      "values": {
+       "2025-10-31": -35100000.0,
+       "2024-10-31": -46000000.0,
+       "2023-10-31": -37000000.0,
+       "2022-10-31": -33100000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2025-10-31": 1453300000.0,
+       "2024-10-31": 1551900000.0,
+       "2023-10-31": 1510900000.0,
+       "2022-10-31": 1351700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2025-10-31": 1453300000.0,
+       "2024-10-31": 1551900000.0,
+       "2023-10-31": 1510900000.0,
+       "2022-10-31": 1351700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2025-10-31": 2374800000.0,
+       "2024-10-31": 2463700000.0,
+       "2023-10-31": 2542400000.0,
+       "2022-10-31": 2342500000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2025-10-31": 1453300000.0,
+       "2024-10-31": 1551900000.0,
+       "2023-10-31": 1510900000.0,
+       "2022-10-31": 1351700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "capital_lease_obligations",
+      "values": {
+       "2025-10-31": 119600000.0,
+       "2024-10-31": 119400000.0,
+       "2023-10-31": 131600000.0,
+       "2022-10-31": 79300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2025-10-31": 612100000.0,
+       "2024-10-31": 602900000.0,
+       "2023-10-31": 520000000.0,
+       "2022-10-31": 182600000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "working_capital",
+      "values": {
+       "2025-10-31": 792700000.0,
+       "2024-10-31": 788900000.0,
+       "2023-10-31": 850200000.0,
+       "2022-10-31": 611800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2025-10-31": 2374800000.0,
+       "2024-10-31": 2473700000.0,
+       "2023-10-31": 2542400000.0,
+       "2022-10-31": 2342500000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2025-10-31": 612100000.0,
+       "2024-10-31": 602900000.0,
+       "2023-10-31": 520000000.0,
+       "2022-10-31": 182600000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2025-10-31": 1041100000.0,
+       "2024-10-31": 1041200000.0,
+       "2023-10-31": 1163100000.0,
+       "2022-10-31": 1070100000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "net_debt",
+      "values": {
+       "2025-10-31": 580500000.0,
+       "2024-10-31": 722300000.0,
+       "2023-10-31": 838400000.0,
+       "2022-10-31": 802600000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "share_issued",
+      "values": {
+       "2025-10-31": 97888105.0,
+       "2024-10-31": 101472125.0,
+       "2023-10-31": 103843485.0,
+       "2022-10-31": 103969805.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "ordinary_shares_number",
+      "values": {
+       "2025-10-31": 97888105.0,
+       "2024-10-31": 101472125.0,
+       "2023-10-31": 103843485.0,
+       "2022-10-31": 103969805.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "treasury_shares_number",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": null,
+       "2023-10-31": 0.0,
+       "2022-10-31": null,
+       "2021-10-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52152/fundamentals/TTC/cashflow",
+   "status": 200,
+   "elapsed_ms": 704,
+   "body": {
+    "symbol": "TTC",
+    "periods": [
+     "2025-10-31",
+     "2024-10-31",
+     "2023-10-31",
+     "2022-10-31",
+     "2021-10-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2025-10-31": 316100000.0,
+       "2024-10-31": 418900000.0,
+       "2023-10-31": 329700000.0,
+       "2022-10-31": 443300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "earnings_losses_from_equity_investments",
+      "values": {
+       "2025-10-31": -18700000.0,
+       "2024-10-31": -20800000.0,
+       "2023-10-31": -19200000.0,
+       "2022-10-31": -8800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "operating_gains_losses",
+      "values": {
+       "2025-10-31": -18700000.0,
+       "2024-10-31": -20800000.0,
+       "2023-10-31": -19200000.0,
+       "2022-10-31": -8800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "depreciation",
+      "values": {
+       "2025-10-31": 112200000.0,
+       "2024-10-31": 93700000.0,
+       "2023-10-31": 83500000.0,
+       "2022-10-31": 74900000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "amortization_of_intangibles",
+      "values": {
+       "2025-10-31": 30700000.0,
+       "2024-10-31": 34500000.0,
+       "2023-10-31": 35700000.0,
+       "2022-10-31": 33900000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "amortization_cash_flow",
+      "values": {
+       "2025-10-31": 30700000.0,
+       "2024-10-31": 34500000.0,
+       "2023-10-31": 35700000.0,
+       "2022-10-31": 33900000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2025-10-31": 142900000.0,
+       "2024-10-31": 128200000.0,
+       "2023-10-31": 119200000.0,
+       "2022-10-31": 108800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "depreciation_amortization_depletion",
+      "values": {
+       "2025-10-31": 142900000.0,
+       "2024-10-31": 128200000.0,
+       "2023-10-31": 119200000.0,
+       "2022-10-31": 108800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "deferred_income_tax",
+      "values": {
+       "2025-10-31": -58700000.0,
+       "2024-10-31": -27900000.0,
+       "2023-10-31": -47900000.0,
+       "2022-10-31": -12300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "deferred_tax",
+      "values": {
+       "2025-10-31": -58700000.0,
+       "2024-10-31": -27900000.0,
+       "2023-10-31": -47900000.0,
+       "2022-10-31": -12300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "asset_impairment_charge",
+      "values": {
+       "2025-10-31": 81100000.0,
+       "2024-10-31": 0.0,
+       "2023-10-31": 151300000.0,
+       "2022-10-31": 0.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "stock_based_compensation",
+      "values": {
+       "2025-10-31": 19000000.0,
+       "2024-10-31": 23000000.0,
+       "2023-10-31": 19400000.0,
+       "2022-10-31": 22100000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2025-10-31": 32600000.0,
+       "2024-10-31": 19300000.0,
+       "2023-10-31": 7700000.0,
+       "2022-10-31": -10000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2025-10-31": 83200000.0,
+       "2024-10-31": -53100000.0,
+       "2023-10-31": -71600000.0,
+       "2022-10-31": -19300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "change_in_inventory",
+      "values": {
+       "2025-10-31": 109300000.0,
+       "2024-10-31": 27500000.0,
+       "2023-10-31": -26700000.0,
+       "2022-10-31": -285900000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "change_in_prepaid_assets",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": null,
+       "2023-10-31": -23000000.0,
+       "2022-10-31": -30297000.0,
+       "2021-10-31": 56100000.0
+      }
+     },
+     {
+      "label": "change_in_account_payable",
+      "values": {
+       "2025-10-31": -86600000.0,
+       "2024-10-31": 24300000.0,
+       "2023-10-31": -149900000.0,
+       "2022-10-31": 66300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "change_in_payable",
+      "values": {
+       "2025-10-31": -86600000.0,
+       "2024-10-31": 24300000.0,
+       "2023-10-31": -149900000.0,
+       "2022-10-31": 66300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "change_in_payables_and_accrued_expense",
+      "values": {
+       "2025-10-31": -86600000.0,
+       "2024-10-31": 24300000.0,
+       "2023-10-31": -149900000.0,
+       "2022-10-31": 66300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_assets",
+      "values": {
+       "2025-10-31": 28400000.0,
+       "2024-10-31": 19900000.0,
+       "2023-10-31": 17800000.0,
+       "2022-10-31": -30200000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_liabilities",
+      "values": {
+       "2025-10-31": 13400000.0,
+       "2024-10-31": 10600000.0,
+       "2023-10-31": -23000000.0,
+       "2022-10-31": 23200000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2025-10-31": 147700000.0,
+       "2024-10-31": 29200000.0,
+       "2023-10-31": -253400000.0,
+       "2022-10-31": -245900000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "dividend_received_cfo",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": null,
+       "2023-10-31": 7900000.0,
+       "2022-10-31": null,
+       "2021-10-31": 4779000.0
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_operating_activities",
+      "values": {
+       "2025-10-31": 662000000.0,
+       "2024-10-31": 569900000.0,
+       "2023-10-31": 306800000.0,
+       "2022-10-31": 297200000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2025-10-31": 662000000.0,
+       "2024-10-31": 569900000.0,
+       "2023-10-31": 306800000.0,
+       "2022-10-31": 297200000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2025-10-31": -83700000.0,
+       "2024-10-31": -103500000.0,
+       "2023-10-31": -149500000.0,
+       "2022-10-31": -143500000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2025-10-31": -83700000.0,
+       "2024-10-31": -103500000.0,
+       "2023-10-31": -149500000.0,
+       "2022-10-31": -143500000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "purchase_of_business",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": 0.0,
+       "2023-10-31": -21000000.0,
+       "2022-10-31": -402400000.0,
+       "2021-10-31": -24900000.0
+      }
+     },
+     {
+      "label": "sale_of_business",
+      "values": {
+       "2025-10-31": 9700000.0,
+       "2024-10-31": 40000000.0,
+       "2023-10-31": 5300000.0,
+       "2022-10-31": 4600000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "net_business_purchase_and_sale",
+      "values": {
+       "2025-10-31": 9700000.0,
+       "2024-10-31": 40000000.0,
+       "2023-10-31": 5300000.0,
+       "2022-10-31": -397800000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "net_other_investing_changes",
+      "values": {
+       "2025-10-31": -3400000.0,
+       "2024-10-31": 3800000.0,
+       "2023-10-31": -13500000.0,
+       "2022-10-31": -7000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_investing_activities",
+      "values": {
+       "2025-10-31": -77400000.0,
+       "2024-10-31": -59700000.0,
+       "2023-10-31": -157700000.0,
+       "2022-10-31": -548300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2025-10-31": -77400000.0,
+       "2024-10-31": -59700000.0,
+       "2023-10-31": -157700000.0,
+       "2022-10-31": -548300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_issuance",
+      "values": {
+       "2025-10-31": 1040000000.0,
+       "2024-10-31": 465000000.0,
+       "2023-10-31": 555000000.0,
+       "2022-10-31": 300000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_payments",
+      "values": {
+       "2025-10-31": -1040000000.0,
+       "2024-10-31": -575000000.0,
+       "2023-10-31": -515000000.0,
+       "2022-10-31": 0.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2025-10-31": 0.0,
+       "2024-10-31": -110000000.0,
+       "2023-10-31": 40000000.0,
+       "2022-10-31": 300000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "short_term_debt_issuance",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": null,
+       "2023-10-31": 40000000.0,
+       "2022-10-31": 0.0,
+       "2021-10-31": 0.0
+      }
+     },
+     {
+      "label": "net_short_term_debt_issuance",
+      "values": {
+       "2025-10-31": null,
+       "2024-10-31": null,
+       "2023-10-31": 40000000.0,
+       "2022-10-31": 0.0,
+       "2021-10-31": 0.0
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2025-10-31": 0.0,
+       "2024-10-31": -110000000.0,
+       "2023-10-31": 40000000.0,
+       "2022-10-31": 300000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "repurchase_of_common_equity",
+      "values": {
+       "2025-10-31": -290000000.0,
+       "2024-10-31": -245500000.0,
+       "2023-10-31": -60000000.0,
+       "2022-10-31": -140000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "net_common_stock_issuance",
+      "values": {
+       "2025-10-31": -290000000.0,
+       "2024-10-31": -245500000.0,
+       "2023-10-31": -60000000.0,
+       "2022-10-31": -140000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "common_stock_dividend_paid",
+      "values": {
+       "2025-10-31": -151100000.0,
+       "2024-10-31": -149500000.0,
+       "2023-10-31": -141900000.0,
+       "2022-10-31": -125700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "cash_dividends_paid",
+      "values": {
+       "2025-10-31": -151100000.0,
+       "2024-10-31": -149500000.0,
+       "2023-10-31": -141900000.0,
+       "2022-10-31": -125700000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "proceeds_from_stock_option_exercised",
+      "values": {
+       "2025-10-31": 2100000.0,
+       "2024-10-31": 9100000.0,
+       "2023-10-31": 19700000.0,
+       "2022-10-31": 10300000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "net_other_financing_charges",
+      "values": {
+       "2025-10-31": -7100000.0,
+       "2024-10-31": -9200000.0,
+       "2023-10-31": -5300000.0,
+       "2022-10-31": -2400000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_financing_activities",
+      "values": {
+       "2025-10-31": -446100000.0,
+       "2024-10-31": -505100000.0,
+       "2023-10-31": -147500000.0,
+       "2022-10-31": 42200000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2025-10-31": -446100000.0,
+       "2024-10-31": -505100000.0,
+       "2023-10-31": -147500000.0,
+       "2022-10-31": 42200000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2025-10-31": 138500000.0,
+       "2024-10-31": 5100000.0,
+       "2023-10-31": 1600000.0,
+       "2022-10-31": -208900000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "effect_of_exchange_rate_changes",
+      "values": {
+       "2025-10-31": 3000000.0,
+       "2024-10-31": 1300000.0,
+       "2023-10-31": 3300000.0,
+       "2022-10-31": -8500000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2025-10-31": 199500000.0,
+       "2024-10-31": 193100000.0,
+       "2023-10-31": 188200000.0,
+       "2022-10-31": 405600000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2025-10-31": 341000000.0,
+       "2024-10-31": 199500000.0,
+       "2023-10-31": 193100000.0,
+       "2022-10-31": 188200000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "income_tax_paid_supplemental_data",
+      "values": {
+       "2025-10-31": 106400000.0,
+       "2024-10-31": 91700000.0,
+       "2023-10-31": 165200000.0,
+       "2022-10-31": 120500000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "interest_paid_supplemental_data",
+      "values": {
+       "2025-10-31": 62500000.0,
+       "2024-10-31": 63000000.0,
+       "2023-10-31": 61100000.0,
+       "2022-10-31": 30500000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2025-10-31": -83700000.0,
+       "2024-10-31": -103500000.0,
+       "2023-10-31": -149500000.0,
+       "2022-10-31": -143500000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "issuance_of_debt",
+      "values": {
+       "2025-10-31": 1040000000.0,
+       "2024-10-31": 465000000.0,
+       "2023-10-31": 555000000.0,
+       "2022-10-31": 300000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "repayment_of_debt",
+      "values": {
+       "2025-10-31": -1040000000.0,
+       "2024-10-31": -575000000.0,
+       "2023-10-31": -515000000.0,
+       "2022-10-31": 0.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "repurchase_of_capital_stock",
+      "values": {
+       "2025-10-31": -290000000.0,
+       "2024-10-31": -245500000.0,
+       "2023-10-31": -60000000.0,
+       "2022-10-31": -140000000.0,
+       "2021-10-31": null
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2025-10-31": 578300000.0,
+       "2024-10-31": 466400000.0,
+       "2023-10-31": 157300000.0,
+       "2022-10-31": 153700000.0,
+       "2021-10-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52152/fundamentals/TTC/ratings",
+   "status": 200,
+   "elapsed_ms": 740,
+   "body": {
+    "symbol": "TTC.BO",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52152/disclosures/shareholding?symbol=TTC",
+   "status": 200,
+   "elapsed_ms": 2034,
+   "body": {
+    "symbol": "TTC",
+    "count": 3,
+    "patterns": [
+     {
+      "symbol": "TTC",
+      "quarter_end": "2026-03-31",
+      "promoter_percent": 58.67,
+      "fii_percent": null,
+      "dii_percent": 5.83,
+      "institutions_percent": 5.83,
+      "public_percent": 41.33,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 35.51,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-04-21",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/544303_214202616839_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "TTC",
+      "quarter_end": "2025-09-30",
+      "promoter_percent": 58.67,
+      "fii_percent": null,
+      "dii_percent": 6.46,
+      "institutions_percent": 6.46,
+      "public_percent": 41.33,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 34.87,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-10-21",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/544303_2110202516547_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "TTC",
+      "quarter_end": "2025-03-31",
+      "promoter_percent": 58.67,
+      "fii_percent": 0.48,
+      "dii_percent": 7.68,
+      "institutions_percent": 8.16,
+      "public_percent": 41.33,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 33.17,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-04-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/544303_2042025133617_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52152/disclosures/announcements?symbol=TTC&limit=25",
+   "status": 200,
+   "elapsed_ms": 263,
+   "body": {
+    "symbol": "TTC",
+    "exchange": null,
+    "count": 2,
+    "announcements": [
+     {
+      "symbol": "TTC",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0cfa2671-3989-4cbe-aebd-4bdf8d4e4d17.pdf",
+      "ts": "2026-09-12T20:06:54.770000+05:30"
+     },
+     {
+      "symbol": "TTC",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/b6d00518-e2cd-44b5-b2a1-a921f4595985.pdf",
+      "ts": "2026-09-11T19:14:45.817000+05:30"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {}
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52152/disclosures/results?symbol=TTC",
+   "status": 502,
+   "elapsed_ms": 13,
+   "body": {
+    "detail": "nse_direct: 'TTC' is not a known NSE instrument"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

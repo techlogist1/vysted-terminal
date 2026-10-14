@@ -1,0 +1,15 @@
+# R15-AGENT-052 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'id: "chart"\|id: "equity-overview"' src/lib/default-layout.ts 2>/dev/null | head -3; grep -rn 'BUS_SOURCE = \|source: panelId\|source: busSource\|unregisterPanelContext(' src/modules/backtest/BacktestResultView.tsx src/modules/chart/ChartPanel.tsx src/modules/equity-overview/EquityOverviewPanel.tsx; echo '$ named tests'; grep -rln 'R15-AGENT-052' src --include=*.test.ts --include=*.test.tsx
+--- output ---
+src/modules/backtest/BacktestResultView.tsx:413:const BUS_SOURCE = "backtest";
+src/modules/backtest/BacktestResultView.tsx:442:      unregisterPanelContext(BUS_SOURCE);
+src/modules/chart/ChartPanel.tsx:1051:      source: panelId,
+src/modules/chart/ChartPanel.tsx:1077:      unregisterPanelContext(panelId);
+src/modules/equity-overview/EquityOverviewPanel.tsx:661:      source: busSource,
+src/modules/equity-overview/EquityOverviewPanel.tsx:671:      unregisterPanelContext(busSource);
+$ named tests
+src/modules/panel-context-publishers.test.tsx
+src/modules/chart/ChartPanel.test.tsx
+
+EXIT=0 (0.0s)

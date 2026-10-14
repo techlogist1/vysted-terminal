@@ -1,0 +1,20 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand && grep -n 'd89a4e\|590' src/app/globals.css | head; echo 'notes-prose sizes:'; grep -n 'notes-prose' -A8 src/app/globals.css | grep 'font-size' | head -6; echo 'UC2/UC4:'; sed -n 653,662p docs/BLUEPRINT.md | cut -c1-260
+exit=0
+notes-prose sizes:
+239-    font-size: var(--text-body, 0.8125rem);
+243-    font-size: var(--text-overview, 1.4375rem);
+250-    font-size: var(--text-section, 1.1875rem);
+256-    font-size: var(--text-panel-title, 0.8125rem);
+295-    font-size: 0.9em;
+302-    font-size: var(--text-caption, 0.8125rem);
+UC2/UC4:
+
+### Use Case 2: Research Workflow (the equity researcher's story)
+Cmd+K → "Research XYZ" → AI Researcher pulls everything → chart + news in adjacent panels → backtest dividend strategy → save workspace. (If the openbb-mcp sidecar hasn't bound its port yet, data-heavy tools degrade to the yfinance fallback or a 501 rather tha
+
+### Use Case 3: Earnings Playbook
+Build node-editor workflow → AI generates thesis per earnings name → alert on entry trigger → desktop notification → review thesis → trade externally.
+
+### Use Case 4: Academic Researcher
+Custom AI agent fine-tuned to research domain → workflow pulls SEC + sentiment → outputs to chart → workspace becomes reproducible dissertation methodology. (Same MCP-unavailable degrade as UC2 applies to the SEC pull.)

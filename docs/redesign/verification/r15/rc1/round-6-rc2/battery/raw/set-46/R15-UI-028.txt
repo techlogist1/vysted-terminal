@@ -1,0 +1,17 @@
+CMD: grep units/Greeks tests
+6:  it("reads vega per 1 vol point and theta per calendar day", () => {
+7:    const { vega, theta } = toMarketUnits({ vega: 30, theta: -5, rho: 12 });
+8:    expect(vega).toEqual({ value: 0.3, unit: "per 1 vol pt" });
+10:    expect(theta.unit).toBe("per day");
+13:  it("reads rho per 1% rate move (R15-UI-028 residual: rho was still unlabelled)", () => {
+14:    const { rho } = toMarketUnits({ vega: 30, theta: -5, rho: 13.5565 });
+20:    const greeks = { delta: 0.55, gamma: 0.02, vega: 30, theta: -5, rho: 12 };
+23:    expect(greekForDisplay(greeks, "vega").value).toBeCloseTo(0.3, 12);
+26:  it("converts rho through greekForDisplay the same as vega/theta", () => {
+27:    const greeks = { delta: 0.55, gamma: 0.02, vega: 30, theta: -5, rho: 13.5565 };
+src/modules/quant/OptionPricerPanel.test.tsx:70:  it("R15-UI-028: in region IN, ₹ price and vega/theta in market units", async () => {
+src/modules/quant/GreeksDashboard.test.tsx:80:    // R15-UI-028 residual: rho (per unit rate) reads in market units too.
+src/modules/quant/units.test.ts:5:describe("toMarketUnits (R15-UI-028, R15-UI-051)", () => {
+src/modules/quant/units.test.ts:13:  it("reads rho per 1% rate move (R15-UI-028 residual: rho was still unlabelled)", () => {
+-- live route (units unchanged raw QuantLib partials; panel converts):
+{"price":28.957650524067546,"greeks":{"delta":0.6151006082188918,"gamma":0.006159159567694517,"vega":83.46893046139611,"theta":-16.32726375975913,"rho":106.36448328408868},"method":"black-scholes","monte_carlo_std_error":null,"duration_ms":0.14308304525911808}

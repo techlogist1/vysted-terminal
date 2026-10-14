@@ -1,0 +1,22 @@
+=== R15-DATA-066: cold 20-name NSE batch timing ===
+cmd: curl -s -w '
+time_total=%{time_total}
+' http://127.0.0.1:52363/quotes?symbols=RELIANCE.NS,TCS.NS,HDFCBANK.NS,INFY.NS,ICICIBANK.NS,HINDUNILVR.NS,SBIN.NS,BHARTIARTL.NS,ITC.NS,KOTAKBANK.NS,LT.NS,AXISBANK.NS,ASIANPAINT.NS,MARUTI.NS,SUNPHARMA.NS,TITAN.NS,ULTRACEMCO.NS,WIPRO.NS,NESTLEIND.NS,BAJFINANCE.NS
+HTTP:200 time_total=82.677962
+real 82.68
+user 0.00
+sys 0.00
+--- warm rerun (should be fast if EOD-cached) ---
+HTTP:200 time_total=0.002364
+real 0.02
+user 0.00
+sys 0.00
+--- SPY quote during no contention ---
+HTTP:200 time_total=1.192797
+count returned batch1: 20
+=== R15-DATA-066: contention test (cold batch in-flight vs SPY quote) ===
+-- SPY quote fired 0.5s after batch start --
+SPY-contended HTTP:200 time_total=10.429987
+batch HTTP:200 time_total=22.691909
+-- SPY quote idle after batch done --
+SPY-idle HTTP:200 time_total=0.490093

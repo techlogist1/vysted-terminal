@@ -1,0 +1,7 @@
+[   0.6s] error: {"kind": "error", "message": "The requested model is not available on OpenRouter \u2014 pick another model.", "action": "Choose a different model in Settings.", "detail": "Error code: 400 - {'error': {'message': 'zzz-nonsense/not-a-model-9000:free is not a valid model ID', 'code': 400}, 'user_id': '<redacted>'}", "code": "model_not_found"}
+[   0.6s] done: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 0.6s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · zzz-nonsense/not-a-model-9000:free

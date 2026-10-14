@@ -1,0 +1,9 @@
+=== resume errored run, check provider/model + checkpoint ===
+HTTP/1.1 200 OK
+date: Fri, 25 Sep 2026 00:34:14 GMT
+server: uvicorn
+content-length: 16
+content-type: application/json
+vary: Origin
+
+{"resumed":true}status= running provider= ollama model= llama3.1:8b checkpointMessages= 1

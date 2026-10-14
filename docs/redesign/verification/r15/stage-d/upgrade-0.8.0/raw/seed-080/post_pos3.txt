@@ -1,0 +1,1 @@
+{"id":3,"symbol":"NVDA","quantity":40.0,"cost_basis":118.9,"asset_class":"equity","opened_at":null,"note":null} HTTP201

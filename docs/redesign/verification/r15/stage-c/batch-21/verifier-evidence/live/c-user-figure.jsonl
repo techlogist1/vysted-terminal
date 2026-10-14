@@ -1,0 +1,93 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_b6f3ed66551f4ec0b38c097d6260c2fb", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}}
+{"kind": "tool_result", "tool_call_id": "call_b6f3ed66551f4ec0b38c097d6260c2fb", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " get"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " REL"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "ANCE"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " pass"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " argument"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " calling"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "`"}
+{"kind": "delta", "text": " again"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " correct"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "tool_use", "tool_call_id": "call_4b8d4db5ca2a42bbbee630a56da1ffdd", "name": "price_data", "input": {"symbol": "RELIANCE.NS"}}
+{"kind": "heartbeat"}
+{"kind": "tool_result", "tool_call_id": "call_4b8d4db5ca2a42bbbee630a56da1ffdd", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " sale"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "300"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " sold"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " made"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "400"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "300"}
+{"kind": "delta", "text": " \u00d7"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " selling"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " REL"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "ANCE"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 7090, "output_tokens": 47, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

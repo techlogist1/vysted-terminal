@@ -1,0 +1,17 @@
+=== R15-AGENT-039 (in-process fake-provider probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+CMD: launch_run(agent_id='copilot', prompt='Check the news for RELIANCE, then add it to my watchlist, and then show me the chart.' (compound-cue prompt, classify_intent(...).compound==True), provider='openrouter' (in agent_runtime._PLANNER_PROVIDERS)); agent_runtime.decompose patched to a fake 3-step plan; start_run(run_id) after.
+
+{
+  "status_planned": "planned",
+  "detail": "plan ready: start or discard it",
+  "plan_goal": "News, watchlist, chart for RELIANCE",
+  "plan_steps": [
+    "research",
+    "add_to_watchlist",
+    "set_chart_symbol"
+  ],
+  "status_after_start": "done",
+  "activity_after_start": [
+    "resolve_symbol"
+  ]
+}

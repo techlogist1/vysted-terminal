@@ -1,0 +1,68 @@
+{"kind": "tool_use", "tool_call_id": "call_eb9e924ce7b6481496a4cb9ca9e5e96f", "name": "resolve_symbol", "input": {"query": "BGNE", "region": "GLOBAL"}}
+{"kind": "tool_use", "tool_call_id": "call_fabc21e9018140e8b4f24e5e65c34d55", "name": "news", "input": {"symbols": ["BGNE"]}}
+{"kind": "tool_result", "tool_call_id": "call_eb9e924ce7b6481496a4cb9ca9e5e96f", "name": "resolve_symbol", "ok": false, "error": "Could not resolve 'BGNE' to a known instrument in the bundled US/NSE/BSE masters or a live lookup. Check the spelling, or add a data source that covers it."}
+{"kind": "tool_result", "tool_call_id": "call_fabc21e9018140e8b4f24e5e65c34d55", "name": "news", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " couldn't"}
+{"kind": "delta", "text": " resolve"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "BG"}
+{"kind": "delta", "text": "NE"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " known"}
+{"kind": "delta", "text": " instrument"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " database"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " so"}
+{"kind": "delta", "text": " I'm"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " spelling"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " you're"}
+{"kind": "delta", "text": " looking"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " different"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " listed"}
+{"kind": "delta", "text": " under"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " exchange"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 8923, "output_tokens": 62, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.010614}

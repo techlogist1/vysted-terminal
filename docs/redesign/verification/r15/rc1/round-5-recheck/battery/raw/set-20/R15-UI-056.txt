@@ -1,0 +1,51 @@
+=== R15-UI-056: pinned vitest (store frame handling) ===
+CMD: grep -n "R15-UI-056" -A 20 src/store/screener.test.ts | head -25
+339:    it("R15-UI-056: the stream's error frame puts the server's reason in store.error", async () => {
+340-      const frames = [
+341-        { event: "progress", phase: "universe", done: 0, total: 1, detail: "resolving" },
+342-        { event: "error", message: "missing universe snapshot 'nifty50.json'" },
+343-      ];
+344-      const encoder = new TextEncoder();
+345-      const stream = new ReadableStream({
+346-        start(controller) {
+347-          for (const f of frames)
+348-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(f)}\n\n`));
+349-          controller.close();
+350-        },
+351-      });
+352-      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+353-        new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } }),
+354-      );
+355-
+356-      expect(await useScreenerStore.getState().runScreener()).toBeNull();
+357-      const state = useScreenerStore.getState();
+358-      expect(state.status).toBe("error");
+359-      expect(state.error).toBe("missing universe snapshot 'nifty50.json'");
+
+CMD: sed -n '490,515p' src/store/screener.ts (current handler)
+    }
+    if (!streamResponse.ok) {
+      let detail = streamResponse.statusText;
+      try {
+        const parsed = (await streamResponse.json()) as { detail?: string };
+        if (parsed.detail) detail = parsed.detail;
+      } catch {
+        // Not JSON — keep status text.
+      }
+      finish({
+        status: "error",
+        error: `POST /screener/run/stream failed (${streamResponse.status}): ${detail}`,
+      });
+      return null;
+    }
+    // Consume the SSE stream.
+    // The sidecar emits `data: {json}\n\n` per frame (backtest.py:195 precedent).
+    // We split on `\n\n` event boundaries and strip the `data:` prefix from each
+    // line before JSON.parse. Bare NDJSON (no `data:` prefix) is also tolerated
+    // for resilience during development / older intermediary builds.
+    const body = streamResponse.body;
+    if (!body) {
+      finish({ status: "error", error: "Stream body was empty" });
+      return null;
+    }
+    const reader = body.getReader();

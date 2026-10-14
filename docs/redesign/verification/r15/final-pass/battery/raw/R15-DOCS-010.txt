@@ -1,0 +1,11 @@
+# R15-DOCS-010 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn -i 'amber' src/components/DataTable.tsx src/modules/notes/NotesToolbar.tsx || echo "no amber"; grep -n 'R15-DOCS-010\|active' src/modules/notes/NotesToolbar.test.tsx | head -4
+--- output ---
+no amber
+117:describe("NotesToolbar — R15-DOCS-010", () => {
+128:  it("the active toolbar button carries the fill class", async () => {
+131:    // classList token checks: the inactive string carries hover:bg-charcoal-800,
+132:    // so a className substring match cannot tell active from inactive.
+
+EXIT=0 (0.0s)

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -77,7 +78,9 @@ def patch_all_providers(monkeypatch: pytest.MonkeyPatch) -> None:
         ("imf", imf_provider),
         ("world-bank", world_bank_provider),
     ):
-        monkeypatch.setattr(mod, "get_series", lambda sid, _p=provider_name: _series_stub(_p, sid))
+        monkeypatch.setattr(
+            mod, "get_series", lambda sid, region=None, _p=provider_name: _series_stub(_p, sid)
+        )
         monkeypatch.setattr(
             mod, "search", lambda q, limit=25, _p=provider_name: _search_stub(_p, q)
         )
@@ -106,11 +109,54 @@ def test_get_series_dispatches_to_ecb(client: TestClient, patch_all_providers: N
 
 def test_get_series_dispatches_to_imf(client: TestClient, patch_all_providers: None) -> None:
     # IMF series ids use ``/`` to separate dataflow from key; the path parameter
-    # accepts the dot-prefixed legacy form too (``IFS.A.US.NGDP_R_K_IX``) which
+    # accepts the dot-prefixed legacy form too (``WEO.USA.NGDP_RPCH.A``) which
     # the IMF provider's id parser handles either way.
-    res = client.get("/macro/IFS.A.US.NGDP_R_K_IX", params={"provider": "imf"})
+    res = client.get("/macro/WEO.USA.NGDP_RPCH.A", params={"provider": "imf"})
     assert res.status_code == 200
     assert res.json()["provider"] == "imf"
+
+
+def test_get_series_routes_an_imf_id_with_a_slash(
+    client: TestClient, patch_all_providers: None
+) -> None:
+    """R15-UI-053: every IMF catalog id carries ``/`` and the panel sends it
+    percent-encoded; Starlette decodes ``%2F`` before matching, so the route
+    must take a path parameter. The discovery routes declared before it still
+    route."""
+    res = client.get("/macro/WEO%2FUSA.NGDP_RPCH.A", params={"provider": "imf"})
+    assert res.status_code == 200
+    assert res.json()["series_id"] == "WEO/USA.NGDP_RPCH.A"
+    assert client.get("/macro/search", params={"q": "gdp", "provider": "imf"}).status_code == 200
+    assert client.get("/macro/catalog", params={"provider": "imf"}).status_code == 200
+
+
+def test_imf_default_id_routes_to_the_sdmx3_provider(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-UI-053: the panel's IMF default (the catalog head) goes through the
+    real provider to the SDMX 3.0 dataflow and renders its observations."""
+    from services.macro import imf_provider
+
+    default_id = imf_provider.catalog().entries[0].series_id
+    assert default_id == "WEO/USA.NGDP_RPCH.A"
+    seen: list[tuple[str, str]] = []
+
+    def fetch(dataflow: str, key: str) -> dict[str, Any]:
+        seen.append((dataflow, key))
+        return {
+            "data": {
+                "dataSets": [{"series": {"0:0:0": {"observations": {"0": ["2.8"]}}}}],
+                "structures": [{"dimensions": {"observation": [{"values": [{"value": "2025"}]}]}}],
+            }
+        }
+
+    monkeypatch.setattr(imf_provider, "_fetch", fetch)
+    res = client.get("/macro/WEO%2FUSA.NGDP_RPCH.A", params={"provider": "imf"})
+    assert res.status_code == 200
+    body = res.json()
+    assert seen == [("WEO", "USA.NGDP_RPCH.A")]
+    assert body["frequency"] == "annual"
+    assert body["observations"][0]["value"] == pytest.approx(2.8)
 
 
 def test_get_series_dispatches_to_world_bank(client: TestClient, patch_all_providers: None) -> None:
@@ -119,13 +165,47 @@ def test_get_series_dispatches_to_world_bank(client: TestClient, patch_all_provi
     assert res.json()["provider"] == "world-bank"
 
 
+def test_world_bank_bare_id_follows_the_session_region(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # R15-DATA-046: a featured (bare) World Bank id served US data to an IN
+    # session. It now reads as the region's country, and the cache keeps the
+    # regions apart.
+    from services.macro import world_bank_provider
+
+    class _Wb:
+        class data:  # noqa: N801 - mirrors wbgapi's module attribute
+            @staticmethod
+            def fetch(indicator: str, country: str) -> Any:
+                return iter([{"time": "YR2023", "value": 5.4}])
+
+        class series:  # noqa: N801
+            @staticmethod
+            def info(indicator: str) -> Any:
+                raise RuntimeError("no title")
+
+    monkeypatch.setattr(world_bank_provider, "_make_client", lambda: _Wb)
+    for region, iso in (("IN", "IND"), ("US", "USA")):
+        res = client.get(
+            "/macro/FP.CPI.TOTL.ZG",
+            params={"provider": "world-bank"},
+            headers={"X-Vysted-Region": region},
+        )
+        assert res.status_code == 200
+        assert res.json()["title"].endswith(iso), region
+
+
 def test_get_series_returns_502_on_provider_error(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     from services.macro import fred_provider
 
     def boom(_sid: str) -> MacroSeriesExtended:
-        raise ProviderError("no API key")
+        # R15-DATA-061: a cause-less ProviderError is no longer treated as
+        # authored just because __cause__ is None — "no API key" is a message
+        # meant for the user, so it must be built via .authored() to survive
+        # provider_error_response's mapping.
+        raise ProviderError.authored("no API key")
 
     monkeypatch.setattr(fred_provider, "get_series", boom)
     res = client.get("/macro/X", params={"provider": "fred"})
@@ -133,17 +213,34 @@ def test_get_series_returns_502_on_provider_error(
     assert "no API key" in res.json()["detail"]
 
 
-def test_get_series_legacy_path_when_provider_not_v0_6_0(
+def test_get_series_hides_a_cause_less_world_bank_error(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """No provider param → legacy Phase-1/3 path returns 502 on upstream error.
+    """R15-DATA-061: the raw upstream text (wbgapi's own "APIError: JSON
+    decoding error (https://...)") never reaches the response, cause or no
+    cause — only .authored() text does."""
+    from services.macro import world_bank_provider
 
-    A ProviderError from the openbb-mcp/FRED upstream (e.g. a missing FRED
-    credential in the test build) is an upstream-gateway failure → 502, unified
-    with the v0.6.0 dispatch path (Phase 9.5 nit fix: was 501).
-    """
-    res = client.get("/macro/DGS10")
+    def boom(_sid: str, region: str | None = None) -> MacroSeriesExtended:
+        raise ProviderError(
+            "World Bank upstream error for 'GDP'/'IND': APIError: JSON decoding error (https://a...)"
+        )
+
+    monkeypatch.setattr(world_bank_provider, "get_series", boom)
+    res = client.get("/macro/GDP", params={"provider": "world-bank"})
     assert res.status_code == 502
+    assert "APIError" not in res.json()["detail"]
+
+
+def test_get_series_requires_a_provider(client: TestClient) -> None:
+    """R15-DATA-087 / D-B10-2: a series fetch's id namespace is provider-
+    specific (FRED's DGS10 means nothing to World Bank), so a missing
+    provider is a 422, never a silent region-based reinterpretation."""
+    res = client.get("/macro/DGS10")
+    assert res.status_code == 422
+    assert "provider" in res.json()["detail"]
+    # With provider=fred → routed (already covered by
+    # test_get_series_dispatches_to_fred above).
 
 
 # ---------------------------------------------------------------------------

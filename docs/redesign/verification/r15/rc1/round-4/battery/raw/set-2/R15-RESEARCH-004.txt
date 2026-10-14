@@ -1,0 +1,15 @@
+=== R15-RESEARCH-004: in-process _split_claims repro (original repro text lines) ===
+claims: ['revenue growth +40.5%', 'P/E 67.13953', '-0.4% YoY margin', '40.5% growth again']
+claims2: ['P/E 34.42', 'Gross Margin 51.70%']
+=== R15-RESEARCH-004: cross-check summary line logic (grep) ===
+14:     every verdict, disagreements are counted onto ``brief.note``, and the raw
+94:_VERDICT_UNVERIFIED = "unverified"
+419:    claim to UNVERIFIED, and disagreements are FLAGGED in the brief (markdown
+424:    re-checked through BOTH channels and the verdict is cross-verified between
+456:        brief.structured["cross_check"] = {"claims": [], "disagreements": 0}
+521:    disagreements = sum(1 for c in checks if c["verdict"] == _VERDICT_DISAGREE)
+529:        "disagreements": disagreements,
+534:    if disagreements:
+535:        flag = f"cross-check flagged {disagreements} numeric disagreement(s)"
+540:    unverified = sum(1 for c in checks if c["verdict"] == _VERDICT_UNVERIFIED)
+544:        f"{agreed} verified, {unverified} unverified, {disagreements} disagreement(s)",

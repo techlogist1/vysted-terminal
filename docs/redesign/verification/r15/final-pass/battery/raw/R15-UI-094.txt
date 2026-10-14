@@ -1,0 +1,19 @@
+# R15-UI-094 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import json, inspect
+from services import company_narrative as cn
+print(inspect.signature(cn._build_messages))
+txt="TAKE: A strong franchise.\nBUSINESS: Sells GPUs.\nSTORYLINE: Growing.\nBULL:\n- Demand\n- Margins\nBEAR:\n- Valuation\nRISKS:\n- Export limits\n"
+print('parsed:',json.dumps(cn._parse_output(txt)))
+PY
+grep -n 'label="Storyline"\|label="Bull case"\|label="Bear case"\|label="Risks"' "$C/src/modules/equity-overview/EquityOverviewPanel.tsx"
+--- output ---
+(symbol: 'str', fundamentals: 'Fundamentals | None', quote: 'Quote | None') -> 'list[dict[str, str]]'
+parsed: [{"summary": "A strong franchise.", "business": "Sells GPUs.", "storyline": "Growing."}, {"insights": [], "bull_case": ["Demand", "Margins"], "bear_case": ["Valuation"], "risks": ["Export limits"]}]
+413:          <NarrativeBlock label="Storyline" text={narrative.storyline} />
+416:              <NarrativeBlock label="Bull case" items={narrative.bull_case} />
+417:              <NarrativeBlock label="Bear case" items={narrative.bear_case} />
+420:          <NarrativeBlock label="Risks" items={narrative.risks} />
+
+EXIT=0 (2.0s)

@@ -1,0 +1,37 @@
+HEAD 68d5573aff9a579af084dcbb124843f2aecff6e8
+## rc1-vshard-3:6 flat AND group: applyFilters keeps group, advanced=false, combinator=and; runScreener sends group only if nested or 'or'
+  applyFilters: ({ criteria, group, universe, formula }) =>
+    set((state) => ({
+      criteria,
+      group: group ?? null,
+      advanced: hasNestedGroup(group ?? null),
+      // A flat group from the agent collapses to the simple combinator so the
+      // simple builder reflects it; a nested one drives advanced mode.
+      combinator: group && group.combinator === "or" && !hasNestedGroup(group) ? "or" : "and",
+      universe: universe ?? state.universe,
+      universeChosen: state.universeChosen || universe !== undefined,
+      // `formula` overrides when provided; omitting it leaves the user's own formula.
+      ...(formula !== undefined ? { formula } : {}),
+    })),
+...
+    // Three shapes for the boolean tree, in precedence:
+    //   1. ADVANCED nested tree (the recursive group editor) — pruned, supersedes
+    //      everything when it carries real nesting (server evaluates it).
+    //   2. flat "or" — a flat OR group over the simple criteria list.
+    //   3. flat "and" (default) — no `group`, the back-compat flat criteria path.
+    // `criteria` stays populated either way so older readers + the
+    // matched-criteria index column still resolve.
+    let group: CriterionGroup | undefined;
+    const pruned = advanced && editTree ? pruneGroup(editTree) : null;
+    if (pruned && hasNestedGroup(pruned)) {
+      group = pruned;
+    } else if (combinator === "or") {
+      group = { combinator: "or", criteria: [...criteria] };
+    }
+    const req: ScreenerRequest = {
+      universe,
+      criteria,
+      limit,
+      sort_by: sortBy,
+      sort_dir: sortDir,
+      ...(group ? { group } : {}),

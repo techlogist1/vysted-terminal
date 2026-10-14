@@ -1,0 +1,19 @@
+CMD: in-process python (candidate sidecar venv): agent_runtime._discover_specs() on a scratch agents dir with one schema-violating file, and on a missing directory
+  "degraded_agents": [
+    {
+      "file": "zz-bad-agent.json",
+      "reason": "schema violation: ['defaultProvider']: 'notaprovider' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']"
+    }
+  ],
+  "openrouter_agent_loaded": true,
+--
+  "missing_dir_specs_empty": true,
+  "missing_dir_degraded": [
+    {
+      "file": "does-not-exist",
+      "reason": "agents directory not found"
+    }
+  ],
+  "deepseek_base_url_before": "https://api.deepseek.com",
+A schema-violating file is skipped with a named reason in the degraded list, and the rest of the roster still loads (roster_count_scratch=14, i.e. 13 real + the openrouter test agent, minus the bad one). A missing agents directory returns {} AND a non-empty degraded list naming 'agents directory not found' (matches agent_runtime.py:251-253) — the pre-fix silent-{} case is gone.
+VERDICT: holds

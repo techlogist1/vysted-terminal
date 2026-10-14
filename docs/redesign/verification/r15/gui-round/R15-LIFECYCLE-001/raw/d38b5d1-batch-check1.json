@@ -1,0 +1,14 @@
+[
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-01-boot-2s.png"},
+ {"cmd":"click","x":768,"y":598},
+ {"cmd":"wait","seconds":1.5},
+ {"cmd":"click","x":502,"y":728},
+ {"cmd":"wait","seconds":1.0},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-02-boot-6s-after-clicks.png"},
+ {"cmd":"click","x":243,"y":56},
+ {"cmd":"wait","seconds":3},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-03-boot-toolbar-palette.png"},
+ {"cmd":"key","combo":"escape"},
+ {"cmd":"wait","seconds":2},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-04-boot-12s.png"}
+]

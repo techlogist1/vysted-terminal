@@ -1,0 +1,18 @@
+2026-10-04T12:43:23.506Z [sec-edgar-mcp] not bound on 127.0.0.1:63544 after attempt 1/2 (45s); cold PyInstaller extraction may be slow — retrying.
+2026-10-04T12:44:08.573Z [sec-edgar-mcp] subprocess did not bind to 127.0.0.1:63544 within 45s x 2 attempts; treating as unavailable. /sec routes will 501. Check the bundled binary for a startup deadlock (Phase 8 finding
+2026-10-04T12:44:28.589Z [sidecar] 2026-10-04 18:14:28,589 INFO uvicorn.error: Started server process [22315]
+2026-10-04T12:44:28.589Z [sidecar] 2026-10-04 18:14:28,589 INFO uvicorn.error: Waiting for application startup.
+2026-10-04T12:44:28.654Z [sidecar] 2026-10-04 18:14:28,654 INFO uvicorn.error: Application startup complete.
+2026-10-04T12:44:28.660Z [sidecar] 2026-10-04 18:14:28,660 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:63542 (Press CTRL+C to quit)
+2026-10-04T12:44:30.197Z [sidecar] 2026-10-04 18:14:30,197 INFO uvicorn.access: 127.0.0.1:64925 - "OPTIONS /llm/models?provider=ollama&base_url=http%3A%2F%2F127.0.0.1%3A11434 HTTP/1.1" 200
+2026-10-04T12:44:30.234Z [sidecar] 2026-10-04 18:14:30,233 INFO uvicorn.access: 127.0.0.1:64921 - "GET /llm/models?provider=ollama&base_url=http%3A%2F%2F127.0.0.1%3A11434 HTTP/1.1" 200
+2026-10-04T12:44:30.305Z [sidecar] 2026-10-04 18:14:30,305 INFO yfinance: Failed to create TzCache, reason: Error creating TzCache folder: '/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42
+2026-10-04T12:44:44.582Z [openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ABB.BO"}}}
+2026-10-04T12:44:44.583Z [openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+2026-10-04T12:44:45.587Z [openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+2026-10-04T12:44:46.325Z [sidecar] 2026-10-04 18:14:46,323 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+2026-10-04T12:44:47.218Z [openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADR.BO"}}}
+2026-10-04T12:44:47.741Z [openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADR.BO"}}}
+2026-10-04T12:44:49.298Z [sidecar] 2026-10-04 18:14:49,298 WARNING routers.llm: provider ollama validation transport error: Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download
+2026-10-04T12:44:49.298Z [sidecar] 2026-10-04 18:14:49,298 INFO uvicorn.access: 127.0.0.1:64972 - "POST /llm/keys/validate HTTP/1.1" 200
+2026-10-04T12:44:57.060Z [sidecar] 2026-10-04 18:14:57,059 INFO uvicorn.access: 127.0.0.1:64984 - "GET /system/ollama/status HTTP/1.1" 200

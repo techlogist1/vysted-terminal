@@ -1,0 +1,4 @@
+NOT RUN AS A LIVE PROBE: this entry's certification is a jsdom/vitest component test, not a live curl/python repro. The battery role does not run vitest suites (owned by the heavy lane). Pinned test located and confirmed present, self-labeled with the entry id:
+  src/modules/macro/MacroSeriesPicker.test.tsx:111 it("shows the catalog failure with a Retry that reloads it (R15-UI-029)", ...)
+Confirmed by reading the test body: mounts MacroSeriesPicker with /macro/catalog rejecting (503-equivalent), asserts screen.findByText("Could not load featured series.") and that macro-catalog-skeleton is NOT in the DOM (no perpetual skeleton), then a Retry re-fetches.
+Verdict: ci_pinned (naming MacroSeriesPicker.test.tsx's R15-UI-029 test case).

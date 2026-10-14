@@ -1,0 +1,2 @@
+# R15-LEAD-023 in-process: empty metadata + empty history
+ProviderError Yahoo returned a price with no trade time

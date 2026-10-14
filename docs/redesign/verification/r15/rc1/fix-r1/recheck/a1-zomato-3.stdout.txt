@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_8eed65b731cb4a5d846b5b44e556afe8", "name": "get_terminal_state", "input": {}}
+[  24.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_9d07f6c165db4074a326ecb7e71f8a43", "name": "resolve_symbol", "input": {"query": "Zomato", "region": "IN"}}
+[  27.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_4146fad0863d4ca78d87120298fa631a", "name": "price_data", "input": {"symbol": "$ZOMATO.NS", "timeframe": "1d", "asset_class": "equity", "range": "1d"}}
+[  36.1s] done: {"kind": "done", "usage": {"input_tokens": 3286, "output_tokens": 74, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Zomato stock is not available right now. We're unable to fetch live data for this symbol.
+
+However, I can suggest you check the company's official website or other reliable sources for the latest information.
+
+If you'd like, we can try researching ETERNAL LIMITED (the current name of ZOMATO) using our research tool. Would you like that?
+
+=== ok · 36.1s · events {'heartbeat': 2, 'tool_use': 3, 'delta': 73, 'done': 1} · usage in=3286 out=74 · est $0.00000 · llama3.1:8b

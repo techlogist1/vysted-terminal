@@ -1,0 +1,2 @@
+$ POST /quant/option/price serial refs: {'2026-06-01': (200, 29.148952715356675), '2029-01-02': (200, 18.17477563889321)}
+200 concurrent (32 threads) alternating valuation dates: mismatches vs serial=0, zero/None prices=0

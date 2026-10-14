@@ -1,0 +1,12 @@
+$ curl -H X-Vysted-Region: IN :52364/quotes/DAL?asset_class=equity
+{"symbol":"DAL","price":49.88,"change":0.0,"change_percent":0.0,"volume":12000.0,"open":49.88,"high":49.88,"low":49.88,"prev_close":47.51,"currency":"INR","market_state":"CLOSED","timestamp":"2025-03-12T00:00:00Z","provider":"bse","freshness":"stale"}
+HTTP 200
+
+$ curl :52364/fundamentals/DAL  (exit 0, HTTP 200)
+{
+"symbol": "DAL.BO",
+"ratio_price": 49.88
+}
+field_meta.market_cap: {"status": "ok", "provider": "yfinance", "as_of": "2025-03-12T03:58:51+00:00", "reason": null, "label": null, "basis_note": null}
+field_meta.pe_ratio: {"status": "flagged", "provider": "yfinance", "as_of": "2025-03-12T03:58:51+00:00", "reason": "trailing EPS 8.9 disagrees by 77% with the payload's net income / shares outstanding (10,200,000 / 5,010,000 = 2.04); the P/E it implies at the ratio price 49.88 is 24.5 \u2014 the EPS may be from a stale fiscal period; kept, flagged", "label": null, "basis_note": null}
+field_meta.price_to_book: {"status": "ok", "provider": "yfinance", "as_of": "2025-03-12T03:58:51+00:00", "reason": null, "label": null, "basis_note": null}

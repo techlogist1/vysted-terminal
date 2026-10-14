@@ -1,0 +1,19 @@
+# R15-RESEARCH-008 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:35:35Z, sidecar :52348
+# kind=py
+# command:
+#   import asyncio, time
+#   from services.search.brave import BraveSearchBackend
+#   from services.search.mojeek import MojeekSearchBackend
+#   async def main():
+#       for B in (BraveSearchBackend, MojeekSearchBackend):
+#           t=time.monotonic()
+#           try:
+#               r=await B().search('dixon technologies news')
+#               print(B.__name__, '%.1fs'%(time.monotonic()-t), 'ok rows', len(r.results))
+#           except Exception as e:
+#               print(B.__name__, '%.1fs'%(time.monotonic()-t), type(e).__name__, str(e)[:200])
+#   asyncio.run(main())
+# output:
+BraveSearchBackend 0.5s SearchError Brave HTML search is blocking/rate-limiting right now (HTTP 429) — rotating to the next keyless engine
+MojeekSearchBackend 0.7s SearchError Mojeek: blocked (challenge page)
+# exit=0

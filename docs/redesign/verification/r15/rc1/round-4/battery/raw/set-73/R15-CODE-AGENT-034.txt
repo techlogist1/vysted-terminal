@@ -1,0 +1,6 @@
+=== plain REST route check ===
+GET /workspace HTTP_CODE:200
+["__autosave__"]
+GET /workspaces HTTP_CODE:404
+{"detail":"Not Found"}list_workspaces OK -> {'workspaces': ['__autosave__']}
+get_workspace OK -> {'name': '__autosave__', 'layout': {'grid': {'root': {'type': 'branch', 'data': [{'type': 'branch', 'data': [{'type': 'leaf', 'data': {'views': ['portfolio', 'chart'], 'activeView': 'chart', 'id': '1'}, 'size': 386}, {'type': 'leaf', 'data': {'views': ['brief'], 'activeView': 'brief', 'id': '2'}, 's

@@ -2,13 +2,14 @@
  * Sidecar API client.
  *
  * Resolves the Python sidecar's localhost port from the Tauri core (cached after
- * the first call) and exposes typed accessors for the data-layer REST endpoints,
- * plus a WebSocket helper for crypto streams. Panels call these functions rather
- * than building URLs themselves.
+ * the first call) and exposes typed accessors for the data-layer REST endpoints.
+ * Panels call these functions rather than building URLs themselves.
  */
 
 import { invoke } from "@tauri-apps/api/core";
 
+import { buildSearchHeaders } from "@/lib/search-headers";
+import { useSettingsStore } from "@/store/settings";
 import type {
   AnalystRating,
   BalanceSheet,
@@ -16,6 +17,7 @@ import type {
   Fundamentals,
   IncomeStatement,
   OHLCVSeries,
+  OptionChain,
   Quote,
 } from "../../types/data";
 
@@ -92,16 +94,27 @@ async function resolvePortToBaseUrl(): Promise<string> {
       return `http://127.0.0.1:${urlParam}`;
     }
   }
-  const port = await invoke<number>("get_sidecar_port");
-  return `http://127.0.0.1:${port}`;
+  const status = await invoke<SidecarBootStatus>("get_sidecar_port");
+  if (status.state === "failed") {
+    // A spawn failure or an exited engine is named at once (R15-LIFECYCLE-010).
+    throw new SidecarError(0, status.reason ?? SIDECAR_UNREACHABLE);
+  }
+  return `http://127.0.0.1:${status.port}`;
+}
+
+/** The Rust core's `get_sidecar_port` answer. */
+interface SidecarBootStatus {
+  port: number;
+  state: "starting" | "ready" | "failed";
+  reason: string | null;
 }
 
 /**
  * Resolve (and cache) the sidecar base URL, gated on a real `/health` probe so
  * the first successful resolution implies the sidecar is actually listening.
  *
- * Rust announces the port *number* before the sidecar binds (the main sidecar
- * spawns only after a tens-of-seconds MCP-supervisor join on cold boot), and a
+ * Rust announces the port *number* before the sidecar binds (a cold
+ * PyInstaller boot takes tens of seconds to extract and import), and a
  * bare-port URL with no probe makes single-shot panels (News, Portfolio) fire
  * into a dead socket and latch a permanent error. Cold boot can be tens of
  * seconds, so budget generously with exponential backoff. Shared promise:
@@ -115,23 +128,38 @@ export function getSidecarBaseUrl(): Promise<string> {
   }
   readyPromise = resolveAndAwaitReady().catch((error: unknown) => {
     readyPromise = null; // re-armable: a later caller / manual Retry re-probes
+    reportReachability(false, error instanceof Error ? error.message : String(error));
     throw error;
   });
   return readyPromise;
 }
 
+/** Per-round budget for one `/health` probe attempt (R15-LIFECYCLE-027): bounds
+ *  a hung-not-exited engine to this long per retry instead of hanging the
+ *  shared `readyPromise` past its overall deadline. */
+const HEALTH_PROBE_TIMEOUT_MS = 5_000;
+
+/** R15-LEAD-123: must outlast the core's main-sidecar budget (45 s x 6 + 15 s
+ *  `/health` = 285 s, `src-tauri/src/lib.rs`), or the renderer gives up on a
+ *  contended cold bind the core is still waiting on. Pinned by a Rust test. */
+const READY_DEADLINE_MS = 300_000;
+
 async function resolveAndAwaitReady(): Promise<string> {
-  const base = await resolvePortToBaseUrl();
-  const deadline = Date.now() + 120_000;
+  const deadline = Date.now() + READY_DEADLINE_MS;
   let delay = 250;
   for (;;) {
+    // Re-read each round: a spawn that fails while we probe stops the wait.
+    const base = await resolvePortToBaseUrl();
     try {
-      const response = await fetch(new URL("/health", base).toString());
+      const response = await fetch(new URL("/health", base).toString(), {
+        signal: AbortSignal.timeout(HEALTH_PROBE_TIMEOUT_MS),
+      });
       if (response.ok) {
         return base;
       }
     } catch {
-      // Connection refused — sidecar has a port assigned but is not bound yet.
+      // Connection refused, or the probe timed out — sidecar has a port
+      // assigned but is not bound (or not answering) yet.
     }
     if (Date.now() > deadline) {
       throw new SidecarError(503, "The data engine did not become ready in time.");
@@ -143,30 +171,192 @@ async function resolveAndAwaitReady(): Promise<string> {
 
 type QueryParams = Record<string, string | number | undefined>;
 
-/** Low-level typed GET against a sidecar endpoint. */
-export async function sidecarGet<T>(path: string, params?: QueryParams): Promise<T> {
+/** C1: the message for a sidecar that did not answer at all (connection
+ *  refused, the engine gone) — never WebKit's bare "Load failed". */
+export const SIDECAR_UNREACHABLE =
+  "The data engine is not responding — it may have stopped. Restart Vysted.";
+
+/** The message for a sidecar that accepted the request but missed its deadline. */
+export const SIDECAR_TIMED_OUT = "The data engine did not answer in time. Try again.";
+
+/**
+ * The deadline for a local list/CRUD call (custom agents, schedules, saved
+ * workflows): the sidecar answers these from SQLite in milliseconds, so 30 s
+ * means it hung. Streams and long compute (quant pricing, runs) pass none.
+ */
+export const SIDECAR_REQUEST_TIMEOUT_MS = 30_000;
+
+/** True when `signal` fired because its `timeoutMs` deadline passed. */
+function timedOut(signal: AbortSignal | null | undefined): boolean {
+  return (signal?.reason as { name?: unknown } | undefined)?.name === "TimeoutError";
+}
+
+/** The caller's signal joined with an optional deadline. */
+function withDeadline(signal?: AbortSignal, timeoutMs?: number): AbortSignal | undefined {
+  if (!timeoutMs) {
+    return signal;
+  }
+  const deadline = AbortSignal.timeout(timeoutMs);
+  return signal ? AbortSignal.any([signal, deadline]) : deadline;
+}
+
+/**
+ * `fetch` against the sidecar with its transport failure named: a rejection
+ * becomes `SidecarError(0, SIDECAR_UNREACHABLE)` and drops the cached base URL
+ * so the next call re-resolves it; a passed `timeoutMs` deadline becomes
+ * `SidecarError(504, SIDECAR_TIMED_OUT)`. A caller's own abort passes through
+ * as is. Every sidecar fetch (REST and the SSE stream) goes through here.
+ */
+export async function sidecarFetch(url: string, init?: RequestInit): Promise<Response> {
+  let response: Response;
+  try {
+    response = await fetch(url, init);
+  } catch (err) {
+    if (init?.signal?.aborted) {
+      throw timedOut(init.signal) ? new SidecarError(504, SIDECAR_TIMED_OUT) : err;
+    }
+    readyPromise = null;
+    reportReachability(false, SIDECAR_UNREACHABLE);
+    throw new SidecarError(0, SIDECAR_UNREACHABLE);
+  }
+  reportReachability(true);
+  return response;
+}
+
+type ReachabilityListener = (reachable: boolean, reason?: string) => void;
+const reachabilityListeners = new Set<ReachabilityListener>();
+
+/**
+ * Hear every sidecar answer (`true`) and every connection-level failure
+ * (`false` + the reason) — how the app store keeps `sidecarStatus` current
+ * without this module importing the store. Returns the unsubscribe.
+ */
+export function onSidecarReachability(listener: ReachabilityListener): () => void {
+  reachabilityListeners.add(listener);
+  return () => {
+    reachabilityListeners.delete(listener);
+  };
+}
+
+function reportReachability(reachable: boolean, reason?: string): void {
+  for (const listener of reachabilityListeners) {
+    listener(reachable, reason);
+  }
+}
+
+export type SidecarMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+export interface SidecarRequestOptions {
+  params?: QueryParams;
+  /** JSON-encoded as the request body. */
+  body?: unknown;
+  /** Per-call headers (BYOK keys ride here); undefined values are dropped. */
+  headers?: Record<string, string | undefined>;
+  signal?: AbortSignal;
+  /** Give up after this many ms with `SidecarError(504, SIDECAR_TIMED_OUT)`;
+   *  omitted, `sidecarRequest` applies the default request budget
+   *  (R15-LIFECYCLE-027) and `sidecarRequestInit` sets no deadline. */
+  timeoutMs?: number;
+}
+
+/** Default per-request budget (R15-LIFECYCLE-027) when the caller passes no
+ *  `timeoutMs` — bounds an otherwise-eternal spinner on a hung route. */
+const DEFAULT_REQUEST_TIMEOUT_MS = SIDECAR_REQUEST_TIMEOUT_MS;
+
+/**
+ * The `RequestInit` every sidecar call carries: the session region, the search
+ * headers, the per-call headers, a JSON body and the optional deadline.
+ * {@link sidecarRequest} builds on it; a caller that must read the raw
+ * `Response` (an SSE stream) passes it to {@link sidecarFetch}, so the
+ * transport is decided here once.
+ */
+export async function sidecarRequestInit(
+  method: SidecarMethod,
+  opts: Omit<SidecarRequestOptions, "params"> = {},
+): Promise<RequestInit> {
+  // The active region rides every sidecar request (Pass B B1 locale-native
+  // contract): the sidecar reads `X-Vysted-Region` to pick region-first data
+  // providers/feeds. Read at call time so a region change reflects immediately;
+  // `getState()` is SSR/static-export safe (no window/navigator at module load).
+  const requestHeaders: Record<string, string> = {
+    "X-Vysted-Region": useSettingsStore.getState().region,
+  };
+  // The three-tier web-search contract (FR-080/083/084): the active tier and
+  // the local SearXNG URL ride every request so the sidecar dispatches search
+  // to the right backend. The tier_b BYOK OpenRouter key is OMITTED here
+  // (R15-CODE-PLATFORM-039) — this default REST path is taken by every sidecar
+  // call, including polls that never research (e.g. the watchlist's 5 s
+  // `/quotes` refresh), not just research; the SSE research transport
+  // (`chat/streaming.ts`) calls `buildSearchHeaders()` directly and keeps the
+  // full set including the key. Undefined values are dropped below (never an
+  // empty header). Merged FIRST so a per-call header arg still wins if it ever
+  // sets the same key.
+  const searchHeaders = await buildSearchHeaders({ includeKey: false });
+  for (const [key, value] of Object.entries({ ...searchHeaders, ...opts.headers })) {
+    if (value !== undefined) {
+      requestHeaders[key] = value;
+    }
+  }
+  const init: RequestInit = {
+    method,
+    headers: requestHeaders,
+    signal: withDeadline(opts.signal, opts.timeoutMs),
+  };
+  if (opts.body !== undefined) {
+    requestHeaders["Content-Type"] = "application/json";
+    init.body = JSON.stringify(opts.body);
+  }
+  return init;
+}
+
+/**
+ * Typed request against a sidecar endpoint — the one client verb. `headers`
+ * carries BYOK credentials read from the OS keychain (the read-only-plugin
+ * pattern: secret in a header, never the body/query) — e.g. the
+ * `X-Vysted-Newsapi-Key` the news feed sends. A non-2xx throws
+ * `SidecarError(status, <human detail>)`; a 204 resolves `undefined`.
+ */
+export async function sidecarRequest<T>(
+  method: SidecarMethod,
+  path: string,
+  opts: SidecarRequestOptions = {},
+): Promise<T> {
   const base = await getSidecarBaseUrl();
   const url = new URL(path, base);
-  if (params) {
-    for (const [key, value] of Object.entries(params)) {
+  if (opts.params) {
+    for (const [key, value] of Object.entries(opts.params)) {
       if (value !== undefined) {
         url.searchParams.set(key, String(value));
       }
     }
   }
-  const response = await fetch(url.toString());
+  // The shared client's default budget (R15-LIFECYCLE-027) rides `sidecarRequest` only: a
+  // caller of `sidecarRequestInit` (an SSE stream) states its own deadline or has none.
+  const init = await sidecarRequestInit(method, {
+    ...opts,
+    timeoutMs: opts.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS,
+  });
+  const response = await sidecarFetch(url.toString(), init);
   if (!response.ok) {
-    let detail = response.statusText;
+    // A body with no `detail` (and a blank status text) still names the status.
+    let detail = response.statusText || `HTTP ${response.status}`;
     try {
-      detail = extractSidecarDetail(await response.json(), response.statusText);
+      detail = extractSidecarDetail(await response.json(), detail);
     } catch {
       // Response body was not JSON — keep the status text.
     }
     throw new SidecarError(response.status, detail);
   }
+  if (response.status === 204) {
+    return undefined as T;
+  }
   try {
     return (await response.json()) as T;
   } catch (err) {
+    // The deadline can pass while the body streams in: that is a timeout.
+    if (timedOut(init.signal)) {
+      throw new SidecarError(504, SIDECAR_TIMED_OUT);
+    }
     // A 200 with a truncated / non-JSON body (sidecar crash mid-response,
     // proxy hiccup) would otherwise reject with a raw SyntaxError the callers
     // don't expect — normalize to a SidecarError so error handling is uniform
@@ -176,13 +366,13 @@ export async function sidecarGet<T>(path: string, params?: QueryParams): Promise
   }
 }
 
-/** Open a WebSocket to the crypto ticker stream. The caller owns the socket. */
-export async function openCryptoStream(exchange: string, symbol: string): Promise<WebSocket> {
-  const base = await getSidecarBaseUrl();
-  const url = new URL("/crypto/stream", base.replace(/^http/, "ws"));
-  url.searchParams.set("exchange", exchange);
-  url.searchParams.set("symbol", symbol);
-  return new WebSocket(url.toString());
+/** Typed GET against a sidecar endpoint (see {@link sidecarRequest}). */
+export function sidecarGet<T>(
+  path: string,
+  params?: QueryParams,
+  headers?: Record<string, string | undefined>,
+): Promise<T> {
+  return sidecarRequest<T>("GET", path, { params, headers });
 }
 
 /** Shape of the `/health` response. */
@@ -193,27 +383,52 @@ export interface HealthResponse {
   providers: Record<string, string>;
 }
 
-/** Typed accessors for the Phase 1.A sidecar data-layer endpoints. */
+/**
+ * A per-call region override (`X-Vysted-Region`) for one instrument's request.
+ * A ticker string can name different companies in different markets (AMAL is
+ * Amal Ltd on BSE and Amalgamated Financial on NASDAQ), so a caller that knows
+ * which listing the user picked sends that listing's region instead of the
+ * session default. `undefined` sends nothing extra (the session region stands).
+ */
+function regionHeader(region?: string): Record<string, string | undefined> {
+  return { "X-Vysted-Region": region };
+}
+
+/** Typed accessors for the Phase 1.A sidecar data-layer endpoints. The
+ *  per-instrument accessors take an optional `region` (see {@link regionHeader}). */
 export const sidecarApi = {
   health: (): Promise<HealthResponse> => sidecarGet<HealthResponse>("/health"),
 
-  quote: (symbol: string, assetClass = "equity"): Promise<Quote> =>
-    sidecarGet<Quote>(`/quotes/${encodeURIComponent(symbol)}`, { asset_class: assetClass }),
+  quote: (symbol: string, assetClass = "equity", region?: string): Promise<Quote> =>
+    sidecarGet<Quote>(
+      `/quotes/${encodeURIComponent(symbol)}`,
+      { asset_class: assetClass },
+      regionHeader(region),
+    ),
 
-  quotes: (symbols: string[], assetClass = "equity"): Promise<Quote[]> =>
-    sidecarGet<Quote[]>("/quotes", { symbols: symbols.join(","), asset_class: assetClass }),
+  quotes: (symbols: string[], assetClass = "equity", region?: string): Promise<Quote[]> =>
+    sidecarGet<Quote[]>(
+      "/quotes",
+      { symbols: symbols.join(","), asset_class: assetClass },
+      regionHeader(region),
+    ),
 
   history: (
     symbol: string,
     timeframe = "1d",
     range?: string,
     assetClass = "equity",
+    region?: string,
   ): Promise<OHLCVSeries> =>
-    sidecarGet<OHLCVSeries>(`/history/${encodeURIComponent(symbol)}`, {
-      timeframe,
-      range,
-      asset_class: assetClass,
-    }),
+    sidecarGet<OHLCVSeries>(
+      `/history/${encodeURIComponent(symbol)}`,
+      {
+        timeframe,
+        range,
+        asset_class: assetClass,
+      },
+      regionHeader(region),
+    ),
 
   cryptoExchanges: (): Promise<{ exchanges: string[] }> =>
     sidecarGet<{ exchanges: string[] }>("/crypto/exchanges"),
@@ -224,18 +439,41 @@ export const sidecarApi = {
   cryptoHistory: (exchange: string, symbol: string, timeframe = "1d"): Promise<OHLCVSeries> =>
     sidecarGet<OHLCVSeries>("/crypto/history", { exchange, symbol, timeframe }),
 
-  fundamentals: (symbol: string): Promise<Fundamentals> =>
-    sidecarGet<Fundamentals>(`/fundamentals/${encodeURIComponent(symbol)}`),
+  fundamentals: (symbol: string, region?: string): Promise<Fundamentals> =>
+    sidecarGet<Fundamentals>(
+      `/fundamentals/${encodeURIComponent(symbol)}`,
+      undefined,
+      regionHeader(region),
+    ),
 
-  incomeStatement: (symbol: string): Promise<IncomeStatement> =>
-    sidecarGet<IncomeStatement>(`/fundamentals/${encodeURIComponent(symbol)}/income`),
+  incomeStatement: (symbol: string, region?: string): Promise<IncomeStatement> =>
+    sidecarGet<IncomeStatement>(
+      `/fundamentals/${encodeURIComponent(symbol)}/income`,
+      undefined,
+      regionHeader(region),
+    ),
 
-  balanceSheet: (symbol: string): Promise<BalanceSheet> =>
-    sidecarGet<BalanceSheet>(`/fundamentals/${encodeURIComponent(symbol)}/balance`),
+  balanceSheet: (symbol: string, region?: string): Promise<BalanceSheet> =>
+    sidecarGet<BalanceSheet>(
+      `/fundamentals/${encodeURIComponent(symbol)}/balance`,
+      undefined,
+      regionHeader(region),
+    ),
 
-  cashFlow: (symbol: string): Promise<CashFlowStatement> =>
-    sidecarGet<CashFlowStatement>(`/fundamentals/${encodeURIComponent(symbol)}/cashflow`),
+  cashFlow: (symbol: string, region?: string): Promise<CashFlowStatement> =>
+    sidecarGet<CashFlowStatement>(
+      `/fundamentals/${encodeURIComponent(symbol)}/cashflow`,
+      undefined,
+      regionHeader(region),
+    ),
 
-  analystRating: (symbol: string): Promise<AnalystRating> =>
-    sidecarGet<AnalystRating>(`/fundamentals/${encodeURIComponent(symbol)}/ratings`),
+  optionChain: (symbol: string, expiry?: string): Promise<OptionChain> =>
+    sidecarGet<OptionChain>(`/quant/option/chain/${encodeURIComponent(symbol)}`, { expiry }),
+
+  analystRating: (symbol: string, region?: string): Promise<AnalystRating> =>
+    sidecarGet<AnalystRating>(
+      `/fundamentals/${encodeURIComponent(symbol)}/ratings`,
+      undefined,
+      regionHeader(region),
+    ),
 };

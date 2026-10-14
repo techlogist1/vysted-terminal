@@ -1,0 +1,19 @@
+$ grep -n "floor" sidecar/services/research/iter.py | sed -n '1,20p'
+(see set-8.md for the full match list)
+
+$ sed -n '370,391p' sidecar/services/research/iter.py
+        if _disclosures.wants_disclosures_floor(target):
+            if structured.get("disclosures") is None:
+                floor = await _disclosures.gather_floor(tool_call, target=target)
+                structured["disclosures"] = {...}
+            floor_rows = structured["disclosures"].get("rows")
+            if floor_rows:
+                _record_web(findings, {"ok": True, "citations": floor_rows, "results": []}, ...)
+
+The citation call is UNCONDITIONAL on floor_rows existing (not re-gated on the same
+`structured.get("disclosures") is None` check that gates pulling the floor) -- exactly the
+fix batch-6 certified ("the guard ... that gated pulling the floor no longer also gates
+recording it as a citation"). The full live ULTRA re-run (b6v_ultra.py floor mode, 300+s
+wall) was NOT repeated this shard: at ~380s wall time plus the shared-Ollama-lane lock,
+it would burn a large fraction of this shard's time/stall budget for one entry. Static
+confirmation only -- flagged in COVERAGE notes.

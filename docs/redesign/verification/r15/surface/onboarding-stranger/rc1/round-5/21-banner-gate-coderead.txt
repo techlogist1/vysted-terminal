@@ -1,0 +1,10 @@
+$ sed -n '44,52p' src/components/OnboardingBanner.tsx
+  }, [refresh, refreshBanner]);
+
+  // A keyless default must have ANSWERED "not ready"; a keyed default with no
+  // key anywhere is not ready by definition.
+  const defaultLaneNotReady = keyless ? readiness !== null && !readiness.ok : true;
+  const showBanner = probed && dismissed === false && !hasAnyKey && defaultLaneNotReady;
+
+  return (
+    <AnimatePresence initial={false}>

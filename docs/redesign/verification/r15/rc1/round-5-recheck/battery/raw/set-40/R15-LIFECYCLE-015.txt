@@ -1,0 +1,14 @@
+=== R15-LIFECYCLE-015 repro: engine-from-source probe (register's exact scenario, probe6) ===
+Live python (sidecar venv, candidate 949c3c9f), a standalone script (not
+pytest) exercising services/backtest_store directly: put 3 results, list
+(want newest first), reset_for_tests() to simulate a process restart, list
+again, get() the oldest run:
+
+  list order (want newest first: r3,r2,r1 by started_at): [3, 2, 1]
+  list_runs() after simulated restart: [3, 2, 1]
+  get(oldest run r1) after restart: FOUND
+
+VERDICT: holds. list_runs() is newest-first both before and after a simulated
+restart (reset_for_tests() clears the in-memory LRU but not the on-disk JSON
+under <data-dir>/backtests/), and get() on the oldest run still resolves it
+from disk. Matches batch-10 probe6 exactly.

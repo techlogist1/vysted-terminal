@@ -1,0 +1,7 @@
+[{"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-34-before-b05.png"},
+ {"cmd":"click","x":427,"y":237},{"cmd":"wait","seconds":2},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-35-ai-providers.png"},
+ {"cmd":"key","combo":"tab"},{"cmd":"key","combo":"tab"},{"cmd":"key","combo":"tab"},{"cmd":"key","combo":"tab"},{"cmd":"wait","seconds":0.6},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-36-advanced-chip-focused.png"},
+ {"cmd":"key","combo":"return"},{"cmd":"wait","seconds":2},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-37-advanced-layouts.png"}]

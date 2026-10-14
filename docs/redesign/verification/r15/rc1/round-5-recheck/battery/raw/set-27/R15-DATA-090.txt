@@ -1,0 +1,32 @@
+--- fresh case (DATA-090): create v1, then v2 (creates .bak), then truncate live file, GET should serve .bak and quarantine ---
+{"status":"saved","name":"b8v-corrupt"}
+{"status":"saved","name":"b8v-corrupt"}
+b8v-corrupt.vysted-workspace
+b8v-corrupt.vysted-workspace.bak
+--- truncate the live file to invalid JSON ---
+{"trunc
+--- GET /workspace/b8v-corrupt ---
+HTTP/1.1 200 OK
+date: Sun, 27 Sep 2026 14:11:22 GMT
+server: uvicorn
+content-length: 7
+content-type: application/json
+vary: Origin
+
+{"v":1}
+--- files after GET (quarantine expected) ---
+b8v-corrupt.vysted-workspace
+b8v-corrupt.vysted-workspace.bak
+b8v-corrupt.vysted-workspace.corrupt-1790518283002
+--- GET /workspace list ---
+["__autosave__","b8v-corrupt","b8v-ws"]
+--- non-dict body (list) POST -> 422 ---
+HTTP/1.1 422 Unprocessable Content
+date: Sun, 27 Sep 2026 14:11:28 GMT
+server: uvicorn
+content-length: 119
+content-type: application/json
+vary: Origin
+
+{"detail":[{"type":"dict_type","loc":["body","workspace"],"msg":"Input should be a valid dictionary","input":[1,2,3]}]}
+VERDICT: holds. Live repro exactly reproduces the certified fix: truncating the live file after a .bak exists serves the .bak (v1) via GET, quarantines the truncated file as .corrupt-<epoch-ms> (never deleted), and the quarantine file remains on disk alongside the .bak. (workspace_store.py:130-159)

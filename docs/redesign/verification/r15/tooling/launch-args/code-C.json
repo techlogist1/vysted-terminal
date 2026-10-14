@@ -1,0 +1,42 @@
+{
+ "tag": "code-C",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly: context, hard rules, raw finding shape.",
+ "stages": [
+  {
+   "label": "critique",
+   "model": "opus",
+   "prompt": "Your task spec is the CRITIQUE section of docs/redesign/verification/r15/tooling/PROMPT_code.md, with <id> = \"{{id}}\"."
+  },
+  {
+   "label": "refute",
+   "model": "fable",
+   "prompt": "Your task spec is the REFUTE section of docs/redesign/verification/r15/tooling/PROMPT_code.md, with <id> = \"{{id}}\"."
+  }
+ ],
+ "items": [
+  {
+   "id": "backtest"
+  },
+  {
+   "id": "portfolio"
+  },
+  {
+   "id": "plugins"
+  },
+  {
+   "id": "mcp-servers"
+  },
+  {
+   "id": "rust-core"
+  },
+  {
+   "id": "frontend-panels-agent-shell"
+  },
+  {
+   "id": "frontend-panels-data-surfaces"
+  },
+  {
+   "id": "frontend-panels-shell-chrome"
+  }
+ ]
+}

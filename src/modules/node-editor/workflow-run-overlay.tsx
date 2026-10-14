@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 export interface NodeRunState {
   nodeId: string;
   nodeType: string;
-  status: "pending" | "running" | "ok" | "error";
+  status: "pending" | "running" | "ok" | "error" | "skipped";
   startedAt?: number;
   durationMs?: number;
   outputs?: Record<string, unknown>;
@@ -91,6 +91,14 @@ export function applyEvent(state: RunOverlayState, event: WorkflowRunEvent): Run
       }));
       return { ...state, nodes: next };
     }
+    case "node-skipped": {
+      const next = upsertNode(state.nodes, event.nodeId, (row) => ({
+        ...row,
+        nodeType: event.nodeType,
+        status: "skipped",
+      }));
+      return { ...state, nodes: next };
+    }
     case "run-complete":
       return {
         ...state,
@@ -143,7 +151,9 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
   // "n/N complete" while the run is still in flight.
   const summary = useMemo(() => {
     const total = state.nodes.length;
-    const finished = state.nodes.filter((n) => n.status === "ok" || n.status === "error").length;
+    const finished = state.nodes.filter(
+      (n) => n.status === "ok" || n.status === "error" || n.status === "skipped",
+    ).length;
     return { total, finished };
   }, [state.nodes]);
 
@@ -158,8 +168,8 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
     >
       <header className="border-charcoal-700 flex items-baseline justify-between border-b px-3 py-2">
         <div className="flex flex-col">
-          <span className="text-charcoal-200 font-mono text-xs uppercase">Run</span>
-          <span className="text-charcoal-500 truncate font-mono text-[10px]">
+          <span className="text-charcoal-200 text-caption font-mono uppercase">Run</span>
+          <span className="text-charcoal-500 text-micro truncate font-mono">
             {state.runId ?? "—"}
           </span>
         </div>
@@ -167,7 +177,7 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
           type="button"
           onClick={onClose}
           aria-label="Close run overlay"
-          className="text-charcoal-400 font-mono text-sm hover:text-amber-400"
+          className="text-charcoal-400 text-body hover:text-charcoal-100 font-mono"
         >
           ×
         </button>
@@ -175,11 +185,16 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
 
       <div className="border-charcoal-800 flex items-center justify-between border-b px-3 py-2">
         <RunStatusBadge status={state.status} />
-        <span className="text-charcoal-400 font-mono text-[10px]">
+        <span className="text-charcoal-400 text-micro font-mono">
           {summary.finished}/{summary.total}
           {state.durationMs !== undefined ? ` · ${state.durationMs.toFixed(0)}ms` : ""}
         </span>
       </div>
+      {state.status === "error" && state.message !== undefined && (
+        <p className="text-negative border-charcoal-800 text-micro border-b px-3 py-2 font-mono">
+          {state.message}
+        </p>
+      )}
 
       <ul className="flex-1 overflow-y-auto">
         {state.nodes.map((node) => (
@@ -189,20 +204,24 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
             className="border-charcoal-800 flex flex-col gap-1 border-b px-3 py-2"
           >
             <div className="flex items-baseline justify-between">
-              <span className="text-charcoal-100 font-mono text-xs">{node.nodeId}</span>
+              <span className="text-charcoal-100 text-caption font-mono">{node.nodeId}</span>
               <NodeStatusBadge status={node.status} />
             </div>
-            <span className="text-charcoal-500 font-mono text-[10px]">{node.nodeType}</span>
+            <span className="text-charcoal-500 text-micro font-mono">{node.nodeType}</span>
             {node.durationMs !== undefined && (
-              <span className="text-charcoal-400 font-mono text-[10px]">
+              <span className="text-charcoal-400 text-micro font-mono">
                 {node.durationMs.toFixed(0)}ms
               </span>
             )}
             {node.error !== undefined && (
-              <span className="text-negative font-mono text-[10px]">{node.error}</span>
+              <span className="text-negative text-micro font-mono">{node.error}</span>
             )}
             {node.outputs !== undefined && Object.keys(node.outputs).length > 0 && (
-              <pre className="bg-charcoal-850 text-charcoal-300 max-h-32 overflow-auto rounded p-1 font-mono text-[10px] leading-snug whitespace-pre-wrap">
+              <pre
+                className={
+                  "bg-charcoal-850 text-charcoal-300 text-micro max-h-48 overflow-x-auto overflow-y-hidden rounded-none p-1 font-mono leading-snug whitespace-pre-wrap" /* tokens-ok: node-output scroll cap - layout */
+                }
+              >
                 {formatOutputs(node.outputs)}
               </pre>
             )}
@@ -215,7 +234,7 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
           <button
             type="button"
             onClick={onRerun}
-            className="bg-charcoal-800 hover:bg-charcoal-700 text-charcoal-100 w-full rounded-md py-1.5 font-mono text-xs"
+            className="bg-charcoal-800 hover:bg-charcoal-700 text-charcoal-100 rounded-control text-caption flex h-7 w-full items-center justify-center font-mono"
           >
             Run again
           </button>
@@ -230,7 +249,7 @@ function RunStatusBadge({ status }: { status: RunOverlayState["status"] }) {
     <span
       data-testid={`run-status-${status}`}
       className={cn(
-        "rounded-control border px-1.5 py-0.5 font-mono text-[10px] uppercase",
+        "rounded-control text-micro border px-1 py-0.5 font-mono uppercase",
         status === "running" && "border-amber-500 bg-amber-500/10 text-amber-300",
         status === "ok" && "border-positive bg-positive/10 text-positive",
         status === "error" && "border-negative bg-negative/10 text-negative",
@@ -247,11 +266,12 @@ function NodeStatusBadge({ status }: { status: NodeRunState["status"] }) {
     <span
       data-testid={`node-status-${status}`}
       className={cn(
-        "rounded-control border px-1.5 py-0.5 font-mono text-[9px] uppercase",
+        "rounded-control text-micro border px-1 py-0.5 font-mono uppercase",
         status === "running" && "border-amber-500 bg-amber-500/10 text-amber-300",
         status === "ok" && "border-positive bg-positive/10 text-positive",
         status === "error" && "border-negative bg-negative/10 text-negative",
         status === "pending" && "border-charcoal-700 text-charcoal-400",
+        status === "skipped" && "border-charcoal-700 text-charcoal-500 line-through",
       )}
     >
       {status}

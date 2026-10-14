@@ -1,0 +1,9 @@
+CMD: grep -n extraFiles.*ensure- scripts/smoke-test-sidecars.mjs (old literal, expect no match)
+grep exit=1
+
+CMD: grep -n assertAllFresh|SIDECAR_SPECS scripts/smoke-test-sidecars.mjs
+80:import { SIDECAR_SPECS, assertAllFresh, binaryPath, targetTriple } from "./sidecar-specs.mjs";
+857:function _assertAllFresh(triple) {
+858:  assertAllFresh(triple);
+873:  _assertAllFresh(triple);
+876:  for (const spec of SIDECAR_SPECS) {

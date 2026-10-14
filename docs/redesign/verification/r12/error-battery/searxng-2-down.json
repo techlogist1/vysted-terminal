@@ -1,0 +1,1 @@
+{"state":"docker_present_not_setup","detail":"managed container exists but is exited — setup will restart it","reason":null,"port":8888,"url":null,"container":"exited","container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":true,"daemon_running":true,"runtime":"Docker Engine - Community"}}

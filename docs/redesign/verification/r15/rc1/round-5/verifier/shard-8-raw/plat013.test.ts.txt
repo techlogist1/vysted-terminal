@@ -1,0 +1,46 @@
+import { describe, expect, it } from "vitest";
+import { appendFileSync } from "node:fs";
+import { useModulesStore } from "@/store/modules";
+import { useWorkspaceStore } from "@/store/workspace";
+import { deserializeWorkspace, serializeWorkspace } from "@/lib/workspace";
+import { moduleForPlugin } from "@/lib/plugin-bootstrap";
+import { CATALOG_BY_ID } from "@/lib/marketplace";
+
+const fakeApi = () => {
+  let layout: unknown = { grid: {}, panels: {} };
+  return { toJSON: () => layout, fromJSON: (l: unknown) => { layout = l; }, clear: () => {}, panels: [], getPanel: () => undefined, onDidLayoutChange: () => ({ dispose() {} }) };
+};
+
+describe("vshard8 PLATFORM-013 fresh", () => {
+  it("older blob (plugin on) restored after the plugin was disabled keeps it off; reverse keeps it on; panels follow", () => {
+    const ids = Object.keys(CATALOG_BY_ID);
+    const pluginIds = ids.filter((id) => moduleForPlugin(CATALOG_BY_ID[id]!) !== null);
+    appendFileSync("/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vshard8-r5/plat013-fresh.txt", "\n" + "bridgeable plugins:" + pluginIds.join(","));
+    const pick = pluginIds.find((id) => id !== "vysted-example" && id !== "vysted-news") ?? pluginIds[0]!;
+    const mod = moduleForPlugin(CATALOG_BY_ID[pick]!)!;
+    useWorkspaceStore.setState({ dockviewApi: fakeApi() as never });
+    useModulesStore.getState().appendModules([mod]);
+    // lifecycle: disabled (unbridge writes false)
+    useModulesStore.getState().setModuleEnabled(mod.id, false);
+    deserializeWorkspace({ name: "older-on", layout: { grid: {}, panels: {} } as never, enabledModules: { [mod.id]: true } } as never);
+    const offAfter = useModulesStore.getState().enabled[mod.id];
+    const offCmds = useModulesStore.getState().enabledCommands().filter((c) => mod.commands.some((mc) => mc.id === c.id)).length;
+    const offPanels = useModulesStore.getState().enabledPanels().filter((p) => mod.panels.some((mp) => mp.id === p.id)).length;
+    // lifecycle: re-enabled (bridge writes true)
+    useModulesStore.getState().setModuleEnabled(mod.id, true);
+    deserializeWorkspace({ name: "older-off", layout: { grid: {}, panels: {} } as never, enabledModules: { [mod.id]: false, chart: false } } as never);
+    const onAfter = useModulesStore.getState().enabled[mod.id];
+    const onCmds = useModulesStore.getState().enabledCommands().filter((c) => mod.commands.some((mc) => mc.id === c.id)).length;
+    const onPanels = useModulesStore.getState().enabledPanels().filter((p) => mod.panels.some((mp) => mp.id === p.id)).length;
+    const saved = serializeWorkspace("now").enabledModules;
+    appendFileSync("/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vshard8-r5/plat013-fresh.txt", "\n" + JSON.stringify({ pick, offAfter, offPanels, onAfter, onPanels, modPanels: mod.panels.length, modCmds: mod.commands.length, offCmds, onCmds, savedHasPluginKey: Object.keys(saved).some((k) => k.startsWith("plugin:")) }));
+    expect(offAfter).toBe(false);
+    expect(offPanels).toBe(0);
+    expect(onAfter).toBe(true);
+    expect(onPanels).toBe(mod.panels.length);
+    expect(offCmds).toBe(0);
+    expect(onCmds).toBe(mod.commands.length);
+    expect(mod.commands.length).toBeGreaterThan(0);
+    expect(Object.keys(saved).some((k) => k.startsWith("plugin:"))).toBe(false);
+  });
+});

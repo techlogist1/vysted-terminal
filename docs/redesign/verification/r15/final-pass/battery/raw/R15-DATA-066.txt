@@ -1,0 +1,11 @@
+# R15-DATA-066 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:51:13+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+S="RELIANCE.NS,TCS.NS,HDFCBANK.NS,INFY.NS,ICICIBANK.NS,HINDUNILVR.NS,ITC.NS,SBIN.NS,BHARTIARTL.NS,KOTAKBANK.NS,LT.NS,AXISBANK.NS,ASIANPAINT.NS,MARUTI.NS,SUNPHARMA.NS,TITAN.NS,ULTRACEMCO.NS,NESTLEIND.NS,WIPRO.NS,HCLTECH.NS"
+for k in first warm; do echo -n "\$ GET /quotes?symbols=<20 NIFTY .NS> ($k): "; curl -s -m 110 -o /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb0/out/tmp-066.json -w '%{http_code} %{time_total}s ' -H "X-Vysted-Region: IN" "$H/quotes?symbols=$S"; python3 -c "import json;d=json.load(open('/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb0/out/tmp-066.json'));import collections;print(len(d),'quotes',collections.Counter((q.get('provider'),(q.get('freshness') or {}).get('label') if isinstance(q.get('freshness'),dict) else q.get('freshness')) for q in d).most_common(3))"; done
+echo -n "\$ GET /quotes/SPY while idle: "; curl -s -m 60 -o /dev/null -w '%{http_code} %{time_total}s\n' "$H/quotes/SPY"
+--- output ---
+$ GET /quotes?symbols=<20 NIFTY .NS> (first): 200 0.002371s 20 quotes [(('nse_direct', 'eod'), 20)]
+$ GET /quotes?symbols=<20 NIFTY .NS> (warm): 200 0.001867s 20 quotes [(('nse_direct', 'eod'), 20)]
+$ GET /quotes/SPY while idle: 200 0.330851s
+
+EXIT=0 (0.4s)

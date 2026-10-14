@@ -1,0 +1,1 @@
+{"spec": {"id": "wf-vshard1-agent", "name": "vshard1 agent node", "version": 1, "updatedAt": 0, "nodes": [{"id": "ag", "type": "ai.agent_invoke", "position": {"x": 0, "y": 0}, "config": {"agent_id": "copilot", "prompt_template": "Do not call any tool. Reply with exactly one word: PINEAPPLE"}}], "edges": []}, "inputs": {}, "provider": "ollama", "model": "llama3.1:8b"}

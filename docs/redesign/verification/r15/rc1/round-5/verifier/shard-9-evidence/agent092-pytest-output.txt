@@ -1,0 +1,11 @@
+HOST_ACTION_TOOLS ['add_chart_drawing', 'add_to_watchlist', 'arrange_layout', 'close_panel', 'focus_panel', 'open_company_overview', 'open_panel', 'portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position', 'publish_brief', 'remove_from_watchlist', 'save_layout', 'save_screen', 'set_chart_indicators', 'set_chart_symbol', 'set_region', 'write_note', 'write_screener_filters']
+
+V9 status=error detail='wall-clock ceiling 0.4s reached (0.4s elapsed)' dispatched=[] host_actions=[] brief=None
+.
+V9 status=error detail='token ceiling 1000 reached (100005 used)' dispatched=['add_to_watchlist'] host_actions=['add_to_watchlist'] brief=None
+.
+V9 status=error detail='token ceiling 120000 reached (5000000 used)' dispatched=[] host_actions=[] brief=None
+.
+V9 status=error detail='step ceiling 1 reached (1 taken)' dispatched=[] host_actions=[] brief=None
+.
+4 passed in 1.80s

@@ -1,0 +1,14 @@
+CMD: "$CAND/sidecar/.venv/bin/python3" --version
+-> Python 3.13.13
+CMD: which python3 ; python3 --version   (bare PATH resolution, simulating Homebrew's post-move state)
+-> /opt/homebrew/bin/python3 ; Python 3.14.5
+CMD: which python3.13 ; python3.13 -c "import sys; print(sys.version_info[:2])"
+-> /opt/homebrew/bin/python3.13 ; (3, 13)
+CMD: grep -n "python3\.13\|WANT\|R15-LEAD-012" scripts/build-python.mjs
+-> line 4-6: comment explicitly citing R15-LEAD-012 ("a bare python3 follows whatever the OS package manager last installed ... so every ensure script resolves and verifies 3.13 here instead")
+-> line 12: const WANT = "3.13";
+-> line 44: candidate list ["python3.13", "python3"] (win32: ["py -3.13","python3.13","python"]), each checked against WANT, throws naming the fix if none match
+-> line 55-60: ensureVenv recreates the venv dir when its interpreter is not 3.13
+
+OBSERVED: even with bare 'python3' on PATH resolving to 3.14.5 (the exact Homebrew-moved-python3 scenario the register describes), 'python3.13' is present on PATH and build-python.mjs's resolvePythonCommand explicitly probes for and requires "3.13" rather than trusting bare python3; the candidate's own sidecar venv is confirmed 3.13.13.
+VERDICT: holds

@@ -1,0 +1,11 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: in-process fundamentals._fetch_once with provider_registry.get_fundamentals raising ProviderError(kind='not_found') for the two register messages; _classify_reason
+kind not_found | error provider error: Yahoo has no company record for 'KSE.NS' | classify -> not_found
+kind not_found | error provider error: yfinance returned a non-company (fund-id) record for '509470.BO' | classify -> not_found
+network kind -> provider_error
+legacy text-only classify (register repro form) -> provider_error
+CMD: GET /fundamentals/KSE.NS (now resolves to a real record)
+{"symbol":"KSE.NS","name":"KSE Limited","sector":"Consumer Defensive","industry":"Packaged Foods","sector_source":"yfinance","currency":"INR","financial_currency":null,"ratio_price":176.94,"market_cap":5662080000.0,"pe_ratio":12.194348,"forward_pe":n
+CMD: GET /fundamentals/509470.BO
+{"symbol":"BOMOXY-B1.BO","name":"Bombay Oxygen Investments Limited","sector":"Financial Services","industry":"Asset Management","sector_source":"yfinance","currency":"INR","financial_currency":null,"ratio_price":17902.0,"market_cap":2685299968.0,"pe_
+EXIT=0

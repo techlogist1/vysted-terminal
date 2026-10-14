@@ -1,0 +1,74 @@
+{
+ "getScripHeaderData/w": {
+  "CurrRate": {
+   "LTP": "32.96",
+   "Chg": "-1.10",
+   "PcChg": "-3.23",
+   "D_Cpricelink": "",
+   "IssueChgVal": "",
+   "IssueChgPC": ""
+  },
+  "Cmpname": {
+   "FullN": "Iconik Sports And Events Ltd",
+   "ShortN": "iconikspev",
+   "SeriesN": "Iconik Sports And Events Ltd",
+   "SEOUrlEQ": "/stock-share-price/iconik-sports-and-events-ltd/iconikspev/511260/",
+   "SEOUrlDR": "/stock-share-price/future-options/derivatives/511260/",
+   "IsNotPropernFIT": "0",
+   "Category": "Listed",
+   "EquityScrips": "511260"
+  },
+  "Header": {
+   "Noticecnt": "2",
+   "PrevClose": "34.06",
+   "Open": "33.95",
+   "High": "33.95",
+   "Low": "32.57",
+   "LTP": "32.96",
+   "DisplayText": "",
+   "Category": "Listed",
+   "PRE_OPEN_NO_BIDS": null,
+   "PRE_OPEN_NO_I_PRICE": null,
+   "PRE_OPEN_I_PRICE": null,
+   "PRE_OPEN_I_PRICE_QTY": null,
+   "PCAS_NO_BIDS": null,
+   "PCAS_INDICATIVE_PRICE": null,
+   "PCAS_INDICATIVE_QTY": null,
+   "PERODIC_CALL_AUCTION": null,
+   "GSMURL": "",
+   "GSMText": "",
+   "Invit": "0",
+   "Ason": "24 Sep 26 | 16:00",
+   "NAVRate": "",
+   "NAVdttm": "",
+   "ASMText": "",
+   "SMSText": "",
+   "IRPText": "",
+   "ASMURL": "",
+   "SMSURL": "https://www.bseindia.com/attention_investors.aspx",
+   "IRPURL": "https://www.bseindia.com/markets/MarketInfo/DispNewNoticesCirculars.aspx?page=20230210-55",
+   "IDB_DisplayText": "",
+   "IsALF": "0",
+   "EMSText": "",
+   "EMSURL": ""
+  },
+  "CompResp": {
+   "compRes": null,
+   "texturl": null
+  }
+ },
+ "StockTrading/w": {
+  "WAP": "33.19",
+  "Turnoverin": "(Lakh)",
+  "Turnover": "1.98",
+  "TTQin": "",
+  "TTQ": "5967",
+  "TwoWkAvgQtyin": "",
+  "TwoWkAvgQty": "7183",
+  "CktLimit": "5,967.00/31.32",
+  "MktCapFull": "111.54",
+  "MktCapFF": "24.68",
+  "ExDate": "18 Sep 2014",
+  "blockdttm": ""
+ }
+}

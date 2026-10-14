@@ -1,0 +1,21 @@
+
+=== ASSISTANT TEXT ===
+Yes, DAL is the ticker symbol for Delta Air Lines, Inc.
+
+Here are the latest financials related to revenue and net income:
+
+- **Revenue:**
+  - FY 2026: ₹2.07 crore
+  - FY 2025: ₹3.74 crore
+  - FY 2024: ₹2.36 crore
+  - FY 2023: ₹1.85 crore
+
+- **Net Income:**
+  - FY 2026: ₹-8.66 crore (loss)
+  - FY 2025: ₹3.12 crore
+  - FY 2024: ₹4.79 crore
+  - FY 2023: ₹3.26 crore
+
+If you need more details or another financial metric, feel free to ask!
+
+=== ok · 7.9s · events {'tool_use': 3, 'tool_result': 3, 'delta': 168, 'done': 1} · usage in=19602 out=161 · est $0.00304 · gpt-4o-mini

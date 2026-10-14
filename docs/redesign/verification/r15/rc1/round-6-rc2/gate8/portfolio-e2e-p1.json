@@ -1,0 +1,207 @@
+{
+ "added": [
+  {
+   "symbol": "RELIANCE.NS",
+   "quantity": 10,
+   "costBasis": 1200,
+   "assetClass": "equity"
+  },
+  {
+   "symbol": "AAPL",
+   "quantity": 5,
+   "costBasis": 200,
+   "assetClass": "equity"
+  },
+  {
+   "symbol": "MSFT",
+   "quantity": 3,
+   "costBasis": 400,
+   "assetClass": "equity",
+   "note": "gate8 thesis: cloud margin"
+  }
+ ],
+ "quotes": {
+  "RELIANCE.NS": {
+   "price": 1167.7,
+   "currency": "INR"
+  },
+  "AAPL": {
+   "price": 333.69000244140625,
+   "currency": "USD"
+  },
+  "MSFT": {
+   "price": 517.530029296875,
+   "currency": "USD"
+  }
+ },
+ "csv": "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note\nRELIANCE.NS,10,1200,equity,INR,1167.7,11677,-323,-2.6916666666666664,,\nAAPL,5,200,equity,USD,333.69000244140625,1668.4500122070312,668.4500122070312,66.84500122070312,,\nMSFT,3,400,equity,USD,517.530029296875,1552.590087890625,352.590087890625,29.38250732421875,,gate8 thesis: cloud margin",
+ "csvHeader": [
+  "Symbol",
+  "Quantity",
+  "Cost basis",
+  "Asset class",
+  "Currency",
+  "Price",
+  "Market value",
+  "P&L",
+  "P&L %",
+  "Weight %",
+  "Note"
+ ],
+ "csvRows": [
+  {
+   "Symbol": "RELIANCE.NS",
+   "Quantity": "10",
+   "Cost basis": "1200",
+   "Asset class": "equity",
+   "Currency": "INR",
+   "Price": "1167.7",
+   "Market value": "11677",
+   "P&L": "-323",
+   "P&L %": "-2.6916666666666664",
+   "Weight %": "",
+   "Note": ""
+  },
+  {
+   "Symbol": "AAPL",
+   "Quantity": "5",
+   "Cost basis": "200",
+   "Asset class": "equity",
+   "Currency": "USD",
+   "Price": "333.69000244140625",
+   "Market value": "1668.4500122070312",
+   "P&L": "668.4500122070312",
+   "P&L %": "66.84500122070312",
+   "Weight %": "",
+   "Note": ""
+  },
+  {
+   "Symbol": "MSFT",
+   "Quantity": "3",
+   "Cost basis": "400",
+   "Asset class": "equity",
+   "Currency": "USD",
+   "Price": "517.530029296875",
+   "Market value": "1552.590087890625",
+   "P&L": "352.590087890625",
+   "P&L %": "29.38250732421875",
+   "Weight %": "",
+   "Note": "gate8 thesis: cloud margin"
+  }
+ ],
+ "pnlCheck": [
+  {
+   "symbol": "RELIANCE.NS",
+   "csvPrice": 1167.7,
+   "myPrice": 1167.7,
+   "expectedPnl": -322.99999999999955,
+   "csvPnl": -323,
+   "match": true
+  },
+  {
+   "symbol": "AAPL",
+   "csvPrice": 333.69000244140625,
+   "myPrice": 333.69000244140625,
+   "expectedPnl": 668.4500122070312,
+   "csvPnl": 668.4500122070312,
+   "match": true
+  },
+  {
+   "symbol": "MSFT",
+   "csvPrice": 517.530029296875,
+   "myPrice": 517.530029296875,
+   "expectedPnl": 352.590087890625,
+   "csvPnl": 352.590087890625,
+   "match": true
+  }
+ ],
+ "csvColumnsVsHoldings": {
+  "rowCount": 3,
+  "holdingCount": 3,
+  "symbolsMatch": true,
+  "noteCarried": "gate8 thesis: cloud margin"
+ },
+ "afterUpdate": [
+  {
+   "symbol": "RELIANCE.NS",
+   "quantity": 10,
+   "costBasis": 1200
+  },
+  {
+   "symbol": "AAPL",
+   "quantity": 8,
+   "costBasis": 200
+  },
+  {
+   "symbol": "MSFT",
+   "quantity": 3,
+   "costBasis": 400
+  }
+ ],
+ "afterDelete": [
+  {
+   "symbol": "AAPL",
+   "quantity": 8,
+   "costBasis": 200
+  },
+  {
+   "symbol": "MSFT",
+   "quantity": 3,
+   "costBasis": 400,
+   "note": "gate8 thesis: cloud margin"
+  }
+ ],
+ "notes": {
+  "general": "gate8 general note",
+  "aapl": "gate8 aapl note v2",
+  "msft": "",
+  "withNotes": [
+   "AAPL"
+  ]
+ },
+ "watchlist": {
+  "before": [
+   "^NSEI",
+   "RELIANCE.NS",
+   "TCS.NS",
+   "HDFCBANK.NS"
+  ],
+  "afterAdd": [
+   "^NSEI",
+   "RELIANCE.NS",
+   "TCS.NS",
+   "HDFCBANK.NS",
+   "NVDA",
+   "TCS"
+  ],
+  "afterRemove": [
+   "^NSEI",
+   "RELIANCE.NS",
+   "TCS.NS",
+   "HDFCBANK.NS",
+   "TCS"
+  ]
+ },
+ "readBack": {
+  "holdingsMatch": true,
+  "notesMatch": true,
+  "watchlistMatch": true,
+  "holdings": [
+   {
+    "id": "h-f4883861-eb27-45f4-ac15-6296312b9755",
+    "symbol": "AAPL",
+    "quantity": 8,
+    "costBasis": 200,
+    "assetClass": "equity"
+   },
+   {
+    "id": "h-044c741e-3d94-4c19-a11e-37dfa288c8d5",
+    "symbol": "MSFT",
+    "quantity": 3,
+    "costBasis": 400,
+    "assetClass": "equity",
+    "note": "gate8 thesis: cloud margin"
+   }
+  ]
+ }
+}

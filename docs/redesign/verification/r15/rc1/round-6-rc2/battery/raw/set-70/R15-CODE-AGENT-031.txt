@@ -1,0 +1,6 @@
+# in-process (candidate venv): runs_store + routers.runs via TestClient, 105 rows created; live GET /runs on :52359 -> {"runs":[]}
+== GET /runs 200 rows 100 LIST_LIMIT 100
+== camelCase keys in /runs rows: []
+== sample row keys: ['activity', 'agent_id', 'agent_name', 'budget', 'cost', 'created_at', 'detail', 'id', 'mode', 'model', 'plan', 'provider', 'question', 'status', 'updated_at']
+== checkpoint_json in list rows: False
+== GET /runs/{id} 200 camelCase keys: []

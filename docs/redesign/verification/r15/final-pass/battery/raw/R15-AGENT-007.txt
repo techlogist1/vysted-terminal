@@ -1,0 +1,23 @@
+# R15-AGENT-007 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:13:58+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; ls scripts/agent_eval; cd "$C/scripts/agent_eval"; PYTHONPATH="$C/sidecar" "$C/sidecar/.venv/bin/python3" - <<'PY'
+import json, grader
+d=json.load(open('scenarios.json')); s=d['scenarios'] if isinstance(d,dict) else d
+print('scenarios:',len(s))
+sc=s[0]
+good=[{"kind":"tool_use","name":"price_data","input":{"symbol":"RELIANCE"}},{"kind":"delta","text":"RELIANCE rose."},{"kind":"done"}]
+bad=[{"kind":"tool_use","name":"price_data","input":{}},{"kind":"delta","text":"x"},{"kind":"done"}]
+print('grade(good)=',grader.grade(sc,good)); print('grade(input={})=',grader.grade(sc,bad))
+print('pass_hat_k:',grader.pass_hat_k({'a':[True,True,True],'b':[True,True,False]},3))
+PY
+--- output ---
+__pycache__
+grader.py
+run.py
+scenarios.json
+scenarios: 16
+grade(good)= []
+grade(input={})= ["price_data called without required ['symbol']: {}", "no price_data|compare_symbols call with input ~ '(?i)RELIANCE'"]
+pass_hat_k: {'k': 3, 'scenarios': 2, 'pass_hat_k': 0.5, 'pass_hat_1': 0.8333333333333334, 'per_scenario': {'a': 1.0, 'b': 0.0}, 'incomplete': []}
+
+EXIT=0 (0.4s)

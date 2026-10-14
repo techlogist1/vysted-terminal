@@ -1,0 +1,5 @@
+# R15-CODE-AGENT-027 at ace7dd7: PYTHONPATH=. .venv/bin/python3 b14s76.py 027
+EXIT=0
+import-time tools after reset: ['backtest_summary']
+registered extra: True
+after reset extra gone: True | backtest_summary kept: True

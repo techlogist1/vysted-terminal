@@ -1,0 +1,5 @@
+=== R15-DATA-043 probe ===
+--- POST /screener/run custom [AAPL,RELIANCE.NS,MSFT,TCS.NS] sort market_cap desc limit 2 ---
+HTTP:200
+rows: [('RELIANCE.NS', 16590810644480.0, 'INR'), ('AAPL', 4977636933632.0, 'USD')]
+coverage: screened 4 of 4 — 0 unavailable · spans INR, USD — ranked within each currency

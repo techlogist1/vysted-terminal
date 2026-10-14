@@ -1,0 +1,2 @@
+-- in-process detect() under minimal PATH --
+resolved docker binary: /usr/local/bin/docker

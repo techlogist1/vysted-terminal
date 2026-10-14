@@ -1,0 +1,12 @@
+# R15-RESEARCH-028 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:20:24+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]'   'http://127.0.0.1:52861/search/searxng/status'
+[exit 0] [1.15s]
+{"state":"degraded","detail":"SearXNG is running but its search engines are blocked","reason":"brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA","last_error":null,"port":8888,"url":null,"container":"running","container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":true,"daemon_running":true,"runtime":"Docker Engine - Community"}}
+[http 200 1.137202s]
+
+$ curl -s -m 5 -o /dev/null -w 'direct searxng :8888 -> %{http_code}\n' http://127.0.0.1:8888/ ; echo exit=$?
+[exit 0] [0.02s]
+direct searxng :8888 -> 200
+exit=0
+

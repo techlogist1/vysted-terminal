@@ -1,0 +1,73 @@
+{
+  "action": {
+    "tool_call_id": "call_771354bb53844e8bb140a7746164f70b",
+    "name": "portfolio_add_position",
+    "input": {
+      "cost_basis": 480,
+      "note": "",
+      "purchased_at": "2026-09-26",
+      "quantity": 4,
+      "symbol": "MSFT",
+      "asset_class": "equity"
+    }
+  },
+  "stagedOutcome": "staged",
+  "change": {
+    "kind": "data-write",
+    "title": "Add 4 MSFT @ ₹480 to the portfolio",
+    "status": "pending",
+    "before": "Portfolio: 2 positions",
+    "after": "Portfolio: +MSFT ×4 @ ₹480 (3 total)"
+  },
+  "ledgerBefore": [
+    {
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "note": null
+    },
+    {
+      "symbol": "AAPL",
+      "quantity": 8,
+      "costBasis": 310,
+      "note": null
+    }
+  ],
+  "ledgerWhilePending": [
+    {
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "note": null
+    },
+    {
+      "symbol": "AAPL",
+      "quantity": 8,
+      "costBasis": 310,
+      "note": null
+    }
+  ],
+  "storeHoldingsWhilePending": 2,
+  "acceptResult": "applied",
+  "ledgerAfterAccept": [
+    {
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "note": null
+    },
+    {
+      "symbol": "AAPL",
+      "quantity": 8,
+      "costBasis": 310,
+      "note": null
+    },
+    {
+      "symbol": "MSFT",
+      "quantity": 4,
+      "costBasis": 480,
+      "note": null
+    }
+  ],
+  "unchangedWhilePending": true
+}

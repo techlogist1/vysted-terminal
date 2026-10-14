@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_1affb16a8df14df58c477f8fd05db92e", "name": "get_terminal_state", "input": {}}
+[  39.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_5bbf1f8bd6574d108a1d76104fe8fed4", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+[  39.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_1affb16a8df14df58c477f8fd05db92e", "name": "get_terminal_state", "ok": true, "error": null}
+[  42.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_5bbf1f8bd6574d108a1d76104fe8fed4", "name": "price_data", "ok": true, "error": null}
+[  52.2s] heartbeat: {"kind": "heartbeat"}
+[  62.2s] heartbeat: {"kind": "heartbeat"}
+[  72.2s] heartbeat: {"kind": "heartbeat"}
+[  73.6s] done: {"kind": "done", "usage": {"input_tokens": 7046, "output_tokens": 16, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of TCS.NS is ₹2082.00.
+
+=== ok · 73.6s · events {'heartbeat': 6, 'tool_use': 2, 'tool_result': 2, 'delta': 15, 'done': 1} · usage in=7046 out=16 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,25 @@
+CMD: grep -n "R15-CODE-FRONTEND-017" src/store/sec.test.ts src/store/earnings.test.ts (candidate 949c3c9f)
+Frontend stale-response-ordering logic; no sidecar endpoint. Certified via pinned vitest.
+src/store/sec.test.ts:101:  it("a slower response for the previous symbol never overwrites the newer one (R15-CODE-FRONTEND-017)", async () => {
+src/store/sec.test.ts:148:    // R15-CODE-FRONTEND-017: `loadFilingDetail` no longer writes
+src/store/sec.test.ts:168:  // R15-CODE-FRONTEND-017 / R15-UI-015 (triage-c rc1-vshard-3:4): loadFilings
+src/store/sec.test.ts:248:  it("I1: a late rejection for a previous issuer does not paint its error over the current one (R15-CODE-FRONTEND-017)", async () => {
+src/store/earnings.test.ts:149:  it("drops a 7-day window that lands after the 30-day one (R15-CODE-FRONTEND-017)", async () => {
+  it("I1: a late rejection for a previous issuer does not paint its error over the current one (R15-CODE-FRONTEND-017)", async () => {
+    let rejectAapl: (reason: unknown) => void = () => {};
+    (sidecarGet as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(
+        new Promise((_resolve, reject) => {
+          rejectAapl = reject;
+        }),
+      )
+      .mockResolvedValueOnce({ ...INSIDER_FIXTURE, issuer_name: "Microsoft Corp" });
+    const { loadInsider } = useSecStore.getState();
+    const aapl = loadInsider("AAPL");
+    await loadInsider("MSFT");
+    expect(useSecStore.getState().insiderStatus).toBe("ready");
+
+    rejectAapl(new Error("EDGAR timeout"));
+    await aapl;
+    expect(useSecStore.getState().insiderStatus).toBe("ready");
+    expect(useSecStore.getState().insiderError).toBeNull();

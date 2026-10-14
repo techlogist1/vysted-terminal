@@ -1,0 +1,12 @@
+=== R15-LIFECYCLE-012 (in-process fake-provider probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+CMD: launch a run whose round-1 tool (resolve_symbol) dispatches and checkpoints, then round-2's provider call genuinely hangs (await asyncio.Event().wait(), never resolves); drop the run's task ref WITHOUT run_manager.shutdown() (simulated kill -9); clear runs_store._RECONCILED (simulates the next process's first sqlite connection); read the row; then resume_run(run_id).
+
+{
+  "mid_status_before_kill": "running",
+  "mid_checkpoint_messages_before_kill": 2,
+  "status_after_simulated_restart": "error",
+  "detail_after_simulated_restart": "interrupted by sidecar restart",
+  "resume_call_ok": true,
+  "resume_error": null,
+  "status_after_resume_call": "running"
+}

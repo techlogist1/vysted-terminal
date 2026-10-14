@@ -1,0 +1,15 @@
+# probe at ace7dd76 (candidate worktree), run 05:52:23
+$ grep -n 'R15-CODE-FRONTEND-023' src/modules/chart/ChartPanel.tsx src/modules/chart/ChartPanel.test.tsx | head
+src/modules/chart/ChartPanel.test.tsx:1172:  it("N crosshair moves on a lone chart cause 0 ChartPanel re-renders (R15-CODE-FRONTEND-023)", async () => {
+src/modules/chart/ChartPanel.tsx:379:  // every mouse move, peer chart or not (R15-CODE-FRONTEND-023).
+$ grep -n 'useChartSyncBus' src/modules/chart/ChartPanel.tsx | head
+58:  useChartSyncBus,
+369:  const syncSubscriptions = useChartSyncBus((state) => selectSubscriptions(state, panelId));
+370:  const setSubscription = useChartSyncBus((state) => state.setSubscription);
+371:  const unregisterPanel = useChartSyncBus((state) => state.unregisterPanel);
+372:  const broadcastCrosshair = useChartSyncBus((state) => state.setCrosshair);
+373:  const broadcastVisibleRange = useChartSyncBus((state) => state.setVisibleRange);
+374:  const broadcastSymbol = useChartSyncBus((state) => state.setSymbol);
+380:  const symbolBroadcast = useChartSyncBus((state) => state.symbol);
+869:    handleBroadcast(useChartSyncBus.getState().crosshair);
+870:    return useChartSyncBus.subscribe((state, prev) => {

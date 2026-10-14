@@ -1,0 +1,8 @@
+# probe at ace7dd76 (candidate worktree), run 05:52:23
+$ sed -n '/export const vystedModules/,/^];/p' src/modules/index.ts | grep -c 'Module,'
+20
+$ grep -n 'v1.0 scope\|## 4. Module Catalog' docs/BLUEPRINT.md | cut -c1-240
+20:**v1.0 scope:** 20 modules shipped in 0.9 (see §4 for the full ~37-module v1.0 roadmap), 12 AI agents, full plugin architecture, MCP server, node editor for workflow automation, backtest engine. Trading (broker connectivity, order placem
+238:## 4. Module Catalog (20 shipped in 0.9.0; the full list below is the v1.0 roadmap, ~37 modules)
+$ grep -c '~38' docs/BLUEPRINT.md
+0

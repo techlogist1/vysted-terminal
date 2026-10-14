@@ -1,0 +1,14 @@
+import { writeFileSync } from "node:fs";
+test("gate8 order names fail closed on the host", async () => {
+  const h = await import("@/lib/host-actions");
+  const { useProposedChangesStore } = await import("@/store/proposed-changes");
+  const out: Record<string, unknown> = {};
+  for (const n of ["propose_order", "place_order", "submit_order", "execute_order", "broker_portfolio", "kill_switch"]) {
+    out[n] = { isHostActionMutation: h.isHostActionMutation(n), applyHostAction: h.applyHostAction(n, { symbol: "AAPL", side: "buy", quantity: 1 }) };
+  }
+  // a portfolio add with no cost basis: accept must fail closed (re-pend), never a zero-cost holding
+  const { id } = useProposedChangesStore.getState().enqueue({ toolCallId: "", name: "portfolio_add_position", input: { symbol: "AAPL", quantity: 1 }, batchId: "g8" });
+  out.acceptNoCost = await useProposedChangesStore.getState().accept(id);
+  out.changeAfter = useProposedChangesStore.getState().changes.map((c) => ({ status: c.status, detail: c.detail }));
+  writeFileSync(process.env.GATE8_OUT!, JSON.stringify(out, null, 1));
+});

@@ -1,0 +1,9 @@
+=== R15-RESEARCH-030: in-process earnings_call_transcript tool call (candidate venv) ===
+CMD: sidecar/.venv/bin/python3 probe_transcript.py (imports services.agent_tools.disclosure_tools._earnings_call_transcript, calls for KPITTECH and INFY)
+KPITTECH {"ok": true, "available": true, "symbol": "KPITTECH", "filing_date": "2026-08-04", "url": "https://nsearchives.nseindia.com/corporate/KPITTECH_04082026205946_KPIT_Transcript_Cov_let_signed.pdf", "source": "NSE", "text": "KPIT Technologies Limited\n\nJuly 29, 2026\n\nPage 3 of 19\n\nmany profit warnings, many pay cuts, ongoing restructuring, significant write-\n\noffs, etcetera.\n\nOn the back of this, after some of this, one month back, we made a disclosure\n\nto the stock market about the impact on KPIT for this year. And we talked\n\nabout how it may pan out to some extent. And specifically for the quarter 1,\n\nwe talked about...[8986 chars total]", "truncated": true}
+INFY {"ok": true, "available": true, "symbol": "INFY", "filing_date": "2026-07-28", "url": "https://nsearchives.nseindia.com/corporate/Infosys_28072026202438_SE_filing_Earnings_call_transcript.pdf", "source": "NSE", "text": "External Document \u00a9 2026 Infosys Limited 5\n\nOur revenue growth for Q1 was 2.4% Y-on-Y and 1% Q-on-Q in constant currency terms. We had a\n\nonetime revenue impact of a client decision during this quarter.\n\nOur AI services revenue was 8.2% of overall re venue. Our large deals were $3.6 bn with a net new\n\nof 61%. Our operating margin was 21.1%. Free cash flow at $955 mn. And our earnings per share\n\nwe...[8940 chars total]", "truncated": true}
+
+CMD: grep -in transcript sidecar/services/agent_tools/catalog.py | head -3
+105:    "earnings": ("earnings", "eps", "quarterly result", "guidance", "concall", "transcript"),
+896:            "earnings_call_transcript",
+898:                "The earnings-call (concall) transcript an Indian (NSE/BSE) listed "

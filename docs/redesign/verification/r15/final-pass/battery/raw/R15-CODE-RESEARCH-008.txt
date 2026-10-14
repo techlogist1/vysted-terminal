@@ -1,0 +1,20 @@
+# R15-CODE-RESEARCH-008 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:25+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b5_008.py 2>&1 | grep -v Warning
+--- output ---
+401 perplexity -> Perplexity rejected the request — check that your Perplexity API key is valid and active.
+401 sonar -> OpenRouter rejected the request — check that your OpenRouter API key is valid and active.
+402 perplexity -> Perplexity reports insufficient credits for the research run — top up your account to use the hosted research lane.
+402 sonar -> OpenRouter reports insufficient credits for the research run — top up your account to use the hosted research lane.
+403 perplexity -> Perplexity rejected the request — check that your Perplexity API key is valid and active.
+403 sonar -> OpenRouter rejected the request — check that your OpenRouter API key is valid and active.
+429 perplexity -> Perplexity rate limit reached — slow down or check your plan's quota.
+429 sonar -> OpenRouter rate limit reached — slow down or check your plan's quota.
+400 perplexity -> Perplexity could not process the research request (bad query or parameters).
+400 sonar -> OpenRouter could not process the research request (bad query or parameters).
+500 perplexity -> Perplexity is temporarily unavailable (server error) — try again shortly.
+500 sonar -> OpenRouter is temporarily unavailable (server error) — try again shortly.
+503 perplexity -> Perplexity is temporarily unavailable (server error) — try again shortly.
+503 sonar -> OpenRouter is temporarily unavailable (server error) — try again shortly.
+
+EXIT=0 (1.0s)

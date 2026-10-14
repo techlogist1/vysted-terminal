@@ -1,0 +1,7 @@
+CMD: grep -n "R15-UI-021" src/modules/chart/ChartPanel.test.tsx (candidate 949c3c9f)
+Frontend keyboard-event-scoping logic; no sidecar endpoint. Certified via pinned vitest.
+968:  it("Backspace typed into a field outside the chart keeps the selected drawing (R15-UI-021)", async () => {
+1002:  it("a locked drawing survives Delete (R15-UI-021)", async () => {
+1026:  it("Delete with nothing focused still deletes (WebKit leaves a clicked chip unfocused; R15-UI-021)", async () => {
+1048:  it("a body-targeted Delete deletes only the chart whose selection was NOT cleared by an outside pointerdown (R15-UI-021)", async () => {
+1097:  it("a pointerdown outside every chart clears the selection, so a later Backspace on body deletes nothing (R15-UI-021)", async () => {

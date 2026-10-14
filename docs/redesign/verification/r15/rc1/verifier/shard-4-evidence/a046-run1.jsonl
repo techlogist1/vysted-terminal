@@ -1,0 +1,66 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_081681b386604466b015966194df6c1f", "name": "set_chart_symbol", "input": {"symbol": "TCS"}}
+{"kind": "tool_use", "tool_call_id": "call_caf8ac4d2484473eaf713710ce9abebf", "name": "add_to_watchlist", "input": {"asset_class": "equity", "symbol": "INFY"}}
+{"kind": "tool_use", "tool_call_id": "call_bdd51920d93d4dd5b0b3402d3341235f", "name": "add_to_watchlist", "input": {"asset_class": "equity", "symbol": "WIPRO"}}
+{"kind": "tool_result", "tool_call_id": "call_081681b386604466b015966194df6c1f", "name": "set_chart_symbol", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_caf8ac4d2484473eaf713710ce9abebf", "name": "add_to_watchlist", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_bdd51920d93d4dd5b0b3402d3341235f", "name": "add_to_watchlist", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " chart"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " set"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " W"}
+{"kind": "delta", "text": "IP"}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " added"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " watch"}
+{"kind": "delta", "text": "list"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " actions"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " still"}
+{"kind": "delta", "text": " pending"}
+{"kind": "delta", "text": " confirmation"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": " state"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " completion"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " use"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "get"}
+{"kind": "delta", "text": "_terminal"}
+{"kind": "delta", "text": "_state"}
+{"kind": "delta", "text": "`."}
+{"kind": "done", "usage": {"input_tokens": 3073, "output_tokens": 50, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

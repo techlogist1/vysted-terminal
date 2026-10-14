@@ -1,0 +1,6 @@
+=== R15-DATA-093 probe ===
+--- POST /screener/run custom bare Indian tickers (no .NS suffix) ---
+HTTP:200 time:0.018007
+{'universe': 'custom', 'evaluated_count': 5, 'skipped_count': 0, 'result_count': 5, 'matched_count': 5, 'duration_ms': 14.107249968219548, 'partial': False, 'coverage': 'screened 5 of 5 — 0 unavailable', 'freshness': {'quotes_as_of': 1790517385.531011, 'valuation_as_of': 1790513559.622726, 'deep_as_of': 1790438837.102958}, 'basis_counts': {'live': 5}, 'throttled': True}
+rows: [('RELIANCE.NS', 'INR'), ('HDFCBANK.NS', 'INR'), ('TCS.NS', 'INR'), ('INFY.NS', 'INR'), ('COCHINSHIP.NS', 'INR')]
+skip_details: []

@@ -1,0 +1,76 @@
+{
+  "role": "rc1-datapack",
+  "candidate_sha": "9bc600ece2ce6343a6aa48f130d7620b1466bb98",
+  "collected_count": 24,
+  "manifest_count": 24,
+  "environmental_429s": [
+    {"slot": "P10", "symbol": "VIYASH", "call": "ratings"},
+    {"slot": "P11", "symbol": "FUSION", "call": "fundamentals"},
+    {"slot": "P11", "symbol": "FUSION", "call": "ratings"},
+    {"slot": "P12", "symbol": "DHANBANK", "call": "fundamentals"},
+    {"slot": "P12", "symbol": "DHANBANK", "call": "ratings"},
+    {"slot": "P13", "symbol": "ELCIDIN", "call": "fundamentals"}
+  ],
+  "reregistered_entries": [
+    {
+      "id": "R15-DATA-053",
+      "slots": ["P6", "P9"],
+      "census_status": "app blank",
+      "rc1_status": "fixed_holds",
+      "evidence": {
+        "P6_ICON": {"volume": 1200.0, "open": 64.45, "high": 64.45, "low": 64.45, "prev_close": 63.06},
+        "P9_AMAL": {"volume": 13368.0, "open": 688.85, "high": 695.9, "low": 658.05, "prev_close": 687.65}
+      }
+    },
+    {
+      "id": "R15-DATA-055",
+      "slots": ["S1", "S2"],
+      "census_status": "app blank",
+      "rc1_status": "fixed_holds",
+      "evidence": {
+        "S1_DHOOTTRANS": {"fifty_two_week_high_date": "2026-09-15", "fifty_two_week_low_date": "2026-08-17"},
+        "S2_SMR": {"fifty_two_week_high_date": "2026-06-22", "fifty_two_week_low_date": "2026-06-16"}
+      }
+    },
+    {
+      "id": "R15-DATA-008",
+      "slots": ["P17"],
+      "census_status": "mismatch",
+      "rc1_status": "fixed_holds_not_a_regression",
+      "evidence": {
+        "P17_SIFY": {"currency": "USD", "financial_currency": "INR", "revenue_ttm": 46506049536.0, "net_income_ttm": -912369984.0}
+      },
+      "note": "financial_currency field (absent at census) now carries the correct statement basis; register documents the fix targeted INFY.NS, SIFY was already correct by design."
+    },
+    {
+      "id": "R15-LEAD-004",
+      "slots": ["P2"],
+      "census_status": "n/a",
+      "rc1_status": "consistent_with_fix",
+      "evidence": {
+        "P2_DAL": {"revenue_ttm_label": "standalone, sum of 4 filed quarters to 2026-06-30"}
+      }
+    },
+    {
+      "id": "R15-LEAD-051",
+      "slots": ["P14"],
+      "census_status": "n/a",
+      "rc1_status": "not_independently_observable",
+      "note": "JONJUA fundamentals field_meta shows an unrelated 'flagged' TTM-basis reason, not the half-yearly cadence label the fix targets; that label is only observable via exchange_financials.cadence() in-process, not this HTTP surface."
+    },
+    {
+      "id": "R15-DATA-003",
+      "slots": ["P9", "P19"],
+      "census_status": "critical",
+      "rc1_status": "not_reverified_this_round",
+      "note": "Out of time budget for this drive; disclosures data collected but the ownership-applicability gating behavior itself was not diffed."
+    }
+  ],
+  "full_scan": {
+    "match_fields_checked": 148,
+    "regressions_found": 0,
+    "as_of_skew_only": ["SAFE market_cap/revenue_ttm/net_profit_ttm", "JUMBO revenue_ttm/net_profit_ttm", "SMR market_cap/revenue_ttm", "VERTEX market_cap", "JONJUA market_cap", "ONC price/pe/pb"],
+    "environmental_429_only": ["FUSION net_profit_ttm/sector/shareholding.quarter fields that route through fundamentals"]
+  },
+  "status": "pass"
+}

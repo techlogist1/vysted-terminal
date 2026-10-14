@@ -1,0 +1,127 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_d6c98910d26c460cb0d38b64c70a793c", "name": "fundamentals", "input": {"symbol": "Cochin Shipyard"}}
+{"kind": "tool_use", "tool_call_id": "call_e2c18b9da381448c95e773d1db9357b8", "name": "price_data", "input": {"timeframe": "1d", "range": "1mo", "symbol": "COCHINSHIP.NS"}}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "C"}
+{"kind": "delta", "text": "och"}
+{"kind": "delta", "text": "in"}
+{"kind": "delta", "text": " Ship"}
+{"kind": "delta", "text": "yard"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " leading"}
+{"kind": "delta", "text": " ship"}
+{"kind": "delta", "text": "building"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " India"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Its"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "137"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " timeout"}
+{"kind": "delta", "text": " error"}
+{"kind": "delta", "text": " when"}
+{"kind": "delta", "text": " fetching"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " fundamentals"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "19"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "343"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " number"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " outstanding"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " fundamental"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " could"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " fetched"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " timeout"}
+{"kind": "delta", "text": " error"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " so"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 4801, "output_tokens": 104, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

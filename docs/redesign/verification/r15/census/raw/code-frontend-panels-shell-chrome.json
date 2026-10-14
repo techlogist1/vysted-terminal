@@ -1,0 +1,132 @@
+[
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-1",
+    "title": "The panel-context bus's focus id and its event keys come from two different naming schemes that never match, so every 'what is the user looking at' consumer silently falls back or goes blank",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "Default cockpit, chart on TSLA 1D, click the Chart tab. PanelHost sets focusedSource = dockview panel id 'chart' (PanelHost.tsx:197-199; default-layout.ts:33). ChartPanel publishes under source `chart-${panelId}` = 'chart-chart' (ChartPanel.tsx:885, 216-219). lastEventBySource['chart'] is undefined, so SuggestionChips shows no '$TSLA' chips and the ChatSidebar badge reads 'Context: chart' with no symbol. Same for Equity Overview: focus 'equity-overview' vs source 'equity' (EquityOverviewPanel.tsx:649), and Backtest: focus 'backtest' vs source 'backtest-panel' (BacktestResultView.tsx:424). Proven by vitest, 2 tests passed: docs/redesign/verification/r15/census/code/evidence/frontend-panels-shell-chrome-repro.test.tsx.txt",
+    "evidence": "src/components/PanelHost.tsx:197-199, src/config/default-layout.ts:33-53, src/modules/chart/ChartPanel.tsx:216-219,885, src/modules/equity-overview/EquityOverviewPanel.tsx:649, src/modules/backtest/BacktestResultView.tsx:424, src/modules/chat/SuggestionChips.tsx:47-66, src/modules/chat/ChatSidebar.tsx:2042-2063, src/modules/chat/context-provider.ts:275-277, sidecar/services/agent_runtime.py:125, types/panel-context.ts:46-51, src/modules/chat/SuggestionChips.test.tsx:65-71, src/modules/chat/ChatSidebar.test.tsx:472-478",
+    "notes": "Information leakage and an invariant nobody enforces. The join key is a free string. PanelHost writes one scheme (dockview ids), each publisher invents its own (the types/panel-context.ts:46-51 contract even tells multi-instance publishers to prefix, which guarantees a mismatch), and there is no registry or test tying the two together. The unit tests hand both sides the same fake id 'chart-1', so they pass while the product is broken. Consequences: (a) symbol-scoped suggestion chips never render in the real app; (b) the context badge never shows the focused symbol; (c) context-provider's focusedChart match (`c.panelId === focusedPanel`) never hits and only works by accident because the chart is a singleton (charts[0]); (d) the sidecar planner's `_planner_context` candidates ['chart','equity-overview'] never match a key (no FR-002/FR-007 'this' resolution for the plan pre-pass); (e) focusing Equity Overview on a different ticker is ignored. Smallest fix: publishers key the bus by `props.api.id` (the dockview panel id they are already given) and delete the per-panel string literals. Add one test that uses the real default-layout ids through setFocusedSource. Longer term, a typed `PanelId` shared by PanelSpec, the default layout and the bus."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-2",
+    "title": "Settings -> Integrations 'Open Marketplace' is a dead button: it passes the component id where openPanel needs a panel id, and openPanel ignores unknown ids without any signal",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "Open Settings, go to Advanced -> Integrations, click 'Open Marketplace'. Nothing happens. openPanel('marketplace-panel') -> findPanel('marketplace-panel') is undefined because the registered panel id is 'marketplace' (component 'marketplace-panel'), so openPanel returns early. Proven by vitest (findPanel('marketplace-panel') undefined, findPanel('marketplace') defined): census/code/evidence/frontend-panels-shell-chrome-repro.test.tsx.txt",
+    "evidence": "src/components/SettingsPanel.tsx:1578, src/modules/marketplace/index.ts:17-20, src/store/workspace.ts:92-100, src/store/modules.ts:83, src/components/PluginManagerPanel.tsx:71, src/modules/screener/index.ts:20, src/components/SettingsPanel.test.tsx:311",
+    "notes": "Two design gaps. First, panel ids and component ids share one untyped string namespace with mixed conventions: marketplace is 'marketplace'/'marketplace-panel', but screener's PANEL id is 'screener-panel'. That invites exactly this slip, and PluginManagerPanel.tsx:71 has the same bug. Second, openPanel treats an unknown id as a silent no-op instead of a programmer error. The test asserts only that the button exists. This is the only path Settings offers to broker connections. Smallest fix: openPanel('marketplace') in both call sites; openPanel logs console.error or throws in dev on an unknown id; each module exports its panel-id constant (or a `PanelId` union) so a call site cannot type a component id."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-3",
+    "title": "The keybinding recorder writes 'meta'/'ctrl' but never 'mod' (its comment says it does), so the conflict check misses a real collision on macOS and recorded bindings are platform-specific",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "macOS, Settings -> Keybindings, record Cmd+K for 'Toggle agent panel'. comboFromEvent emits 'meta+k'. conflicts() compares strings, so 'meta+k' != 'mod+k' (palette.open) and no warning appears, yet matchesEvent fires both on Cmd+K. Proven by vitest: conflicts() == [] while matchesEvent('mod+k') and matchesEvent('meta+k') are both true for {metaKey,k}. Exporting that binding and importing it on Windows binds it to Win+K.",
+    "evidence": "src/components/SettingsPanel.tsx:1342-1363 (comment at 1345 and 1354-1355 vs code at 1356-1359), src/store/keybindings.ts:31-33, 217-233, 367-383, census/code/evidence/frontend-panels-shell-chrome-repro.test.tsx.txt",
+    "notes": "The comment describes the design ('collapse the platform-primary one to mod') but the code does something else. The store's grammar (keybindings.ts:31-33) treats 'mod' as the portable token, and conflicts() works on raw strings rather than on resolved physical chords. Consequence: the section's own promise ('Conflicts are flagged below - two actions on one combo both fire', SettingsPanel.tsx:1415) is false for the most common remap, and the settings export (1766-1773) carries OS-specific chords to another machine. Smallest fix: in comboFromEvent emit 'mod' for metaKey on mac / ctrlKey elsewhere. Better, make conflicts() compare resolved chords (normalise 'mod' to meta/ctrl per platform before grouping) so hand-edited or imported 'meta+k' is caught too."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-4",
+    "title": "The Region setting presents itself as cosmetic number formatting with a US default, but the default is India and region reroutes symbol resolution, the freshness calendar and data providers",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "Open Settings -> Region & locale. The section says 'Locale used for number formatting - a foundation for region-first data + feeds in a later release' and the row says 'Defaults to United States.' Actual default is IN (region.ts:39). Changing it sends X-Vysted-Region on every sidecar request, which picks the symbol resolver's market (fundamentals.py:73, yfinance_provider.py:128), the exchange calendar that labels a quote live/stale (quotes.py:45, history.py:48), the macro provider (macro.py:101), the news feed (news_provider.py:357) and the screener universe (screener.py:116).",
+    "evidence": "src/components/SettingsPanel.tsx:1303-1310, src/lib/region.ts:37-39, src/lib/region.ts:46-48, src/lib/sidecar-client.ts (sidecarGet X-Vysted-Region header), sidecar/routers/quotes.py:45, sidecar/routers/fundamentals.py:73, sidecar/routers/macro.py:101, sidecar/services/news_provider.py:357, sidecar/services/screener.py:116",
+    "notes": "The comment and copy describe the Pass-A seam, not today's behaviour. This is the single most consequential data setting in the product (it decides which market a bare 'RELIANCE' or 'ITC' resolves to and whether a price is badged live), and the UI tells an India-first user it only affects formatting and defaults to the US. A user who flips it 'for USD formatting' silently changes which instruments and freshness calendar they get. Also regionConfig's fallback returns REGIONS[0] (US) while its own comment and DEFAULT_REGION say otherwise (region.ts:46-48). Smallest fix: derive the hint from DEFAULT_REGION's label, rewrite the section hint to state that region picks the market, providers and trading calendar, and make regionConfig fall back to DEFAULT_REGION."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-5",
+    "title": "EmptyState, the shared primitive, cannot express failure: panels render 'could not load' and 'no data' as the same monochrome surface with no alert semantics, while about 39 other files hand-roll their own error UI",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "News feed: an upstream failure renders <EmptyState icon=Newspaper headline='Could not load the news feed'> (NewsFeedPanel.tsx:294-296). A legitimately empty feed renders <EmptyState icon=Newspaper headline='No headlines for your watchlist.'> (306-308). Both use the same icon, tones and layout and neither has role=alert/status. Same for MacroPanel.tsx:70-74 vs 86-88 and AnalystRatingsPanel.tsx:189-191 vs 125-127.",
+    "evidence": "src/components/EmptyState.tsx:22-42 (props: icon/headline/hint/cta/dense only), src/components/EmptyState.tsx:44-58 (no role, fixed charcoal tones), src/modules/news/NewsFeedPanel.tsx:294-308, src/modules/macro/MacroPanel.tsx:70-88, src/modules/analyst-ratings/AnalystRatingsPanel.tsx:125-127,189-191; `grep -rln text-negative src/modules` = 39 files",
+    "notes": "The partition flagged this subsystem as the shallow-module risk surface. Adoption of EmptyState is actually good (27 callers), but its interface covers only the happy-empty case. Callers therefore either push failures through it, so a failure looks exactly like a legitimate empty result (data-trust: a user reads 'nothing here' when the truth is 'we could not ask'), or bypass it with bespoke text-negative paragraphs (inconsistent, no shared retry affordance). The design law 'hierarchy via weight, never colour' (EmptyState.tsx:15-20) is applied to a case where the distinction is semantic, not aesthetic. Smallest fix: add `variant: 'empty' | 'error'`. Error gets role='alert', a distinct icon slot and a retry cta by convention. Migrate the three error call sites above. Design-it-twice alternative: a sibling ErrorState that shares the layout."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-6",
+    "title": "Panel minimum-size policy is locked inside the React host: only the boot restore grows sub-minimum panels, layout templates re-derive the same numbers as magic widths, and the table has drifted from the registered components",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "Save a named layout with a squeezed panel (a blob saved before min-sizes, or one captured mid-squeeze), then Load it from Settings or the Load dialog. loadWorkspace -> deserializeWorkspace -> api.fromJSON (workspace.ts:265, 432) restores the sub-minimum size. The grow sweep enforceConstraintsAfterRestore runs only in PanelHost's boot finally (PanelHost.tsx:166-186), so the panel stays squeezed until relaunch. Separately: PANEL_MIN_SIZE has 'chat-sidebar' (PanelHost.tsx:67), which is no longer a registered component (chat/index.ts:11 says stale chat-sidebar panels are remapped); 'broker-order-entry' (:69) belongs to the removed trading path; and the research surfaces 'brief-panel' and 'notes-panel' have no entry, so they get the 300x180 default.",
+    "evidence": "src/components/PanelHost.tsx:25-71, 92-109, 166-186, src/lib/workspace.ts:265,432, src/lib/layout-templates.ts:363-365, 479-480, 723, src/modules/chat/index.ts:11",
+    "notes": "Information hiding placed at the wrong layer. The policy ('no panel below N px') is domain knowledge about PanelSpec components, yet it is a private const inside a component file. So (a) workspace.ts, the code that actually calls fromJSON, cannot apply it; (b) layout-templates.ts restates it as prose and hand-derived thresholds (RESEARCH_COCKPIT_MIN_WIDTH 1180, 'keeps >=30% so its 360px panel minimum holds') that will drift the next time a minimum changes; (c) nothing checks the keys against collectPanels(), hence the dead and missing entries. This is temporal decomposition: 'grow after restore' is tied to 'boot' rather than to 'fromJSON'. Smallest fix: move PANEL_MIN_SIZE and both helpers to src/lib/panel-sizing.ts; call the grow sweep from deserializeWorkspace (deferred with setTimeout, as the boot path does); have layout-templates compute fit widths from the table; add a parity test (every key is a registered component, every registered component is keyed or deliberately defaulted)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-7",
+    "title": "Destructive shell actions are a single unconfirmed click with no undo, and 'Remove key' has no error path",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "(1) Load Workspace dialog -> 'Delete' on a row: deleteWorkspace fires immediately (WorkspaceDialog.tsx:287-296). The saved blob also carries that workspace's portfolios/notes snapshot (see COD-workspace-layout-1), so this deletes the only copy. (2) Settings -> Layouts: the X deletes immediately (SettingsPanel.tsx:1685-1693). (3) 'Reset to default' (SettingsPanel.tsx:1656) is a ghost button beside Save; per COD-workspace-layout-11 it wipes every chart drawing and re-enables all modules. (4) The trash icon on a provider row (516-526) calls handleRemove (424-427), which awaits deleteSecret -> invoke('keychain_delete') (keychain.ts:69-71) with no try/catch. A denied or failed keychain call becomes an unhandled promise rejection via `void`, no message is shown, and refreshOne never runs.",
+    "evidence": "src/modules/platform/WorkspaceDialog.tsx:209-222,287-296, src/components/SettingsPanel.tsx:424-427,516-526,1656,1685-1693, src/lib/keychain.ts:69-71",
+    "notes": "Consistency plus 'define errors out of existence' applied in the wrong direction. The shell makes irreversible operations the cheapest gesture on screen and gives the one throwing call no handler. The agent-shell sweep found the same pattern for custom-agent delete (COD-frontend-panels-agent-shell), so it is a shell-wide convention, not a one-off. Smallest fix: a two-step confirm (inline 'Delete? Yes / No' swap, no modal needed) for workspace/layout delete, Reset and key removal, or an undo toast that defers the call about 5 s; wrap handleRemove in try/catch and show the reason inline like KeyEntryDialog does."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-8",
+    "title": "Settings' SearXNG and hardware sections are private raw-fetch clients that read once on mount, report every failure as 'sidecar not connected', and never notice a Ready instance that died",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "Set up SearXNG until the chip says Ready, then stop the container outside the app (or have Docker restart). The Settings chip keeps saying 'Ready - research searches route through it automatically', because status is fetched once on mount (SettingsPanel.tsx:792-802) and polled only while pulling/starting (805-821). Meanwhile research silently rides the keyless fallback. Also: any non-2xx from /search/searxng/status or /system/hardware returns null (707-718; hardware-fit.ts:44-55), and the UI renders 'SearXNG status unavailable (sidecar not connected)' / 'Hardware detection unavailable (sidecar not connected)' (849-853, 1244-1248) even when the sidecar answered with a 500. A failed 'Set up' POST (721-734) collapses to null, runAction re-reads status (823-831) and shows no error.",
+    "evidence": "src/components/SettingsPanel.tsx:697-734, 785-831, 849-853, 1210-1223, 1244-1248, src/lib/hardware-fit.ts:44-55",
+    "notes": "The component re-implements a sidecar client inline: its own fetch (bypassing sidecarGet, so no X-Vysted-Region or search headers and no extractSidecarDetail reason), a hand-mirrored wire type (SearxngStatus 'mirrors searxng_manager.snapshot()', held in a component, not types/), and its own error policy, where every failure means 'not connected'. It also samples once, unlike StatusChrome's probe, which re-runs on sidecarStatus (StatusChrome.tsx:104-106). The 'Unlimited (Local)' tier is the default research path, and this chip is the one place a user verifies it; a stale Ready hides that research quality has dropped. Smallest fix: add sidecarPost to sidecar-client and route both calls through it; render the SidecarError reason; re-fetch status on panel focus / document visibilitychange or on a slow (for example 30 s) poll while mounted; move SearxngStatus to types/."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-9",
+    "title": "Data-trust badges are forked three ways: the 'generic' ProvenanceBadge signals synthetic by colour only, the EOD badge ships without a date, and its as-of date is computed in UTC",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "(a) EquityOverviewPanel.tsx:286 and BrokerReadsSection.tsx:109 each define their own `ProvenanceBadge` with different props and semantics, shadowing the shared one (DataBadges.tsx:36). (b) Freshness is defined twice (DataBadges.tsx:68, types/data.ts:12). (c) <ProvenanceBadge provider='x' synthetic> without a prefix renders the text 'x' (DataBadges.tsx:50-51); only the colour changes, contrary to its doc (30-34). (d) Watchlist/Chart/brief-blocks pass freshness without asOf (WatchlistPanel.tsx:75, ChartPanel.tsx:1424, brief-blocks.tsx:796), so an EOD quote shows a bare 'EOD' although Quote.timestamp exists. (e) asOfDate uses toISOString (DataBadges.tsx:78): `TZ=Asia/Kolkata node -e` on 2026-09-24T01:30+05:30 gives '2026-09-23' (UTC) vs '2026-09-24' (local). BriefPanel's 'EOD as of' badge (BriefPanel.tsx:170) and its local 'produced' timestamp (BriefPanel.tsx:451) disagree for any brief made 00:00-05:29 IST.",
+    "evidence": "src/components/DataBadges.tsx:30-34,36-65,68,71-79,86-119, src/modules/equity-overview/EquityOverviewPanel.tsx:280-312, src/modules/broker-connect/BrokerReadsSection.tsx:108-129, types/data.ts:12, src/modules/watchlist/WatchlistPanel.tsx:74-75, src/modules/chart/ChartPanel.tsx:1424, src/modules/research/BriefPanel.tsx:170,451",
+    "notes": "Repetition and a primitive that is shallower than its promise ('generic so any Pass-B surface can reuse them'). Two surfaces kept shadow copies with the same name, so a reader cannot tell which badge a panel shows without opening it. The shared one's optional asOf lets every caller omit the date, which is the load-bearing fact for an EOD value in a data-trust product. Smallest fix: one ProvenanceBadge that takes an optional freshness/asOf and a mode prefix (covering the equity and broker shapes); import Freshness from types/data; always put 'synthetic' in the visible text; make asOf required when freshness === 'eod'; format the date in local time (toLocaleDateString('en-CA'))."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-10",
+    "title": "The debounced layout autosave has no flush on close, so a rearrange followed by quit within 1.5 s is lost",
+    "severity": "low",
+    "area": "lifecycle",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "Drag a panel to a new split, then press Cmd+Q within 1.5 s. onDidLayoutChange armed a 1500 ms timer (PanelHost.tsx:187-193); the webview dies before it fires, and nothing flushes a pending save: `grep -rn 'beforeunload|visibilitychange|pagehide|CloseRequested' src src-tauri/src` returns nothing. The cleanup (PanelHost.tsx:200-203) clears the timer instead of running it.",
+    "evidence": "src/components/PanelHost.tsx:12-13,187-193,200-210",
+    "notes": "Debounce without a flush converts 'coalesce writes' into 'drop the last write'. It is most visible exactly when the user tidies the cockpit before quitting. Smallest fix: keep a `pending` flag; on cleanup and on window pagehide / Tauri onCloseRequested, if pending, call autosaveLayout() immediately (fire-and-forget fetch with keepalive:true)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-11",
+    "title": "PanelHost mounts and restores as soon as first-party modules register, before plugin modules exist, so any plugin panel in the saved layout deterministically trips the restore-failure path",
+    "severity": "low",
+    "area": "lifecycle",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "page.tsx:50 registers first-party modules synchronously; bootstrapPlugins (page.tsx:85-92) appends plugin modules only after awaiting persistence, getSidecarBaseUrl and each loadPlugin (plugin-bootstrap.ts:220-270). PanelHost's gate is `modules.length === 0` (PanelHost.tsx:214), so DockviewReact mounts and restoreLastSessionOrDefault runs first. If the autosave layout has a plugin panel, layoutReferencesUnknownComponent is true, so the default layout loads and deserializeWorkspace is skipped (workspace.ts:509-514). That is COD-workspace-layout-4 (non-layout state not restored, then overwritten by the next autosave), triggered on every launch. Latent today: no bundled plugin sets contributesPanels:true (plugins/*/index.ts).",
+    "evidence": "src/app/page.tsx:50,85-92, src/components/PanelHost.tsx:121-126,214-226, src/lib/plugin-bootstrap.ts:220-270, src/lib/workspace.ts:509-514",
+    "notes": "Temporal coupling hidden behind a readiness proxy. 'modules registered' is used as 'all panel components known', which stops being true the moment the plugin contract's panel capability is used, and the kept plugin system exists for that. Smallest fix: gate the restore on a `pluginsReady` flag set when bootstrapPlugins resolves (with a timeout fallback), or have restore defer unknown-component panels rather than abandoning the whole blob (the COD-workspace-layout-4 fix)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-12",
+    "title": "DataTable, the 'ONE table primitive', has no loading or empty slot and its sort headers are not keyboard-operable, so callers hand-roll skeleton tables that duplicate column geometry",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "ScreenerResultsTable.tsx:343-350 renders a separate hand-written <table> with its own <colgroup> for the loading state; WatchlistPanel.tsx:437 and EarningsCalendarPanel.tsx:216 do the same. Keyboard: Tab never reaches a sortable header. The <th> has onClick but no tabIndex, role=button or onKeyDown (DataTable.tsx:239-258), so Screener, SEC filings and Ratings history (the 3 sortable tables) cannot be sorted without a mouse.",
+    "evidence": "src/components/DataTable.tsx:13-39,101-129,239-266, src/modules/screener/ScreenerResultsTable.tsx:343-350, src/modules/watchlist/WatchlistPanel.tsx:437, src/modules/earnings/EarningsCalendarPanel.tsx:216,278",
+    "notes": "The header claims every tabular surface renders through it (DataTable.tsx:14-16). The interface covers only the populated state, so each loading skeleton restates the column widths, and a width change in COLUMNS now needs two edits (change amplification). Smallest fix: add `loading?: { rows: number }` (renders skeleton rows through the same colgroup) and `empty?: ReactNode`; put the sort affordance in a <button> inside the <th> (keeps aria-sort on the th)."
+  },
+  {
+    "raw_id": "COD-frontend-panels-shell-chrome-13",
+    "title": "Shell comments and project DNA describe a stack and palette that no longer exist (Next static export, 'three-place accent lockstep', 'ONE search surface')",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "frontend-panels-shell-chrome",
+    "repro": "The app is a Vite SPA: package.json scripts dev/build = vite, src/main.tsx:17-21 createRoot, and src/app has no layout.tsx. Yet PanelHost.tsx:118-119 and page.tsx:46-49 justify the modules-first mount as 'keeps the static-export build SSR-safe', 82 src files still start with 'use client', and CLAUDE.md Stack says 'Next.js 16 (App Router, static export)'. The accent: chart-theme.ts:45 says ACCENT_CORAL_RGB is a 'three-place lockstep' and CLAUDE.md says the three must change together as 'cool-indigo', but globals.css:52-55 --accent-rgb is a neutral gray that is 'NOT the accent' and tokens.css:47-54 defines a peach accent. SettingsPanel.tsx:72 promises 'ONE search surface'; no settings search exists.",
+    "evidence": "src/components/PanelHost.tsx:118-119, src/app/page.tsx:46-49, src/main.tsx:17-21, package.json scripts, src/app/globals.css:52-55, src/lib/chart-theme.ts:45, styles/tokens.css:47-54, src/components/SettingsPanel.tsx:68-98, CLAUDE.md (Stack; Frontend gotchas: design tokens)",
+    "notes": "Comments that state false invariants are worse than none. The next maintainer will preserve an SSR constraint that cannot occur, and will 'fix' globals.css back into a lockstep the design deliberately abandoned. Smallest fix: drop the 'use client' directives (or leave them and delete the SSR rationale), rewrite the two SSR comments to the real reason (dockview needs registered components before onReady), fix the lockstep comment in chart-theme.ts, and delete the search claim. CLAUDE.md is Tier-1, so the operator must sign off its Stack line and design-token gotcha."
+  }
+]

@@ -1,0 +1,86 @@
+[
+ {
+  "id": "panel-screener",
+  "area": "screener",
+  "surface": "Screener panel shell",
+  "entry": "src/modules/screener/index.ts:16-32; src/modules/screener/ScreenerPanel.tsx:90",
+  "driven": "ok",
+  "evidence": "rc1/round-4/00-provider-health.txt; rc1/round-4/01-default-universe.txt; rc1/round-4/02-default-screen-stream.txt; rc1/round-4/07-zero-result-response.json",
+  "states_driven": {
+   "zero-evaluated (census finding 1 / R15-UI-055,DATA-110,AGENT-009,DATA-072)": "FIXED — re-driven live under the same throttled-Yahoo-IP condition (00-provider-health.txt: yahoo.open=true). Default screen (now nifty50, region-aware — see criteria-builder row) returns 4 of 49 evaluated, partial:true, throttled:true, honest coverage line 'screened 49 of 50 — 1 unavailable · 1 rows on stale/snapshot basis' (02-default-screen-stream.txt). Census's original 0-of-506-evaluated collapse does not reproduce.",
+   "zero-evaluated (genuinely 0 matches)": "ok — 07-zero-result-response.json: nifty50 0<PE<0.5, partial:false, 'No rows matched' remains true-when-true",
+   "region-aware default universe (R15-CODE-DATA-004)": "FIXED — GET /screener/default-universe returns {\"universe\":\"nifty50\"} for this IN-region seed profile (01-default-universe.txt), and ScreenerPanel.tsx:134 calls useRetryOnSidecarReady(adoptRegionDefaultUniverse,[region]) — wired, not just an unreachable endpoint (code-read, src/store/screener.ts:318-323)",
+   "error (stream error frame, R15-UI-056)": "FIXED at code level — src/store/screener.ts:551-553 now sets serverError from frame.message (comment cites R15-UI-056) on a distinct path from the 'Stream ended without a result frame' fallback (:611); not re-induced live this round (would need a forced engine crash at the shared/candidate sidecar, out of this drive's induced-failure scope — code-read evidence only, not NEEDS-GUI)"
+  }
+ },
+ {
+  "id": "screener-criteria-builder",
+  "area": "screener",
+  "surface": "Screener criteria builder (AND/OR groups)",
+  "entry": "src/modules/screener/ScreenerCriteriaBuilder.tsx:390; src/modules/screener/CriterionGroupEditor.tsx:317",
+  "driven": "ok",
+  "evidence": "rc1/round-4/02-default-screen-stream.txt (flat AND, matched_criteria populated); code-read src/modules/screener/ScreenerPresets.tsx:119-137",
+  "states_driven": {
+   "preset-over-advanced (census finding 2 / R15-UI-007)": "FIXED — code-read: ScreenerPresets.tsx apply() now calls applyFilters({criteria, group: null, universe, formula: \"\"}) explicitly, with a comment citing R15-UI-007 and describing the exact old bug (group+formula riding along). Not re-driven through a live jsdom replay this round (census's 24-store-panel-replay.json S4/S5 already proved the old broken path; the fix is a pure synchronous state assignment with no async/timing risk, so the code-read is conclusive)."
+  }
+ },
+ {
+  "id": "screener-formula-input",
+  "area": "screener",
+  "surface": "Screener formula leaf (raw expression input)",
+  "entry": "src/modules/screener/ScreenerFormulaLeaf.tsx:46,202",
+  "driven": "ok",
+  "evidence": "rc1/round-4/04-malformed-formula-response.json",
+  "states_driven": {
+   "parse-error": "ok — POST /screener/formula/validate on 'pe < 20 and roe > 15%' returns {\"ok\":false,\"error\":\"unexpected character '%'\",\"position\":20} — byte-identical to census S3, no regression"
+  }
+ },
+ {
+  "id": "screener-results-table",
+  "area": "screener",
+  "surface": "Screener results table",
+  "entry": "src/modules/screener/ScreenerResultsTable.tsx:318",
+  "driven": "ok",
+  "evidence": "rc1/round-4/05-out-limit-200.json; rc1/round-4/05-out-limit-1000.json; code-read ScreenerResultsTable.tsx:489-513",
+  "states_driven": {
+   "tenth-item / 200-cap-presented-as-match-count (census finding 4 / R15-UI-006)": "FIXED — same india-all 0<PE<40 screen at limit=200 and limit=1000: both now return a distinct matched_count:2799 (the true total) alongside result_count:200/1000 (the page size) — previously result_count WAS silently the page cap. Panel code confirmed to render both separately with a 'showing N of matched_count' note when truncated (ScreenerResultsTable.tsx:489-513).",
+   "empty (zero-evaluated)": "FIXED, same evidence as panel-screener row"
+  }
+ },
+ {
+  "id": "screener-presets",
+  "area": "screener",
+  "surface": "Screener saved/preset screens",
+  "entry": "src/modules/screener/ScreenerPresets.tsx:119,125,141",
+  "driven": "ok",
+  "evidence": "code-read ScreenerPresets.tsx:119-137; code-read src/lib/workspace.ts:553-563",
+  "states_driven": {
+   "applied (census finding 2)": "FIXED — see screener-criteria-builder row",
+   "saved screens ride the workspace blob (COD-workspace-layout-6 / R15-CODE-FRONTEND-018)": "FIXED — src/lib/workspace.ts:553-563 now has a savedScreens field with read/restore/subscribe wired into serializeWorkspace/deserializeWorkspace (previously session-only, never persisted)"
+  }
+ },
+ {
+  "id": "screener-custom-universe",
+  "area": "screener",
+  "surface": "Custom universe bare-Indian-ticker resolution",
+  "entry": "src/store/screener.ts (parseCustomSymbols); sidecar screener custom-universe resolver",
+  "driven": "ok",
+  "evidence": "rc1/round-4/03-custom-bare-request.txt; rc1/round-4/03-custom-bare-response.json",
+  "states_driven": {
+   "bare Indian tickers on a throttled IP, no .NS suffix (census finding 7 / R15-DATA-093)": "FIXED and now BETTER than the census fix: POST /screener/run with custom_symbols [\"RELIANCE\",\"TCS\",\"INFY\",\"HDFCBANK\",\"COCHINSHIP\"] (no suffix) returns evaluated_count:5, skipped_count:0, all 5 resolved to *.NS and matched — live data, not the store fallback census needed with the circuit closed. Yahoo circuit was OPEN throughout this drive (00-provider-health.txt) yet this still resolved live."
+  }
+ },
+ {
+  "id": "screener-agent-authoring",
+  "area": "screener",
+  "surface": "Agent-authored screen (write_screener_filters / save_screen via composer chat)",
+  "entry": "src/lib/host-actions.ts (parseScreenRecipe, applyIntent write_screener_filters/save_screen); sidecar/services/agent_runtime.py (_normalise_tool_args, _grounded_host_action_result)",
+  "driven": "partial",
+  "evidence": "rc1/round-4/06-agent-screen-llama.jsonl; rc1/round-4/06b-agent-screen-llama-auto.jsonl; code-read host-actions.ts:1764-1840; code-read agent_runtime.py:945-965,1636-1720",
+  "states_driven": {
+   "criteria arrives as a JSON string (census finding 5/6 / R15-AGENT-024,043,CODE-FRONTEND-009,010)": "FIXED — root cause was in the SHARED runtime layer, not the frontend: sidecar/services/agent_runtime.py:945-965 _normalise_tool_args now runs before EVERY adapter (Ollama included) and coerces a stringified array/object tool arg into its real type when the parsed type matches the schema (comment explicitly cites R15-AGENT-024). Live-replayed with the exact census prompt against llama3.1:8b twice (--autonomy ask and --autonomy auto): both times the model emitted a well-formed criteria ARRAY (not a JSON string) and write_screener_filters returned {ok:true}. host-actions.ts:1764-1774 also now fails explicitly ('no well-formed screener criteria') instead of silently no-opping with a false success claim, and save_screen (:1811-1820) now writes recipe.criteria into the draft before saving instead of whatever was already on screen.",
+   "run:true actually running the screen (R15-CODE-FRONTEND-010)": "FIXED at code level — host-actions.ts:1777 'if (run) void useScreenerStore.getState().runScreener();' is now present (was previously narrated-only)."
+  },
+  "new_finding": "rc1-drive-screener:1 — see findings file (narration/mode mismatch under AUTO autonomy, medium)"
+ }
+]

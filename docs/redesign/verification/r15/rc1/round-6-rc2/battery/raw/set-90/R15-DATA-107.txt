@@ -1,0 +1,6 @@
+candidate ace7dd76; cmd: cd sidecar; PYTHONPATH=. .venv/bin/python scratchpad/b13_scr.py 107
+MAZDOCK {'exchange': 'NSE', 'scrip_code': '543237', 'isin': 'INE249Z01020', 'name': 'Mazagon Dock Shipbuilders Limited', 'group': 'A'}
+MAZDOCK.NS {'exchange': 'NSE', 'scrip_code': '543237', 'isin': 'INE249Z01020', 'name': 'Mazagon Dock Shipbuilders Limited', 'group': 'A'}
+RELIANCE.BO {'exchange': 'BSE', 'scrip_code': '500325', 'isin': 'INE002A01018', 'name': 'Reliance Industries Ltd', 'group': 'A'}
+543237 None
+_bse_lookup value type: _BseRow

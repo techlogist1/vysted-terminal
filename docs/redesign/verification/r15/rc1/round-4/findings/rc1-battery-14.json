@@ -1,0 +1,11 @@
+[
+  {
+    "key": "rc1-battery-14:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "title": "Live copilot research resolves the exact company name 'KPIT Technologies' to the wrong listed entity (Birlasoft) via a stale former-name coincidence",
+    "repro": "Live invoke: vy.py invoke copilot 'research KPIT Technologies' --provider ollama --model llama3.1:8b against candidate sidecar :52354 (rc1-round-4-cand, seed data rc1-round-4-data-rc1-battery-14). The research tool built its brief for symbol BSOFT.NS (Birlasoft Limited). GET /resolve?q=KPIT%20Technologies returns needs_disambiguation:true with KPITTECH (KPIT Technologies Limited, confidence 1.0) listed FIRST and BSOFT (Birlasoft Limited, former_name 'KPIT', confidence 1.0) listed second -- the agent-tool-side resolution picked the second, wrong, tied candidate instead of the literal name match.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/battery/raw/set-5/R15-AGENT-001.txt",
+    "suspected_files": ["sidecar/services/agent_tools/research.py", "sidecar/services/resolver (symbol pick/tie-break logic)"]
+  }
+]

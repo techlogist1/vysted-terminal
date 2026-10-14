@@ -1,0 +1,27 @@
+=== R15-LEAD-003 probe (candidate 1006c6da) ===
+import asyncio, sys, os
+os.environ["VYSTED_DATA_DIR"] = "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/probe003-data"
+sys.path.insert(0, ".")
+from services import data_cache
+
+async def main():
+    # Simulate a pre-fix build writing a cache row.
+    await data_cache.ensure_build("0.8.0-prefix")
+    await data_cache.set("disclosures:shareholding:TESTCO", {"fabricated": True})
+    hit = await data_cache.get("disclosures:shareholding:TESTCO", ttl_seconds=86400)
+    print("pre-upgrade read:", hit)
+
+    # Now the sidecar upgrades to the fixed build.
+    cleared = await data_cache.ensure_build("0.8.0-postfix")
+    print("cache cleared on version bump:", cleared)
+    hit2 = await data_cache.get("disclosures:shareholding:TESTCO", ttl_seconds=86400)
+    print("post-upgrade read (should be None -- stale row busted):", hit2)
+
+asyncio.run(main())
+OUTPUT:
+pre-upgrade read: {'fabricated': True}
+cache cleared on version bump: True
+post-upgrade read (should be None -- stale row busted): None
+
+app.py:124 calls data_cache.ensure_build(app.version) in the lifespan; on a version bump it DELETEs the whole cache table (backing up the old data dir first).
+VERDICT: holds. A row written under an old build version is busted on the next build's ensure_build() call; the shareholding-cache-specific case from the batch-3 verifier note is subsumed by this whole-cache version gate.

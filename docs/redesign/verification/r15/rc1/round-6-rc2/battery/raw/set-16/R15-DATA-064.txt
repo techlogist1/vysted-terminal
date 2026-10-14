@@ -1,0 +1,9 @@
+# R15-DATA-064
+$ curl -H 'X-Vysted-Region: IN' http://127.0.0.1:52351/history/SPY?timeframe=30m
+SPY {'symbol': 'SPY', 'timeframe': '30m', 'bars': 273, 'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': False, 'coverage_start': None}
+$ curl -H 'X-Vysted-Region: IN' http://127.0.0.1:52351/history/AAPL?timeframe=30m
+AAPL {'symbol': 'AAPL', 'timeframe': '30m', 'bars': 273, 'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': False, 'coverage_start': None}
+$ curl -H 'X-Vysted-Region: IN' http://127.0.0.1:52351/history/RELIANCE.NS?timeframe=30m
+RELIANCE.NS {'symbol': 'RELIANCE.NS', 'timeframe': '30m', 'bars': 260, 'provider': 'yfinance', 'freshness': 'eod', 'reason': None, 'partial': False, 'coverage_start': None}
+$ indicators SPY 30m
+{"symbol":"SPY","timeframe":"30m","provider":"yfinance","indicators":[{"name":"rsi","panel":"separate","lines":[{"label":"RSI(14)","points":[{"time":"2026-09-03T09:30:00-04:00","value":null},{"time":"2026-09-03T10:00:00-04:00","value":null},{"time":"2026-09-03T10:30:00-04:00","value":null},{"time":"2026-09-03T11:00:00-04:00","value":null},{"time":"2026-09-03T11:30:00-04:00","value":null},{"time":"2026-09-03T12:00:00-04:00","value":null},{"time":"2026-09-03T12:30:00-04:00","value":null},{"time":"2026-09-03T13:00:00-04:00","value":null},{"time":"2026-09-03T13:30:00-04:00","value":null},{"time":"

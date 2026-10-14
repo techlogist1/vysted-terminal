@@ -1,0 +1,72 @@
+[
+  {
+    "raw_id": "INT-blueprint-48-1",
+    "title": "Node-editor agent node silently drops the user's prompt (config key `prompt` vs handler's `prompt_template`)",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "node-editor / workflow engine",
+    "repro": "Open the Node Editor, drop an `Invoke Agent` node, type an Agent ID and a Prompt in the inspector, run the workflow -> the agent is invoked with the literal template `{context}`, never with the text that was typed. The config form field is `prompt` (src/modules/node-editor/node-registry.ts:457-462) and node config is serialized verbatim (src/modules/node-editor/graph-state.ts:99 `config: node.data.config`), while the handler reads `config.get(\"prompt_template\")` and falls back to `\"{context}\"` (sidecar/services/workflow_nodes/builtin.py:166-169).",
+    "evidence": "src/modules/node-editor/node-registry.ts:448-462, src/modules/node-editor/graph-state.ts:99, sidecar/services/workflow_nodes/builtin.py:166-169",
+    "notes": "Dead control: a visible input that the backend never reads, with no error on either side (`_render_template` at builtin.py:130-149 is deliberately forgiving, so a wrong-keyed template degrades silently too). Consequence: every Layer-3 agent node runs a blank prompt, so the blueprint's flagship multi-agent example cannot produce the output the user authored. Smallest fix: rename the form field key to `prompt_template` in node-registry.ts (one string) - or accept both keys in builtin.py:166. Add the round-trip to src/modules/node-editor/graph-state.test.ts so the two halves stay keyed together."
+  },
+  {
+    "raw_id": "INT-blueprint-48-2",
+    "title": "Workflow runs carry no BYOK credentials, and the resulting LLM failure is reported as a SUCCESSFUL node",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "node-editor / workflow engine",
+    "repro": "Run any workflow containing an `ai.agent_invoke` node. The panel POSTs `{spec, mode}` only - no api_key, no provider (src/modules/node-editor/NodeEditorPanel.tsx:386-391). `agent_invoke` therefore calls `invoke_agent(api_key=None)` against the agent JSON's defaultProvider (`anthropic` for 11 of 13 agents, `openai` for researcher - sidecar/agents/*.json), the adapter emits an LLMErrorEvent, and builtin.py:200-207 replaces the empty content with the sentinel string `\"(no provider key configured)\"` and RETURNS NORMALLY. Because the handler does not raise, workflow_engine.py:367-386 records status `ok`, overall run status is `ok` (:284), and the run overlay shows a green run whose downstream nodes consume the sentinel as if it were the agent's answer.",
+    "evidence": "src/modules/node-editor/NodeEditorPanel.tsx:386-391, sidecar/services/workflow_nodes/builtin.py:151-207, sidecar/services/workflow_engine.py:284,367-386, sidecar/config.py:163-166, sidecar/models/workflow.py:66-74",
+    "notes": "Two mechanisms compound. (1) The BYOK rule is that the renderer reads the keychain and passes the secret in the request (CLAUDE.md); the sidecar has no store to fall back on - config.py:163-166 is a per-request ContextVar, and the `VYSTED_<PROV>_API_KEY` env read that builtin.py:158 documents does not exist anywhere in the sidecar (grep). So Layer-3 orchestration is unreachable for every provider except a keyless local one, which the config form cannot select either (node-registry.ts:448-462 exposes only agent_id + prompt). (2) An LLM failure converted into a plausible-looking string and reported as success is the same data-honesty class D50/D65 were opened for - a downstream critic node will happily critique `\"(no provider key configured)\"`. Smallest fix: thread provider/model/api_key onto WorkflowRunRequest (models/workflow.py:66-74) from the same keychain path the composer uses, and make `agent_invoke` raise (or return status error) when `error_message` is set instead of substituting a sentinel."
+  },
+  {
+    "raw_id": "INT-blueprint-48-3",
+    "title": "Panel->agent context: 15 of 21 panels publish nothing, and 3 of the 6 that do are discarded by the consumer",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "chat context / panel-context bus",
+    "repro": "Open the Backtest, News or Equity Overview panel, then ask the copilot about what is on screen. Those panels DO publish to the bus (backtest/BacktestResultView.tsx:423 source `backtest-panel`, news/NewsFeedPanel.tsx:189 source `news`, equity-overview/EquityOverviewPanel.tsx:649 source `equity`), but `captureTerminalState` only branches on sources starting with `chart` and the literals `watchlist` and `portfolio` (src/modules/chat/context-provider.ts:224-259) - every other source is iterated and dropped. Screener, macro, sec, earnings, analyst-ratings, quant, notes, marketplace, plugin-manager, broker-connect, node-editor and settings never publish at all.",
+    "evidence": "src/modules/chat/context-provider.ts:216-280 (esp. :224-259), src/modules/backtest/BacktestResultView.tsx:411-433, src/modules/news/NewsFeedPanel.tsx:184-201, src/modules/equity-overview/EquityOverviewPanel.tsx:620-655, src/store/panel-context.ts:38-46",
+    "notes": "BacktestResultView.tsx:411-412 states its own intent - it publishes 'so the chat sidebar's Strategy Critic invocation can pick up the focused run id' - and the consumer falsifies it: the run id never reaches TerminalState, so the blueprint's named Strategy Critic agent cannot see the run the user is staring at. The terminal snapshot carries `openPanels` (context-provider.ts:283-289), so the agent knows WHICH panels are open but not what is in them - it knows the user opened the screener and nothing about the results. This is the concrete shortfall behind blueprint L1 ('the AI knows the panel's context'): the bus is built, the wiring is 6/21 on the publish side and 3/6 on the read side. Smallest fix: extend the switch in context-provider.ts:224 with the three sources already on the bus (backtest run id, focused news article, equity ticker), then add publishers to the panels whose state an agent would actually ask about (screener results, sec filing, earnings)."
+  },
+  {
+    "raw_id": "INT-blueprint-48-4",
+    "title": "The only real-time WebSocket path in the app is dead code; live quotes are 5-second REST polls",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "crypto / watchlist",
+    "repro": "grep for `openCryptoStream` over src/ -> exactly one hit, its own definition at src/lib/sidecar-client.ts:246. No panel opens the socket. The watchlist, the app's live-quote surface, refreshes on `setInterval(..., POLL_INTERVAL_MS)` with POLL_INTERVAL_MS = 5_000 (src/modules/watchlist/WatchlistPanel.tsx:24,219-221), so a BTC/USDT row is up to 5s stale while a working ccxt.pro push stream sits unused behind /crypto/stream.",
+    "evidence": "src/lib/sidecar-client.ts:245-252, src/modules/watchlist/WatchlistPanel.tsx:24,219-221, sidecar/routers/crypto.py:50-63, sidecar/services/ccxt_provider.py:109-118",
+    "notes": "Blueprint §3.1 L102 names WebSocket as the real-time JS<->Python transport; the sidecar half is complete and correct (ccxt.pro watch_ticker, exchange closed in a finally), the client helper exists, and nothing joins them. Consequences: (a) every crypto row is poll-stale and the app hammers upstream on a fixed 5s cadence whether or not anything changed - relevant to the idle-upstream-traffic question L6 is chasing; (b) a maintainer reading sidecar-client.ts reasonably assumes streaming is live. Either wire the watchlist's crypto rows to openCryptoStream (subscribe on mount, close on unmount) or delete the helper and the route and stop advertising streaming."
+  },
+  {
+    "raw_id": "INT-blueprint-48-5",
+    "title": "Plugin data contribution is declaration-only: getDataSources() output is never routed, subscribe() is never called",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "plugin system",
+    "repro": "Write a plugin with `contributesData: true` and a DataSource; it loads, and the only effect anywhere in the app is the count in the plugin-manager subtitle (`${dataSources.length} data sources`, src/components/PluginManagerPanel.tsx:42). No panel, store or sidecar route resolves a read through a plugin-contributed source. The bundled reference plugin says so in its own header: 'The actual data flows through the sidecar's provider_registry (this plugin is a thin declaration of the source...)' (plugins/yfinance/index.ts:1-11). Likewise `VystedPlugin.subscribe` (types/plugin.ts:251) has no host call site in src/ and no implementor in plugins/, so `DataSource.realtime: true` (types/plugin.ts:84) cannot be honoured.",
+    "evidence": "types/plugin.ts:76-87,236,251; src/lib/plugin-runtime.ts:419-425; src/store/plugins.ts:62,86; src/components/PluginManagerPanel.tsx:28,42; plugins/yfinance/index.ts:1-11; plugins/openbb-mcp/index.ts:168",
+    "notes": "The agents, nodes, panels and commands slices of the contract are genuinely wired (plugin-agents.ts:32-33 'genuinely RUNNABLE'; node-registry.ts:540-544 accepts plugin nodes; plugin-bootstrap.ts:135-153 bridges panels/commands). The data slice is the one that is inert, which matters because 'max extensibility' plus a real data marketplace is the positioning: today a third-party data plugin cannot serve one quote without a sidecar edit, so the marketplace's data tier is decoration. Smallest honest fix for 0.9.0 is either a resolution seam (a provider_registry entry backed by a plugin-declared sidecar route) or docs + types that say plainly that DataSource is a declaration and realtime/subscribe are reserved - do not ship a contract field the host cannot honour."
+  },
+  {
+    "raw_id": "INT-blueprint-48-6",
+    "title": "Workflows have no out-of-app alert channel - a watching workflow can only notify a user who is already looking",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "node-editor / workflow nodes",
+    "repro": "Build the blueprint's own Layer-3 example (researcher -> strategy critic -> score > 7 -> alert). The chain and the threshold exist (`ai.agent_invoke`, `logic.branch` mode 'gt', `logic.compare` - node-registry.ts:110-133, builtin.py:222+), but the only output nodes are `action.log` and `action.notify_desktop` (node-registry.ts:135-149). grep for 'telegram' across src/, sidecar/, plugins/, types/ returns nothing, and there is no webhook/email/HTTP-POST node and no journal/notes output node.",
+    "evidence": "src/modules/node-editor/node-registry.ts:135-149, sidecar/services/workflow_nodes/__init__.py:11-50, docs/BLUEPRINT.md:209",
+    "notes": "The blueprint's flagship workflow ends in 'alerts via Telegram, otherwise logs to a journal' - neither terminal exists. On a local-first laptop that sleeps, a desktop notification only fires while the app is open and awake, so the 'watching' half of the product promise has no way to reach the user who walked away. An outbound webhook node (user-supplied URL + JSON body) is BYOK-compatible, needs no hosted backend, and covers Telegram bots, Slack and ntfy in one node; the journal branch can write to the existing notes store rather than a new one. Smallest fix: one `action.webhook` handler in sidecar/services/workflow_nodes/builtin.py plus its registry entry and config form."
+  },
+  {
+    "raw_id": "INT-blueprint-48-7",
+    "title": "BLUEPRINT §3.1 still advertises LangGraph, which the build does not use and no decision records dropping",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "blueprint / architecture docs",
+    "repro": "docs/BLUEPRINT.md:86 and :122 both list 'AI agent orchestration (LangGraph)' as a sidecar capability. LangGraph (and langchain) appear nowhere in sidecar/requirements.txt; the only mentions in code are the phrase 'LangGraph-style' describing a hand-rolled loop (sidecar/services/research/deep.py:4, services/research/__init__.py:12). grep for langgraph across CHANGELOG.md and docs/ finds no decision entry.",
+    "evidence": "docs/BLUEPRINT.md:86,122; sidecar/requirements.txt; sidecar/services/research/deep.py:4; sidecar/services/agent_runtime.py:1229; CHANGELOG.md:1041-1044 (the contrasting vectorbt/backtrader decision, which IS recorded)",
+    "notes": "The capability is delivered - agent_runtime.py, run_manager.py and workflow_engine.py orchestrate agents without a graph library - so this is drift, not a hole. It matters only because the blueprint is the public architecture document and the sibling substitution (custom backtest engine instead of vectorbt/backtrader) got an explicit Tier-3 entry at CHANGELOG.md:1041 while this one got nothing: a reader cannot tell which stack lines are current. Smallest fix: one CHANGELOG/DECISIONS line recording the hand-rolled orchestration choice, and strike LangGraph from BLUEPRINT.md:86,122."
+  }
+]

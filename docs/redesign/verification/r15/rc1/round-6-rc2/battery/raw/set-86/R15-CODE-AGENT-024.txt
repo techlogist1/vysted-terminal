@@ -1,0 +1,24 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar; for m in _resolve_endpoint is_available status _get_client _decode_tool_result _call_tool _last_tool_call_ok _last_error; do printf '%-22s openbb:%s sec:%s
+' $m $(grep -c "def $m\|^$m" services/openbb_mcp_provider.py) $(grep -c "def $m\|^$m" services/sec_filings_provider.py); done; grep -n 'LocalMcpSubprocess' services/openbb_mcp_provider.py services/sec_filings_provider.py services/mcp_client.py | head; grep -n 'def test_local_mcp_subprocess_resolves_and_decodes_once' tests/test_mcp_client.py; wc -l services/openbb_mcp_provider.py services/sec_filings_provider.py; /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/ip.sh -c 'from services import openbb_mcp_provider as o, sec_filings_provider as s; print(type(o._subprocess).__name__, type(s._subprocess).__name__, o._subprocess.__class__ is s._subprocess.__class__, o.status() if hasattr(o,"status") else "-")'
+_resolve_endpoint      openbb:0 sec:0
+is_available           openbb:1 sec:1
+status                 openbb:1 sec:1
+_get_client            openbb:0 sec:0
+_decode_tool_result    openbb:1 sec:1
+_call_tool             openbb:1 sec:1
+_last_tool_call_ok     openbb:0 sec:0
+_last_error            openbb:0 sec:0
+services/openbb_mcp_provider.py:114:_subprocess = mcp_client.LocalMcpSubprocess("openbb-mcp", port_env=_PORT_ENV, host_env=_HOST_ENV)
+services/sec_filings_provider.py:69:_subprocess = mcp_client.LocalMcpSubprocess("sec-edgar-mcp", port_env=_PORT_ENV, host_env=_HOST_ENV)
+services/mcp_client.py:301:# LocalMcpSubprocess — shared shape for a Tauri-spawned, env-var-discovered
+services/mcp_client.py:306:class LocalMcpSubprocess:
+314:def test_local_mcp_subprocess_resolves_and_decodes_once(monkeypatch: pytest.MonkeyPatch) -> None:
+     523 services/openbb_mcp_provider.py
+     768 services/sec_filings_provider.py
+    1291 total
+<string>:1: RuntimeWarning: coroutine 'status' was never awaited
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+LocalMcpSubprocess LocalMcpSubprocess True <coroutine object status at 0x10e5c93c0>
+
+exit=0

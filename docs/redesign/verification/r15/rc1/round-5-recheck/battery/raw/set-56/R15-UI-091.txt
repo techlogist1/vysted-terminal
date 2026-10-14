@@ -1,0 +1,22 @@
+=== R15-UI-091 (live probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+CMD: curl -s http://127.0.0.1:52340/indicators/suggested?timeframe=5m&asset_class=equity
+{"indicators":["ema:9","ema:21","vwap","rsi"]}
+
+CMD: curl -s http://127.0.0.1:52340/indicators/suggested?timeframe=1d&asset_class=crypto
+{"indicators":["ema:50","ema:200","vwap:week","rsi"]}
+
+CMD: curl -s http://127.0.0.1:52340/indicators/suggested?timeframe=1d&asset_class=equity
+{"indicators":["ma","volume","rsi","macd"]}
+
+All three match the FR-092 named combos exactly (5m/equity -> EMA9/21+VWAP+RSI; 1d/crypto ->
+EMA50/200+week VWAP+RSI; 1d/equity -> MA/volume/RSI/MACD) -- distinct per timeframe/asset
+class, not the same daily set for every case (the original bug).
+
+CMD: curl -s "http://127.0.0.1:52340/indicators/AAPL?indicators=ema:9,ema:21" (saved, parsed)
+EMA(9): 251 points, 243 non-null, first non-null {"time":"2025-10-08...","value":255.66778355718756}
+EMA(21): 251 points, 231 non-null, first non-null {"time":"2025-10-24...","value":254.95925923154127}
+
+Both EMA(9) and EMA(21) lines return real (non-null past warmup) values -- an explicit
+ema:9/ema:21 indicator request no longer falls back to no-op.
+
+VERDICT: holds

@@ -1,0 +1,602 @@
+{
+  "collected_at": "2026-09-19",
+  "status": "complete",
+  "slot": "P6",
+  "symbol": "ICON",
+  "collector_notes": "Outside-truth pack for P6 (Icon Facilitators Ltd, BSE 544426). The session's WebSearch budget (200/200) was already exhausted when this task started, so NO discovery search was possible: every source below was reached by fetching a guessed canonical URL pattern directly. bseindia.com returned HTTP 403 on the quote page AND on all five announcement PDFs, so NOT ONE exchange filing was opened for this name - every filing cited below is cited at the URL screener.in printed for it, flagged per-field. trendlyne.com, tickertape.in, 5paisa.com and the guessed chittorgarh slug returned 404 (the chittorgarh slug served a different company, Dasra Healthcare, and is NOT cited anywhere below). Reachable: screener.in, groww.in, indmoney.com, ipowatch.in. Values marked `derived` are arithmetic done by this collector and are labelled as such - they are not sourced.",
+
+  "identity": {
+    "legal_name": {
+      "value": "Icon Facilitators Ltd",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544426/",
+      "note": "Groww renders the same string ('Icon Facilitators Ltd'); INDmoney renders 'Icon Facilitators Ltd'. The full statutory form ('Limited' vs 'Ltd') was NOT read off a filing - no filing was reachable. The app's own bundled BSE master carries the identical string 'Icon Facilitators Ltd', so a name diff against the master will agree for the wrong reason: both are the same aggregator-grade rendering, not a verified statutory name."
+    },
+    "former_names": {
+      "value": null,
+      "rename_date": null,
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544426/",
+      "note": "No rename found on any reachable source. Screener's About reads 'Incorporated in 2002, Icon Facilitators Ltd is engaged in the business of Facility Management.' Absence of evidence only - no filing was opened."
+    },
+    "isin": {
+      "value": "INE0Y0E01012",
+      "as_of": "2026-06-09",
+      "source_url": null,
+      "source": "sidecar/services/resolver_masters/bse_instruments.json:3256 - the APP'S OWN bundled master, not an outside source",
+      "gap": "world_gaps.isin_not_independently_confirmed",
+      "warning": "CIRCULAR. This value exists only inside the product. No outside source reached printed an ISIN for this scrip (bseindia.com 403; groww, INDmoney and screener print none). Do NOT score an in-app ISIN match against this field as confirmation - it would be the app agreeing with itself."
+    },
+    "bse_code": {
+      "value": "544426",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544426/",
+      "corroboration": "Groww prints 'BSE Code 544426' (https://groww.in/stocks/icon-facilitators-ltd); INDmoney prints 'BSE Code: 544426' (https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price)."
+    },
+    "nse_symbol": {
+      "value": null,
+      "as_of": "2026-09-18",
+      "note": "BSE-only. No NSE listing found on any reachable source, and the bundled NSE master has no ICON row at all (sidecar/services/resolver_masters/nse_instruments.json). This is a REAL absence, not a reach failure: a terminal must not invent an NSE line for this name."
+    },
+    "board": {
+      "value": "SME",
+      "exchange": "BSE SME",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544426/",
+      "corroboration": "Screener labels the scrip 'BSE - SME'. The app's bundled BSE master carries group 'MT' (bse_instruments.json:3256), the BSE SME group code.",
+      "disagreement": "ipowatch.in labels the June-2025 issue 'BSE (Mainboard)' (https://ipowatch.in/icon-facilitators-ipo/). That contradicts screener's SME label, the MT group code, and the 1,200-share lot size which is an SME lot. Recorded as a source conflict, NOT smoothed over - see traps.board_classification_conflict."
+    },
+    "sector": {
+      "value": "Facility management services",
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "corroboration": "Screener's About: 'engaged in the business of Facility Management'. Screener Key Points: 'IFL is an integrated facility management and technical services provider. Its operating scale includes: a) 140+ sites under management b) 200+ million sq. ft. of area managed c) 2,000+ in-house technical manpower' (https://www.screener.in/company/544426/)."
+    },
+    "industry": {
+      "value": null,
+      "gap": "world_gaps.no_standard_industry_code",
+      "note": "No standard taxonomy code (NIC / GICS / BSE industry line) was printed by any reachable source. Groww's free-text 'Facility management services' is a label, not a classification."
+    },
+    "listing_date": {
+      "value": "2025-07-01",
+      "as_of": "2025-07-01",
+      "source_url": "https://ipowatch.in/icon-facilitators-ipo/",
+      "corroboration": "Groww's IPO page gives 'Tentative listing date: 1 July 2025' (https://groww.in/ipo/icon-facilitators-ipo).",
+      "confidence": "medium - BOTH sources call it the tentative/scheduled listing date. No exchange listing notice was read (bseindia.com 403). First actual trade date unconfirmed."
+    },
+    "incorporation_year": {
+      "value": 2002,
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544426/"
+    },
+    "website": {
+      "value": "iconf.in",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544426/",
+      "note": "Printed by screener; not visited."
+    }
+  },
+
+  "ipo": {
+    "open_date": { "value": "2025-06-24", "source_url": "https://ipowatch.in/icon-facilitators-ipo/" },
+    "close_date": { "value": "2025-06-26", "source_url": "https://ipowatch.in/icon-facilitators-ipo/" },
+    "allotment_date": { "value": "2025-06-27", "source_url": "https://ipowatch.in/icon-facilitators-ipo/" },
+    "listing_date": { "value": "2025-07-01", "source_url": "https://groww.in/ipo/icon-facilitators-ipo" },
+    "price_band": {
+      "value": [85, 91],
+      "unit": "INR per share",
+      "source_url": "https://groww.in/ipo/icon-facilitators-ipo"
+    },
+    "issue_price": {
+      "value": 91,
+      "unit": "INR per share",
+      "basis": "DERIVED, not sourced. No reachable source printed the final issue price. INR 19.11 crore issue size / INR 91 (upper band) = 21,00,000 shares exactly, which equals the equity-capital delta of INR 2.10 crore (5.76 -> 7.86) at INR 10 face value between Mar-2025 and Mar-2026 on screener's balance sheet. Two independent figures reconcile only at the upper band.",
+      "confidence": "high arithmetically, but flagged derived - see world_gaps.issue_price_derived_not_sourced"
+    },
+    "lot_size": { "value": 1200, "unit": "shares", "source_url": "https://groww.in/ipo/icon-facilitators-ipo" },
+    "minimum_investment": { "value": 102000, "unit": "INR", "source_url": "https://groww.in/ipo/icon-facilitators-ipo" },
+    "issue_size": { "value": 19.11, "unit": "INR crore", "source_url": "https://groww.in/ipo/icon-facilitators-ipo" },
+    "fresh_vs_ofs": {
+      "value": "not stated by any reachable source; the equity-capital delta (5.76 -> 7.86 INR crore) implies the whole 21,00,000 shares were a FRESH issue",
+      "basis": "derived from screener's balance sheet",
+      "gap": "world_gaps.fresh_vs_ofs_not_sourced"
+    },
+    "subscription": { "value": "2.49x overall", "as_of": "2025-06-26", "source_url": "https://ipowatch.in/icon-facilitators-ipo/" },
+    "gmp_at_close": { "value": 5, "unit": "INR", "source_url": "https://ipowatch.in/icon-facilitators-ipo/", "note": "grey-market premium, not an exchange figure" },
+    "registrar": { "value": "Maashitla Securities Private Limited", "source_url": "https://ipowatch.in/icon-facilitators-ipo/" },
+    "listing_price": { "value": null, "gap": "world_gaps.listing_price_not_sourced" },
+    "post_issue_performance_note": "At INR 64.20 on 2026-09-18 the stock is 29.5% BELOW the derived INR 91 issue price, ~14.5 months after listing. Its 52-week high of INR 85.00 is below the issue price - the scrip has never traded back to its IPO price. Derived from the values in this pack."
+  },
+
+  "price": {
+    "last_close": {
+      "value": 64.2,
+      "unit": "INR per share",
+      "date": "2026-09-18",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544426/",
+      "change_pct": -1.31,
+      "corroboration": "Groww prints LTP INR 64.15, change -0.85 (-1.31%), previous close 65.00, open 65.00, day high 65.49, day low 63.50, volume 9,600 (https://groww.in/stocks/icon-facilitators-ltd, as_of 2026-09-18). 64.2 vs 64.15 is screener rounding, not a conflict - but a field-by-field differ will flag it.",
+      "disagreement": "INDmoney prints 'Last Price: INR 63.50' (https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price) - which is EXACTLY the day low, and is contradicted by INDmoney's own market cap. See traps.indmoney_price_is_the_day_low."
+    },
+    "previous_close": {
+      "value": 65.0,
+      "unit": "INR per share",
+      "date": "2026-09-17",
+      "source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "corroboration": "INDmoney prints the same previous close 65.00."
+    },
+    "day_range": {
+      "open": 65.0,
+      "high": 65.49,
+      "low": 63.5,
+      "unit": "INR per share",
+      "date": "2026-09-18",
+      "source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "corroboration": "INDmoney prints the identical open 65.00 and high/low 65.49 / 63.50."
+    },
+    "volume": {
+      "value": 9600,
+      "unit": "shares",
+      "date": "2026-09-18",
+      "source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "corroboration": "INDmoney prints 'Volume: 9,600.00'.",
+      "note": "9,600 shares at ~INR 64 is a traded value of roughly INR 6.2 lakh for the whole session, i.e. 8 lots at the 1,200-share lot size. See traps.illiquidity."
+    },
+    "circuit_limits": {
+      "upper": 76.98,
+      "lower": 51.32,
+      "unit": "INR per share",
+      "date": "2026-09-18",
+      "source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "note": "ARITHMETIC OBSERVATION: 76.98 = 64.15 x 1.20 and 51.32 = 64.15 x 0.80 exactly - i.e. computed off the LTP, not off the 65.00 previous close (which would give 78.00 / 52.00). Recorded as an observation about the source's arithmetic, not as a claim about BSE's band convention. See traps.groww_circuit_band_base."
+    },
+    "beta_ltm": { "value": 0.68, "as_of": "2026-09-18", "source_url": "https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price" }
+  },
+
+  "market_cap": {
+    "value": 50.42,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price",
+    "disagreements": [
+      { "value": 50.4, "unit": "INR crore", "source_url": "https://www.screener.in/company/544426/", "note": "same figure, rounded to 1dp" },
+      { "value": 51, "unit": "INR crore", "source_url": "https://groww.in/stocks/icon-facilitators-ltd", "note": "same figure, rounded to the nearest crore" }
+    ],
+    "shares_outstanding": {
+      "value": 7859600,
+      "unit": "shares",
+      "as_of": "2026-03-31",
+      "source_url": "https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price",
+      "cross_check": "7,859,600 x INR 10 face value = INR 7.86 crore equity capital, which matches screener's Mar-2026 balance-sheet line exactly. 50.42 INR crore / 7,859,600 = INR 64.15 = Groww's LTP. All three sources are internally consistent on the share count; only the price they multiply by differs."
+    }
+  },
+
+  "pe_ttm": {
+    "value": 11.4,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/544426/",
+    "disagreements": [
+      { "value": 11.55, "unit": "x", "source_url": "https://groww.in/stocks/icon-facilitators-ltd", "note": "11.55 = 64.15 / 5.63 (Groww's own EPS TTM). Screener's 11.4 = 64.2 / 5.62. Same company, different rounding of both numerator and denominator." },
+      { "value": 0, "unit": "x", "source_url": "https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price", "note": "INDmoney prints 'P/E Ratio (TTM): 0' and 'EPS (TTM): 0' for a company earning INR 4.42 crore. A missing-value-rendered-as-zero artifact, NOT 'loss-making'. See traps.missing_value_rendered_as_zero." }
+    ],
+    "industry_pe_for_context": { "value": 43.46, "source_url": "https://groww.in/stocks/icon-facilitators-ltd" }
+  },
+
+  "pb": {
+    "value": 1.43,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+    "cross_check": "64.15 / 45.57 = 1.408. Groww prints 1.43, which is 65.00 (previous close) / 45.57 = 1.426 rounded up, or a different book-value vintage. Small, but it is a real 2% spread between a printed ratio and the same page's own inputs.",
+    "note": "Screener prints no P/B; its book value of INR 45.6 against a price of INR 64.2 gives 1.41."
+  },
+
+  "roe": {
+    "value": 17.9,
+    "unit": "percent",
+    "period": "FY26 (last year)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/544426/",
+    "other_periods": [
+      { "value": 27.0, "unit": "percent", "period": "3 years", "source_url": "https://www.screener.in/company/544426/" },
+      { "value": 30, "unit": "percent", "period": "5 years", "source_url": "https://www.screener.in/company/544426/" }
+    ],
+    "note": "The 3y (27%) and 5y (30%) figures are pre-IPO-equity numbers: the denominator was INR 0.01 crore of equity capital plus reserves until FY25. ROE falling 30% -> 27% -> 17.9% is almost entirely the IPO diluting the denominator, not operations deteriorating. Any 'declining profitability' signal built on this series is an artifact."
+  },
+
+  "roce": {
+    "value": 23.3,
+    "unit": "percent",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/544426/",
+    "year_attribution": "AMBIGUOUS. The headline strip prints 'ROCE 23.3%'. In the fetched Ratios table the ROCE row renders as 45.94 / 34.42 / 48.23 / 23.30 / (blank) against the Mar-2022..Mar-2026 columns, which would put 23.30% on FY25. This collector's own arithmetic reconciles it to FY26 instead: FY26 EBIT = PBT 5.96 + interest 0.36 = 6.32; capital employed FY25 = 5.76 + 7.71 + 4.40 = 17.87 and FY26 = 7.86 + 27.96 + 0.57 = 36.39; 6.32 / ((17.87 + 36.39)/2) = 23.3%. Recorded as arithmetic by this collector, NOT as a sourced claim. The point for the differ: the year this headline ratio belongs to cannot be read off the page.",
+    "historical_row_as_fetched": { "Mar 2022": 45.94, "Mar 2023": 34.42, "Mar 2024": 48.23, "Mar 2025_or_2026": 23.3, "unit": "percent", "source_url": "https://www.screener.in/company/544426/" }
+  },
+
+  "debt_to_equity": {
+    "value": 0.016,
+    "unit": "x",
+    "as_of": "2026-03-31",
+    "basis": "DERIVED: borrowings INR 0.57 crore / (equity capital 7.86 + reserves 27.96 = INR 35.82 crore) from screener's Mar-2026 balance sheet.",
+    "source_url": "https://www.screener.in/company/544426/",
+    "gap": "world_gaps.debt_to_equity_not_printed",
+    "corroboration": "Screener's own Pros list says 'Company has reduced debt' and 'Company is almost debt free.' Borrowings fell from INR 4.40 crore (Mar-2025) to INR 0.57 crore (Mar-2026) - the IPO proceeds repaid them."
+  },
+
+  "revenue_ttm": {
+    "value": 64.22,
+    "unit": "INR crore",
+    "period": "FY26 (year ended 2026-03-31)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/544426/",
+    "disagreements": [
+      { "value": 64.24, "unit": "INR crore", "label": "Revenue", "source_url": "https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price" },
+      { "value": 64.48, "unit": "INR crore", "label": "Total Income", "source_url": "https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price", "note": "Total income = revenue + other income (screener's other income for FY26 is 0.24, and 64.22 + 0.24 = 64.46, close to 64.48). Three figures for one year, and the 64.48 is a DIFFERENT concept, not a different measurement." }
+    ],
+    "note": "TTM here equals FY26 because the company reports HALF-YEARLY (see traps.half_yearly_not_quarterly) - there is no post-March interim period."
+  },
+
+  "net_profit_ttm": {
+    "value": 4.42,
+    "unit": "INR crore",
+    "period": "FY26",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/544426/",
+    "disagreement": "INDmoney prints Net Profit INR 4.35 crore for Mar-2026 (https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price) - a 1.6% gap against screener's 4.42 with no stated reason (standalone/consolidated? PAT after OCI? minority interest?). Recorded as a conflict, not averaged.",
+    "internal_check": "Screener's own two half-years for FY26 sum to 1.47 + 2.89 = INR 4.36 crore, against its annual line of 4.42 - a 0.06 crore internal gap inside one source. 4.36 is also closer to INDmoney's 4.35 than to screener's own annual figure."
+  },
+
+  "revenue_growth_yoy": {
+    "value": 10.61,
+    "unit": "percent",
+    "basis": "DERIVED: FY26 sales 64.22 / FY25 sales 58.06 - 1, both from screener's annual P&L. Year-over-year on full-year standalone SALES (not total income).",
+    "source_url": "https://www.screener.in/company/544426/",
+    "corroboration": "Screener's own 'Compounded Sales Growth' block prints TTM 11% and 3-year 14%.",
+    "note": "State the basis when diffing: on TOTAL INCOME the FY26 growth would differ, and INDmoney's 64.48 total income against an unknown FY25 total income is not comparable to this figure."
+  },
+
+  "eps_ttm": {
+    "value": 5.62,
+    "unit": "INR per share",
+    "period": "FY26",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/544426/",
+    "disagreements": [
+      { "value": 5.63, "unit": "INR per share", "source_url": "https://groww.in/stocks/icon-facilitators-ltd", "label": "EPS (TTM)" },
+      { "value": 0, "unit": "INR per share", "source_url": "https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price", "note": "null rendered as zero" }
+    ],
+    "warning": "The HISTORICAL EPS series on the same page is unusable - see traps.eps_series_not_restated_1000x. FY22-FY24 EPS are printed as 940.00 / 1,920.00 / 1,760.00."
+  },
+
+  "book_value_per_share": {
+    "value": 45.6,
+    "unit": "INR per share",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/544426/",
+    "disagreements": [
+      { "value": 45.57, "unit": "INR per share", "source_url": "https://groww.in/stocks/icon-facilitators-ltd" },
+      { "value": 0, "unit": "INR per share", "source_url": "https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price", "note": "null rendered as zero, for a company with INR 35.82 crore of net worth" }
+    ],
+    "cross_check": "(equity 7.86 + reserves 27.96) INR crore / 78,59,600 shares = INR 45.57 per share. Groww's figure is the exact one; screener's 45.6 is it rounded."
+  },
+
+  "face_value": {
+    "value": 10,
+    "unit": "INR per share",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/544426/",
+    "corroboration": "Groww prints 'Face Value 10'; the IPO was at INR 10 face value (https://groww.in/ipo/icon-facilitators-ipo)."
+  },
+
+  "dividend": {
+    "last_declared_per_share": { "value": null, "gap": "world_gaps.no_dividend_ever_declared" },
+    "record_date": null,
+    "ex_date": null,
+    "paid_trailing_12m_per_share": {
+      "value": 0,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544426/",
+      "basis": "Screener's annual P&L prints 'Dividend Payout % 0.00%' for every year Mar-2022 through Mar-2026."
+    },
+    "yield": {
+      "value": 0.0,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544426/",
+      "corroboration": "Groww prints 'Dividend Yield 0.00%'; INDmoney prints 'Dividend Yield: 0' (which for this field happens to be correct, unlike its P/E, EPS and book value)."
+    },
+    "note": "Screener's Cons list flags it explicitly: 'Company is not paying out dividend despite repeated profits.' A zero here is a true zero, not a missing value - which is exactly why the INDmoney zeros on the OTHER fields are dangerous: on this page a printed 0 is sometimes real."
+  },
+
+  "week52": {
+    "high": {
+      "value": 85.0,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544426/",
+      "corroboration": "Groww and INDmoney both print 85.00."
+    },
+    "low": {
+      "value": 38.0,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/544426/",
+      "disagreement": "Groww AND INDmoney both print 38.05 (https://groww.in/stocks/icon-facilitators-ltd, https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price). Screener prints 38.0. Two sources against one; recorded as a conflict, not resolved."
+    },
+    "window_validity": "GENUINE, unlike the recent-listing names in this battery. Listed 2025-07-01, so a 52-week window ending 2026-09-18 is fully populated (~14.5 months of trading). Do not apply the since-listing-window caveat here.",
+    "note": "The 52-week high of 85.00 sits BELOW the derived IPO issue price of 91. Any 'all-time high' derived from the 52-week high is right by luck here but wrong in concept, and an IPO-relative return computed off 85.00 instead of 91 understates the loss."
+  },
+
+  "shareholding": {
+    "quarter": {
+      "value": "Mar 2026",
+      "source_url": "https://www.screener.in/company/544426/",
+      "warning": "This is a HALF-YEAR, not a quarter. Only TWO periods exist anywhere - Sep 2025 and Mar 2026 - because BSE SME scrips disclose shareholding half-yearly. Groww and INDmoney both label the same numbers 'Mar 2026' / \"Mar '26\", so there is no label conflict here, only a periodicity trap."
+    },
+    "promoter_pct": {
+      "value": 70.75,
+      "unit": "percent",
+      "as_of": "2026-03-31",
+      "source_url": "https://www.screener.in/company/544426/",
+      "corroboration": "Groww and INDmoney both print 70.75%.",
+      "prior_period": { "value": 70.09, "unit": "percent", "as_of": "2025-09-30", "source_url": "https://www.screener.in/company/544426/" },
+      "note": "Promoter holding ROSE 0.66 percentage points between the two disclosures with no corporate action found on any reachable source. See traps.promoter_stake_rose_without_a_stated_action."
+    },
+    "fii_pct": {
+      "value": null,
+      "gap": "world_gaps.no_fii_line_exists",
+      "note": "This is a genuine absence, not a reach failure: screener's shareholding table for this scrip has no FIIs row at all, and Groww/INDmoney print only Promoters / DII / Public. A differ must treat 'no FII line' as different from 'FII = 0'."
+    },
+    "dii_pct": {
+      "value": 0.27,
+      "unit": "percent",
+      "as_of": "2026-03-31",
+      "source_url": "https://www.screener.in/company/544426/",
+      "corroboration": "Groww and INDmoney both print 0.27%.",
+      "prior_period": { "value": 0.27, "unit": "percent", "as_of": "2025-09-30", "source_url": "https://www.screener.in/company/544426/" }
+    },
+    "public_pct": {
+      "value": 28.97,
+      "unit": "percent",
+      "as_of": "2026-03-31",
+      "source_url": "https://www.screener.in/company/544426/",
+      "disagreement": "Groww AND INDmoney both print 28.98% (https://groww.in/stocks/icon-facilitators-ltd, https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price). Screener prints 28.97%. The 28.98 version sums to exactly 100.00; screener's sums to 99.99. Recorded as a conflict.",
+      "prior_period": { "value": 29.63, "unit": "percent", "as_of": "2025-09-30", "source_url": "https://www.screener.in/company/544426/" }
+    },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "gap": "world_gaps.pledge_not_disclosed",
+      "note": "No reachable source printed a pledge figure. Unknown, NOT zero."
+    },
+    "no_of_shareholders": {
+      "value": 808,
+      "unit": "count",
+      "as_of": "2026-03-31",
+      "source_url": "https://www.screener.in/company/544426/",
+      "prior_period": { "value": 938, "as_of": "2025-09-30" },
+      "note": "Fell 14% (938 -> 808) in one half-year. On a scrip with a 1,200-share lot, 808 holders is the whole register."
+    },
+    "sums_to": "70.75 + 0.27 + 28.97 = 99.99 (screener); 70.75 + 0.27 + 28.98 = 100.00 (Groww / INDmoney)."
+  },
+
+  "corporate_actions_2026": [
+    {
+      "type": "Postal ballot",
+      "resolution_passed_date": "2026-09-03",
+      "outcome_filed_date": "2026-09-07",
+      "resolutions": null,
+      "gap": "world_gaps.postal_ballot_content_unknown",
+      "evidence": "Two BSE announcements on 7 Sep 2026 - 'Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot' and 'Shareholder Meeting / Postal Ballot-Scrutinizer's Report' - as printed by https://www.screener.in/company/544426/. The PDFs themselves returned HTTP 403 and were NOT opened. WHAT was resolved is unknown: it could be a capital action a price/share-count pipeline must know about."
+    },
+    {
+      "type": "AGM",
+      "date": "2026-09-28",
+      "evidence": "Screener's Documents list, 2 Sep 2026 entry covering the FY2025-26 annual report and AGM notice (https://www.screener.in/company/544426/). Notice PDF not opened (403)."
+    }
+  ],
+  "corporate_actions_note": "No bonus, split, rights, buyback or dividend was found for 2026 on any reachable source, and the share count is unchanged at 78,59,600 from the Mar-2026 balance sheet. But NO exchange corporate-action feed was reachable (bseindia.com 403 throughout), so this is absence of evidence. The one known unknown is the postal-ballot resolution above.",
+
+  "latest_results": {
+    "period": "H2 FY26 (six months ended 2026-03-31)",
+    "periodicity": "HALF-YEARLY - this company does not file quarterly results",
+    "filing_date": { "value": null, "gap": "world_gaps.results_filing_dates_unknown" },
+    "figures": {
+      "sales": { "value": 34.45, "unit": "INR crore" },
+      "expenses": { "value": 30.31, "unit": "INR crore" },
+      "operating_profit": { "value": 4.14, "unit": "INR crore" },
+      "opm_pct": 12.02,
+      "other_income": { "value": 0.12, "unit": "INR crore" },
+      "interest": { "value": 0.07, "unit": "INR crore" },
+      "depreciation": { "value": 0.3, "unit": "INR crore" },
+      "pbt": { "value": 3.89, "unit": "INR crore" },
+      "tax_pct": 25.96,
+      "net_profit": { "value": 2.89, "unit": "INR crore" },
+      "eps": { "value": 3.68, "unit": "INR per share" }
+    },
+    "source_url": "https://www.screener.in/company/544426/",
+    "all_periods_that_exist": {
+      "note": "FOUR result periods exist in total, and they are half-years, not quarters.",
+      "Sep 2024": { "sales": 28.17, "net_profit": 2.26, "eps": 3.92, "opm_pct": 12.11 },
+      "Mar 2025": { "sales": 29.9, "net_profit": 2.21, "eps": 3.84, "opm_pct": 10.47 },
+      "Sep 2025": { "sales": 29.79, "net_profit": 1.47, "eps": 1.87, "opm_pct": 7.52 },
+      "Mar 2026": { "sales": 34.45, "net_profit": 2.89, "eps": 3.68, "opm_pct": 12.02 },
+      "unit": "INR crore except eps (INR per share) and opm_pct (percent)"
+    }
+  },
+
+  "last_3_announcements": [
+    {
+      "date": "2026-09-07",
+      "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer's Report",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=8f71db28-e67f-422b-9f0a-40e6c84a4019.pdf",
+      "source_url": "https://www.screener.in/company/544426/",
+      "source_caveat": "URL as printed by screener. PDF NOT opened - bseindia.com returned HTTP 403. Year inferred as 2026 from screener's bare '7 Sep' rendering and the surrounding FY2025-26 annual-report entries."
+    },
+    {
+      "date": "2026-09-07",
+      "headline": "Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=d4f0f448-63df-4b9a-ab88-6e7f43bf7031.pdf",
+      "source_url": "https://www.screener.in/company/544426/",
+      "source_caveat": "URL as printed by screener. PDF NOT opened (403). Screener's summary says the resolution was passed on 3 Sep 2026; the resolution TEXT is unknown."
+    },
+    {
+      "date": "2026-09-03",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=7c8713d4-be8e-4086-b5e7-21482ffd7900.pdf",
+      "source_url": "https://www.screener.in/company/544426/",
+      "source_caveat": "URL as printed by screener. PDF NOT opened (403)."
+    }
+  ],
+  "earlier_announcements_for_context": [
+    {
+      "date": "2026-09-02",
+      "headline": "Letter To Shareholders Providing Web-Link Of Annual Report",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=a328e524-d3ae-4311-a095-2056bdacec58.pdf",
+      "source_caveat": "URL as printed by screener; not opened (403)."
+    },
+    {
+      "date": "2026-09-02",
+      "headline": "Reg. 34 (1) Annual Report (FY2025-26; AGM 28 Sep 2026)",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=b5bcb4ff-9bbe-4676-818f-50fd9ee60dcd.pdf",
+      "source_caveat": "URL as printed by screener; not opened (403)."
+    },
+    {
+      "date": "2025",
+      "headline": "Annual Report 2025",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0130650c-1c1d-4d85-b0b6-850c4266c815.pdf",
+      "source_caveat": "URL as printed by screener; not opened (403). Only TWO annual reports exist (2025, 2026) - the company listed in July 2025."
+    }
+  ],
+
+  "consolidated_vs_standalone": {
+    "value": "standalone (assumed) - NOT verified",
+    "evidence": "screener.in/company/544426/ displays no consolidated/standalone selector text, and https://www.screener.in/company/544426/consolidated/ renders a page whose P&L, balance-sheet and headline ratio fields come back EMPTY (currency symbols with no numbers). That is consistent with no consolidated statements existing for a single-entity SME, but it was not verified against a filing and no filing was reachable.",
+    "gap": "world_gaps.consolidated_status_unverified",
+    "why_it_matters": "Every figure in this pack is therefore an UNLABELLED basis. INDmoney's net profit of 4.35 vs screener's 4.42 is exactly the kind of gap a standalone/consolidated difference would explain, and neither source states which it is publishing."
+  },
+
+  "traps": [
+    {
+      "id": "three_way_in_app_ticker_collision",
+      "detail": "The string 'ICON' resolves three different ways inside the product's OWN bundled masters, and the manifest recorded only two of them. (a) sidecar/services/resolver_masters/bse_instruments.json:3256 -> [\"544426\",\"ICON\",\"Icon Facilitators Ltd\",\"MT\",\"INE0Y0E01012\",\"Active\"]. (b) us_instruments.json -> [\"ICON\",\"Icon Energy Corp\"], a US shipping company. (c) us_instruments.json ALSO contains [\"ICLR\",\"ICON PLC\"] - so 'ICON' is a TICKER for one US company and the NAME of a different US company in the same file. A ticker match and a name match on the same user string land on two different wrong entities, neither of them the Indian company. nse_instruments.json has no ICON row at all. Resolution must be keyed on scrip code 544426 or on exchange scope, never on the bare string."
+    },
+    {
+      "id": "eps_series_not_restated_1000x",
+      "detail": "Screener's annual EPS row reads 940.00 / 1,920.00 / 1,760.00 / 7.76 / 5.62 INR for FY22-FY26 while net profit runs 0.94 / 1.92 / 1.76 / 4.47 / 4.42 INR crore. The EPS is computed against each year's OWN year-end share count, which went 10,000 shares (equity capital INR 0.01 crore) -> 57,59,600 (INR 5.76 crore, pre-IPO capitalisation in FY25) -> 78,59,600 (INR 7.86 crore, post-IPO FY26). Any EPS CAGR, PEG, EPS-surprise or 'earnings collapse' signal on this series is pure noise: FY25 EPS is DOWN 99.6% against FY24 in a year profit ROSE 154%. This is the exact 1000x small-cap misread class the R15 brief cites Perplexity Finance for - the numbers are all individually 'correct' on the page."
+    },
+    {
+      "id": "half_yearly_not_quarterly",
+      "detail": "As a BSE SME scrip this company files HALF-YEARLY, not quarterly. Only four result periods exist in total (Sep-2024, Mar-2025, Sep-2025, Mar-2026) and only two shareholding periods (Sep-2025, Mar-2026). A panel or pipeline that takes 'the last 4 quarters' silently ingests TWO YEARS of data; a TTM built from four periods double-counts; a QoQ change is a half-on-half change; a 'missing quarters' validator will flag a fully-compliant filer as delinquent. Screener labels the block 'Half Yearly Results' - the label is there to be read."
+    },
+    {
+      "id": "missing_value_rendered_as_zero",
+      "detail": "INDmoney prints 'P/E Ratio (TTM): 0', 'EPS (TTM): 0' and 'Book Value: 0' for a company with FY26 EPS of INR 5.62 and a book value of INR 45.57 (https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price). Numeric ingestion without a null check yields a zero-earnings, zero-book-value company - and a P/E of 0 sorts to the TOP of a cheapness screen. The same page's 'Dividend Yield: 0' is a TRUE zero, so the source is not uniformly unreliable: a blanket 'treat 0 as null' rule would be wrong here too."
+    },
+    {
+      "id": "indmoney_price_is_the_day_low",
+      "detail": "INDmoney prints 'Last Price: INR 63.50' - which is exactly the day LOW it prints on the same page - while Groww and screener both close at 64.15 / 64.2. INDmoney's own market cap of INR 50.42 crore divided by its own share count of 78,59,600 gives INR 64.15, so the page is internally contradictory: its market cap uses 64.15 while its headline price says 63.50. A differ that picks the headline price from this source reports a 1% price error that no cross-source check on market cap would catch."
+    },
+    {
+      "id": "roce_year_attribution_unreadable",
+      "detail": "The headline 'ROCE 23.3%' cannot be attributed to a year from the page: the Ratios row renders as 45.94 / 34.42 / 48.23 / 23.30 / blank across the Mar-2022..Mar-2026 columns, which reads as an FY25 value, while the arithmetic reconciles to FY26 on average capital employed (EBIT 6.32 / avg CE 27.13 = 23.3%). Either way, a headline ratio strip that may be showing a year-old number without saying so is a data-trust defect, and a pipeline that stamps it with today's as_of date is publishing a stale figure as current."
+    },
+    {
+      "id": "roe_decline_is_ipo_dilution",
+      "detail": "ROE reads 30% (5y) -> 27% (3y) -> 17.9% (last year). The denominator went from INR 0.01 crore of equity capital to INR 35.82 crore of net worth via a pre-IPO capitalisation and a July-2025 IPO. The 'deteriorating returns' story is arithmetic, not operations - operating profit was flat (6.55 -> 6.44) and sales grew 10.6%. An agent that narrates the ROE trend without the capital-structure change is confidently wrong."
+    },
+    {
+      "id": "board_classification_conflict",
+      "detail": "screener.in labels the scrip 'BSE - SME' and the app's own master carries group 'MT' (the BSE SME group), but ipowatch.in labels the June-2025 issue 'BSE (Mainboard)' (https://ipowatch.in/icon-facilitators-ipo/). The 1,200-share lot size and INR 1,02,000 minimum investment are SME conventions. Recorded as a live source conflict: an ingester that trusts the IPO aggregator applies mainboard rules (quarterly results expected, retail lot of 1) to an SME scrip."
+    },
+    {
+      "id": "bare_ticker_unresolvable_at_the_source_too",
+      "detail": "https://www.screener.in/company/ICON/ returns HTTP 404. Screener's canonical key for this company is the numeric scrip code (/company/544426/), not the ticker. Any enrichment step that builds a screener URL from a ticker - which works for mainboard names like FUSION or ELCIDIN - fails silently on this one. The failure is a 404, not a wrong company, which is the good case; the bad case is a ticker that DOES resolve at the source to a different entity."
+    },
+    {
+      "id": "promoter_stake_rose_without_a_stated_action",
+      "detail": "Promoter holding went 70.09% (Sep-2025) -> 70.75% (Mar-2026), up 0.66pp, while the shareholder count fell 938 -> 808, with no corporate action found on any reachable source and no FII line in the table at all. Either a creeping acquisition, a reclassification, or an aggregator restatement - unresolved. A 'promoter selling' alert keyed on this table would be silent; a 'promoter buying' alert would fire with no filing to point at, which is exactly the receipts problem."
+    },
+    {
+      "id": "groww_circuit_band_base",
+      "detail": "Groww's circuit limits of 76.98 / 51.32 are exactly the LTP (64.15) x 1.20 / 0.80, not the previous close (65.00) x 1.20 / 0.80 (= 78.00 / 52.00). Recorded as an arithmetic observation about the source, not as a claim about BSE's band convention. A price-band check copied from this source will place the band ~1.3% low."
+    },
+    {
+      "id": "illiquidity",
+      "detail": "9,600 shares changed hands on 2026-09-18 - about INR 6.2 lakh, eight lots at the 1,200-share SME lot size. VWAP, intraday ranges, volume-spike detectors, technical indicators and any 'unusual activity' signal are meaningless at this depth, and INDmoney's '12 bearish indicators against 2 bullish' technical readout is computed on that tape. A terminal that renders the same technical panel for ICON as for SPY is showing noise with the confidence of signal."
+    },
+    {
+      "id": "issue_price_above_the_52_week_high",
+      "detail": "The derived IPO issue price of INR 91 is ABOVE the 52-week high of INR 85.00 - the stock has never traded back to its issue price in 14.5 months. Any 'all-time high' field populated from the 52-week high is conceptually wrong even though it happens to be right on this name, and an IPO-relative return computed off 85.00 instead of 91 understates the drawdown (-29.5% vs -24.5%)."
+    },
+    {
+      "id": "generic_english_name_and_ticker",
+      "detail": "'Icon' plus a common noun. News and entity extraction over 'ICON' or 'Icon' will surface ICON plc (NASDAQ:ICLR, the clinical CRO that most finance coverage means by 'ICON'), Icon Energy Corp, and the ordinary English word. A headline-matching pipeline needs the scrip code or the full 'Icon Facilitators' string plus an India scope, and even then 'Facilitators' is a word, not a brand - the company's own site is iconf.in, matching neither the ticker nor the legal name."
+    },
+    {
+      "id": "three_revenue_figures_one_year",
+      "detail": "FY26 top line is printed as 64.22 (screener Sales), 64.24 (INDmoney Revenue) and 64.48 (INDmoney Total Income) INR crore - two measurements and one different CONCEPT, on the same page in the last case. Net profit is 4.42 (screener annual) vs 4.36 (screener's own two half-years summed) vs 4.35 (INDmoney). Nothing here is a large error; the point is that no source labels its basis, so a differ cannot tell a data bug from a definitional difference."
+    }
+  ],
+
+  "world_gaps": [
+    {
+      "id": "bse_primary_source_unreachable",
+      "kind": "could_not_reach",
+      "detail": "Every bseindia.com URL returned HTTP 403: the quote page (https://www.bseindia.com/stock-share-price/icon-facilitators-ltd/icon/544426/) and all five announcement PDFs listed in this pack. NO exchange filing, shareholding pattern, corporate-action feed or results filing was opened for this name. Everything filing-derived here is screener's rendering of it."
+    },
+    {
+      "id": "isin_not_independently_confirmed",
+      "kind": "could_not_reach",
+      "detail": "INE0Y0E01012 comes ONLY from the app's own bundled master (bse_instruments.json:3256). No outside source reached printed an ISIN. Scoring an in-app ISIN match against this pack would be circular."
+    },
+    {
+      "id": "postal_ballot_content_unknown",
+      "kind": "could_not_reach",
+      "detail": "A postal-ballot resolution passed 2026-09-03 with the outcome and scrutinizer's report filed 2026-09-07. WHAT was resolved is unknown (PDFs 403). If it authorised a capital action, every per-share figure in this pack has a pending invalidation date."
+    },
+    { "id": "results_filing_dates_unknown", "kind": "could_not_reach", "detail": "Screener prints the result PERIODS but no filing dates, and the BSE filings were unreachable. The 'as of when was this true' half of every results figure is missing." },
+    { "id": "listing_price_not_sourced", "kind": "could_not_reach", "detail": "No reachable source printed the 2025-07-01 listing-day price or listing gain." },
+    { "id": "issue_price_derived_not_sourced", "kind": "could_not_reach", "detail": "INR 91 is derived (19.11 crore / 21,00,000 shares, cross-checked against the 5.76 -> 7.86 equity-capital delta). No source printed the final issue price - only the 85-91 band." },
+    { "id": "fresh_vs_ofs_not_sourced", "kind": "could_not_reach", "detail": "The fresh-issue / offer-for-sale split was not printed anywhere reachable; the equity-capital delta implies an all-fresh issue but that is inference." },
+    { "id": "pledge_not_disclosed", "kind": "could_not_reach", "detail": "No pledged-percentage figure on any reachable source. Unknown, not zero." },
+    { "id": "consolidated_status_unverified", "kind": "could_not_reach", "detail": "screener's /consolidated/ path renders empty tables, consistent with no consolidated statements existing, but no filing was opened to confirm it. Every figure in this pack therefore carries an unlabelled basis." },
+    { "id": "debt_to_equity_not_printed", "kind": "could_not_reach", "detail": "No reachable source printed a D/E ratio; 0.016 is derived from screener's balance sheet." },
+    { "id": "no_standard_industry_code", "kind": "could_not_reach", "detail": "No NIC / GICS / BSE industry classification was printed by any reachable source - only free-text labels." },
+    { "id": "no_fii_line_exists", "kind": "does_not_exist", "detail": "The shareholding table has no FIIs row for this scrip on any of the three sources. Treat as absent, not as 0.00%." },
+    { "id": "no_dividend_ever_declared", "kind": "does_not_exist", "detail": "Dividend payout is 0.00% in every year FY22-FY26. There is no last-declared dividend, no record date and no ex-date to find." },
+    { "id": "no_analyst_coverage", "kind": "does_not_exist", "detail": "No analyst rating, price target, consensus estimate or earnings estimate exists for a INR 50 crore BSE SME scrip. Any 'consensus' field on this name must render as absent, never as a computed number from zero inputs." },
+    { "id": "no_pre_fy22_history", "kind": "does_not_exist", "detail": "Screener's annual tables start at Mar-2022 - five years. 10-year and 5-year compounded-growth cells are blank because the history is not there. A 10y CAGR for this name cannot be computed, only omitted." },
+    { "id": "websearch_budget_exhausted", "kind": "method_limitation", "detail": "The session's 200 WebSearch calls were already spent when this task began, so no discovery search ran. Sources were reached by guessing canonical URL patterns; trendlyne.com, tickertape.in, 5paisa.com and the guessed chittorgarh slug 404'd or served a different company. A source that only a search would have surfaced (Tijori, Moneycontrol, the company's own IR page at iconf.in, an annual-report PDF) is therefore absent from this pack." }
+  ],
+
+  "in_app_master_rows_for_the_differ": {
+    "note": "Recorded so the differ can separate a resolver bug from a stale-master problem. These are IN-APP values, not outside truth.",
+    "bse": "sidecar/services/resolver_masters/bse_instruments.json:3256 -> [\"544426\",\"ICON\",\"Icon Facilitators Ltd\",\"MT\",\"INE0Y0E01012\",\"Active\"] (master generated 2026-06-09)",
+    "nse": "no ICON row exists in nse_instruments.json (master generated 2026-06-05)",
+    "us": "us_instruments.json contains BOTH [\"ICON\",\"Icon Energy Corp\"] AND [\"ICLR\",\"ICON PLC\"]",
+    "master_staleness_verdict": "NOT a staleness problem for this name. The scrip listed 2025-07-01, a year before the 2026-06-09 master was generated, and the row is present and Active with the right group. Any resolution failure on ICON is a COLLISION/scoping bug, not a stale master - which makes it a cleaner test than the recent-listing slots."
+  },
+
+  "sources_actually_read": [
+    { "url": "https://www.screener.in/company/544426/", "what": "headline ratios, About, Key Points, Pros/Cons, half-yearly results, annual P&L, balance sheet, cash flow, ratios, shareholding, documents/announcements list", "fetched": "2026-09-19" },
+    { "url": "https://groww.in/stocks/icon-facilitators-ltd", "what": "LTP, OHLC, volume, market cap, P/E, EPS, book value, P/B, 52w range, circuit limits, industry P/E, face value, sector, shareholding", "fetched": "2026-09-19" },
+    { "url": "https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price", "what": "price (contradictory), market cap, shares outstanding, 52w range, zeros for P/E / EPS / book value, FY26 revenue and net profit, beta, shareholding", "fetched": "2026-09-19" },
+    { "url": "https://groww.in/ipo/icon-facilitators-ipo", "what": "price band 85-91, lot size 1200, issue size 19.11 cr, face value 10, IPO dates, pre-IPO revenue series", "fetched": "2026-09-19" },
+    { "url": "https://ipowatch.in/icon-facilitators-ipo/", "what": "IPO open/close/allotment/listing dates, 2.49x subscription, GMP, registrar, 'BSE (Mainboard)' label (conflicting)", "fetched": "2026-09-19" },
+    { "url": "https://www.screener.in/company/ICON/", "what": "HTTP 404 - evidence that the bare ticker does not resolve at screener", "fetched": "2026-09-19" },
+    { "url": "https://www.screener.in/company/544426/consolidated/", "what": "renders empty financial tables - evidence bearing on consolidated_vs_standalone", "fetched": "2026-09-19" }
+  ],
+
+  "sources_attempted_and_failed": [
+    { "url": "https://www.bseindia.com/stock-share-price/icon-facilitators-ltd/icon/544426/", "result": "HTTP 403" },
+    { "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=d4f0f448-63df-4b9a-ab88-6e7f43bf7031.pdf", "result": "HTTP 403 (postal ballot outcome)" },
+    { "url": "https://trendlyne.com/equity/share-price/544426/ICON/icon-facilitators-ltd/", "result": "HTTP 404 (guessed slug; no search available to find the real one)" },
+    { "url": "https://www.tickertape.in/stocks/icon-facilitators-ICOF", "result": "HTTP 404 (guessed slug)" },
+    { "url": "https://www.5paisa.com/ipo/icon-facilitators-ipo", "result": "HTTP 404 (guessed slug)" },
+    { "url": "https://www.chittorgarh.com/ipo/icon-facilitators-ipo/2185/", "result": "served a DIFFERENT company (Dasra Healthcare Ltd) - guessed numeric id. Not cited anywhere in this pack." },
+    { "url": "WebSearch", "result": "session budget exhausted (200/200) before this task started - no discovery search was possible" }
+  ]
+}

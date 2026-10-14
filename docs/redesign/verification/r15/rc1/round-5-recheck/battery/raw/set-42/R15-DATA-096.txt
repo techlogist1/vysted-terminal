@@ -1,0 +1,4 @@
+CMD: two sequential GET /fundamentals/AAPL/income, timed
+cold call time: .825060000s
+warm call time: .011633000s
+byte-identical: YES

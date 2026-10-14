@@ -1,0 +1,17 @@
+[
+ {"cmd":"click","x":307.2,"y":305.9,"double":true},
+ {"cmd":"wait","seconds":1},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-025/ace7dd7-04-word-selected.png"},
+ {"cmd":"click","x":429.4,"y":261.8},
+ {"cmd":"wait","seconds":1.5},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-025/ace7dd7-05-link-popover.png"},
+ {"cmd":"type","text":"https://example.com"},
+ {"cmd":"wait","seconds":1},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-025/ace7dd7-06-url-typed.png"},
+ {"cmd":"key","combo":"return"},
+ {"cmd":"wait","seconds":2},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-025/ace7dd7-07-link-applied.png"},
+ {"cmd":"click","x":320,"y":512},
+ {"cmd":"wait","seconds":3},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-025/ace7dd7-08-link-mark-deselected.png"}
+]

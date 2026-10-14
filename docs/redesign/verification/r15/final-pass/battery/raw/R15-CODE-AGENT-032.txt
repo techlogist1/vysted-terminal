@@ -1,0 +1,32 @@
+# R15-CODE-AGENT-032 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:48:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+D=$(mktemp -d "$B/out/runs032.XXXX")
+"$IP" - "$D" <<'PY' 2>&1 | grep -v Warning
+import os, sys, time, sqlite3, subprocess
+d=sys.argv[1]; os.environ["VYSTED_DATA_DIR"]=d
+from models.run import RunBudget
+from services import runs_store as rs
+now=int(time.time()); old=now-rs.RETENTION_SECONDS-3600
+for i in range(105): rs.create_run(run_id=f"live{i:03d}",agent_id="copilot",agent_name="c",budget=RunBudget(),status="done",now=now-i)
+for st in ("done","error","cancelled","paused"): rs.create_run(run_id=f"old-{st}",agent_id="copilot",agent_name="c",budget=RunBudget(),status=st,now=old)
+from fastapi.testclient import TestClient
+import app as appmod
+c=TestClient(appmod.app); r=c.get("/runs"); rows=r.json(); rows=rows if isinstance(rows,list) else rows.get("runs",rows)
+print("== GET /runs",r.status_code,"rows",len(rows),"LIST_LIMIT",rs.LIST_LIMIT)
+print("== checkpoint field in list rows:",any(k.startswith("checkpoint") for k in rows[0]))
+print("== db path", rs._db_path())
+PY
+"$IP" - "$D" <<'PY' 2>&1 | grep -v Warning
+import os, sys
+os.environ["VYSTED_DATA_DIR"]=sys.argv[1]
+from services import runs_store as rs
+print("== fresh-process open:", {k:(rs.get_run(k).status if rs.get_run(k) else None) for k in ("old-done","old-error","old-cancelled","old-paused")})
+PY
+--- output ---
+  from starlette.testclient import TestClient as TestClient  # noqa
+== GET /runs 200 rows 100 LIST_LIMIT 100
+== checkpoint field in list rows: False
+== db path /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb0/out/runs032.Stqw/delegate_runs.db
+== fresh-process open: {'old-done': None, 'old-error': None, 'old-cancelled': None, 'old-paused': 'paused'}
+
+EXIT=0 (3.4s)

@@ -1,0 +1,66 @@
+CMD: sed -n '110,145p' src/modules/macro/MacroPanel.test.tsx
+    });
+    render(<MacroPanel />);
+    await waitFor(() => expect(screen.getByTestId("macro-error")).toBeInTheDocument());
+    expect(screen.getByText(/FRED is down/)).toBeInTheDocument();
+  });
+
+  it("a provider tab loads that provider's own default once, never through the cold-boot retry (R15-UI-030)", async () => {
+    vi.useFakeTimers();
+    const ecbDefault = "FM.D.U2.EUR.4F.KR.MRR_FR.LEV";
+    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+      if (path === "/macro/DGS10") return SAMPLE_SERIES;
+      if (path === "/macro/catalog") return SAMPLE_CATALOG;
+      // A transient-looking failure: the retry hook WOULD re-fire this.
+      throw new TypeError("Failed to fetch");
+    });
+    render(<MacroPanel />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    fireEvent.click(screen.getByTestId("macro-provider-ecb"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60000);
+    });
+    const seriesCalls = vi
+      .mocked(sidecarGet)
+      .mock.calls.filter(([path]) => path !== "/macro/catalog");
+    expect(seriesCalls).toEqual([
+      ["/macro/DGS10", { provider: "fred" }],
+      [`/macro/${encodeURIComponent(ecbDefault)}`, { provider: "ecb" }],
+    ]);
+    expect(screen.getByTestId("macro-error")).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it("publishes the active provider + series id to the panel context bus (R15-AGENT-053)", async () => {
+    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+
+CMD: grep -n 'use-sidecar-retry\|cold-boot\|retry' src/modules/macro/MacroPanel.tsx
+7:import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
+47:  // Load the default-on-mount series. The load auto-retries on a cold-boot
+
+CMD: sed -n '35,55p' src/lib/use-sidecar-retry.ts
+
+import { SidecarError } from "@/lib/sidecar-client";
+import { useAppStore, type SidecarStatus } from "@/store/app";
+
+const MAX_ATTEMPTS = 12;
+const MAX_BACKOFF_MS = 5000;
+
+/** True for a failure a later retry can fix: the engine is unreachable or not
+ *  ready yet. Anything the engine actually answered is deterministic. */
+function isTransientSidecarFailure(err: unknown): boolean {
+  return !(err instanceof SidecarError) || err.status === 0 || err.status === 503;
+}
+
+/**
+ * Run `loadFn` on mount and auto-retry it until it succeeds, re-arming on a
+ * fresh sidecar reconnect.
+ *
+ * @param loadFn   Async load to (re)run. Must reject on a recoverable failure.
+ * @param deps     When these change the hook re-runs `loadFn` from a clean slate
+ *                 (same contract as a `useEffect` dependency array). Pass the
+ *                 panel's default-fetch inputs (e.g. the default symbol). Do NOT
+
+VERDICT RATIONALE: R15-UI-030's certified repro is a React-component mount+interaction test (switch the provider tab, assert the store's own loadSeries/loadCatalog path is used once — not the cold-boot retry hook — and no ~50s retry storm). Pinned by the test above naming the entry id. No non-vitest component-render harness is available in this shard (no tsx/ts-node; vitest suites are the heavy/chain role's lane). Verdict: ci_pinned, naming src/modules/macro/MacroPanel.test.tsx:116.

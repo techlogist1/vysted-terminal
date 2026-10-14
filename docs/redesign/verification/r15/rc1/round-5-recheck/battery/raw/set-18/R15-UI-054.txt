@@ -1,0 +1,88 @@
+CMD: source read -- structural fix confirmation for R15-AGENT-031/R15-UI-054: frontend no longer regex-matches notice COPY (old DIVERGENCE_RE), it matches by step_kind==='notice' (isRuntimeNotice), and the sidecar tags every divergence/staged/truncation/compaction notice with step_kind=NOTICE_STEP_KIND regardless of the prose, eliminating the copy-drift defect class
+--- src/modules/chat/message-notices.ts:40-72 ---
+export const useMessageNoticesStore = create<MessageNoticesState>((set) => ({
+  errorFrames: {},
+  notices: {},
+  compactions: {},
+
+  setErrorFrame: (messageId, frame) =>
+    set((state) => ({ errorFrames: { ...state.errorFrames, [messageId]: frame } })),
+
+  addNotice: (messageId, notice) =>
+    set((state) => ({
+      notices: {
+        ...state.notices,
+        [messageId]: [...(state.notices[messageId] ?? []), notice],
+      },
+    })),
+
+  setCompaction: (messageId, detail) =>
+    set((state) => ({ compactions: { ...state.compactions, [messageId]: detail } })),
+
+  clear: () => set({ errorFrames: {}, notices: {}, compactions: {} }),
+}));
+
+/**
+ * A runtime notice (C9): the sidecar marks every notice it emits — publish
+ * divergence, staged actions, truncation, history compaction — with the
+ * `notice` step kind, so the chat renders it as a transcript chip by KIND.
+ * Matching the copy drifted twice (R15-AGENT-031 / R15-UI-054).
+ */
+export function isRuntimeNotice(stepKind: string): boolean {
+  return stepKind === "notice";
+}
+
+/** Test helper: reset the per-message annotations. */
+--- src/modules/chat/ChatSidebar.tsx: isRuntimeNotice call sites ---
+84:  isRuntimeNotice,
+1056:          if (isRuntimeNotice(step.stepKind)) {
+1082:            !(event.kind === "research_step" && isRuntimeNotice(event.stepKind))
+--- sidecar/services/agent_runtime.py:1418-1462 (kept_previous/failed/no-ack all step_kind=notice) ---
+    "richer brief" claim); ``failed`` → the apply failed. A call SUPERSEDED by a
+    later successful publish of the same panel/symbol in the SAME turn emits
+    NOTHING (:func:`_superseded_by_later_apply`) — the panel shows the applied
+    one, so a per-call contradiction would lie (R13 JARVIS 1c). Each rides a
+    ``research_step`` with ``step_kind="notice"`` (C9): the frontend renders it
+    as a transcript chip by KIND, never by matching this copy (R15-AGENT-031).
+    """
+    deadline = time.monotonic() + _ACK_GRACE_SECONDS
+    pending = {cid for cid in publish_calls if action_ledger.get(cid) is None}
+    while pending and time.monotonic() < deadline:
+        await asyncio.sleep(_ACK_POLL_SECONDS)
+        pending = {cid for cid in pending if action_ledger.get(cid) is None}
+    entries = [(cid, action_ledger.take(cid)) for cid in publish_calls]
+    notices: list[LLMResearchStepEvent] = []
+    for index, (call_id, entry) in enumerate(entries, start=1):
+        status = entry.get("status") if entry else None
+        if status == "applied":
+            continue  # the optimistic dispatch was right; nothing to say.
+        # A later successful publish of the same panel/symbol already replaced
+        # whatever this call did — suppress the false contradiction.
+        if _superseded_by_later_apply(index - 1, entries):
+            continue
+        label = _ack_brief_label(entry)
+        if entry is None:
+            detail = (
+                "The brief panel did not confirm the publish — treat it as NOT "
+                "rendered until get_terminal_state shows it."
+            )
+            step_status = "error"
+        elif status == "kept_previous":
+            detail = (
+                f"The panel kept the brief already on screen{label} — this publish "
+                "did not replace it; do not claim the new one rendered."
+            )
+            step_status = "ok"
+        else:  # failed / unknown status — the apply did not land.
+            detail = f"The brief panel reported the publish failed{label}."
+            step_status = "error"
+        notices.append(
+            LLMResearchStepEvent(
+                tool_call_id=call_id,
+                tool="publish_brief",
+                step_kind=NOTICE_STEP_KIND,
+                detail=detail,
+                status=step_status,
+                index=index,
+            )
+        )

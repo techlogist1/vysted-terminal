@@ -1,0 +1,2 @@
+=== DOCS-005: module count / BLUEPRINT claim ===
+21

@@ -1,0 +1,9 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.4s] done: {"kind": "done", "usage": {"input_tokens": 7485, "output_tokens": 29, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+{"name": "portfolio_get_position", "parameters": {"symbol": "HDFCBANK", "position_id": "<nil>"}}
+
+=== ok · 37.4s · events {'heartbeat': 3, 'delta': 1, 'done': 1} · usage in=7485 out=29 · est $0.00000 · llama3.1:8b

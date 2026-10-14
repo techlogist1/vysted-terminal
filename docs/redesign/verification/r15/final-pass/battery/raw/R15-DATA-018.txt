@@ -1,0 +1,16 @@
+# R15-DATA-018 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:27:30+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+for q in 'resolve?q=zomato&region=IN' 'resolve?q=ZOMATO&region=IN' 'resolve/autocomplete?q=ZOMATO' 'resolve?q=SEQUENT&region=IN' 'resolve?q=VIYASH&region=IN'; do echo "-- $q"; curl -s -m 60 "$H/$q" | python3 -c "import sys,json;d=json.load(sys.stdin);r=d.get('resolved') or (d.get('candidates') or [{}])[0];print({k:r.get(k) for k in ('symbol','name','former_name','note','rename_note')}, '| note:', str(d.get('note') or r.get('former_names') or '')[:200])"; done
+--- output ---
+-- resolve?q=zomato&region=IN
+{'symbol': 'ETERNAL', 'name': 'ETERNAL LIMITED', 'former_name': 'ZOMATO', 'note': None, 'rename_note': None} | note: 
+-- resolve?q=ZOMATO&region=IN
+{'symbol': 'ETERNAL', 'name': 'ETERNAL LIMITED', 'former_name': 'ZOMATO', 'note': None, 'rename_note': None} | note: 
+-- resolve/autocomplete?q=ZOMATO
+{'symbol': 'ETERNAL', 'name': 'ETERNAL LIMITED', 'former_name': 'ZOMATO', 'note': None, 'rename_note': None} | note: 
+-- resolve?q=SEQUENT&region=IN
+{'symbol': 'VIYASH', 'name': 'Viyash Scientific Limited', 'former_name': 'SEQUENT', 'note': None, 'rename_note': None} | note: 
+-- resolve?q=VIYASH&region=IN
+{'symbol': 'VIYASH', 'name': 'Viyash Scientific Limited', 'former_name': 'SEQUENT', 'note': None, 'rename_note': None} | note: 
+
+EXIT=0 (0.7s)

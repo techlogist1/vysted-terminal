@@ -1,0 +1,12 @@
+# R15-DATA-055 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:28:43+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in AMAL.NS RELIANCE.NS; do echo "-- /fundamentals/$s"; curl -s -m 100 "$H/fundamentals/$s" | python3 -c "import sys,json;d=json.load(sys.stdin);print({k:d.get(k) for k in ('symbol','listing_date','first_trade_date','fifty_two_week_high_date','fifty_two_week_low_date','forward_pe_fiscal_year')}, 'has forward_pe_fiscal_year key:', 'forward_pe_fiscal_year' in d);fm=d.get('field_meta',{});print('distinct as_of in field_meta:',len({(v or {}).get('as_of') for v in fm.values()}))"; done
+--- output ---
+-- /fundamentals/AMAL.NS
+{'symbol': 'AMAL.NS', 'listing_date': '2026-08-17', 'first_trade_date': '2026-08-18', 'fifty_two_week_high_date': '2026-08-20', 'fifty_two_week_low_date': '2026-09-28', 'forward_pe_fiscal_year': None} has forward_pe_fiscal_year key: True
+distinct as_of in field_meta: 4
+-- /fundamentals/RELIANCE.NS
+{'symbol': 'RELIANCE.NS', 'listing_date': '1995-11-29', 'first_trade_date': '1996-01-01', 'fifty_two_week_high_date': '2026-01-05', 'fifty_two_week_low_date': '2026-10-01', 'forward_pe_fiscal_year': '2027-03-31'} has forward_pe_fiscal_year key: True
+distinct as_of in field_meta: 5
+
+EXIT=0 (27.3s)

@@ -1,0 +1,30 @@
+== src/modules/quant units.ts rho and other greeks unit handling ==
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/modules/quant/units.ts
+11:  unit: string | null;
+14:/** QuantLib returns vega and rho per unit rate (1.00 = a full 100-point move)
+15: *  and theta per year. A desk reads vega/rho per 1-point move and theta per
+17:export function toMarketUnits({ vega, theta, rho }: Pick<Greeks, "vega" | "theta" | "rho">): {
+18:  vega: MarketGreek;
+19:  theta: MarketGreek;
+20:  rho: MarketGreek;
+23:    vega: { value: vega / 100, unit: "per 1 vol pt" },
+24:    theta: { value: theta / 365, unit: "per day" },
+25:    rho: { value: rho / 100, unit: "per 1%" },
+29:/** One greek as a panel shows it: vega/theta/rho in market units, the rest as served. */
+31:  if (key === "vega" || key === "theta" || key === "rho") return toMarketUnits(greeks)[key];
+32:  return { value: greeks[key], unit: null };
+
+== GreeksDashboard.tsx unit rendering ==
+108:    format: (r) => (r.unit ? `${r.value.toFixed(4)} ${r.unit}` : r.value.toFixed(4)),
+144:      {unit && <span className="text-charcoal-500 text-micro">{unit}</span>}
+
+== live sidecar greeks calc, spot220 strike220 r0.05 q0.005 vol0.28 ==
+['/quant/option/price', '/quant/option/greeks', '/quant/option/chain/{symbol}']
+
+== live /quant/option/greeks spot220 strike220 r0.05 q0.005 vol0.28 ==
+{"detail":[{"type":"missing","loc":["body","payoff"],"msg":"Field required","input":{"spot":220,"strike":220,"rate":0.05,"dividend_yield":0.005,"volatility":0.28,"time_to_expiry":0.25,"option_type":"call"}},{"type":"missing","loc":["body","risk_free_rate"],"msg":"Field required","input":{"spot":220,"strike":220,"rate":0.05,"dividend_yield":0.005,"volatility":0.28,"time_to_expiry":0.25,"option_type":"call"}},{"type":"missing","loc":["body","valuation_date"],"msg":"Field required","input":{"spot":220,"strike":220,"rate":0.05,"dividend_yield":0.005,"volatility":0.28,"time_to_expiry":0.25,"option_type":"call"}},{"type":"missing","loc":["body","expiry_date"],"msg":"Field required","input":{"spot":220,"strike":220,"rate":0.05,"dividend_yield":0.005,"volatility":0.28,"time_to_expiry":0.25,"option_type":"call"}},{"type":"extra_forbidden","loc":["body","rate"],"msg":"Extra inputs are not permitted","input":0.05},{"type":"extra_forbidden","loc":["body","time_to_expiry"],"msg":"Extra inputs are not permitted","input":0.25},{"type":"extra_forbidden","loc":["body","option_type"],"msg":"Extra inputs are not permitted","input":"call"}]}
+== pinned vitest: units.test.ts ==
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/modules/quant/units.test.ts
+8:    expect(vega).toEqual({ value: 0.3, unit: "per 1 vol pt" });
+10:    expect(theta.unit).toBe("per day");
+13:  it("reads rho per 1% rate move (R15-UI-028 residual: rho was still unlabelled)", () => {

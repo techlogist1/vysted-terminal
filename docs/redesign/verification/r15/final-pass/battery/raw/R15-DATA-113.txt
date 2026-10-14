@@ -1,0 +1,10 @@
+# R15-DATA-113 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:51:02+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+echo "\$ GET /earnings/WIT/estimates"; curl -s -m 60 -H "X-Vysted-Region: US" "$H/earnings/WIT/estimates" | python3 -c "
+import sys,json;d=json.load(sys.stdin);e=d.get('estimate',d)
+print({k:e.get(k) for k in ('currency','eps_estimate_mean','revenue_estimate_mean','revenue_currency')} if isinstance(e,dict) else str(d)[:600])"
+--- output ---
+$ GET /earnings/WIT/estimates
+{'currency': 'USD', 'eps_estimate_mean': 0.035, 'revenue_estimate_mean': 247967658140.0, 'revenue_currency': 'INR'}
+
+EXIT=0 (3.3s)

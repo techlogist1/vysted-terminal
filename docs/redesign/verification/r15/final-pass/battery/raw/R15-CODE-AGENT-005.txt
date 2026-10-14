@@ -1,0 +1,13 @@
+# R15-CODE-AGENT-005 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:23:16+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py/R15-CODE-AGENT-005.py 2>&1 | grep -v "^WARNING\|DEBUG" | tail -c 9000
+[exit 0] [0.96s]
+dropped unsupported LLM option key(s): brand_new_key, depth, research_depth
+ADAPTER_OPTION_KEYS: ['config', 'max_tokens', 'temperature', 'top_p', 'web_search', 'web_search_max_uses']
+scrub({'depth':'deep','temperature':0.2,'research_depth':'deep','brand_new_key':1}) -> {'temperature': 0.2}
+routers/llm.py:39:from services.llm import get_provider, list_provider_info, scrub_adapter_options
+routers/llm.py:155:    adapter_options = scrub_adapter_options(payload.options)
+services/agent_runtime.py:61:from services.llm import get_provider, native_search, oneshot, scrub_adapter_options
+services/agent_runtime.py:2829:        opts=scrub_adapter_options(opts),
+
+

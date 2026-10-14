@@ -1,0 +1,9 @@
+# R15-UI-049 at ace7dd7
+$ grep promoteKeyedProvider
+src/components/KeyEntryDialog.tsx:89:      if (await useLLMProvidersStore.getState().promoteKeyedProvider(providerId)) {
+src/store/llm-providers.ts:83:  promoteKeyedProvider: (id: LLMProviderId) => Promise<boolean>;
+src/store/llm-providers.ts:92:  promoteKeyedProvider: async (id) => {
+src/store/llm-providers.test.ts:10:describe("promoteKeyedProvider (R15-UI-049)", () => {
+src/store/llm-providers.test.ts:18:    await expect(useLLMProvidersStore.getState().promoteKeyedProvider("openrouter")).resolves.toBe(
+src/store/llm-providers.test.ts:27:    await useLLMProvidersStore.getState().promoteKeyedProvider("openrouter");
+src/store/llm-providers.test.ts:34:    await expect(useLLMProvidersStore.getState().promoteKeyedProvider("openrouter")).resolves.toBe(

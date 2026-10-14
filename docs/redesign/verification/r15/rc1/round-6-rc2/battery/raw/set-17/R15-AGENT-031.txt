@@ -1,0 +1,11 @@
+COMMAND: in-process invoke_agent (autonomy auto) publish_brief with ledger ack none/kept_previous/failed/applied (scratch p17b.py); node --experimental-strip-types import of src/modules/chat/message-notices.ts isRuntimeNotice
+EXIT: 0
+OUTPUT:
+ack=None: [('notice', 'The brief panel did not confirm the publish — treat it as NOT rendered until get_terminal_state shows it.')]
+ack=kept_previous: [('notice', 'The panel kept the brief already on screen — this publish did not replace it; do not claim the new one rendered.')]
+ack=failed: [('notice', 'The brief panel reported the publish failed.')]
+ack=applied: []
+--- node ---
+"The panel kept the brief already on scre" oldRegex= false
+"The brief panel reported the publish fai" oldRegex= false
+isRuntimeNotice(notice)= true isRuntimeNotice(engine)= false

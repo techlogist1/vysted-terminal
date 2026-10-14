@@ -1,0 +1,41 @@
+R15-UI-055: ci_pinned — two pinned vitest tests present, code path unchanged.
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/modules/screener/ScreenerResultsTable.test.tsx:336:  it("R15-UI-055: a run that evaluated nothing says so instead of blaming the filters", () => {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/modules/screener/ScreenerPanel.test.tsx:325:  it("R15-UI-055: throttled with no stale/snapshot rows shown claims no cached values", async () => {
+
+      status: "ready",
+    });
+    render(<ScreenerResultsTable />);
+    expect(screen.getByText(/no rows matched/i)).toBeInTheDocument();
+  });
+
+  it("R15-UI-055: a run that evaluated nothing says so instead of blaming the filters", () => {
+    useScreenerStore.setState({
+      lastResult: {
+        ...RESULT,
+        rows: [],
+        result_count: 0,
+        evaluated_count: 0,
+        skipped_count: 506,
+        partial: true,
+        throttled: true,
+      },
+      status: "ready",
+    });
+    render(<ScreenerResultsTable />);
+    expect(screen.getByText("Nothing could be screened")).toBeInTheDocument();
+    expect(screen.getByText(/data provider is throttled; retry in a moment/)).toBeInTheDocument();
+    expect(screen.queryByText(/loosen a threshold/i)).not.toBeInTheDocument();
+
+          </button>
+          <span className="text-micro">{result.universe}</span>
+        </div>
+      </div>
+      <div className="border-charcoal-700 min-h-0 flex-1 overflow-auto rounded-none border">
+        {result.evaluated_count === 0 ? (
+          // R15-UI-055: nothing was screened, so the filters are not to blame.
+          <EmptyState
+            icon={SlidersHorizontal}
+            headline="Nothing could be screened"
+            hint={
+              result.throttled
+                ? "The data provider is throttled; retry in a moment."

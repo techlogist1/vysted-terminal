@@ -1,0 +1,2 @@
+RAISE TypeError unhashable type: 'list'
+{'symbol': 'AAPL', 'max_strikes': 5}

@@ -1,0 +1,40 @@
+sha: 68d5573aff9a579af084dcbb124843f2aecff6e8
+$ PYTHONPATH=. ./.venv/bin/python3 scratchpad/vs2/p019.py
+import asyncio, time
+from services import workflow_engine as we
+from models.workflow import WorkflowSpec
+T0 = time.monotonic(); log = []
+def mk(name, delay, out=1):
+    async def h(inputs, config):
+        log.append((name, "start", round(time.monotonic() - T0, 2)))
+        await asyncio.sleep(delay)
+        log.append((name, "end", round(time.monotonic() - T0, 2)))
+        return {"out": out}
+    return h
+async def hang(inputs, config):
+    log.append(("H", "start", round(time.monotonic() - T0, 2))); await asyncio.Event().wait()
+we.register_node_type("vs2.slow", mk("A", 4.0)); we.register_node_type("vs2.fast", mk("B", 0.1))
+we.register_node_type("vs2.c", mk("C", 0.1)); we.register_node_type("vs2.d", mk("D", 0.1)); we.register_node_type("vs2.e", mk("E", 0.0))
+we.register_node_type("vs2.hang", hang)
+P = {"x": 0, "y": 0}
+def n(i, t, **cfg): return {"id": i, "type": t, "position": P, "config": cfg}
+def e(i, s, t, tp="in"): return {"id": i, "sourceNode": s, "sourcePort": "out", "targetNode": t, "targetPort": tp}
+spec = WorkflowSpec.model_validate({"id": "vs2", "name": "vs2", "nodes": [n("A", "vs2.slow"), n("B", "vs2.fast"), n("C", "vs2.c"), n("D", "vs2.d"), n("E", "vs2.e"), n("H", "vs2.hang", timeout_seconds=1.5), n("F", "vs2.c")],
+  "edges": [e("1", "B", "C"), e("2", "C", "D"), e("3", "A", "E", "a"), e("4", "D", "E", "d"), e("5", "H", "F")]})
+async def main():
+    r = await asyncio.wait_for(we.run_workflow(spec), 30)
+    print("run status:", getattr(r, "status", None), "elapsed %.2f" % (time.monotonic() - T0))
+    for nr in r.nodes if hasattr(r, "nodes") else r.node_results:
+        print("  ", nr.nodeId if hasattr(nr, "nodeId") else nr.node_id, nr.status, (getattr(nr, "error", None) or "")[:80])
+    print("timeline:", log)
+asyncio.run(main())
+--- output
+run status: error elapsed 4.00
+   B ok 
+   C ok 
+   D ok 
+   H error node timed out after 1.5s
+   F error upstream node failed
+   A ok 
+   E ok 
+timeline: [('A', 'start', 0.0), ('B', 'start', 0.0), ('H', 'start', 0.0), ('B', 'end', 0.1), ('C', 'start', 0.1), ('C', 'end', 0.2), ('D', 'start', 0.2), ('D', 'end', 0.31), ('A', 'end', 4.0), ('E', 'start', 4.0), ('E', 'end', 4.0)]

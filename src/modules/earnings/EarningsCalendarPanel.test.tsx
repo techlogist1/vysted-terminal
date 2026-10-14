@@ -30,12 +30,20 @@ vi.mock("lightweight-charts", () => ({
   AreaSeries: "Area",
 }));
 
-vi.mock("@/lib/sidecar-client", () => ({
+vi.mock("@/lib/sidecar-client", async (importOriginal) => ({
+  // The real SidecarError: the retry hook classifies failures by it.
+  SidecarError: (await importOriginal<typeof import("@/lib/sidecar-client")>()).SidecarError,
   getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
   sidecarGet: vi.fn(),
 }));
 
+vi.mock("@/lib/host-actions", () => ({
+  loadSymbolIntoChart: vi.fn(),
+}));
+
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { sidecarGet } from "@/lib/sidecar-client";
+import { usePanelContextBus } from "@/store/panel-context";
 import { useEarningsStore } from "@/store/earnings";
 
 import { EarningsCalendarPanel } from "./EarningsCalendarPanel";
@@ -69,13 +77,16 @@ const UPCOMING_SAMPLE: EarningsUpcomingResponse = {
       provider: "yfinance",
     },
   ],
+  as_of: null,
 };
 
 const SURPRISES_SAMPLE: EarningsSurprisesResponse = {
   symbol: "AAPL",
+  as_of: null,
   surprises: [
     {
       symbol: "AAPL",
+      period_end: "2026-01-31",
       reported_date: "2026-02-01",
       fiscal_period: { quarter: "Q1", year: 2026 },
       eps_actual: 1.32,
@@ -112,6 +123,7 @@ const ESTIMATE_SAMPLE: EarningsEstimateDetail = {
 
 beforeEach(() => {
   useEarningsStore.getState().__resetForTests();
+  usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
   vi.clearAllMocks();
 });
 
@@ -134,8 +146,31 @@ describe("EarningsCalendarPanel", () => {
     render(<EarningsCalendarPanel />);
     await waitFor(() => {
       expect(screen.getByText("Apple Inc.")).toBeInTheDocument();
-      expect(screen.getByText("1.50")).toBeInTheDocument();
+      // R15-DATA-031: the consensus EPS figure carries its currency affix.
+      expect(screen.getByText("$1.50")).toBeInTheDocument();
     });
+  });
+
+  it("R15-CODE-DATA-015: skeleton and loaded colgroups share widths", async () => {
+    let resolveFetch: (value: EarningsUpcomingResponse) => void = () => {};
+    const pending = new Promise<EarningsUpcomingResponse>((resolve) => {
+      resolveFetch = resolve;
+    });
+    vi.mocked(sidecarGet).mockReturnValueOnce(pending);
+    const { container } = render(<EarningsCalendarPanel />);
+
+    const readWidths = () =>
+      Array.from(container.querySelectorAll("table colgroup col")).map(
+        (col) => (col as HTMLElement).style.width,
+      );
+
+    await waitFor(() => expect(readWidths().length).toBeGreaterThan(0));
+    const skeletonWidths = readWidths();
+
+    resolveFetch(UPCOMING_SAMPLE);
+    await waitFor(() => screen.getByText("AAPL"));
+
+    expect(readWidths()).toEqual(skeletonWidths);
   });
 
   it("expands an inline drill-down on row click and fetches history/surprises/estimates", async () => {
@@ -153,6 +188,13 @@ describe("EarningsCalendarPanel", () => {
     await waitFor(() => {
       expect(screen.getByTestId("eps-estimate-grid")).toBeInTheDocument();
     });
+    // The estimate detail is a sectioned statement table (EPS / Revenue), not
+    // a key-value dump: section headers + right-aligned formatted values.
+    expect(screen.getByText("EPS")).toBeInTheDocument();
+    expect(screen.getByText("Revenue")).toBeInTheDocument();
+    expect(screen.getByText("Std. dev.")).toBeInTheDocument();
+    // R15-DATA-031: the estimate-detail figures carry their currency affix.
+    expect(screen.getByText("$0.05")).toBeInTheDocument();
   });
 
   it("captures upcoming-load errors inline", async () => {
@@ -161,6 +203,97 @@ describe("EarningsCalendarPanel", () => {
     await waitFor(() => {
       expect(screen.getByText(/provider blew up/i)).toBeInTheDocument();
     });
+  });
+
+  it("R15-UI-015: a deterministic 502 settles after one attempt and shows the error", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const { SidecarError } = await import("@/lib/sidecar-client");
+      vi.mocked(sidecarGet).mockRejectedValue(new SidecarError(502, "keyless upstream"));
+      render(<EarningsCalendarPanel />);
+      // The retry hook's backoff window (~50s) fully elapses; a flattened
+      // new Error(string) used to read as transient and keep retrying.
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(sidecarGet).toHaveBeenCalledTimes(1);
+      expect(screen.getByText(/keyless upstream/i)).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("R15-DATA-031: labels EPS with currency and never interleaves currencies when sorted", async () => {
+    const MIXED_CURRENCY_SAMPLE: EarningsUpcomingResponse = {
+      start_date: "2026-05-16",
+      end_date: "2026-05-23",
+      events: [
+        {
+          symbol: "AAPL",
+          company_name: "Apple Inc.",
+          scheduled_date: "2026-05-20",
+          time_of_day: "after-close",
+          fiscal_period: { quarter: "Q2", year: 2026 },
+          eps_estimate_mean: 2.35,
+          eps_estimate_stddev: 0.05,
+          estimate_analyst_count: 20,
+          currency: "USD",
+          provider: "yfinance",
+        },
+        {
+          symbol: "RELIANCE.NS",
+          company_name: "Reliance Industries",
+          scheduled_date: "2026-05-21",
+          time_of_day: "before-open",
+          fiscal_period: { quarter: "Q2", year: 2026 },
+          eps_estimate_mean: 42.1,
+          eps_estimate_stddev: 1.2,
+          estimate_analyst_count: 15,
+          currency: "INR",
+          provider: "yfinance",
+        },
+      ],
+      as_of: null,
+    };
+    vi.mocked(sidecarGet).mockResolvedValueOnce(MIXED_CURRENCY_SAMPLE);
+    render(<EarningsCalendarPanel />);
+    await waitFor(() => {
+      expect(screen.getByText("AAPL")).toBeInTheDocument();
+    });
+    // The unlabelled figures used to read "2.35" and "42.10" — indistinguishable
+    // magnitudes across currencies.
+    expect(screen.getByText("$2.35")).toBeInTheDocument();
+    expect(screen.getByText("₹42.10")).toBeInTheDocument();
+
+    // Sorting by Consensus EPS must never rank the INR row against the USD
+    // row by raw magnitude — the currency groups stay intact.
+    fireEvent.click(screen.getByText("Consensus EPS"));
+    await waitFor(() => {
+      const rows = screen.getAllByTestId(/^earnings-row-/);
+      const order = rows.map((r) => r.getAttribute("data-testid"));
+      expect(order).toEqual(["earnings-row-RELIANCE.NS", "earnings-row-AAPL"]);
+    });
+  });
+
+  it("R15-DATA-032: an absent dispersion / count renders '—' and sorts last both ways", async () => {
+    const [aapl, msft] = UPCOMING_SAMPLE.events;
+    vi.mocked(sidecarGet).mockResolvedValueOnce({
+      ...UPCOMING_SAMPLE,
+      events: [
+        { ...aapl!, eps_estimate_stddev: null, estimate_analyst_count: null },
+        { ...msft!, currency: aapl!.currency },
+      ],
+    });
+    render(<EarningsCalendarPanel />);
+    await waitFor(() => {
+      expect(screen.getByText("AAPL")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("earnings-row-AAPL")).toHaveTextContent("— / —");
+
+    const order = () =>
+      screen.getAllByTestId(/^earnings-row-/).map((r) => r.getAttribute("data-testid"));
+    fireEvent.click(screen.getByText("Dispersion / # analysts"));
+    await waitFor(() => expect(order()).toEqual(["earnings-row-MSFT", "earnings-row-AAPL"]));
+    fireEvent.click(screen.getByText("Dispersion / # analysts"));
+    await waitFor(() => expect(order()).toEqual(["earnings-row-MSFT", "earnings-row-AAPL"]));
   });
 
   it("applies a watchlist + days when the form submits", async () => {
@@ -180,5 +313,29 @@ describe("EarningsCalendarPanel", () => {
         watchlist: "AAPL,MSFT,NVDA",
       });
     });
+  });
+
+  it("publishes the on-screen symbols + window to the panel context bus (R15-AGENT-053)", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce(UPCOMING_SAMPLE);
+    render(<EarningsCalendarPanel />);
+    await waitFor(() => {
+      expect(usePanelContextBus.getState().lastEventBySource.earnings).toBeDefined();
+    });
+    const payload = usePanelContextBus.getState().lastEventBySource.earnings!.payload as {
+      symbols: string[];
+      windowDays: number;
+    };
+    expect(payload.symbols).toEqual(expect.arrayContaining(["AAPL", "MSFT"]));
+  });
+
+  it("clicking a symbol loads it into the chart without triggering the row's expand", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce(UPCOMING_SAMPLE);
+    render(<EarningsCalendarPanel />);
+    await waitFor(() => {
+      expect(screen.getByTestId("earnings-symbol-AAPL")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId("earnings-symbol-AAPL"));
+    expect(loadSymbolIntoChart).toHaveBeenCalledWith("AAPL");
+    expect(screen.queryByTestId("eps-estimate-grid")).toBeNull();
   });
 });

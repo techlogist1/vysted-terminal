@@ -1,0 +1,4 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, in-process python (cand sidecar/.venv) scratch script b16_w1.py driving agent_runtime.invoke_agent / _dispatch_tool_with_progress with a scripted provider, EXIT=0
+yielded=[] result={"ok": false, "error": "invalid arguments for set_chart_indicators: 'bollinger_bands' is not one of ['rsi', 'macd', 'ma', 'ema', 'sma', 'bollinger', 'volume', 'adx', 'stochastic', 'atr', 'obv', 'mfi', 'ichimoku', 'keltner', 'vwap', 'parabolic_sar', 'cci', 'williams_r', 'roc', 'wma', 'hma', 'dema', 'tema', 'kama', 'tsi', 'kst', 'awesome_oscillator', 'ppo', 'ultimate_oscillator', 'std_dev', 'bollinger_bandwidth', 'donchian', 'chaikin_volatility', 'ad_line', 'chaikin_money_flow', 'force_index', 'ea
+--- frontend half:
+PROBE set_chart_indicators [rsi,bollinger_bands] -> Set indicators: rsi (dropped unknown: bollinger_bands)

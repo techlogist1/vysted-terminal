@@ -1,0 +1,37 @@
+{
+ "added": {
+  "hid": "h-0038383f-9207-486d-8f43-e40ad989623e",
+  "holdings": [
+   {
+    "id": "h-0038383f-9207-486d-8f43-e40ad989623e",
+    "symbol": "MSFT",
+    "quantity": 7,
+    "costBasis": 312.5,
+    "assetClass": "equity"
+   }
+  ]
+ },
+ "exportFile": "csv/vysted-portfolio-portfolio.csv",
+ "csv": "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note\nMSFT,7,312.5,equity,USD,516.1699829101562,3613.1898803710938,1425.6898803710938,65.17439453125,100.00,",
+ "liveQuote": {
+  "price": 516.1699829101562,
+  "currency": "USD",
+  "ts": "2026-09-25T20:00:01Z"
+ },
+ "check": {
+  "csvPrice": 516.1699829101562,
+  "csvPnl": 1425.6898803710938,
+  "expectedPnlFromCsvPrice": 1425.6898803710938,
+  "livePriceDelta": 0
+ },
+ "persistAfterAdd": 200,
+ "readBackAfterAdd": [
+  {
+   "symbol": "MSFT",
+   "quantity": 7,
+   "costBasis": 312.5
+  }
+ ],
+ "persistAfterDelete": 200,
+ "readBackAfterDelete": []
+}

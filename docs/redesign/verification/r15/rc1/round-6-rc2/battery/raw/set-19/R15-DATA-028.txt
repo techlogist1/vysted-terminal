@@ -1,0 +1,20 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ bash /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b2_028.sh
+exit=0
+== region IN
+dict 39
+LCCPROJECT.NS 2026-10-05 nse None
+RENTOMOJO.NS 2026-10-05 nse None
+STEAMHOUSE.NS 2026-10-05 nse None
+ARCIL.NS 2026-10-06 nse None
+GLASSWALL.NS 2026-10-06 nse None
+KANOHAR.NS 2026-10-06 nse None
+VEEGALAND.NS 2026-10-06 nse None
+GMBREW.NS 2026-10-08 nse None
+TCS.NS 2026-10-08 nse None
+ANANDRATHI.NS 2026-10-09 nse None
+CANFINHOME.NS 2026-10-09 nse None
+CRAMC.NS 2026-10-09 nse None
+== region US
+dict 1
+JPM 2026-10-13 yfinance None

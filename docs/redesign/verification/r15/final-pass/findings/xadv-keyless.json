@@ -1,0 +1,77 @@
+[
+  {
+    "key": "keyless:1",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "",
+    "scenario": "xadv-keyless-3",
+    "title": "NSE EOD warm labels a holiday as the trade date: the legacy fallback archive serves 1 Oct's bhavcopy under 2 Oct's (Gandhi Jayanti) name and fetch_latest stamps the requested date, ignoring the rows' own DATE1 and the product's own holiday table",
+    "area": "data-smallcaps",
+    "repro": "Clean profile boot on 3 Oct 2026; main.log 'bhavcopy EOD applied to 2923 NSE rows (trade date 2026-10-02)'; data_cache key nse_bhavcopy:20261002; sec_bhavdata_full_02102026.csv rows read 'RELIANCE, EQ, 01-Oct-2026, ...'; locale.py:98 lists 2026-10-02 as a holiday",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-keyless-3.md",
+    "suspected_files": [
+      "sidecar/services/nse_bhavcopy.py",
+      "sidecar/services/fundamentals_warm.py"
+    ]
+  },
+  {
+    "key": "keyless:2",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "",
+    "scenario": "xadv-keyless-4",
+    "title": "A stranger with no Ollama installed who sends a chat message on the default keyless lane is told 'Ollama is not running. Start Ollama (open the app or run `ollama serve`)' and the guided setup (which has the install link) is not opened: never-installed and not-running are one 'unreachable' reason",
+    "area": "agent-chat",
+    "repro": "POST /llm/keys/validate {provider:ollama, base_url:http://127.0.0.1:52909 (closed)} -> reason unreachable, detail 'Ollama is not running. Start Ollama (open the app or run `ollama serve`), then try again.'; ChatSidebar.tsx ~834-862 opens setup only on model_not_pulled/not_configured, which ollama can never return",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-keyless-4.md",
+    "suspected_files": [
+      "src/modules/chat/ChatSidebar.tsx",
+      "sidecar/routers/llm.py",
+      "sidecar/services/errors.py"
+    ]
+  },
+  {
+    "key": "keyless:3",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "",
+    "scenario": "xadv-keyless-6",
+    "title": "README keyless section repeats the false promises R15-UI-052 removed from the app: 'web research (keyless, via DuckDuckGo) all run out of the box' (no keyless web-research surface exists; it needs a model) and the local model is 'fully offline' (it reaches out for data and search); its BYOK provider list also omits OpenRouter, the one key it tells users to get",
+    "area": "docs",
+    "repro": "README.md:60-62, :70-73, :41-42 at d38b5d1a vs OnboardingFlow.tsx:240-242/260/690, OnboardingFlow.test.tsx:33-37, GET /llm/providers (8 providers incl. openrouter). Note: README residue of R15-UI-052 (fixed in app copy only; README never in its files)",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-keyless-6.md",
+    "suspected_files": [
+      "README.md"
+    ]
+  },
+  {
+    "key": "keyless:4",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "",
+    "scenario": "xadv-keyless-7",
+    "title": "Research brief drops the price of an NSE small cap whenever the 6-month history fetch is slow: the 6 s 'price' leg calls price_data, which fetches history BEFORE the quote and the brief keeps only the quote, so an nse_direct history reset (~10 s) erases a quote that answers in 0.25 s",
+    "area": "research-search",
+    "repro": "research KITEX.NS on ollama llama3.1:8b -> step 'price timed out after 6s \u2014 dropped', structured.price ok:false; GET /quotes/KITEX.NS 0.001 s; MCP price_data SHAILY.NS 10.6 s (nse_direct ohlcv 'Connection reset by peer'); fast.py:355/364, price_data.py:48-56",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-keyless-7.md",
+    "suspected_files": [
+      "sidecar/services/research/fast.py",
+      "sidecar/services/agent_tools/price_data.py"
+    ]
+  },
+  {
+    "key": "keyless:5",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "",
+    "scenario": "xadv-keyless-7",
+    "title": "FAST research boxes the web round at 8 s while the keyless chain gives each engine 6 s, so when DuckDuckGo hangs Brave gets ~2 s and Mojeek (the designed last resort) is never reached; the trace then says 'no web backend' for a timeout",
+    "area": "research-search",
+    "repro": "keyless.py:61,67 vs fast.py:120,693,711; live: DDG direct probe hangs (000 after 10 s), research web round 'Web search did not answer within 8s'; confounded today by IP-wide Brave/Mojeek throttling",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-keyless-7.md",
+    "suspected_files": [
+      "sidecar/services/research/fast.py",
+      "sidecar/services/search/keyless.py"
+    ]
+  }
+]

@@ -1,0 +1,31 @@
+# rc1-vshard-1 working log (gate round 4)
+
+- 2026-09-27 05:10:11 candidate worktree HEAD = 68d5573aff9a579af084dcbb124843f2aecff6e8 (checked)
+- 2026-09-27 05:10:11 own sidecar :52601 from worktree source, data dir scratchpad/rc1-round-4-data-rc1-vshard-1 (copy of seed); sleep pid 33878, worker 33879; /health ok v0.8.0
+- note: Yahoo answering 429 to crumb/v7 at boot (shared rate limit across agents)
+- 2026-09-27 05:11:47 vy.py refuses non-GET outside 52100-52399; started loopback forwarder 52397->52601 (pid 36538) so vy.py reaches the assigned sidecar
+- 2026-09-27 05:14:49 LIFECYCLE-006: entry repro (o3-deep-research pinned) + fresh (perplexity/sonar-reasoning, DEEP stop, TCS) -> error research_step + honest 404 message, assistant text present -> holds
+- 2026-09-27 05:14:49 RESEARCH-009/AGENT-012: fresh ULTRA/openrouter stub-usage run -> cost 873200 tok / $7.86; 5k token ceiling fires abort->synthesize -> holds (ULTRA brief note None: adjacent low)
+- 2026-09-27 05:14:49 RESEARCH-013: stub NSE-only/BSE-only/both -> nse / bse / nse+bse -> holds
+- 2026-09-27 05:14:49 DATA-019: JUMBO 18 (was 0), TTC 16, AMAL 21 with BSE window 2026-03-31..2026-09-27 disclosed -> holds
+- 2026-09-27 05:14:49 DATA-021: SIL per-quarter split_as_of == quarter; 2023-09 NSE XBRL confirms FII 38.86 DII 4.05 (flat is real); in-process bound 100d -> holds
+- 2026-09-27 05:22:47 AGENT-009: live bse-all roe>15% run (2857 skip rows, Yahoo throttled) through the real _screener_run -> 25 KB, skip_summary + 5 examples -> holds
+- 2026-09-27 05:22:47 AGENT-006: in-process fake Gemini stream, parallel calls (sig on first only) -> provider_meta carried, JSON checkpoint round-trip, re-attached per part -> holds (no Gemini key for a live call)
+- 2026-09-27 05:22:47 LEAD-007: 56-tool catalog + google_search validate in GenerateContentConfig (parameters_json_schema) -> holds client-side; server acceptance of int enums/list types unverifiable (no Gemini key)
+- 2026-09-27 05:22:47 DATA-030: matcher entry cases + fresh (KOTAKBANK.NS, LT.NS, INFY.NS) tag; A/T/F/C tag nothing on prose -> holds. Live RELIANCE.NS/HDFCBANK empty = upstream (Yahoo .NS RSS 0 items; ET/Mint feeds carry no mention). Adjacent: bare alias over-matches Reliance Power/Infra, LT Foods, ITC Hotels
+- 2026-09-27 05:22:47 AGENT-015: live workflow ai.agent_invoke on llama3.1:8b (ollama lock held+released) -> reply about 'Pineapple' = typed prompt reached agent -> holds. Adjacent: typed prompt '{...}' non-context braces silently blanked
+- 2026-09-27 05:22:47 CODE-PLATFORM-002: live palette-shaped graphs (json_path/branch/compare neq/lte/notify/sleep seconds/indicator + 5 sidecar kinds) -> all ports/keys wired, sleep 1.0s -> holds
+- 2026-09-27 05:22:47 DATA-083: stub isError/non-JSON/no-content for openbb + sec -> lastToolCallOk False (sec non-JSON = prose passthrough by design) -> holds
+- 2026-09-27 05:22:47 DATA-038: AAPL 10-K 2 sections, AAPL insider 9, MSFT insider 20; NVDA 10-Q sections [] = upstream returns only has_financials (checked direct) -> holds
+- 2026-09-27 05:22:47 DATA-039: INFY 40 rows incl 6-K x16 + 20-F; AAPL limit 10 = 10 rows; TSM 6-K -> holds
+- 2026-09-27 05:23:21 DATA-035 in-process stub first run wrote a 0-byte marker 2026-09-27.csv into ~/Library/Caches/bse-bhavcopy (bse cache is outside the data dir); removed that one file I created (mtime 05:23:07, 0 bytes); reran with _cache_dir redirected
+- 2026-09-27 05:31:34 DATA-035: in-process, cache redirected to scratchpad: HTML-200 caches nothing; 404 / header-only CSV for today reads back None; post-publish 858112 chars cached -> holds
+- 2026-09-27 05:31:34 DATA-036: warm 1y /history KSE.BO 0.34s (was 8.7s), JUMBO.BO 0.34s, TTC.BO 0.38s, provider bse -> holds
+- 2026-09-27 05:31:34 DATA-016: DAL 52w high/low withheld with reason 'no trades in 52 weeks (last trade 2025-03-12)'; no forward-filled flat line -> holds. Adjacent: fifty_two_week_change 0.0 served ok; DAL.BO 1y /history 0 bars, provider none, reason null
+- 2026-09-27 05:31:34 UI-006: india-all P/E 0-40 asc limit 200 -> matched 2799, small caps first; fresh nse-all dividend_yield desc: same top rows at limit 20 and 1000 (matched 1382) -> holds (implausible snapshot values = known residual)
+- 2026-09-27 05:31:34 UI-007: fresh vitest (preset after nested OR group + advanced + formula) -> no formula, no dividend_yield sent; group null, advanced false -> holds
+- 2026-09-27 05:31:34 DATA-044: nse-all pe_ratio<20 criteria == formula 'pe < 20' (missing_field:pe_ratio 279); fresh bse-all price_to_book<1 itemizes 177 missing -> holds
+- 2026-09-27 05:31:34 DATA-020: repo RELIANCE 2026-06-09 fixtures collapse (keys equal) -> holds on entry repro. Fresh live residual pairs: INFY 2026-09-18 ESOP allotment on BSE+NSE same minute; LT 3 pairs (09-09, 09-08, 09-01) -> adjacent
+- 2026-09-27 05:31:34 DATA-023: promoter_pledged_percent basis filed: SPICEJET 39.77, JPPOWER 79.2, GMRAIRPORT 16.44 (NSE XBRL 2026-06 confirms 0.1644), CSL/DAL/RELINFRA 0.0; types/data.ts mirrors -> holds. Note CSL two rows quarter_end 2026-08-20 (submissions 08-20, 08-25), quarter_end == submission date
+- 2026-09-27 05:31:34 DATA-024: grep now hits (routers/disclosures.py /deals, catalog exchange_deals read_handler, copilot allow-list, test_b5_india_deals.py). Live /disclosures/deals KOPRAN 62 (48 bulk, 14 sast), ADANIENT 34 (20 sast, 13 block, 1 bulk; 2026-09-25 rows); fresh CCDL BSE-only 106, JUMBO kind=sast venue_not_covered, AAPL not_applicable -> holds. Adjacent: dual-listed names never read the BSE lane (KOPRAN BSE bulk sell 700000 by UNITED SHIPPERS 2026-09-07 absent; only the NSE 500000 row shown)
+- 2026-09-27 05:32:37 stopped own sidecar (sleep pid 33878) and forwarder (pid 36538); shard-1.md + findings JSON written

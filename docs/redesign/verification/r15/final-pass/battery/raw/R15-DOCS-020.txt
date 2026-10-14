@@ -1,0 +1,11 @@
+# R15-DOCS-020 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n -i "unwired\|useDesktopNotificationBridge" docs/CURRENT_STATE.md | cut -c1-220; grep -n useDesktopNotificationBridge src/app/page.tsx
+--- output ---
+149:  unwired. No filesystem/marketplace loader yet.
+437:fixtures are gone outright, D81 — not merely unwired.)
+577:  `useDesktopNotificationBridge` (`src/lib/desktop-notification.ts`), mounted
+18:import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
+55:  useDesktopNotificationBridge();
+
+EXIT=0 (0.0s)

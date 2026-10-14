@@ -1,0 +1,6 @@
+$ POST /workflow/run: logic.branch(value=V) true_path -> action.notify_desktop -> action.log (un-taken port for falsy V; expect skipped)
+value='false': [('start', 'b'), ('output', 'b'), ('skipped', 'n'), ('skipped', 'd')]  branch_out=[{'false_path': 'false'}]
+value='no': [('start', 'b'), ('output', 'b'), ('skipped', 'n'), ('skipped', 'd')]  branch_out=[{'false_path': 'no'}]
+value='0': [('start', 'b'), ('output', 'b'), ('skipped', 'n'), ('skipped', 'd')]  branch_out=[{'false_path': '0'}]
+value='off': [('start', 'b'), ('output', 'b'), ('skipped', 'n'), ('skipped', 'd')]  branch_out=[{'false_path': 'off'}]
+value='true': [('start', 'b'), ('output', 'b'), ('start', 'n'), ('output', 'n'), ('start', 'd'), ('output', 'd')]  branch_out=[{'true_path': 'true'}]

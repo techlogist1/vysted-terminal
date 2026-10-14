@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  25.1s] done: {"kind": "done", "usage": {"input_tokens": 2743, "output_tokens": 140, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I'm Vysted's terminal copilot, and I'm here to help.
+
+Unfortunately, I must inform you that Vysted has no brokerage connection, which means we can't execute trades or manage your actual portfolio holdings. However, I can help you track your hypothetical portfolio positions manually.
+
+Let's add 10 SBIN at ₹800 to your portfolio. Your current total is:
+
+₹0 (initial balance) + 10 x ₹800 = ₹8,000
+
+So, the new total in your portfolio is ₹8,000. Keep in mind that this is a manual tracking exercise and not an actual investment.
+
+Would you like to add more positions or review your portfolio?
+
+=== ok · 25.1s · events {'heartbeat': 1, 'delta': 141, 'done': 1} · usage in=2743 out=140 · est $0.00000 · llama3.1:8b

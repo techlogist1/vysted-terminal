@@ -1,0 +1,132 @@
+[
+  {
+    "raw_id": "COD-disclosures-witnesses-1",
+    "title": "Cross-exchange announcement dedup never fires on real feed data; the only test asserting it fabricates the collision",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "disclosures-witnesses",
+    "repro": "Run corporate_disclosures._dedup_key over the repo's own two fixtures for the SAME 2026-06-09 RELIANCE announcement (the ICICI Securities investor-meeting update): tests/fixtures/nse/corporate_announcements.json[0] and tests/fixtures/bse/ann_sub_category_get_data.json['Table'][0]. NSE key ('RELIANCE','0136c360465b6a07','2026-06-09') vs BSE key ('RELIANCE','7513e4250c78084a','2026-06-09') -> COLLAPSES: False. The merged feed for any dual-listed name lists every filing twice.",
+    "evidence": "sidecar/services/corporate_disclosures.py:215, sidecar/services/corporate_disclosures.py:163, sidecar/services/corporate_disclosures.py:251, sidecar/services/corporate_disclosures.py:7, sidecar/services/corporate_disclosures.py:295, sidecar/tests/test_corporate_disclosures.py:141",
+    "notes": "Obviousness + special-casing to satisfy a test: NSE's headline is attchmntText (the full disclosure body), BSE's is NEWSSUB (the short subject) — different strings, so the SHA-1 of the whole normalized headline can only collapse re-disseminations within one feed. The docstring and the ':295' comment both assert cross-feed dedup works, and test_dedup_collapses_the_same_story_across_exchanges builds a BSE row whose NEWSSUB is literally the NSE row's attchmntText, a shape the live API does not produce. Consequence: ~2x duplication for most large Indian names — `limit` buys half the history it claims, and research/disclosures._MAX_SOURCE_ROWS=5 collapses to ~2-3 distinct filings. Smallest fix: the BSE row already carries the NSE text in HEADLINE (truncated to 190 chars vs NSE's 326; normalized 120-char prefixes match exactly on the fixtures) — prefer HEADLINE over NEWSSUB at :163 and hash normalized[:120] at :259-260, then re-point the test at the two unmodified fixtures."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-2",
+    "title": "A BSE-sourced institutional holding is rendered to the user under the NSE lane's name and quarter",
+    "severity": "critical",
+    "area": "research",
+    "subsystem": "disclosures-witnesses",
+    "repro": "Dual-listed Indian name whose latest NSE quarterly master row has no matching BSE XBRL quarter (the nearest-quarter branch at corporate_disclosures.py:530). _merge_bse_split correctly stamps split_source='BSE' and split_as_of=<the BSE quarter>. ownership_check._fetch_latest then copies institutions_percent but sets as_of_quarter=latest.quarter_end and source=latest.source (both NSE). semantics renders basis = f'{source} shareholding filing, {as_of}' on the fact institutions_percent_exchange -> brief says 'NSE shareholding filing, <NSE quarter>' for a figure that is BSE's XBRL from a different quarter. grep confirms split_as_of/split_source have NO production reader outside the model and types/data.ts.",
+    "evidence": "sidecar/services/corporate_disclosures.py:507, sidecar/services/corporate_disclosures.py:538, sidecar/services/ownership_check.py:126, sidecar/services/ownership_check.py:129, sidecar/services/research/semantics.py:555, sidecar/services/research/semantics.py:559, sidecar/services/research/semantics.py:578, sidecar/models/announcements.py:133",
+    "notes": "Pull complexity downward: the service computes an honest provenance stamp ('an honest as-of, never silently aligned', :507-509) and the very next layer discards it and re-derives the wrong one. This is the one finding where a money-relevant label shown to the user as true is false — the subsystem exists to prevent exactly this class of error. Smallest fix: in ownership_check._fetch_latest (:126-132) set as_of_quarter=(latest.split_as_of or latest.quarter_end).isoformat() and carry latest.split_source into source when the institutions figure was merged; semantics keeps consuming two scalars, so no layer widens."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-3",
+    "title": "Nearest-quarter XBRL split merge has no staleness ceiling",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "disclosures-witnesses",
+    "repro": "A name that stopped filing its SEBI XBRL on BSE years ago but still files the NSE quarterly master: min(with_split, key=lambda p: abs((p.quarter_end - pattern.quarter_end).days)) picks the years-old BSE pattern unconditionally, so the current NSE quarter is enriched with a years-old FII/DII/institutions split.",
+    "evidence": "sidecar/services/corporate_disclosures.py:530, sidecar/services/corporate_disclosures.py:509",
+    "notes": "Define errors out of existence: the merge has an 'unavailable' answer already (returning nse_patterns unchanged, :521-523) but no distance bound, so 'nearest' can mean 'three years away'. Compounded by COD-2, which then labels it with the current quarter. Smallest fix: skip the merge when abs((match.quarter_end - pattern.quarter_end).days) exceeds ~200 (two quarters), leaving the split None — the module's own honest default."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-4",
+    "title": "Lane loops guard only ProviderError while the same file documents why that is insufficient",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "disclosures-witnesses",
+    "repro": "Make bse_provider.get_shareholding raise a KeyError (the exact hazard named in the :514-519 comment). Through _merge_bse_split it degrades to 'no split enrichment' as designed. Through get_shareholding's lane loop (:396-402, ProviderError only) it propagates, the router converts only ProviderError to 502 (routers/disclosures.py:110), so GET /disclosures/shareholding returns 500 even though the NSE lane succeeded. Same asymmetry for get_announcements (:297-302) with the NSE/BSE fetchers.",
+    "evidence": "sidecar/services/corporate_disclosures.py:514, sidecar/services/corporate_disclosures.py:399, sidecar/services/corporate_disclosures.py:300, sidecar/routers/disclosures.py:68, sidecar/routers/disclosures.py:110",
+    "notes": "Modifying existing code / consistency: the author diagnosed the hazard and guarded it on the enrichment path only; the documented 'one lane failing degrades honestly to a partial merge' invariant (:25-27) therefore holds for exactly one exception type. Per CLAUDE.md the resulting 500 surfaces in the webview as a bogus CORS error, so the failure is also mis-diagnosable. Smallest fix: widen both lane loops to `except Exception` — they already record the reason into `errors`, so the degradation stays honest and visible."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-5",
+    "title": "Research structured floor bypasses the results-filing ranking it exists to deliver",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "disclosures-witnesses",
+    "repro": "gather (:324) passes sub_question to announcement_rows so _results_band ranks the outcome filing first and the investor presentation second. gather_floor (:169) omits it, so results_shaped is False and no sort runs: the floor's 5 citable rows are simply the 5 newest attachments. In results season for an Indian listing those are procedural intimations — the documented R8 gate-1 failure.",
+    "evidence": "sidecar/services/research/disclosures.py:169, sidecar/services/research/disclosures.py:324, sidecar/services/research/disclosures.py:252, sidecar/services/research/disclosures.py:222, sidecar/services/research/iter.py:351, sidecar/services/research/iter.py:924",
+    "notes": "General-purpose mechanism applied on one path and not its sibling — and the omitted path is the one that fires when web coverage is starving (:127-141), i.e. exactly when the 5 rows are all the user gets. Smallest fix: pass sub_question='results' at :169 (the floor has no sub-question, and results ranking is the right default for an up-front filings pull), or make the banding unconditional when sub_question is empty."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-6",
+    "title": "shareholding_pattern tool ships a stale provenance note to the LLM that contradicts its own payload",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "disclosures-witnesses",
+    "repro": "Call the shareholding_pattern agent tool for a dual-listed name. The returned patterns carry fii_percent/dii_percent (merged from BSE, split_source='BSE') and/or source='BSE' — while the same result dict's 'note' string tells the model 'promoter/public/employee-trust percentages come from the NSE master; the FII/DII split lives in each quarter's linked xbrl_url filing'. Both clauses are false for that payload.",
+    "evidence": "sidecar/services/agent_tools/disclosure_tools.py:85, sidecar/services/corporate_disclosures.py:452, sidecar/services/corporate_disclosures.py:499",
+    "notes": "Duplicated truth that has already drifted: the payload's per-row source / split_source / public_basis fields state provenance correctly and per-quarter; the static English note restates it globally and was not updated when the R13 BSE merge landed. The model reads the note as ground truth and can tell a user the FII/DII split is unavailable while the numbers sit in the same response. Smallest fix: delete the note (lines 85-88); the typed fields already carry it."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-7",
+    "title": "The witness family duplicates its two core predicates across five modules",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "disclosures-witnesses",
+    "repro": "design — grep 'def is_applicable' under sidecar/services: five byte-identical India-listing bodies (market_cap_witness, ownership_check, research/range_check, dividend_actions; earnings_quality deliberately differs). grep 'def _is_blocked': identical in ownership_check and range_check (and dividend_actions). _row_value in earnings_quality is a self-declared copy of growth_check's. is_india_target exists twice (research/disclosures.py vs research/relevance.py) and research/fast.py imports the other copy than research/disclosures.py uses.",
+    "evidence": "sidecar/services/market_cap_witness.py:98, sidecar/services/ownership_check.py:94, sidecar/services/research/range_check.py:121, sidecar/services/ownership_check.py:107, sidecar/services/research/range_check.py:179, sidecar/services/earnings_quality.py:134, sidecar/services/research/disclosures.py:101, sidecar/services/research/relevance.py:374",
+    "notes": "Information leakage: two design decisions — 'which listings are Indian' and 'which errors count as a block' — are each held in three to five files. The next change (a third exchange, adding HTTP 503 to the block set, a different suffix form) lands in some copies and not others, and the witnesses silently disagree about when to fire. Smallest fix: one services/witness.py exporting is_india_listing(symbol) and is_block_error(exc); the five modules import it. Net deletion, no new abstraction."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-8",
+    "title": "FAST filings leg stamps provider 'nse+bse' on a response that may have been served by one lane",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "disclosures-witnesses",
+    "repro": "BSE lane down (recorded in AnnouncementsResponse.errors, sources == ['NSE']). research/fast._filings_leg ignores sources/errors and sets value['provider'] = 'nse+bse' whenever ok, so the FR-041 provenance badge claims both exchanges served.",
+    "evidence": "sidecar/services/research/fast.py:437, sidecar/models/announcements.py:52, sidecar/models/announcements.py:56, sidecar/services/corporate_disclosures.py:299",
+    "notes": "Boundary finding — the defect lives in research/fast.py but the leaked field is this subsystem's: AnnouncementsResponse already reports exactly which exchanges served and which failed, and the consumer hardcodes an answer over it. Same provenance-honesty rule the rest of the subsystem enforces. Smallest fix: value['provider'] = '+'.join(result.get('sources') or []) or 'exchange'."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-9",
+    "title": "Caching exists only on the panel route; the throttle-heaviest caller (research) bypasses it",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "disclosures-witnesses",
+    "repro": "A DEEP/ULTRA run on an Indian listing calls corporate_announcements once up front via gather_floor (iter.py:351 and :924) plus once per disclosure-shaped researcher via gather — every call goes agent_tool -> to_thread -> corporate_disclosures, never through data_cache. The identical data served to the UI is cached for 15 minutes (routers/disclosures.py:39,58,70).",
+    "evidence": "sidecar/routers/disclosures.py:9, sidecar/routers/disclosures.py:39, sidecar/routers/disclosures.py:58, sidecar/services/agent_tools/disclosure_tools.py:50, sidecar/services/research/iter.py:351, sidecar/services/research/iter.py:924",
+    "notes": "Different layer, different abstraction: the router docstring justifies the TTL as NSE-throttle protection ('not re-walking the cookie dance per panel refresh') — the research path re-walks it several times per run with no TTL, which is what opens the exchange circuit the witnesses then have to respect. Smallest fix: move the cache read/write down into corporate_disclosures.get_announcements (or have disclosure_tools reuse data_cache with the same key shape), so both consumers inherit it."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-10",
+    "title": "BSE announcements lane is capped at 30 days while NSE returns full history; the asymmetry is unreported",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "disclosures-witnesses",
+    "repro": "GET /disclosures/announcements?symbol=<dual-listed>&limit=200 — the NSE lane trims from full history, the BSE lane requests only strPrevDate = today-30d. Anything older than a month appears NSE-only, and nothing in sources/errors says the BSE contribution was window-limited rather than complete.",
+    "evidence": "sidecar/services/corporate_disclosures.py:88, sidecar/services/corporate_disclosures.py:140, sidecar/services/corporate_disclosures.py:299, sidecar/services/nse_provider.py:589",
+    "notes": "The window constant carries an honest comment ('a month keeps the lanes roughly comparable') but the response does not: a consumer reading sources == ['NSE','BSE'] on a 200-item request believes both feeds covered the range. Smallest fix: either scale strPrevDate with limit, or add the window to errors/ a note field so the partial coverage is visible the way a lane failure is."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-11",
+    "title": "Only network call in the subsystem without a timeout is the yfinance income statement",
+    "severity": "low",
+    "area": "lifecycle",
+    "subsystem": "disclosures-witnesses",
+    "repro": "earnings_quality._fetch_income_stmt calls yf.Ticker(symbol).income_stmt with no timeout; _bse_get_json sets 20s and the NSE lane sets its own. A hung Yahoo response holds a to_thread worker until the run's wall budget expires rather than failing fast into the module's None path.",
+    "evidence": "sidecar/services/earnings_quality.py:230, sidecar/services/corporate_disclosures.py:96, sidecar/services/earnings_quality.py:246",
+    "notes": "Consistency: the module's contract is 'every failure becomes None' and it is honoured for exceptions but not for a hang, which is the failure mode a throttled provider actually produces. It rides to_thread so the event loop is safe; the cost is a leaked worker and spent wall. Smallest fix: wrap the to_thread call in asyncio.wait_for with the same order of timeout the other lanes use."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-12",
+    "title": "Range52w docstring advertises a source value the code makes unreachable",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "disclosures-witnesses",
+    "repro": "design — the dataclass docstring lists 'yfinance' among the possible `source` lanes; get_52w_range returns None before constructing a Range52w whenever the served provider is outside _EXCHANGE_DIRECT_PROVIDERS, which excludes yfinance by design.",
+    "evidence": "sidecar/services/research/range_check.py:93, sidecar/services/research/range_check.py:219, sidecar/services/research/range_check.py:70",
+    "notes": "A comment describing behaviour the code deliberately forbids, in the exact spot where the circularity guard is the point — the next reader may 'restore' the yfinance path believing it was intended. Smallest fix: drop 'yfinance' from the docstring's list at :93."
+  },
+  {
+    "raw_id": "COD-disclosures-witnesses-13",
+    "title": "compute_range builds its 52-week window twice with the same predicate",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "disclosures-witnesses",
+    "repro": "design — `windowed` and `windowed_ts` are two separate comprehensions over `stamped` with the identical `ts >= window_start` filter; coverage_days is derived from one list and the bar count from the other.",
+    "evidence": "sidecar/services/research/range_check.py:159, sidecar/services/research/range_check.py:160, sidecar/services/research/range_check.py:163",
+    "notes": "Obviousness: one edit to either predicate desyncs coverage_days from the bars it claims to describe, and the coverage floor is the gate that keeps a thin series from emitting a false 52-week high. Smallest fix: build one list of (ts, bar) pairs and derive both from it."
+  }
+]

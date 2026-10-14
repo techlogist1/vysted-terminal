@@ -1,0 +1,26 @@
+--- fresh case (CROSS-PLATFORM-002): ran the ONE permanent class-pin test file directly (not the full pytest suite) ---
+$ ./.venv/bin/python3 -m pytest tests/test_tests_encoding.py -v   (cwd=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar)
+============================= test session starts ==============================
+platform darwin -- Python 3.13.13, pytest-9.0.3, pluggy-1.6.0 -- /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar
+plugins: asyncio-1.3.0, platformdirs-4.12.0, anyio-4.15.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 3 items
+
+tests/test_tests_encoding.py::test_every_test_file_names_its_text_encoding PASSED [ 33%]
+tests/test_tests_encoding.py::test_scanner_itself_catches_a_missing_encoding PASSED [ 66%]
+tests/test_tests_encoding.py::test_scanner_ignores_a_binary_open_and_an_encoded_call PASSED [100%]
+
+=============================== warnings summary ===============================
+.venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 3 passed, 1 warning in 0.50s =========================
+
+Original fixture fix confirmed: sidecar/tests/test_search_extract.py:464
+  payload = json.loads(fixture.read_text(encoding="utf-8"))
+
+VERDICT: holds. sidecar/tests/test_tests_encoding.py is now a permanent AST-scan class pin (not the batch's own scratch test) run directly: all 3 tests pass, including test_scanner_itself_catches_a_missing_encoding, a fresh case the fix was not written against (a throwaway tmp_path file, not any file this batch touched). This is the register-mandated class fix (CLAUDE.md: 'where a defect class shows up twice, fix the class') -- it fails on ANY future test file across the whole sidecar/tests/ dir that omits encoding=, not just the Saksoft fixture the original repro named.

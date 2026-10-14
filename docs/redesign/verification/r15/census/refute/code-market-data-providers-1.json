@@ -1,0 +1,146 @@
+[
+  {
+    "raw_id": "COD-market-data-providers-1-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The gate hole is real: both guards are `x <= 0`, which NaN passes, so a NaN last close / NaN price is accepted as valid and the registry returns on that provider without trying the next lane. The claimed 500 is wrong: FastAPI 0.136 + pydantic 2.13 serialise NaN as JSON null with HTTP 200, so the client gets price:null / close:null on a field typed as a number. That is a silent degraded value with no fallthrough, not a hard crash, hence high rather than critical.",
+    "evidence": "sidecar/services/correctness_gate.py:99, sidecar/services/correctness_gate.py:133, sidecar/services/provider_registry.py:356-360, sidecar/services/yfinance_provider.py:281-288, sidecar/services/india_provider.py:146-148, sidecar/services/india_provider.py:193-199, sidecar/routers/history.py:56-81, sidecar/models/market.py:14-40",
+    "evidence_checked": "Opened the gate, both resolvers, the yfinance/india parse sites and the history router; ran a scratch repro in the sidecar venv (validate_series/validate_quote with NaN, then a FastAPI TestClient round-trip with the real models).",
+    "repro_check": "PYTHONPATH=sidecar sidecar/.venv/bin/python3 scratchpad/nan_gate.py -> 'series passes, close= nan', 'quote passes nan', then GET returns 200 with \"close\":null and \"price\":null (not a 500)."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-2",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed in the constructor: eps_estimate_median=eps_mean and revenue_estimate_median=rev_mean, stddev=(high-low)/4 on both the detail and every calendar event, and revenue_analyst_count reuses the EPS numberOfAnalysts. The fields are Optional in the model and the UI shows them as 'Median' and 'Std. dev.' with no marker that they are derived.",
+    "evidence": "sidecar/services/earnings_provider.py:259-261, sidecar/services/earnings_provider.py:422-450, sidecar/models/earnings.py:85-94, src/modules/earnings/EpsEstimateGrid.tsx:65-68, src/modules/earnings/EarningsCalendarPanel.tsx:364",
+    "evidence_checked": "Opened earnings_provider, the models, and the two frontend consumers.",
+    "repro_check": "Code read; no network needed. EpsEstimateGrid renders eps_estimate_median under the label 'Median' and eps_estimate_stddev under 'Std. dev.'."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-3",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Reproduced both locally and on the isolated stack. earnings_provider and analyst_ratings_extended both keep the dot-to-dash normaliser, so RELIANCE.NS becomes RELIANCE-NS and bare RELIANCE never gets .NS, while yfinance_provider._yahoo_symbol passes the symbol through correctly. The routers pass symbol.strip().upper() straight through, so every Indian symbol comes back empty.",
+    "evidence": "sidecar/services/earnings_provider.py:79-81, sidecar/services/analyst_ratings_extended.py:131-132, sidecar/services/yfinance_provider.py:97-130, sidecar/routers/earnings.py:87-96, sidecar/routers/fundamentals.py:209-218",
+    "evidence_checked": "Ran the three normalisers in the venv; GET against :52152.",
+    "repro_check": "curl :52152/earnings/RELIANCE.NS/history -> {\"symbol\":\"RELIANCE-NS\",\"history\":[]}; /fundamentals/RELIANCE.NS/ratings/history -> symbol RELIANCE-NS, history []; /earnings/RELIANCE.NS/estimates -> 502; /earnings/AAPL/history -> populated."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Both halves are real: get_quote/get_history set validate=None for crypto, and _ticker_to_quote substitutes 0.0 when a ticker has neither last nor close. The severity is overstated, though. The only crypto provider is ccxt on binance, whose unified tickers carry last and close for any listed pair, and an unlisted pair raises inside fetch_ticker, which is wrapped as ProviderError. So the 0.0 path has no realistic trigger today. It is a latent gate exemption, not a live wrong-price path.",
+    "evidence": "sidecar/services/provider_registry.py:452-470, sidecar/services/provider_registry.py:56, sidecar/services/provider_registry.py:116-125, sidecar/services/ccxt_provider.py:51-73, sidecar/services/ccxt_provider.py:76-83",
+    "evidence_checked": "Opened the registry accessors and ccxt_provider; confirmed ccxt is the only crypto declaration (the others are asset_classes={'equity'}).",
+    "repro_check": "Code read. Would confirm with a scratch test that feeds _ticker_to_quote({'last':None,'close':None}) -> Quote(price=0.0), then get_quote with asset_class=crypto returning it ungated."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-5",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Reproduced on the isolated stack: range=1mo, 1y and 5y all return the same 200 bars (2026-03-07..2026-09-22) from ccxt:binance. The ccxt lambda accepts range_ and drops it, and get_ohlcv hard-codes limit=200. Side observation, not part of this finding: /history/BTC%2FUSDT (what sidecar-client.ts:278 builds with encodeURIComponent) 404s on the stack, so the in-app crypto chart may be broken upstream of this.",
+    "evidence": "sidecar/services/provider_registry.py:122-124, sidecar/services/ccxt_provider.py:86-104, src/lib/sidecar-client.ts:278",
+    "evidence_checked": "Code read plus GET against :52152.",
+    "repro_check": "curl ':52152/history/BTCUSDT?asset_class=crypto&range={1mo,1y,5y}' -> 200 bars each, identical first/last timestamps; '/history/BTC%2FUSDT?...' -> {\"detail\":\"Not Found\"}."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The mechanism is real: _assemble_history re-reads and re-parses a whole-market bhavcopy for every trading day in the range, with no memo and no per-scrip index. The finding's numbers are about 10x high, though. A real 5,194-row cached bhavcopy parses in about 39 ms (not 332), and a warm-cache 1y assembly for KSE (BSE 519421) took 8.7 s for 224 bars, with 1mo taking 0.72 s. get_quote goes to the scrip-header endpoint first, and the 14-day bhavcopy path is only its fallback, so there is no ~4.6 s per quote. 8.7 s for the default range (_DEFAULT_RANGE_DAYS=380) of a BSE-only name is still a core-flow degradation, so the severity stays high.",
+    "evidence": "sidecar/services/bse_provider.py:211-245, sidecar/services/bse_provider.py:287-303, sidecar/services/bse_provider.py:424-458, sidecar/services/bse_provider.py:461-477, sidecar/services/bse_provider.py:540-545",
+    "evidence_checked": "Timed parse_bhavcopy on a real cached file and _assemble_history against the real warm cache, with downloads stubbed off (no network).",
+    "repro_check": "sidecar venv: parse_bhavcopy(~/Library/Caches/bse-bhavcopy/2026-09-15.csv) -> 5194 rows, 39 ms; _assemble_history('KSE','519421', 380d) -> 224 bars in 8.7 s; 30d -> 18 bars in 0.72 s."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The table does end at 2026-12-25, and no test or regenerator exists. The stated consequence (validate_quote rejecting a correct EOD quote from every provider) needs more than 3 over-counted sessions (_STALE_REJECT_SESSIONS=3). That means about 3 consecutive weekday holidays missing from the table, which does not happen on the NSE or NYSE calendars; in simulation only a 3-weekday gap trips it. The table is also already incomplete in 2026: BSE served no bhavcopy on 2026-01-15, 03-03, 03-26, 05-28, 06-26 and 09-14 (0-byte markers in the cache), and none of those dates is in _NSE_HOLIDAYS. The tolerance absorbs this, so there is no cliff edge at year-end. What remains is freshness mislabelling and maintenance debt: medium, not high.",
+    "evidence": "sidecar/services/locale.py:57-100, sidecar/services/locale.py:108-140, sidecar/services/locale.py:167-170, sidecar/services/locale.py:257-267, sidecar/services/bse_provider.py:961-963",
+    "evidence_checked": "Printed the 2026 NSE set and the maxima, simulated is_rejectably_stale across an unknown 3-weekday gap, and listed the 0-byte markers in the BSE cache.",
+    "repro_check": "venv: max(_NSE_HOLIDAYS)=max(_US_HOLIDAYS)=2026-12-25; is_rejectably_stale('IN', 2027-11-01, now=2027-11-05) -> True only with a 3-weekday gap, and 2027-11-02 -> False; grep over tests/scripts finds no holiday-table test."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "It is true that both resolvers catch only ProviderError. But every trigger the finding cites fails to raise a non-ProviderError from a non-last provider. jugaad's stock_df selects fixed NSE headers and renames them itself, so an upstream rename raises KeyError inside stock_df, which _stock_df wraps as ProviderError, and india_provider then indexes jugaad's own fixed columns. nse_provider._rows_to_bars is fully guarded (.get plus _num). bse _assemble_history indexes columns that parse_bhavcopy itself creates. yfinance is the last candidate (rank 50), so there is nothing after it to skip. The seam is a latent design fragility, not a live fallthrough failure.",
+    "evidence": "sidecar/services/provider_registry.py:352-362, sidecar/services/provider_registry.py:405-414, sidecar/services/india_provider.py:96-120, sidecar/services/nse_provider.py:389-412, sidecar/services/bse_provider.py:211-245, sidecar/services/bse_provider.py:437-456, sidecar/.venv/lib/python3.13/site-packages/jugaad_data/nse/history.py:181-189",
+    "evidence_checked": "Opened both resolvers, every cited parse site, and jugaad's stock_df.",
+    "repro_check": "Code read. jugaad stock_df: `pd.DataFrame(raw)[stock_select_headers]; df.columns = stock_final_headers`, so schema drift raises inside the fetch, which is already wrapped."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-9",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed: fundamentals_from_v7 is called directly at screener.py:875 and :1222 and at fundamentals_warm.py:180, bypassing provider_registry, so validate_fundamentals never runs and no field_meta is set. The v7 and yfinance yield guards accept up to 2.0, while the gate withholds anything above 0.25 (the same bound as research/semantics.py:74). The same symbol can therefore show a 30-200% yield in the screener and be withheld in the equity overview.",
+    "evidence": "sidecar/services/yahoo_batch_provider.py:415-430, sidecar/services/yahoo_batch_provider.py:480-500, sidecar/services/yfinance_provider.py:345-351, sidecar/services/correctness_gate.py:44, sidecar/services/correctness_gate.py:229-235, sidecar/services/screener.py:875, sidecar/services/screener.py:1222, sidecar/services/fundamentals_warm.py:180",
+    "evidence_checked": "Opened both mappers, the gate, and every caller; grep shows no correctness_gate or validate_ use in screener.py or fundamentals_warm.py.",
+    "repro_check": "grep -n 'correctness_gate\\|validate_\\|PLAUSIBLE' services/screener.py services/fundamentals_warm.py -> only an error-kind label at screener.py:529; no gate call."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-10",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The poisoning is real, but it runs through a different branch than the one cited. BSE does not 404 an unpublished day: on 2026-09-23 it answered HTTP 200 text/html (14,287 bytes). parse_bhavcopy turns that into an empty frame, and bse_provider.py:329-331 then writes the '' marker, which _bhavcopy_for treats as permanent 'no data' with no TTL. So any BSE history request made on a trading day before publication loses that day's bar for good. The 404 branch at :318 is a second route to the same outcome.",
+    "evidence": "sidecar/services/bse_provider.py:287-301, sidecar/services/bse_provider.py:304-334, sidecar/services/bse_provider.py:167-178, sidecar/services/bse_provider.py:437-446",
+    "evidence_checked": "Read the download and read paths; made one live BSE GET through the sidecar's own _http_get for an unpublished date and decoded it with the provider's parser.",
+    "repro_check": "venv: _http_get(_BHAVCOPY_URL 20260923) -> 200, text/html, '<!DOCTYPE html>...'; parse_bhavcopy(...).empty -> True, which is the branch that writes the empty marker."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-11",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: in yfinance_provider, record_success appears only at get_quote:252 and get_fundamentals:310. get_history, the three statements and analyst_rating never call it, and get_history does not consult is_open either. Beyond the stated consequence, history successes also never reset consecutive_throttles, so throttles that are not actually consecutive accumulate toward _OPEN_THRESHOLD=3. The cooldown starts at 60 s and caps at 900 s.",
+    "evidence": "sidecar/services/yfinance_provider.py:252, sidecar/services/yfinance_provider.py:267-294, sidecar/services/yfinance_provider.py:310, sidecar/services/yfinance_provider.py:418-463, sidecar/services/provider_health.py:52-57, sidecar/services/provider_health.py:96-135",
+    "evidence_checked": "Grepped every record_success caller and read the breaker state machine.",
+    "repro_check": "grep -rn record_success sidecar/services -> yfinance_provider only at :252 and :310."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-12",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The fan-out is unguarded (asyncio.gather, no semaphore, no is_open check), but the mechanism is wrong. Each _one runs through asyncio.to_thread, so real concurrency is capped by the default executor (min(32, cpu+4), about 12 on this M1), not 150-200 simultaneous requests. earnings_provider never imports provider_health, so it can neither open nor consult the shared Yahoo breaker, which refutes 'the earnings panel can take down the screener'. The real residue is that a large watchlist monopolises the shared default thread pool (starving other to_thread calls) and drives unmetered Yahoo load. Low.",
+    "evidence": "sidecar/services/earnings_provider.py:147-181, sidecar/services/earnings_provider.py:290-321, sidecar/routers/earnings.py:47-80",
+    "evidence_checked": "Opened get_upcoming, _fetch_calendar_sync and the router; grep for provider_health, Semaphore and is_open in earnings_provider returns nothing.",
+    "repro_check": "grep -n 'is_open\\|Semaphore\\|provider_health' sidecar/services/earnings_provider.py -> no hits."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-13",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The duplication is real: the yfinance_provider predicate matches the 'Too Many Requests' message, the three siblings match 'ratelimit' in the type name, and symbol_resolver checks the exact type name. But the claimed divergence has no current trigger. The pinned yfinance 1.3.0 routes every 429 through data.py and raises YFRateLimitError at data.py:233, :341 and :451, which every predicate matches. What remains is maintenance debt.",
+    "evidence": "sidecar/services/yfinance_provider.py:38-50, sidecar/services/growth_check.py:160-172, sidecar/services/dividend_history.py:74-86, sidecar/services/earnings_quality.py:210-222, sidecar/services/symbol_resolver.py:1004-1010, sidecar/.venv/lib/python3.13/site-packages/yfinance/data.py:231-233, sidecar/.venv/lib/python3.13/site-packages/yfinance/data.py:450-451",
+    "evidence_checked": "Read all five predicates and grepped the installed yfinance for its 429 handling.",
+    "repro_check": "grep -rn 'YFRateLimitError\\|429' site-packages/yfinance -> every 429 raises YFRateLimitError (data.py:233/341/451)."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-14",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "True as stated: get() leaves stale rows in place, and invalidate(), clear() and size() have no production callers. The impact is small, though. Rows are per-symbol, per-endpoint JSON blobs, and the operator's own long-lived install data_cache.db is 2.6 MB. Growth tracks symbols viewed, and at screener.in scale that is tens of MB at most. This is hygiene, not a medium defect.",
+    "evidence": "sidecar/services/data_cache.py:98-128, sidecar/services/data_cache.py:131-147, sidecar/services/data_cache.py:150-175",
+    "evidence_checked": "Read data_cache and grepped services, routers and app.py for data_cache.invalidate, clear and size; checked the on-disk size of the existing data_cache.db.",
+    "repro_check": "grep -rn 'data_cache\\.(invalidate|clear|size)' sidecar/services sidecar/routers sidecar/app.py -> 0 hits; ls -la ~/Library/Application Support/com.vysted.terminal/data_cache.db -> 2,662,400 bytes."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-15",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: _parse_struct_time and _parse_iso both return _utcnow() for a missing or malformed date, published_at is a required datetime in the model, and fetch_news sorts newest-first, so an undated item sorts to the top stamped 'now'. No live instance appeared in the current RELIANCE.NS feed (0 of 50 items stamped within 120 s of now), but the code path holds.",
+    "evidence": "sidecar/services/news_provider.py:151-170, sidecar/services/news_provider.py:204, sidecar/services/news_provider.py:386-396, sidecar/models/news.py:23",
+    "evidence_checked": "Code read plus a GET against :52152 /news.",
+    "repro_check": "curl ':52152/news?symbol=RELIANCE.NS' -> 50 items, none with published_at within 120 s of now, so no live occurrence; the design defect stands from the code."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-16",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: _MAX_COLD_DOWNLOADS=8 bounds newest-first downloads per call, the result is a plain OHLCVSeries with no coverage or partial field, the gate checks only the last bar, and non-empty bars end the registry walk before yfinance. No background BSE bhavcopy warmer exists (only the NSE bhavcopy lane), so deep history fills only at about 8 days per chart request.",
+    "evidence": "sidecar/services/bse_provider.py:82-88, sidecar/services/bse_provider.py:396-406, sidecar/services/bse_provider.py:437-458, sidecar/models/market.py:43-60, sidecar/services/provider_registry.py:352-356",
+    "evidence_checked": "Read the assembler, the model and the registry walk; grepped for other _download_bhavcopy or _assemble_history callers (none outside bse_provider).",
+    "repro_check": "Code read. Would confirm with an empty temp cache dir and range=1y on a BSE-only scrip -> at most 8 bars, provider='bse'."
+  }
+]

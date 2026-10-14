@@ -1,0 +1,2 @@
+title: GDP (current US$) — USA
+PASS: World Bank title enriches to the human indicator name, not the raw code

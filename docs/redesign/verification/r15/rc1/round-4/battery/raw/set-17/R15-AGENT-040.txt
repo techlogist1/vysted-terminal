@@ -1,0 +1,23 @@
+COMMAND: POST http://127.0.0.1:52357/agents/copilot/invoke (candidate sidecar :52357, sha 1006c6da)
+  provider=ollama model=llama3.1:8b mode=agent
+  options.history = 12 turns (6 exchanges); turn 1 states "I only care about FY26 guidance vs
+  delivery for BDL, ignore the chart"; prompt = "so does that hold up?"
+  curl -sS -N -m 25 -X POST .../agents/copilot/invoke -H 'Content-Type: application/json' --data-binary @payload.json
+
+EXIT: 28 (curl timeout after 25s, expected — we only need the pre-model notice frames, which the
+runtime yields before the adapter call per agent_runtime.py comment "yielded before anything else")
+
+OUTPUT (raw SSE, truncated to what streamed before timeout):
+data: {"kind": "research_step", "tool_call_id": "", "tool": "history", "step_kind": "notice", "detail": "Older turns summarised: the 4 earliest messages of this thread were folded into a summary of your asks, tool steps and failures.", "latency_ms": null, "status": "ok", "index": 0}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+VERDICT: holds.
+The folded-history notice fires with the correct count: 12 turns sent, _HISTORY_VERBATIM_MESSAGES=8
+kept verbatim (agent_runtime.py:559), so 4 folded -- matches exactly. Register repro's original
+5-message text window ([-10:] drop) no longer applies; the mechanism batch-5 certified
+(agent_runtime.py:571-621, :2658, :2712-2719 HISTORY_NOTICE_TOOL/step_kind=notice) is present and
+fires live against the candidate. Code path confirmed unchanged since batch-5 (1574ed8):
+_coerce_history, HISTORY_NOTICE_TOOL, step_kind=NOTICE_STEP_KIND all present verbatim.

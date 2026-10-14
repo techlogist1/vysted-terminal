@@ -1,0 +1,5 @@
+COMMAND: OpenAIProvider()._resolve_tool_events with 5 schema-invalid price_data calls, oneshot.complete_with_usage stubbed (scratch p17c.py)
+EXIT: 0
+OUTPUT:
+5 failing calls -> oneshot repair calls made=2 timeouts=[30.0, 30.0] repairs ledger len=2 (usage entries=[10, 10])
+resolved inputs: [['__vysted_invalid_args__'], ['__vysted_invalid_args__'], ['__vysted_invalid_args__'], ['__vysted_invalid_args__'], ['__vysted_invalid_args__']]

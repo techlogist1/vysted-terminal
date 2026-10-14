@@ -1,0 +1,51 @@
+command: sed -n '25,70p' src/modules/screener/ScreenerPresets.test.tsx
+exit: 0
+output:
+});
+
+afterEach(() => {
+  useScreenerStore.setState({ runScreener: ORIGINAL_RUN_SCREENER });
+  vi.restoreAllMocks();
+});
+
+describe("ScreenerPresets", () => {
+  it("R15-UI-007: a preset resets a nested group + formula, not just criteria", () => {
+    // A draft with BOTH a nested group (which supersedes flat criteria) and a
+    // formula (AND-combined) — the exact "old group and formula still ride"
+    // defect shape.
+    useScreenerStore.setState({
+      advanced: true,
+      group: {
+        combinator: "or",
+        criteria: [
+          {
+            combinator: "and",
+            criteria: [{ field: "roe", operator: "gt", value: 0.5 }],
+          },
+        ],
+      },
+      formula: "pe_ratio < 5",
+      combinator: "or",
+      universe: "nifty50",
+    });
+
+    render(<ScreenerPresets />);
+    fireEvent.click(screen.getByRole("button", { name: "Sound value" }));
+
+    const state = useScreenerStore.getState();
+    expect(state.group).toBeNull();
+    expect(state.advanced).toBe(false);
+    expect(state.formula).toBe("");
+    expect(state.combinator).toBe("and");
+    expect(state.universe).toBe("sp500");
+    expect(state.criteria).toEqual([
+      { field: "pe_ratio", operator: "gt", value: 0 },
+      { field: "pe_ratio", operator: "lt", value: 15 },
+      { field: "roe", operator: "gt", value: 0.12 },
+      { field: "debt_to_equity", operator: "lt", value: 1.0 },
+    ]);
+    expect(state.runScreener).toHaveBeenCalledTimes(1);
+  });
+});
+
+verdict: ci_pinned -- src/modules/screener/ScreenerPresets.test.tsx:33 'R15-UI-007: a preset resets a nested group + formula, not just criteria'.

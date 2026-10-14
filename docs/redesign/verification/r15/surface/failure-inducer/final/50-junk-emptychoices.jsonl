@@ -1,0 +1,2 @@
+{"kind": "error", "message": "The model returned an empty answer.", "action": "Retry, or switch the composer to a different model.", "detail": "no text and no tool call from junk-emptychoices", "code": "empty_response"}
+{"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}

@@ -1,0 +1,10 @@
+=== R15-CODE-PLATFORM-021: sidecar portfolio route surface ===
+CMD: curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:52344/portfolio/positions
+POST /portfolio/positions -> 405
+CMD: curl -X PUT /portfolio/positions/AAPL
+PUT /portfolio/positions/AAPL -> 404
+CMD: curl -X DELETE /portfolio/positions/AAPL
+DELETE /portfolio/positions/AAPL -> 404
+CMD: curl -X GET /portfolio/positions
+[]
+GET /portfolio/positions -> HTTP 200

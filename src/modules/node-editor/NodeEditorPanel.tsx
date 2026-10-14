@@ -17,10 +17,10 @@
  * handler reads the `application/x-vysted-node-type` MIME the palette
  * stamps.
  *
- * The run lifecycle opens a `fetch` stream against `POST /workflow/run`,
- * parses each SSE frame, and reduces it into `RunOverlayState` via
- * `applyEvent`. The reduce is a pure function (testable without the
- * network).
+ * The run goes through `useWorkflowStore.runWorkflow` (the one client for
+ * `POST /workflow/run`); each event it hands back is reduced into
+ * `RunOverlayState` via `applyEvent`. The reduce is a pure function
+ * (testable without the network).
  */
 
 import "@xyflow/react/dist/style.css";
@@ -51,11 +51,23 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
+import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
+import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelSelectionStore } from "@/store/model-selection";
 import { usePluginsStore } from "@/store/plugins";
+import { useWorkflowStore } from "@/store/workflow";
 
-import type { WorkflowRunEvent, WorkflowSpec } from "../../../types/workflow";
+import type {
+  SavedWorkflows,
+  UnreadableWorkflow,
+  WorkflowRunRequest,
+  WorkflowSpec,
+} from "../../../types/workflow";
+import { CODE_NODE_ID, codeNodeBindings } from "./code-node";
+import { CodeNodeInspector } from "./code-node-inspector";
+import { validateWorkflow } from "./code-node-run";
 import {
   coerceConfigValue,
   createFlowNode,
@@ -69,13 +81,14 @@ import {
 } from "./graph-state";
 import { NodePalette, NODE_DRAG_MIME } from "./node-palette";
 import {
-  BUILT_IN_NODE_CONFIG_FIELDS,
+  NODE_CONFIG_FIELDS,
   buildRegistry,
   defaultConfigFor,
   findEntry,
   type ConfigField,
   type RegistryEntry,
 } from "./node-registry";
+import { ScheduleControl, WebhookUrlEditor } from "./schedule-control";
 import { VystedNode } from "./VystedNode";
 import { WorkflowSaveDialog, type SaveDialogValue } from "./workflow-save-dialog";
 import {
@@ -94,6 +107,26 @@ interface SavedSummary {
   name: string;
   description?: string;
   updatedAt: number;
+}
+
+// ---------------------------------------------------------------------------
+// Run creds
+// ---------------------------------------------------------------------------
+
+/**
+ * The chat's current provider/model selection and its keychain key, for the
+ * run's `ai.agent_invoke` nodes (the sidecar cannot read the keychain). A
+ * missing key is sent as absent: the agent node then fails with the
+ * provider's own error instead of the run faking an answer.
+ */
+async function resolveRunCreds(): Promise<
+  Pick<WorkflowRunRequest, "provider" | "model" | "apiKey">
+> {
+  const { providers, defaultProviderId: provider } = useLLMProvidersStore.getState();
+  const model = useModelSelectionStore.getState().modelFor(provider);
+  const requiresKey = providers.find((p) => p.id === provider)?.requiresKey ?? true;
+  const apiKey = requiresKey ? await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider)) : null;
+  return { provider, model, ...(apiKey ? { apiKey } : {}) };
 }
 
 // ---------------------------------------------------------------------------
@@ -132,10 +165,13 @@ function NodeEditorPanelInner() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
 
   // --- Load dialog (a simple modal list) ------------------------------------
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [savedList, setSavedList] = useState<SavedSummary[]>([]);
+  const [unreadableList, setUnreadableList] = useState<UnreadableWorkflow[]>([]);
+  const [loadingList, setLoadingList] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // --- Run state ------------------------------------------------------------
@@ -280,6 +316,9 @@ function NodeEditorPanelInner() {
 
   const openLoadDialog = useCallback(async () => {
     setLoadError(null);
+    setSavedList([]);
+    setUnreadableList([]);
+    setLoadingList(true);
     setLoadDialogOpen(true);
     try {
       const base = await getSidecarBaseUrl();
@@ -287,7 +326,7 @@ function NodeEditorPanelInner() {
       if (!response.ok) {
         throw new Error(`list failed (${response.status})`);
       }
-      const payload = (await response.json()) as { workflows: WorkflowSpec[] };
+      const payload = (await response.json()) as SavedWorkflows;
       const summaries: SavedSummary[] = payload.workflows.map((spec) => ({
         id: spec.id,
         name: spec.name,
@@ -295,8 +334,11 @@ function NodeEditorPanelInner() {
         updatedAt: spec.updatedAt,
       }));
       setSavedList(summaries);
+      setUnreadableList(payload.unreadable);
     } catch (error: unknown) {
       setLoadError(error instanceof Error ? error.message : "Failed to list workflows.");
+    } finally {
+      setLoadingList(false);
     }
   }, []);
 
@@ -330,6 +372,13 @@ function NodeEditorPanelInner() {
   );
 
   // --- Run ------------------------------------------------------------------
+  // R15-CODE-PLATFORM-017: every node — code nodes (`transform.code`)
+  // included — runs in ONE sidecar pass (`POST /workflow/run` SSE,
+  // services/workflow_engine.py, which folds any node failure into its own
+  // terminal `run-error` honestly); the editor's mathjs sandbox is used only
+  // for the inline syntax check and the inspector's live preview, never to
+  // compute a run's real output (see `code-node-run.ts`'s pre-run
+  // `validateWorkflow`, the one check still worth doing client-side).
   const handleRun = useCallback(async () => {
     // Cancel any in-flight stream so a second click doesn't double-subscribe.
     if (runAbortRef.current !== null) {
@@ -337,35 +386,36 @@ function NodeEditorPanelInner() {
     }
     const controller = new AbortController();
     runAbortRef.current = controller;
-    setRunState({
-      runId: null,
-      status: "running",
-      nodes: nodes.map((n) => ({
-        nodeId: n.id,
-        nodeType: n.data.nodeTypeId,
-        status: "pending",
-      })),
+    const seededRows = nodes.map((n) => ({
+      nodeId: n.id,
+      nodeType: n.data.nodeTypeId,
+      status: "pending" as const,
+    }));
+    const spec = flowToSpec({
+      id: workflowId,
+      name: workflowName,
+      description: workflowDescription !== "" ? workflowDescription : undefined,
+      nodes,
+      edges,
     });
+    const validation = validateWorkflow(spec);
+    if (validation.error !== undefined) {
+      setRunState({ runId: null, status: "error", message: validation.error, nodes: seededRows });
+      return;
+    }
+    setRunState({ runId: null, status: "running", nodes: seededRows });
+    // The store is the one client for this wire: every server event lands in
+    // `useWorkflowStore` (so a notify_desktop intent reaches the desktop
+    // bridge) and is handed back here for the overlay. It rejects when the
+    // stream ends or breaks without a terminal frame (e.g. the engine
+    // rejected the spec before run-start), so that is never a green run.
     try {
-      const spec = flowToSpec({
-        id: workflowId,
-        name: workflowName,
-        description: workflowDescription !== "" ? workflowDescription : undefined,
-        nodes,
-        edges,
-      });
-      const base = await getSidecarBaseUrl();
-      const response = await fetch(new URL("/workflow/run", base).toString(), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spec, mode: "full" }),
+      await useWorkflowStore.getState().runWorkflow(spec, undefined, {
+        ...(await resolveRunCreds()),
         signal: controller.signal,
-      });
-      if (!response.ok || response.body === null) {
-        throw new Error(`run failed (${response.status})`);
-      }
-      await consumeSse(response.body, (event) => {
-        setRunState((prev) => applyEvent(prev, event));
+        onEvent: (event) => {
+          setRunState((prev) => applyEvent(prev, event));
+        },
       });
     } catch (error: unknown) {
       if (controller.signal.aborted) {
@@ -407,7 +457,7 @@ function NodeEditorPanelInner() {
       {/* Toolbar */}
       <header className="border-charcoal-700 flex items-center justify-between gap-2 border-b px-3 py-2">
         <div className="flex min-w-0 flex-1 items-baseline gap-3">
-          <h2 className="text-charcoal-100 font-mono text-sm tracking-wide uppercase">
+          <h2 className="text-charcoal-100 text-panel-title font-mono tracking-wide uppercase">
             Node Editor
           </h2>
           <input
@@ -417,13 +467,13 @@ function NodeEditorPanelInner() {
               setWorkflowName(event.target.value);
               setIsDirty(true);
             }}
-            className="bg-charcoal-800 text-charcoal-100 h-7 max-w-xs flex-1 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus:ring-charcoal-500 h-7 max-w-xs flex-1 border px-2 font-mono outline-none focus:ring-1"
           />
           {isDirty && (
-            <span className="text-charcoal-400 font-mono text-[10px] uppercase">unsaved</span>
+            <span className="text-charcoal-400 text-micro font-mono uppercase">unsaved</span>
           )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <Button size="sm" variant="ghost" onClick={handleNew}>
             New
           </Button>
@@ -435,6 +485,14 @@ function NodeEditorPanelInner() {
           </Button>
           <Button
             size="sm"
+            variant="ghost"
+            aria-pressed={scheduleOpen}
+            onClick={() => setScheduleOpen((open) => !open)}
+          >
+            Schedule
+          </Button>
+          <Button
+            size="sm"
             variant="outline"
             onClick={handleRun}
             disabled={nodes.length === 0 || runState.status === "running"}
@@ -443,6 +501,12 @@ function NodeEditorPanelInner() {
           </Button>
         </div>
       </header>
+
+      {scheduleOpen && (
+        <div className="border-charcoal-700 border-b px-3 py-2">
+          <ScheduleControl workflowId={workflowId} />
+        </div>
+      )}
 
       {/* Body */}
       <div className="flex min-h-0 flex-1">
@@ -470,10 +534,32 @@ function NodeEditorPanelInner() {
             className="h-full w-full"
           >
             {/* ReactFlow's Background dots aren't CSS-themed — pin them to the
-                espresso palette (charcoal-950 canvas, charcoal-700 dots). */}
-            <Background gap={16} size={1} color="#473a33" bgColor="#1a1512" />
+                warm-graphite palette (charcoal-900 canvas, charcoal-700 dots).
+                Keep in lockstep with tokens.css (FR-030). */}
+            <Background gap={16} size={1} color="#39332b" bgColor="#1a1814" />
             <Controls position="bottom-right" />
           </ReactFlow>
+          {nodes.length === 0 && (
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2">
+              <span className="text-charcoal-500 text-caption font-mono">Empty workflow</span>
+              <span className="text-charcoal-500 text-micro font-mono">
+                Drag a node from the palette to start
+              </span>
+            </div>
+          )}
+
+          {/* Run overlay rides over the canvas as an absolute drawer rather than
+              consuming a third flex rail — three rails would starve the canvas
+              below the panel's min width. */}
+          {runState.status !== "idle" && (
+            <div className="absolute top-2 right-2 bottom-2 z-10">
+              <WorkflowRunOverlay
+                state={runState}
+                onClose={handleCloseOverlay}
+                onRerun={runState.status !== "running" ? handleRun : undefined}
+              />
+            </div>
+          )}
         </div>
 
         <PropertiesPanel
@@ -481,6 +567,15 @@ function NodeEditorPanelInner() {
           onPatch={(patch) => {
             if (selectedNode === null) return;
             setNodes((prev) => updateNodeConfig(prev, selectedNode.id, patch));
+            // Code-node binding edits change the node's input PORTS — prune
+            // edges that now target a removed/renamed port so the spec never
+            // carries a dangling targetPort.
+            if (selectedNode.data.nodeTypeId === CODE_NODE_ID && Array.isArray(patch["inputs"])) {
+              const kept = new Set(codeNodeBindings(patch));
+              setEdges((prev) =>
+                prev.filter((e) => e.target !== selectedNode.id || kept.has(e.targetHandle ?? "")),
+              );
+            }
             markDirty(); // config edits are unsaved mutations too (Phase 9.5)
           }}
           onDelete={() => {
@@ -491,14 +586,6 @@ function NodeEditorPanelInner() {
             markDirty(); // node deletion is an unsaved mutation (Phase 9.5)
           }}
         />
-
-        {runState.status !== "idle" && (
-          <WorkflowRunOverlay
-            state={runState}
-            onClose={handleCloseOverlay}
-            onRerun={runState.status !== "running" ? handleRun : undefined}
-          />
-        )}
       </div>
 
       {/* Save dialog */}
@@ -516,6 +603,8 @@ function NodeEditorPanelInner() {
       {loadDialogOpen && (
         <LoadDialog
           summaries={savedList}
+          unreadable={unreadableList}
+          loadingList={loadingList}
           error={loadError}
           onClose={() => setLoadDialogOpen(false)}
           onPick={handleLoad}
@@ -542,11 +631,11 @@ function PropertiesPanel({ node, onPatch, onDelete }: PropertiesPanelProps) {
       className="border-charcoal-700 bg-charcoal-900 flex h-full w-64 min-w-64 flex-col border-l"
     >
       <header className="border-charcoal-700 flex items-baseline justify-between border-b px-3 py-2">
-        <span className="text-charcoal-200 font-mono text-xs uppercase">Properties</span>
+        <span className="text-charcoal-200 text-caption font-mono uppercase">Properties</span>
       </header>
       <div className="flex-1 overflow-y-auto p-3">
         {node === null ? (
-          <p className="text-charcoal-500 font-mono text-xs">
+          <p className="text-charcoal-500 text-caption font-mono">
             Select a node on the canvas to edit its configuration.
           </p>
         ) : (
@@ -563,20 +652,29 @@ function PropertiesForm({
   onDelete,
 }: PropertiesPanelProps & { node: Node<FlowNodeData> }) {
   const nodeTypeId = node.data.nodeTypeId;
-  const fields = (
-    BUILT_IN_NODE_CONFIG_FIELDS as Record<string, readonly ConfigField[] | undefined>
-  )[nodeTypeId];
+  const fields = NODE_CONFIG_FIELDS[nodeTypeId];
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
-        <span className="text-charcoal-400 font-mono text-[10px] uppercase">Type</span>
-        <span className="text-charcoal-100 font-mono text-xs">{nodeTypeId}</span>
+        <span className="text-charcoal-400 text-micro font-mono uppercase">Type</span>
+        <span className="text-charcoal-100 text-caption font-mono">{nodeTypeId}</span>
       </div>
       <div className="flex flex-col gap-1">
-        <span className="text-charcoal-400 font-mono text-[10px] uppercase">ID</span>
-        <span className="text-charcoal-200 truncate font-mono text-[10px]">{node.id}</span>
+        <span className="text-charcoal-400 text-micro font-mono uppercase">ID</span>
+        <span className="text-charcoal-200 text-micro truncate font-mono">{node.id}</span>
       </div>
-      {fields !== undefined && fields.length > 0 ? (
+      {nodeTypeId === CODE_NODE_ID ? (
+        <CodeNodeInspector config={node.data.config} onPatch={onPatch} />
+      ) : nodeTypeId === "action.webhook" ? (
+        <WebhookUrlEditor
+          secretRef={
+            typeof node.data.config.secret_ref === "string"
+              ? node.data.config.secret_ref
+              : undefined
+          }
+          onPatch={onPatch}
+        />
+      ) : fields !== undefined && fields.length > 0 ? (
         fields.map((field) => (
           <ConfigFieldEditor
             key={field.key}
@@ -586,12 +684,12 @@ function PropertiesForm({
           />
         ))
       ) : fields !== undefined ? (
-        <p className="text-charcoal-500 font-mono text-[10px]">No configuration for this node.</p>
+        <p className="text-charcoal-500 text-micro font-mono">No configuration for this node.</p>
       ) : (
         <FreeFormConfigEditor config={node.data.config} onReplace={onPatch} />
       )}
       <div className="mt-2 flex justify-end">
-        <Button size="sm" variant="ghost" onClick={onDelete}>
+        <Button variant="ghost" onClick={onDelete}>
           Delete node
         </Button>
       </div>
@@ -621,7 +719,7 @@ function ConfigFieldEditor({
         aria-label={field.label}
         value={rawValue}
         onChange={(event) => onChange(event.target.value)}
-        className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 font-mono text-xs outline-none"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 h-8 w-full px-2 font-mono outline-none focus:ring-1"
       >
         <option value="">—</option>
         {field.options.map((opt) => (
@@ -639,7 +737,7 @@ function ConfigFieldEditor({
         onChange={(event) => onChange(event.target.value)}
         rows={4}
         placeholder={field.placeholder}
-        className="bg-charcoal-800 text-charcoal-100 min-h-[4rem] resize-y rounded-md p-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-16 resize-y p-2 font-mono outline-none focus:ring-1"
       />
     );
   } else if (field.kind === "boolean") {
@@ -648,7 +746,7 @@ function ConfigFieldEditor({
         aria-label={field.label}
         value={rawValue || "false"}
         onChange={(event) => onChange(coerceConfigValue("boolean", event.target.value, value))}
-        className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 font-mono text-xs outline-none"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 h-8 w-full px-2 font-mono outline-none focus:ring-1"
       >
         <option value="false">false</option>
         <option value="true">true</option>
@@ -662,13 +760,13 @@ function ConfigFieldEditor({
         value={rawValue}
         onChange={(event) => onChange(coerceConfigValue(field.kind, event.target.value, value))}
         placeholder={field.placeholder}
-        className="bg-charcoal-800 text-charcoal-100 h-7 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 h-8 px-2 font-mono outline-none focus:ring-1"
       />
     );
   }
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-charcoal-400 font-mono text-[10px] uppercase">{field.label}</span>
+      <span className="text-charcoal-400 text-micro font-mono uppercase">{field.label}</span>
       {control}
     </label>
   );
@@ -702,16 +800,16 @@ function FreeFormConfigEditor({
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-charcoal-400 font-mono text-[10px] uppercase">Config (JSON)</span>
+      <span className="text-charcoal-400 text-micro font-mono uppercase">Config (JSON)</span>
       <textarea
         aria-label="Config JSON"
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         rows={6}
-        className="bg-charcoal-800 text-charcoal-100 min-h-[6rem] resize-y rounded-md p-2 font-mono text-[10px] outline-none"
+        className="bg-charcoal-800 text-charcoal-100 rounded-control text-micro min-h-24 resize-y p-2 font-mono outline-none"
       />
-      {error !== null && <span className="text-negative font-mono text-[10px]">{error}</span>}
-      <Button size="sm" variant="outline" onClick={apply}>
+      {error !== null && <span className="text-negative text-micro font-mono">{error}</span>}
+      <Button variant="outline" onClick={apply}>
         Apply
       </Button>
     </div>
@@ -724,25 +822,50 @@ function FreeFormConfigEditor({
 
 interface LoadDialogProps {
   summaries: readonly SavedSummary[];
+  unreadable: readonly UnreadableWorkflow[];
+  loadingList: boolean;
   error: string | null;
   onClose: () => void;
   onPick: (id: string) => void;
 }
 
-function LoadDialog({ summaries, error, onClose, onPick }: LoadDialogProps) {
+function LoadDialog({
+  summaries,
+  unreadable,
+  loadingList,
+  error,
+  onClose,
+  onPick,
+}: LoadDialogProps) {
+  // Close on Escape — the dialog is a hand-rolled modal (no Radix), so wire the
+  // keyboard dismissal explicitly while it's mounted.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <div
       data-testid="workflow-load-dialog"
       role="dialog"
       aria-modal="true"
       aria-labelledby="workflow-load-dialog-title"
-      className="bg-charcoal-950/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+      onClick={onClose}
+      className="bg-charcoal-950/60 fixed inset-0 z-50 flex items-center justify-center"
     >
-      <div className="bg-charcoal-900 border-charcoal-700 flex w-[460px] flex-col gap-3 rounded-md border p-4">
+      <div
+        onClick={(event) => event.stopPropagation()}
+        className="bg-charcoal-900 border-charcoal-700 flex w-[460px] flex-col gap-3 rounded-none border p-4"
+      >
         <header className="flex items-baseline justify-between">
           <h2
             id="workflow-load-dialog-title"
-            className="text-charcoal-100 font-mono text-sm tracking-wide uppercase"
+            className="text-charcoal-100 text-panel-title font-mono tracking-wide uppercase"
           >
             Load workflow
           </h2>
@@ -750,29 +873,50 @@ function LoadDialog({ summaries, error, onClose, onPick }: LoadDialogProps) {
             type="button"
             onClick={onClose}
             aria-label="Close load dialog"
-            className="text-charcoal-400 font-mono text-sm hover:text-amber-400"
+            className="text-charcoal-400 text-body hover:text-charcoal-100 font-mono"
           >
             ×
           </button>
         </header>
-        {error !== null && <p className="text-negative font-mono text-[10px]">{error}</p>}
-        {summaries.length === 0 ? (
-          <p className="text-charcoal-400 font-mono text-xs">No saved workflows yet.</p>
+        {error !== null && <p className="text-negative text-micro font-mono">{error}</p>}
+        {loadingList ? (
+          <p className="text-charcoal-400 text-caption animate-pulse font-mono">
+            Fetching workflows…
+          </p>
+        ) : summaries.length === 0 && unreadable.length === 0 ? (
+          <p className="text-charcoal-400 text-caption font-mono">No saved workflows yet.</p>
         ) : (
-          <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto">
+          <ul
+            className={
+              "flex max-h-72 flex-col gap-1 overflow-y-auto" /* tokens-ok: saved-workflow list scroll cap - layout */
+            }
+          >
+            {unreadable.map((u) => (
+              <li
+                key={u.id}
+                data-testid={`unreadable-workflow-${u.id}`}
+                title={u.reason}
+                className="border-charcoal-800 rounded-control text-caption border border-dashed px-2 py-2 font-mono"
+              >
+                <div className="text-charcoal-400">{u.name}</div>
+                <div className="text-charcoal-500 text-micro">
+                  Can&apos;t be opened by this version
+                </div>
+              </li>
+            ))}
             {summaries.map((s) => (
               <li key={s.id}>
                 <button
                   type="button"
                   onClick={() => onPick(s.id)}
                   className={cn(
-                    "border-charcoal-700 hover:border-amber-500 hover:bg-amber-500/5",
-                    "w-full rounded-md border px-2 py-1.5 text-left font-mono text-xs",
+                    "border-charcoal-700 hover:border-charcoal-500 hover:bg-charcoal-700/5",
+                    "rounded-control text-caption w-full border px-2 py-2 text-left font-mono",
                   )}
                 >
                   <div className="text-charcoal-100">{s.name}</div>
                   {s.description !== undefined && s.description !== "" && (
-                    <div className="text-charcoal-400 truncate text-[10px]">{s.description}</div>
+                    <div className="text-charcoal-400 text-micro truncate">{s.description}</div>
                   )}
                 </button>
               </li>
@@ -782,49 +926,4 @@ function LoadDialog({ summaries, error, onClose, onPick }: LoadDialogProps) {
       </div>
     </div>
   );
-}
-
-// ---------------------------------------------------------------------------
-// SSE consumer
-// ---------------------------------------------------------------------------
-
-async function consumeSse(
-  stream: ReadableStream<Uint8Array>,
-  onEvent: (event: WorkflowRunEvent) => void,
-): Promise<void> {
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      let separator = buffer.indexOf("\n\n");
-      while (separator !== -1) {
-        const frame = buffer.slice(0, separator);
-        buffer = buffer.slice(separator + 2);
-        const dataLine = frame
-          .split("\n")
-          .map((line) => (line.startsWith("data:") ? line.slice(5).trim() : ""))
-          .filter((line) => line.length > 0)
-          .join("");
-        if (dataLine !== "") {
-          try {
-            const event = JSON.parse(dataLine) as WorkflowRunEvent;
-            onEvent(event);
-          } catch (err) {
-            // The engine should never emit malformed frames; surface it so a
-            // dropped run event isn't completely silent (Phase 9.5).
-            console.warn("workflow SSE: dropping malformed frame", err);
-          }
-        }
-        separator = buffer.indexOf("\n\n");
-      }
-    }
-  } finally {
-    // Always release the lock — on a throw/abort mid-stream the previous code
-    // leaked the locked reader, wedging the ReadableStream (Phase 9.5).
-    reader.releaseLock();
-  }
 }

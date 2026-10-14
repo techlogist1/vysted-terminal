@@ -1,0 +1,15 @@
+=== R15-LIFECYCLE-018: warm_detect runs from lifespan at boot; hot-path flag flips after refresh() under lock ===
+-- code: warm_detect() called from _lifespan (app.py:144) --
+        workflow_scheduler.start()
+        # R15-LIFECYCLE-018: derive the managed SearXNG's world state at boot
+        # instead of lazily on the first research request — fire-and-forget,
+        # cancelled in the searxng_manager.shutdown() call below.
+        searxng_manager.manager.warm_detect()
+        try:
+            yield
+        finally:
+            try:
+-- sidecar log around boot: warm_detect / searxng evidence --
+-- live probe: /search/searxng/status (post-boot, should already be resolved, not stalling) --
+{"state":"degraded","detail":"SearXNG is running but its search engines are blocked","reason":"brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA","port":8888,"url":null,"container":"running","container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":true,"daemon_running":true,"runtime":"Docker Engine - Community"}}curl -s -m 20 http://127.0.0.1:52345/search/searxng/status  0.00s user 0.00s system 0% cpu 1.556 total
+

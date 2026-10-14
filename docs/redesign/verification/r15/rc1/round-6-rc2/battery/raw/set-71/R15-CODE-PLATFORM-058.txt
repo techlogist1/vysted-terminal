@@ -1,0 +1,67 @@
+# probe at ace7dd76 (candidate worktree /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand)
+$ grep -n 'app_data_dir\|fn resolve_data_dir\|fn get_app_data_dir\|fn file_path\|temp_dir' src-tauri/src/lib.rs src-tauri/src/keychain.rs
+src-tauri/src/lib.rs:237:pub(crate) fn app_data_dir(app: &AppHandle) -> PathBuf {
+src-tauri/src/lib.rs:240:        None => match app.path().app_data_dir() {
+src-tauri/src/lib.rs:247:                std::env::temp_dir().join("vysted-terminal")
+src-tauri/src/lib.rs:261:/// regenerable caches (R15-CROSS-PLATFORM-012). `app_data_dir()` resolves to
+src-tauri/src/lib.rs:266:/// `app_data_dir()` on those platforms, so this is a no-op there). Falls
+src-tauri/src/lib.rs:267:/// back to the same temp dir as `app_data_dir` on resolution failure. A
+src-tauri/src/lib.rs:280:                std::env::temp_dir().join("vysted-terminal")
+src-tauri/src/lib.rs:299:fn get_app_data_dir(app: tauri::AppHandle) -> String {
+src-tauri/src/lib.rs:300:    app_data_dir(&app).to_string_lossy().to_string()
+src-tauri/src/lib.rs:384:    let data_dir = app_data_dir(app).to_string_lossy().to_string();
+src-tauri/src/lib.rs:546:    let meta = read_app_meta(&app_data_dir(&app).join(APP_META_FILENAME));
+src-tauri/src/lib.rs:553:    write_app_meta(&app_data_dir(&app).join(APP_META_FILENAME), &key, &value)
+src-tauri/src/lib.rs:688:            get_app_data_dir,
+src-tauri/src/lib.rs:720:            diag_log::init(&app_data_dir(app.handle()).to_string_lossy());
+src-tauri/src/lib.rs:782:            clear_mcp_endpoint_file(&app_data_dir(app_handle).to_string_lossy());
+src-tauri/src/lib.rs:855:    fn temp_dir(tag: &str) -> std::path::PathBuf {
+src-tauri/src/lib.rs:856:        let dir = std::env::temp_dir().join(format!(
+src-tauri/src/lib.rs:873:        let dir = temp_dir("text-bytes");
+src-tauri/src/lib.rs:887:        let dir = temp_dir("round-trip");
+src-tauri/src/lib.rs:906:        let dir = temp_dir("rename-fail");
+src-tauri/src/lib.rs:922:        let dir = temp_dir("app-meta");
+src-tauri/src/lib.rs:936:        let dir = temp_dir("clear-endpoint");
+src-tauri/src/keychain.rs:133:    pub fn file_path(app: &tauri::AppHandle) -> PathBuf {
+src-tauri/src/keychain.rs:134:        crate::app_data_dir(app).join(FILENAME)
+src-tauri/src/keychain.rs:438:            let p = std::env::temp_dir().join(format!(
+EXIT=0
+--- extra
+    /// Resolve `<app-data-dir>/dev-keystore.json` (the one data-dir policy in
+    /// `lib.rs`: created, temp-dir fallback) so a path failure can never panic a
+    /// key read.
+    pub fn file_path(app: &tauri::AppHandle) -> PathBuf {
+        crate::app_data_dir(app).join(FILENAME)
+    }
+
+    fn load(file: &Path) -> Store {
+        match std::fs::read(file) {
+            Ok(bytes) => serde_json::from_slice(&bytes).unwrap_or_default(),
+            Err(_) => Store::default(),
+pub async fn keychain_migrate(
+    app: tauri::AppHandle,
+    accounts: Vec<String>,
+) -> Result<MigrateReport, String> {
+    let _ = (&app, &accounts);
+    #[cfg(debug_assertions)]
+    {
+        // Reads run INLINE on the async-command thread — the context where a
+        // keychain read self-dismisses-as-allow and returns the value (proven
+        // in the R9 verification rounds). A `spawn_blocking` background thread
+        // errored every read instead. The migration's idle-then-re-read does the
+        // ~140s wait here; the file backend serves every other read meanwhile.
+        dev_keystore::migrate(&app, &accounts)
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        Ok(MigrateReport {
+            backend: "os-keychain",
+            migrated: 0,
+            already_done: true,
+            failed: Vec::new(),
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {

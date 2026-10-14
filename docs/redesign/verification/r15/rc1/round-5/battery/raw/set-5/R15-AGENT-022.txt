@@ -1,0 +1,6 @@
+cmd: sidecar/.venv/bin/python3 b18-agent022.py (in-process _normalise_tool_args on portfolio_add_position{cost_basis:null} and portfolio_update_position{no position_id})
+add_position (cost_basis=null): {'__vysted_invalid_args__': 'invalid arguments for portfolio_add_position: missing cost_basis — ask the user for it; do not guess'}
+update_position (no position_id): {'__vysted_invalid_args__': 'invalid arguments for portfolio_update_position: missing position_id — ask the user for it; do not guess'}
+
+--- static check: src/lib/host-actions.ts ---
+costBasisOf() returns number|null; costBasis===null is checked distinctly at :743,:1389,:1393,:1894,:1946 (no coercion to 0 anywhere in the file) -- matches certified "add is applied with no, null or non-numeric cost -> null, no holding written".

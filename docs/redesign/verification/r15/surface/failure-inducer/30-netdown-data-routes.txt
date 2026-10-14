@@ -1,0 +1,33 @@
+== GET /quotes/RELIANCE
+{"symbol":"RELIANCE","price":1242.0,"change":-5.7000000000000455,"change_percent":-0.4568405866794939,"volume":560999.0,"currency":"INR","market_state":"REGULAR","timestamp":"2026-09-22T00:00:00Z","provider":"bse","freshness":"eod"}
+[200 1.517804s]
+== GET /quotes/KAYNES
+{"symbol":"KAYNES","price":3459.9,"change":-190.19999999999982,"change_percent":-5.210816142023502,"volume":193330.0,"currency":"INR","market_state":"REGULAR","timestamp":"2026-09-22T00:00:00Z","provider":"bse","freshness":"eod"}
+[200 2.319055s]
+== GET /quotes?symbols=RELIANCE,TCS,AAPL
+[{"symbol":"RELIANCE","price":1242.0,"change":-5.7000000000000455,"change_percent":-0.4568405866794939,"volume":560999.0,"currency":"INR","market_state":"REGULAR","timestamp":"2026-09-22T00:00:00Z","provider":"bse","freshness":"eod"},{"symbol":"TCS","price":2105.0,"change":-23.699999999999818,"change_percent":-1.1133555691266885,"volume":3641623.0,"currency":"INR","market_state":"REGULAR","timestamp":"2026-09-22T00:00:00Z","provider":"nse","freshness":"eod"}]
+[200 4.254972s]
+== GET /history/INFY?timeframe=1d
+{"symbol":"INFY","timeframe":"1d","bars":[{"timestamp":"2025-09-10T00:00:00Z","open":1509.0,"high":1534.5,"low":1509.0,"close":1532.65,"volume":425557.0},{"timestamp":"2025-09-11T00:00:00Z","open":1530.0,"high":1530.0,"low":1506.65,"close":1509.5,"volume":817985.0},{"timestamp":"2025-09-12T00:00:00Z","open":1544.65,"high":1544.65,"low":1522.65,"close":1525.55,"volume":443179.0},{"timestamp":"2025-09-15T00:00:00Z","open":1524.1,"high":1527.0,"low":1501.4,"close":1508.05,"volume":165226.0},{"times
+[200 12.125955s]
+== GET /history/AAPL?timeframe=1d
+{"symbol":"AAPL","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":null}
+[200 0.002808s]
+== GET /fundamentals/TCS
+{"detail":"yfinance fundamentals failed for 'TCS': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 9 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details."}
+[502 0.920122s]
+== GET /news?limit=3
+{"detail":"all news sources failed"}
+[502 0.756271s]
+== GET /search/status
+{"tier":"t1_keyless","available":true,"engines":[{"id":"ddg","label":"DuckDuckGo","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":3.0,"detail":"DuckDuckGo available"},{"id":"brave","label":"Brave","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Brave available"},{"id":"mojeek","label":"Mojeek","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Mojeek available"}]}
+[200 0.001335s]
+== GET /search/searxng/status
+{"state":"ready","detail":"SearXNG serving JSON search at http://127.0.0.1:8888","reason":null,"port":8888,"url":"http://127.0.0.1:8888","container":"running","container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":true,"daemon_running":true,"runtime":"Docker Engine - Community"}}
+[200 3.285967s]
+== GET /system/provider-health
+{"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":0.0,"consecutive_opens":0,"opens_total":0,"throttles_total":0.0}}
+[200 0.001116s]
+== GET /health
+{"status":"ok","service":"vysted-sidecar","version":"0.8.0","providers":{"analyst_rating":"openbb-mcp (yfinance fallback)","balance_sheet":"openbb-mcp (yfinance fallback)","cash_flow":"openbb-mcp (yfinance fallback)","fundamentals":"openbb-mcp (yfinance fallback)","income_statement":"openbb-mcp (yfinance fallback)","macro_series":"openbb-mcp","ohlcv":"ccxt (nse_direct, nse, bse, yfinance fallback)","quote":"ccxt (nse_direct, nse, bse, yfinance fallback)","openbb-mcp":"available"}}
+[200 0.000955s]

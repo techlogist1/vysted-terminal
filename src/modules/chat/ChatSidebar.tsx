@@ -1,57 +1,293 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Sparkles, Send } from "lucide-react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowUp, Plus, Sparkles, Square } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
+import { depthTierToWire } from "@/lib/brief-ingest";
+import { launchDelegateRun } from "@/lib/delegate-runs";
+import { isHostActionMutation } from "@/lib/host-actions";
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
+import { completeIncomplete, hasIncompleteCodeFence } from "@/lib/markdown-stream";
+import { normalizePipeTables, stripTableRows } from "./chat-markdown";
+import { DUR, tween, tweenExit } from "@/lib/motion";
+import { probeReadiness, validateProvider } from "@/lib/provider-validation";
 import { cn } from "@/lib/utils";
+import { useAgentAutonomyStore } from "@/store/agent-autonomy";
+import { useAgentCommandStore } from "@/store/agent-command";
+import { useAgentDockStore } from "@/store/agent-dock";
+import { useBriefStore } from "@/store/brief";
+import { useChatPendingStore } from "@/store/chat-pending";
+import { registerAction } from "@/store/keybindings";
+import { type ResearchDepth, useResearchDepthStore } from "@/store/research-depth";
+import { useAgentModeStore } from "@/store/agent-mode";
+import { useAgentSpacesStore } from "@/store/agent-spaces";
+import { type AgentRunBudget, useAgentRunsStore } from "@/store/agent-runs";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
-import { useChartSyncBus } from "@/store/chart-sync";
-import { useChatHistoryStore } from "@/store/chat-history";
-import { useLLMProvidersStore } from "@/store/llm-providers";
+import {
+  type AgentPlanView,
+  type ChatMessage,
+  historyForSend,
+  type ResearchStepView,
+  useChatHistoryStore,
+} from "@/store/chat-history";
+import {
+  type LLMProviderInfo as LLMProviderInfoRow,
+  orderedProviders,
+  useLLMProvidersStore,
+} from "@/store/llm-providers";
+import { useModelCatalog, useModelCatalogStore } from "@/store/model-catalog";
+import { useModelSelectionStore } from "@/store/model-selection";
 import { usePanelContextBus } from "@/store/panel-context";
+import { useProposedChangesStore, type ChangeOutcome } from "@/store/proposed-changes";
+import { useOnboardingStore } from "@/store/onboarding";
+import { useProviderKeysStore } from "@/store/provider-keys";
+import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
-import type { AgentContextSnapshot, LLMProviderId, LLMStreamEvent } from "../../../types/ai";
-import { captureTerminalState } from "./context-provider";
-import { parseSlashCommand, SLASH_HELP_LINES } from "./slash-commands";
-import { streamAgentInvocation, streamChat } from "./streaming";
+import { MarkdownBody } from "@/modules/research/brief-blocks";
+import type { Region } from "@/lib/region";
+import type {
+  LLMModelOption,
+  LLMProviderId,
+  LLMProviderInfo,
+  LLMStreamEvent,
+} from "../../../types/ai";
+import { type AgentMode, AGENT_MODES, agentModeMeta } from "../../../types/agent-modes";
+import { AgentsRail } from "./AgentsRail";
+import { BudgetConfig, DEFAULT_DELEGATE_BUDGET } from "./BudgetConfig";
+import {
+  composerControlsPlan,
+  composerControlsStepForWidth,
+  type ComposerControlsStep,
+} from "./composer-collapse";
+import { DEPTH_TOKEN, DepthControl } from "./DepthControl";
+import { ModelControl } from "./ModelControl";
+import { captureAgentContext, focusedSymbolFromBus } from "./context-provider";
+import {
+  applyMentionPrefixes,
+  insertMentionToken,
+  type MentionDef,
+  matchMention,
+  resolveMention,
+} from "./mentions";
+import { ComposerPlusMenu } from "./ComposerPlusMenu";
+import {
+  HISTORY_NOTICE_TOOL,
+  isRuntimeNotice,
+  useMessageNoticesStore,
+  type MessageErrorFrame,
+} from "./message-notices";
+import { MentionPicker } from "./MentionPicker";
+import { PlanView } from "./PlanView";
+import { ProposedChangesReview } from "./ProposedChangesReview";
+import { formatElapsed, ResearchActivity } from "./ResearchActivity";
+import {
+  parseSlashCommand,
+  parseSlashInvocation,
+  type SlashAction,
+  type SlashCommandDef,
+  SLASH_HELP_LINES,
+  matchSlash,
+} from "./slash-commands";
+import { SlashCommandPicker } from "./SlashCommandPicker";
+import {
+  doneFrameOf,
+  errorFrameOf,
+  isLengthFinish,
+  isProviderFailure,
+  LENGTH_NOTICE,
+  streamAgentInvocation,
+  streamChat,
+} from "./streaming";
+import { useActiveAgentStore } from "@/store/active-agent";
+import { SuggestionChips } from "./SuggestionChips";
 
 /** The default agent: the terminal-aware router/concierge. Bare text routes here. */
 const DEFAULT_AGENT_ID = "copilot";
 
-/** Execute a copilot host-action tool against the live stores, and return a
- *  short human label for the tool-step chip. UI actions (chart/panel/watchlist)
- *  apply immediately; `propose_order` is NOT executed here — it routes through
- *  the §6.5 confirmation dialog, so we only surface a review note. */
-function executeHostAction(name: string, input: Record<string, unknown>): string | null {
-  const symbol = typeof input.symbol === "string" ? input.symbol : "";
-  switch (name) {
-    case "set_chart_symbol":
-      if (symbol) {
-        useChartSyncBus.getState().setSymbol("copilot", symbol);
-        return `Loading ${symbol} into the chart`;
-      }
-      return null;
-    case "open_panel": {
-      const panel = typeof input.panel === "string" ? input.panel : "";
-      if (panel) {
-        useWorkspaceStore.getState().openPanel(panel);
-        return `Opening ${panel}`;
-      }
-      return null;
+/**
+ * First-party "generic" agents that carry NO deliberate provider preference. The
+ * agent JSON schema *requires* a `defaultProvider`, so the generic concierge
+ * (`copilot`) ships a boilerplate one (`ollama`) — but it must NOT shadow the
+ * user's chosen/persisted default provider (that was the persistence bug: a saved
+ * "DeepSeek as default" was masked forever by copilot's pin). Persona agents
+ * (Buffett, researcher, …) keep their deliberate pin; only these defer. */
+const GENERIC_AGENT_IDS = new Set<string>([DEFAULT_AGENT_ID]);
+
+/** The agent's *deliberate* provider preference, or undefined for a generic agent
+ *  (whose boilerplate pin must defer to the user's persisted default). */
+function agentProviderPreference(
+  agent: { id: string; defaultProvider?: string } | null | undefined,
+): LLMProviderId | undefined {
+  if (!agent || GENERIC_AGENT_IDS.has(agent.id)) {
+    return undefined;
+  }
+  return agent.defaultProvider as LLMProviderId | undefined;
+}
+
+/** The agent's preference, DEMOTED when that provider's key is known-missing — a
+ *  persona pin must never route a send to a dead provider (R8: switching the lens
+ *  to a persona pinned on an unkeyed provider produced an unanswerable run). A
+ *  "configured"/"unknown"/unprobed status passes through; only a probed MISSING
+ *  key demotes to the user's default. */
+function usableAgentProviderPreference(
+  agent: { id: string; defaultProvider?: string } | null | undefined,
+  keyStatuses: Partial<Record<LLMProviderId, "configured" | "missing" | "unknown">>,
+  providerList: readonly { id: LLMProviderId; requiresKey?: boolean }[],
+): LLMProviderId | undefined {
+  const pref = agentProviderPreference(agent);
+  if (!pref) {
+    return undefined;
+  }
+  const meta = providerList.find((p) => p.id === pref);
+  const requiresKey = meta?.requiresKey ?? true;
+  if (requiresKey && keyStatuses[pref] === "missing") {
+    return undefined;
+  }
+  return pref;
+}
+
+/** Title-case fallback for an agent id the roster hasn't resolved yet — the lens
+ *  chip must NEVER show a raw id ("warren" → "Warren", "portfolio_advisor" →
+ *  "Portfolio Advisor"). The roster display name always wins when present. */
+function humanizeAgentId(id: string): string {
+  return id
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+/** A short lead for the collapsed "short chat" view (Track 3): the first couple
+ *  of sentences, hard-capped to ~220 chars at a word boundary — so even a verbose
+ *  bulleted summary collapses to a glance, with the rest behind the toggle. */
+function firstSentences(text: string, max = 2, maxChars = 220): string {
+  const trimmed = text.trim();
+  const parts = trimmed.split(/(?<=[.!?])\s+/);
+  let out = parts.length <= max ? trimmed : parts.slice(0, max).join(" ").trim();
+  if (out.length > maxChars) {
+    out =
+      out
+        .slice(0, maxChars)
+        .replace(/\s+\S*$/, "")
+        .trim() + "…";
+    // The cut can leave an unbalanced markdown pair ("**Larsen &…"), which
+    // renders as raw asterisks (adversarial-sweep finding). Strip any marker
+    // whose closer fell past the cut — the snippet is a glance, not markup.
+    const bolds = (out.match(/\*\*/g) ?? []).length;
+    if (bolds % 2 === 1) {
+      out = out.replace(/\*\*(?!.*\*\*)/, "");
     }
-    case "add_to_watchlist":
-      if (symbol) {
-        const assetClass = input.asset_class === "crypto" ? "crypto" : "equity";
-        useSymbolsStore.getState().addSymbol(symbol, assetClass);
-        return `Adding ${symbol} to your watchlist`;
-      }
-      return null;
-    case "propose_order":
-      return `Prepared a ${String(input.side ?? "")} order for ${symbol || "review"} — review & confirm it in the broker panel`;
+    const ticks = (out.match(/`/g) ?? []).length;
+    if (ticks % 2 === 1) {
+      out = out.replace(/`(?!.*`)/, "");
+    }
+  }
+  return out;
+}
+
+/** Stable no-op cite handler — chat has no source rail, so [n] chips render inert.
+ *  A module-level reference keeps MarkdownBody's `ctx` useMemo from recomputing on
+ *  every render (a fresh `() => {}` would defeat it). */
+const NOOP_CITE = () => {};
+
+/**
+ * Assistant reply body. When this turn published a research brief (Track 3), the
+ * depth lives in the rendered brief — so a long reply collapses to its first
+ * couple of sentences with a "show full analysis" toggle, killing the wall of
+ * markdown the chat used to dump. Streaming (pending) and short replies always
+ * render in full.
+ */
+function MessageBody({
+  content,
+  pending,
+  briefPublished,
+}: {
+  content: string;
+  pending?: boolean;
+  briefPublished?: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  // The chat's known-ticker set is the user's watchlist (precision over recall:
+  // a chip fires only on $CASHTAG or one of these symbols, never a bare word).
+  const watchlist = useSymbolsStore((s) => s.entries);
+  const chatKnownSet = useMemo(
+    () => new Set(watchlist.map((e) => e.symbol.toUpperCase())),
+    [watchlist],
+  );
+
+  const isLong = content.trim().length > 200;
+  const collapsible = Boolean(briefPublished) && !pending && isLong;
+  const collapsed = collapsible && !expanded;
+  // The collapsed lead must never slice through a table — drop table rows from
+  // the lead text (the full table stays behind the expand toggle).
+  const shown = collapsed ? firstSentences(stripTableRows(content)) : content;
+
+  // While streaming, repair the trailing in-flight token so the live markdown
+  // doesn't flicker between broken/fixed on every delta. The pulsing caret is
+  // suppressed inside an open code fence (where it would render as literal text).
+  const repaired = pending ? completeIncomplete(shown) : shown;
+  // Separator-less pipe tables render as REAL tables, never a wall of pipes.
+  const source = useMemo(() => normalizePipeTables(repaired), [repaired]);
+  const caret = pending && !hasIncompleteCodeFence(shown);
+
+  return (
+    <div
+      className={cn(
+        "flex min-w-0 flex-col gap-4 break-words",
+        // Law §1: chat reading prose is text-body 13 in the dock — downshift
+        // the shared MarkdownBody's prose-scale blocks (headings + paragraphs
+        // render as <p>, lists as ul/ol) without forking the renderer. Tables
+        // and code already ride text-caption. Lists indent 1.25rem and, with
+        // break-words above, can never escape the dock column.
+        "[&_p]:leading-body [&_p]:text-[length:var(--text-body)]",
+        "[&_ul]:leading-body [&_ul]:ml-5 [&_ul]:text-[length:var(--text-body)]",
+        "[&_ol]:leading-body [&_ol]:ml-5 [&_ol]:text-[length:var(--text-body)]",
+      )}
+    >
+      <MarkdownBody source={source} known={chatKnownSet} onCite={NOOP_CITE} />
+      {/* E10 — the caret's `-mt-4` exists ONLY to cancel the column's gap-4
+          between itself and the preceding body block. With an EMPTY body (the
+          first instants of a stream) there is no preceding block, so the
+          negative margin pulled the caret up OVER the message eyebrow
+          ("VYSTED COPILOT") and clipped it. Clip-safe rule (R8 §3.3): a
+          negative margin may only cancel a real gap — never reach into the
+          container above. */}
+      {caret && (
+        <span
+          data-testid="stream-caret"
+          className={cn("text-charcoal-400 animate-pulse", source.trim() && "-mt-4")}
+          aria-hidden
+        >
+          ▋
+        </span>
+      )}
+      {collapsible && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-charcoal-400 text-caption hover:text-charcoal-100 -mt-2 self-start align-baseline underline transition-colors"
+        >
+          {collapsed ? "show full analysis" : "show less"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** A short chip label for a READ tool (read tools already ran server-side, so we
+ *  only narrate them — mutations are intercepted into the diff gate, not here). */
+function readToolLabel(name: string): string {
+  switch (name) {
     case "get_terminal_state":
       return "Reading what you're looking at";
     case "get_portfolio":
@@ -61,21 +297,102 @@ function executeHostAction(name: string, input: Record<string, unknown>): string
   }
 }
 
+/** The transcript line for how a staged change resolved in the gate. */
+function changeOutcomeLine(id: string, status: ChangeOutcome): string {
+  const change = useProposedChangesStore.getState().changes.find((c) => c.id === id);
+  const title = change?.title ?? "change";
+  if (status === "applied") {
+    return `Applied: ${title}`;
+  }
+  if (status === "failed") {
+    return `Couldn't apply: ${title}${change?.detail ? ` — ${change.detail}` : ""}`;
+  }
+  return `Proposed: ${title} — review below`;
+}
+
 /**
- * Vysted chat sidebar — agent picker, streaming response area, slash-command
- * composer.
+ * The step trace for one assistant turn — language first, telemetry behind a
+ * disclosure (R7 Track C). WHILE STREAMING the live activity renders as before
+ * (visible plan → animated research trace → tool-step lines: the one place the
+ * peach accent belongs) so the work is visibly underway. Once the run finishes
+ * the whole trace collapses into ONE quiet line above the prose —
+ * `▸ Worked for 12s · 7 steps` — that expands on demand to the full
+ * ResearchActivity-style detail. Expanded state is per-message; the default is
+ * collapsed, so the transcript reads as prose, not telemetry.
+ */
+function ActivityTrace({ message }: { message: ChatMessage }) {
+  const [expanded, setExpanded] = useState(false);
+  const researchSteps = message.researchSteps ?? [];
+  const toolSteps = message.toolSteps ?? [];
+  const stepCount = researchSteps.length + toolSteps.length;
+  if (stepCount === 0 && !message.plan) {
+    return null;
+  }
+
+  const detail = (active: boolean) => (
+    <>
+      {message.plan && <PlanView plan={message.plan} active={active} />}
+      {researchSteps.length > 0 && (
+        <ResearchActivity
+          steps={researchSteps}
+          active={active}
+          startedAt={message.researchStartedAt}
+        />
+      )}
+      {toolSteps.length > 0 && (
+        <ul className="mb-2 flex flex-col gap-0.5">
+          {toolSteps.map((step, i) => (
+            <li key={i} className="text-charcoal-400 text-caption flex items-center gap-1">
+              <span className="text-charcoal-500">→</span> {step}
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+
+  if (message.pending) {
+    return detail(true);
+  }
+
+  // Honest duration: the sum of measured step latencies (the same number the
+  // expanded trace footer shows) — never a fabricated wall-clock guess.
+  const totalLatency = researchSteps.reduce((sum, s) => sum + (s.latencyMs ?? 0), 0);
+  const label =
+    stepCount > 0
+      ? `Worked${totalLatency > 0 ? ` for ${formatElapsed(totalLatency)}` : ""} · ${stepCount} step${stepCount === 1 ? "" : "s"}`
+      : "Planned";
+
+  return (
+    <div className="mb-2">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        aria-label={`${expanded ? "Collapse" : "Expand"} step trace — ${label}`}
+        className="text-charcoal-500 text-micro hover:text-charcoal-300 flex items-center gap-1 transition-colors"
+      >
+        <span aria-hidden>{expanded ? "▾" : "▸"}</span>
+        <span className="tabular-nums">{label}</span>
+      </button>
+      {expanded && <div className="mt-2">{detail(false)}</div>}
+    </div>
+  );
+}
+
+/**
+ * Vysted agent surface — the four-mode spine (Ask / Edit / Build / Delegate),
+ * the persona roster, the provider/model HUD, the agents rail, the streaming
+ * transcript, and the diff/accept trust gate. Promoted from a dockview panel to
+ * the shell's primary column (FR-001): its actions open + arrange the cockpit,
+ * and every agent-proposed mutation is staged as a reviewable diff (FR-010) —
+ * nothing lands before the user accepts (or has chosen AUTO autonomy for a
+ * panel, chart or watchlist change).
  *
- * The sidebar reads:
- *  - First-party + custom agents from :func:`useAgentsStore`.
- *  - The seven BYOK providers from :func:`useLLMProvidersStore`.
- *  - The aggregated panel context (chart symbol, watchlist, equity, …) from
- *    :func:`selectSnapshot`.
- *
- * Slash commands are parsed in ``slash-commands.ts``; the composer dispatches
- * to ``streamChat`` (raw chat) or ``streamAgentInvocation`` (agent) and pipes
- * the resulting events into :func:`useChatHistoryStore`. API keys are read
- * from the OS keychain on demand via :func:`getSecret` — never cached on the
- * frontend after the request.
+ * Slash commands are parsed in `slash-commands.ts`; the composer dispatches to
+ * `streamChat` (raw chat) or `streamAgentInvocation` (agent) and pipes events
+ * into `useChatHistoryStore`. API keys are read from the OS keychain on demand —
+ * never cached on the frontend after the request.
  */
 export function ChatSidebar() {
   const messages = useChatHistoryStore((state) => state.messages);
@@ -83,10 +400,23 @@ export function ChatSidebar() {
   const beginAssistant = useChatHistoryStore((state) => state.beginAssistantMessage);
   const appendDelta = useChatHistoryStore((state) => state.appendAssistantDelta);
   const appendToolStep = useChatHistoryStore((state) => state.appendToolStep);
+  const appendResearchStep = useChatHistoryStore((state) => state.appendResearchStep);
+  const setPlan = useChatHistoryStore((state) => state.setPlan);
+  const markBriefPublished = useChatHistoryStore((state) => state.markBriefPublished);
   const finalize = useChatHistoryStore((state) => state.finalizeAssistantMessage);
+  const stopMessage = useChatHistoryStore((state) => state.stopAssistantMessage);
   const fail = useChatHistoryStore((state) => state.failAssistantMessage);
   const clearHistory = useChatHistoryStore((state) => state.clear);
   const streaming = useChatHistoryStore((state) => state.streamingMessageId !== null);
+  // A research run is LIVE when the streaming message has research steps — the
+  // ONE place the peach accent belongs (the depth slider's live stop).
+  const researchLive = useChatHistoryStore((state) => {
+    if (!state.streamingMessageId) {
+      return false;
+    }
+    const live = state.messages.find((m) => m.id === state.streamingMessageId);
+    return !!live && (live.researchSteps?.length ?? 0) > 0;
+  });
 
   const firstPartyAgents = useAgentsStore(selectFirstPartyAgents);
   const customAgents = useAgentsStore(selectCustomAgents);
@@ -95,13 +425,39 @@ export function ChatSidebar() {
   const providers = useLLMProvidersStore((state) => state.providers);
   const defaultProviderId = useLLMProvidersStore((state) => state.defaultProviderId);
   const setDefaultProviderId = useLLMProvidersStore((state) => state.setDefaultProviderId);
+  // The composer's known-ticker set for the bare-ticker fast path (R15-AGENT-088,
+  // FR-112): a lone resolved symbol loads the chart instantly, LLM-free.
+  const composerKnownSymbols = useSymbolsStore((state) => state.entries);
+  const composerKnownSymbolSet = useMemo(
+    () => new Set(composerKnownSymbols.map((e) => e.symbol.toUpperCase())),
+    [composerKnownSymbols],
+  );
   const refreshProviders = useLLMProvidersStore((state) => state.refresh);
+
+  const keyStatuses = useProviderKeysStore((state) => state.status);
+  const refreshKeys = useProviderKeysStore((state) => state.refresh);
+
+  const mode = useAgentModeStore((state) => state.mode);
+  const setMode = useAgentModeStore((state) => state.setMode);
+
+  const setModelOverride = useModelSelectionStore((state) => state.setModel);
+
+  const pendingChangeCount = useProposedChangesStore(
+    (state) => state.changes.filter((c) => c.status === "pending").length,
+  );
+  const acceptAllChanges = useProposedChangesStore((state) => state.acceptAll);
+  const rejectAllChanges = useProposedChangesStore((state) => state.rejectAll);
+  const enqueueChange = useProposedChangesStore((state) => state.enqueue);
+
+  // Active session region — routes `@TICKER` resolution locale-first (NSE for IN).
+  const region = useSettingsStore((state) => state.region);
+
+  const startRun = useAgentRunsStore((state) => state.startRun);
+  const endRun = useAgentRunsStore((state) => state.endRun);
+  const updateRun = useAgentRunsStore((state) => state.updateRun);
 
   // Subscribe to the three primitive bus slices independently — each is a
   // stable reference, so subscribers do not re-render on unrelated updates.
-  // Aggregating into one object via a fresh `selectSnapshot` would re-mint
-  // the object on every store change and infinite-loop `useSyncExternalStore`
-  // (CLAUDE.md Phase-2 gotcha).
   const lastEventBySource = usePanelContextBus((state) => state.lastEventBySource);
   const focusedSource = usePanelContextBus((state) => state.focusedSource);
   const updatedAt = usePanelContextBus((state) => state.updatedAt);
@@ -110,21 +466,62 @@ export function ChatSidebar() {
     [lastEventBySource, focusedSource, updatedAt],
   );
 
-  // Default to the copilot router — bare text "just works" with tools + context.
-  const [activeAgentId, setActiveAgentId] = useState<string | null>(DEFAULT_AGENT_ID);
+  // R7: the active persona lives in a store so EXTERNAL affordances (the ⌘K
+  // agent rows) can switch it — it was component-local state, which made the
+  // palette's agent entries dead wiring.
+  const activeAgentId = useActiveAgentStore((s) => s.activeAgentId);
+  const setActiveAgentId = useActiveAgentStore((s) => s.setActiveAgent);
+  // Explicit provider override (HUD pick); null = use the active agent's default.
+  const [providerOverride, setProviderOverride] = useState<LLMProviderId | null>(null);
   const [composer, setComposer] = useState("");
   const [statusLine, setStatusLine] = useState<string | null>(null);
   const [keyDialogProvider, setKeyDialogProvider] = useState<LLMProviderId | null>(null);
+  const [delegateBudget, setDelegateBudget] = useState<AgentRunBudget>(DEFAULT_DELEGATE_BUDGET);
+  // Clean composer: Mode / Lens / Provider+Model / Autonomy are ALL inline and
+  // always visible (no disclosure gear — the Round-2 "hide the stack" anti-pattern
+  // is gone). There is no "Deep Research" toggle: research is ONE model and depth
+  // is the agent's call + the brief's "Go deeper" escalation (FR-115 / SC-028).
+  // Multiple agent spaces (chat threads/pages) — switching swaps the transcript.
+  const spaces = useAgentSpacesStore((s) => s.spaces);
+  const activeSpaceId = useAgentSpacesStore((s) => s.activeId);
+  const newSpace = useAgentSpacesStore((s) => s.newSpace);
+  const switchSpace = useAgentSpacesStore((s) => s.switchTo);
+  const closeSpace = useAgentSpacesStore((s) => s.closeSpace);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // Tracks the last successfully dispatched prompt so the Retry button can re-send.
+  const [lastPrompt, setLastPrompt] = useState<string | null>(null);
+  // The in-flight stream's AbortController, lifted to a ref so the composer's
+  // stop square can reach it (R7 Track C).
+  const abortRef = useRef<AbortController | null>(null);
+  // Three-stop research depth (the meta-row slider) + the depth the LIVE run
+  // was sent at — the slider accents its active stop only while that run lives.
+  const researchDepth = useResearchDepthStore((s) => s.depth);
+  const setResearchDepth = useResearchDepthStore((s) => s.setDepth);
+  const [lastSentDepth, setLastSentDepth] = useState<ResearchDepth | null>(null);
 
-  // Fetch agents + providers once on mount. Failures are silent — the static
-  // catalogs in the stores are the fallback.
   useEffect(() => {
     void refreshAgents();
     void refreshProviders();
-  }, [refreshAgents, refreshProviders]);
+    void refreshKeys();
+  }, [refreshAgents, refreshProviders, refreshKeys]);
 
-  // Autoscroll to the newest message whenever the conversation grows.
+  // Dev-only self-verification seam (R9 gate): expose the chat-state stores so
+  // the headless-Chrome capture harness can drive composer states (armed,
+  // streaming, queued) without a live sidecar. DEV builds only — tree-shaken
+  // from production bundles.
+  useEffect(() => {
+    if (!import.meta.env.DEV || typeof window === "undefined") {
+      return;
+    }
+    (window as unknown as Record<string, unknown>).__vystedChatDebug = {
+      history: useChatHistoryStore,
+      pending: useChatPendingStore,
+      depth: useResearchDepthStore,
+      dock: useAgentDockStore,
+      agents: useAgentsStore,
+    };
+  }, []);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -142,9 +539,28 @@ export function ChatSidebar() {
     );
   }, [activeAgentId, firstPartyAgents, customAgents]);
 
+  // The effective provider/model for the next send (FR-004): an explicit HUD
+  // override wins, else the active agent's *deliberate* provider preference (a
+  // generic concierge has none — see GENERIC_AGENT_IDS), else the user's
+  // persisted default provider.
+  const effectiveProvider = useMemo<LLMProviderId>(() => {
+    return (
+      providerOverride ??
+      usableAgentProviderPreference(activeAgent, keyStatuses, providers) ??
+      defaultProviderId
+    );
+  }, [providerOverride, activeAgent, keyStatuses, providers, defaultProviderId]);
+  const effectiveModel = useModelSelectionStore((state) => state.modelFor(effectiveProvider));
+  // Live model catalog for the active provider — auto-fetched, TTL-cached.
+  const { entry: modelCatalog, refresh: refreshModelCatalog } = useModelCatalog(effectiveProvider);
+  const providerInfo = providers.find((p) => p.id === effectiveProvider);
+  const providerRequiresKey = providerInfo?.requiresKey ?? true;
+  // "no key" warns only on a PROBED missing key — an unprobed/unknown status
+  // must not flash a false "no key" chip during the boot keychain probe.
+  const providerConfigured = !providerRequiresKey || keyStatuses[effectiveProvider] !== "missing";
+
   const contextBadge = useMemo(() => describeContext(contextSnapshot), [contextSnapshot]);
 
-  // Map agent id -> display name for the transcript identity header.
   const agentNameById = useMemo(() => {
     const map: Record<string, string> = {};
     for (const a of [...firstPartyAgents, ...customAgents]) {
@@ -153,11 +569,187 @@ export function ChatSidebar() {
     return map;
   }, [firstPartyAgents, customAgents]);
 
+  // Register the agent-surface hotkeys' handlers (FR-003 mode switch, FR-010
+  // bulk accept/reject); the app-level dispatcher (`page.tsx`) resolves each
+  // action's (possibly remapped) binding and calls these. `changes.acceptAll`/
+  // `changes.rejectAll` are non-global (the dispatcher already skips them
+  // while typing — ⌘⌫ is the macOS "delete to line start" the composer
+  // needs), and each handler still no-ops with nothing pending.
+  useEffect(() => {
+    const unregisters = AGENT_MODES.map((m) =>
+      registerAction(`agent.mode.${m.id}`, () => setMode(m.id)),
+    );
+    return () => unregisters.forEach((unregister) => unregister());
+  }, [setMode]);
+
+  useEffect(() => {
+    const unregisterAccept = registerAction("changes.acceptAll", () => {
+      if (pendingChangeCount > 0) {
+        void acceptAllChanges();
+      }
+    });
+    const unregisterReject = registerAction("changes.rejectAll", () => {
+      if (pendingChangeCount > 0) {
+        rejectAllChanges();
+      }
+    });
+    return () => {
+      unregisterAccept();
+      unregisterReject();
+    };
+  }, [pendingChangeCount, acceptAllChanges, rejectAllChanges]);
+
+  // Proposals belong to the conversation that raised them: switching or opening
+  // a space rejects (and acks failed) whatever is still pending, so accept-all
+  // can never apply a change reviewed against another thread (R15-CODE-FRONTEND-032).
+  const proposalSpaceRef = useRef(activeSpaceId);
+  useEffect(() => {
+    if (proposalSpaceRef.current !== activeSpaceId) {
+      proposalSpaceRef.current = activeSpaceId;
+      rejectAllChanges();
+    }
+  }, [activeSpaceId, rejectAllChanges]);
+
+  // Stage a curated-slash action through the SAME diff/accept gate the agent uses
+  // (FR-100): in AUTO it auto-applies, in ASK it queues for review. Returns nothing; surfaces the proposal in
+  // the status line so an ASK-mode user knows to confirm it below.
+  const enqueueSlashChange = useCallback(
+    (name: string, input: Record<string, unknown>) => {
+      const stamp = Date.now();
+      const { id, outcome } = enqueueChange({
+        toolCallId: `slash-${name}-${stamp}`,
+        name,
+        input,
+        batchId: `slash-${stamp}`,
+        agentName: "Slash command",
+      });
+      // The line reports how the gate RESOLVED, never a prediction: an applied
+      // change → a brief past-tense confirmation, a failed one → why. A staged
+      // change sets no line — the ProposedChangesReview panel below is the single
+      // source of truth for what's pending (no phantom "proposed" line that
+      // lingers after the change is resolved).
+      void outcome.then((status) => {
+        setStatusLine(status === "staged" ? null : changeOutcomeLine(id, status));
+      });
+    },
+    [enqueueChange],
+  );
+
+  // `/export` — download the current conversation as a markdown transcript. A pure
+  // frontend action (no cockpit mutation), so it does not ride the gate.
+  const exportConversation = useCallback(() => {
+    const msgs = useChatHistoryStore.getState().messages;
+    if (msgs.length === 0) {
+      setStatusLine("Nothing to export yet — start a conversation first.");
+      return;
+    }
+    const body = msgs
+      .map((m) => {
+        const who =
+          m.role === "user"
+            ? "You"
+            : m.agentId
+              ? (agentNameById[m.agentId] ?? m.agentId)
+              : "Assistant";
+        return `**${who}:**\n\n${m.content}`;
+      })
+      .join("\n\n---\n\n");
+    const blob = new Blob([`# Vysted conversation\n\n${body}\n`], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "vysted-conversation.md";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    setStatusLine(`Exported ${msgs.length} message${msgs.length === 1 ? "" : "s"} to markdown.`);
+  }, [agentNameById]);
+
+  // Route a curated-slash ACTION (FR-100). UI/layout/chart/watchlist actions ride
+  // the gate via `enqueueSlashChange`; `clear`/`export` are local conveniences.
+  const dispatchSlashAction = useCallback(
+    (action: SlashAction, args: string) => {
+      setStatusLine(null);
+      switch (action) {
+        case "clear":
+          clearHistory();
+          useMessageNoticesStore.getState().clear();
+          rejectAllChanges();
+          return;
+        case "export":
+          exportConversation();
+          return;
+        case "chart": {
+          const [symbol, timeframe] = args.trim().split(/\s+/);
+          if (!symbol) {
+            setStatusLine("usage: /chart <ticker> [timeframe]");
+            return;
+          }
+          enqueueSlashChange("set_chart_symbol", {
+            symbol: symbol.toUpperCase(),
+            ...(timeframe ? { timeframe } : {}),
+          });
+          return;
+        }
+        case "watch": {
+          const symbol = args.trim().split(/\s+/)[0];
+          if (!symbol) {
+            setStatusLine("usage: /watch <ticker>");
+            return;
+          }
+          enqueueSlashChange("add_to_watchlist", { symbol: symbol.toUpperCase() });
+          return;
+        }
+        case "portfolio":
+          enqueueSlashChange("open_panel", { panel: "portfolio" });
+          return;
+        case "sources":
+          // The sources tray lives in the BriefPanel — opening it surfaces the
+          // citations behind the latest answer.
+          enqueueSlashChange("open_panel", { panel: "brief" });
+          return;
+        case "layout": {
+          // A named template (research-cockpit / compare / macro-scan / single-focus)
+          // or, absent an arg, the flagship research cockpit.
+          const pattern = args.trim() || "research-cockpit";
+          enqueueSlashChange("arrange_layout", { pattern });
+          return;
+        }
+        case "screener":
+          // `screener` is a prompt-kind command in the registry — it never reaches
+          // here as an action (kept exhaustive for the union).
+          return;
+      }
+    },
+    [clearHistory, enqueueSlashChange, exportConversation, rejectAllChanges],
+  );
+
   const handleSend = useCallback(
-    async (rawInput: string) => {
-      const result = parseSlashCommand(rawInput);
+    async (rawInput: string, sendOptions?: { depthOverride?: ResearchDepth }) => {
+      // Curated slash registry (FR-100) takes precedence over the legacy verbs.
+      // An ACTION dispatches through the gate and returns; a PROMPT composes its
+      // template and routes as raw agent text — we DON'T re-run the legacy parser
+      // on the composed string (it may itself start with "/", e.g. `/deep …`).
+      const invocation = parseSlashInvocation(rawInput);
+      let result: ReturnType<typeof parseSlashCommand>;
+      if (invocation) {
+        if (invocation.cmd.dispatch.kind === "action") {
+          dispatchSlashAction(invocation.cmd.dispatch.action, invocation.args);
+          return;
+        }
+        result = { kind: "raw", prompt: invocation.cmd.dispatch.template(invocation.args) };
+      } else {
+        result = parseSlashCommand(rawInput, composerKnownSymbolSet);
+      }
       if (result.kind === "error") {
         setStatusLine(result.message);
+        return;
+      }
+      if (result.kind === "bare-ticker") {
+        // FR-112 fast path: a lone resolved ticker loads the chart instantly,
+        // no LLM round-trip — the same gate/dispatch `/chart` uses.
+        dispatchSlashAction("chart", result.symbol);
         return;
       }
       if (result.kind === "help") {
@@ -166,17 +758,19 @@ export function ChatSidebar() {
       }
       if (result.kind === "clear") {
         clearHistory();
+        useMessageNoticesStore.getState().clear();
+        rejectAllChanges();
         setStatusLine(null);
         return;
       }
       if (result.kind === "provider") {
-        // Best-effort: accept any of the seven known provider ids.
         const match = providers.find((p) => p.id === result.providerId);
         if (!match) {
           setStatusLine(`unknown provider: ${result.providerId}`);
           return;
         }
         setDefaultProviderId(match.id);
+        setProviderOverride(match.id);
         setStatusLine(`default provider → ${match.label}`);
         return;
       }
@@ -191,7 +785,12 @@ export function ChatSidebar() {
       }
 
       setStatusLine(null);
-      const prompt = result.kind === "raw" ? result.prompt : result.prompt;
+      // `@analyst` / `@quant` mentions reroute the turn via a prompt prefix
+      // ("[Act as a fundamental analyst] …") without switching the active agent
+      // (FR-101); surface/scope/instrument mentions are left in place for the
+      // context layer. No agent mention → the prompt is returned untouched.
+      const prompt = applyMentionPrefixes(result.prompt);
+      setLastPrompt(prompt);
       const agentForCall =
         result.kind === "agent"
           ? result.agentId
@@ -199,190 +798,695 @@ export function ChatSidebar() {
             ? activeAgentId
             : null;
 
-      // Recent-turn history (captured BEFORE the new user message) so the
-      // copilot holds a thread — last ~10 user/assistant turns.
-      const history = useChatHistoryStore
-        .getState()
-        .messages.filter((m) => m.role === "user" || m.role === "assistant")
-        .slice(-10)
-        .map((m) => ({ role: m.role, content: m.content }));
+      const history = historyForSend(useChatHistoryStore.getState().messages);
 
-      appendUser(prompt);
-
-      // Resolve which provider's keychain key we need. On the agent path use
-      // the AGENT's default provider (BYOK fix — previously used the UI default,
-      // which sent the wrong key when they differed); else the session default.
+      // Resolve the effective provider/model (FR-004): HUD override → the called
+      // agent's *deliberate* provider preference (a generic concierge has none) →
+      // the user's persisted default. The key is resolved for THAT provider.
       const agentSpec = agentForCall
         ? (firstPartyAgents.find((a) => a.id === agentForCall) ??
           customAgents.find((a) => a.id === agentForCall) ??
           null)
         : null;
-      const provider = (agentSpec?.defaultProvider ?? defaultProviderId) as LLMProviderId;
-      const requiresKey = providers.find((p) => p.id === provider)?.requiresKey ?? true;
+      const provider =
+        providerOverride ??
+        usableAgentProviderPreference(
+          agentSpec,
+          useProviderKeysStore.getState().status,
+          providers,
+        ) ??
+        defaultProviderId;
+      const model = useModelSelectionStore.getState().modelFor(provider);
+      const providerMeta = providers.find((p) => p.id === provider);
+      const requiresKey = providerMeta?.requiresKey ?? true;
+      const providerLabel = providerMeta?.label ?? provider;
+      // The provider/key gate runs BEFORE the user turn is appended: a send that
+      // cannot reach a model leaves no orphaned question in the transcript (and
+      // no auto-titled space) — the status line says why and the prompt goes
+      // back into an empty composer.
       let apiKey: string | null = null;
       if (requiresKey) {
         apiKey = await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider));
         if (!apiKey) {
           setStatusLine(
-            `No API key for ${provider}. Add one in Settings → AI Providers (or /key set ${provider}).`,
+            `No API key for ${providerLabel}. Add one in Settings → AI Providers (or /key set ${provider}).`,
           );
+          setComposer((current) => current || rawInput);
           return;
         }
+      } else {
+        // A keyless lane (local Ollama) is ready only when its daemon answers AND
+        // the model is pulled. Route on WHY it is not (R15-UI-013): only a lane
+        // that is not set up, or whose model is not downloaded, opens the guided
+        // setup; an unreachable daemon or data engine says so and keeps the prompt.
+        const readiness = await validateProvider(provider, { model });
+        if (!readiness.ok) {
+          setComposer((current) => current || rawInput);
+          if (readiness.reason === "model_not_pulled") {
+            setStatusLine(
+              `${model} is not downloaded yet — opening setup to download it. (Quotes, ` +
+                "charts, news and screeners already work without a model.)",
+            );
+            useOnboardingStore.getState().open("local");
+          } else if (readiness.reason === "not_configured") {
+            setStatusLine(
+              "No AI model is set up yet — opening setup. (Quotes, charts, news and " +
+                "screeners already work without one.)",
+            );
+            useOnboardingStore.getState().open();
+          } else {
+            setStatusLine(
+              `${providerLabel} isn't ready: ${readiness.detail ?? "it did not answer."}`,
+            );
+          }
+          return;
+        }
+      }
+
+      // Auto-title the space from its first prompt (Perplexity-style) so the space
+      // tabs read as real threads, not "Chat 1/2/3". Read via getState to avoid
+      // adding a dep to this memoised handler.
+      if (useChatHistoryStore.getState().messages.length === 0) {
+        const cleaned = prompt.replace(/^\/\S+\s*/, "").trim();
+        const title = cleaned.length > 28 ? `${cleaned.slice(0, 28).trim()}…` : cleaned;
+        if (title) {
+          useAgentSpacesStore.getState().renameActive(title);
+        }
+      }
+      appendUser(prompt);
+
+      // Thread the user's deep-research engine selection (Track 5) to the agent so
+      // /deep routes to the chosen backend without depending on the model. Read at
+      // call time.
+      const deepResearchBackend = useSettingsStore.getState().deepResearchBackend;
+      // WS5: thread the RESOLVED model's native-search capability so the sidecar can
+      // gate OpenRouter per-MODEL (the live catalog lives here on the frontend —
+      // keyless-first, no extra network on the sidecar hot path). The five
+      // provider-level native providers ignore this hint; non-OpenRouter models
+      // simply leave it undefined.
+      const modelWebSearch =
+        useModelCatalogStore.getState().byProvider[provider]?.models.find((m) => m.id === model)
+          ?.webSearch ?? undefined;
+      // The meta-row depth slider (R7): read at call time, threaded into the
+      // invocation options (streaming.ts puts it on the wire as snake_case
+      // `research_depth`). A go-deeper/refresh agent command OVERRIDES the
+      // slider with the tier it escalates to (E2's UI leg) — the re-run's
+      // depth rides the deterministic options floor, never just the prompt
+      // text. Remember what THIS send carried so the slider can accent its
+      // live stop honestly.
+      const depthForSend = sendOptions?.depthOverride ?? useResearchDepthStore.getState().depth;
+      setLastSentDepth(depthForSend);
+      const deepResearchOptions = {
+        deepResearchBackend,
+        researchDepth: depthForSend,
+        ...(modelWebSearch ? { modelWebSearch } : {}),
+      };
+
+      // Delegate launches a DURABLE, budget-guarded background run (US9) instead
+      // of a foreground stream — it survives this turn and appears in the agents
+      // rail with live cost-so-far; its proposed changes still ride the diff gate.
+      if (mode === "delegate" && agentForCall) {
+        const snapshot = captureAgentContext();
+        const noteId = beginAssistant({ agentId: agentForCall, providerId: provider });
+        appendDelta(
+          noteId,
+          "Delegated to a background run — track its cost + status in the agents rail above. " +
+            "It works autonomously under your budget. When it finishes, its answer lands in this " +
+            "chat and any changes it proposes go through the same review gate as a live reply.",
+        );
+        finalize(noteId, null);
+        void launchDelegateRun({
+          agentId: agentForCall,
+          agentName: agentNameById[agentForCall] ?? agentForCall,
+          prompt,
+          contextSnapshot: snapshot,
+          provider,
+          model,
+          apiKey: apiKey ?? undefined,
+          budget: delegateBudget,
+          threadId: useAgentSpacesStore.getState().activeId,
+          // Carry only the non-secret backend choice + per-model search capability
+          // into a DURABLE run (its state is persisted; secrets stay off disk).
+          options: { history, ...deepResearchOptions },
+        });
+        return;
       }
 
       const assistantId = beginAssistant({
         agentId: agentForCall ?? undefined,
         providerId: provider,
       });
+      const agentName = agentForCall
+        ? (agentNameById[agentForCall] ?? agentForCall)
+        : "Direct chat";
 
-      const handlers = makeHandlers(assistantId, {
-        onDelta: (text) => appendDelta(assistantId, text),
-        onError: (message) => fail(assistantId, message),
-        onDone: (usage) => finalize(assistantId, usage),
-        onToolUse: (name, input) => {
-          // Render a step chip AND drive the terminal for host-action tools.
-          const label = executeHostAction(name, input);
-          if (label) {
-            appendToolStep(assistantId, label);
-          }
-        },
+      // Track the run in the agents rail (FR-027 / US3 AS3) with a cancel that
+      // aborts the stream. The controller is lifted to `abortRef` so the
+      // composer's stop square aborts the SAME in-flight run.
+      const controller = new AbortController();
+      abortRef.current = controller;
+      // Registered with the transcript owner: a tab or research-space switch
+      // stops this run before it swaps the transcript (R15-CODE-FRONTEND-002).
+      useChatHistoryStore.getState().setLiveAbort(() => controller.abort());
+      const runId = startRun({
+        agentId: agentForCall,
+        agentName,
+        mode,
+        abort: () => controller.abort(),
       });
 
-      if (agentForCall) {
-        // Structured "what the user is looking at" snapshot — the sidecar
-        // renders a terse preamble + the get_terminal_state tool reads it.
-        const terminalState = captureTerminalState();
-        const snapshot: AgentContextSnapshot = {
-          focusedSource: terminalState.focusedPanel,
-          bySource: { __terminal__: terminalState as unknown as Record<string, unknown> },
-          capturedAt: terminalState.capturedAt,
-        };
-        await streamAgentInvocation(
-          agentForCall,
-          {
-            prompt,
-            contextSnapshot: snapshot,
-            apiKey: apiKey ?? undefined,
-            options: { history },
-          },
-          handlers,
-        );
-      } else {
-        await streamChat(
-          {
-            provider,
-            model: defaultModelFor(provider),
-            messages: [{ role: "user", content: prompt }],
-            apiKey: apiKey ?? undefined,
-          },
-          handlers,
-        );
+      // Provider fallback (FR-038, D-B11-7): a classified provider failure
+      // (rejected key, no credit, unreachable) that lands before the model
+      // produced anything is HELD instead of failing the turn, and the loop
+      // below retries on the next configured provider in the preference order.
+      // A content error, partial output or a user stop never falls back.
+      let produced = false;
+      let heldFailure = null as { message: string; frame?: MessageErrorFrame | null } | null;
+      const settleError = (message: string, frame?: MessageErrorFrame | null) => {
+        if (abortRef.current === controller) {
+          abortRef.current = null;
+        }
+        // A dead/stopped stream can never publish — settle the brief panel's
+        // in-flight run (restores the prior as archived(run_failed), D39).
+        if (useBriefStore.getState().panel.phase === "in_flight") {
+          useBriefStore.getState().failRun();
+        }
+        if (controller.signal.aborted) {
+          // User-stopped (the composer's stop square / rail cancel): the
+          // partial message stands, quietly marked "stopped" — not an error.
+          stopMessage(assistantId);
+          endRun(runId, "cancelled");
+        } else {
+          // Structured frame (D43): the action/detail/code ride beside the
+          // message for the "Details" disclosure; legacy strings carry none.
+          if (frame) {
+            useMessageNoticesStore.getState().setErrorFrame(assistantId, frame);
+          }
+          fail(assistantId, message);
+          endRun(runId, "error", message);
+        }
+      };
+      const internalHandlers = makeHandlers({
+        onDelta: (text) => appendDelta(assistantId, text),
+        onError: (message, frame) => {
+          if (!produced && !controller.signal.aborted && isProviderFailure(frame?.code)) {
+            heldFailure = { message, frame };
+            return;
+          }
+          settleError(message, frame);
+        },
+        onDone: (usage, finishReason, contextWindow, spendUsd, servedModel) => {
+          if (abortRef.current === controller) {
+            abortRef.current = null;
+          }
+          // A raw chat has no runtime to notice a cut-off answer; the agent
+          // path's runtime emits the same notice itself (R15-AGENT-026).
+          if (!agentForCall && isLengthFinish(finishReason)) {
+            useMessageNoticesStore.getState().addNotice(assistantId, LENGTH_NOTICE);
+          }
+          // A router slug (openrouter/auto) answers with a model of its choosing:
+          // name it (R15-AGENT-075). A dated snapshot of the requested id is the
+          // same model, so it says nothing.
+          if (servedModel && !servedModel.startsWith(attempt.model)) {
+            useMessageNoticesStore.getState().addNotice(assistantId, `Answered by ${servedModel}`);
+          }
+          finalize(assistantId, usage, contextWindow, spendUsd);
+          if (usage) {
+            updateRun(runId, {
+              cost: {
+                tokens: usage.inputTokens + usage.outputTokens,
+                spendUsd: spendUsd ?? 0,
+                steps: 0,
+              },
+            });
+          }
+          endRun(runId, "done");
+          // Done-without-publish (E3/D39): a research run began but the stream
+          // ended with NO publish applied or pending review — the run failed
+          // silently. Settle the panel (archive the prior) instead of leaving
+          // a forever-spinning in-flight state. A publish staged in the ASK
+          // gate keeps the run alive: accept publishes it, reject settles it.
+          const brief = useBriefStore.getState();
+          if (brief.panel.phase === "in_flight") {
+            const publishPending = useProposedChangesStore
+              .getState()
+              .changes.some((c) => c.status === "pending" && c.action.name === "publish_brief");
+            if (!publishPending) {
+              brief.failRun();
+            }
+          }
+        },
+        onToolUse: (name, input, toolCallId) => {
+          if (isHostActionMutation(name)) {
+            // FR-010 — stage the mutation as a reviewable diff instead of
+            // applying it. One agent turn = one batch (assistantId).
+            const { id, outcome } = enqueueChange({
+              toolCallId,
+              name,
+              input,
+              batchId: assistantId,
+              agentId: agentForCall ?? undefined,
+              agentName,
+            });
+            // Track 3: a brief published this turn (model-issued OR the runtime's
+            // synthetic auto-publish) means the depth lives in the rendered brief
+            // — collapse the chat essay to a short pointer.
+            if (name === "publish_brief") {
+              markBriefPublished(assistantId);
+            } else {
+              // Write what the gate RESOLVED (applied / failed / staged for review),
+              // never a prediction made before the apply settled.
+              void outcome.then((status) =>
+                appendToolStep(assistantId, changeOutcomeLine(id, status)),
+              );
+            }
+          } else if (name === "research") {
+            // Track A: the live ResearchActivity surface (fed by onResearchStep)
+            // replaces the generic "Using …" one-liner for the research tool, so the
+            // animated step trace isn't shadowed by a static label. (ONE research
+            // tool now — depth is internal, so this single name covers every tier.)
+          } else {
+            appendToolStep(assistantId, readToolLabel(name));
+          }
+        },
+        onResearchStep: (step, tool) => {
+          // Runtime notices (C9) render as quiet system chips in the
+          // transcript, not telemetry rows in the step trace; a history
+          // compaction renders as its own marker (R15-AGENT-040).
+          if (isRuntimeNotice(step.stepKind)) {
+            const notices = useMessageNoticesStore.getState();
+            if (tool === HISTORY_NOTICE_TOOL) {
+              notices.setCompaction(assistantId, step.detail);
+            } else {
+              notices.addNotice(assistantId, step.detail);
+            }
+            return;
+          }
+          appendResearchStep(assistantId, step);
+        },
+        // Track 6 #2: surface the plan up front (visible plan-then-execute). It is
+        // ADVISORY — the loop below still drives execution and stages each
+        // host-action through the existing gate, so we don't pre-stage here (that
+        // would double-apply). The plan just shows what's coming.
+        onPlan: (plan) => setPlan(assistantId, plan),
+      });
+      const handlers = {
+        ...internalHandlers,
+        onEvent: (event: LLMStreamEvent) => {
+          // Anything but a heartbeat, a terminal frame or a runtime notice is
+          // model output — after it, a failure is no longer a clean fallback.
+          if (
+            event.kind !== "heartbeat" &&
+            event.kind !== "error" &&
+            event.kind !== "done" &&
+            !(event.kind === "research_step" && isRuntimeNotice(event.stepKind))
+          ) {
+            produced = true;
+          }
+          internalHandlers.onEvent(event);
+        },
+      };
+
+      let attempt: FallbackAttempt = { provider, model, apiKey, label: providerLabel };
+      const tried = new Set<LLMProviderId>([provider]);
+      for (;;) {
+        // The stream client settles every call through exactly one terminal
+        // callback; anything thrown around it (snapshot capture, a throwing
+        // handler) still settles the message instead of leaving it streaming
+        // forever with later prompts queued behind it (R15-AGENT-029).
+        try {
+          if (agentForCall) {
+            const snapshot = captureAgentContext();
+            await streamAgentInvocation(
+              agentForCall,
+              {
+                prompt,
+                contextSnapshot: snapshot,
+                provider: attempt.provider,
+                model: attempt.model,
+                mode,
+                // Autonomy rides the request so the sidecar narrates host-actions
+                // truthfully (auto = applied/past-tense, ask = staged for review).
+                autonomy: useAgentAutonomyStore.getState().autonomy,
+                apiKey: attempt.apiKey ?? undefined,
+                options: { history, ...deepResearchOptions },
+              },
+              { ...handlers, signal: controller.signal },
+            );
+          } else {
+            // FR-116 / coherence: the raw-chat path must preserve conversation context
+            // too, so a mid-conversation MODEL SWAP doesn't reset the thread. `history`
+            // (the thread within its character budget, captured above BEFORE appendUser,
+            // so it excludes the current prompt) is prepended; previously this path sent only
+            // the single current turn and silently dropped everything before it.
+            await streamChat(
+              {
+                provider: attempt.provider,
+                model: attempt.model,
+                messages: [...history, { role: "user", content: prompt }],
+                apiKey: attempt.apiKey ?? undefined,
+              },
+              { ...handlers, signal: controller.signal },
+            );
+          }
+        } catch (err) {
+          if (useChatHistoryStore.getState().streamingMessageId === assistantId) {
+            handlers.onError(err instanceof Error ? err : new Error(String(err)));
+          }
+        }
+        const failure = heldFailure;
+        heldFailure = null;
+        if (!failure) {
+          break;
+        }
+        const next = controller.signal.aborted ? null : await nextFallbackAttempt(providers, tried);
+        if (!next || controller.signal.aborted) {
+          settleError(failure.message, failure.frame);
+          break;
+        }
+        // The turn says who failed and who takes over (D-B11-7).
+        useMessageNoticesStore
+          .getState()
+          .addNotice(
+            assistantId,
+            `${attempt.label} could not answer: ${failure.message} Retried with ${next.label}.`,
+          );
+        attempt = next;
       }
     },
     [
       activeAgentId,
       appendDelta,
       appendToolStep,
+      appendResearchStep,
+      setPlan,
+      markBriefPublished,
       appendUser,
+      agentNameById,
       beginAssistant,
       clearHistory,
+      composerKnownSymbolSet,
       customAgents,
       defaultProviderId,
+      delegateBudget,
+      dispatchSlashAction,
+      endRun,
+      enqueueChange,
       fail,
       finalize,
+      stopMessage,
       firstPartyAgents,
+      mode,
+      providerOverride,
       providers,
+      rejectAllChanges,
       setDefaultProviderId,
+      setLastPrompt,
+      setLastSentDepth,
+      startRun,
+      updateRun,
     ],
   );
 
+  // Agent-command channel (FR-115): a non-chat module — the brief panel's "Go
+  // deeper" affordance, a first-run "try this" chip — pushes a prompt here, and
+  // we route it through the SAME `handleSend` (one send path: provider/model/
+  // history/gate). Track the consumed `seq` so a repeat (clicking "Go deeper"
+  // twice) re-fires. While a stream is in flight we DON'T consume the seq — the
+  // effect re-runs when `streaming` flips to false and dispatches then, so a
+  // "Go deeper" click queued mid-run escalates the moment the current run ends
+  // (no interleaving, and no synchronous setState in the effect body).
+  const lastAgentCmdSeq = useRef(0);
+  const agentCommand = useAgentCommandStore((s) => s.command);
+  useEffect(() => {
+    if (!agentCommand || agentCommand.seq === lastAgentCmdSeq.current || streaming) {
+      return;
+    }
+    lastAgentCmdSeq.current = agentCommand.seq;
+    // A depth-carrying command (go-deeper / archived-brief refresh) OVERRIDES
+    // the slider for THIS send (quick→normal, deep→deep, heavy→ultra) so the
+    // escalation rides the deterministic `research_depth` options floor — the
+    // prompt's "at depth=<tier>" alone could be ignored by a weak model (E2).
+    const depthOverride = agentCommand.depth ? depthTierToWire(agentCommand.depth) : undefined;
+    void handleSend(agentCommand.prompt, depthOverride ? { depthOverride } : undefined);
+  }, [agentCommand, streaming, handleSend]);
+
+  // Drain the FIFO prompt queue (R7 Track C): prompts typed while a stream was
+  // in flight (and the palette's one-shot "Ask AI" handoff) send IN ORDER, one
+  // at a time, through the SAME handleSend the moment nothing is streaming.
+  // `handleSend` resolves only when its stream finishes, so awaiting it serial-
+  // izes the drain; the ref guards the effect re-running mid-drain (each send
+  // flips `streaming`, re-firing this effect).
+  const queueLength = useChatPendingStore((s) => s.queue.length);
+  const drainingRef = useRef(false);
+  useEffect(() => {
+    if (streaming || drainingRef.current || queueLength === 0) {
+      return;
+    }
+    drainingRef.current = true;
+    void (async () => {
+      try {
+        for (;;) {
+          // Re-check between sends — another path (agent-command) may have
+          // started a stream while we awaited.
+          if (useChatHistoryStore.getState().streamingMessageId !== null) {
+            break;
+          }
+          const next = useChatPendingStore.getState().consumePrompt();
+          if (next === null) {
+            break;
+          }
+          if (next.trim()) {
+            await handleSend(next);
+          }
+        }
+      } finally {
+        drainingRef.current = false;
+      }
+    })();
+  }, [streaming, queueLength, handleSend]);
+
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
-      <header className="border-charcoal-700 flex items-center gap-2 border-b px-3 py-2">
-        <Sparkles className="text-amber-400" size={14} aria-hidden />
-        <span className="text-charcoal-200 font-mono text-xs font-medium">Copilot</span>
-      </header>
-      <RosterStrip
-        firstParty={firstPartyAgents}
-        custom={customAgents}
-        activeAgentId={activeAgentId}
-        onChange={setActiveAgentId}
+      {/* Agent spaces — multiple chat threads/pages (Perplexity/Cursor). Switching
+          archives the live transcript and restores the target's. */}
+      <div className="border-charcoal-700 flex items-center gap-1 overflow-x-auto border-b px-2 py-1">
+        {spaces.map((s) => {
+          const active = s.id === activeSpaceId;
+          return (
+            <div
+              key={s.id}
+              className={cn(
+                "text-caption rounded-control flex shrink-0 items-center font-mono",
+                active ? "bg-charcoal-800 text-charcoal-100" : "text-charcoal-400",
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => switchSpace(s.id)}
+                className={cn("max-w-[10rem] truncate px-2 py-1 transition-colors", {
+                  "hover:text-lume": !active,
+                })}
+                title={s.title}
+              >
+                {s.title}
+              </button>
+              {spaces.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => closeSpace(s.id)}
+                  aria-label={`Close ${s.title}`}
+                  className="text-charcoal-500 hover:text-negative px-1 py-1 transition-colors"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          );
+        })}
+        <button
+          type="button"
+          onClick={newSpace}
+          aria-label="New chat space"
+          title="New chat space"
+          className="text-charcoal-400 rounded-control hover:text-charcoal-100 shrink-0 px-2 py-1 transition-colors"
+        >
+          <Plus className="size-3" />
+        </button>
+      </div>
+      <AgentsRail
+        onForeground={(run) => {
+          const id = beginAssistant({ agentId: run.agentId ?? undefined });
+          appendDelta(
+            id,
+            `Delegate run "${run.agentName}" — ${run.status}` +
+              (run.cost ? `, ${run.cost.tokens.toLocaleString()} tokens` : "") +
+              (run.detail ? `. ${run.detail}` : "."),
+          );
+          finalize(id, null);
+        }}
       />
-      <ContextBadge text={contextBadge} />
+      {/* No standing "no context" row (R9 stray-item audit) — the badge
+          renders only when there is REAL panel context to report. */}
+      {contextBadge.kind === "panels" && <ContextBadge text={contextBadge.text} />}
       <div
         ref={scrollRef}
         role="log"
         aria-live="polite"
         aria-label="Chat transcript"
-        className="flex-1 overflow-y-auto px-3 py-3"
+        className="flex-1 overflow-y-auto px-4 py-4"
       >
         {messages.length === 0 ? (
-          <EmptyState activeAgentName={activeAgent?.name ?? null} />
+          <EmptyState activeAgentName={activeAgent?.name ?? null} mode={mode} />
         ) : (
-          <ul className="flex flex-col gap-3">
+          // Reading-surface rhythm (law §7): 16px between message blocks.
+          <ul className="flex flex-col gap-4">
             {messages.map((message) => (
-              <li
+              <motion.li
                 key={message.id}
+                layout
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={tween(0.18)}
                 className={cn(
-                  "rounded-md border px-3 py-2 font-mono text-xs",
+                  // Law §1: user + assistant share the SAME type step (body 13)
+                  // — the user turn is distinguished by its quiet bordered
+                  // container only; the assistant reads as flat prose.
+                  "text-body text-charcoal-100 min-w-0 font-mono",
                   message.role === "user"
-                    ? "border-charcoal-700 bg-charcoal-800 text-charcoal-100"
-                    : "text-charcoal-100 border-amber-900/30 bg-amber-950/15",
+                    ? "border-charcoal-700 bg-charcoal-850 rounded-none border px-3 py-2"
+                    : "px-1 py-1",
                 )}
               >
-                <div className="text-charcoal-400 mb-1 text-[0.6rem] tracking-wide uppercase">
+                <CompactionMarker messageId={message.id} />
+                <div className="text-charcoal-400 text-micro mb-1">
                   {message.role === "user"
                     ? "You"
                     : message.agentId
                       ? (agentNameById[message.agentId] ?? message.agentId)
                       : "Assistant"}
                 </div>
-                {message.toolSteps && message.toolSteps.length > 0 && (
-                  <ul className="mb-1.5 flex flex-col gap-0.5">
-                    {message.toolSteps.map((step, i) => (
-                      <li
-                        key={i}
-                        className="text-charcoal-400 flex items-center gap-1 text-[0.6rem]"
-                      >
-                        <span className="text-amber-400">→</span> {step}
-                      </li>
-                    ))}
-                  </ul>
+                <ActivityTrace message={message} />
+                <MessageBody
+                  content={message.content}
+                  pending={message.pending}
+                  briefPublished={message.briefPublished}
+                />
+                <MessageNotices messageId={message.id} />
+                <MessageCostFooter message={message} />
+                {message.stopped && (
+                  <div className="text-charcoal-500 text-caption mt-1">stopped</div>
                 )}
-                <div className="whitespace-pre-wrap">
-                  {message.content}
-                  {message.pending && (
-                    <span className="text-charcoal-400 animate-pulse" aria-hidden>
-                      ▋
-                    </span>
-                  )}
-                </div>
                 {message.error && (
-                  <div className="text-negative mt-1 text-[0.65rem]">{message.error}</div>
+                  <ErrorRow
+                    messageId={message.id}
+                    message={message.error}
+                    onRetry={
+                      lastPrompt
+                        ? () => {
+                            void handleSend(lastPrompt);
+                          }
+                        : undefined
+                    }
+                  />
                 )}
-              </li>
+              </motion.li>
             ))}
           </ul>
         )}
       </div>
-      {statusLine && (
-        <div className="border-charcoal-700 text-charcoal-300 border-t px-3 py-1 font-mono text-[0.65rem] whitespace-pre-line">
-          {statusLine}
-        </div>
-      )}
-      <Composer
-        value={composer}
-        onChange={setComposer}
-        onSend={(text) => {
-          setComposer("");
-          void handleSend(text);
-        }}
-        disabled={streaming}
-      />
+      <ProposedChangesReview />
+      <AnimatePresence initial={false}>
+        {statusLine && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            style={{ overflow: "hidden" }}
+            transition={tween(0.16)}
+            className="border-charcoal-700 text-charcoal-300 text-caption border-t px-3 py-1 font-mono whitespace-pre-line"
+          >
+            {statusLine}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* ── Composer dock (R9 Track C — Claude-exact structure): queued-prompt
+          chips → ONE field container with the controls row INSIDE — the plus
+          menu far left (persona / autonomy / mode / context live in it), then
+          the depth pill, the quiet model text, and the depth-keyed send at the
+          far right. The R8 five-chip meta strip below the input is dead. ── */}
+      <div className="border-charcoal-700 border-t">
+        {/* Delegate-only: the BudgetGuard ceiling for the durable background run. */}
+        {mode === "delegate" && (
+          <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />
+        )}
+        <ContextMeter />
+        <QueuedPrompts />
+        <Composer
+          value={composer}
+          onChange={setComposer}
+          onSend={(text) => {
+            setComposer("");
+            // While a stream is in flight the prompt queues (visible chips
+            // above the field) and drains in order when the stream ends; the
+            // input itself is sent verbatim — depth rides `options`, never
+            // prepended prose.
+            if (useChatHistoryStore.getState().streamingMessageId !== null) {
+              useChatPendingStore.getState().queuePrompt(text);
+            } else {
+              void handleSend(text);
+            }
+          }}
+          onStop={() => abortRef.current?.abort()}
+          streaming={streaming}
+          mode={mode}
+          onModeChange={setMode}
+          region={region}
+          personaLabel={activeAgent?.name ?? humanizeAgentId(activeAgentId ?? DEFAULT_AGENT_ID)}
+          firstParty={firstPartyAgents}
+          custom={customAgents}
+          activeAgentId={activeAgentId ?? DEFAULT_AGENT_ID}
+          onPersonaChange={(id) => {
+            setActiveAgentId(id);
+            setProviderOverride(null);
+          }}
+          depth={researchDepth}
+          onDepthChange={setResearchDepth}
+          liveDepth={researchLive ? lastSentDepth : null}
+          sentDepth={lastSentDepth}
+          providers={providers}
+          provider={effectiveProvider}
+          model={effectiveModel}
+          providerConfigured={providerConfigured}
+          modelOptions={modelCatalog?.models}
+          catalogNote={modelCatalog?.note}
+          catalogLoading={modelCatalog?.loading}
+          onProviderChange={(p) => {
+            // The pick wins this session AND becomes the persisted default
+            // (rides the page.tsx autosave), so it survives a relaunch.
+            setProviderOverride(p);
+            setDefaultProviderId(p);
+          }}
+          onModelChange={(m) => setModelOverride(effectiveProvider, m)}
+          onKeyRequired={(p) => setKeyDialogProvider(p)}
+          onRefreshModels={refreshModelCatalog}
+        />
+      </div>
       <KeyEntryDialog
         open={keyDialogProvider !== null}
         providerId={keyDialogProvider}
-        onOpenChange={(open) => !open && setKeyDialogProvider(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            const justConfigured = keyDialogProvider;
+            setKeyDialogProvider(null);
+            void refreshKeys();
+            // A freshly-saved key re-narrows the live catalog (e.g. OpenRouter
+            // /models/user) — force a refetch for that provider.
+            if (justConfigured) {
+              void useModelCatalogStore.getState().fetchCatalog(justConfigured, { force: true });
+            }
+          }
+        }}
       />
     </div>
   );
@@ -392,49 +1496,38 @@ export function ChatSidebar() {
 // Subcomponents
 // ---------------------------------------------------------------------------
 
-interface AgentPickerProps {
-  firstParty: readonly { id: string; name: string }[];
-  custom: readonly { id: string; name: string }[];
-  activeAgentId: string | null;
-  onChange: (id: string | null) => void;
-}
-
-/** A visible, clickable roster of personas — no memorized ids. The copilot
- *  router is pinned first as the default; clicking a chip switches the lens. */
-function RosterStrip({ firstParty, custom, activeAgentId, onChange }: AgentPickerProps) {
-  const ordered = [...firstParty].sort((a, b) =>
-    a.id === DEFAULT_AGENT_ID ? -1 : b.id === DEFAULT_AGENT_ID ? 1 : 0,
-  );
-  const all = [...ordered, ...custom];
-  if (all.length === 0) {
+/** The visible FIFO of prompts queued while a stream is in flight — quiet,
+ *  removable chips directly above the composer field. Renders nothing when the
+ *  queue is empty; the drain order is the chip order (oldest first). */
+function QueuedPrompts() {
+  const queue = useChatPendingStore((s) => s.queue);
+  const removePrompt = useChatPendingStore((s) => s.removePrompt);
+  if (queue.length === 0) {
     return null;
   }
   return (
-    <div
-      aria-label="Persona roster"
-      className="border-charcoal-700 flex items-center gap-1 overflow-x-auto border-b px-2 py-1.5"
-    >
-      {all.map((agent) => {
-        const active = agent.id === activeAgentId;
-        return (
+    <ul aria-label="Queued prompts" className="flex flex-wrap gap-1 px-3 pt-2">
+      {queue.map((prompt, index) => (
+        <li
+          key={`${index}-${prompt}`}
+          // Caption type, NOT micro — micro uppercases, and a queued prompt is
+          // user content that must render verbatim.
+          className="border-charcoal-700 bg-charcoal-850 text-caption text-charcoal-400 rounded-control flex h-6 max-w-[14rem] items-center gap-1 border px-2 font-mono"
+        >
+          <span className="truncate" title={prompt}>
+            {prompt}
+          </span>
           <button
-            key={agent.id}
             type="button"
-            onClick={() => onChange(agent.id)}
-            aria-pressed={active}
-            title={agent.name}
-            className={cn(
-              "shrink-0 rounded-full border px-2.5 py-1 font-mono text-[0.65rem] whitespace-nowrap transition-colors",
-              active
-                ? "border-amber-500 bg-amber-500/15 text-amber-300"
-                : "border-charcoal-700 text-charcoal-400 hover:text-charcoal-100 hover:border-charcoal-600",
-            )}
+            aria-label={`Remove queued prompt: ${prompt}`}
+            onClick={() => removePrompt(index)}
+            className="text-charcoal-500 hover:text-charcoal-200 shrink-0 transition-colors"
           >
-            {agent.name}
+            ×
           </button>
-        );
-      })}
-    </div>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -442,26 +1535,206 @@ function ContextBadge({ text }: { text: string }) {
   return (
     <div
       aria-label="Panel context"
-      className="border-charcoal-700 text-charcoal-300 border-b px-3 py-1 font-mono text-[0.6rem] tracking-wide uppercase"
+      className="border-charcoal-700 text-charcoal-300 text-caption border-b px-4 py-1 font-mono tracking-wide uppercase"
     >
       {text}
     </div>
   );
 }
 
-function EmptyState({ activeAgentName }: { activeAgentName: string | null }) {
+/** The "older turns summarised" marker above a reply whose request folded
+ *  older turns into a summary (R15-AGENT-040). */
+function CompactionMarker({ messageId }: { messageId: string }) {
+  const detail = useMessageNoticesStore((s) => s.compactions[messageId]);
+  if (!detail) {
+    return null;
+  }
   return (
-    <div className="text-charcoal-400 flex h-full flex-col items-center justify-center gap-2 px-6 text-center font-mono text-xs">
-      <Sparkles className="text-amber-400/70" size={20} aria-hidden />
-      <p>
-        Ask me anything about what you&rsquo;re looking at — your portfolio, a chart, a screen. I
-        read the terminal and can drive it.
-      </p>
-      {activeAgentName && (
-        <p className="text-charcoal-500">
-          Lens: <span className="text-charcoal-300">{activeAgentName}</span>
-        </p>
+    <div
+      role="note"
+      aria-label="Older turns summarised"
+      title={detail}
+      className="text-charcoal-500 text-micro border-charcoal-700 mb-2 border-t border-dashed pt-1 tracking-wide uppercase"
+    >
+      Older turns summarised
+    </div>
+  );
+}
+
+/** The composer's context meter (R15-AGENT-040): the last reply's tokens,
+ *  against the lane's window when it has one. */
+function ContextMeter() {
+  const last = useChatHistoryStore((s) => {
+    for (let i = s.messages.length - 1; i >= 0; i -= 1) {
+      const message = s.messages[i]!;
+      if (message.role === "assistant" && message.usage) {
+        return message;
+      }
+    }
+    return null;
+  });
+  if (!last?.usage) {
+    return null;
+  }
+  const tokens = last.usage.inputTokens + last.usage.outputTokens;
+  const window = last.contextWindow;
+  const text = window
+    ? `Context ${tokens.toLocaleString()} / ${window.toLocaleString()} tokens (${Math.round((tokens / window) * 100)}%)`
+    : `Context ${tokens.toLocaleString()} tokens`;
+  return (
+    <div aria-label="Context meter" className="text-charcoal-500 text-micro px-3 pt-1 font-mono">
+      {text}
+    </div>
+  );
+}
+
+/** A finished assistant message's token + spend footer (R15-AGENT-082):
+ *  "N tok · ~$X". Spend is omitted when unknown (`spendUsd` absent/null) and
+ *  shown as "~$0.00" when the model is free — the two read differently. */
+function MessageCostFooter({ message }: { message: ChatMessage }) {
+  if (message.role !== "assistant" || message.pending || !message.usage) {
+    return null;
+  }
+  const tokens = message.usage.inputTokens + message.usage.outputTokens;
+  const spendUsd = message.spendUsd;
+  const text =
+    typeof spendUsd === "number"
+      ? `${tokens.toLocaleString()} tok · ~$${spendUsd.toFixed(2)}`
+      : `${tokens.toLocaleString()} tok`;
+  return <div className="text-charcoal-500 text-micro mt-1 font-mono">{text}</div>;
+}
+
+/** The runtime's notices (C9) — quiet system chips under the message body:
+ *  caption-13, zinc, no accent. */
+function MessageNotices({ messageId }: { messageId: string }) {
+  const notices = useMessageNoticesStore((s) => s.notices[messageId]);
+  if (!notices || notices.length === 0) {
+    return null;
+  }
+  return (
+    <div className="mt-1 flex flex-col gap-1">
+      {notices.map((notice, i) => (
+        <div
+          key={i}
+          className="border-charcoal-700 bg-charcoal-850 text-caption text-charcoal-400 self-start border px-2 py-1 font-mono"
+        >
+          {notice}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The transcript error row (R10 D43 — every failure speaks human): the plain
+ * message in the negative color, the NEXT STEP as its own quiet line, and the
+ * raw provider text behind a "Details" disclosure (charcoal — telemetry, not
+ * alarm). A legacy plain-string error (no structured frame) renders exactly
+ * as before. A bad key, an empty balance or an unknown model fails the same
+ * way on a resend, so those offer Settings instead of Retry
+ * (R15-CODE-PLATFORM-038).
+ */
+/** Error codes a resend cannot clear: the fix is in Settings. */
+const SETTINGS_FIX_CODES = new Set(["auth", "provider_402", "model_not_found"]);
+
+function ErrorRow({
+  messageId,
+  message,
+  onRetry,
+}: {
+  messageId: string;
+  message: string;
+  onRetry?: () => void;
+}) {
+  const frame = useMessageNoticesStore((s) => s.errorFrames[messageId]);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const fixInSettings = frame?.code !== undefined && SETTINGS_FIX_CODES.has(frame.code);
+  return (
+    <div className="text-caption mt-1 flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <span className="text-negative">
+          {frame ? message : `Something went wrong — ${message}`}
+        </span>
+        {fixInSettings ? (
+          <button
+            type="button"
+            onClick={() => useWorkspaceStore.getState().openPanel("settings")}
+            className="text-charcoal-300 hover:text-lume shrink-0 underline transition-colors"
+          >
+            Open Settings
+          </button>
+        ) : (
+          onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="text-charcoal-300 hover:text-lume shrink-0 underline transition-colors"
+            >
+              Retry
+            </button>
+          )
+        )}
+      </div>
+      {frame?.action && <div className="text-charcoal-300">{frame.action}</div>}
+      {frame?.detail && (
+        <div className="flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => setDetailsOpen((v) => !v)}
+            aria-expanded={detailsOpen}
+            className="text-charcoal-500 hover:text-charcoal-300 self-start underline transition-colors"
+          >
+            {detailsOpen ? "Hide details" : "Details"}
+          </button>
+          {detailsOpen && (
+            <pre className="text-charcoal-400 bg-charcoal-850 border-charcoal-700 overflow-x-auto border px-2 py-1 font-mono break-words whitespace-pre-wrap">
+              {frame.detail}
+            </pre>
+          )}
+        </div>
       )}
+    </div>
+  );
+}
+
+function EmptyState({
+  activeAgentName,
+  mode,
+}: {
+  activeAgentName: string | null;
+  mode: AgentMode;
+}) {
+  const meta = agentModeMeta(mode);
+  // Hero empty state (§13): FILL the dock column — a centered identity block, then
+  // a distributed suggestion set occupying the remaining height. No `justify-center`
+  // floating a small block in a tall column (the R4 dead-void failure). The identity
+  // block sits in the upper-middle (`mt-auto`/`mb-auto` distribute the slack), and the
+  // chips anchor toward the composer so the column reads intentional top-to-bottom.
+  return (
+    <div className="flex h-full flex-col gap-6 px-6 py-8 text-center">
+      <div className="mt-auto flex flex-col items-center gap-3">
+        <Sparkles className="text-charcoal-500 size-6" strokeWidth={1.5} aria-hidden />
+        <div className="flex max-w-xs flex-col items-center gap-1">
+          <p className="text-charcoal-200 text-panel-title">
+            Ask anything about what you&rsquo;re viewing
+          </p>
+          <p className="text-charcoal-500 text-caption">
+            I read the terminal — your portfolio, a chart, a screen — and can drive it.
+          </p>
+        </div>
+      </div>
+      <div className="mb-auto flex flex-col items-center gap-3">
+        <p className="text-charcoal-500 text-micro tracking-wide uppercase">Try this</p>
+        <SuggestionChips />
+        <p className="text-charcoal-500 text-caption max-w-xs">
+          Mode <span className="text-charcoal-300">{meta.label}</span>
+          {activeAgentName && (
+            <>
+              {" · "}lens <span className="text-charcoal-300">{activeAgentName}</span>
+            </>
+          )}
+        </p>
+      </div>
     </div>
   );
 }
@@ -469,39 +1742,463 @@ function EmptyState({ activeAgentName }: { activeAgentName: string | null }) {
 interface ComposerProps {
   value: string;
   onChange: (value: string) => void;
+  /** Submit the text — the parent sends it, or queues it while streaming. */
   onSend: (text: string) => void;
-  disabled: boolean;
+  /** Abort the in-flight stream (the send square morphs into stop). */
+  onStop: () => void;
+  /** True while a foreground stream is live — Enter queues, the button stops. */
+  streaming: boolean;
+  mode: AgentMode;
+  onModeChange: (mode: AgentMode) => void;
+  region: Region;
+  /** The active persona's DISPLAY NAME for the plus menu — never a raw id. */
+  personaLabel: string;
+  firstParty: readonly { id: string; name: string }[];
+  custom: readonly { id: string; name: string }[];
+  activeAgentId: string;
+  onPersonaChange: (id: string) => void;
+  /** Three-stop research depth — keys the send fill and the depth pill. */
+  depth: ResearchDepth;
+  onDepthChange: (depth: ResearchDepth) => void;
+  /** The depth a LIVE research run was sent at (the pill's pulse), or null. */
+  liveDepth: ResearchDepth | null;
+  /** The depth the in-flight run was SENT at — the stop morph keeps its color. */
+  sentDepth: ResearchDepth | null;
+  providers: LLMProviderInfo[];
+  provider: LLMProviderId;
+  model: string;
+  providerConfigured: boolean;
+  modelOptions?: LLMModelOption[];
+  catalogNote?: string | null;
+  catalogLoading?: boolean;
+  onProviderChange: (provider: LLMProviderId) => void;
+  onModelChange: (model: string) => void;
+  onKeyRequired?: (provider: LLMProviderId) => void;
+  onRefreshModels?: () => void;
 }
 
-function Composer({ value, onChange, onSend, disabled }: ComposerProps) {
-  return (
-    <form
-      className="border-charcoal-700 flex items-center gap-2 border-t p-2"
-      onSubmit={(event) => {
+/** Max field height before the textarea scrolls — ~6 lines of text-body
+ *  (13px × 1.5 ≈ 19.5px each) plus the field's vertical padding. */
+const COMPOSER_MAX_HEIGHT_PX = 144;
+
+/**
+ * The chat composer (R9 Track C — Claude-exact structure, Vysted skin): ONE
+ * field container holding the auto-growing textarea (one line min, ~6 lines
+ * max) on top and the controls row INSIDE at the bottom — plus menu far left
+ * (persona / autonomy / mode / context absorbed there), then the depth pill,
+ * the quiet model text, and the depth-keyed send square far right. While a
+ * stream is live the square morphs into STOP (keeping the sent depth's heat
+ * token) and Enter queues the typed prompt instead of sending (the visible
+ * FIFO above the field); Shift+Enter inserts a newline. The inline `/`-command
+ * and `@`-mention pickers (FR-100/101, SC-023) are unchanged: keyboard-first,
+ * ↑/↓ moves, ↵/⇥ accepts, Esc dismisses. A measured collapse ladder
+ * (`composer-collapse.ts`) keeps the controls row overlap-free down to the
+ * 280px dock floor.
+ */
+function Composer({
+  value,
+  onChange,
+  onSend,
+  onStop,
+  streaming,
+  mode,
+  onModeChange,
+  region,
+  personaLabel,
+  firstParty,
+  custom,
+  activeAgentId,
+  onPersonaChange,
+  depth,
+  onDepthChange,
+  liveDepth,
+  sentDepth,
+  providers,
+  provider,
+  model,
+  providerConfigured,
+  modelOptions,
+  catalogNote,
+  catalogLoading,
+  onProviderChange,
+  onModelChange,
+  onKeyRequired,
+  onRefreshModels,
+}: ComposerProps) {
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const [caret, setCaret] = useState(0);
+  // Collapse ladder (law §3.4): the measured controls-row width drives the
+  // density step. The row width is dock-set, so no measure→render feedback.
+  const controlsRef = useRef<HTMLDivElement | null>(null);
+  const [controlsStep, setControlsStep] = useState<ComposerControlsStep>("full");
+  useEffect(() => {
+    const el = controlsRef.current;
+    if (!el || typeof ResizeObserver === "undefined") {
+      return;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (typeof width === "number") {
+        setControlsStep(composerControlsStepForWidth(width));
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const controlsPlan = composerControlsPlan(controlsStep);
+  // The composer value at the moment Esc was pressed — keeps the picker dismissed
+  // until the text changes again (so Esc closes without losing what was typed).
+  const [dismissedAt, setDismissedAt] = useState<string | null>(null);
+  // Resolved `@`-mentions, keyed by the `region:query` they were fetched for so a
+  // render whose query has moved on simply ignores them (no effect-driven clear).
+  const [resolved, setResolved] = useState<{ key: string; matches: MentionDef[] }>({
+    key: "",
+    matches: [],
+  });
+  // The highlighted row, tied to the picker identity it was set against; when the
+  // identity changes the derived `activeIndex` falls back to the top.
+  const [active, setActive] = useState<{ index: number; sig: string }>({ index: 0, sig: "" });
+  const resolveSeq = useRef(0);
+
+  const slash = matchSlash(value);
+  const mention = matchMention(value, caret);
+  const suppressed = dismissedAt !== null && dismissedAt === value;
+  const showSlash = slash.open && slash.matches.length > 0 && !suppressed;
+  const showMention = mention.open && !showSlash && !suppressed;
+
+  // Resolve `@` mentions when the query (or region) changes — static matches plus
+  // live instruments from `/resolve`. Only the async `.then` sets state (a stale
+  // resolve is dropped by the seq token); a closed/changed picker is handled by
+  // the render-time key guard below, so there is no synchronous effect setState.
+  useEffect(() => {
+    if (!showMention) {
+      return;
+    }
+    const key = `${region}:${mention.query}`;
+    const seq = (resolveSeq.current += 1);
+    void resolveMention(mention.query, region).then((matches) => {
+      if (seq === resolveSeq.current) {
+        setResolved({ key, matches });
+      }
+    });
+  }, [showMention, mention.query, region]);
+
+  const mentionKey = `${region}:${mention.query}`;
+  const mentionMatches = showMention && resolved.key === mentionKey ? resolved.matches : [];
+  const items: (SlashCommandDef | MentionDef)[] = showSlash ? slash.matches : mentionMatches;
+  const pickerOpen = (showSlash || showMention) && items.length > 0;
+
+  // The highlight resets to the top whenever the picker identity (which list +
+  // query + length) changes; arrow keys move it within that identity. Derived, so
+  // there's no cascading setState-in-effect.
+  const pickerSig = showSlash
+    ? `s:${slash.query}:${slash.matches.length}`
+    : showMention
+      ? `m:${mention.query}:${mentionMatches.length}`
+      : "";
+  const activeIndex = active.sig === pickerSig ? active.index : 0;
+
+  function moveActive(delta: number) {
+    if (items.length === 0) {
+      return;
+    }
+    const nextIndex = (activeIndex + delta + items.length) % items.length;
+    setActive({ index: nextIndex, sig: pickerSig });
+  }
+
+  function syncCaret(el: HTMLTextAreaElement) {
+    setCaret(el.selectionStart ?? el.value.length);
+  }
+
+  // Auto-grow: one-line baseline, expands with content, capped at ~6 lines
+  // (then the textarea scrolls). Height math runs off the real scrollHeight so
+  // wrapped lines count too.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) {
+      return;
+    }
+    el.style.height = "0px";
+    el.style.height = `${Math.min(el.scrollHeight, COMPOSER_MAX_HEIGHT_PX)}px`;
+  }, [value]);
+
+  function pickSlash(cmd: SlashCommandDef) {
+    // Insert `/trigger ` — the trailing space closes the slash picker (matchSlash
+    // needs a space-free name) and positions the caret for arguments.
+    const next = `/${cmd.trigger} `;
+    onChange(next);
+    setDismissedAt(null);
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(next.length, next.length);
+        syncCaret(el);
+      }
+    });
+  }
+
+  function pickMention(m: MentionDef) {
+    // The ONE mention-insert path (typing parity): replaces the `@token` ending
+    // at the caret, or inserts space-separated at the caret. The plus-menu
+    // routes through this same function, so both surfaces stay byte-identical.
+    const { value: next, caret: newCaret } = insertMentionToken(value, caret, m.token);
+    onChange(next);
+    setDismissedAt(null);
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(newCaret, newCaret);
+        syncCaret(el);
+      }
+    });
+  }
+
+  function primeSlashCommands() {
+    // The plus-menu's "Slash commands…" row: insert a leading "/" and focus —
+    // `matchSlash` opens the picker on a leading-slash, space-free input, so an
+    // empty composer lands directly in the command list.
+    const next = value.startsWith("/") ? value : `/${value}`;
+    onChange(next);
+    setDismissedAt(null);
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(1, 1);
+        syncCaret(el);
+      }
+    });
+  }
+
+  function acceptActive() {
+    const item = items[activeIndex] ?? items[0];
+    if (!item) {
+      return;
+    }
+    if (showSlash) {
+      pickSlash(item as SlashCommandDef);
+    } else {
+      pickMention(item as MentionDef);
+    }
+  }
+
+  function onKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
+    if (pickerOpen) {
+      if (event.key === "ArrowDown") {
         event.preventDefault();
-        if (value.trim()) {
-          onSend(value);
-        }
-      }}
-    >
-      <input
-        aria-label="Chat input"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder="Ask anything — your portfolio, a chart, a screen…"
-        disabled={disabled}
-        className="bg-charcoal-800 text-charcoal-100 placeholder:text-charcoal-400 h-8 flex-1 rounded-md px-2 font-mono text-xs outline-none focus:ring-1 focus:ring-amber-400 disabled:opacity-50"
-      />
-      <Button
-        type="submit"
-        size="icon-sm"
-        variant="outline"
-        aria-label="Send message"
-        disabled={disabled || value.trim().length === 0}
+        moveActive(1);
+        return;
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        moveActive(-1);
+        return;
+      }
+      if (event.key === "Enter" || event.key === "Tab") {
+        event.preventDefault();
+        acceptActive();
+        return;
+      }
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setDismissedAt(value);
+        return;
+      }
+      return;
+    }
+    // No picker open: submit on Enter EXPLICITLY (a textarea never form-submits
+    // on Enter). While a stream is live the parent QUEUES the prompt instead of
+    // sending — typing stays enabled throughout. Shift+Enter inserts a newline.
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      if (value.trim()) {
+        onSend(value);
+      }
+    }
+  }
+
+  return (
+    <div className="relative">
+      {pickerOpen && (
+        <div
+          className={cn(
+            "absolute right-0 bottom-full left-0 mb-1 overflow-y-auto px-2",
+            "max-h-[min(18rem,45vh)]" /* tokens-ok: viewport scroll cap — layout, not rhythm */,
+          )}
+        >
+          {showSlash ? (
+            <SlashCommandPicker
+              matches={slash.matches}
+              activeIndex={activeIndex}
+              onPick={pickSlash}
+            />
+          ) : (
+            <MentionPicker
+              matches={mentionMatches}
+              activeIndex={activeIndex}
+              onPick={pickMention}
+            />
+          )}
+        </div>
+      )}
+      <form
+        className="px-3 pt-2 pb-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (value.trim()) {
+            onSend(value);
+          }
+        }}
       >
-        <Send />
-      </Button>
-    </form>
+        {/* ONE field container (Claude-reference, R9): the auto-growing
+            textarea with the controls row INSIDE at the bottom — plus menu far
+            left, depth pill + quiet model text + the depth-keyed send square
+            far right (law §3: primary actions 28×28 with 16px icons). Send
+            carries the active depth's heat token when armed and morphs to STOP
+            while a stream is live (Enter then QUEUES — typing never locks). */}
+        <div className="bg-charcoal-850 border-charcoal-700 focus-within:border-charcoal-600 rounded-control border transition-colors">
+          <textarea
+            ref={inputRef}
+            rows={1}
+            aria-label="Chat input"
+            value={value}
+            onChange={(event) => {
+              onChange(event.target.value);
+              setDismissedAt(null);
+              syncCaret(event.target);
+            }}
+            onKeyDown={onKeyDown}
+            onKeyUp={(event) => syncCaret(event.currentTarget)}
+            onClick={(event) => syncCaret(event.currentTarget)}
+            onSelect={(event) => syncCaret(event.currentTarget)}
+            placeholder={
+              streaming
+                ? "Queue the next prompt…"
+                : mode === "delegate"
+                  ? "Delegate a task…"
+                  : "Ask anything…"
+            }
+            autoComplete="off"
+            spellCheck={false}
+            className="text-charcoal-100 placeholder:text-charcoal-500 text-body block w-full resize-none bg-transparent px-3 pt-2 pb-1 font-mono outline-none"
+          />
+          <div ref={controlsRef} className="flex items-center gap-2 px-2 pt-1 pb-2">
+            <ComposerPlusMenu
+              onInsertMention={pickMention}
+              onSlashCommands={primeSlashCommands}
+              personaLabel={personaLabel}
+              firstParty={firstParty}
+              custom={custom}
+              activeAgentId={activeAgentId}
+              onPersonaChange={onPersonaChange}
+              mode={mode}
+              onModeChange={onModeChange}
+            />
+            <div className="min-w-0 flex-1" />
+            <DepthControl
+              depth={depth}
+              onChange={onDepthChange}
+              liveDepth={liveDepth}
+              expandable={controlsPlan.depthExpands}
+            />
+            <ModelControl
+              providers={providers}
+              provider={provider}
+              model={model}
+              providerConfigured={providerConfigured}
+              modelOptions={modelOptions}
+              catalogNote={catalogNote}
+              catalogLoading={catalogLoading}
+              onProviderChange={onProviderChange}
+              onModelChange={onModelChange}
+              onKeyRequired={onKeyRequired}
+              onRefreshModels={onRefreshModels}
+              density={controlsPlan.model}
+            />
+            <SendStopButton
+              streaming={streaming}
+              canSend={value.trim().length > 0}
+              onStop={onStop}
+              depth={depth}
+              sentDepth={sentDepth}
+            />
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/**
+ * The composer's primary action — a 28×28 square (law §3) at the field's
+ * bottom-right, DEPTH-KEYED (law §4): armed (text present) its fill is the
+ * active depth's heat token — lume / peach / ember — with the icon flipped
+ * dark for contrast; while a stream is live it MORPHS into the stop square
+ * keeping the SENT depth's token (a depth change mid-run never recolors the
+ * live run's stop). Reduced motion collapses the morph to an instant swap.
+ * Stop is sacred: it aborts the in-flight run via the lifted abortRef; the
+ * queue/drain semantics live in the parent and are untouched here.
+ */
+function SendStopButton({
+  streaming,
+  canSend,
+  onStop,
+  depth,
+  sentDepth,
+}: {
+  streaming: boolean;
+  canSend: boolean;
+  onStop: () => void;
+  /** The selector's active depth — keys the ARMED send fill. */
+  depth: ResearchDepth;
+  /** The depth the in-flight run was sent at — keys the STOP fill. */
+  sentDepth: ResearchDepth | null;
+}) {
+  const reduceMotion = useReducedMotion();
+  const morphIn = reduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 };
+  const morphOut = reduceMotion ? { opacity: 0 } : { scale: 0.7, opacity: 0 };
+  return (
+    <AnimatePresence initial={false} mode="popLayout">
+      {streaming ? (
+        <motion.button
+          key="stop"
+          type="button"
+          aria-label="Stop the in-flight run"
+          title="Stop — the partial answer stands"
+          onClick={onStop}
+          initial={morphOut}
+          animate={morphIn}
+          exit={morphOut}
+          transition={tween(DUR.fast)}
+          style={{ backgroundColor: DEPTH_TOKEN[sentDepth ?? depth] }}
+          className="rounded-control text-charcoal-950 flex size-7 shrink-0 cursor-pointer items-center justify-center transition-opacity hover:opacity-85"
+        >
+          <Square className="size-3" fill="currentColor" strokeWidth={0} />
+        </motion.button>
+      ) : (
+        <motion.button
+          key="send"
+          type="submit"
+          aria-label="Send message"
+          disabled={!canSend}
+          initial={morphOut}
+          animate={morphIn}
+          exit={morphOut}
+          transition={tweenExit(DUR.fast)}
+          style={canSend ? { backgroundColor: DEPTH_TOKEN[depth] } : undefined}
+          className={cn(
+            "rounded-control flex size-7 shrink-0 items-center justify-center",
+            canSend
+              ? "text-charcoal-950 cursor-pointer transition-opacity hover:opacity-85"
+              : "disabled:text-charcoal-600",
+          )}
+        >
+          <ArrowUp className="size-4" strokeWidth={2.25} />
+        </motion.button>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -509,49 +2206,97 @@ function Composer({ value, onChange, onSend, disabled }: ComposerProps) {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function defaultModelFor(provider: LLMProviderId): string {
-  switch (provider) {
-    case "anthropic":
-      return "claude-opus-4-7";
-    case "openai":
-      return "gpt-4.1-mini";
-    case "gemini":
-      return "gemini-2.5-pro";
-    case "groq":
-      return "llama-3.3-70b-versatile";
-    case "ollama":
-      return "llama3.1:8b";
-    case "deepseek":
-      return "deepseek-chat";
-    case "xai":
-      return "grok-2-latest";
+/** One provider a chat turn is sent to (the first pick or a fallback). */
+interface FallbackAttempt {
+  provider: LLMProviderId;
+  model: string;
+  apiKey: string | null;
+  label: string;
+}
+
+/**
+ * The next provider a failed turn falls back to (FR-038): the first provider in
+ * the user's preference order this turn has not tried that is configured — a
+ * keyed provider with a key in the keychain, or a keyless lane that is ready —
+ * on its effective model. Each provider is tried at most once per turn.
+ */
+async function nextFallbackAttempt(
+  providers: LLMProviderInfoRow[],
+  tried: Set<LLMProviderId>,
+): Promise<FallbackAttempt | null> {
+  for (const info of orderedProviders(providers, useSettingsStore.getState().providerOrder)) {
+    if (tried.has(info.id)) {
+      continue;
+    }
+    tried.add(info.id);
+    const model = useModelSelectionStore.getState().modelFor(info.id);
+    if (info.requiresKey) {
+      const apiKey = await getSecret(KEYCHAIN_NAMESPACES.llmProvider(info.id));
+      if (apiKey) {
+        return { provider: info.id, model, apiKey, label: info.label };
+      }
+    } else if ((await probeReadiness(info.id, model)).ok) {
+      return { provider: info.id, model, apiKey: null, label: info.label };
+    }
   }
+  return null;
 }
 
 interface InternalHandlers {
   onDelta: (text: string) => void;
-  onError: (message: string) => void;
-  onDone: (usage: { inputTokens: number; outputTokens: number } | null) => void;
-  onToolUse: (name: string, input: Record<string, unknown>) => void;
+  /** `frame` carries the STRUCTURED part of an R10 error frame (D43) — null
+   *  for a legacy plain-string error or a transport failure. */
+  onError: (message: string, frame?: MessageErrorFrame | null) => void;
+  onDone: (
+    usage: { inputTokens: number; outputTokens: number } | null,
+    finishReason?: string,
+    contextWindow?: number,
+    spendUsd?: number,
+    servedModel?: string,
+  ) => void;
+  onToolUse: (name: string, input: Record<string, unknown>, toolCallId: string) => void;
+  onResearchStep: (step: ResearchStepView, tool: string) => void;
+  onPlan: (plan: AgentPlanView) => void;
 }
 
-function makeHandlers(
-  _assistantId: string,
-  internal: InternalHandlers,
-): { onEvent: (event: LLMStreamEvent) => void; onError: (err: Error) => void } {
+function makeHandlers(internal: InternalHandlers): {
+  onEvent: (event: LLMStreamEvent) => void;
+  onError: (err: Error) => void;
+} {
   return {
     onEvent: (event) => {
       if (event.kind === "delta") {
         internal.onDelta(event.text);
       } else if (event.kind === "tool_use") {
-        internal.onToolUse(event.name, (event.input as Record<string, unknown>) ?? {});
+        internal.onToolUse(
+          event.name,
+          (event.input as Record<string, unknown>) ?? {},
+          event.toolCallId,
+        );
+      } else if (event.kind === "research_step") {
+        internal.onResearchStep(
+          {
+            stepKind: event.stepKind,
+            detail: event.detail,
+            latencyMs: event.latencyMs,
+            status: event.status,
+            index: event.index,
+          },
+          event.tool,
+        );
+      } else if (event.kind === "agent_plan") {
+        internal.onPlan({ goal: event.goal, steps: event.steps, note: event.note });
       } else if (event.kind === "error") {
-        internal.onError(event.message);
+        internal.onError(event.message, errorFrameOf(event));
       } else if (event.kind === "done") {
         internal.onDone(
           event.usage
             ? { inputTokens: event.usage.inputTokens, outputTokens: event.usage.outputTokens }
             : null,
+          event.finishReason,
+          event.contextWindow,
+          doneFrameOf(event),
+          event.usage?.servedModel,
         );
       }
     },
@@ -559,32 +2304,26 @@ function makeHandlers(
   };
 }
 
-/** Render the panel-context badge text from the snapshot. */
-function describeContext(snapshot: {
+/** The panel-context badge: `none` renders nothing, `panels` its text. */
+export type ContextDescription = { kind: "none" } | { kind: "panels"; text: string };
+
+/** Describe the panel context for the badge from the snapshot. */
+export function describeContext(snapshot: {
   focusedSource: string | null;
   lastEventBySource: Record<string, { payload: unknown }>;
-}): string {
+}): ContextDescription {
   if (!snapshot.focusedSource) {
     const count = Object.keys(snapshot.lastEventBySource).length;
     return count === 0
-      ? "Context: none"
-      : `Context: ${count} panel${count === 1 ? "" : "s"} active`;
+      ? { kind: "none" }
+      : { kind: "panels", text: `Context: ${count} panel${count === 1 ? "" : "s"} active` };
   }
-  const focused = snapshot.lastEventBySource[snapshot.focusedSource];
-  if (!focused) {
-    return `Context: ${snapshot.focusedSource}`;
+  const symbol = focusedSymbolFromBus(snapshot.lastEventBySource, snapshot.focusedSource);
+  if (!symbol) {
+    return { kind: "panels", text: `Context: ${snapshot.focusedSource}` };
   }
-  // Walk one level deep into a payload object to pull the most useful field.
-  const payload = focused.payload;
-  if (payload && typeof payload === "object") {
-    const obj = payload as Record<string, unknown>;
-    if (typeof obj.symbol === "string") {
-      const tf = typeof obj.timeframe === "string" ? `, ${obj.timeframe}` : "";
-      return `Context: ${snapshot.focusedSource} (${obj.symbol}${tf})`;
-    }
-    if (typeof obj.ticker === "string") {
-      return `Context: ${snapshot.focusedSource} (${obj.ticker})`;
-    }
-  }
-  return `Context: ${snapshot.focusedSource}`;
+  const payload = snapshot.lastEventBySource[snapshot.focusedSource]?.payload;
+  const timeframe = (payload as { timeframe?: unknown } | undefined)?.timeframe;
+  const tf = typeof timeframe === "string" ? `, ${timeframe}` : "";
+  return { kind: "panels", text: `Context: ${snapshot.focusedSource} (${symbol}${tf})` };
 }

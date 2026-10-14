@@ -1,0 +1,4 @@
+corrupted at 17:06:32: workspaces/__autosave__.vysted-workspace <- '{"trunc'; portfolio.db header bytes 0-15 overwritten; data_cache.db header overwritten (+wal/shm removed)
+50a437337b9c220978e8f6685bd27e2f132e31b9  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-drive-failure-inducer-corrupt/portfolio.db
+4479f141c492b1336e8ff68963eaa3780ad7a2f3  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-drive-failure-inducer-corrupt/data_cache.db
+43a326fa537224f16be5773a6672b72a54478ec1  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-drive-failure-inducer-corrupt/workspaces/__autosave__.vysted-workspace

@@ -1,0 +1,8 @@
+    )
+services.workflow_engine.WorkflowEngineError: node 'a' uses unregistered type 'plugin.unknown'; registered: []
+065 dangling-edge status 200 frames []
+065 unregistered-type status 200 frames []
+075 resume-from status 200 kinds [('run-start', None), ('node-start', 'a'), ('node-output', 'a'), ('node-start', 'b'), ('node-output', 'b'), ('run-complete', None)]
+075 resume-from bogus node status 200 kinds [('run-start', None), ('node-start', 'a'), ('node-output', 'a'), ('node-start', 'b'), ('node-output', 'b'), ('run-complete', None)]
+066 ('7**(10**6)', 0.195, 'int')
+066 ('[0]*10**7', 0.009, 'list len=10000000')

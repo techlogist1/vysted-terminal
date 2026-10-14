@@ -1,0 +1,14 @@
+Repro: pinned test (register repro is a specific llama3.1:8b sify-1 raw generation quirk —
+re-running the module's dedicated regression test covers the exact mechanism fixed).
+
+$ cd sidecar && .venv/bin/python -m pytest tests/test_tool_call_rescue.py -q
+........                                                                 [100%]
+8 passed, 1 warning in 0.03s
+
+Code trace: services/llm/tool_call_rescue.py:164 "stops matching an offered name, then replayed
+as it came (R15-LEAD-031)"; module now owns held-chunk buffering/marker detection/replay as one
+unit (moved out of the ad hoc splice in agent_runtime.py's _guard_ratio_claims path). Test names
+(test_tool_call_rescue.py:81,98) explicitly cite R15-LEAD-031 sify-1/orig-2 as the pinned cases.
+
+Verdict: ci_pinned (tests/test_tool_call_rescue.py — 8/8 passed, including the two tests named
+for this exact register id and repro shape).

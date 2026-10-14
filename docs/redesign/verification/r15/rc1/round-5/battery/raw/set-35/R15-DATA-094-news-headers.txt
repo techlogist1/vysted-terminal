@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+date: Sun, 27 Sep 2026 09:29:10 GMT
+server: uvicorn
+content-length: 3658
+content-type: application/json
+x-news-sources: rss=ok;newsapi=unauthorized
+vary: Origin
+

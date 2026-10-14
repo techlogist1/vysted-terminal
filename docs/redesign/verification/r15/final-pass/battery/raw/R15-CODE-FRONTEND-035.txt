@@ -1,0 +1,16 @@
+# R15-CODE-FRONTEND-035 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:13+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- 'write_note append with a trailing-whitespace add' src/lib/host-actions.test.ts | head -3; test -f src/lib/host-actions.test.ts || echo 'MISSING src/lib/host-actions.test.ts'
+[exit 0] [0.01s]
+1357:  it("write_note append with a trailing-whitespace addendum equals appendSymbolNote", () => {
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-FRONTEND-035\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.31s]
+src/lib/host-actions.test.ts:1359:    // and the store's own append can never disagree on trimming (R15-CODE-FRONTEND-035).
+

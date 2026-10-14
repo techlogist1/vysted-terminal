@@ -1,0 +1,2 @@
+{"kind": "error", "message": "Your DeepSeek balance is empty \u2014 top up or switch provider in Settings.", "action": "Top up at platform.deepseek.com or pick a different provider in Settings.", "detail": "Error code: 402 - {'error': {'message': 'Insufficient Balance (request_id: c479029a-28b0-4396-b122-3d9df752c190)', 'type': 'unknown_error', 'param': None, 'code': 'invalid_request_error'}}", "code": "provider_402"}
+{"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}

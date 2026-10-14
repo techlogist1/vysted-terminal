@@ -1,0 +1,112 @@
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "tool_use", "tool_call_id": "call_b3690714b66148678e4b04fa32de80e5", "name": "price_data", "input": {"symbol": "AAPL"}}
+
+data: {"kind": "tool_result", "tool_call_id": "call_b3690714b66148678e4b04fa32de80e5", "name": "price_data", "ok": true, "error": null}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "delta", "text": "The"}
+
+data: {"kind": "delta", "text": " market"}
+
+data: {"kind": "delta", "text": " capital"}
+
+data: {"kind": "delta", "text": "ization"}
+
+data: {"kind": "delta", "text": " of"}
+
+data: {"kind": "delta", "text": " AAP"}
+
+data: {"kind": "delta", "text": "L"}
+
+data: {"kind": "delta", "text": " is"}
+
+data: {"kind": "delta", "text": " not"}
+
+data: {"kind": "delta", "text": " in"}
+
+data: {"kind": "delta", "text": " this"}
+
+data: {"kind": "delta", "text": " output"}
+
+data: {"kind": "delta", "text": ".\n\n"}
+
+data: {"kind": "delta", "text": "Let"}
+
+data: {"kind": "delta", "text": " me"}
+
+data: {"kind": "delta", "text": " try"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " get"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " market"}
+
+data: {"kind": "delta", "text": " capital"}
+
+data: {"kind": "delta", "text": "ization"}
+
+data: {"kind": "delta", "text": " for"}
+
+data: {"kind": "delta", "text": " you"}
+
+data: {"kind": "delta", "text": ":\n\n"}
+
+data: {"kind": "tool_use", "tool_call_id": "call_eaf3818c11e9477c954e9a25fd372399", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+
+data: {"kind": "tool_result", "tool_call_id": "call_eaf3818c11e9477c954e9a25fd372399", "name": "fundamentals", "ok": true, "error": null}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "delta", "text": "The"}
+
+data: {"kind": "delta", "text": " market"}
+
+data: {"kind": "delta", "text": " capital"}
+
+data: {"kind": "delta", "text": "ization"}
+
+data: {"kind": "delta", "text": " of"}
+
+data: {"kind": "delta", "text": " AAP"}
+
+data: {"kind": "delta", "text": "L"}
+
+data: {"kind": "delta", "text": " is"}
+
+data: {"kind": "delta", "text": " $"}
+
+data: {"kind": "delta", "text": "4"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": "98"}
+
+data: {"kind": "delta", "text": "T"}
+
+data: {"kind": "delta", "text": " according"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " fundamentals"}
+
+data: {"kind": "delta", "text": " tool"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "done", "usage": {"input_tokens": 9653, "output_tokens": 20, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

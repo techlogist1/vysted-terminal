@@ -1,0 +1,101 @@
+  const { state, setField, toggleTool, reset } = useAgentBuilderForm();
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+  const customAgents = useAgentsStore((s) => s.customAgents);
+  const customSummaries = useAgentsStore((s) => s.customSummaries);
+  const refreshCustom = useAgentsStore((s) => s.refreshCustom);
+  const setCustomAgents = useAgentsStore((s) => s.setCustomAgents);
+  const customStatus = useAgentsStore((s) => s.customStatus);
+  const customError = useAgentsStore((s) => s.customError);
+  // R15-UI-003: providers come from the live catalog (already fetched
+  // app-wide, `DEFAULT_PROVIDERS` fallback baked into the store itself).
+  const providers = useLLMProvidersStore((s) => s.providers);
+  // Tool ids come from the sidecar's OWN vocabulary (`GET
+  // /custom-agents/tool-ids` == `agent_selectable_tool_ids()`) — the static
+  // `KNOWN_TOOL_IDS` array is only the pre-fetch fallback.
+  const [toolIds, setToolIds] = useState<string[]>([...KNOWN_TOOL_IDS]);
+
+  useEffect(() => {
+    void refreshCustom();
+  }, [refreshCustom]);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Built with getSidecarBaseUrl() + fetch() directly (mirrors
+    // writeCustomAgent/deleteCustomAgent below), not the sidecarGet()
+    // helper — sidecarGet resolves the base URL through its OWN
+    // module-internal binding, which does not pick up a per-test
+    // getSidecarBaseUrl override.
+    void (async () => {
+      try {
+        const base = await getSidecarBaseUrl();
+        const response = await fetch(new URL("/custom-agents/tool-ids", base).toString());
+        if (!response.ok) {
+          return;
+        }
+        const ids: unknown = await response.json();
+        // A malformed response (older sidecar build, transient network
+        // error surfaced as an HTML body, etc.) keeps the static fallback
+        // rather than rendering a broken tool list.
+        if (!cancelled && Array.isArray(ids) && ids.every((id) => typeof id === "string")) {
+          setToolIds(ids);
+        }
+      } catch {
+        // Fetch rejected — keep the fallback.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const isEditing = editingId !== null;
+
+  // Stable validation result for the current form state — recomputed on each
+  // render but the value is memoised so the JSX comparison is a pointer check.
+  const liveValidation = useMemo(() => validate(state), [state]);
+
+  const handleEdit = useCallback(
+    (agent: AgentSpec) => {
+      if (!isCustomAgent(agent)) {
+        return;
+      }
+      // Look up defaultModel from customSummaries since AgentSpec doesn't carry it.
+      const summary = customSummaries.find((s) => s.id === agent.id);
+      const next = formStateFromAgent(agent, summary?.defaultModel);
+      setField("idBody", next.idBody);
+      setField("name", next.name);
+      setField("philosophy", next.philosophy);
+      setField("systemPrompt", next.systemPrompt);
+      setField("defaultProvider", next.defaultProvider);
+      setField("defaultModel", next.defaultModel);
+      setField("icon", next.icon);
+      // R15-UI-003: replace the tool set WHOLESALE, not by toggling each
+      // known id — a loop over a (possibly stale) known-id list silently
+      // drops any tool id the list doesn't happen to carry.
+      setField("tools", next.tools);
+      setEditingId(agent.id);
+      setSaveStatus("idle");
+      setSaveMessage(null);
+      setErrors({});
+    },
+    [customSummaries, setField],
+  );
+
+  const handleDelete = useCallback(
+    async (agentId: string) => {
+      setSaveStatus("saving");
+      try {
+        await deleteCustomAgent(agentId);
+        // Optimistic local update so the picker reflects the change instantly.
+        setCustomAgents(customAgents.filter((a) => a.id !== agentId));
+        if (editingId === agentId) {
+          reset();
+          setEditingId(null);
+        }
+        setSaveStatus("saved");
+        setSaveMessage("Deleted.");
+      } catch (error: unknown) {

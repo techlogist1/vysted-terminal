@@ -1,0 +1,4 @@
+RESEARCH-024 citation domain/date: reuters.com 2026-02-26T21:05:00
+RESEARCH-024 result domain/date: reuters.com 2026-02-26T21:05:00
+RESEARCH-024 brief source: reuters.com 2026-02-26T21:05:00
+UI-038: domain= sec.gov provider==PROVENANCE_NOTE: True

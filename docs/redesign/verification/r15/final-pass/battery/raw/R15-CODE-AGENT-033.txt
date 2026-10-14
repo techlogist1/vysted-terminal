@@ -1,0 +1,20 @@
+# R15-CODE-AGENT-033 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:09+0530
+
+$ git merge-base --is-ancestor 17301f54 HEAD && echo 'closure 17301f54 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 17301f54 NOT an ancestor'
+[exit 0] [0.02s]
+closure 17301f54 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-AGENT-033\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+sidecar/tests/test_agent_runtime.py:3345:    """R15-CODE-AGENT-033: the stream carried a call but not how it ended, so the
+sidecar/tests/test_runtime_phases.py:209:    # Each call's outcome, keyed on its id (R15-CODE-AGENT-033).
+Binary file sidecar/tests/__pycache__/test_agent_eval.cpython-313-pytest-9.0.3.pyc matches
+Binary file sidecar/tests/__pycache__/test_agent_runtime.cpython-313-pytest-9.0.3.pyc matches
+sidecar/tests/test_agent_eval.py:170:    """R15-CODE-AGENT-033: the live option_chain 'nearest' call returned 422 and,
+sidecar/models/llm.py:167:    (R15-CODE-AGENT-033): the outcome only, never the result payload."""
+Binary file sidecar/models/__pycache__/llm.cpython-313.pyc matches
+sidecar/services/agent_runtime.py:1505:    """The outcome of one dispatched call (R15-CODE-AGENT-033): not ok when the
+Binary file sidecar/services/__pycache__/agent_runtime.cpython-313.pyc matches
+src/modules/chat/streaming.test.ts:267:describe("streaming — tool_result frames and unknown kinds (R15-CODE-AGENT-033)", () => {
+

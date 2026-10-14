@@ -1,0 +1,2 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, in-process python (cand sidecar/.venv), scratch b16_r.py
+403 then impersonated 429 -> SearchError reason='rate_limited' (rate_limited const='rate_limited') msg=keyless web search (DuckDuckGo) is rate-limiting right now — wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route

@@ -1,0 +1,25 @@
+worktree sha 633f844071d972b337f4c3526d86555c80df0568; copy of scripts/audit-design-tokens.mjs + src/ + plugins/ in scratch
+== baseline
+design-token audit clean (373 files)
+exit=0
+== entry repro: gap-1.5 px-[7px] text-[12px] in ScreenerPanel.tsx
+
+— per-file —
+   3  src/modules/screener/ScreenerPanel.tsx
+
+3 violation(s) of R9_DESIGN_SYSTEM.md
+exit=0
+== fresh: sm:space-y-9 / min-h-[22px] in template literal / md:-mt-11 in EarningsCalendarPanel.tsx
+src/modules/earnings/EarningsCalendarPanel.tsx:586  arbitrary value  min-h-[22px]
+
+— per-file —
+   3  src/modules/earnings/EarningsCalendarPanel.tsx
+
+3 violation(s) of R9_DESIGN_SYSTEM.md
+exit=1
+== entry repro rerun (exit captured directly)
+exit=1
+src/modules/earnings/EarningsCalendarPanel.tsx:586  off-grid step  space-y-9
+src/modules/earnings/EarningsCalendarPanel.tsx:586  off-grid step  -mt-11
+src/modules/earnings/EarningsCalendarPanel.tsx:586  arbitrary value  min-h-[22px]
+src/modules/screener/ScreenerPanel.tsx:516  off-grid step  gap-1.5

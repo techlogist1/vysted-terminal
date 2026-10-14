@@ -1,0 +1,28 @@
+--- UI-051: source confirmation (BondPricerPanel/OptionPricerPanel use regionConfig currency, not a hard-coded $) ---
+269:  const [displayCurrency, setDisplayCurrency] = useState(() => regionConfig(region).currency);
+530:            value={displayCurrency}
+532:            data-testid="field-display-currency"
+599:                    {formatOptionPrice(lastResult.price, displayCurrency)}
+
+  const [issueDate, setIssueDate] = useState("2026-05-16");
+  const [maturityDate, setMaturityDate] = useState("2036-05-16");
+  const [settlementDate, setSettlementDate] = useState("2026-05-16");
+  const [ytm, setYtm] = useState("0.0425");
+
+  // R15-DATA-100: display currency, defaulting to the session region's — an
+  // India-first terminal must not hard-prefix "$" on every price. Frontend
+  // display only; the pricing request stays currency-free.
+  const region = useSettingsStore((s) => s.region);
+  const [displayCurrency, setDisplayCurrency] = useState(() => regionConfig(region).currency);
+
+  const isRunning = status === "loading";
+
+
+--- confirm no hard-coded "$" price prefix remains ---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/modules/quant/BondPricerPanel.tsx:124:  // India-first terminal must not hard-prefix "$" on every price. Frontend
+(no matches = no hard-coded dollar sign)
+
+--- pinned tests ---
+56:  it("R15-UI-028: in region IN, ₹ price and vega/theta in market units", async () => {
+58:  it("R15-DATA-100: in region IN, prices render with ₹, not a hard-coded $", async () => {
+67:  it("R15-DATA-100: the display-currency select overrides the region default", async () => {

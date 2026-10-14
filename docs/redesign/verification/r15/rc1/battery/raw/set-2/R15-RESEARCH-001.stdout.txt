@@ -1,0 +1,28 @@
+[   1.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_945b6e329bd941e086cb3c55c8005e83", "name": "resolve_symbol", "input": {"query": "Bharat Dynamics"}}
+[   4.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_82418c29575a4dfabe809fdbcd6fc436", "name": "financial_statements", "input": {"symbol": "BDL", "statement": "income", "period": "annual"}}
+[   4.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_7b979da69582492596a4cb1625a213bd", "name": "financial_statements", "input": {"symbol": "BDL", "statement": "balance", "period": "annual"}}
+[   4.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_8af9f782992a4cb2bf5dcdf70922f97d", "name": "fundamentals", "input": {"symbol": "BDL"}}
+[  15.7s] done: {"kind": "done", "usage": {"input_tokens": 11811, "output_tokens": 170, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.019948}
+
+=== ASSISTANT TEXT ===
+Here's the financial overview for Bharat Dynamics Limited (BDL):
+
+### Valuation
+- **Market Capitalization**: ₹42,339.97 Crores
+- **Earnings Per Share (EPS)**: ₹14.21
+- **Revenue (TTM)**: ₹2,766.1 Crores
+- **Net Income (TTM)**: ₹520.78 Crores
+
+### Growth Metrics
+- **Revenue Growth (YoY)**: 130.8%
+- **Earnings Growth (YoY)**: 547.4%
+
+### Margins
+Unfortunately, detailed margin data (gross margin, operating margin, profit margin) is currently unavailable.
+
+### Order Book
+I couldn't retrieve specific information regarding the current order book for Bharat Dynamics. 
+
+If you need further details or specific metrics, just let me know!
+
+=== ok · 15.7s · events {'tool_use': 4, 'delta': 169, 'done': 1} · usage in=11811 out=170 · est $0.00187 · gpt-4o-mini

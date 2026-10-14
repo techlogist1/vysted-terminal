@@ -1,0 +1,2 @@
+curl -s --max-time 20 'http://127.0.0.1:52352/fundamentals/SHERA'
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}EXIT:0

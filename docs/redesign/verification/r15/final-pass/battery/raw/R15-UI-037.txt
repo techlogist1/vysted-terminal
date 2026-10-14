@@ -1,0 +1,7 @@
+# R15-UI-037 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n -E 'R15-UI-037' src/modules/portfolio/PortfolioPanel.test.tsx
+--- output ---
+93:  it("the cost input and column say per share (R15-UI-037)", async () => {
+
+EXIT=0 (0.0s)

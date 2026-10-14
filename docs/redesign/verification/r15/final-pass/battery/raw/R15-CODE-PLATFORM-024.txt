@@ -1,0 +1,18 @@
+# R15-CODE-PLATFORM-024 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+cat src-tauri/capabilities/default.json; grep -n tauri-plugin-fs src-tauri/Cargo.toml package.json; echo grep-exit=$?; grep -n 'R15-CODE-PLATFORM-024' docs/BLUEPRINT.md; grep -n 'fn write_bytes_atomic\|fn write_text_atomic' src-tauri/src/lib.rs
+--- output ---
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capability for the Vysted Terminal main window.",
+  "windows": ["main"],
+  "permissions": ["core:default", "notification:default", "shell:allow-open"]
+}
+grep-exit=1
+78:  `write_bytes_atomic`), not the `tauri-plugin-fs` capability (R15-CODE-PLATFORM-024:
+617:fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+627:fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {
+
+EXIT=0 (0.0s)

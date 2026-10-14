@@ -1,0 +1,1076 @@
+docs/BLUEPRINT.md:20:**v1.0 scope:** 20 modules shipped in 0.9 (see §4 for the full ~37-module v1.0 roadmap), 12 AI agents, full plugin architecture, MCP server, node editor for workflow automation, backtest engine. Trading (broker connectivity, order placement, simulated accounts) was removed permanently (D81, 23 Sep 2026).
+docs/BLUEPRINT.md:65:| Trading | None — no broker connectivity, order placement or simulated account (D81, operator, 23 Sep 2026) |
+docs/BLUEPRINT.md:206:| Warren Buffett | Value investing — business quality, margin of safety |
+docs/BLUEPRINT.md:226:  "philosophy": "Value investing, margin of safety, business quality",
+docs/BLUEPRINT.md:280:27. Position tracking + P&L attribution (local SQLite, manually tracked holdings — no broker connection)
+docs/BLUEPRINT.md:390:Vysted Terminal has no brokerage connection and does not place orders. It is
+docs/BLUEPRINT.md:400:- **Vysted Terminal is not a broker.** It has no order-placement path, no
+docs/BLUEPRINT.md:401:  simulated account, and no broker relationship of any kind.
+docs/BLUEPRINT.md:410:portfolio, notes, screens, layouts, settings) — never a broker order, since
+docs/BLUEPRINT.md:511:### Phase 5 — Broker & Trading Plugins
+docs/PHASE_10_HANDOFF.md:3:> **Historical.** Broker integrations were removed permanently (D81, 23 Sep 2026).
+docs/PHASE_10_HANDOFF.md:4:> Vysted has no broker connectivity, order placement or simulated account. §3 below
+docs/PHASE_10_HANDOFF.md:5:> (Kite/`/brokers`/`broker_portfolio`) describes a surface that no longer exists — see
+docs/PHASE_10_HANDOFF.md:6:> `docs/BROKER_INTEGRATIONS.md`. The rest of this handoff is otherwise historical record.
+docs/PHASE_10_HANDOFF.md:13:a real broker-integrations hub with Kite Connect read-only, retires the
+docs/PHASE_10_HANDOFF.md:20:  (the main sidecar rebuilt with the copilot + broker changes) · eslint ·
+docs/PHASE_10_HANDOFF.md:24:  (`sidecar/models/audit_log.py`, `sidecar/models/kill_switch.py`,
+docs/PHASE_10_HANDOFF.md:25:  `src-tauri/src/kill_switch.rs`, `sidecar/services/broker_base.py`,
+docs/PHASE_10_HANDOFF.md:83:on early teardown; KillSwitch listener leak + a visible fire-failure banner;
+docs/PHASE_10_HANDOFF.md:107:  execute on the host on `tool_use`; `propose_order` only prepares a
+docs/PHASE_10_HANDOFF.md:121:## 3. Broker + integrations hub — how to connect Kite (Phase E, headline)
+docs/PHASE_10_HANDOFF.md:123:> **Historical.** Broker integrations were removed permanently (D81, 23 Sep 2026).
+docs/PHASE_10_HANDOFF.md:124:> Vysted has no broker connectivity, order placement or simulated account. None of
+docs/PHASE_10_HANDOFF.md:125:> the Kite flow, `/brokers/*` routes or `broker_portfolio` tool described below
+docs/PHASE_10_HANDOFF.md:126:> exist anymore — see `docs/BROKER_INTEGRATIONS.md`.
+docs/PHASE_10_HANDOFF.md:143:**What you get:** read-only positions/holdings/P&L (equity now = `margins.net`,
+docs/PHASE_10_HANDOFF.md:145:wrong/invisible before). New `GET /brokers/{id}/positions|holdings|margins`,
+docs/PHASE_10_HANDOFF.md:146:`POST /brokers/{id}/disconnect`, and a 419 "reconnect" cue when the daily token
+docs/PHASE_10_HANDOFF.md:147:expires. The `broker_portfolio` agent tool lets the copilot analyse your **real**
+docs/MCP_INTEGRATION.md:117:`price_data`, `resolve_symbol`, `compare_symbols`, `fundamentals`, `financial_statements`, `news`, `market_overview`, `web_search`, `research`, `screener_run`, `macro_series`, `macro_search`, `earnings_upcoming`, `earnings_history`, `earnings_estimates`, `analyst_history`, `analyst_individual`, `price_target_history`, `sec_filings_list`, `sec_filing_content`, `sec_insider_transactions`, `corporate_announcements`, `shareholding_pattern`, `corporate_actions`, `exchange_deals`, `earnings_call_transcript`, `price_option`, `compute_greeks`, `price_bond`, `yield_curve_value`, `option_chain`. No broker tool exists — Vysted has no
+docs/MCP_INTEGRATION.md:118:brokerage connection (D81, 23 Sep 2026).
+docs/SAFETY_ARCHITECTURE.md:4:> permanently — no broker connectivity, order placement or simulated account
+docs/SAFETY_ARCHITECTURE.md:13:Vysted Terminal has no brokerage connection. It cannot place, stage or
+docs/SAFETY_ARCHITECTURE.md:14:simulate a trade, and it has no simulated account. What it _can_ do is act
+docs/SAFETY_ARCHITECTURE.md:22:- **Cannot**: connect to a broker, place/stage/simulate an order, or read or
+docs/SAFETY_ARCHITECTURE.md:23:  write a simulated brokerage account. There is no code path anywhere in the
+docs/SAFETY_ARCHITECTURE.md:77:`catalog.FORBIDDEN_TOOL_SUBSTRINGS` (`place_order`, `submit_order`,
+docs/SAFETY_ARCHITECTURE.md:81:order/broker/margin/trade/paper/kill-switch/audit-shaped id on the catalog,
+docs/SAFETY_ARCHITECTURE.md:118:  (`audit_orders`) existed only to record order placement; it went with the
+docs/SAFETY_ARCHITECTURE.md:124:  kill switch any more (§10) and no per-action pause; the available control
+docs/SAFETY_ARCHITECTURE.md:134:exclusively to gate broker order placement. The census that decided this
+docs/SAFETY_ARCHITECTURE.md:137:- the kill-switch bus's only subscriber was `BrokerAdapter.__init__`;
+docs/SAFETY_ARCHITECTURE.md:139:- nothing in the UI ever fired the kill switch or listened for its event;
+docs/SAFETY_ARCHITECTURE.md:143:gate, so they were deleted rather than kept as dead weight: the broker
+docs/SAFETY_ARCHITECTURE.md:144:adapters and registry, `broker_base.py`, `kill_switch.py`,
+docs/SAFETY_ARCHITECTURE.md:146:`static_ip_detector.py`, the `/brokers/*` and `/safety/*` routers, the
+docs/SAFETY_ARCHITECTURE.md:149:broker-connect and order-review panels, and the OS-wide kill-switch
+docs/BROKER_INTEGRATIONS.md:1:# Broker Integrations
+docs/BROKER_INTEGRATIONS.md:3:Broker integrations were removed permanently (D81, 23 Sep 2026). Vysted has no
+docs/BROKER_INTEGRATIONS.md:4:broker connectivity, order placement or simulated account. Your manually
+docs/README.md:30:| [BROKER_INTEGRATIONS.md](./BROKER_INTEGRATIONS.md) | Removal note — trading was removed permanently (D81, 23 Sep 2026)                               |
+docs/README.md:32:| [PHASE_10_HANDOFF.md](./PHASE_10_HANDOFF.md)       | Historical phase handoff (copilot + reskin) — its §3 broker/Kite content is superseded by D81   |
+docs/archive/PHASE_9_BUG_CATALOG.md:141:### Group H — Plugins / Brokers / Safety
+docs/archive/PHASE_9_BUG_CATALOG.md:146:| 77  | **PASS**                | `/brokers` → 200 with the 10-broker list (dhan disconnected/paper/readOnly:false + capabilities). Bad-creds GUI connect not driven (no live orders).                                                                                                                                                                  |
+docs/archive/PHASE_9_BUG_CATALOG.md:147:| 78  | _not exercised_         | Broker paper↔live + read-only toggle.                                                                                                                                                                                                                                                                                 |
+docs/archive/PHASE_9_BUG_CATALOG.md:150:| 81  | **PASS — S1**           | Kill-switch full cycle: fire → `fired:true` + per-broker ack times (dhan 1.7 ms…); reset **blocked without acknowledgment** (gate holds; returns 422 rather than the documented 400 — trivial); reset-with-ack → `{reset:true}`; status restored `fired:false`.                                                       |
+docs/archive/PHASE_9_BUG_CATALOG.md:151:| 82  | **PASS (partial) — S1** | Order proposal gate: unknown `proposal_id` → 404. Full AI-review-checkbox dialog needs a broker order proposal (paper-only/no-live constraint); gate architecturally enforced per SAFETY_ARCHITECTURE.md.                                                                                                             |
+docs/archive/PHASE_9_BUG_CATALOG.md:152:| 83  | _not observed_          | First-launch ToS / per-broker disclaimer not seen (disclaimer ack is session-scoped; may have been acked on a prior boot of this data-dir).                                                                                                                                                                           |
+docs/archive/PHASE_9_BUG_CATALOG.md:190:- **None NEW confirmed.** All safety gates HELD: kill-switch fire+ack-gated-reset (#81), order proposal 404 gate (#82), Tradesa read-only 405/401 (#88), no XSS/SQLi (adversarial). The only S1-flagged checklist items that remain _unverified_ are deferred for setup reasons (full order-confirm dialog, backtest SSE), not failures.
+docs/archive/PHASE_9_BUG_CATALOG.md:194:1. **Audit Log Viewer unreadable — `/safety/audit-log` → 500 on all valid limits (#79).** Root-cause hypothesis: the append-only audit read path (reader connection `PRAGMA query_only`, or a query/serialization error on the `audit_orders` read) throws on a normal/empty read; only Pydantic limit-bound validation (limit 0/>5000 → 400) runs before it. Curl the endpoint for the traceback. Safety surface — should be high priority.
+docs/archive/PHASE_9_BUG_CATALOG.md:206:- **Kill-switch reset-without-ack returns 422, docs say 400 (#81).** Gate still holds; trivial code/doc mismatch.
+docs/archive/PHASE_9_BUG_CATALOG.md:217:- DEFERRED setup: backtest SSE (#50–52), agent-builder CRUD (#48–49), Tradesa-configured data (#85–87), broker connect/mode (#77 connect/#78), disclaimer flow (#83), quant edge (#54–60 individual), node-editor graph (#73–75 behind untestable canvas).
+docs/archive/PHASE_9_BUG_CATALOG.md:223:The app is **functional and robust at its core**: the 5-panel cockpit renders live data, cmd+K opens every panel, the quant engine is fast and correct, sentiment-scored news works, portfolio P&L is correct, and **every safety gate held** (kill-switch, order-proposal, Tradesa read-only, plus no XSS/SQLi under fuzzing). The headline pre-existing "15 panels won't open" and "tab-drag broken" reports are resolved as the plan predicted — a discoverability gap and an unconfirmable harness-limited drag, respectively.
+docs/archive/PHASE_9_BUG_CATALOG.md:293:App relaunched to a clean, usable state: default 5-panel cockpit, watchlist reset to the 4 seed symbols (the 55 test symbols did **not** persist), fresh sidecar healthy (`0.8.0`, dynamic port — 58321 at write time, agents=12, openbb-mcp down per UC1). News shows the cold-fetch error (recovers on Retry). **Residual test artifacts** (non-blocking): the Portfolio SQLite DB retains 3 test positions (`id:1` AAPL 10@150 from Phase 1; `id:2` qty 1e15; `id:3` qty −50) which **do not display** due to the confirmed portfolio cold-load bug; a `phase9test` workspace remains saved. No live orders were ever placed; kill-switch left `fired:false`.
+docs/redesign/REBUILD_R3_SPEC.md:58:  `types/safety.ts`, `types/broker.ts`, the safety/broker/audit/kill-switch models
+docs/redesign/REBUILD_R3_SPEC.md:59:  (`sidecar/models/{safety,broker,audit_log,kill_switch}.py`),
+docs/redesign/REBUILD_R3_SPEC.md:60:  `sidecar/services/broker_base.py`, `src-tauri/src/kill_switch.rs`,
+docs/redesign/REBUILD_R3_SPEC.md:66:- **Brokers read-only.** GET-only routes, duck-typed to `account_info()` /
+docs/redesign/REBUILD_R3_SPEC.md:252:| `src/modules/integrations/ConnectCard.tsx` (whole)      | old broker ConnectCard, superseded by `broker-connect` + Marketplace | confusing | **Delete** (verify `broker-connect` doesn't import it) |
+docs/redesign/REBUILD_R3_SPEC.md:672:  on tables). Kill-switch = stillness, red border, NO glow. Remove gradients on
+docs/redesign/REBUILD_R3_SPEC.md:765:7.  curl -s http://127.0.0.1:NNNNN/fundamentals/AAPL | python3 -m json.tool   # roe/margin/debt populated
+docs/RELEASE_RUNBOOK.md:648:lists `plugins/brokers`, `plugins/tradesa-v2`, `sidecar/services/broker_base.py`,
+docs/RELEASE_RUNBOOK.md:649:`sidecar/services/brokers` and `sidecar/services/kill_switch.py`. They are also licensed
+docs/RELEASE_RUNBOOK.md:652:re-ship the removed broker/order surface under the old AGPL licence — do not do this, no
+docs/screenshots/v0.6.0/teammate-f/demo.html:30:        margin: 0;
+docs/screenshots/v0.6.0/teammate-f/demo.html:180:        margin-left: auto;
+docs/screenshots/v0.6.0/teammate-f/demo.html:237:        margin-bottom: 8px;
+docs/screenshots/v0.6.0/teammate-f/demo.html:755:              margin-bottom: 6px;
+docs/screenshots/v0.6.0/teammate-f/demo.html:788:              margin-bottom: 6px;
+docs/screenshots/v0.6.0/teammate-f/demo.html:837:              margin-bottom: 6px;
+docs/screenshots/v0.6.0/teammate-f/demo.html:872:              margin-bottom: 6px;
+docs/screenshots/v0.6.0/teammate-f/demo.html:894:            <li><span class="ack">✓</span> broker_base / kill_switch / audit_log untouched</li>
+docs/redesign/INTEGRATION_NOTES_R7_PANELS.md:8:- `src/store/llm-providers.ts` — one label string: `"OpenRouter (broker)"` →
+docs/redesign/INTEGRATION_NOTES_R7_PANELS.md:12:  the sidecar registry DID still carry `"label": "OpenRouter (broker)"`, and
+docs/redesign/INTEGRATION_NOTES_R7_PANELS.md:15:  the broker label resurfaced at runtime regardless of the frontend fix. Fixed
+docs/redesign/INTEGRATION_NOTES_R7_PANELS.md:17:  `test_get_providers_returns_all` so it cannot regress. The frontend no-broker
+docs/screenshots/v0.6.0/teammate-f/README.md:75:- `sidecar/services/broker_base.py` / `kill_switch.py` / `audit_log.py` — untouched.
+docs/CURRENT_STATE.md:11:> human-checkable ones** — live UX, populated visuals, and any BYOK/live-broker
+docs/CURRENT_STATE.md:19:> **Everything below this notice that describes brokers, orders, the kill
+docs/CURRENT_STATE.md:21:> capability that no longer exists.** D81 (operator Tier-4 sign-off, 23 Sep 2026) removed trading from the product permanently: no broker
+docs/CURRENT_STATE.md:22:> connectivity, order placement or simulated account exists anywhere —
+docs/CURRENT_STATE.md:23:> surfaces, agent tools, routes or docs. The kill switch and the append-only
+docs/CURRENT_STATE.md:91:>   pre-installed (yfinance + news keyless); the broker entries that shipped here
+docs/CURRENT_STATE.md:103:>   broker reads that shipped here (FR-042/SC-012) were removed with trading (D81).
+docs/CURRENT_STATE.md:112:> `types/plugin.ts` remained **byte-for-byte untouched**. (The safety/broker models
+docs/CURRENT_STATE.md:139:- **No broker layer.** Trading — broker connectivity, order placement, the
+docs/CURRENT_STATE.md:140:  simulated paper account, the kill switch, the append-only order audit log —
+docs/CURRENT_STATE.md:142:  the removal notice describes the broker layer as it existed before D81;
+docs/CURRENT_STATE.md:148:  broker plugins that used to exist in the tree are gone (D81), not merely
+docs/CURRENT_STATE.md:164:there is no kill-switch shortcut any more, D81). The Next.js frontend is a
+docs/CURRENT_STATE.md:228:(`keychain.rs`, `openbb_mcp.rs`, `sec_edgar_mcp.rs`) — `kill_switch.rs` was
+docs/CURRENT_STATE.md:314:| —                   | _(none — the broker and safety routes were removed, D81, 23 Sep 2026)_                     | No broker, order or kill-switch route exists     | see §0.x                                                                   |
+docs/CURRENT_STATE.md:436:seven broker plugins this section used to describe as dead-wired test
+docs/CURRENT_STATE.md:439:### 3.5 Broker layer — removed (D81, 23 Sep 2026)
+docs/CURRENT_STATE.md:441:No broker layer exists. See §0.x. The Kite Connect OAuth read-only path,
+docs/CURRENT_STATE.md:443:`margins`), and the Kite static-IP UX this section used to describe are all
+docs/CURRENT_STATE.md:450:only to gate broker order placement and was removed with the feature. What
+docs/CURRENT_STATE.md:454:broker or simulated-account path exists anywhere.
+docs/CURRENT_STATE.md:595:  `SettingsPanel`; one dialog drives any `IntegrationSpec`. There is no broker
+docs/CURRENT_STATE.md:692:any more — no broker connection exists to place one against (D81).
+docs/CURRENT_STATE.md:705:No `broker_portfolio` or `propose_order` tool exists any more (D81):
+docs/CURRENT_STATE.md:784:5. **No order, broker or simulated-account path exists anywhere** — pinned by
+docs/CURRENT_STATE.md:800:| Portfolio positions (manually tracked — no broker connection)                  | Sidecar    | SQLite `positions`             | `get_data_dir()/portfolio.db`                  |
+docs/CURRENT_STATE.md:808:There is no order audit log any more (D81); the append-only `audit_orders`
+docs/CURRENT_STATE.md:809:table and `audit_log.db` existed only to record order placement. A user who
+docs/CURRENT_STATE.md:826:per-broker namespace any more, D81). The `provider-keys` store tracks
+docs/CURRENT_STATE.md:872:| Trading (broker connectivity, orders, simulated account)                               | **Removed permanently (D81, 23 Sep 2026)** — not deferred, not dead code; deleted                             | §0.x; SAFETY_ARCHITECTURE        |
+docs/CURRENT_STATE.md:905:  There is no broker connectivity, order placement or simulated account to
+docs/CURRENT_STATE.md:914:  them (staged through the same trust gate). There is no broker connection
+docs/CURRENT_STATE.md:951:  (§5); there are no broker plugins left to decide the fate of (D81).
+docs/redesign/R4_BUILD_SEQUENCE.md:19:  `types/broker.ts`, `sidecar/models/{safety,broker,audit_log,kill_switch}.py`,
+docs/redesign/R4_BUILD_SEQUENCE.md:20:  `sidecar/services/broker_base.py`, `src-tauri/src/kill_switch.rs`,
+docs/redesign/R4_BUILD_SEQUENCE.md:24:- **Orders never auto-apply**; brokers GET-only; secrets keychain-only/per-request/never logged or
+docs/archive/PHASE_9.5_MORNING_REPORT.md:20:diff origin/main` empty for audit_log/kill_switch/broker_base/plugin.ts/
+docs/archive/PHASE_9.5_MORNING_REPORT.md:53:  JSON normalized to typed errors (sidecar-client/workspace); broker order-entry
+docs/archive/PHASE_9.5_MORNING_REPORT.md:112:   `test_safety_end_to_end.py` regenerates `kill-switch-benchmark.json` on every
+docs/redesign/KEYCHAIN_DEV_SIGNING.md:52:  `llm-provider:openrouter`, `app-meta:first-launch-terms` (renamed from `broker:_meta:first-launch-tos`, D81),
+docs/redesign/KEYCHAIN_DEV_SIGNING.md:183:   `app-meta:first-launch-terms` (then named `broker:_meta:first-launch-tos`; renamed D81), `app-meta:onboarding-complete`). Your "~4 prompts per
+docs/screenshots/v0.6.0/teammate-m/demo.html:25:        margin: 0;
+docs/redesign/HANDOFF_VERIFIED.md:10:>   with `roe=1.41, profit_margin=0.27, operating_margin=0.32, debt_to_equity=0.80,
+docs/redesign/HANDOFF_VERIFIED.md:132:  `profit_margin=None`, `debt_to_equity=None`, `revenue_growth=None`.
+docs/redesign/HANDOFF_VERIFIED.md:135:  **full fields** — `roe=0.097, profit_margin=0.054, debt_to_equity=0.015,
+docs/redesign/HANDOFF_VERIFIED.md:140:**5 of 8 presets** (quality, value, garp, dividend, margins) come back **empty**.
+docs/archive/PHASE_6_HANDOFF.md:160:   tool ids do NOT match `place_order|submit_order|execute_order|
+docs/archive/PHASE_6_HANDOFF.md:250:  (unchanged; Phase 6 doesn't touch broker execution)
+docs/archive/PHASE_6_HANDOFF.md:251:- `docs/BROKER_INTEGRATIONS.md` — per-broker setup (unchanged)
+docs/archive/PHASE_6_HANDOFF.md:274:- `pytest sidecar` (excluding the slow kill-switch benchmark) —
+docs/redesign/R7_TRACK_HACK_REPORT.md:65:Warm-up and div-by-zero yield no-signal, never a crash. §6.5: simulation only — no
+docs/redesign/R7_TRACK_HACK_REPORT.md:122:  `docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json` timings —
+docs/screenshots/v0.6.0/teammate-m/demo-single.html:22:        margin: 0;
+docs/screenshots/v0.6.0/teammate-m/demo-single.html:98:        margin-top: 2px;
+docs/screenshots/v0.6.0/teammate-m/demo-single.html:113:        margin-top: 2px;
+docs/redesign/R7_TRACK_PANELS_BRIEF.md:26:  row); "OpenRouter (broker)" label is WRONG — it's not a broker; the page is a wall —
+docs/archive/PHASE_8_BUG_CATALOG.md:36:- `<id>` is a short stable slug (`fastmcp-runtime`, `kill-switch-toggle-react-warn`,
+docs/archive/PHASE_8_BUG_CATALOG.md:212:itself a minor S3 (asymmetry with `/openbb-mcp/status`) but the L9 broker
+docs/archive/PHASE_8_BUG_CATALOG.md:569:Grep-based audit of the broker-execution surface. Per CLAUDE.md "Defense-in-
+docs/archive/PHASE_8_BUG_CATALOG.md:578:1. **New public methods on `broker_base.py`?** No. Public surface = 11 documented members:
+docs/archive/PHASE_8_BUG_CATALOG.md:582:   - Order entry: `propose_order` (sync), `confirm_and_place` (async — sole `_place_confirmed` caller)
+docs/archive/PHASE_8_BUG_CATALOG.md:585:   _Note: my plan-doc listed `set_position_limits` as expected — that method does not exist; per-broker position limits are enforced at `propose_order` time via the per-adapter `CAPABILITIES` / position-limit class var. Spec misremember on my part, not a finding._
+docs/archive/PHASE_8_BUG_CATALOG.md:587:2. **New `_place_confirmed` call sites outside `confirm_and_place`?** No. Single production call site at `sidecar/services/broker_base.py:365` (inside `confirm_and_place`). All other matches are either definitions in the 7 per-broker overrides, docstrings, the test audit suite (`test_safety_end_to_end.py::test_audit_2_no_bypass_path_to_place_confirmed`), or comments. The grep-time audit at `test_safety_end_to_end.py:178` runs a recursive grep + filters out signatures + comments and asserts the suspicious-call-sites list is empty.
+docs/archive/PHASE_8_BUG_CATALOG.md:589:3. **New `audit_orders` UPDATE/DELETE write paths?** No. Only matches are intentional test paths at `tests/test_audit_log.py:141,156` and `tests/test_safety_end_to_end.py:268,274` that explicitly verify the SQLite triggers fire and raise `IntegrityError`. The append-only DDL (`sidecar/models/audit_log.py::AUDIT_LOG_DDL`) plus `PRAGMA query_only=ON` on the reader connection enforce the invariant; tests prove it.
+docs/archive/PHASE_8_BUG_CATALOG.md:591:4. **New backend-internal `confirm_and_place(human_confirmed=True)` paths with no UI surface?** No. All non-test matches resolve to `sidecar/routers/brokers.py:225` (the UI route handler) which passes `human_confirmed=request.human_confirmed` — the value comes from the UI POST body, not a backend hardcode. All other matches are inside the `sidecar/tests/` tree.
+docs/archive/PHASE_8_BUG_CATALOG.md:593:5. **New imports of broker internals from outside the broker package?** No. All matches are allowed callers:
+docs/archive/PHASE_8_BUG_CATALOG.md:594:   - `sidecar/routers/brokers.py:46,47,48` — the broker router
+docs/archive/PHASE_8_BUG_CATALOG.md:595:   - `sidecar/services/brokers/{registry,oanda,kite,ib,dhan,ccxt_exec,angelone,alpaca}.py` — inside-package adapters
+docs/archive/PHASE_8_BUG_CATALOG.md:603:`brokers_registry.bootstrap_default_adapters()` only registers the 3 India
+docs/archive/PHASE_8_BUG_CATALOG.md:604:brokers (Dhan, AngelOne, Kite). The 4 non-India adapters (Alpaca, IB, OANDA,
+docs/archive/PHASE_8_BUG_CATALOG.md:606:`sidecar/services/brokers/__init__.py` but no production code path
+docs/archive/PHASE_8_BUG_CATALOG.md:611:**may surface as a UC1/L9 broker-connect finding**: any`/brokers/<non-India-
+docs/archive/PHASE_8_BUG_CATALOG.md:630:## L9 — Broker connect + §6.5 cycle
+docs/archive/PHASE_8_BUG_CATALOG.md:632:Paper-mode broker exercise (whatever credentials are available on the
+docs/archive/PHASE_8_BUG_CATALOG.md:633:operator's machine) + failure-state UX for the brokers without credentials.
+docs/archive/PHASE_8_BUG_CATALOG.md:799:- **T4-brokers-not-registered [S2]:** all 7 broker plugins (alpaca,
+docs/archive/PHASE_8_BUG_CATALOG.md:803:  catalog X-broker-bootstrap-india-only** — the broker plugins exist but
+docs/archive/PHASE_8_BUG_CATALOG.md:805:  `bootstrap_default_adapters` (only India brokers).
+docs/archive/PHASE_8_BUG_CATALOG.md:821:  `resetKillSwitch()` entirely untested. POST body field `reAck: true`
+docs/archive/PHASE_8_BUG_CATALOG.md:823:  kill switch with no test catching it. **§6.5-adjacent finding —
+docs/archive/PHASE_8_BUG_CATALOG.md:825:- **T5-broker-base-invalid-order-type [S1]:** `propose_order()`
+docs/archive/PHASE_8_BUG_CATALOG.md:826:  raises `BrokerError` on invalid `order_type` but test only covers
+docs/archive/PHASE_8_BUG_CATALOG.md:828:  `"stop-limit"`→`"stop_limit"` would reach live broker undetected.
+docs/archive/PHASE_8_BUG_CATALOG.md:855:### Finding X-broker-bootstrap-india-only [S? — confirm at L9] [status: open]
+docs/archive/PHASE_8_BUG_CATALOG.md:857:**Repro:** `sidecar/services/brokers/registry.py::bootstrap_default_adapters`
+docs/archive/PHASE_8_BUG_CATALOG.md:860:`CcxtExecutionAdapter`) are imported in `services/brokers/__init__.py:27-33`
+docs/archive/PHASE_8_BUG_CATALOG.md:864:services/brokers/` returns only `bootstrap_default_adapters`.
+docs/archive/PHASE_8_BUG_CATALOG.md:866:**Impact:** At sidecar startup, a `POST /brokers/alpaca/connect` (or `/ib/`,
+docs/archive/PHASE_8_BUG_CATALOG.md:867:`/oanda/`, `/ccxt-*/`) would raise `KeyError: no broker adapter registered
+docs/archive/PHASE_8_BUG_CATALOG.md:868:for id='alpaca'` via `brokers_registry.get`. UC1 paper-mode broker connect
+docs/archive/PHASE_8_BUG_CATALOG.md:872:all 7 broker classes guarded by a feature flag per broker, OR (b) make the
+docs/archive/PHASE_8_BUG_CATALOG.md:873:broker-connect router lazy-register on first request when the broker's
+docs/archive/PHASE_8_BUG_CATALOG.md:879:- `sidecar/services/brokers/registry.py:97-112` — `bootstrap_default_adapters`
+docs/archive/PHASE_8_BUG_CATALOG.md:880:- `sidecar/services/brokers/__init__.py:27-33` — adapter class imports
+docs/archive/PHASE_8_BUG_CATALOG.md:882:**Notes:** Severity deferred to L9. If L9 confirms the broker-connect UX
+docs/archive/PHASE_8_BUG_CATALOG.md:883:gracefully degrades ("broker not bootstrapped — connect through the broker
+docs/archive/BLOCKERS-I.md:1:# BLOCKERS-I.md — Teammate I (India brokers)
+docs/archive/BLOCKERS-I.md:10:1. `BrokerConnectPanel` with Dhan + Angel One + Kite connected in paper
+docs/archive/BLOCKERS-I.md:13:   broker-connect panel.
+docs/archive/BLOCKERS-I.md:15:Both require Teammate S's `BrokerConnectPanel.tsx`, which lives in their
+docs/archive/BLOCKERS-I.md:23:1. Merge Teammate S's `agent-S` branch first so `BrokerConnectPanel.tsx`
+docs/archive/BLOCKERS-I.md:27:   `src/modules/broker-connect/kite-static-ip-banner.tsx`.
+docs/archive/BLOCKERS-I.md:28:4. Bring up `pnpm dev`, connect all three India brokers in paper mode,
+docs/archive/BLOCKERS-I.md:37:`src/modules/broker-connect/kite-static-ip-banner.test.tsx` so its
+docs/redesign/R9_TRACK_PROPORTION_REPORT.md:61:- [x] **Broker connect + order entry** (visual only, §6.5 untouched) — status/
+docs/redesign/R9_TRACK_PROPORTION_REPORT.md:64:      Order-entry was already on the h-8 rung. `broker-connect-1280.png`,
+docs/redesign/R9_TRACK_PROPORTION_REPORT.md:123:   broker reads, backtest results/equity curve) — empty-state proportions are
+docs/redesign/R9_TRACK_PROPORTION_REPORT.md:138:| `52bd93f` | broker-connect visual                       |
+docs/research/phase-10/blueprint-customizability.md:340:it with the connectors that already exist (yfinance, ccxt, openbb-mcp + the broker
+docs/redesign/R8_TRACK_PROPORTION_REPORT.md:137:### Sweep (`a9210a7`) — marketplace, screener, backtest, macro, greeks, node editor, agent builder, broker, SEC, pricers, audit
+docs/redesign/R8_TRACK_PROPORTION_REPORT.md:156:  broker connect/order entry (h-8 forms, micro eyebrows, FR-041 badges),
+docs/redesign/R9_TRACK_PROPORTION_BRIEF.md:14:earnings,analyst-ratings,backtest,node-editor,quant,broker-connect,marketplace,
+docs/archive/PHASE_8_RUST_AUDIT.md:120:Clippy recommends `&tauri::State<'_, ...>` for all three. `kill_switch.rs:90` — `app: AppHandle` and `fired_by: String` both recommended as refs/str slices.  
+docs/archive/PHASE_8_RUST_AUDIT.md:121:**Impact:** Minor: `tauri::State` is a reference-counted wrapper; passing by value is slightly less efficient but works correctly. The `AppHandle` by-value case in `kill_switch_emit` is harmless since Tauri clones it cheaply. S3 pedantic noise.  
+docs/archive/PHASE_8_RUST_AUDIT.md:122:**Suggested fix path:** Change the three port-getter handlers to `&tauri::State<'_, ...>` and `kill_switch_emit` to `&AppHandle` + `fired_by: &str`. Requires verifying Tauri macro compatibility with reference-type State args (Tauri 2.x docs confirm `&State<'_, T>` is supported).  
+docs/archive/PHASE_8_RUST_AUDIT.md:123:**Files:** `src-tauri/src/lib.rs:46`, `src-tauri/src/openbb_mcp.rs:49`, `src-tauri/src/sec_edgar_mcp.rs:48`, `src-tauri/src/kill_switch.rs:90`
+docs/archive/PHASE_8_RUST_AUDIT.md:212:| `tauri-plugin-global-shortcut` | `kill_switch.rs` — `GlobalShortcutExt`, `Modifiers`, `Code`, `Shortcut`, `ShortcutState`   | Active                    |
+docs/archive/PHASE_8_RUST_AUDIT.md:215:| `serde_json`                   | `kill_switch.rs:95` — `serde_json::json!({ "firedBy": fired_by })`                         | Active                    |
+docs/archive/PHASE_8_RUST_AUDIT.md:227:**No findings.** The formatter check passes cleanly on all five source files (`lib.rs`, `keychain.rs`, `kill_switch.rs`, `openbb_mcp.rs`, `sec_edgar_mcp.rs`). The CI gate is holding.
+docs/archive/PHASE_8_RUST_AUDIT.md:242:- `kill_switch_shortcut()` — called from both `build_plugin()` and `register_shortcut()`.
+docs/archive/PHASE_8_RUST_AUDIT.md:243:- `emit_kill_switch_requested()` — called from the shortcut handler closure and from `kill_switch_emit`.
+docs/archive/PHASE_8_RUST_AUDIT.md:324:- `kill_switch_emit` — defined in `kill_switch.rs`
+docs/archive/PHASE_8_RUST_AUDIT.md:333:- `kill_switch::build_plugin()` ✓ (global-shortcut plugin with handler)
+docs/archive/PHASE_8_RUST_AUDIT.md:334:- `tauri_plugin_global_shortcut` not registered separately (it is embedded in `kill_switch::build_plugin()`)
+docs/archive/PHASE_8_RUST_AUDIT.md:336:One observation: the global-shortcut plugin is initialized inside `kill_switch::build_plugin()` but `register_shortcut()` is called after `.plugin()` registration is complete. This is the correct order per Tauri 2.x docs — the plugin must be registered before the app handle can use `global_shortcut()` extension methods.
+docs/redesign/R4_FAILURE_MODE_MATRIX.md:26:| **paper/synthetic**  | non-live broker / simulated              | `<ProvenanceBadge>` (`paper·synthetic·mode·provider`) — FR-041/065                                                                                                                           |
+docs/redesign/R4_FAILURE_MODE_MATRIX.md:57:| **Broker connect** (`broker-connect`)                   | ✅              | ✅          | ✅               | ◧ paper | —          | —                           | disconnected/expired-token state; paper badge                                         |
+docs/redesign/R4_FAILURE_MODE_MATRIX.md:112:| **Kill-switch active / read-only / paper**            | any order proposal is **blocked + explained**; the surface goes _still + red_ (no glow, design doc §5) | §6.5; FR-011/012                                                      |
+docs/redesign/CODEBASE_AND_DESIGN_INVENTORY.md:206:### 10. broker-connect + safety + platform + backtest
+docs/redesign/CODEBASE_AND_DESIGN_INVENTORY.md:208:`Broker{ConnectPanel,OrderEntry,ReadsSection}`, `kite-static-ip-banner`, `safety/{AuditLogViewer,
+docs/redesign/CODEBASE_AND_DESIGN_INVENTORY.md:212:truncation (§3, worst)**; input h-7 amid h-6/8/9/10 buttons. ⚠️ Safety/broker LOGIC is Tier-1 —
+docs/redesign/CODEBASE_AND_DESIGN_INVENTORY.md:213:**touch only className/markup, never the §6.5 confirm-gate, audit, kill-switch, or broker ABC.**
+docs/research/phase-10/hunt-state-logic.md:13:`sidecar/models/audit_log.py`, `kill_switch.py`, `broker_base.py`,
+docs/research/phase-10/hunt-state-logic.md:269:  (`sidecar/tests/test_brokers_router.py:130,158` posts `humanConfirmed` and the route
+docs/redesign/OVERNIGHT_BUILD_REPORT_R4S3.md:70:safety floor (§6.5 9/9, Tier-1 untouched, brokers read-only, keyless-first, version 0.8.0);
+docs/redesign/OVERNIGHT_BUILD_REPORT_R4S3.md:157:  §6.5 9/9, Tier-1 untouched, version 0.8.0, no new deps, brokers GET-only.
+docs/redesign/OVERNIGHT_BUILD_REPORT_R4S3.md:273:**Not changed (out of scope / marginal, noted honestly):** chart toolbar type size (the chart is
+docs/redesign/DECISIONS.md:85:| D45 | Agent-drivable settings are region + default research depth ONLY; autonomy level, API keys, broker config, kill switch, search-tier billing remain human-only (asserted by test).                                                                                                                                                                                                                                                                                                                                                                                               | Self-escalation and credential surfaces stay out of the model's hands by construction.                                                                                                                                                                |
+docs/redesign/DECISIONS.md:102:| D52 | **Bundled fundamentals seed pack**: a build-time snapshot of the full india-all fundamentals vocabulary (v7 + info tiers + sector + name + currency, per-row `seed_as_of`) ships as `services/screener_universes/india_fundamentals_seed.json.gz`, loaded at boot into the store (NULL-fill only, new `seed_updated_at` column — never masquerades as a live tier). `_finalize` gains a SERVE-WITH-LABEL ladder: fresh live tiers → stale live values → seed values, each row stamped `data_basis` (live/stale/snapshot) + `data_as_of`; coverage line and `freshness` (+`seed_as_of`) report the basis mix. Prefilter stays fresh-only (soundness unchanged — stale/seed rows are never pruned, they evaluate at finalize with their basis labeled). Source of truth for v1: the operator's warm store (5,153/5,157 rows info-tier, June 13–16) + a same-night v7/bhavcopy refresh; a regenerate script keeps it refreshable.                                                                                                                                                                                                                                                                                                                                  | Cold start on a fresh install/fresh IP must reach a complete full-universe screen instantly. The info tier (ROE/growth/margins) is per-symbol yfinance `.info` — unfinishable inside the 120 s wall cold, and a throttled IP kills even the v7 sweep. A labeled snapshot is exactly the screener.in model: complete, dated, refreshed opportunistically — honest data that never runs dry beats fresh data that never arrives. |
+docs/redesign/DECISIONS.md:112:| D62 | **R12 Phase A adjudication (truth pass)**: the post-R10 "unknown gap run" is BOTH runs — R10-VERIFY (census, adopted 46e6c43) then the full R11 DATA PERFECT sprint (D52–D61), tagged `r11-data` @ 1a095b7 = HEAD = origin; nothing after the tag. Baseline `ci-local` re-run green at HEAD: pytest 2237/1 skipped, vitest 1478/134 — byte-matches R11's close-out, so R11's claims are independently verified. Clean-default verified EMPIRICALLY (autosave blob holdings `[]`, no WENDT/MARUTI; sidecar `/portfolio/positions` `[]`); composer already on the funded OpenRouter lane (blob `defaultProviderId: openrouter`, model `z-ai/glm-5.2`) — no flip needed. All five R10 hand-fixes confirmed test-pinned (test_r10_verify_lockins.py carries the two R10-VERIFY added; the R10-admitted empty-symbol updatePosition fabricated-success is pinned in portfolios.test.ts). D61 accounted (build-topology entry). kill-switch-benchmark.json handled as R10/R11 did: regenerated by every full pytest run by design, never committed/reverted; enrich_nse_sectors.py byte-hash matches R11's record.                                                                                                                                                    | Trust nothing relayed; every Phase A claim above is proven from repo/API evidence, logged here so the run report can cite one place.                                                                                                                                                                                                                                                                                           |
+docs/redesign/DECISIONS.md:115:| D65 | **Backtest affordability honesty (R12 live-drive find)**: a custom backtest whose position size costs more than available cash completed as a confident all-zero result — 162 entry signals silently skipped with only a logger warning (the Phase 9.5 "fix" made it visible to nobody). Now `_run_single_slice` counts skipped buys + worst shortfall; `BacktestResult.warnings` (mirrored in types/backtest.ts) carries "N buy signal(s) skipped — … Reduce position_size or raise initial_capital"; both agent digests (run_custom_backtest, backtest_summary) and the BacktestResultView warning strip surface it. Pinned: 2 engine tests + 1 panel render test. Live-verified pre/post: same request, silence → disclosure. Also proven tonight: agent-vs-direct backtest parity (identical params → byte-identical metrics + trade log, r12/backtest/parity-agent-vs-direct.json). Routed as a lead-fix: simulated engine, §6.5-clear, bounded diff.                                                                                                                                                                                                                                                                                                      | The screener itemizes every skip; the backtester fabricating "0 trades, 0 return" with no cause violates the same honesty doctrine the rest of the app lives by.                                                                                                                                                                                                                                                               |
+docs/redesign/DECISIONS.md:118:| D68 | **Order-intent classification (R12 live §6.5 drive find)**: "Buy 5 shares of RELIANCE at market price" classified as READ intent (planner vocabulary had no buy/sell/order verbs) → the read-only gate stripped `propose_order` → the §6.5 review-dialog stage was UNREACHABLE from chat on every model (glm improvised broker-handoff prose; kimi honestly reported the tool missing; audit_orders has zero rows ever). Fail-closed, so no safety hole — but the designed prepare→review→human-confirm UX was dead. Fixed: order verbs added to \_EDIT_SIGNALS with a §6.5-adjacent comment; 5 pins (4 order phrasings never-read + plain questions still read). Placement remains human-gated in every mode — this fix only restores the PROPOSAL stage.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | The safety model wants orders to flow through the review dialog, not around it; a classifier gap that hides the dialog also hides the audit trail.                                                                                                                                                                                                                                                                             |
+docs/redesign/DECISIONS.md:119:| D69 | **§6.5 order-dialog click-through — proven LIVE (R11's cut-short crown jewel)**: after D68 restored order-intent classification, the full prepare→review→accept→fail-closed path was driven end-to-end via the tauri-mcp bridge under BOTH glm-5.2 and kimi-k2.6. Evidence (r12/gui/10, 11): copilot calls propose_order → the "1 PROPOSED CHANGE — REVIEW BEFORE THEY APPLY" bar renders "BUY 5 RELIANCE.NS (MARKET) — ROUTES TO THE CONFIRM-BEFORE-PLACE DIALOG / NOTHING IS PLACED AUTOMATICALLY"; explicit human ACCEPT → the order FAILS CLOSED ("COULDN'T APPLY: NO BROKER ADAPTER REGISTERED FOR ID='KITE'"), places nothing, and audit_orders stays at 0 rows through the entire flow (verified before, during, after). The §6.5 carve-out holds exactly as designed: an agent can PREPARE an order for review, a human can ACCEPT it, and it STILL cannot be placed without a broker the user themselves connected.                                                                                                                                                                                                                                                                                                                                    | The safety model's whole point: the agent surfaces the order, the human reviews it, and placement is impossible in-app regardless — proven, not asserted.                                                                                                                                                                                                                                                                      |
+docs/redesign/DECISIONS.md:120:| D70 | **Order-surface scope clarification (operator, mid-run) — ACK**: live buying / broker order execution is NOT in R12 (deferred v1.0 roadmap, BLUEPRINT §6.4); 0.8.0 ships zero new order-execution capability. Confirmed compliant: the §6.5 surface (audit_log/kill_switch/brokers/safety) is BYTE-IDENTICAL to the pre-R10 base (0-line git diff vs 393e8e5) and NO R12 commit touched any order/broker/execution path. My only order-adjacent change, D68, is a general NL intent-classifier fix (order verbs were missing from planner vocabulary) — it adds no UI, no route, no execution path; its order-relevant effect is to make the PRE-EXISTING §6.5 prepare-for-review proposal path reachable, which is exactly what the clarification's point 3(a) requires to prove §6.5 blocks a test order (D69: order halted for human review, audit_orders 0 rows, fails-closed). Existing order-proposal/safety code left untouched (preservation posture). No teammate was building order functionality — the concurrent hardening worktree touches only resolver/fundamentals/semantics/runtime, none order-related (its own forbidden-surface check confirmed clean). Nothing to revert. Paper-portfolio writes stay agent-completable per the carve-out. | Point 3(a) requires the test order to STAGE as a review proposal before it can be "halted for human review"; D68 enables exactly that in-scope verification and nothing more.                                                                                                                                                                                                                                                  |
+docs/redesign/DECISIONS.md:126:| D71 | **R13 Phase A adjudication (truth pass)**: tree exactly as expected — HEAD 7a7f7fd = origin/004, tag r12-finisher @ 14d05b6 + two docs-only commits after (the established pattern); sacred `enrich_nse_sectors.py` working sha256 `5cb28e0d…abdbe` byte-matches R11's record; kill-switch-benchmark.json M-uncommitted by design. Baselines green and byte-matched to R12 close: pytest 2311 passed / 1 skipped (172s), vitest 1481/134 zero skips. All three sidecars force-rebuilt + dev-signed. R12's left-running app stack found on port 5173 (consistent with R12 run-state close), killed Vysted-only PIDs, relaunched on fresh binaries. Composer confirmed on funded lane (OPENROUTER · Kimi K2.6, CONNECTED).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Trust nothing relayed; every claim proven from repo/API/screen evidence at run start, logged here so the run report cites one place.                                                                                                                                                                                                                                   |
+docs/redesign/DECISIONS.md:141:| D81      | **Trading is out of the product, permanently (operator Tier-4 sign-off, 23 Sep 2026 03:46 IST, session 2)**: no broker connectivity, order placement, order proposal/review bar, simulated paper brokerage, live/paper mode switch, broker plugin, or live-trading roadmap item. The user's own tracked portfolio (manual holdings, cost bases, P&L on real prices, CSV export, notes, watchlists) and everything the agent does with it STAYS. Removal is the first Stage C batch, before any fix in those subsystems; delete, never stub; anything another feature depends on stays; anything unsure is removed from every user/agent surface, kept in code, and listed in DECISIONS_FOR_OPERATOR.md. Kill switch and append-only audit log are checked for what they gate before being touched. Gate 8 is rewritten from "re-prove the order boundary" to "prove no order/broker/simulated-account path exists anywhere and the tracked portfolio is intact"; the blueprint roadmap drops live trading outright.                                              | The broker layer served a trading bot that will never be attached; paper trading was never decided; a dead feature that still compiles returns later as a bug, and repairing code that is being deleted is waste. Reverses BLUEPRINT §2 (locked) and removes code on the §6.5 surface — allowed only by this explicit operator sign-off. |
+docs/redesign/DECISIONS.md:145:| D85      | **Stage C removal plan — first-launch terms dialog stays, rewritten as research-only terms** (no kill-switch promise, no broker-connect step); new keychain account `app-meta:first-launch-terms` so every user re-acks once.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | The dialog is the onboarding gate and the product's only in-app not-advice notice — it survives D81, its content does not.                                                                                                                                                                                                               |
+docs/redesign/DECISIONS.md:146:| D86      | **Stage C removal plan — planner keeps `buy`/`sell` edit signals, deletes order-phrase signals** (`market/limit/stop order`, `place an order`) from `_EDIT_SIGNALS`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | `buy`/`sell` still route to the surviving tracked-portfolio write tools (`portfolio_add/update/delete_position`); the order-phrase signals existed only to reach the now-deleted `propose_order`.                                                                                                                                        |
+docs/redesign/DECISIONS.md:147:| D87      | **Stage C removal plan — "paper portfolio" becomes "portfolio" in every user-visible label and agent-facing description**; tool ids unchanged.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | After D81 "paper" would misleadingly imply a simulated brokerage account rather than the user's own manually tracked holdings.                                                                                                                                                                                                           |
+docs/redesign/DECISIONS.md:150:| D90      | **Stage C removal plan — the R15-LIFECYCLE-002 workspace-restore fix ships in the same batch as the trading removal** (`workspace.ts` restores non-layout slices — holdings, watchlist, notes — independently of the dockview layout; `workspace_store.py` keeps a `.bak` on overwrite).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | This removal batch is exactly what creates workspace blobs with unregistered broker/audit panel references; shipping the fix separately would let the removal itself cause the data loss R15-LIFECYCLE-002 exists to prevent.                                                                                                            |
+docs/redesign/DECISIONS.md:151:| D91      | **Stage C removal plan — India EOD-only provider error copy no longer suggests adding a BYOK broker.**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | No broker lane exists post-D81; the old copy pointed users at a path that no longer exists.                                                                                                                                                                                                                                              |
+docs/redesign/DECISIONS.md:152:| D92      | **Stage C removal plan — no automatic purge of user-side leftovers** (`~/.vysted-terminal/audit_log.db`, orphaned OS-keychain broker secrets, `broker:_meta:first-launch-tos`, orphaned plugin-store rows for the 7 broker plugin ids). Left as an operator decision, listed UNSURE-1 in `docs/redesign/DECISIONS_FOR_OPERATOR.md`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Deleting a user's own secrets and audit history automatically is destructive and irreversible; no code reads any of it post-removal, so nothing is user- or agent-facing, but only the operator should authorize deleting it from a user's disk.                                                                                         |
+docs/redesign/DECISIONS.md:153:| D85      | **Trading removed from the product — merged a122dbf (Stage C batch 1, 23 Sep 2026, executing D81)**: sidecar 23 files + 17 trading-only test files deleted, routes 117→94, catalog 50→48, kill switch and append-only audit log deleted (only subscriber/writers were order paths), Gate-8 test `test_no_trading_surface.py` replaces the §6.5 grep audit; frontend 43 files incl. 7 broker plugins, broker-connect/order UI, kill-switch plugin, orders/brokers stores; docs rewritten (SAFETY_ARCHITECTURE = agent-write safety model; BLUEPRINT drops live trading outright; constitution 2.0.0). Certified fresh-context on a running sidecar: no order/broker/simulated-account path in OpenAPI, catalog, MCP, UI registry or docs; tracked portfolio end to end incl. gated agent writes. Tier-3 riders: R15-LIFECYCLE-002 (workspace restore never drops holdings on an unknown panel) shipped with the batch; R15 evidence harnesses excluded from eslint/tsc/prettier; no automatic purge of leftover broker secrets / audit_log.db on users' machines. | Delete, don't stub: a dead feature that still compiles returns as a bug; the safety model now describes exactly what exists.                                                                                                                                                                                                             |
+docs/redesign/R8_PROPORTION_LAW.md:22:  controls (Settings, Order Entry) h-8 (32px). Hit target ≥ 24×24 always.
+docs/redesign/R8_PROPORTION_LAW.md:55:- **Forms** (settings, order entry, agent builder): body labels, caption hints, h-8 controls,
+docs/redesign/R10_TRACK_RUNTIME_BRIEF.md:94:- §6.5 IS UNTOUCHABLE: do not modify propose_order, the order-kind exemption
+docs/redesign/R10_TRACK_RUNTIME_BRIEF.md:95:  (agent_runtime.py:775–783 area), routeOrderProposal seams, audit log, kill switch.
+docs/redesign/R10_TRACK_RUNTIME_BRIEF.md:96:  The integrity test must ASSERT autonomy/keys/broker/kill-switch settings have no
+docs/redesign/R10_TRACK_RUNTIME_BRIEF.md:103:broker_portfolio 20s, screener_run 150s, run_custom_backtest 120s, research = outer
+docs/redesign/R10_TRACK_RUNTIME_BRIEF.md:118:  assert NO capability exists for autonomy/keychain/broker-config/kill-switch.
+docs/redesign/REBUILD_R4_SESSION2_REPORT.md:118:| Orders never auto-apply / brokers read-only / keyless-first | **intact**                                                                               |
+docs/archive/PHASE_8_VISUAL_REGRESSION_REPORT.md:210:**Visual signature:** The panel body is replaced by 6 horizontally-staggered pulse skeleton rows (no table, no error, no CTA). The status strip shows a grey dot + "Connecting…" label. No mode badge, no heartbeat age, no kill-switch chip.
+docs/archive/PHASE_8_VISUAL_REGRESSION_REPORT.md:230:  "kill_switch_engaged": null
+docs/archive/PHASE_8_VISUAL_REGRESSION_REPORT.md:258:  "kill_switch_engaged": false
+docs/archive/PHASE_8_VISUAL_REGRESSION_REPORT.md:288:  "kill_switch_engaged": null
+docs/archive/PHASE_8_VISUAL_REGRESSION_REPORT.md:316:  "kill_switch_engaged": false
+docs/archive/PHASE_8_VISUAL_REGRESSION_REPORT.md:346:  "kill_switch_engaged": false
+docs/research/phase-10/study-fincept.md:8:> **What this is.** Fincept Terminal v4 is a native **C++20 / Qt6** desktop app with **embedded Python** for analytics — a different stack from Vysted (Tauri + Next.js + Python sidecar). It is NOT the old DearPyGUI Python version. The _architecture patterns_ port directly even though the language doesn't. It is enormous: **55 screens**, ~78 data connectors, 21 brokers, 37 AI personas. It is the right thing to mine for breadth and registry patterns.
+docs/research/phase-10/study-fincept.md:136:**Brokers are a parallel registry** (`src/trading/BrokerRegistry.{h}`): factory + lookup for 21 broker implementations (`src/trading/brokers/`: zerodha, angelone, upstox, fyers, dhan, groww, alpaca, ibkr, tradier, saxo…), `register_all()`, `get(id)`, `list_brokers()`, `has(id)`. Plus 2 crypto exchanges (`src/trading/exchanges/`: kraken, hyperliquid).
+docs/research/phase-10/study-fincept.md:142:Vysted's integrations are **hardcoded per-broker, no unified hub**:
+docs/research/phase-10/study-fincept.md:144:- `BROKER_CREDENTIAL_FIELDS: Record<BrokerId, Array<{key, label}>>` in `src/modules/broker-connect/BrokerConnectPanel.tsx:40` — the equivalent of `FieldDef[]`, **but only `{key, label}`** — no `type` (so no password masking metadata, no url/select), no `placeholder`, no `required`, no validation, no `testable`, no `requires_auth`, no icon/color/description.
+docs/research/phase-10/study-fincept.md:145:- The panel lists 7 brokers + ccxt sub-exchanges in two hardcoded groups, status badge, connect → credentials dialog writing keychain `broker:<id>:<field>` (`BrokerConnectPanel.tsx:4-15`). Good safety story (first-connect disclaimer, kite static-IP banner) but **no data-provider connections at all** — Vysted has no MongoDB/Postgres/Tiingo/Plaid connector concept. Data sources are baked into the sidecar (yfinance, FRED, etc.), not user-connectable.
+docs/research/phase-10/study-fincept.md:150:1. **Introduce a single `ConnectorSpec` registry** mirroring `ConnectorConfig`: `{ id, name, category, icon, color, description, testable, requiresAuth, fields: FieldDef[] }` where `FieldDef = { name, label, type: "text"|"password"|"url"|"number"|"select"|"checkbox"|"file", placeholder?, required?, default?, options? }`. One declarative table → one dynamic `ConnectionConfigDialog`. This unifies **brokers + data providers + LLM providers + notification channels** behind one form engine instead of four bespoke surfaces. (Vysted's plugin contract already has `contributesData` — connectors can be plugin-contributed, which is _better_ than Fincept's static-link self-registration.)
+docs/research/phase-10/study-fincept.md:151:2. **Adopt the Gallery / Connections two-view split.** Gallery = "what can I connect" (browse by category chip); Connections = "what I've connected" (status badge + test). Vysted's broker panel is connections-only today.
+docs/research/phase-10/study-fincept.md:154:5. **Don't copy 78 connectors.** Vysted is local-first BYOK finance; the relevant categories are Market Data, Alternative Data, Open Banking (Plaid for portfolio import), and the brokers it already has. Pick ~15–20 that match the product, register them through the plugin `contributesData` capability.
+docs/research/phase-10/study-fincept.md:199:3. **Parameterised commands** (`ParameterSlot`) are how "open chart AAPL" or "/connect alpaca" become guided. Vysted's `/connect <broker>` story (broker.ts mentions `contributesCommands` "/connect alpaca") would benefit — but this likely needs a contract field. **Defer to a deliberate Tier-4 contract revision; don't bolt it on.**
+docs/research/phase-10/study-fincept.md:225:1. **Move to a left-rail + content-pane IA** once settings grows past ~5 sections. Vysted is at 4 and about to add an integrations hub, agent config, keybindings, notifications — that's 8+, past the scroll-page threshold. Mirror Fincept's section list, pruned to Vysted scope: **General · Appearance/Theme · Layouts · Modules & Plugins · AI Providers · Integrations (data + brokers) · Agents · Keybindings · Notifications · Security · About**.
+docs/research/phase-10/study-fincept.md:236:- **How many:** ~78 data connectors (11 categories) + 21 brokers + 2 crypto exchanges + 15 notification channels + N LLM providers + MCP servers (marketplace). README markets "100+ data connectors".
+docs/research/phase-10/study-fincept.md:237:- **How registered:** four parallel registries, all the same shape — a singleton holding declarative configs, populated by self-registering units (`ConnectorRegistry`, `BrokerRegistry`) or static catalogs (`McpMarketplace`, notification providers). New connector = new declarative entry, no central wiring edit.
+docs/research/phase-10/study-fincept.md:250:**Fincept: 55 screens** (`ls src/screens`). **Vysted: 18 modules** (`src/modules/index.ts:55-78`): chart, watchlist, news, portfolio, equity-overview, chat, platform, plugin-manager, agent-builder, node-editor, backtest, broker-connect, safety, macro, sec, quant, earnings, analyst-ratings, screener.
+docs/research/phase-10/study-fincept.md:256:| `data_sources` + `data_mapping`                                        | broker-connect only               | **Integrations hub** (§2) — biggest gap.                                                                     |
+docs/research/phase-10/study-fincept.md:283:1. **Integrations hub.** Introduce a declarative `ConnectorSpec` + `FieldDef` registry (mirror `ConnectorConfig`/`FieldDef`), a dynamic config dialog, a Gallery/Connections two-view UI, a sidecar connection-tester, and import/export with a blank-template download. Unify brokers + data providers + LLM providers + notifications behind it. Route connectors through the existing `contributesData` capability (no contract change). — _file refs: `DataSourceTypes.h`, `ConnectorRegistry.{h,cpp}`, `ConnectionTester.h`, `ImportExportConnections.h`._
+docs/redesign/R9_DESIGN_SYSTEM.md:69:  controls (Settings, Order entry) **h-8 (32px)**. Hit target ≥24×24.
+docs/redesign/R9_DESIGN_SYSTEM.md:125:- **Forms** (settings, order entry): body-13 labels, micro-11 hints as eyebrows or
+docs/redesign/R7_TRACK_DATA_REPORT.md:371:`docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json` in the
+docs/redesign/AGENT_TOOLUSE_PLAN.md:66:| BSE intraday/realtime upgrade | **Kite/Upstox** historical via the existing read-only broker seam (`*_info` duck-type) | MIT client / proprietary API | opt-in only | No (BYOK upgrade) |
+docs/redesign/AGENT_TOOLUSE_PLAN.md:78:4. **Read-gate loosening (safety-adjacent).** Today a read-intent turn strips **all** mutating host-actions, so the agent can't open the index chart to ground a market answer. **Default: allow a small allow-list of read-**safe** panel actions (`open_panel`, `set_chart_symbol`, `set_chart_indicators`, `arrange_layout`, `add_to_watchlist`) on read intents; `propose_order` stays excluded.** This touches the §6.5-adjacent gating logic — **operator sign-off required.**
+docs/redesign/AGENT_TOOLUSE_PLAN.md:80:6. **Thread `autonomy` to the sidecar.** Additive field on `AgentInvocationRequest`; lets `_make_host_action` narrate truthfully. **Default: thread it.** Not the plugin contract; low blast radius. (Safety check baked into WS1: the `applied` narration branch is for **non-order** host-actions only; `propose_order` keeps `awaiting_user_review` in every mode.)
+docs/redesign/AGENT_TOOLUSE_PLAN.md:90:- **Optional/deferred:** `streamdown`, `assistant-ui`, `react-markdown`, `litellm`, `Tavily`, `BseIndiaApi`, broker historical libs — none adopted by default.
+docs/redesign/AGENT_TOOLUSE_PLAN.md:96:- **AUTO auto-runs SAFE / REVERSIBLE tools only:** data reads, navigation/layout, chart/watchlist host-actions, date/time, briefs, screeners, `market_overview`, broker **GET** reads. These already auto-apply client-side; the only change is **truthful narration**.
+docs/redesign/AGENT_TOOLUSE_PLAN.md:97:- **ALWAYS require explicit human confirmation, regardless of ASK/AUTO:** orders, broker writes, fund moves, settings/key changes, destructive actions.
+docs/redesign/AGENT_TOOLUSE_PLAN.md:98:- `propose_order` is **excluded from the AUTO auto-apply branch** (`proposed-changes.ts:79`) **and** `accept()` routes it through the §6.5 confirm-before-place dialog. The agent never has a path to `confirm_and_place`. **This stays true after autonomy-threading** (WS1's `applied` status branch is gated to non-order host-actions; the `propose_order` branch in `_make_host_action` keeps `awaiting_user_review` in all modes).
+docs/redesign/AGENT_TOOLUSE_PLAN.md:99:- **§6.5 stays 9/9, untouched:** append-only audit log + triggers, kill-switch (Rust + Python), type gate + grep audit, read-only broker wrappers. `test_safety_end_to_end.py` must stay green.
+docs/redesign/AGENT_TOOLUSE_PLAN.md:133:  if tool_id == "propose_order":
+docs/redesign/AGENT_TOOLUSE_PLAN.md:148:- [ ] **Step 6 — Loosen the read-gate for read-safe panel actions (Decision 4, sign-off-gated).** In the read-only filter (~667–678), keep `propose_order` stripped on a read intent but **retain** a small allow-list (`open_panel`, `set_chart_symbol`, `set_chart_indicators`, `arrange_layout`, `add_to_watchlist`) so a read question can still ground the index chart. Do not land this step without operator sign-off.
+docs/redesign/AGENT_TOOLUSE_PLAN.md:149:- [ ] **Step 7 — Tests.** `test_agent_runtime`: the composed messages contain a "Current date:" line; an `autonomy="auto"` host-action returns `status="applied"`; `propose_order` returns `awaiting_user_review` even with `autonomy="auto"`; a read-intent turn retains the panel allow-list but not `propose_order`. Update `test_capability_catalog`/`test_mcp_catalog_parity`/`test_agents_router` for the new tool + roster count. Run: `ruff format sidecar && ruff check sidecar && pytest sidecar/tests/test_agent_runtime.py test_capability_catalog.py test_mcp_catalog_parity.py -q`.
+docs/redesign/AGENT_TOOLUSE_PLAN.md:230:- [ ] **Step 2 — Keyless BSE provider (Decision 3, blocked on operator licensing sign-off).** New `sidecar/services/bse_provider.py` modeled on `india_provider.py`: `get_history` backed by a once-daily full-universe bhavcopy cache (download `BhavCopy_BSE_CM_0_0_0_{YYYYMMDD}_F_0000.CSV`, key by scrip code/ticker — instant full micro-cap coverage), `get_quote` via `getScripHeaderData`. Reuse india_provider's UA/header hardening, cache-dir-race retry, IST trading-date fix, EOD labelling; raise on intraday with the existing "add a BYOK broker (Kite/Upstox/Dhan)" message. A 5-line token-bucket replaces `mthrottle`. **Reimplemented under AGPL — no GPL import.**
+docs/redesign/AGENT_TOOLUSE_PLAN.md:232:- [ ] **Step 4 — Region-aware "no data" UX.** When all providers are empty for an IN symbol, surface a typed honest message ("BSE/NSE EOD only; intraday/realtime needs a BYOK broker (Kite/Upstox/Dhan)") instead of the generic "No price data" — carry the reason from the provider's `ProviderError` to the chart (`history.py` → `ChartPanel`).
+docs/redesign/AGENT_TOOLUSE_PLAN.md:259:- **External MCP control-plane** (operator asked to evaluate exposing panels/data/actions as agent tools). Vysted already has a read-only MCP data surface (`mcp_server.py` projects `read_handler` capabilities; host-actions are deliberately excluded per `catalog.py:1040` + `test_mcp_catalog_parity.py:93`). A safe extension exists but is **Tier-4** (widens §6.5): an **opt-in, flag-gated** (`VYSTED_MCP_CONTROL_PLANE=1`, default off) tier that projects host-actions as **propose-not-apply** (returns the same `awaiting_user_review` payload into the existing review queue), uses FastMCP `ctx.elicit()` to confirm where the client supports it (feature-detect + degrade), studies OpenBB's AGPL discovery layer for tool-surface scaling, and **permanently excludes `propose_order`**. Do **not** promote the dev-only `tauri-plugin-mcp` rig (it writes Zustand stores directly, bypassing the gate). **Recommend defer** — orthogonal to all 7 symptoms.
+docs/redesign/AGENT_TOOLUSE_PLAN.md:260:- **`curl_cffi`** (Decision 2), **Tavily BYOK rung** (Decision 9), **broker historical** (Kite/Upstox intraday upgrade), **pending-proposal persistence** (Decision 8) — all deferred by default, surfaced for a later sprint.
+docs/redesign/R7_TRACK_RESEARCH_BRIEF.md:14:- NEVER touch: `types/plugin.ts`, `.github/`, `src-tauri/tauri.conf.json`, `LICENSE*`, `CLAUDE.md`, `sidecar/models/audit_log.py`, `sidecar/services/kill_switch.py`, broker code, `sidecar/services/agent_tools/catalog.py` (owned by another track). If a catalog/app-shared change is genuinely required, append it to `docs/redesign/INTEGRATION_NOTES_R7.md` (create it) for the lead instead.
+docs/redesign/INTEGRATION_NOTES_R7_HACK.md:229:                "restricted grammar (never eval) and executed in the SIMULATED "
+docs/redesign/INTEGRATION_NOTES_R7_HACK.md:273:`read_only=True` rationale: the tool only SIMULATES (backtest engine has no
+docs/archive/PHASE_9.5_BUG_CATALOG.md:165:| **#81**     | Kill-switch reset ack gate           | empty body `{}` → **400** "requires acknowledged=true"; `{"acknowledged":true}` → **200 `{"reset":true}`** | **PASS** (400 not 422)                                                                    |
+docs/archive/PHASE_9.5_BUG_CATALOG.md:174:  was `no such table: audit_orders` on a never-initialized DB).
+docs/archive/PHASE_9.5_BUG_CATALOG.md:324:| **#77**    | Broker-list read        | `/brokers` → 200 (dhan… disconnected/paper)                                                                                   | **PASS (read)**                                                                   |
+docs/archive/PHASE_9.5_BUG_CATALOG.md:346:| §3.5 Broker creds | #77 connect, #78, #83                              | `/brokers` read PASS; connect/mode/read-only toggle are credential-gated → OPERATOR-MANUAL                        |
+docs/archive/PHASE_9.5_BUG_CATALOG.md:349:(earnings, yield-curve, bond, screener, news, plugins, broker-list). GUI-form
+docs/archive/PHASE_9.5_BUG_CATALOG.md:350:interactions are OPERATOR-MANUAL (click-tier — no typing). Key/Supabase/broker-cred
+docs/archive/PHASE_9.5_BUG_CATALOG.md:422:- **Credential / financial flows:** **#77 broker connect**, **#78** paper↔live + read-only
+docs/archive/PHASE_9.5_BUG_CATALOG.md:423:  toggle, **#83** disclaimer/ToS, any live order placement — operator-manual by policy
+docs/archive/PHASE_9.5_BUG_CATALOG.md:471:sec-edgar-mcp binds; (4) provision FRED/BYOK/Supabase/paper-broker creds to clear the DEFERRED §3 groups.
+docs/redesign/R7_TRACK_DATA_BRIEF.md:14:- NEVER touch: `types/plugin.ts`, `.github/`, `src-tauri/tauri.conf.json`, `LICENSE*`, `CLAUDE.md`, §6.5 safety files, broker code, `sidecar/app.py` (owned by another track), `sidecar/services/config.py` (owned by another track), `sidecar/services/search/**`, `sidecar/services/research/**` (another track). Register new routers by appending instructions to `docs/redesign/INTEGRATION_NOTES_R7.md` (create it); test routers standalone (TestClient over a local FastAPI() + include_router).
+docs/redesign/REBUILD_R3_REPORT.md:19:The 9 audits: paper-default, no-bypass-to-place, position-limit, append-only-DB, kill-switch<2s,
+docs/redesign/REBUILD_R3_REPORT.md:86:  is `broker-connect`); `PlaceholderPanel` has zero usages. Safe.
+docs/redesign/REBUILD_R3_REPORT.md:137:- `GET /fundamentals/AAPL` → `provider:yfinance, roe:1.41, dividend_yield:0.0035 (≈0.35% — the fraction unit is CORRECT, not 35%), profit_margin:0.27` — populated + the unit fix holds.
+docs/redesign/REBUILD_R3_REPORT.md:152:  The 8 console errors are all environmental/expected (dev `favicon` 404, six unconfigured-broker
+docs/redesign/REBUILD_R3_REPORT.md:275:  `tauri.conf.json` + `kill_switch.rs` were not touched. `cargo clippy -D warnings` + `fmt` clean; the
+docs/redesign/REBUILD_R3_REPORT.md:300:(`tauri.conf.json`, `kill_switch.rs`, the safety models, CI workflows) byte-for-byte untouched;
+docs/research/phase-10/hunt-race-async.md:110:## FINDING 2 — KillSwitchToolbar OS-event listener leaks (and can double-fire the kill switch) when the effect tears down inside the `await listen()` window (MEDIUM)
+docs/research/phase-10/hunt-race-async.md:112:**File:** `src/modules/safety/KillSwitchToolbar.tsx:80-99`
+docs/research/phase-10/hunt-race-async.md:121:    unlisten = await api.listen<KillSwitchEventPayload>(    // ...but not after this await
+docs/research/phase-10/hunt-race-async.md:122:      "kill-switch:requested",
+docs/research/phase-10/hunt-race-async.md:141:`kill-switch:requested` event, after N leaks a single `Cmd/Ctrl+Shift+K` fires **N**
+docs/research/phase-10/hunt-race-async.md:142:`POST /safety/kill-switch` requests — and continues firing even after the toolbar panel is
+docs/research/phase-10/hunt-race-async.md:144:surface; even if the endpoint is idempotent, a leaked handler firing the kill switch while
+docs/research/phase-10/hunt-race-async.md:146:(`KillSwitchToolbar.tsx` is **not** in the locked §6.5 file set — `kill_switch.rs`,
+docs/research/phase-10/hunt-race-async.md:147:`audit_log.py`, `broker_base.py`, `types/plugin.ts`, `test_safety_end_to_end.py` are; this
+docs/research/phase-10/hunt-race-async.md:358:  `BrokerConfirmRequest`'s Pydantic aliases (`models/broker.py:157-158`
+docs/research/phase-10/hunt-race-async.md:379:| 2   | KillSwitchToolbar listener leak → duplicate kill-switch fires                                | MEDIUM     | 0.75       | `src/modules/safety/KillSwitchToolbar.tsx:80-99` |
+docs/archive/PHASE_4_HANDOFF.md:192:Phase 5 (broker integration + §6.5 safety) shipped under the same v0.5.0
+docs/archive/PHASE_4_HANDOFF.md:196:   `place_order`-style tools but explicitly forbade them (operator-brief
+docs/archive/PHASE_4_HANDOFF.md:198:   the broker adapter directly, not through the agent_tools registry.
+docs/archive/PHASE_4_HANDOFF.md:203:   broker proposal steps that route to the safety-gated propose →
+docs/archive/PHASE_4_HANDOFF.md:207:   view of a backtest result. Phase 5's broker plugins can be added to
+docs/archive/PHASE_4_HANDOFF.md:268:The two file-conflict resolutions during Phase 5 broker merges
+docs/archive/PHASE_4_HANDOFF.md:269:(`sidecar/services/brokers/__init__.py`, `docs/BROKER_INTEGRATIONS.md`)
+docs/redesign/R9_SAKSOFT_DIAGNOSIS.md:51:- Q4 FY26 PAT: **₹3,593.09 lakh** (₹359.31 Mn; +19.7% YoY; margin 14.44%)
+docs/redesign/REBUILD_SPEC.md:28:byte untouched: `types/plugin.ts`, `types/safety.ts`, `types/broker.ts`,
+docs/redesign/REBUILD_SPEC.md:29:`sidecar/models/{safety,broker,audit_log,kill_switch}.py`,
+docs/redesign/REBUILD_SPEC.md:30:`sidecar/services/broker_base.py`, `src-tauri/src/kill_switch.rs`,
+docs/redesign/REBUILD_SPEC.md:32:auto-apply; every mutation routes the diff/accept gate; broker secrets stay
+docs/redesign/CLAUDE_MD_PROPOSAL.md:91:- **Layout:** `src-tauri/` drops "kill-switch" from its one-line description (no
+docs/redesign/CLAUDE_MD_PROPOSAL.md:92:  `kill_switch.rs` any more). `plugins/` becomes "(openbb-mcp, yfinance, vysted-news,
+docs/redesign/CLAUDE_MD_PROPOSAL.md:93:  vysted-lenses, example)" — the `brokers` entry is gone.
+docs/redesign/CLAUDE_MD_PROPOSAL.md:96:  > ⚠️ The redesign vision **changes some locked decisions** (e.g. broker order execution
+docs/redesign/CLAUDE_MD_PROPOSAL.md:102:  > Trading (broker connectivity, orders, simulated accounts) was removed permanently by
+docs/redesign/CLAUDE_MD_PROPOSAL.md:106:  grep check, kill-switch, read-only trading-wrapper layers) with one line: "§6.5
+docs/redesign/CLAUDE_MD_PROPOSAL.md:117:- **Gotchas → Broker & credentials:** rename the section to "Gotchas → Credentials." Delete
+docs/redesign/CLAUDE_MD_PROPOSAL.md:118:  the "Kite Connect read-only login runs in the SIDECAR" bullet and the "Granular broker
+docs/redesign/CLAUDE_MD_PROPOSAL.md:119:  reads" bullet in full — no broker exists to read from. In the BYOK secrets bullet, change
+docs/redesign/CLAUDE_MD_PROPOSAL.md:125:- **Reference docs:** drop the `docs/BROKER_INTEGRATIONS.md` mention from the
+docs/redesign/CLAUDE_MD_PROPOSAL.md:127:docs/BROKER_INTEGRATIONS.md, docs/DESIGN_SYSTEM.md` list (it is now a one-paragraph
+docs/archive/PHASE_8_HANDOFF.md:45:  (620.19 s including kill-switch benchmark). Cargo fmt + clippy strict
+docs/archive/PHASE_8_HANDOFF.md:98:- **L9** _(deferred — needs broker paper credentials, Phase 9 manual test)_
+docs/archive/PHASE_8_HANDOFF.md:119:  3×S2, 3×S3, 1×S4.** Top findings: 7 broker plugins not in
+docs/archive/PHASE_8_HANDOFF.md:212:broker paper-mode connections, axe-core a11y, Lighthouse perf, Mac
+docs/archive/PHASE_8_HANDOFF.md:240:exercised on macOS with real broker paper credentials, real BYOK keys,
+docs/archive/PHASE_8_HANDOFF.md:253:   broker safety is solid; focus on broker integration UX rather than
+docs/archive/PHASE_8_HANDOFF.md:267:- **Broker paper-mode connect:** Alpaca (most likely to have paper creds),
+docs/archive/PHASE_8_HANDOFF.md:268:  the 6 other brokers (failure-state UX where no creds — verify the
+docs/archive/PHASE_8_HANDOFF.md:304:| `git diff v0.7.0..HEAD -- sidecar/services/broker_base.py sidecar/services/kill_switch.py sidecar/services/audit_log.py sidecar/models/audit_log.py sidecar/tests/test_safety_end_to_end.py` | ✅ empty                  | §6.5 Tier-1 untouched                                                                                                                                                  |
+docs/archive/PHASE_8_HANDOFF.md:305:| `pytest sidecar/tests/test_safety_end_to_end.py`                                                                                                                                             | ✅ 9/9 PASS               | 620.19 s; kill-switch sub-2 s benchmark included                                                                                                                       |
+docs/redesign/R10_TRACK_SCREENER_BRIEF.md:53:shares_outstanding/roe/margins/debt_to_equity/growth/52wk, quote_* columns,
+docs/redesign/BACKLOG_0.9.1.md:115:| R15-CODE-FRONTEND-013  | Kill switch and append-only audit log gate only broker adapters: the surviving agent data-write gate (portfolio, notes, screens, layouts, region) has no stop button and no durable record of what the agent changed                                                                                                                                                         | medium   | §3.3                              |                                                                                                                    |
+docs/redesign/BACKLOG_0.9.1.md:184:broker, no order, no portfolio write, and no new agent tool or MCP
+docs/redesign/REBUILD_R4_SPEC.md:29:  `publish_brief`, `propose_order`), the §6.5 **propose-then-accept gate** (`proposed-changes.ts` →
+docs/redesign/REBUILD_R4_SPEC.md:434:   broker-WS BYOK Kite/Upstox → paid EODHD) is documented (`R4_BUILD_SEQUENCE` / research). Realtime
+docs/redesign/REBUILD_R4_SPEC.md:435:   broker-WebSocket tick is a sizable **new subsystem** beyond the experience layer.
+docs/redesign/REBUILD_R4_SPEC.md:437:   broker-WS realtime + EODHD are a **separate later track**. (Alt: pull Kite/Upstox WS into R4.)
+docs/archive/PHASE_9.5_MAC_RUNNER.md:106:broker creds → #77 connect,#78. Mark anything still unconfigured DEFERRED-NEEDS-SETUP.
+docs/archive/PHASE_9.5_MAC_RUNNER.md:129:drag/canvas items (#8/#9/#27/#28/#32/#71/#72), live broker connect/order placement,
+docs/redesign/R7_TRACK_PANELS_REPORT.md:24:  (broker)" label.
+docs/redesign/R7_TRACK_PANELS_REPORT.md:31:### OpenRouter "(broker)" — killed at the runtime source
+docs/redesign/R7_TRACK_PANELS_REPORT.md:36:still carried `"label": "OpenRouter (broker)"` — so the defect resurfaced live
+docs/redesign/R7_TRACK_PANELS_REPORT.md:39:no-broker test cannot see the sidecar, so the pin lives sidecar-side).
+docs/redesign/OPERATOR_BRIEFING.md:30:- **Trading removed (D81)** — `a122dbf6`, Stage C batch 1: 0 broker/order/kill/audit routes left,
+docs/redesign/OPERATOR_BRIEFING.md:147:write stages nothing (no `tool_use` event); there is no `audit_orders` table any more (D81), so no order row can exist. Figure grounding by provenance
+docs/redesign/OPERATOR_BRIEFING.md:209:- **§3.4** `COMMERCIAL_LICENSE.md:36-48`'s "responsible for their own broker relationship" clause
+docs/redesign/OPERATOR_BRIEFING.md:225:**Secrets, leftovers and dev signing.** **§3.1** orphaned OS-keychain broker secrets + old `~/.vysted-terminal/audit_log.db` rows — nothing reads or auto-purges them (irreversible); approve
+docs/redesign/R7_TRACK_RESEARCH_REPORT.md:158:the alpaca broker test, not this track.)
+docs/archive/PHASE_9_TEST_PLAN.md:33:- **19 first-party modules** (`src/modules/*`): agent-builder, analyst-ratings, backtest, broker-connect, chart, chat, earnings, equity-overview, macro, news, node-editor, plugin-manager, portfolio, quant, safety, screener, sec, watchlist, platform.
+docs/archive/PHASE_9_TEST_PLAN.md:34:- These register **24 first-party panels** (quant=4, broker-connect=2, safety=1 panel + 3 app-shell surfaces, platform=Settings panel).
+docs/archive/PHASE_9_TEST_PLAN.md:35:- **Plugins:** `vysted-example` (no panels), `openbb-mcp` (no panels), `tradesa-v2` (**7 panels**), 7 broker plugins (no panels — they surface via broker-connect).
+docs/archive/PHASE_9_TEST_PLAN.md:53:| 12  | `broker-connect`     | Broker Connections | `broker connections` | broker-connect        |
+docs/archive/PHASE_9_TEST_PLAN.md:54:| 13  | `broker-order-entry` | Order Entry        | `order entry`        | broker-connect        |
+docs/archive/PHASE_9_TEST_PLAN.md:91:- **Plugin commands** — appended by `moduleForPlugin` (`plugin-bootstrap.ts:188`), e.g. the 7 Tradesa V2 commands and all broker-plugin commands (see §1.9).
+docs/archive/PHASE_9_TEST_PLAN.md:101:### 1.8 All brokers (10 ids — `types/broker.ts:42`)
+docs/archive/PHASE_9_TEST_PLAN.md:103:`dhan, angelone, kite, alpaca, ib, oanda, ccxt-bybit, ccxt-binance, ccxt-kraken, ccxt-coinbase`. Modes: `paper` (default) | `live`; plus `readOnly` flag. Order types: market/limit/stop/stop-limit; sides buy/sell. Per-broker credential fields in `BrokerConnectPanel.tsx:40` (e.g. kite: api_key/api_secret/access_token/static_ip; angelone: api_key/client_code/pin/totp_secret; ib: host/port/client_id).
+docs/archive/PHASE_9_TEST_PLAN.md:105:### 1.9 Broker plugin cmd+K commands
+docs/archive/PHASE_9_TEST_PLAN.md:107:- **alpaca** (`broker-alpaca`): `alpaca connect`, `alpaca account`, `alpaca paper`, `alpaca live` (gated)
+docs/archive/PHASE_9_TEST_PLAN.md:109:- **ccxt-exec** (`ccxt-exec`): `connect ccxt-bybit/binance/kraken/coinbase` + `halt all ccxt` (4 broker ids)
+docs/archive/PHASE_9_TEST_PLAN.md:111:- **ib** (`broker-ib`): `ib connect`, `ib account`, `ib paper`, `ib live` (gated)
+docs/archive/PHASE_9_TEST_PLAN.md:113:- **oanda** (`broker-oanda`): `oanda connect`, `oanda account`, `oanda demo`, `oanda live` (gated)
+docs/archive/PHASE_9_TEST_PLAN.md:148:- safety → `/safety/audit-log[/export.csv]`, `/kill-switch[/reset|/status]`, `/disclaimer-*`, `/static-ip-status` — SQLite (append-only, LOCKED)
+docs/archive/PHASE_9_TEST_PLAN.md:149:- brokers → `/brokers`, `/brokers/{id}/connect|account|orders|mode|read-only`, `/brokers/kite/static-ip` — broker SDKs (LOCKED `broker_base`)
+docs/archive/PHASE_9_TEST_PLAN.md:150:- tradesa_v2 → 11 GET routes (`/status`, `/positions`, `/trade-history`, `/decisions`, `/meta-agent-runs`, `/cost-today`, `/health`, `/kill-switch-events`, `/sentinel`, `/settings`, `/settings/drift`, `/meta-agents/{kind}`) — Supabase passthrough (read-only)
+docs/archive/PHASE_9_TEST_PLAN.md:190:- **Cmd/Ctrl+Shift+K** — fires the kill-switch request (Tauri event `kill-switch:requested`, handled by `KillSwitchToolbar`).
+docs/archive/PHASE_9_TEST_PLAN.md:254:- **Audit Log Viewer** (`audit-log`): filters — Broker select (all + 10 + `_meta`), Action select (12 actions), DateRange From/To (`datetime-local`), Reset, **Export CSV** (downloads `/safety/audit-log/export.csv`). Polls `/safety/audit-log?limit=200` every 2s. Table ID/Time/Broker/Action/Payload/Source/Outcome. Empty: "No audit entries match the filter."
+docs/archive/PHASE_9_TEST_PLAN.md:255:- **KillSwitchToolbar** (fixed top-right, always present): armed "Halt All Trading" destructive button → `POST /safety/kill-switch`; fired-state "Kill switch fired — Reset". Cmd/Ctrl+Shift+K fires it. Banner shows subs/p95/max ack ms + dismiss.
+docs/archive/PHASE_9_TEST_PLAN.md:257:- **DisclaimerFlow**: first-launch ToS dialog; per-broker first-connect dialog.
+docs/archive/PHASE_9_TEST_PLAN.md:373:- Audit-log `limit` out of 1–5000 → 400; CSV with exactly one of start/end → 400; kill-switch reset without `acknowledged:true` → 400.
+docs/archive/PHASE_9_TEST_PLAN.md:377:### 4.13 Brokers
+docs/archive/PHASE_9_TEST_PLAN.md:379:- Unknown broker id → 404; connect body broker ≠ path broker → 400; bad creds → 400; other → 502.
+docs/archive/PHASE_9_TEST_PLAN.md:407:- **Safety:** audit-log limit 0 / 5001; CSV with only start (or only end); kill-switch reset without acking; fire kill-switch repeatedly.
+docs/archive/PHASE_9_TEST_PLAN.md:422:- Keyboard: Ctrl+K, Escape, Delete/Backspace (chart drawings), Arrow/Enter in palette, Ctrl+Shift+K (kill-switch).
+docs/archive/PHASE_9_TEST_PLAN.md:544:### H. Plugins / Brokers / Safety
+docs/archive/PHASE_9_TEST_PLAN.md:547:77. Broker Connect: open panel, attempt connect with bad creds for each broker. Expected: 400 graceful error; no live order path without gating. **S2** (do NOT attempt live orders).
+docs/archive/PHASE_9_TEST_PLAN.md:548:78. Broker mode toggle paper↔live; read-only toggle. Expected: state reflected; live gated behind confirmation. **S2**.
+docs/archive/PHASE_9_TEST_PLAN.md:549:79. Audit Log: open viewer; apply Broker + Action + DateRange filters; Reset; Export CSV. Expected: filtered rows; CSV downloads. **S2**.
+docs/archive/PHASE_9_TEST_PLAN.md:551:81. Kill Switch: arm "Halt All Trading" (paper context); observe fired state; Reset (requires ack). Also Ctrl+Shift+K. **S1** (safety surface).
+docs/archive/PHASE_9_TEST_PLAN.md:553:83. Disclaimer flow: first-launch ToS; per-broker first-connect. Expected: dialogs gate. **S2**.
+docs/archive/PHASE_9_TEST_PLAN.md:581:With `compareNormalize` ON, the overlay uses a **left** price scale (`:748`) while candles + price-pane indicators use the **right** scale; multiple `lastValueVisible:true` tags stack on the right axis. There is **no `scaleMargins` / label-collision config** — `CHART_THEME` (`:64-77`) sets only border colors. **Fix:** manage scale margins / dedupe last-value labels / disable `lastValueVisible` on overlay indicators.
+docs/archive/PHASE_9_TEST_PLAN.md:608:- Plugins: `plugins/{example,openbb-mcp,tradesa-v2}/`, `plugins/brokers/*`, `types/{plugin,tradesa_v2,broker,workflow}.ts`.
+docs/archive/PHASE_9_TEST_PLAN.md:609:- LOCKED (read-only reference): `types/plugin.ts`, `sidecar/services/{broker_base,kill_switch,audit_log}.py`, `sidecar/tests/test_safety_end_to_end.py`.
+docs/redesign/R8_TRACK_SEAMS_REPORT.md:26:§6.5 untouched: the union widens the allow-list only. `propose_order` still
+docs/redesign/R8_TRACK_SEAMS_REPORT.md:29:`test_propose_order_always_awaits_review_even_in_auto`), the frontend gate
+docs/redesign/R8_TRACK_SEAMS_REPORT.md:146:  regenerates `docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json`
+docs/redesign/DECISIONS_FOR_OPERATOR.md:28:`test_safety_end_to_end.py` and the tracked `kill-switch-benchmark.json` baseline are
+docs/redesign/DECISIONS_FOR_OPERATOR.md:32:<details><summary>Original entry (2.5 — kill-switch-benchmark.json no longer dirties the tree on every pytest), kept for history</summary>
+docs/redesign/DECISIONS_FOR_OPERATOR.md:34:- **What:** `test_safety_end_to_end.py::test_audit_5_kill_switch_under_2s` rewrote the
+docs/redesign/DECISIONS_FOR_OPERATOR.md:61:  license text promises or mentions live order placement anymore.
+docs/redesign/DECISIONS_FOR_OPERATOR.md:99:The census held at HEAD `99e2ae3`: the kill switch's only subscriber was
+docs/redesign/DECISIONS_FOR_OPERATOR.md:100:`BrokerAdapter.__init__` (`broker_base.py:103`), and its only readers were the order
+docs/redesign/DECISIONS_FOR_OPERATOR.md:102:`kill-switch:requested` event. With no orders left, there was nothing to halt, so the
+docs/redesign/DECISIONS_FOR_OPERATOR.md:103:mechanism was deleted rather than bound: `kill_switch.rs`, the
+docs/redesign/DECISIONS_FOR_OPERATOR.md:104:`tauri-plugin-global-shortcut` dependency and its capability, `services/kill_switch.py`,
+docs/redesign/DECISIONS_FOR_OPERATOR.md:105:the `/safety/kill-switch*` routes, the store slice, and the types. The first-launch
+docs/redesign/DECISIONS_FOR_OPERATOR.md:113:The paper→live switch (`BrokerConnectPanel.tsx:246-249`), `POST /brokers/{id}/mode`,
+docs/redesign/DECISIONS_FOR_OPERATOR.md:121:`sidecar/models/safety.py`, `types/safety.ts` and `BrokerAdapter.DEFAULT_LIMITS`. No
+docs/redesign/DECISIONS_FOR_OPERATOR.md:183:  route or UI to point Vysted at a third-party MCP server (e.g. a broker's read-only MCP,
+docs/redesign/DECISIONS_FOR_OPERATOR.md:283:- `~/.vysted-terminal/audit_log.db` — a user's own historical order and paper-trade audit
+docs/redesign/DECISIONS_FOR_OPERATOR.md:285:- OS-keychain `broker:<id>:api_key|api_secret|access_token|client_id` and
+docs/redesign/DECISIONS_FOR_OPERATOR.md:286:  `broker:<id>:_meta:first-connect-ack` — live BYOK broker secrets, now orphaned.
+docs/redesign/DECISIONS_FOR_OPERATOR.md:287:- `broker:_meta:first-launch-tos` — the old first-launch-terms ack, superseded by
+docs/redesign/DECISIONS_FOR_OPERATOR.md:289:- Sidecar plugin-store rows for the 7 broker plugin ids — `plugin-bootstrap` iterates
+docs/redesign/DECISIONS_FOR_OPERATOR.md:294:  broker credentials" step, plus a CHANGELOG note telling users how to delete `audit_log.db`
+docs/redesign/DECISIONS_FOR_OPERATOR.md:299:- The dialog's body text changes from "before connecting a broker" framing to research-only
+docs/redesign/DECISIONS_FOR_OPERATOR.md:300:  terms: data and analysis tool, not investment advice; no brokerage connection, cannot place,
+docs/redesign/DECISIONS_FOR_OPERATOR.md:301:  route or simulate orders; data may be delayed or wrong; AI output can be wrong; a licence
+docs/redesign/DECISIONS_FOR_OPERATOR.md:303:  kill-switch line. This is a rewrite of user-facing terms and licence-adjacent wording on a
+docs/redesign/DECISIONS_FOR_OPERATOR.md:309:- **No durable record of agent writes.** The former append-only `audit_orders` log existed
+docs/redesign/DECISIONS_FOR_OPERATOR.md:310:  only to record order placement and went with the feature. The surviving read-back
+docs/redesign/DECISIONS_FOR_OPERATOR.md:313:- **No stop control for AUTO beyond reject or run-cancel.** There is no kill switch and no
+docs/redesign/DECISIONS_FOR_OPERATOR.md:320:  and the JSDoc examples (`tradesa.kill-switch`, "Tradesa V2 (Bybit testnet)") were **not**
+docs/redesign/DECISIONS_FOR_OPERATOR.md:328:  broker relationship." The clause is still true (it covers decisions users make elsewhere)
+docs/redesign/DECISIONS_FOR_OPERATOR.md:331:  instructed not to edit. **No edit was needed:\*\* verified no shortcut, broker, or safety
+docs/redesign/DECISIONS_FOR_OPERATOR.md:633:  - **No order row exists to write.** There is no `audit_orders` table any more: D81 removed it
+docs/redesign/DECISIONS_FOR_OPERATOR.md:686:- **Options:** (a) authorise ONE more bounded attempt before rc2 (own branch, Opus writer, fresh verifier with held-out phrasings) that changes strategy rather than adding frames: count the trailing `?` as a read cue only when the text opens with an interrogative from a closed set (is/are/am/was/were/do/does/did/has/have/had/how/what/which/who/whom/whose/when/where/why) that is not itself a request frame (followed by you / if / it (be) ok|okay|alright|possible|fine); keep the existing exemptions; a question that does not open with an interrogative is cue-less and keeps the full set, and data writes still stage for review (D-B3-3). Simulated at HEAD through the real `invoke_agent`: 43/43 write asks keep their tool (9 strip today) and 12/12 real-read controls still strip. Acceptance: the parametrized `test_b3_runtime_intent_gate.py` cases in the audit file, plus the live re-proof there; a fourth failure reverts to (b). (b) accept as a documented known limitation of the local-model lane (a question-shaped write ask needs an imperative or a `can/could/would/will you` frame), listed with LEAD-030/035/037/038 in the release notes, and leave the entry `blocked_tier4`.
+docs/redesign/DECISIONS_FOR_OPERATOR.md:693:- **What holds now:** the guard mechanism is byte-identical to the certified candidate; the entry's own repro (a fabricated SIFY ADR ratio with a fake citation) is replaced whole through the real runtime, and the verifier's own leak example was a simulator artefact (its script never threaded `turn.ratio_context`).
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:14:- **S2** — uncovered branch in plugin contract / broker / workflow / backtest; BLUEPRINT claim partially implemented
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:16:- **S4** — BLUEPRINT intentional stretch goal (UC6 year-2, UC7 multi-broker aggregation)
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:103:broker `POST` resolves. The test suite (`orders.test.ts`) only checks `"placed"` and
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:120:### Finding T5-safety-store-reset-ks: `resetKillSwitch` — entirely untested [S1] [status: open]
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:124:**Detection:** `src/store/safety.ts` exposes `resetKillSwitch()` (line 146, implemented
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:125:at line 230). The `safety.test.ts` test suite covers `fireKillSwitch` but has ZERO tests
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:126:for `resetKillSwitch`. This is a §6.5 surface: BLUEPRINT §6.5 #5 says "the kill switch
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:131:silently 422 and the kill switch remains permanently fired, blocking all trading. No test
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:134:**Suggested fix:** Add to `safety.test.ts`: POST to `/safety/kill-switch/reset` with
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:135:`{ reAck: true }`, assert store's `killSwitchFired` clears. Also add a failure path test:
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:277:### Finding T5-broker-base-invalid-order-type: `propose_order` invalid order_type — untested [S1] [status: open]
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:281:**Detection:** `sidecar/services/broker_base.py::BrokerAdapter.propose_order()` raises
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:282:`BrokerError` on `order_type not in ("market", "limit", "stop", "stop-limit")` (line ~175).
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:283:`test_broker_base.py` tests `invalid side` and `zero quantity` raises, but has NO test
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:287:to the broker SDK and result in an unexpected order type being placed. The test gap means
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:291:**Suggested fix:** Add to `test_broker_base.py`:
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:296:    with pytest.raises(BrokerError, match="invalid order type"):
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:297:        adapter.propose_order(symbol="AAPL", side="buy", order_type="twap", quantity=1)
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:300:**Files:** `sidecar/services/broker_base.py:175`, `sidecar/tests/test_broker_base.py`
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:304:### Finding T5-kill-switch-zero-subscribers: `fire` with zero subscribers — untested [S1] [status: open]
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:308:**Detection:** `sidecar/services/kill_switch.py::KillSwitchBus.fire()` with an empty
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:311:the `if not values: return KillSwitchFireResult(...)` guard (line ~165). No test covers
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:314:**Impact:** S1 — in a hypothetical race (kill switch fired before any broker adapter
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:320:**Suggested fix:** Add to a kill_switch test file:
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:325:    bus = KillSwitchBus()
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:331:**Files:** `sidecar/services/kill_switch.py:100–130, 155–175`
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:651:agentBuilder, nodeEditor, backtest, brokerConnect, safety, macro, secFilings, quant, earnings,
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:723:| 9     | S2       | Plugin/broker/workflow/backtest coverage + BLUEPRINT module claims |
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:733:- **UC7 (Multi-Broker Aggregation):** §10 describes the intended UX but no aggregate
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:734:  P&L view, cross-broker risk metrics, or multi-broker unified panel exists in the
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:739:1. **T5-safety-store-reset-ks** (S1) — `resetKillSwitch()` entirely untested; the
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:741:   kill switch.
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:742:2. **T5-broker-base-invalid-order-type** (S1) — `propose_order` invalid `order_type`
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:760:The module implements Monte Carlo simulation for options pricing. No corresponding
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:766:at least a basic `run_simulation()` call and bounds-check on the returned paths array.
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:778:- **`test_safety_end_to_end.py::test_audit_5_kill_switch_under_2s` benchmark** — this
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:779:  test requires building and running 7 real broker adapters with a live asyncio event loop.
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:781:safety-audit/kill-switch-benchmark.json` was restored from the v0.7.0 commit in the
+docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md:782:  most-recent housekeeping commit `005a8d0`). Any coverage measurement of `kill_switch.py`
+docs/research/phase-10/hunt-error-surfaces.md:6:actual source on disk. The §6.5 LOCKED files (`sidecar/models/audit_log.py`, `kill_switch.py`,
+docs/research/phase-10/hunt-error-surfaces.md:7:`broker_base.py`, `types/plugin.ts`, `tests/test_safety_end_to_end.py`) were treated as read-only —
+docs/research/phase-10/hunt-error-surfaces.md:17:| 2   | HIGH     | Kill-switch fire failure is silently swallowed — panic button shows no error when the halt does NOT propagate                                    | `src/modules/safety/KillSwitchToolbar.tsx`                               |
+docs/research/phase-10/hunt-error-surfaces.md:21:| 6   | MEDIUM   | Broker mode toggle (paper↔live) + read-only toggle silently no-op on failure — unhandled rejection, no UI feedback                               | `src/modules/broker-connect/BrokerConnectPanel.tsx`                      |
+docs/research/phase-10/hunt-error-surfaces.md:23:| 8   | MEDIUM   | Broker refresh error rendered as "No brokers reported by sidecar." — masks a connection failure as an empty state                                | `src/modules/broker-connect/BrokerConnectPanel.tsx`                      |
+docs/research/phase-10/hunt-error-surfaces.md:88:### 2. Kill-switch fire failure is silently swallowed (safety-UX)
+docs/research/phase-10/hunt-error-surfaces.md:90:**File:** `src/modules/safety/KillSwitchToolbar.tsx:58-74` (toolbar) + `src/store/safety.ts:210-241` (store)
+docs/research/phase-10/hunt-error-surfaces.md:92:`store/safety.ts` deliberately makes `fireKillSwitch` / `resetKillSwitch` _throw_ on failure (they do not
+docs/research/phase-10/hunt-error-surfaces.md:93:write `killSwitchError`):
+docs/research/phase-10/hunt-error-surfaces.md:98:  throw new Error(`kill-switch fire failed (${response.status})`);
+docs/research/phase-10/hunt-error-surfaces.md:105:// src/modules/safety/KillSwitchToolbar.tsx:64-71
+docs/research/phase-10/hunt-error-surfaces.md:107:  const result = await fireKillSwitch(reason, firedBy);
+docs/research/phase-10/hunt-error-surfaces.md:118:**Consequences:** The kill switch is the single most safety-critical control in the app (BLUEPRINT §6.5 #5
+docs/research/phase-10/hunt-error-surfaces.md:121:with **zero feedback that the halt did not reach any broker**. During a runaway-AI / fat-finger event the
+docs/research/phase-10/hunt-error-surfaces.md:125:`store/safety.ts` and `KillSwitchToolbar.tsx` are frontend files — NOT in the LOCKED §6.5 set
+docs/research/phase-10/hunt-error-surfaces.md:126:(`audit_log.py`, `kill_switch.py`, `broker_base.py`, `types/plugin.ts`, `test_safety_end_to_end.py`),
+docs/research/phase-10/hunt-error-surfaces.md:129:**Repro:** Stop the sidecar (or block `/safety/kill-switch`). Click "Halt All Trading." Button briefly
+docs/research/phase-10/hunt-error-surfaces.md:132:**Fix:** On the catch path, surface a prominent persistent error state (a red "KILL SWITCH FAILED TO FIRE
+docs/research/phase-10/hunt-error-surfaces.md:134:having the store set a `killSwitchError` on the fire/reset paths so the surface is store-driven and
+docs/research/phase-10/hunt-error-surfaces.md:135:consistent with `refreshKillSwitchStatus`.
+docs/research/phase-10/hunt-error-surfaces.md:242:**Repro:** On macOS, lock the login keychain (or simulate an `invoke` rejection) and send a chat message.
+docs/research/phase-10/hunt-error-surfaces.md:250:### 6. Broker mode (paper↔live) and read-only toggles silently no-op on failure
+docs/research/phase-10/hunt-error-surfaces.md:252:**File:** `src/modules/broker-connect/BrokerConnectPanel.tsx:230-237`
+docs/research/phase-10/hunt-error-surfaces.md:256:  const next: BrokerMode = state.mode === "paper" ? "live" : "paper";
+docs/research/phase-10/hunt-error-surfaces.md:257:  await setMode(state.broker, next); // no try/catch
+docs/research/phase-10/hunt-error-surfaces.md:258:}, [setMode, state.broker, state.mode]);
+docs/research/phase-10/hunt-error-surfaces.md:261:  await setReadOnly(state.broker, !state.readOnly); // no try/catch
+docs/research/phase-10/hunt-error-surfaces.md:262:}, [setReadOnly, state.broker, state.readOnly]);
+docs/research/phase-10/hunt-error-surfaces.md:265:`setMode` / `setReadOnly` (`src/store/brokers.ts:106-136`) **throw** on a non-ok response and also `await
+docs/research/phase-10/hunt-error-surfaces.md:274:**Repro:** Block `POST /brokers/{id}/mode` (or stop the sidecar) and click "Go live." Nothing visible
+docs/research/phase-10/hunt-error-surfaces.md:277:**Fix:** Wrap both handlers in try/catch and surface the failure on the broker row (there is already a
+docs/research/phase-10/hunt-error-surfaces.md:328:### 8. Broker refresh failure rendered as an empty state ("No brokers reported by sidecar.")
+docs/research/phase-10/hunt-error-surfaces.md:330:**File:** `src/modules/broker-connect/BrokerConnectPanel.tsx:154-158`
+docs/research/phase-10/hunt-error-surfaces.md:335:    <p>{status === "loading" ? "Loading…" : "No brokers reported by sidecar."}</p>
+docs/research/phase-10/hunt-error-surfaces.md:340:`refreshBrokers()` is fire-and-forget (line 122). The brokers store sets `status: "error"` with a message
+docs/research/phase-10/hunt-error-surfaces.md:341:on failure (`src/store/brokers.ts:62-64`), but the panel only distinguishes `"loading"` from everything
+docs/research/phase-10/hunt-error-surfaces.md:342:else. On an `"error"` status with an empty `byId`, the panel prints **"No brokers reported by sidecar."**
+docs/research/phase-10/hunt-error-surfaces.md:345:message. The user thinks the app genuinely found no brokers (and there is no retry), when in fact the
+docs/research/phase-10/hunt-error-surfaces.md:348:**Repro:** Boot with `/brokers` failing. Open Broker Connections → "No brokers reported by sidecar." with
+docs/research/phase-10/hunt-error-surfaces.md:352:`refreshBrokers()` again.
+docs/research/phase-10/hunt-error-surfaces.md:467:- `OrderConfirmationDialog.tsx`, `BrokerOrderEntry.tsx`, `GreeksDashboard.tsx` / quant store,
+docs/archive/PHASE_5_HANDOFF.md:3:**Read this first** if you are looking at Phase 5's work. Phase 5 (Broker
+docs/archive/PHASE_5_HANDOFF.md:16:- **6 broker SDK pins** in `sidecar/requirements.txt`: `dhanhq==2.1.0`,
+docs/archive/PHASE_5_HANDOFF.md:19:- **`types/broker.ts`** — `BrokerId` literal union (Dhan / AngelOne /
+docs/archive/PHASE_5_HANDOFF.md:21:  `BrokerMode` (`"paper" | "live"`), `BrokerCapabilities` (with
+docs/archive/PHASE_5_HANDOFF.md:22:  `requiresStaticIp` flag — Kite carries `True`), `BrokerOrderSide`,
+docs/archive/PHASE_5_HANDOFF.md:23:  `BrokerOrderType`, `BrokerOrderSource` (`"manual" | "ai-agent" |
+docs/archive/PHASE_5_HANDOFF.md:24:"workflow"`), `BrokerOrderProposal`, `BrokerOrderResult`,
+docs/archive/PHASE_5_HANDOFF.md:25:  `AccountSummary`, `BrokerPosition` (renamed from `Position` to avoid
+docs/archive/PHASE_5_HANDOFF.md:27:- **`types/safety.ts`** — `KillSwitchEvent`, `KillSwitchFireResult` (with
+docs/archive/PHASE_5_HANDOFF.md:32:- **`sidecar/models/{broker,safety,audit_log}.py`** — Pydantic mirrors.
+docs/archive/PHASE_5_HANDOFF.md:39:- **`sidecar/services/kill_switch.py`** — async `KillSwitchBus`.
+docs/archive/PHASE_5_HANDOFF.md:42:  returns aggregated `KillSwitchFireResult` with p50/p95/max. Idempotent
+docs/archive/PHASE_5_HANDOFF.md:44:- **`sidecar/services/broker_base.py`** — `BrokerAdapter` ABC. The
+docs/archive/PHASE_5_HANDOFF.md:46:  kill-switch bus unconditionally. Public surface: `propose_order` →
+docs/archive/PHASE_5_HANDOFF.md:48:  time). `_place_confirmed` is the only method that touches the broker
+docs/archive/PHASE_5_HANDOFF.md:50:  raised before broker call. Kill-switch handler forces read-only +
+docs/archive/PHASE_5_HANDOFF.md:58:  restart). The other two disclaimer kinds (first-launch TOS, per-broker
+docs/archive/PHASE_5_HANDOFF.md:63:  `POST /safety/kill-switch` (fire),
+docs/archive/PHASE_5_HANDOFF.md:64:  `POST /safety/kill-switch/reset` (requires acknowledged=true),
+docs/archive/PHASE_5_HANDOFF.md:65:  `GET /safety/kill-switch/status`,
+docs/archive/PHASE_5_HANDOFF.md:70:- **`src-tauri/src/kill_switch.rs`** — registers `CmdOrCtrl+Shift+K` as
+docs/archive/PHASE_5_HANDOFF.md:71:  the OS-wide shortcut. Emits a `kill-switch:requested` Tauri event;
+docs/archive/PHASE_5_HANDOFF.md:73:  `/safety/kill-switch` route. Splits responsibility: Rust owns the OS
+docs/archive/PHASE_5_HANDOFF.md:76:- **`src/lib/keychain.ts`** — `KEYCHAIN_NAMESPACES.broker(id, field)`
+docs/archive/PHASE_5_HANDOFF.md:77:  added; secret-id format `broker:<id>:<field>` (e.g.
+docs/archive/PHASE_5_HANDOFF.md:78:  `broker:alpaca:api_key`). Persisted disclaimer acks reuse the same
+docs/archive/PHASE_5_HANDOFF.md:79:  namespace under `broker:_meta:first-launch-tos` and
+docs/archive/PHASE_5_HANDOFF.md:80:  `broker:<broker-id>:_meta:first-connect-ack`.
+docs/archive/PHASE_5_HANDOFF.md:85:broker-SDK install: **67.4 MB** (+0.4 MB over v0.4.0's 67 MB; well under
+docs/archive/PHASE_5_HANDOFF.md:86:120 MB threshold). **All 7 brokers ship in main sidecar — no subprocess
+docs/archive/PHASE_5_HANDOFF.md:88:`openbb_mcp.rs` precedent) stays available for future broker SDKs that
+docs/archive/PHASE_5_HANDOFF.md:91:### Teammate I — India brokers + brokers router + Kite static-IP UX (7 commits)
+docs/archive/PHASE_5_HANDOFF.md:93:- `sidecar/services/brokers/{dhan,angelone,kite}.py` — three India
+docs/archive/PHASE_5_HANDOFF.md:94:  broker adapters inheriting `BrokerAdapter`. Kite carries
+docs/archive/PHASE_5_HANDOFF.md:95:  `CAPABILITIES.requires_static_ip=True`; live-mode toggle fetches
+docs/archive/PHASE_5_HANDOFF.md:98:- `sidecar/services/brokers/__init__.py` — the canonical registry
+docs/archive/PHASE_5_HANDOFF.md:101:- `sidecar/services/brokers/registry.py` — adapter registry + lifecycle.
+docs/archive/PHASE_5_HANDOFF.md:102:- `sidecar/routers/brokers.py` — 8-route HTTP surface: connect, account,
+docs/archive/PHASE_5_HANDOFF.md:104:- `plugins/brokers/{dhan,angelone,kite}/` — VystedPlugin shells.
+docs/archive/PHASE_5_HANDOFF.md:106:  `executeCommand("place-order"|"halt-trading"|"set-read-only")`.
+docs/archive/PHASE_5_HANDOFF.md:107:- `src/modules/broker-connect/kite-static-ip-banner.tsx` + test — polls
+docs/archive/PHASE_5_HANDOFF.md:109:  live mode; renders loading / ok / mismatch / error variants.
+docs/archive/PHASE_5_HANDOFF.md:112:### Teammate G — Global brokers (7 commits)
+docs/archive/PHASE_5_HANDOFF.md:114:- `sidecar/services/brokers/{alpaca,ib,oanda}.py` — three global broker
+docs/archive/PHASE_5_HANDOFF.md:119:  `docs/BROKER_INTEGRATIONS.md`. OANDA uses `oandapyV20 0.7.2`
+docs/archive/PHASE_5_HANDOFF.md:123:- `plugins/brokers/{alpaca,ib,oanda}/` — VystedPlugin shells with 5
+docs/archive/PHASE_5_HANDOFF.md:126:- `docs/BROKER_INTEGRATIONS.md` — global broker section concatenated
+docs/archive/PHASE_5_HANDOFF.md:127:  with I's India broker section at integration time.
+docs/archive/PHASE_5_HANDOFF.md:132:- `sidecar/services/brokers/ccxt_exec.py` — `CcxtExecutionAdapter`
+docs/archive/PHASE_5_HANDOFF.md:134:  `kraken`, `coinbase`); the `BROKER_ID` is set to `ccxt-<exchange>`
+docs/archive/PHASE_5_HANDOFF.md:138:- `plugins/brokers/ccxt-exec/` — VystedPlugin shell with
+docs/archive/PHASE_5_HANDOFF.md:139:  `supportsControlPlane=false` on the plugin (order placement goes
+docs/archive/PHASE_5_HANDOFF.md:141:  `/safety/kill-switch`).
+docs/archive/PHASE_5_HANDOFF.md:142:- Bybit testnet end-to-end paper-trade produces a full audit trail:
+docs/archive/PHASE_5_HANDOFF.md:145:  capture in `docs/screenshots/v0.5.0/teammate-x/paper-trade-audit-trail.json`).
+docs/archive/PHASE_5_HANDOFF.md:159:- `src/store/{safety,orders,brokers}.ts` + tests — 23 tests across the
+docs/archive/PHASE_5_HANDOFF.md:162:  proposals inbox. `useBrokersStore` is the connection-state aggregator.
+docs/archive/PHASE_5_HANDOFF.md:163:- `src/modules/safety/{KillSwitchToolbar,OrderConfirmationDialog,
+docs/archive/PHASE_5_HANDOFF.md:164:DisclaimerFlow,AuditLogViewer}.tsx` + tests. KillSwitchToolbar listens
+docs/archive/PHASE_5_HANDOFF.md:165:  to the Tauri `kill-switch:requested` event AND has its own click
+docs/archive/PHASE_5_HANDOFF.md:168:  surfaces first-launch TOS, per-broker first-connect (both
+docs/archive/PHASE_5_HANDOFF.md:171:- `src/modules/broker-connect/{BrokerConnectPanel,BrokerOrderEntry}.tsx`
+docs/archive/PHASE_5_HANDOFF.md:172:  - tests — connect list, status badges, mode badges, manual order entry.
+docs/archive/PHASE_5_HANDOFF.md:189:| 1   | Paper mode default    | PASS (all 7 brokers + ccxt)                   | paper-default-proof.log                         |
+docs/archive/PHASE_5_HANDOFF.md:193:| 5   | Kill switch < 2s      | PASS (max 20.08ms / budget 2000ms; 12 subs)   | kill-switch-benchmark.json                      |
+docs/archive/PHASE_5_HANDOFF.md:194:| 6   | AI-order gate         | PASS (no place_order tool; no auto_approve)   | ai-order-gate-proof.log                         |
+docs/archive/PHASE_5_HANDOFF.md:195:| 7   | Read-only mode        | PASS (all 7 raise in propose_order)           | read-only-proof.log                             |
+docs/archive/PHASE_5_HANDOFF.md:213:   §7 Phase 5 lists Tradesa V2 + 6 brokers + ccxt; operator brief
+docs/archive/PHASE_5_HANDOFF.md:214:   de-scoped Tradesa V2 for v0.5.0 in favour of the 7-broker breadth.
+docs/archive/PHASE_5_HANDOFF.md:215:   Foundation contracts (kill switch + audit log + executeCommand
+docs/archive/PHASE_5_HANDOFF.md:224:4. **All 7 broker SDKs in main sidecar** (Tier-3, F9). Measured 67.4 MB
+docs/archive/PHASE_5_HANDOFF.md:226:   Tauri-Rust-spawn helper stays available for future broker SDKs.
+docs/archive/PHASE_5_HANDOFF.md:229:   surfaces a banner on mismatch; the order placement path does NOT
+docs/archive/PHASE_5_HANDOFF.md:234:6. **Plugin contract held** (Tier-1). `executeCommand` covers broker
+docs/archive/PHASE_5_HANDOFF.md:235:   control plane (`"place-order"`, `"halt-trading"`, `"set-read-only"`,
+docs/archive/PHASE_5_HANDOFF.md:241:   procedure in `docs/SAFETY_ARCHITECTURE.md` applies — that broker's
+docs/archive/PHASE_5_HANDOFF.md:257:3. **Live-mode end-to-end verification** — by design, v0.5.0 ships
+docs/archive/PHASE_5_HANDOFF.md:262:   2021-08; documented in `docs/BROKER_INTEGRATIONS.md`. Users monitor
+docs/archive/PHASE_5_HANDOFF.md:267:   `docs/BROKER_INTEGRATIONS.md`; when neither is running, the IB
+docs/archive/PHASE_5_HANDOFF.md:268:   adapter renders a recovery hint in the broker-connect UI rather than
+docs/archive/PHASE_5_HANDOFF.md:277:- **`executeCommand` covers the full broker control plane**:
+docs/archive/PHASE_5_HANDOFF.md:278:  `"place-order"`, `"halt-trading"`, `"set-read-only"`, `"set-mode"`.
+docs/archive/PHASE_5_HANDOFF.md:279:  All seven broker plugins implement this surface uniformly via the
+docs/archive/PHASE_5_HANDOFF.md:280:  shell pattern in `plugins/brokers/<id>/index.ts`.
+docs/archive/PHASE_5_HANDOFF.md:281:- **`capabilities.contributesPanels` + `getPanels()`** — broker plugins
+docs/archive/PHASE_5_HANDOFF.md:282:  do NOT contribute panels in v0.5.0; the BrokerConnectPanel +
+docs/archive/PHASE_5_HANDOFF.md:283:  BrokerOrderEntry are HOST surfaces owned by Teammate S. Future
+docs/archive/PHASE_5_HANDOFF.md:284:  broker-specific dashboards (Tradesa V2's 9-12 panels for v0.5.1/v0.6.0)
+docs/archive/PHASE_5_HANDOFF.md:299:   already wired in Phase 1 + openbb-mcp). No broker interaction; no
+docs/archive/PHASE_5_HANDOFF.md:307:   `openbb-mcp.rs`; v0.5.0 has no broker subprocess but the helper is
+docs/archive/PHASE_5_HANDOFF.md:311:   indicator engine. No broker side.
+docs/archive/PHASE_5_HANDOFF.md:325:- `docs/BROKER_INTEGRATIONS.md` — per-broker setup + credentials +
+docs/archive/PHASE_5_HANDOFF.md:331:  agent usage limit lesson, broker_subprocess_helper precedent)
+docs/archive/PHASE_5_HANDOFF.md:334:- **Teammate I merge**: `197fc60` (Dhan + Angel One + Kite + brokers
+docs/archive/PHASE_5_HANDOFF.md:336:- **Teammate G merge**: `6dc286f` (Alpaca + IB + OANDA + global broker
+docs/archive/PHASE_5_HANDOFF.md:365:Two integration-time conflicts surfaced during the broker-merge sequence:
+docs/archive/PHASE_5_HANDOFF.md:367:1. **`sidecar/services/brokers/__init__.py`** — Teammate I shipped a
+docs/archive/PHASE_5_HANDOFF.md:374:2. **`docs/BROKER_INTEGRATIONS.md`** — I and G both wrote the file from
+docs/archive/PHASE_5_HANDOFF.md:376:   India broker section with G's global broker section + common-patterns
+docs/archive/PHASE_5_HANDOFF.md:377:   - troubleshooting. The doc now covers all 6 brokers; ccxt addition
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:24:- `plugins/brokers/alpaca/`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:25:- `plugins/brokers/angelone/`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:26:- `plugins/brokers/ccxt-exec/`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:27:- `plugins/brokers/dhan/`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:28:- `plugins/brokers/ib/`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:29:- `plugins/brokers/kite/`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:30:- `plugins/brokers/oanda/`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:91:**Suggested fix:** The correct pattern (established by the broker plugins in `plugins/brokers/`)
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:139:**Plugin:** brokers/ccxt-exec
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:141:**Repro:** Read `plugins/brokers/ccxt-exec/index.ts` lines 65-73 (capabilities) + line 209
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:162:- `plugins/brokers/ccxt-exec/index.ts:65-74` (capabilities)
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:163:- `plugins/brokers/ccxt-exec/index.ts:96-113` (halt-all command)
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:164:- `plugins/brokers/ccxt-exec/index.ts:209-240` (executeCommand)
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:171:**Plugin:** brokers/angelone, brokers/kite, brokers/dhan
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:173:**Repro:** Grep `commandId:` across `plugins/brokers/` — angelone uses `"connect"`, `"account"`,
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:176:**Impact:** Three broker plugins use bare, un-namespaced `commandId` values. The other four
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:178:`"ib.account"`, etc. If/when these broker plugins are all loaded simultaneously (once they are
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:190:- `plugins/brokers/angelone/index.ts:57,65,73`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:191:- `plugins/brokers/kite/index.ts:74,82,90,98`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:192:- `plugins/brokers/dhan/index.ts:72,80,88`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:203:| brokers/alpaca    | None                                                | Correct        | Clean                                                                      |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:204:| brokers/angelone  | None                                                | Correct        | Bare commandIds (T4-bare-commandids)                                       |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:205:| brokers/ccxt-exec | None                                                | Correct        | supportsControlPlane/executeCommand mismatch (T4-ccxt-executecommand-dead) |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:206:| brokers/dhan      | None                                                | Correct        | Bare commandIds (T4-bare-commandids)                                       |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:207:| brokers/ib        | None                                                | Correct        | Clean                                                                      |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:208:| brokers/kite      | None                                                | Correct        | Bare commandIds (T4-bare-commandids)                                       |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:209:| brokers/oanda     | None                                                | Correct        | Clean                                                                      |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:247:**Broker plugins (all 7):** These are NOT in `BUNDLED_PLUGINS` — they exist as standalone
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:248:plugin modules under `plugins/brokers/` but are never imported by `plugin-bootstrap.ts`. They
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:254:### Finding T4-brokers-not-registered: All 7 broker plugins are absent from BUNDLED_PLUGINS [S2] [status: open]
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:256:**Plugin:** brokers/alpaca, brokers/angelone, brokers/ccxt-exec, brokers/dhan, brokers/ib, brokers/kite, brokers/oanda
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:259:`example`, `openbb-mcp`, and `tradesa-v2`. No broker plugin is imported or registered.
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:260:**Impact:** All 7 broker execution plugins (Phase 5 deliverables) are unreachable at runtime.
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:266:This is likely an intentional phase-boundary decision (broker plugins may be gated behind
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:267:a broker-connect UI that loads them on demand), but there is no comment in `plugin-bootstrap.ts`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:268:explaining the omission, and the broker plugin manifests declare
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:270:as S2 because the broker panels/commands are silently absent with no boot-time warning.
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:272:**Suggested fix:** Either add all 7 broker plugins to `BUNDLED_PLUGINS` (following the same
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:274:`plugin-bootstrap.ts` documenting that broker plugins are deferred to a future dynamic-load
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:281:- `plugins/brokers/*/index.ts` (all 7, none imported)
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:320:#### Broker plugins
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:358:#### brokers/alpaca
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:362:- `id: "broker-alpaca"` — matches `pluginId: "broker-alpaca"`. **PASS.**
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:365:#### brokers/angelone
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:371:#### brokers/ccxt-exec
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:377:#### brokers/dhan
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:383:#### brokers/ib
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:387:- `id: "broker-ib"` — matches `pluginId: "broker-ib"`. **PASS.**
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:389:#### brokers/kite
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:397:#### brokers/oanda
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:401:- `id: "broker-oanda"` — matches `pluginId: "broker-oanda"`. **PASS.**
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:407:**Plugin:** brokers/kite
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:409:**Repro:** Read `plugins/brokers/kite/manifest.json` line 11: `"requiresStaticIp": true`.
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:425:- `plugins/brokers/kite/manifest.json:11`
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:447:| brokers/alpaca    | false             | N/A                  | PASS   |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:448:| brokers/angelone  | false             | N/A                  | PASS   |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:449:| brokers/ccxt-exec | false             | N/A                  | PASS   |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:450:| brokers/dhan      | false             | N/A                  | PASS   |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:451:| brokers/ib        | false             | N/A                  | PASS   |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:452:| brokers/kite      | false             | N/A                  | PASS   |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:453:| brokers/oanda     | false             | N/A                  | PASS   |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:505:**Broker plugins:** No Zustand stores; no hot-reload state to lose.
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:561:| S2        | 3     | T4-connection-keychain, T4-settings-dialog-keychain, T4-brokers-not-registered  |
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:568:1. **T4-brokers-not-registered [S2]** — All 7 Phase 5 broker plugins are absent from
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:596:- **Sidecar broker adapters** (`sidecar/services/brokers/`) — explicitly out of scope (T2).
+docs/archive/PHASE_8_PLUGIN_AUDIT.md:597:- **Broker plugin test files** (`plugins/brokers/*.test.ts`) — audit focused on runtime
+docs/redesign/R4_DESIGN_LANGUAGE.md:237:**Kill-switch / safety states are _stillness_:** when the kill-switch is active, motion stops, the
+docs/archive/PHASE_8_GATE_VERIFICATION.md:207:- §6.5 type-level gate: add fake `place_order_directly` public method →
+docs/research/phase-10/blueprint-integrations.md:1:# Phase 10 Blueprint — Integrations / Brokers Hub + Real Kite Connect Read-Only Flow
+docs/research/phase-10/blueprint-integrations.md:4:Author: Integrations/Brokers hub architect (headless)
+docs/research/phase-10/blueprint-integrations.md:17:   (read-only). Reuse Phase-5 broker code where present.
+docs/research/phase-10/blueprint-integrations.md:21:- **§6.5 LOCKED files are NOT touched**: `sidecar/services/broker_base.py`,
+docs/research/phase-10/blueprint-integrations.md:22:  `sidecar/models/audit_log.py`, `sidecar/services/kill_switch.py`,
+docs/research/phase-10/blueprint-integrations.md:24:  surface in `broker_base.py:223-394` — `propose_order`/`confirm_and_place` are
+docs/research/phase-10/blueprint-integrations.md:41:| G1  | Kite `_connect` consumes a pre-resolved `access_token`; never does OAuth, never uses `api_secret` | `kite.py:69-102` (no `generate_session`/`login_url`/`request_token`); UI collects `api_secret` at `BrokerConnectPanel.tsx:53` but sidecar ignores it | Build real OAuth that mints the token.                                                  |
+docs/research/phase-10/blueprint-integrations.md:42:| G2  | Only one read route exists: `GET /brokers/{id}/account` → `AccountSummary`                        | `brokers.py:171-178`; `models/broker.py:109-121`                                                                                                     | No `/positions`, `/holdings`, `/margins`. Add granular read routes.                     |
+docs/research/phase-10/blueprint-integrations.md:44:| G4  | No broker section in Settings; broker connect lives only in a dockview panel                      | `SettingsPanel.tsx:53-56` (Providers/Layouts/Modules/About only)                                                                                     | Add Integrations section + hub.                                                         |
+docs/research/phase-10/blueprint-integrations.md:45:| G5  | `store/brokers.ts` `disconnect()` POSTs `/brokers/{id}/disconnect` which does not exist           | `brokers.ts:94-104` vs `brokers.py` (no disconnect route)                                                                                            | Add the route (latent 404).                                                             |
+docs/research/phase-10/blueprint-integrations.md:46:| G6  | Static-IP banner hardcodes `configuredIp={null}` and only mounts in live mode                     | `BrokerConnectPanel.tsx:252-254`                                                                                                                     | Fetch + pass configured IP; mount in paper too.                                         |
+docs/research/phase-10/blueprint-integrations.md:47:| G7  | Broker plugins (`plugins/brokers/*`) are NOT bundled — their commands are dead                    | `plugin-bootstrap.ts:45-49` imports only example/openbb-mcp/tradesa-v2                                                                               | Hub talks to sidecar routes directly (the live surface), not the dead plugin layer.     |
+docs/research/phase-10/blueprint-integrations.md:49:| G9  | No agent tool reads broker portfolio                                                              | grep of `sidecar/services/agent_tools/*.py` — zero `portfolio`/`positions`/`account` tool                                                            | Add a read-only `broker_portfolio` agent tool.                                          |
+docs/research/phase-10/blueprint-integrations.md:65:- brokers (`BrokerConnectPanel.tsx`)
+docs/research/phase-10/blueprint-integrations.md:87:export type IntegrationCategory = "broker" | "data" | "ai-provider" | "mcp";
+docs/research/phase-10/blueprint-integrations.md:94:  type: IntegrationFieldType; // drives input masking — fixes the heuristic in BrokerConnectPanel.tsx:401
+docs/research/phase-10/blueprint-integrations.md:105:  id: string; // matches BrokerId for brokers, e.g. "kite"
+docs/research/phase-10/blueprint-integrations.md:115:  readOnly: true; // Phase-10 hub is read-only-by-design; execution toggles live in the broker panel
+docs/research/phase-10/blueprint-integrations.md:118:  /** Which sidecar id namespace this maps to. brokers → BrokerId. */
+docs/research/phase-10/blueprint-integrations.md:119:  testEndpoint?: string; // e.g. "/brokers/kite/account" — used by the Test button
+docs/research/phase-10/blueprint-integrations.md:125:`src/lib/integrations/registry.ts` — the single declarative table. Brokers reuse
+docs/research/phase-10/blueprint-integrations.md:126:the field shapes already in `BrokerConnectPanel.tsx:40-86` but enriched with
+docs/research/phase-10/blueprint-integrations.md:131:  rule — order placement only; data/positions work from any IP"). NOTE:
+docs/research/phase-10/blueprint-integrations.md:142:  the existing UI field is `totp_secret` (`BrokerConnectPanel.tsx:49`) but the
+docs/research/phase-10/blueprint-integrations.md:148:`BrokerConnectPanel` (which we refactor to read from it, killing the duplicated
+docs/research/phase-10/blueprint-integrations.md:149:`BROKER_CREDENTIAL_FIELDS` const at `BrokerConnectPanel.tsx:40`).
+docs/research/phase-10/blueprint-integrations.md:164:Gallery/Connections two-view experience. The existing `broker-connect` module
+docs/research/phase-10/blueprint-integrations.md:167:deep-links to the broker-connect panel.
+docs/research/phase-10/blueprint-integrations.md:172:the `field.key.includes("token")` heuristic at `BrokerConnectPanel.tsx:401`).
+docs/research/phase-10/blueprint-integrations.md:176:keychain then POSTs `/brokers/{id}/connect` (reusing `store/brokers.ts:connect`).
+docs/research/phase-10/blueprint-integrations.md:181:envelope). Add a **Test** affordance: for brokers it calls the integration's
+docs/research/phase-10/blueprint-integrations.md:182:`testEndpoint` (`GET /brokers/{id}/account`) and shows "verified — N positions"
+docs/research/phase-10/blueprint-integrations.md:184:"verified." No new sidecar route needed for brokers — `/account` already exists
+docs/research/phase-10/blueprint-integrations.md:185:(`brokers.py:171`).
+docs/research/phase-10/blueprint-integrations.md:202:  `brokerConnectModule` at line 67).
+docs/research/phase-10/blueprint-integrations.md:203:- `src/modules/broker-connect/BrokerConnectPanel.tsx` — replace the local
+docs/research/phase-10/blueprint-integrations.md:204:  `BROKER_CREDENTIAL_FIELDS` (line 40) with a read from
+docs/research/phase-10/blueprint-integrations.md:276:    // 1. Read api_key + api_secret from keychain (broker:kite:api_key / :api_secret).
+docs/research/phase-10/blueprint-integrations.md:288:    // 7. Store broker:kite:access_token + broker:kite:_meta:login_time (epoch ms, IST-aware)
+docs/research/phase-10/blueprint-integrations.md:302:    // Read broker:kite:access_token + :_meta:login_time.
+docs/research/phase-10/blueprint-integrations.md:334:   `KEYCHAIN_NAMESPACES.broker("kite", "api_key"|"api_secret")` —
+docs/research/phase-10/blueprint-integrations.md:337:   `store/brokers.ts:connect("kite", {})` with EMPTY credentials body. The sidecar
+docs/research/phase-10/blueprint-integrations.md:349:`BrokerConnectPanel` shows a **"Session expired — reconnect"** chip when
+docs/research/phase-10/blueprint-integrations.md:366:equity_block = (margins or {}).get("equity") or {}
+docs/research/phase-10/blueprint-integrations.md:371:    broker="kite", accountId=self._account_id, currency="INR",
+docs/research/phase-10/blueprint-integrations.md:383:`quantity` into `BrokerPosition` (the model at `models/broker.py:97-106`).
+docs/research/phase-10/blueprint-integrations.md:386:Wrap the margins/positions/holdings calls; on
+docs/research/phase-10/blueprint-integrations.md:388:`BrokerError("kite: session expired — reconnect (daily token expiry)")` with a
+docs/research/phase-10/blueprint-integrations.md:398:`brokers.py` is NOT locked. Add THREE `GET` routes mirroring Kite's REST surface
+docs/research/phase-10/blueprint-integrations.md:401:`broker_base.py:215-217`):
+docs/research/phase-10/blueprint-integrations.md:404:@router.get("/{broker_id}/positions")   # net + day arrays for Kite; holdings-as-positions for Dhan/Angel
+docs/research/phase-10/blueprint-integrations.md:405:async def get_broker_positions(broker_id: BrokerId) -> AccountSummary: ...
+docs/research/phase-10/blueprint-integrations.md:407:@router.get("/{broker_id}/holdings")     # long-term holdings only
+docs/research/phase-10/blueprint-integrations.md:408:async def get_broker_holdings(broker_id: BrokerId) -> AccountSummary: ...
+docs/research/phase-10/blueprint-integrations.md:410:@router.get("/{broker_id}/margins")      # funds/buying-power only (no positions)
+docs/research/phase-10/blueprint-integrations.md:411:async def get_broker_margins(broker_id: BrokerId) -> AccountSummary: ...
+docs/research/phase-10/blueprint-integrations.md:416:(not new abstract methods — that would touch `broker_base.py`). The router checks
+docs/research/phase-10/blueprint-integrations.md:421:adapter = _get_adapter(broker_id)
+docs/research/phase-10/blueprint-integrations.md:426:Then implement `positions_info`/`holdings_info`/`margins_info` as NEW
+docs/research/phase-10/blueprint-integrations.md:432:catch `BrokerError` whose message starts with `kite: session expired` and return
+docs/research/phase-10/blueprint-integrations.md:437:**Fix G5 (disconnect route).** Add `POST /brokers/{id}/disconnect` that flips
+docs/research/phase-10/blueprint-integrations.md:440:The FE `store/brokers.ts:disconnect` (line 94) already calls it.
+docs/research/phase-10/blueprint-integrations.md:448:tab, when a broker is connected, renders an inline `BrokerAccountView`
+docs/research/phase-10/blueprint-integrations.md:450:driven by `GET /brokers/{id}/positions`. New component
+docs/research/phase-10/blueprint-integrations.md:451:`src/modules/integrations/BrokerAccountView.tsx`, polling every ~5s (well within
+docs/research/phase-10/blueprint-integrations.md:455:`publish({ source: "broker-account", ... })`) so the copilot's context preamble
+docs/research/phase-10/blueprint-integrations.md:461:`broker_portfolio` so an agent can pull the REAL portfolio on demand (not just
+docs/research/phase-10/blueprint-integrations.md:463:`sidecar/services/agent_tools/broker_portfolio.py`, registered via the existing
+docs/research/phase-10/blueprint-integrations.md:468:async def _broker_portfolio(args: dict) -> dict:
+docs/research/phase-10/blueprint-integrations.md:469:    broker = args.get("broker", "kite")
+docs/research/phase-10/blueprint-integrations.md:470:    from services.brokers import registry as brokers_registry
+docs/research/phase-10/blueprint-integrations.md:472:        adapter = brokers_registry.get(broker)
+docs/research/phase-10/blueprint-integrations.md:474:        return {"ok": False, "error": f"broker {broker!r} not connected"}
+docs/research/phase-10/blueprint-integrations.md:477:    except BrokerError as exc:
+docs/research/phase-10/blueprint-integrations.md:484:import-time tools). Add `"broker_portfolio"` to the relevant agents' `tools`
+docs/research/phase-10/blueprint-integrations.md:488:two-step, action tools that touch a broker must emit a `propose_order` proposal,
+docs/research/phase-10/blueprint-integrations.md:496:In `BrokerConnectPanel.tsx`: (1) fetch `GET /brokers/kite/static-ip`
+docs/research/phase-10/blueprint-integrations.md:497:(`brokers.py:293`) and pass the real `configuredIp` to `<KiteStaticIpBanner>`
+docs/research/phase-10/blueprint-integrations.md:499:`state.mode === "live"` guard at line 252) per `BROKER_INTEGRATIONS.md:62-65`;
+docs/research/phase-10/blueprint-integrations.md:501:order placement needs the registered static IP"** (study-kite §A.7 refinement),
+docs/research/phase-10/blueprint-integrations.md:511:- `src/modules/integrations/BrokerAccountView.tsx`
+docs/research/phase-10/blueprint-integrations.md:512:- `sidecar/services/agent_tools/broker_portfolio.py`
+docs/research/phase-10/blueprint-integrations.md:513:- `sidecar/tests/test_brokers_readonly_routes.py` (new read routes + 419 mapping;
+docs/research/phase-10/blueprint-integrations.md:517:  TokenException → session-expired BrokerError)
+docs/research/phase-10/blueprint-integrations.md:525:- `sidecar/services/brokers/kite.py` — equity/positions/TokenException (§2.5);
+docs/research/phase-10/blueprint-integrations.md:526:  add `positions_info`/`holdings_info`/`margins_info` public read methods.
+docs/research/phase-10/blueprint-integrations.md:527:- `sidecar/routers/brokers.py` — 3 GET read routes + disconnect + 419 mapping.
+docs/research/phase-10/blueprint-integrations.md:528:- `sidecar/services/agent_tools/__init__.py` — register `broker_portfolio`.
+docs/research/phase-10/blueprint-integrations.md:529:- `sidecar/agents/portfolio_advisor.json` — add `broker_portfolio` to `tools`.
+docs/research/phase-10/blueprint-integrations.md:530:- `src/modules/broker-connect/BrokerConnectPanel.tsx` — G6 banner fixes + Kite
+docs/research/phase-10/blueprint-integrations.md:539:The §6.5 ABC (`broker_base.py:461-480`) already gives every broker the same four
+docs/research/phase-10/blueprint-integrations.md:545:2. **`authFlow` per broker**: Dhan = `static-token` (long-lived console token,
+docs/research/phase-10/blueprint-integrations.md:550:   the OAuth-button path. **No per-broker bespoke UI** — the field list +
+docs/research/phase-10/blueprint-integrations.md:553:   `margins_info` on `DhanAdapter` + `AngelOneAdapter` too, splitting their
+docs/research/phase-10/blueprint-integrations.md:567:    → setSecret(KEYCHAIN_NAMESPACES.broker(id, field), value)   [keychain.ts:46, Rust-only store]
+docs/research/phase-10/blueprint-integrations.md:568:    → store/brokers.ts:connect(id, fieldsAsBody)                [brokers.ts:78-92, BODY not header]
+docs/research/phase-10/blueprint-integrations.md:569:    → POST /brokers/{id}/connect  { credentials: {...} }        [brokers.py:153-168]
+docs/research/phase-10/blueprint-integrations.md:574:    → setSecret(broker:kite:api_key / :api_secret)               [api_secret stays for Rust ONLY]
+docs/research/phase-10/blueprint-integrations.md:576:        → Rust mints access_token, stores broker:kite:access_token  [keychain]
+docs/research/phase-10/blueprint-integrations.md:577:    → FE getSecret(broker:kite:api_key) + getSecret(broker:kite:access_token)
+docs/research/phase-10/blueprint-integrations.md:578:    → store/brokers.ts:connect("kite", { api_key, access_token }) [reuses the SAME connect path]
+docs/research/phase-10/blueprint-integrations.md:582:Note the **connect body vs header** distinction (CLAUDE.md): broker connect uses
+docs/research/phase-10/blueprint-integrations.md:583:the request BODY (`brokers.ts:84-86`, `BrokerConnectRequest.credentials`,
+docs/research/phase-10/blueprint-integrations.md:584:`models/broker.py:138-149`), NOT headers. The header pattern is specific to the
+docs/research/phase-10/blueprint-integrations.md:585:Tradesa V2 read-only wrapper; broker execution-adapters use the body. Keep it.
+docs/research/phase-10/blueprint-integrations.md:590:### 3.3 Daily-token handling per broker
+docs/research/phase-10/blueprint-integrations.md:594:  §2.4 reconnect chip. This is the ONLY broker with a daily interactive re-auth.
+docs/research/phase-10/blueprint-integrations.md:615:- `sidecar/services/brokers/dhan.py` — add `positions_info`/`holdings_info`/
+docs/research/phase-10/blueprint-integrations.md:616:  `margins_info` (split existing `_account_info` SDK calls).
+docs/research/phase-10/blueprint-integrations.md:617:- `sidecar/services/brokers/angelone.py` — same split.
+docs/research/phase-10/blueprint-integrations.md:618:- `sidecar/tests/test_brokers_readonly_routes.py` — parametrize over
+docs/research/phase-10/blueprint-integrations.md:628:  is GET or a token/connection POST. The `propose_order → confirm_and_place`
+docs/research/phase-10/blueprint-integrations.md:629:  two-step (`broker_base.py:223-394`) is reused as-is for the existing manual
+docs/research/phase-10/blueprint-integrations.md:633:  `broker_portfolio` agent tool calls `account_info()` (read) not the order path;
+docs/research/phase-10/blueprint-integrations.md:634:  the kill-switch/audit/disclaimer files are not referenced by new code beyond
+docs/research/phase-10/blueprint-integrations.md:649:   - disconnect + 419 mapping; `broker_portfolio` tool + agent allow-list. Tests:
+docs/research/phase-10/blueprint-integrations.md:650:     `test_kite_account_readonly.py`, `test_brokers_readonly_routes.py`. Run
+docs/research/phase-10/blueprint-integrations.md:655:   ConnectCard + BrokerAccountView + kite-session store. Refactor
+docs/research/phase-10/blueprint-integrations.md:656:   `BrokerConnectPanel` to the registry; fix G6 banner.
+docs/research/phase-10/blueprint-integrations.md:661:   simulated stale `login_time`.
+docs/research/phase-10/blueprint-integrations.md:665:- Kite adapter: `sidecar/services/brokers/kite.py` (connect :69-102, account
+docs/research/phase-10/blueprint-integrations.md:667:- Brokers router: `sidecar/routers/brokers.py` (account read :171, connect :153,
+docs/research/phase-10/blueprint-integrations.md:669:- Broker models: `sidecar/models/broker.py` (BrokerId :24-35, AccountSummary
+docs/research/phase-10/blueprint-integrations.md:670:  :109-121, BrokerPosition :97-106, BrokerConnectRequest :138-149)
+docs/research/phase-10/blueprint-integrations.md:671:- LOCKED ABC (read-only): `sidecar/services/broker_base.py` (abstract surface
+docs/research/phase-10/blueprint-integrations.md:673:- Dhan adapter: `sidecar/services/brokers/dhan.py` (connect :73-98, account
+docs/research/phase-10/blueprint-integrations.md:675:- Angel adapter: `sidecar/services/brokers/angelone.py` (connect/generateSession
+docs/research/phase-10/blueprint-integrations.md:677:- Registry/bootstrap: `sidecar/services/brokers/registry.py:97-112`;
+docs/research/phase-10/blueprint-integrations.md:685:- Keychain (frontend): `src/lib/keychain.ts` (broker namespace :46, set/get
+docs/research/phase-10/blueprint-integrations.md:687:- Brokers store: `src/store/brokers.ts` (connect body :78-92, missing-route
+docs/research/phase-10/blueprint-integrations.md:689:- Broker panel: `src/modules/broker-connect/BrokerConnectPanel.tsx` (fields :40,
+docs/research/phase-10/blueprint-integrations.md:692:- Broker module: `src/modules/broker-connect/index.ts`; `src/modules/index.ts:67`
+docs/research/phase-10/blueprint-integrations.md:706:- Dead broker plugins (not bundled): `plugins/brokers/kite/index.ts:48-60`
+docs/archive/PHASE_7_HANDOFF.md:231:- Security pass against the Phase 5 §6.5 broker-execution surface
+docs/archive/PHASE_7_HANDOFF.md:254:  (unchanged; Phase 7 doesn't touch broker execution)
+docs/archive/PHASE_7_HANDOFF.md:281:- `git diff v0.6.5..v0.7.0 -- sidecar/services/broker_base.py
+docs/archive/PHASE_7_HANDOFF.md:282:sidecar/services/kill_switch.py sidecar/services/audit_log.py
+docs/archive/PHASE_8.1_CI_REPAIR.md:74:  runs). One was the `test_audit_5_kill_switch_under_2s` perf assertion
+docs/archive/PHASE_8.1_CI_REPAIR.md:87:  `docs/screenshots/v0.5.0/safety-audit/kill-switch-benchmark.json`.**
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:49:1. The Kite adapter (`sidecar/services/brokers/kite.py`) does **not** use `KiteTicker` (Zerodha's WebSocket streaming class that uses autobahn). The adapter uses only the REST session (`kiteconnect.KiteConnect`) for order placement, positions and account queries. Grep for `KiteTicker` across the whole sidecar returns no results.
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:178:### Finding T2-mypy-oanda-broker-id: `OandaAdapter.BROKER_ID` typed as `ClassVar[str]` conflicts with base class `Literal` union [S2] [status: open]
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:184:sidecar\services\brokers\oanda.py:61: error: Incompatible types in assignment
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:185:  (expression has type "str", base class "BrokerAdapter" defined the type as
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:190:**Impact:** `OandaAdapter.BROKER_ID: ClassVar[str] = "oanda"` is annotated as `ClassVar[str]` but the base class expects a `Literal` union. The broker registry (`services/brokers/registry.py`) maps broker IDs to adapter classes — a runtime typo in `BROKER_ID` would route to the wrong adapter. The type annotation weakening (using `str` instead of `BrokerId`) means mypy cannot catch such a regression. The other broker adapters (dhan, kite, etc.) appear to use `ClassVar` without an explicit type, letting mypy infer the narrower literal — OANDA explicitly widens to `str`, losing that narrowing.
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:192:**Suggested fix path:** Change `BROKER_ID: ClassVar[str] = "oanda"` to `BROKER_ID: ClassVar = "oanda"` (let mypy narrow to `Literal["oanda"]`) or `BROKER_ID: ClassVar[BrokerId] = "oanda"`.
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:193:**Files:** `sidecar/services/brokers/oanda.py:61`
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:205:sidecar\routers\brokers.py:132: RUF100 Unused `noqa` directive (non-enabled: `ANN202`)
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:206:sidecar\routers\brokers.py:166: RUF100 Unused `noqa` directive (unused: `BLE001`)
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:214:**Files:** `sidecar/routers/agents.py:72`, `sidecar/routers/backtest.py:71`, `sidecar/routers/brokers.py:132,166`, `sidecar/routers/earnings.py:72`, `sidecar/openbb_mcp_subprocess/main.py:42,49`
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:239:- **S110** (`try/except/pass` without logging): Present in `main.py:39`, `openbb_mcp_subprocess/main.py:49`, `sec_edgar_mcp_subprocess/main.py:48`, `analyst_ratings_extended.py:162,278`, `brokers/alpaca.py:296`, `brokers/registry.py:92`. Most are intentional "parent process is gone → exit" patterns or SDK-level retry guards. Legitimate uses should be suppressed with rationale comments; the `analyst_ratings_extended.py` uses should be reviewed individually for logging coverage.
+docs/archive/PHASE_8_SIDECAR_AUDIT.md:264:5. **[S2] T2-mypy-oanda-broker-id** — Change `BROKER_ID: ClassVar[str]` to `ClassVar` in `OandaAdapter` to restore mypy's ability to narrow to `Literal["oanda"]`.
+docs/archive/PHASE_9.5_REAUDIT_SPEC.md:41:| **#79**            | `/safety/audit-log` → **500** on every valid limit; Audit Log Viewer (a **safety surface**) unreadable; surfaced in-app as a CORS error via the CORS-masks-500 trap.                                                                                                                                  | Cold reads of a fresh DB raised `no such table: audit_orders` (reader connection is `query_only`, can't `CREATE TABLE`). Added `_ensure_initialized()` (opens+closes a writer connection to apply the idempotent DDL) at the top of `tail`/`range_`/`export_csv`. **Append-only triggers + `query_only` reader invariant unchanged.** | `sidecar/services/audit_log.py` (Tier-1 **LOCKED §6.5**, operator-approved), `sidecar/tests/test_audit_log.py` (+4 cold-DB regression tests)         | Open Audit Log panel on a **fresh data dir** → must render an empty table (or rows), **never** a 500/CORS error. Direct-curl `GET /safety/audit-log?limit=200` → **200** `{"entries":[...]}`. Confirm §6.5 still 9/9 (`test_safety_end_to_end.py`).                                             |
+docs/archive/PHASE_9.5_REAUDIT_SPEC.md:55:| **#81**                  | Kill-switch reset without ack returned **422** (Pydantic), docs say **400**.                                    | `acknowledged: bool = False` default → omitted body hits the handler's explicit **400**. Gate unchanged: only `acknowledged=true` un-halts. | `sidecar/routers/safety.py`                | Curl `POST /safety/kill-switch/reset` with empty body → **400** (not 422). With `{"acknowledged":true}` → resets.                                   |
+docs/archive/PHASE_9.5_REAUDIT_SPEC.md:186:### 3.5 Broker credentials / static-IP
+docs/archive/PHASE_9.5_REAUDIT_SPEC.md:188:- **#77 (connect)** — Broker GUI connect with (paper) credentials.
+docs/archive/PHASE_9.5_REAUDIT_SPEC.md:189:- **#78** — Broker paper↔live + read-only toggle.
+docs/archive/PHASE_9.5_REAUDIT_SPEC.md:190:- **#83** — Disclaimer flow (first-launch ToS / per-broker first-connect) — note
+docs/archive/PHASE_9.5_REAUDIT_SPEC.md:194:> ⚠️ Live broker connect / order placement is gated behind the §6.5 safety layer
+docs/archive/PHASE_9.5_REAUDIT_SPEC.md:228:\* `#3` watchlist add-path mechanics, `#77` broker-list read, `#81` kill-switch
+docs/archive/PHASE_9.5_REAUDIT_SPEC.md:258:7. **BYOK / Supabase / broker decisions the operator must make before the
+docs/archive/PHASE_9.5_REAUDIT_SPEC.md:263:   - Paper broker creds (§3.5) — provision or leave broker connect
+docs/archive/PHASE_9.5_REAUDIT_SPEC.md:285:- **Credential-gated flows the operator won't hand an agent** — live broker
+docs/archive/PHASE_6.5_HANDOFF.md:194:events on `trades` / `decisions` / `bot_health` / `kill_switch_events`,
+docs/archive/PHASE_6.5_HANDOFF.md:204:through propose→confirm flow + §6.5 audit log, same as broker-
+docs/archive/PHASE_6.5_HANDOFF.md:217:Read directly from the broker (Bybit V5 API) for live tick-level
+docs/archive/PHASE_6.5_HANDOFF.md:295:reference it as the canonical example, alongside the four broker
+docs/archive/PHASE_6.5_HANDOFF.md:337:- `pytest sidecar` (excluding the slow kill-switch benchmark) —
+docs/archive/PHASE_6.5_HANDOFF.md:351:- `git diff v0.6.0..v0.6.5 -- sidecar/services/broker_base.py
+docs/archive/PHASE_6.5_HANDOFF.md:352:sidecar/services/kill_switch.py sidecar/services/audit_log.py
+docs/research/phase-10/map-broker-safety.md:1:# Phase 10 Map — Broker Integration Layer, §6.5 Safety Boundary, Kite Connect, and the Connect-a-Provider Surface
+docs/research/phase-10/map-broker-safety.md:5:(`sidecar/services/broker_base.py`, `audit_log.py`, `kill_switch.py`,
+docs/research/phase-10/map-broker-safety.md:13:- **7 broker execution adapters exist** in `sidecar/services/brokers/` (dhan,
+docs/research/phase-10/map-broker-safety.md:15:  `BrokerAdapter` ABC. These are **execution** adapters — they DO place orders
+docs/research/phase-10/map-broker-safety.md:19:  Phase 5 broker adapters.** The broker plugins are `supportsControlPlane=true`
+docs/research/phase-10/map-broker-safety.md:20:  and the brokers router has POST routes. Do not conflate the two.
+docs/research/phase-10/map-broker-safety.md:25:  `api_secret`. The UI collects `api_secret` (`BrokerConnectPanel.tsx:53`) but
+docs/research/phase-10/map-broker-safety.md:28:  your broker" hub.
+docs/research/phase-10/map-broker-safety.md:30:  `GET /brokers/{id}/account` returns `AccountSummary` (equity, cash,
+docs/research/phase-10/map-broker-safety.md:32:  `/positions`, `/holdings`, or `/margins` route in the brokers router.
+docs/research/phase-10/map-broker-safety.md:33:- **There is no unified user-facing "Connect your broker" hub.** Broker
+docs/research/phase-10/map-broker-safety.md:34:  connection lives in a dockview panel (`BrokerConnectPanel`), entirely separate
+docs/research/phase-10/map-broker-safety.md:36:  Providers (BYOK)" section. The 7 broker _plugins_ under `plugins/brokers/` are
+docs/research/phase-10/map-broker-safety.md:45:### 1.1 The ABC contract — `sidecar/services/broker_base.py` (LOCKED)
+docs/research/phase-10/map-broker-safety.md:47:`BrokerAdapter(ABC)` (`broker_base.py:69`) is the single safety-layer-enforced
+docs/research/phase-10/map-broker-safety.md:48:order entry point. Subclasses implement only four abstract methods
+docs/research/phase-10/map-broker-safety.md:49:(`broker_base.py:461-480`):
+docs/research/phase-10/map-broker-safety.md:53:  `broker_base.py:215-217`)
+docs/research/phase-10/map-broker-safety.md:55:- `_cancel_order(broker_order_id)` — cancel
+docs/research/phase-10/map-broker-safety.md:61:| 1   | Paper mode hard-coded default          | `broker_base.py:94` `self._mode = "paper"` in `__init__`; no constructor arg flips it                                                                                                |
+docs/research/phase-10/map-broker-safety.md:62:| 2   | Every order confirmed; no bypass       | `_place_confirmed` only called from `confirm_and_place` (`broker_base.py:365`); `confirm_and_place` requires `human_confirmed=True` (`broker_base.py:325`)                           |
+docs/research/phase-10/map-broker-safety.md:63:| 3   | Position limits before any broker call | `propose_order` checks `max_order_value_account_currency` (`broker_base.py:269`) + `max_position_size_per_symbol` (`broker_base.py:274`); `DEFAULT_LIMITS` at `broker_base.py:82-87` |
+docs/research/phase-10/map-broker-safety.md:65:| 5   | Kill switch subscription forced        | `broker_base.py:103` `self._unsubscribe = kill_switch.get_bus().subscribe(...)` in `__init__` — cannot instantiate an adapter without subscribing                                    |
+docs/research/phase-10/map-broker-safety.md:66:| 6   | AI-order gate                          | `propose_order(source="ai-agent"\|"workflow")` writes audit but never places (`broker_base.py:223-308`); no auto-approve path                                                        |
+docs/research/phase-10/map-broker-safety.md:67:| 7   | Read-only mode                         | checked in `propose_order` (`broker_base.py:253`) AND re-checked in `confirm_and_place` (`broker_base.py:347`); kill-switch handler forces `_read_only=True` (`broker_base.py:441`)  |
+docs/research/phase-10/map-broker-safety.md:70:The two-step is: `propose_order` (sync, audit-logs `order-proposed`, returns
+docs/research/phase-10/map-broker-safety.md:71:`BrokerOrderProposal`) → user confirms → `confirm_and_place(proposal,
+docs/research/phase-10/map-broker-safety.md:79:that doc (lines 20-29 table, 31-196 detail). `docs/BROKER_INTEGRATIONS.md:77-100`
+docs/research/phase-10/map-broker-safety.md:80:restates the eight guarantees per broker.
+docs/research/phase-10/map-broker-safety.md:84:## 2. The broker integration layer that EXISTS today
+docs/research/phase-10/map-broker-safety.md:86:### 2.1 Sidecar adapters — `sidecar/services/brokers/`
+docs/research/phase-10/map-broker-safety.md:93:dhan.py:152      _place_confirmed → self._client.place_order   (dhan.py:167)
+docs/research/phase-10/map-broker-safety.md:96:kite.py:208      _place_confirmed → self._client.place_order   (kite.py:238)
+docs/research/phase-10/map-broker-safety.md:100:`BrokerId` literal type (`models/broker.py:24-35`): `dhan`, `angelone`, `kite`,
+docs/research/phase-10/map-broker-safety.md:104:Registry (`services/brokers/registry.py`): module-singleton dict keyed by
+docs/research/phase-10/map-broker-safety.md:105:`BrokerId`. `bootstrap_default_adapters()` (`registry.py:97-112`) instantiates
+docs/research/phase-10/map-broker-safety.md:111:### 2.2 The brokers router — `sidecar/routers/brokers.py`
+docs/research/phase-10/map-broker-safety.md:113:Routes (`brokers.py:140-309`):
+docs/research/phase-10/map-broker-safety.md:117:| GET    | `/brokers`                                   | list all adapter `BrokerState`s                     |
+docs/research/phase-10/map-broker-safety.md:118:| GET    | `/brokers/{id}/state`                        | one broker's state                                  |
+docs/research/phase-10/map-broker-safety.md:119:| POST   | `/brokers/{id}/connect`                      | open session (credentials in **body**)              |
+docs/research/phase-10/map-broker-safety.md:120:| GET    | `/brokers/{id}/account`                      | **the only read route — account + positions + P&L** |
+docs/research/phase-10/map-broker-safety.md:121:| POST   | `/brokers/{id}/orders`                       | propose order                                       |
+docs/research/phase-10/map-broker-safety.md:122:| POST   | `/brokers/{id}/orders/{proposal_id}/confirm` | confirm + place                                     |
+docs/research/phase-10/map-broker-safety.md:123:| POST   | `/brokers/{id}/orders/cancel`                | cancel                                              |
+docs/research/phase-10/map-broker-safety.md:124:| POST   | `/brokers/{id}/mode`                         | paper/live toggle                                   |
+docs/research/phase-10/map-broker-safety.md:125:| POST   | `/brokers/{id}/read-only`                    | read-only toggle                                    |
+docs/research/phase-10/map-broker-safety.md:126:| GET    | `/brokers/kite/static-ip`                    | get configured static IP                            |
+docs/research/phase-10/map-broker-safety.md:127:| POST   | `/brokers/kite/static-ip`                    | set configured static IP                            |
+docs/research/phase-10/map-broker-safety.md:129:The router is intentionally thin (`brokers.py:1-23`): it parses the body,
+docs/research/phase-10/map-broker-safety.md:130:resolves the adapter, awaits the method, translates `BrokerError → HTTP 400`.
+docs/research/phase-10/map-broker-safety.md:131:The `_pending_proposals` in-memory dict (`brokers.py:119`) holds proposals
+docs/research/phase-10/map-broker-safety.md:138:> `@router.get`). The Phase 5 broker adapters are the OPPOSITE: they have POST
+docs/research/phase-10/map-broker-safety.md:139:> routes (`brokers.py:153,181,210,240,253,270,302`) and the broker plugins set
+docs/research/phase-10/map-broker-safety.md:140:> `supportsControlPlane: true` (`plugins/brokers/kite/index.ts:53`,
+docs/research/phase-10/map-broker-safety.md:142:> (`plugins/brokers/ccxt-exec/index.ts:73`) is `false`.
+docs/research/phase-10/map-broker-safety.md:146:There is **one** read route: `GET /brokers/{id}/account` (`brokers.py:171-178`)
+docs/research/phase-10/map-broker-safety.md:147:→ `adapter.account_info()` → `AccountSummary` (`models/broker.py:109-121`):
+docs/research/phase-10/map-broker-safety.md:148:`equity`, `cash`, `buyingPower`, `positions: list[BrokerPosition]`,
+docs/research/phase-10/map-broker-safety.md:149:`capturedAt`. Each `BrokerPosition` (`models/broker.py:97-106`) carries `symbol`,
+docs/research/phase-10/map-broker-safety.md:152:Kite maps broker holdings into this shape: `_account_info` (`kite.py:170-202`)
+docs/research/phase-10/map-broker-safety.md:154:mode, calls `self._client.margins()` + `self._client.holdings()` and translates
+docs/research/phase-10/map-broker-safety.md:156:`/positions`, `/holdings`, or `/margins` HTTP route** — the task brief implies
+docs/research/phase-10/map-broker-safety.md:163:### 3.1 What the Kite adapter actually does (`sidecar/services/brokers/kite.py`)
+docs/research/phase-10/map-broker-safety.md:170:if not api_key or not access_token: raise BrokerError(...)          # kite.py:78-81
+docs/research/phase-10/map-broker-safety.md:199:`BrokerConnectPanel.tsx:51-56` declares Kite fields:
+docs/research/phase-10/map-broker-safety.md:209:(`BrokerConnectPanel.tsx:292-294` `setSecret(broker(id, key), value)`) and POSTs
+docs/research/phase-10/map-broker-safety.md:210:them all to `/brokers/kite/connect` (`brokers.ts:78-92`). The sidecar silently
+docs/research/phase-10/map-broker-safety.md:216:### 3.3 Order placement at Kite (`kite.py:208-261`)
+docs/research/phase-10/map-broker-safety.md:219:`dhan.py`). Live mode builds Kite SDK params (`kite.py:225-235`,
+docs/research/phase-10/map-broker-safety.md:221:order_type via `_kite_order_type`) and calls `self._client.place_order(**params)`
+docs/research/phase-10/map-broker-safety.md:223:`BrokerError("kite: place_order failed: ...")`, which the LOCKED
+docs/research/phase-10/map-broker-safety.md:237:  (`kite.py:108-124`), surfaced via `GET/POST /brokers/kite/static-ip`
+docs/research/phase-10/map-broker-safety.md:238:  (`brokers.py:293-309`).
+docs/research/phase-10/map-broker-safety.md:245:**Mis-wire / bug (medium):** `BrokerConnectPanel.tsx:254` mounts the banner with
+docs/research/phase-10/map-broker-safety.md:249:route), but the panel never reads it back from `GET /brokers/kite/static-ip` to
+docs/research/phase-10/map-broker-safety.md:251:(`BrokerConnectPanel.tsx:252`), contradicting `BROKER_INTEGRATIONS.md:62-65`
+docs/research/phase-10/map-broker-safety.md:265:default-provider picker. **There is NO broker section here.** Brokers are not
+docs/research/phase-10/map-broker-safety.md:268:### 4.2 Broker-connect module — `src/modules/broker-connect/`
+docs/research/phase-10/map-broker-safety.md:270:The actual broker surface is a dockview module (`broker-connect/index.ts:12-55`)
+docs/research/phase-10/map-broker-safety.md:273:- `broker-connect-panel` → `BrokerConnectPanel` (connection manager)
+docs/research/phase-10/map-broker-safety.md:274:- `broker-order-entry` → `BrokerOrderEntry` (manual order proposal form)
+docs/research/phase-10/map-broker-safety.md:276:Registered in `src/modules/index.ts:67` (`brokerConnectModule`). It reads
+docs/research/phase-10/map-broker-safety.md:277:`GET /brokers` via `useBrokersStore` (`store/brokers.ts:53-66`) and renders one
+docs/research/phase-10/map-broker-safety.md:279:`CredentialsDialog`), and per-broker first-connect disclaimer
+docs/research/phase-10/map-broker-safety.md:280:(`BrokerConnectPanel.tsx:281-298`). Connect is gated on the first-launch TOS ack
+docs/research/phase-10/map-broker-safety.md:281:(`BrokerConnectPanel.tsx:145-149,161`).
+docs/research/phase-10/map-broker-safety.md:284:renderer collects fields → `setSecret(broker(id, field), value)` to OS keychain
+docs/research/phase-10/map-broker-safety.md:285:→ then passes the same plaintext values as `connect(broker, credentials)` →
+docs/research/phase-10/map-broker-safety.md:286:`store/brokers.ts:78-92` POSTs `{ credentials }` in the **request body** to
+docs/research/phase-10/map-broker-safety.md:287:`/brokers/{id}/connect`. (Note: broker-connect uses the BODY, not headers; the
+docs/research/phase-10/map-broker-safety.md:289:CLAUDE.md, not to broker execution connect.)
+docs/research/phase-10/map-broker-safety.md:291:### 4.3 The broker PLUGINS are dead code at runtime
+docs/research/phase-10/map-broker-safety.md:293:`plugins/brokers/{kite,alpaca,dhan,angelone,ib,oanda,ccxt-exec}/index.ts` each
+docs/research/phase-10/map-broker-safety.md:296:`plugins/brokers/kite/index.ts:67-100,215-233`). **None are bundled.**
+docs/research/phase-10/map-broker-safety.md:301:- `BROKER_INTEGRATIONS.md:30-33` and `kite-static-ip-banner.tsx:14-18` both
+docs/research/phase-10/map-broker-safety.md:305:  `BROKER_INTEGRATIONS.md:130-242` don't fire either.
+docs/research/phase-10/map-broker-safety.md:307:The only live broker surface is the `broker-connect` **module** (sections 4.2),
+docs/research/phase-10/map-broker-safety.md:315:### 5.1 `/brokers/{id}/disconnect` route does not exist (medium)
+docs/research/phase-10/map-broker-safety.md:317:`store/brokers.ts:94-104` `disconnect()` POSTs to `/brokers/{id}/disconnect`,
+docs/research/phase-10/map-broker-safety.md:318:but `routers/brokers.py` has no such route (grep: no `disconnect` in
+docs/research/phase-10/map-broker-safety.md:319:`brokers.py`). A disconnect call would 404. Latent only because
+docs/research/phase-10/map-broker-safety.md:320:`BrokerConnectPanel` never calls `disconnect` today (no UI button wired to it).
+docs/research/phase-10/map-broker-safety.md:324:`BrokerConnectPanel.tsx:53` collects `api_secret`; `kite.py:_connect` never reads
+docs/research/phase-10/map-broker-safety.md:327:real "connect your broker" hub. (Fix lives entirely OUTSIDE the §6.5 LOCKED
+docs/research/phase-10/map-broker-safety.md:329:`BrokerAdapter` contract is untouched.)
+docs/research/phase-10/map-broker-safety.md:333:`BrokerConnectPanel.tsx:254`. Banner never receives the adapter's stored
+docs/research/phase-10/map-broker-safety.md:335:user sets one. Panel should fetch `GET /brokers/kite/static-ip` and pass
+docs/research/phase-10/map-broker-safety.md:340:`BrokerConnectPanel.tsx:252` only mounts the banner in live mode;
+docs/research/phase-10/map-broker-safety.md:341:`BROKER_INTEGRATIONS.md:62-65` says it mounts in paper mode too.
+docs/research/phase-10/map-broker-safety.md:343:### 5.5 Broker plugins unbundled → plugin commands dead (medium, product gap)
+docs/research/phase-10/map-broker-safety.md:345:`plugin-bootstrap.ts:45-49`. The `plugins/brokers/*` slash/control-plane commands
+docs/research/phase-10/map-broker-safety.md:346:documented in `BROKER_INTEGRATIONS.md` are not reachable; the only working
+docs/research/phase-10/map-broker-safety.md:347:broker surface is the `broker-connect` module.
+docs/research/phase-10/map-broker-safety.md:349:### 5.6 No broker section in Settings; no unified provider hub (medium, product gap)
+docs/research/phase-10/map-broker-safety.md:351:`SettingsPanel.tsx:53-56` has AI Providers but no brokers. Broker connection is
+docs/research/phase-10/map-broker-safety.md:352:discoverable only by opening the `broker-connect` dockview panel. A real
+docs/research/phase-10/map-broker-safety.md:353:"connect your broker" hub would unify these.
+docs/research/phase-10/map-broker-safety.md:364:  via NEW routes in `routers/brokers.py` (e.g. `GET /brokers/kite/login-url`,
+docs/research/phase-10/map-broker-safety.md:365:  `POST /brokers/kite/session`). The `BrokerAdapter` ABC stays untouched —
+docs/research/phase-10/map-broker-safety.md:370:- **Settings "Brokers" section** mirroring `ProvidersSection`
+docs/research/phase-10/map-broker-safety.md:371:  (`SettingsPanel.tsx:68`), or promote `BrokerConnectPanel` into a
+docs/research/phase-10/map-broker-safety.md:372:  Settings-embedded hub. Reuse `KEYCHAIN_NAMESPACES.broker(id, field)`
+docs/research/phase-10/map-broker-safety.md:376:None of the above edits `broker_base.py`, `audit_log.py`, `kill_switch.py`,
+docs/research/phase-10/map-broker-safety.md:384:- LOCKED ABC: `sidecar/services/broker_base.py` (paper default :94, propose
+docs/research/phase-10/map-broker-safety.md:385:  :223, confirm :310, place call :365, kill-switch sub :103)
+docs/research/phase-10/map-broker-safety.md:386:- Kite adapter: `sidecar/services/brokers/kite.py` (connect :69, no-secret
+docs/research/phase-10/map-broker-safety.md:388:- Angel One real OAuth (contrast): `sidecar/services/brokers/angelone.py:76`
+docs/research/phase-10/map-broker-safety.md:389:- Brokers router: `sidecar/routers/brokers.py` (account read :171, propose :181,
+docs/research/phase-10/map-broker-safety.md:394:- Broker models: `sidecar/models/broker.py` (BrokerId :24, AccountSummary :109,
+docs/research/phase-10/map-broker-safety.md:395:  BrokerPosition :97, ConnectRequest body :138)
+docs/research/phase-10/map-broker-safety.md:396:- Registry: `sidecar/services/brokers/registry.py:97` bootstrap (India only)
+docs/research/phase-10/map-broker-safety.md:397:- Frontend connect panel: `src/modules/broker-connect/BrokerConnectPanel.tsx`
+docs/research/phase-10/map-broker-safety.md:399:- Banner: `src/modules/broker-connect/kite-static-ip-banner.tsx` (poll :124)
+docs/research/phase-10/map-broker-safety.md:400:- Brokers store: `src/store/brokers.ts` (connect body :78, missing disconnect
+docs/research/phase-10/map-broker-safety.md:402:- Keychain: `src/lib/keychain.ts` (broker namespace :46, body-not-storage :14)
+docs/research/phase-10/map-broker-safety.md:403:- Settings (no broker section): `src/components/SettingsPanel.tsx:53-56`
+docs/research/phase-10/map-broker-safety.md:404:- Plugin bundling (brokers absent): `src/lib/plugin-bootstrap.ts:45-49,81-83`
+docs/research/phase-10/map-broker-safety.md:405:- Module registration: `src/modules/broker-connect/index.ts:12`,
+docs/research/phase-10/map-broker-safety.md:407:- Docs: `docs/BROKER_INTEGRATIONS.md`, `docs/SAFETY_ARCHITECTURE.md`
+docs/research/phase-10/map-extensibility.md:47:3. Plugin-contributed agents never reach the chat picker; broker execution
+docs/research/phase-10/map-extensibility.md:106:  agent-builder, node-editor, backtest, broker-connect, safety, macro, sec,
+docs/research/phase-10/map-extensibility.md:232:  sec*filings, earnings, screener, quant, crypto, brokers, ...). These are the
+docs/research/phase-10/map-extensibility.md:238:  `plugins/tradesa-v2/index.ts`; all 7 broker plugins) declare `DataSource`
+docs/research/phase-10/map-extensibility.md:283:  quant 4/4, broker-connect 2/2). This means:
+docs/research/phase-10/map-extensibility.md:392:- **Broker execution plugins are written but NOT loaded.** `plugins/brokers/`
+docs/research/phase-10/map-extensibility.md:396:  Verified by grep: no broker import in `plugin-bootstrap.ts`. The v1.0 §6.5
+docs/research/phase-10/map-extensibility.md:397:  broker execution surface exists on disk but is not wired into the host runtime
+docs/research/phase-10/map-extensibility.md:457:7. **Wire (or explicitly gate) the broker execution plugins** — they exist on
+docs/research/phase-10/study-kite-agentic.md:14:Kite Connect is a set of REST-like HTTP APIs. Requests are **form-encoded**; responses are **JSON**. The API endpoints are **not CORS-enabled** — they cannot be called directly from a browser (Source: https://kite.trade/docs/connect/v3/). This matters for Vysted: the Next.js frontend (static export running in a Tauri webview) must NOT call `api.kite.trade` directly. All Kite calls go through the Python sidecar (which is exactly what `sidecar/services/brokers/kite.py` does via the `kiteconnect` SDK). The webview-origin CORS problem alone forces the sidecar-proxy design.
+docs/research/phase-10/study-kite-agentic.md:55:`user_type`, `email`, `user_name`, `user_shortname`, `broker`, `exchanges` (array), `products` (array), `order_types` (array), `avatar_url`, `user_id`, `api_key`, `access_token`, `public_token`, `enctoken`, `refresh_token`, `silo`, `login_time`, `meta` (object with `demat_consent`).
+docs/research/phase-10/study-kite-agentic.md:62:- `user_id` — Zerodha client id; `kite.py:_connect` already stores this as `_account_id` (sidecar/services/brokers/kite.py, `_connect`).
+docs/research/phase-10/study-kite-agentic.md:78:4. Cache the `user_id`, `exchanges`, `products` so the connected-broker UI can render the account identity even when the token is stale (greyed "session expired" badge).
+docs/research/phase-10/study-kite-agentic.md:80:**Gap in current code:** `kite.py` has no token-staleness awareness and no 403→reconnect path. `_account_info` and `_place_confirmed` let raw SDK exceptions propagate as `BrokerError` (sidecar/services/brokers/kite.py, `_account_info`, `_place_confirmed`). They should specifically catch `kiteconnect.exceptions.TokenException` and translate it to a typed "session expired, reconnect" outcome so the frontend can show the daily reconnect prompt instead of a generic broker error.
+docs/research/phase-10/study-kite-agentic.md:103:**GET `/user/margins`** (and `/user/margins/:segment` where segment ∈ `equity`,`commodity`) — funds/margin. Response has `net` (available balance), `available` (with `cash`, `collateral`, …) and `utilised` (margin blocked: exposure, SPAN, etc.).
+docs/research/phase-10/study-kite-agentic.md:114:and then sets `equity = cash = buyingPower` all to that one number (sidecar/services/brokers/kite.py, `_account_info`). That ignores `net` (the true available balance), `collateral`, and `utilised`. The Kite margins object's authoritative "what can I deploy" number is `equity.net`, not `equity.available.cash`. For accurate buying-power display this should read `equity_block.get("net")` for `buyingPower`/equity and keep `available.cash` only for the cash line. Confidence 8/10 (exact field semantics depend on Kite's current margins payload, but `net` vs `available.cash` divergence is real and documented).
+docs/research/phase-10/study-kite-agentic.md:116:**Second issue:** `_account_info` only translates **holdings** into positions; it never calls `positions()`. Intraday and F&O positions (the `net`/`day` arrays) are invisible to the account summary. For an F&O-capable broker (which Kite is — `supportsFutures=True`, `supportsOptions=True` in `CAPABILITIES`) this is a material omission. The P&L panel will under-report. Confidence 7/10.
+docs/research/phase-10/study-kite-agentic.md:159:- SEBI circular SEBI/HO/MIRSD/MIRSD-PoD/P/CIR/2025/0000013 (Feb 2025), deadline extended to **2026-04-01** via .../2025/132, requires brokers to "allow access only through a unique vendor client specific API key and static IP whitelisted by the broker." (Source: https://kite.trade/forum/discussion/15912/, https://inthemoneybyzerodha.substack.com/p/sebi-algo-trading-changes-april-2026)
+docs/research/phase-10/study-kite-agentic.md:160:- **The static-IP requirement applies to ORDER PLACEMENT only.** All other endpoints — **WebSocket data, order book, positions, holdings, margins** — remain accessible **from any IP** (Source: Zerodha support — https://support.zerodha.com/category/trading-and-markets/general-kite/kite-api/articles/static-ip; forum confirmation https://kite.trade/forum/discussion/15359/). Orders from unregistered IPs are rejected; data is unaffected.
+docs/research/phase-10/study-kite-agentic.md:162:- **Note the data-vendor caveat:** Zerodha staff (forum) state "Kite Connect is purely an execution platform. For your data requirements, you will need to contact an exchange-authorised data vendor" (Source: https://kite.trade/forum/discussion/15359/). Practically, holdings/positions/margins still work, but Zerodha discourages using Connect as a _market-data_ feed — Vysted should source live quotes/candles from its own data layer (yfinance/OpenBB/etc., already present in `sidecar/services/`) and use Kite only for **the user's own account state + execution**.
+docs/research/phase-10/study-kite-agentic.md:164:**Codebase alignment (good):** This rule is already modeled correctly. `BrokerCapabilities.requiresStaticIp` is documented as "order placement only" and set true for `kite` (types/broker.ts, `BrokerCapabilities.requiresStaticIp`; sidecar/services/brokers/kite.py, `CAPABILITIES`). `static_ip_detector.py` correctly states "Kite rejects orders from unregistered IPs while leaving data/holdings/positions endpoints unaffected" and the detector never pre-blocks placement (sidecar/services/static_ip_detector.py, module docstring). `kite.py:set_mode` audit-logs the detected-vs-configured IP comparison on the live toggle. This is the right design: don't pre-block (user may be on VPN/VPS with the right IP), surface a banner, let Kite's order-time 403 be the source of truth.
+docs/research/phase-10/study-kite-agentic.md:166:**One refinement:** the static-IP banner should make explicit that **read-only panels keep working even on a mismatched IP** — only order placement is at risk. Otherwise users will think their whole Kite connection is broken when only execution is.
+docs/research/phase-10/study-kite-agentic.md:174:- Order placement: **10 req/s** (also: ≤400 orders/min, ≤10/s, ≤5000/day per user/api_key)
+docs/research/phase-10/study-kite-agentic.md:175:- All other (positions, holdings, margins, profile): **10 req/s**
+docs/research/phase-10/study-kite-agentic.md:177:So the portfolio/P&L poll loop (positions + holdings + margins) is comfortably within 10 req/s — but **do not poll faster than once every few seconds**; there's no value in hammering, and Kite data is not tick-by-tick on REST. For live ticks use the Kite WebSocket (separate from REST), but per A.7 prefer Vysted's own data layer for quotes.
+docs/research/phase-10/study-kite-agentic.md:247:- `propose_order` — must NOT place; it must create a `BrokerOrderProposal` with `source="ai-agent"`, which per the LOCKED contract opens the confirmation dialog **defaulted to declined** with the originating agent named (types/broker.ts `BrokerOrderSource`, `BrokerOrderProposal`; the §6.5 safety files are LOCKED). The AI layer has **no path** to `place_order`. Any Phase-10 action tool that touches a broker must emit a proposal, never a placement.
+docs/research/phase-10/study-kite-agentic.md:274:3. **Confirm, never auto-execute, for money.** Any `propose_order` tool result renders the confirmation dialog (declined-by-default, agent named) per the LOCKED §6.5 contract. The chat shows "I've prepared this order — review and confirm" with the dialog, never "I placed it." (types/broker.ts `BrokerOrderSource` comment explicitly notes the auto-approve mode was _removed_ in v0.5.0.)
+docs/research/phase-10/study-kite-agentic.md:302:- [ ] Static-IP banner: clarify read-only panels keep working; only order placement is IP-gated.
+docs/research/phase-10/study-kite-agentic.md:309:- [ ] Add `propose_order` action tool routing through the LOCKED safety gate (proposal, declined-by-default, agent named) — never `place_order`.
+docs/research/phase-10/hunt-rust-tauri.md:7:Scope note: `src-tauri/src/kill_switch.rs` is a §6.5 LOCKED file; its internal
+docs/research/phase-10/hunt-rust-tauri.md:8:logic is NOT flagged. Where the kill-switch interacts with Tauri capabilities
+docs/research/phase-10/hunt-rust-tauri.md:13:`sec_edgar_mcp.rs`, `kill_switch.rs`, `build.rs`, `Cargo.toml`,
+docs/research/phase-10/hunt-rust-tauri.md:311:indefinitely while a keychain auth dialog is up). With the BYOK flows, broker
+docs/research/phase-10/hunt-rust-tauri.md:314:LLM + broker + MCP secret at panel mount) could stall the runtime briefly.
+docs/research/phase-10/hunt-rust-tauri.md:376:  AI/LLM responses, SEC filing text, broker/provider payloads. Any stored or
+docs/research/phase-10/hunt-rust-tauri.md:379:  which read **every BYOK secret** — LLM keys, broker access tokens, plugin
+docs/research/phase-10/hunt-rust-tauri.md:389:a v1.0 launch that ships real broker tokens.
+docs/research/phase-10/hunt-rust-tauri.md:406:  `.register()` from Rust** — the kill-switch shortcut is registered via
+docs/research/phase-10/hunt-rust-tauri.md:407:  `app.global_shortcut().register(...)` (`kill_switch.rs:74`), a **direct Rust
+docs/research/phase-10/hunt-rust-tauri.md:412:  kill-switch shortcut registration is **not** broken by the capabilities set.
+docs/research/phase-10/hunt-rust-tauri.md:413:  (kill_switch.rs internals are §6.5 LOCKED and not otherwise analyzed.)
+docs/research/phase-10/study-openbb.md:94:- **Per-provider `instructions` markdown + `website` belong in the integrations hub.** OpenBB's credentials UX shows the user _exactly_ how to get each key, inline. Vysted's broker plugins already gesture at this (`alpaca/index.ts:75` describes "api_key + api_secret stored in the OS keychain") but it lives in a command description, not a structured per-source onboarding blob. Add an `instructions?: string` + `website?: string` + `credentialFields?: {id, label, secret}[]` to the data-source/plugin metadata so the hub can render a proper connect card.
+docs/research/phase-10/study-openbb.md:178:- **The thin-command pattern is the right altitude.** OpenBB commands are 3 lines because all logic lives in the model/fetcher/executor. Vysted's broker plugins are already thin shells over sidecar routes (`alpaca/index.ts` is pure proxy, per its own header comment) — that instinct matches OpenBB. Keep frontend plugins dumb; keep the compute in the sidecar.
+docs/research/phase-10/study-openbb.md:210:- **`mcp_config.expose=false` is the model for keeping broker-execution tools out of the agent surface.** OpenBB lets a route opt out of MCP. Vysted's §6.5 safety story _requires_ this: order-placement routes must never become freely-callable agent tools (the propose→confirm two-step is human-gated, `alpaca/index.ts:6-8`). Adopt a per-route/per-command `exposeToAgents: false` default-deny for any control-plane/execution command. This dovetails with the existing v0.6.5 defense-in-depth (no non-GET routes on read-only providers, `supportsControlPlane=false`) — make "not an agent tool" a third explicit layer for execution surfaces.
+docs/research/phase-10/study-openbb.md:261:- `plugins/brokers/alpaca/index.ts` — thin proxy broker plugin, control-plane shape
+docs/research/phase-10/blueprint-copilot.md:236:    "propose_order": {
+docs/research/phase-10/blueprint-copilot.md:237:        "description": "Prepare a broker order for the user to REVIEW. This NEVER "
+docs/research/phase-10/blueprint-copilot.md:267:> `place_order | submit_order | execute_order` and asserts the list is empty.
+docs/research/phase-10/blueprint-copilot.md:268:> The action tool is therefore named **`propose_order`** and is NEVER registered
+docs/research/phase-10/blueprint-copilot.md:466:- **`propose_order` routes through the LOCKED §6.5 gate, never auto-executes.**
+docs/research/phase-10/blueprint-copilot.md:468:  into a `BrokerOrderProposal` with `source: "ai-agent"` and
+docs/research/phase-10/blueprint-copilot.md:469:  `sourceDetails: {agentId, agentName}` (`types/broker.ts:130-136`), pushed to
+docs/research/phase-10/blueprint-copilot.md:473:  comment; `BrokerOrderSource` comment `broker.ts:95-101`). The AI layer has
+docs/research/phase-10/blueprint-copilot.md:479:> distinction in the system prompt of any tool-using persona: _"`propose_order`
+docs/research/phase-10/blueprint-copilot.md:554:"screener_run" → "can screen", "propose_order" → "can prepare orders"). The
+docs/research/phase-10/blueprint-copilot.md:703:- `sidecar/tests/test_action_tools.py` — `propose_order` returns a proposal, never places; UI-action tools return host directives; §6.5 grep still green.
+docs/research/phase-10/blueprint-copilot.md:731:- `sidecar/models/audit_log.py`, `kill_switch.py`, `broker_base.py`, `tests/test_safety_end_to_end.py` (§6.5). `propose_order` is named to pass the `place_order|submit_order|execute_order` grep (`test_safety_end_to_end.py:358-366`); the AI never reaches `confirm_and_place`.
+docs/research/phase-10/blueprint-design-system.md:175:| `--color-warning` (NEW)   | —         | `#e0a458` | `oklch(0.76 0.11 70)`  | **NEW token.** Amber-gold warning/caution (kill-switch armed, stale data, risk banners). Sits at hue ~70° — clearly distinct from both coral (33°) and positive (135°). |
+docs/research/phase-10/blueprint-design-system.md:184:> Why a `--warning` token is added: the broker-execution surfaces (kill-switch armed, paper-vs-live, static-IP
+docs/research/phase-10/blueprint-bugfix.md:9:locked file. The locked set is `sidecar/models/audit_log.py`, `sidecar/models/kill_switch.py`
+docs/research/phase-10/blueprint-bugfix.md:10:(+ `src-tauri/src/kill_switch.rs`), `sidecar/models/broker_base.py`, `types/plugin.ts`,
+docs/research/phase-10/blueprint-bugfix.md:11:`tests/test_safety_end_to_end.py`. Fix 8 (KillSwitchToolbar) touches the **frontend**
+docs/research/phase-10/blueprint-bugfix.md:12:safety surface `src/modules/safety/KillSwitchToolbar.tsx`, which is explicitly NOT in
+docs/research/phase-10/blueprint-bugfix.md:39:| 5   | KillSwitchToolbar OS-listener leak → multi-fire                                                     | MEDIUM   | `KillSwitchToolbar.tsx`, (test)                                        | unit test + dev shortcut                            |
+docs/research/phase-10/blueprint-bugfix.md:570:## FIX 5 — KillSwitchToolbar OS-listener leak → multi-fire — MEDIUM
+docs/research/phase-10/blueprint-bugfix.md:574:`src/modules/safety/KillSwitchToolbar.tsx:80-99`: `cancelled` is checked **before**
+docs/research/phase-10/blueprint-bugfix.md:579:`kill-switch:requested`, so N leaks = N concurrent `POST /safety/kill-switch` per
+docs/research/phase-10/blueprint-bugfix.md:581:defect; **`KillSwitchToolbar.tsx` is NOT in the locked §6.5 set** (the locked safety
+docs/research/phase-10/blueprint-bugfix.md:582:files are `kill_switch.rs`/`audit_log.py`/`broker_base.py`/`types/plugin.ts`/
+docs/research/phase-10/blueprint-bugfix.md:585:### Exact code change — `KillSwitchToolbar.tsx:83-92`
+docs/research/phase-10/blueprint-bugfix.md:595:  const off = await api.listen<KillSwitchEventPayload>("kill-switch:requested", (event) => {
+docs/research/phase-10/blueprint-bugfix.md:609:`src/modules/safety/KillSwitchToolbar.test.tsx` (extend or new): mock
+docs/research/phase-10/blueprint-bugfix.md:620:  `Cmd+Shift+K`, confirm exactly one `POST /safety/kill-switch` in the network panel
+docs/research/phase-10/blueprint-bugfix.md:621:  (not N). Do NOT fire against a live broker — paper/disconnected only.
+docs/research/phase-10/blueprint-bugfix.md:846:  (`hunt-error-surfaces.md` #1 global sidecar banner, #2 kill-switch silent-swallow, #3
+docs/research/phase-10/blueprint-bugfix.md:848:  broker toggle silent no-op, #7 screener universe, #8 broker empty-state), the chat
+docs/research/phase-10/blueprint-bugfix.md:851:  reset-incomplete, defaultProviderId not persisted). Flag #2 (kill-switch fire failure
+docs/research/phase-10/blueprint-bugfix.md:852:  silently swallowed, `KillSwitchToolbar.tsx:64-71` + `handleReset` no catch) as a
+docs/research/phase-10/blueprint-bugfix.md:854:  "KILL SWITCH FAILED TO FIRE — RETRY" banner into the Fix 5 commit since it touches the
+docs/research/phase-10/blueprint-bugfix.md:859:No fix edits `sidecar/models/audit_log.py`, `sidecar/models/kill_switch.py`,
+docs/research/phase-10/blueprint-bugfix.md:860:`src-tauri/src/kill_switch.rs`, `sidecar/models/broker_base.py`, `types/plugin.ts`, or
+docs/research/phase-10/blueprint-bugfix.md:863:frontend `KillSwitchToolbar.tsx`, which is not locked.

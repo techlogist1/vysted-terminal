@@ -1,0 +1,16 @@
+== INSPIRE
+429 {'symbol': None, 'name': None, 'market_cap': None, 'pe_ratio': None, 'detail': 'The data provider is throttled right now — try again shortly.', 'code': 'rate_limited'}
+== SKP
+429 {'symbol': None, 'name': None, 'market_cap': None, 'pe_ratio': None, 'detail': 'The data provider is throttled right now — try again shortly.', 'code': 'rate_limited'}
+== RULKA
+429 {'symbol': None, 'name': None, 'market_cap': None, 'pe_ratio': None, 'detail': 'The data provider is throttled right now — try again shortly.', 'code': 'rate_limited'}
+== THESL
+429 {'symbol': None, 'name': None, 'market_cap': None, 'pe_ratio': None, 'detail': 'The data provider is throttled right now — try again shortly.', 'code': 'rate_limited'}
+== 500209.BO
+429 {'symbol': None, 'name': None, 'market_cap': None, 'pe_ratio': None, 'detail': 'The data provider is throttled right now — try again shortly.', 'code': 'rate_limited'}
+== history/SKP?timeframe=1h
+bars 0 {'symbol': None, 'provider': None, 'reason': None, 'detail': 'The data provider is throttled right now — try again shortly.'}
+== history/RULKA?timeframe=30m
+bars 0 {'symbol': None, 'provider': None, 'reason': None, 'detail': 'The data provider is throttled right now — try again shortly.'}
+== history/INSPIRE?timeframe=1h
+bars 0 {'symbol': None, 'provider': None, 'reason': None, 'detail': 'The data provider is throttled right now — try again shortly.'}

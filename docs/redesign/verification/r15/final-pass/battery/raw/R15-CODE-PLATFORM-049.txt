@@ -1,0 +1,11 @@
+# R15-CODE-PLATFORM-049 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:04+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'deleteSecret' src/store/marketplace.ts | head; grep -rn 'R15-CODE-PLATFORM-049' src --include=*.test.ts* | head -3
+--- output ---
+21:import { deleteSecret, getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
+193:          config.grantedSecretIds.map((account) => deleteSecret(account).catch(() => undefined)),
+225:            await deleteSecret(account).catch(() => undefined);
+src/store/marketplace.test.ts:107:  it("remove(vysted-news) deletes each granted secret; disable does not (R15-CODE-PLATFORM-049)", async () => {
+
+EXIT=0 (0.0s)

@@ -1,0 +1,142 @@
+[
+  {
+    "raw_id": "COD-runs-durable-delegate-1",
+    "title": "A Delegate run's answer never reaches the user: events are discarded in the driver, the only read API truncates to 500 chars, and no UI fetches it",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "runs-durable-delegate",
+    "repro": "Composer plus-menu -> Delegate -> send any research prompt. The rail row pulses, then disappears on completion; nothing is appended to the chat or the brief. Live evidence on the isolated sidecar: `curl -s http://127.0.0.1:52152/runs` -> one `done` run, 54,450 tokens / $0.1089; `GET /runs/<id>` returns its whole answer as ONE assistant message cut at exactly 500 chars ('I'll pull live valuation data ... Let me screen the major IT names an') placed after nine '[tool_use …]' markers.",
+    "evidence": "sidecar/services/run_manager.py:164-178 (only delta text + '[tool_use name]' kept; publish_brief / proposed-change / progress events dropped), sidecar/services/run_manager.py:180-181 (all rounds' deltas fused into one message after every tool marker), sidecar/services/runs_store.py:184 (`text[:500]`), src/modules/chat/AgentsRail.tsx:29-32 (rail renders running|paused only, so a finished run vanishes), src/modules/chat/ChatSidebar.tsx:1178-1187 (foreground = one status line, never fetches /runs/{id}), src/modules/chat/ChatSidebar.tsx:846-850 (user is told 'any changes it proposes still need your review' - there is no channel), src/lib/delegate-runs.ts:176-179 (terminal branch syncs status only); grep: no frontend caller of GET /runs/{id}",
+    "notes": "Increments-are-abstractions / pull-complexity-down: the subsystem was built per FR (row, guard, pause) and never around 'a run has an output a client can collect'. Consequence: the user pays BYOK spend up to the ceiling and gets nothing back; auto-published briefs and proposed changes from a delegate run are silently lost. Smallest fix: persist the final assistant text (+ the publish_brief payload) untruncated on the run row, return it from GET /runs/{id}, and in the poller's terminal branch fetch it once and append it to the chat / route the brief through the existing proposed-changes gate."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-2",
+    "title": "Resume/answer re-enter the run with provider=None, model=None, api_key=None - the 'resumable checkpoint' cannot work for any BYOK cloud run, and no UI calls resume",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "runs-durable-delegate",
+    "repro": "Launch with provider=openrouter + key, let it breach (status=error), POST /runs/{id}/resume -> invoke_agent is called with provider/model/api_key all None (proved: scratch script prints `P4 resume invoke kwargs: {'provider': None, 'model': None, 'api_key': None}`), so it falls to spec.default_provider ('anthropic' for 10 bundled agents, keyless -> error; 'ollama' -> cold-loads a local model).",
+    "evidence": "sidecar/services/run_manager.py:401-412 (hard-coded None), sidecar/routers/runs.py:118 and :130 (routes never pass api_key/budget although the manager accepts them - test-only parameters, see sidecar/tests/test_run_manager.py:270,293), sidecar/models/run.py:144-149 (answer body has no key field), sidecar/services/runs_store.py:75 (allow-list persists only research_depth/region), sidecar/services/agent_runtime.py:524-536 (None -> agent defaults), sidecar/services/run_manager.py:399 (resume zeroes the recorded cost, so lifetime spend across resumes is understated), src/lib/delegate-runs.ts:226 (resumeDelegateRun has zero callers)",
+    "notes": "Information hiding inverted: what a resume needs (provider, model) is non-secret but was never persisted; R10 patched the reported symptom (depth/region reset) not the root. SC-008's 'abort with a resumable checkpoint' is therefore a promise with no working path end to end. Fix shape: add provider+model to _PERSISTED_OPTION_KEYS and re-thread them; accept `apiKey` (+ optional budget) on the resume/answer bodies; accumulate cost across resumes instead of `cost=RunCost()`; add a Resume control on error rows or drop the claim."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-3",
+    "title": "Spend ceiling can overshoot: a breach flagged at a round boundary cannot stop the loop, so that round's tools run and the next provider request is sent (and never metered)",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "runs-durable-delegate",
+    "repro": "Faked provider that emits tool_use + done(100k tokens) every round, RunBudget(max_tokens=1000): the run aborts with 'token ceiling' but the provider was called TWICE (scratch proof prints `P5 ... provider calls after 1-round breach: 2 | cost: tokens=100000`) - round 2's request went out after the breach and its usage is not in the recorded cost.",
+    "evidence": "sidecar/services/run_manager.py:133-140 (callback only sets a flag), sidecar/services/run_manager.py:176-178 (the consumer can act only on the NEXT yielded event), sidecar/services/agent_runtime.py:1466-1473 (callback fires, then `break` to tool dispatch), sidecar/services/agent_runtime.py:1551-1575 (all pending tools dispatched - incl. paid search / deep research - before any event is guaranteed), sidecar/services/budget_guard.py:1-8 ('hard spend ceiling', 'aborts 100%')",
+    "notes": "Pull complexity downward: the stop decision lives in the consumer although the only point synchronous with the round boundary is the callback. Consequence: a '$1 hard ceiling' lets one extra tool batch plus one extra provider request through, and the rail under-reports what was spent. Fix shape: let the callback stop the loop - raise a private _BudgetBreach(reason) from _on_round_usage and catch it in _drive_run (or have on_round_usage return a stop bool that invoke_agent honours before dispatching tools)."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-4",
+    "title": "A run that completes on the round that touches a ceiling is recorded as `error`",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "runs-durable-delegate",
+    "repro": "One-shot provider (delta + done), RunBudget(max_steps=1) -> row is status=error, detail='step ceiling 1 reached (1 taken)' while its transcript holds the complete answer (scratch proof P2). Same for a final round that crosses max_tokens / max_spend_usd.",
+    "evidence": "sidecar/services/budget_guard.py:162 (`>=` on an integer count: a budget of N steps aborts ON the Nth), sidecar/services/run_manager.py:183-188 (breach_reason wins even when the generator finished naturally), sidecar/services/run_manager.py:175 (`breach_reason` also carries agent error text - one variable, two meanings)",
+    "notes": "Define errors out of existence: 'finished while at the ceiling' is not a failure. Consequence: finished work is labelled failed and (with finding 1) hidden. Fix shape: record whether the final terminator was seen and prefer status=done with the ceiling noted in detail; use `>` for steps."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-5",
+    "title": "No lifecycle state machine: cancel / pause / resume act on any status and rewrite terminal history",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "runs-durable-delegate",
+    "repro": "POST /runs/{id}/cancel on a finished run -> 200 and the row flips done -> cancelled 'cancelled by user' (scratch proof P3). POST /runs/{id}/resume on a done run re-executes it and zeroes its cost. pause_run on a done run flips it to paused - the repo's own test does exactly that because it is the only way to exercise pause.",
+    "evidence": "sidecar/services/run_manager.py:291-298 (cancel: no status check), :309-316 (pause: none), :361-366 (resume: only checks a live task), :394-400, sidecar/services/runs_store.py:273-275 (update_run accepts any transition), sidecar/tests/test_run_manager.py:258-266 (test pauses a completed run), sidecar/routers/runs.py:133 (error kind classified by `'already running' in str(exc)`), sidecar/routers/runs.py:119-120 (answer maps the same error to 404 that resume maps to 409)",
+    "notes": "The legal transitions are held by docstrings (models/run.py:28-36), not structure. Consequence: audit trail of a spend-bearing run is mutable after the fact; resume of a done run re-spends. Fix shape: one transition table, enforced in the store as `UPDATE … WHERE id=? AND status IN (…)` (rowcount 0 -> typed RunStateError -> 409, RunNotFound -> 404), which also removes the substring matching."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-6",
+    "title": "'Durable' is row-deep: no startup reconciliation and the checkpoint is written only at exit, so a restart leaves zombie `running` rows that cannot be resumed",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "runs-durable-delegate",
+    "repro": "Launch a run, call run_manager.shutdown() (what the lifespan does) -> row stays status=running forever (scratch proof P6). On a crash / kill -9 / power loss the row is `running` with checkpoint_json NULL -> POST resume -> 404 'no checkpoint to resume from'. A webview that outlived the sidecar shows a forever-pulsing row with frozen cost.",
+    "evidence": "sidecar/services/run_manager.py:211-215 (CancelledError path writes checkpoint only, no status), :421-438 (shutdown), :185-192/:210/:218 (checkpoint written only on terminal exits, never per round), sidecar/app.py:136-155 (lifespan: no startup sweep; the comment at :149 says runs are cancelled 'FIRST' but they are third), sidecar/services/runs_store.py:6-8 (the zombie is documented as a feature)",
+    "notes": "Consequence: the store lies about what is running; the one scenario durability exists for (process death) loses the whole transcript. Fix shape: one statement at lifespan startup - UPDATE runs SET status='error', detail='interrupted by sidecar restart' WHERE status='running' - and write the checkpoint inside _on_round_usage (it already writes cost there)."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-7",
+    "title": "The client store, not the sidecar, decides which runs exist: after a reload a live run is invisible and uncancellable while it keeps spending",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "runs-durable-delegate",
+    "repro": "Launch a Delegate run, reload the webview (dev HMR full reload, or any renderer restart with the sidecar alive). The rail is empty; the run continues server-side to its ceiling; there is no control to see or cancel it.",
+    "evidence": "src/store/agent-runs.ts:76 (in-memory `runs: []`, not in the workspace blob), src/lib/delegate-runs.ts:164-166 (`if (!local) continue` - unknown sidecar runs are skipped), :134-143 (poll is a no-op unless a LOCAL run is active), :124 and :236 (polling only ever starts from launch/resume), src/lib/delegate-runs.ts:6-7 (docstring claims durability in the rail)",
+    "notes": "Pull complexity downward / source-of-truth inversion. Fix shape: on sidecar-ready, GET /runs once and adopt every running|paused row into the store (startRun with sidecarRunId + abort), then ensurePolling(). ~15 lines; no new abstraction."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-8",
+    "title": "A failed cancel shows `cancelled` in the rail while the run keeps spending; the 'poll will reconcile' comment is false",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "runs-durable-delegate",
+    "repro": "Click X on a delegate row while the cancel POST fails (sidecar busy/unreachable, or non-2xx). Local status is already `cancelled`; the error is swallowed and response.ok is never checked; the row leaves the rail. The sidecar run continues to its ceiling.",
+    "evidence": "src/store/agent-runs.ts:102-111 (local status flipped before/independent of the request), src/lib/delegate-runs.ts:183-192 (catch-all, no response.ok check, comment 'Best-effort; the poll will reconcile'), src/lib/delegate-runs.ts:134-143 (poll stops when no local run is active), src/store/agent-runs.ts:90-99 (endRun refuses terminal -> terminal, so nothing could reconcile anyway)",
+    "notes": "An invariant held by a comment that the structure contradicts. Consequence: money keeps being spent behind a UI that says it stopped. Fix shape: for durable runs make cancel pessimistic - await the POST, flip to cancelled only on ok, otherwise keep the row running with detail 'cancel failed - retry'."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-9",
+    "title": "Resume and answer corrupt the conversation: the original prompt is replayed as the NEWEST turn after the human's answer, and a second answer turns the first answer into the prompt",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "runs-durable-delegate",
+    "repro": "launch('ORIGINAL PROMPT') -> pause -> answer('ANSWER ONE'): provider receives [assistant, user 'ANSWER ONE', user 'ORIGINAL PROMPT']. pause -> answer('ANSWER TWO'): provider receives [..., user 'ORIGINAL PROMPT', assistant, user 'ANSWER TWO', user 'ANSWER ONE'] - the prompt is now the first answer (scratch proof P1a/P1b).",
+    "evidence": "sidecar/services/run_manager.py:126-129 (_drive_run writes history first, then the prompt, so the checkpoint no longer starts with the prompt), :369-382 (resume assumes 'first user turn = prompt'), :338-343 (answer appended as a raw dict), sidecar/services/agent_runtime.py:518-520 (history, then prompt as the last message), sidecar/services/run_manager.py:164-173 (tool RESULTS are never checkpointed, so a resumed run re-pays every tool call), sidecar/services/runs_store.py:27-28 (column documented as 'the accumulated messages list' - it is a display digest)",
+    "notes": "Information leakage: the checkpoint format is known to four places (_drive_run, answer_run, resume_run, _digest_transcript) and its one invariant is broken by its own writer. Reachable today only via the API (see finding 10), hence medium. Fix shape: store {prompt, turns[]} explicitly (prompt as its own field) and on answer send the ANSWER as the new prompt with the prior turns as history."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-10",
+    "title": "The FR-028 pause/answer control plane is unreachable in production: pause_run has no caller and no route",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "runs-durable-delegate",
+    "repro": "design - `grep -rn pause_run sidecar --include=*.py` outside tests returns only its definition; there is no /pause route and no catalog capability. Status `paused`, the `question` column, answer_run, POST /runs/{id}/answer, answerDelegateRun and the rail's answer form can never execute.",
+    "evidence": "sidecar/services/run_manager.py:301-316 (pause_run, zero callers), :24-34 (docstring: 'fully implemented and durable; only the autonomous self-pause trigger is out of scope'), sidecar/routers/runs.py:13-18 (no pause route), src/modules/chat/AgentsRail.tsx:139-180 (answer form), sidecar/models/run.py:30-31 (comment describes a different design: 'task is suspended on a future'), also dead: src/lib/delegate-runs.ts:226 resumeDelegateRun, src/store/agent-runs.ts:116 clearFinished (and it drops `paused` runs although every sibling treats paused as active), sidecar/services/run_manager.py:416 active_run_ids, sidecar/models/run.py:95-104 RunLaunchResponse",
+    "notes": "Design-for-the-future taken too far: a feature built end to end except its trigger, exercised only by tests, which is why finding 9 survived. Decision for the operator: wire an `ask_user` trigger (catalog capability + parity audits) or delete the plane and the claim. Either is smaller than carrying it."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-11",
+    "title": "The spend ceiling is priced against the REQUESTED provider string, not the resolved one: an omitted provider (and every resume) is metered at the $5/M default",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "runs-durable-delegate",
+    "repro": "Launch without `provider` on an agent whose default is anthropic/claude-opus (registry 30 $/M) -> guard prices at 5 $/M, so a $1 ceiling admits ~$6 of estimated spend; on ollama (0 $/M) it bills phantom dollars and can abort a free run. Scratch proof P5 shows spend_usd=0.5 for 100k tokens with provider ''.",
+    "evidence": "sidecar/services/run_manager.py:116 (`provider_str = str(provider or '')`), :136, sidecar/services/budget_guard.py:68-79 (unknown provider -> DEFAULT_RATE_PER_M), sidecar/config/model_registry.json:77-80,104 (default 5.0; opus 30.0; ollama 0.0), sidecar/services/agent_runtime.py:1467 (callback receives resolved_model but not the resolved provider), sidecar/services/run_manager.py:406-407 (resume always passes provider=None)",
+    "notes": "Pass-through gap: the runtime already knows provider_id; the guard is handed half of the pair. Fix shape: on_round_usage(usage, resolved_model, provider_id) - one extra positional at agent_runtime.py:1467 and one parameter in _on_round_usage."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-12",
+    "title": "No server-side default or validation on the budget: clearing a field in the UI launches a run with no ceiling on that axis, and nothing times out a stalled stream",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "runs-durable-delegate",
+    "repro": "In the Delegate budget editor clear the 'sec' field -> onChange stores undefined -> JSON omits it -> max_wall_seconds=None -> asyncio.timeout(None) is a no-op; a stalled provider stream then holds the run in `running` forever. Clear all four -> only _MAX_TOOL_ROUNDS bounds the run. 0 / negative values are accepted and abort instantly.",
+    "evidence": "sidecar/models/run.py:53-59 and :91 (all ceilings Optional, default None, no gt=0), sidecar/services/run_manager.py:258 (`budget or RunBudget()`), :145-152 (comment: 'the LLM adapters carry no per-stream timeout'; timeout(None) no-op), sidecar/services/budget_guard.py:3-4 ('unsafe to ship without a spend ceiling'), src/modules/chat/BudgetConfig.tsx:41-44 (empty input -> undefined)",
+    "notes": "The trust gate is enforced by the client remembering to send it. Fix shape: server-side floor in launch_run - fill any None ceiling from a DEFAULT_BUDGET constant (the same numbers as BudgetConfig.tsx:7-12) and add Field(gt=0)."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-13",
+    "title": "Wire contract described three contradictory ways and papered over with a dual-case serializer",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "runs-durable-delegate",
+    "repro": "design",
+    "evidence": "sidecar/routers/runs.py:44-60 (_dual_case emits every key twice 'without a contract negotiation'), sidecar/models/run.py:10-17 (says the wire is camelCase and that types/data.ts mirrors it - no TS mirror of the run models exists), src/lib/delegate-runs.ts:29-38 and :167-172 (RunWire: 'snake_case from the sidecar', reads only spend_usd), docs/SIDECAR_API.md (no runs section)",
+    "notes": "Duplicated truth that will drift: whoever 'cleans up' _dual_case to match the documented camelCase contract silently zeroes cost in the rail (`w.cost.spend_usd ?? 0`). Fix shape: pick snake_case (what the only consumer reads), delete _dual_case and the aliases, correct the docstring."
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-14",
+    "title": "Unbounded runs table read in full (checkpoints included) every 2 s; every cost write re-reads and re-digests the row for a return value nobody uses",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "runs-durable-delegate",
+    "repro": "design - no DELETE route / retention exists; row count and checkpoint_json only grow.",
+    "evidence": "sidecar/services/runs_store.py:246-250 (`SELECT *`, no LIMIT, pulls checkpoint_json that _row_to_summary never uses), :105-116 (CREATE TABLE + PRAGMA table_info on every connection), :296-304 (update_run opens a second connection and rebuilds RunDetail; run_manager never uses the result), sidecar/services/run_manager.py:137 (that sync SQLite work runs on the event loop each round), src/lib/delegate-runs.ts:40 and :145-147 (2 s poll, no in-flight guard, no fetch timeout)",
+    "notes": "Performance as design. Fix shape: select the summary columns explicitly with LIMIT 100, make update_run return None, add a prune-older-than-N on startup next to the reconciliation in finding 6."
+  }
+]

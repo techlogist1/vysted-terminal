@@ -1,0 +1,40 @@
+COMMAND: grep palette corpus for layout rows (source; corpus builder not runnable in plain node: TS-syntax/alias chain) -- sed src/store/command-palette.ts:205-221, MENU_PAYLOAD_TO_MODE, install_layout_menu cfg
+EXIT: 0
+OUTPUT:
+
+/** Human label for each menu-bridge payload, matching the native menu's item text. */
+const LAYOUT_MENU_LABELS: Readonly<Record<string, string>> = {
+  fundamental: "Layout: Fundamental",
+  technical: "Layout: Technical",
+  macro: "Layout: Macro",
+  "compare-desk": "Layout: Compare Desk",
+  default: "Layout: Reset to default",
+
+  // 2b. Layout-menu modes — cross-platform route for the deterministic
+  // layouts the native macOS menu exposes (R15-CROSS-PLATFORM-004).
+  for (const payload of [...Object.keys(MENU_PAYLOAD_TO_MODE), "default"]) {
+    items.push({
+      id: `action:layout:${payload}`,
+      kind: "action",
+      label: LAYOUT_MENU_LABELS[payload] ?? `Layout: ${payload}`,
+      description:
+        payload === "default"
+          ? "Clear the cockpit back to its default panels"
+          : "Clear the cockpit and tile this mode's panels",
+      action: () => dispatchLayoutMenuCommand(payload),
+    });
+  }
+
+  // 3. Panels — a panel an enabled command already opens is left to that
+export const MENU_PAYLOAD_TO_MODE: Readonly<Record<string, LayoutMode>> = {
+  fundamental: "fundamental",
+  technical: "technical",
+  macro: "macro",
+  "compare-desk": "compare-desk",
+};
+
+629:#[cfg(target_os = "macos")]
+630:fn install_layout_menu(app: &tauri::App) -> tauri::Result<()> {
+759:            #[cfg(target_os = "macos")]
+760:            if let Err(err) = install_layout_menu(app) {
+(no vitest pins action:layout rows at candidate: grep -rn 'action:layout' src --include=*.test.* -> empty)

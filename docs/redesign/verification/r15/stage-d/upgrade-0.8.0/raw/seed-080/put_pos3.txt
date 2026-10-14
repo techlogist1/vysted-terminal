@@ -1,0 +1,1 @@
+{"id":3,"symbol":"NVDA","quantity":45.0,"cost_basis":121.1,"asset_class":"equity","opened_at":null,"note":"Added 5 on the pullback."} HTTP200

@@ -1,0 +1,13 @@
+# docs/CURRENT_STATE.md at ace7dd76
+802:| Custom agents (`/custom-agents` CRUD)                                          | Sidecar    | SQLite                         | `get_data_dir()/custom_agents.db`              |
+804:| Durable Delegate runs (`services/runs_store.py`)                               | Sidecar    | SQLite `runs`                  | `get_data_dir()/delegate_runs.db`              |
+831:**Honest gaps:** **no DB migrations for six of the seven SQLite stores**
+832:(`portfolio.db`, `data_cache.db`, `custom_agents.db`, `plugins.db`,
+835:`delegate_runs.db` is the one exception: `runs_store._ensure_added_columns`
+# code check
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/services/runs_store.py:15:hits its own database), ``CREATE TABLE IF NOT EXISTS`` schema, CRUD only — no
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/services/runs_store.py:114:CREATE TABLE IF NOT EXISTS runs (
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/services/runs_store.py:163:    ``CREATE TABLE IF NOT EXISTS`` covers a fresh file; an existing table needs
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/services/runs_store.py:198:    conn = sqlite3.connect(path)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/services/agents_store.py:46:CREATE TABLE IF NOT EXISTS custom_agents (
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/services/agents_store.py:76:    conn = sqlite3.connect(_db_path())

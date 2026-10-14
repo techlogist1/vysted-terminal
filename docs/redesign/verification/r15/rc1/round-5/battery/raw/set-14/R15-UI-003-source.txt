@@ -1,0 +1,22 @@
+-- form.tsx: KNOWN_TOOL_IDS / KNOWN_PROVIDER_IDS / anthropic fallback --
+17: * (mirrors `DEFAULT_PROVIDERS` in `store/llm-providers.ts`) — the panel
+18: * fetches the live vocabulary from `GET /custom-agents/tool-ids`
+20: * `KNOWN_TOOL_IDS` allow-list derives from) and renders from THAT once it
+26:export const KNOWN_TOOL_IDS = [
+47:export type KnownToolId = (typeof KNOWN_TOOL_IDS)[number];
+51: * `store/llm-providers.ts`, the live source — `GET /llm/providers` — the
+55: * silently fell back to "anthropic" on the next edit).
+57:export const KNOWN_PROVIDER_IDS = [
+58:  "anthropic",
+66:export type KnownProviderId = (typeof KNOWN_PROVIDER_IDS)[number];
+79:  /** A live provider id (`GET /llm/providers`) — an open string, not gated
+80:   *  by {@link KNOWN_PROVIDER_IDS} (R15-UI-003: that gate is what silently
+81:   *  reset an "openrouter" agent to "anthropic" on edit). */
+95:    defaultProvider: "anthropic",
+--- AgentBuilderPanel.tsx ---
+40:  KNOWN_TOOL_IDS,
+67:    // tools / reset the provider to "anthropic" on edit.
+136:  // /custom-agents/tool-ids` == `agent_selectable_tool_ids()`) — the static
+137:  // `KNOWN_TOOL_IDS` array is only the pre-fetch fallback.
+138:  const [toolIds, setToolIds] = useState<string[]>([...KNOWN_TOOL_IDS]);
+154:        const response = await fetch(new URL("/custom-agents/tool-ids", base).toString());

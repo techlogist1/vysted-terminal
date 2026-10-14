@@ -1,0 +1,19 @@
+CMD: curl -sS -m 20 'http://127.0.0.1:52362/quotes/NSRGY'
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+wall clock now: 2026-09-27T10:18:18Z
+CMD: curl -sS -m 20 'http://127.0.0.1:52362/quotes/TKOMY'
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+wall clock now: 2026-09-27T10:18:20Z
+EXIT: 0
+
+--- direct yfinance probe to distinguish environment outage from product regression ---
+NSRGY last_price= 93.12000274658203
+TKOMY last_price= 53.0099983215332
+AAPL last_price= 341.07000732421875
+--- retry with X-Vysted-Region: US ---
+CMD: curl -sS -m 20 -H 'X-Vysted-Region: US' 'http://127.0.0.1:52362/quotes/NSRGY'
+{"symbol":"NSRGY","price":93.12000274658203,"change":-0.7599972534179642,"change_percent":-0.8095411732189649,"volume":884100.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:00Z","provider":"yfinance","freshness":"eod"}
+wall clock now: 2026-09-27T10:18:46Z
+CMD: curl -sS -m 20 -H 'X-Vysted-Region: US' 'http://127.0.0.1:52362/quotes/TKOMY'
+{"symbol":"TKOMY","price":53.0099983215332,"change":2.999998321533205,"change_percent":5.998796883689673,"volume":239300.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:00Z","provider":"yfinance","freshness":"eod"}
+wall clock now: 2026-09-27T10:18:46Z

@@ -1,0 +1,6 @@
+Case1 (IPO 2-quarter, literal repro): quarterly-gap expected quarterly-gap
+Case2 (single quarter, fresh): quarterly-gap expected quarterly-gap
+Case3 (former-SME migrant, held-back complete trailing): quarterly expected quarterly
+Case4 (pure half-yearly control): half-yearly expected half-yearly
+
+Command: sidecar/.venv/bin/python3 running an in-process script against services.exchange_financials.FiledPeriods.cadence() with the exact fixture shapes from stage-c/batch-30/VERDICTS.md's certification table (IPO 2-quarter literal repro, single-quarter fresh case, former-SME migrant held-back case, plus a pure-half-yearly control). All 4 match the batch-30 certified base/head table exactly.

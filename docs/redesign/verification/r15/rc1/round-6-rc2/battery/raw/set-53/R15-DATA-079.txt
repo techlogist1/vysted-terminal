@@ -1,0 +1,16 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: for s in NIFTY RELIANCE AAPL TRADEWELL.NS; do echo == $s; curl -s -m 100 -w ' HTTP %{http_code}
+' localhost:52344/quant/option/chain/$s | python3 -c 'import sys,json;t=sys.stdin.read();body,_,code=t.rpartition(" HTTP ");
+try:
+  d=json.loads(body);cs=d.get("contracts",[]);print("HTTP",code.strip(),{k:d.get(k) for k in ("provider","as_of","freshness","expiry") if k in d},"contracts",len(cs),"with_oi",sum(1 for c in cs if c.get("open_interest") not in (None,0)), list(d)[:10])
+except Exception as e: print("HTTP",code.strip(),body[:200])'; done
+== NIFTY
+HTTP 200 {'provider': 'nse-fo-bhavcopy', 'as_of': '2026-10-01', 'freshness': 'eod', 'expiry': '2026-10-06'} contracts 232 with_oi 203 ['symbol', 'expiry', 'expiries', 'underlying_price', 'contracts', 'as_of', 'provider', 'currency', 'freshness']
+== RELIANCE
+HTTP 200 {'provider': 'nse-fo-bhavcopy', 'as_of': '2026-10-01', 'freshness': 'eod', 'expiry': '2026-10-27'} contracts 92 with_oi 90 ['symbol', 'expiry', 'expiries', 'underlying_price', 'contracts', 'as_of', 'provider', 'currency', 'freshness']
+== AAPL
+HTTP 200 {'provider': 'yfinance', 'as_of': '2026-10-02', 'freshness': 'eod', 'expiry': '2026-10-05'} contracts 56 with_oi 50 ['symbol', 'expiry', 'expiries', 'underlying_price', 'contracts', 'as_of', 'provider', 'currency', 'freshness']
+== TRADEWELL.NS
+HTTP 404 {} contracts 0 with_oi 0 ['detail']
+
+exit=0

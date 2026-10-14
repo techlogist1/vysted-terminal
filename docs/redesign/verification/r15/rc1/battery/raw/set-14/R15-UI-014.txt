@@ -1,0 +1,20 @@
+=== lib.rs CommandEvent::Terminated ===
+304:                CommandEvent::Terminated(payload) => {
+=== store/app.ts listener ===
+83: *  `vysted://sidecar-terminated` (emitted with the reason when the engine
+93:      listen<string>("vysted://sidecar-terminated", (event) => markReachable(false, event.payload)),
+=== sidecarGet SidecarError ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/delegate-runs.ts:94:/** The human reason of a failed run request (a `SidecarError` already carries
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/hardware-fit.ts:46:/** Fetch the hardware report; a failure throws a `SidecarError` whose message
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/plugin-bootstrap.test.ts:23:import { SidecarError } from "@/lib/sidecar-client";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/plugin-bootstrap.test.ts:31:      throw new SidecarError(404, "not found");
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/plugin-bootstrap.ts:27:import { getSidecarBaseUrl, sidecarGet, SidecarError } from "@/lib/sidecar-client";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/plugin-bootstrap.ts:76:        if (error instanceof SidecarError && error.status === 404) {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/plugin-bootstrap.ts:97:        throw new SidecarError(response.status, response.statusText);
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/provider-validation.ts:27:const ENGINE_DOWN = "The data engine is not responding — it may have stopped. Restart Vysted.";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/provider-validation.ts:93:        ? `No answer within ${VALIDATION_TIMEOUT_MS / 1000} s — the provider or the data engine is not responding.`
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/provider-validation.test.ts:76:    expect(result.detail).toMatch(/data engine is not responding/);
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/use-sidecar-retry.test.ts
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/sidecar-client.test.ts
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/use-sidecar-retry.ts
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/sidecar-client.ts

@@ -1,8 +1,10 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SidecarError } from "@/lib/sidecar-client";
-import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
+import { usePanelContextBus } from "@/store/panel-context";
+import { useSettingsStore } from "@/store/settings";
+import { defaultSymbolsForRegion, useSymbolsStore } from "@/store/symbols";
 
 import type { NewsItem } from "../../../types/data";
 
@@ -10,12 +12,24 @@ import type { NewsItem } from "../../../types/data";
 // outer-scope bindings, so it is hoist-safe.
 vi.mock("./api", () => ({
   fetchNews: vi.fn(),
+  fetchNewsSourcesStatus: vi.fn(),
 }));
 
-import { fetchNews } from "./api";
+vi.mock("@/lib/host-actions", () => ({
+  loadSymbolIntoChart: vi.fn(),
+}));
+
+import { fetchNews, fetchNewsSourcesStatus } from "./api";
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { NewsFeedPanel } from "./NewsFeedPanel";
 
+// The fixtures below are written against the US watchlist; the app default is
+// IN (R15-UI-076), so seed the US list explicitly.
+const US_SYMBOLS = defaultSymbolsForRegion("US");
+
 const mockFetchNews = vi.mocked(fetchNews);
+const mockFetchNewsSourcesStatus = vi.mocked(fetchNewsSourcesStatus);
+const mockLoadSymbolIntoChart = vi.mocked(loadSymbolIntoChart);
 
 function newsItem(overrides: Partial<NewsItem> = {}): NewsItem {
   return {
@@ -37,8 +51,13 @@ describe("NewsFeedPanel", () => {
   beforeEach(() => {
     // Reset the shared symbols store between tests so per-test mutations do
     // not leak into other cases.
-    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+    useSymbolsStore.setState({ entries: [...US_SYMBOLS] });
+    // Reset region to the default so a prior region-switch test can't leak.
+    useSettingsStore.setState({ region: "US" });
     mockFetchNews.mockReset();
+    mockFetchNewsSourcesStatus.mockReset();
+    mockFetchNewsSourcesStatus.mockResolvedValue({ newsapi: "absent" });
+    mockLoadSymbolIntoChart.mockReset();
   });
 
   afterEach(() => {
@@ -48,7 +67,20 @@ describe("NewsFeedPanel", () => {
   it("shows a loading state before news resolves", () => {
     mockFetchNews.mockReturnValue(new Promise(() => {}));
     render(<NewsFeedPanel />);
-    expect(screen.getByText("Loading news…")).toBeInTheDocument();
+    // Loading is now a skeleton — verify the panel is in loading state via the
+    // Refresh button showing "Loading…" (it reads that when status === 'loading').
+    expect(screen.getByRole("button", { name: /loading/i })).toBeInTheDocument();
+  });
+
+  it("renders 'date unknown' for an item the feed did not date (R15-DATA-070)", async () => {
+    mockFetchNews.mockResolvedValue([newsItem({ published_at: null })]);
+    render(<NewsFeedPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByText("NVDA shares climb on strong demand")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/date unknown/)).toBeInTheDocument();
+    expect(screen.queryByText(/\bnow\b/)).not.toBeInTheDocument();
   });
 
   it("renders news items with headline, source, and sentiment", async () => {
@@ -101,24 +133,37 @@ describe("NewsFeedPanel", () => {
     expect(symbols).toEqual(["TSLA"]);
   });
 
+  it("re-fetches when the active region changes (region-first feed)", async () => {
+    mockFetchNews.mockResolvedValue([]);
+    render(<NewsFeedPanel />);
+    await waitFor(() => expect(mockFetchNews).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      useSettingsStore.setState({ region: "IN" });
+    });
+
+    await waitFor(() => expect(mockFetchNews).toHaveBeenCalledTimes(2));
+  });
+
   it("renders an empty state when there is no news", async () => {
     mockFetchNews.mockResolvedValue([]);
     render(<NewsFeedPanel />);
     await waitFor(() => {
-      expect(screen.getByText("No news for the current watchlist.")).toBeInTheDocument();
+      expect(screen.getByText("No headlines for your watchlist.")).toBeInTheDocument();
     });
   });
 
-  it("surfaces a SidecarError with its status (after the auto-retry is exhausted)", async () => {
+  it("surfaces a SidecarError with its status after ONE request, never a retry loop (R15-UI-015)", async () => {
     vi.useFakeTimers();
     mockFetchNews.mockRejectedValue(new SidecarError(502, "all news sources failed"));
     render(<NewsFeedPanel />);
-    // The panel now auto-retries (~50s of backoff) before surfacing the terminal error —
-    // advance past the whole window.
+    // A 502 is the engine's answer, not a cold boot: the cold-boot backoff
+    // window passes without a second request.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(60000);
     });
     expect(screen.getByText("Sidecar error 502: all news sources failed")).toBeInTheDocument();
+    expect(mockFetchNews).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
   });
 
@@ -133,6 +178,28 @@ describe("NewsFeedPanel", () => {
     vi.useRealTimers();
   });
 
+  it("badges a rejected NewsAPI key without blocking the feed (R15-DATA-094)", async () => {
+    mockFetchNews.mockResolvedValue([newsItem()]);
+    mockFetchNewsSourcesStatus.mockResolvedValue({ newsapi: "unauthorized" });
+    render(<NewsFeedPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("newsapi-status-badge")).toBeInTheDocument();
+    });
+    // The RSS-backed feed still renders — a bad NewsAPI key degrades, never blocks.
+    expect(screen.getByText("NVDA shares climb on strong demand")).toBeInTheDocument();
+  });
+
+  it("shows no badge when NewsAPI is unconfigured or working", async () => {
+    mockFetchNews.mockResolvedValue([newsItem()]);
+    mockFetchNewsSourcesStatus.mockResolvedValue({ newsapi: "absent" });
+    render(<NewsFeedPanel />);
+    await waitFor(() => {
+      expect(screen.getByText("NVDA shares climb on strong demand")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("newsapi-status-badge")).not.toBeInTheDocument();
+  });
+
   it("renders the symbol tags for each item", async () => {
     mockFetchNews.mockResolvedValue([newsItem({ symbols: ["NVDA", "SPY"] })]);
     render(<NewsFeedPanel />);
@@ -140,5 +207,55 @@ describe("NewsFeedPanel", () => {
       expect(screen.getByText("NVDA")).toBeInTheDocument();
     });
     expect(screen.getByText("SPY")).toBeInTheDocument();
+  });
+
+  it("renders symbol chips as buttons outside the article anchor and loads the symbol on click (R15-AGENT-053)", async () => {
+    mockFetchNews.mockResolvedValue([newsItem({ symbols: ["NVDA"] })]);
+    render(<NewsFeedPanel />);
+
+    const button = await screen.findByRole("button", { name: /load nvda in chart/i });
+    expect(button.closest("a")).toBeNull();
+
+    fireEvent.click(button);
+    expect(mockLoadSymbolIntoChart).toHaveBeenCalledWith("NVDA");
+  });
+
+  it("gives a two-symbol item two buttons and loads only the clicked symbol", async () => {
+    mockFetchNews.mockResolvedValue([newsItem({ symbols: ["NVDA", "AMD"] })]);
+    render(<NewsFeedPanel />);
+
+    const nvdaButton = await screen.findByRole("button", { name: /load nvda in chart/i });
+    const amdButton = screen.getByRole("button", { name: /load amd in chart/i });
+
+    fireEvent.click(amdButton);
+    expect(mockLoadSymbolIntoChart).toHaveBeenCalledTimes(1);
+    expect(mockLoadSymbolIntoChart).toHaveBeenCalledWith("AMD");
+    expect(nvdaButton.closest("a")).toBeNull();
+  });
+
+  it("publishes the top headline, and the hovered row's headline on mouseEnter (R15-AGENT-053)", async () => {
+    mockFetchNews.mockResolvedValue([
+      newsItem({ id: "n1", title: "NVDA shares climb on strong demand" }),
+      newsItem({ id: "n2", title: "AAPL slumps after weak guidance" }),
+    ]);
+    render(<NewsFeedPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByText("AAPL slumps after weak guidance")).toBeInTheDocument();
+    });
+    expect(usePanelContextBus.getState().lastEventBySource.news?.payload).toMatchObject({
+      topHeadline: "NVDA shares climb on strong demand",
+      focusedHeadline: null,
+    });
+
+    const row2 = screen.getByText("AAPL slumps after weak guidance").closest("a");
+    expect(row2).not.toBeNull();
+    fireEvent.mouseEnter(row2 as HTMLElement);
+
+    await waitFor(() => {
+      expect(usePanelContextBus.getState().lastEventBySource.news?.payload).toMatchObject({
+        focusedHeadline: "AAPL slumps after weak guidance",
+      });
+    });
   });
 });

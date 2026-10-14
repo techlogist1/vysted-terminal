@@ -1,0 +1,13 @@
+=== R15-CODE-PLATFORM-018: quant pricing offloaded to process pool, /health stays fast (continued) ===
+Started 100k-step American binomial POST /quant/option/price at 02:24:25.
+5 concurrent /health probes during the first second: all HTTP 200, 0.001-0.003s (see part 1 above).
+At 02:28:04 (~3.6 min into the CPU-bound compute, workers 78562/78563/79294 alive under sidecar worker 74770,
+2:32 and 2:17 min of actual CPU time each): /health still HTTP 200 in 0.0015s.
+code: services/quant/pool.py run_quant() -> loop.run_in_executor(ProcessPoolExecutor, fn, req);
+quant_nodes.py / routers/quant.py both route through run_quant, confirming the whole surface (workflow
+nodes + /quant routes) is offloaded, not just the workflow-node path from the original repro.
+Killed the client + spawned workers (79289/79292, 78562/78563/79294) at 02:28:xx to free CPU; a fresh
+/health probe immediately after was still HTTP 200 in 0.0012s (no residual stall, no crash of the main loop).
+VERDICT: holds. The 100k-step binomial is legitimately CPU-heavy (multi-minute, O(steps^2)); this differs
+from the certified 6.4s/20k-step figure (frozen-binary perf; our step count is 5x higher) but the material
+claim under test -- /health never blocks while pricing runs -- is directly reproduced.

@@ -1,0 +1,14 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: GET /quotes/BTC%2FUSDT?asset_class=crypto ; /quotes/ETH%2FUSDT?asset_class=crypto ; /history/ETH%2FUSDT?timeframe=1d&asset_class=crypto (the chart's real URL)
+-- quotes/BTC%2FUSDT?asset_class=crypto
+{"symbol":"BTC/USDT","price":84610.0,"change":-143.12,"change_percent":-0.169,"volume":26031.1439,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-10-03T00:33:05.008000Z","provider":"ccxt:binance","freshness":"live"}
+HTTP=200
+
+-- quotes/ETH%2FUSDT?asset_class=crypto
+{"symbol":"ETH/USDT","price":2674.86,"change":-28.86,"change_percent":-1.067,"volume":424714.9594,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-10-03T00:33:08.010000Z","provider":"ccxt:binance","freshness":"live"}
+HTTP=200
+
+-- history/ETH%2FUSDT?timeframe=1d&asset_class=crypto
+{"symbol":"ETH/USDT","timeframe":"1d","bars":[{"timestamp":"2025-10-04T00:00:00Z","open":4512.88,"high":4517.93,"low":4440.0,"close":4487.15,"volume":199732.7088},{"timestamp":"2025-10-05T00:00:00Z","open":4487.16,"high":4618.17,"low":4467.05,"close":4514.32,"volume":506587.9614},{"timestamp":"2025-10-06T00:00:00Z","open":4514.3
+Frontend legs (watchlist row/chart/portfolio) are vitest-pinned: src/modules/chart/ChartPanel.test.tsx src/modules/portfolio/PortfolioPanel.tsx src/modules/portfolio/PortfolioPanel.test.tsx src/modules/watchlist/WatchlistPanel.test.tsx src/store/symbols.ts 
+EXIT=0

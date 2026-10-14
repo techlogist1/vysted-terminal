@@ -1,0 +1,7 @@
+=== DATA-040 source ===
+304:    last two feed the result's ``warnings`` so an unaffordable position size
+438:async def run_backtest(
+485:    warnings: list[str] = []
+492:        warnings.append(
+498:        warnings.append(
+541:        warnings=warnings or None,

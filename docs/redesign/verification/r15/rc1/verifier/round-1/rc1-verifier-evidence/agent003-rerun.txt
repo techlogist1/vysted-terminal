@@ -1,0 +1,4 @@
+multi yielded 18 dispatched 18
+.halt yielded [('call_097471c83a87476da1390a38e6abf3ce', 'price_data'), ('call_2a4b19ad7e2048f5828a2d8c9fa74b15', 'fundamentals'), ('call_269d5b2e9d7e40f3811a1a47cd3c7bd2', 'write_note'), ('call_84392fb85ba9459cbf61b628f6e15a59', 'price_data'), ('call_83971253afb349eaa9b54ae86979d9c4', 'fundamentals'), ('call_411b1c7714064cbda1aea480fdf98c15', 'write_note')] dispatched ['call_097471c83a87476da1390a38e6abf3ce', 'call_2a4b19ad7e2048f5828a2d8c9fa74b15', 'call_269d5b2e9d7e40f3811a1a47cd3c7bd2']
+        print("halt yielded", y, "dispatched", d)
+1 failed, 1 passed in 1.34s

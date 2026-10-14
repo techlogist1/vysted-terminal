@@ -1,0 +1,39 @@
+=== R15-LEAD-026: unknown symbol vs suffixed unknown symbol get different _empty_series_reason() outcomes ===
+cmd: curl http://127.0.0.1:52342/history/ZZZZNOTREAL ; curl http://127.0.0.1:52342/history/QQZZFAKE.NS
+(own sidecar, source boot, candidate 949c3c9f, seed data copy rc1-round-5-recheck-data-battery-2)
+{"symbol":"ZZZZNOTREAL","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":"unknown_symbol","partial":false,"coverage_start":null}
+{"symbol":"QQZZFAKE.NS","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":null,"partial":false,"coverage_start":null}
+
+source (sidecar/routers/history.py _empty_series_reason):
+37:    checked (see the ``asset_class`` guard in :func:`_empty_series_reason`) —
+38-    the equity/ETF masters have no opinion on them.
+39-    """
+40-    upper = symbol.strip().upper()
+41-    if upper.startswith("^"):
+42-        return False
+43-    if region_for_suffix(symbol) is not None:
+44-        return False
+45-    bare = symbol_resolver.strip_exchange_suffix(symbol)
+46-    if "." in bare:
+47-        return False  # a foreign exchange suffix we don't master-check
+48-    return not (
+49-        symbol_resolver.is_nse_symbol(symbol)
+50-        or symbol_resolver.is_bse_symbol(symbol)
+51-        or symbol_resolver.is_us_symbol(symbol)
+52-    )
+53-
+54-
+55:def _empty_series_reason(symbol: str, timeframe: str, asset_class: str = "equity") -> str | None:
+56-    """A typed reason for an empty series the chart can state honestly.
+57-
+58-    ``in_eod_only`` (keyless BSE/NSE serve end-of-day only, so no intraday lane
+59-    exists) is true only for an INTRADAY timeframe on a KNOWN IN listing (a
+60-    ``.NS``/``.BO`` suffix or an NSE/BSE master member) in an IN context.
+61-
+62-    ``unknown_symbol`` fires when the equity/ETF masters have never heard of the
+63-    symbol at all (any timeframe) — distinct from a resolvable symbol whose
+64-    range is genuinely empty (a no-trade year, a caret index), which keeps the
+65-    old ``None`` (R15-DATA-064's generic-copy case).
+66-    """
+
+VERDICT: holds. Bare unknown symbol -> reason:'unknown_symbol'; suffixed unknown (.NS) -> reason:null -- matches the register's documented (accepted, not further-fixed) behaviour exactly.

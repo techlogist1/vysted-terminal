@@ -20,26 +20,47 @@ from typing import Any
 
 import pytest
 
+import config
 from models.fundamentals import Fundamentals
 from models.market import Quote
 from models.screener import (
+    CriterionGroup,
     NumericBetweenCriterion,
     NumericRange,
     NumericThresholdCriterion,
     ScreenerRequest,
+    ScreenerResultRow,
+    ScreenerUniverse,
     SetInCriterion,
     StringEqCriterion,
 )
-from services import data_cache, screener
+from services import data_cache, fundamentals_store, provider_health, screener
 from services.errors import ProviderError
+
+#: The real region reader, captured before the autouse fixture pins "US" — the
+#: R15-LEAD-044 tests need the request-region ContextVar to be live.
+_REAL_GET_REGION = config.get_region
 
 
 @pytest.fixture(autouse=True)
 def _isolated_cache(tmp_path: Path) -> None:
     """Point the data cache at a tmp file per test."""
     data_cache.reset_for_tests(tmp_path / "screener_test_cache.db")
+    fundamentals_store.reset_for_tests(tmp_path / "fundamentals_test.db")
     yield
     data_cache.reset_for_tests(None)
+    fundamentals_store.reset_for_tests(None)
+
+
+@pytest.fixture(autouse=True)
+def _default_region_us(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-093: custom_symbols now canonicalise through the region-aware
+    ``yfinance_provider._yahoo_symbol``, which appends ``.NS`` to any bare
+    ticker under the ambient default region (IN, R10/E1) that isn't a known
+    US name. This file's fixtures use synthetic symbols ("AAA", "S00", ...)
+    that are not real tickers and must round-trip unchanged — pin US here;
+    the India-specific tests below set the region back explicitly."""
+    monkeypatch.setattr(config, "get_region", lambda: "US")
 
 
 # ---------------------------------------------------------------------------
@@ -94,13 +115,16 @@ async def test_resolve_universe_sp500_loads_snapshot() -> None:
     universe = await screener.resolve_universe("sp500")
     assert universe.id == "sp500"
     assert universe.asset_class == "equity"
-    # Honest label — the snapshot is the top-100 subset, not the full 500.
-    assert universe.label == "S&P 500 (Top 100)"
-    # Snapshot ships 100 names for v0.6.0; assert ≥ 50 to guard against a
-    # corrupted JSON without coupling to the exact list.
-    assert len(universe.symbols) >= 50
+    # Full-index snapshot now (003 rebuild) — honest "S&P 500", not a Top-100 subset.
+    assert universe.label == "S&P 500"
+    # Snapshot ships the full ~500-name index; assert ≥ 400 to guard against a
+    # corrupted/truncated JSON without coupling to the exact (drift-prone) list.
+    assert len(universe.symbols) >= 400
     assert "AAPL" in universe.symbols
     assert "MSFT" in universe.symbols
+    # No dupes — multi-class issuers (GOOGL/GOOG) are distinct symbols, but the
+    # same ticker must never appear twice.
+    assert len(universe.symbols) == len(set(universe.symbols))
 
 
 @pytest.mark.asyncio
@@ -255,8 +279,6 @@ def test_apply_criteria_and_combines_multiple_criteria() -> None:
     ]
     result = screener.apply_criteria(rows, criteria)
     assert [r.symbol for r in result] == ["A"]
-    # matched_criteria records every index since AND-all passes.
-    assert result[0].matched_criteria == [0, 1, 2]
 
 
 def test_apply_criteria_missing_value_fails_numeric_threshold() -> None:
@@ -290,6 +312,259 @@ def test_apply_criteria_sorted_by_market_cap_desc_with_none_last() -> None:
     # No criteria — every row passes; check ordering.
     result = screener.apply_criteria(rows, [])
     assert [r.symbol for r in result] == ["C", "D", "A", "B"]
+
+
+def test_apply_criteria_groups_by_currency_before_market_cap() -> None:
+    """R15-DATA-043: a mixed-currency universe is grouped by currency first —
+    RELIANCE.NS's raw INR market cap (~1.95e13) must never rank above AAPL's
+    raw USD one (~3.5e12) as though they were the same unit."""
+    rows = [
+        (_make_fundamentals("AAPL", market_cap=3.5e12, currency="USD"), _make_quote("AAPL")),
+        (
+            _make_fundamentals("RELIANCE.NS", market_cap=1.95e13, currency="INR"),
+            _make_quote("RELIANCE.NS"),
+        ),
+        (_make_fundamentals("MSFT", market_cap=3.0e12, currency="USD"), _make_quote("MSFT")),
+    ]
+    result = screener.apply_criteria(rows, [])
+    # Currency groups stay contiguous (never interleaved), and each group is
+    # independently market_cap-desc.
+    currencies = [r.currency for r in result]
+    assert currencies == sorted(currencies)
+    usd_symbols = [r.symbol for r in result if r.currency == "USD"]
+    assert usd_symbols == ["AAPL", "MSFT"]
+
+
+def test_apply_criteria_sort_by_field_with_none_last() -> None:
+    """R15-UI-006: sort_by applied BEFORE any limit cut — a lowest-P/E screen
+    must rank the lowest P/E first, not whatever market_cap put first."""
+    rows = [
+        (_make_fundamentals("A", market_cap=500e9, pe_ratio=30.0), _make_quote("A")),
+        (_make_fundamentals("B", market_cap=50e9, pe_ratio=10.0), _make_quote("B")),
+        (_make_fundamentals("C", market_cap=200e9, pe_ratio=None), _make_quote("C")),
+    ]
+    asc = screener.apply_criteria(rows, [], sort_by="pe_ratio", sort_dir="asc")
+    assert [r.symbol for r in asc] == ["B", "A", "C"]  # None (C) always last
+    desc = screener.apply_criteria(rows, [], sort_by="pe_ratio", sort_dir="desc")
+    # Case not written against: `desc` on a field with NULLs still keeps the
+    # NULL row last, not first.
+    assert [r.symbol for r in desc] == ["A", "B", "C"]
+
+
+def test_apply_criteria_sorts_by_a_field_the_result_row_does_not_carry() -> None:
+    """R15-UI-006: ``sort_by`` accepts any screener numeric field; ``beta`` is
+    not a results-table column, and the rows still rank by it."""
+    rows = [
+        (_make_fundamentals("HI", beta=1.8), _make_quote("HI")),
+        (_make_fundamentals("LO", beta=0.4), _make_quote("LO")),
+        (_make_fundamentals("MID", beta=1.1), _make_quote("MID")),
+    ]
+    ranked = screener.apply_criteria(rows, [], sort_by="beta", sort_dir="asc")
+    assert [r.symbol for r in ranked] == ["LO", "MID", "HI"]
+
+
+# ---------------------------------------------------------------------------
+# CriterionGroup — AND/OR boolean tree (003 rebuild OR-grammar)
+# ---------------------------------------------------------------------------
+
+
+def test_apply_criteria_or_group_matches_either_branch() -> None:
+    """An OR group matches a row satisfying ANY one leaf (cheap OR high-yield)."""
+    rows = [
+        (
+            _make_fundamentals("CHEAP", market_cap=300e9, pe_ratio=10.0, dividend_yield=0.0),
+            _make_quote("CHEAP"),
+        ),
+        (
+            _make_fundamentals("YIELD", market_cap=200e9, pe_ratio=40.0, dividend_yield=0.06),
+            _make_quote("YIELD"),
+        ),
+        (
+            _make_fundamentals("MEH", market_cap=100e9, pe_ratio=40.0, dividend_yield=0.0),
+            _make_quote("MEH"),
+        ),
+    ]
+    group = CriterionGroup(
+        combinator="or",
+        criteria=[
+            NumericThresholdCriterion(field="pe_ratio", operator="lt", value=15.0),
+            NumericThresholdCriterion(field="dividend_yield", operator="gt", value=0.04),
+        ],
+    )
+    result = screener.apply_criteria(rows, [], group=group)
+    assert {r.symbol for r in result} == {"CHEAP", "YIELD"}
+
+
+def test_apply_criteria_nested_group_and_within_or() -> None:
+    """(P/E < 15 AND ROE > 0.2) OR dividend_yield > 0.04 — nested combinators."""
+    rows = [
+        # passes the AND branch
+        (
+            _make_fundamentals("A", pe_ratio=10.0, roe=0.30, dividend_yield=0.0, market_cap=300e9),
+            _make_quote("A"),
+        ),
+        # fails AND (low ROE) and has no yield → dropped
+        (
+            _make_fundamentals("B", pe_ratio=10.0, roe=0.05, dividend_yield=0.0, market_cap=200e9),
+            _make_quote("B"),
+        ),
+        # passes the OR via dividend yield
+        (
+            _make_fundamentals("C", pe_ratio=40.0, roe=0.05, dividend_yield=0.06, market_cap=100e9),
+            _make_quote("C"),
+        ),
+    ]
+    group = CriterionGroup(
+        combinator="or",
+        criteria=[
+            CriterionGroup(
+                combinator="and",
+                criteria=[
+                    NumericThresholdCriterion(field="pe_ratio", operator="lt", value=15.0),
+                    NumericThresholdCriterion(field="roe", operator="gt", value=0.20),
+                ],
+            ),
+            NumericThresholdCriterion(field="dividend_yield", operator="gt", value=0.04),
+        ],
+    )
+    result = screener.apply_criteria(rows, [], group=group)
+    assert {r.symbol for r in result} == {"A", "C"}
+
+
+def test_result_row_has_no_matched_criteria() -> None:
+    """R15-CODE-DATA-019: ``matched_criteria`` was a dead wire field — empty on
+    every group run, ``[0..n-1]`` on every flat run, read by nothing. It is gone
+    from the row model and from both engine paths' serialised rows."""
+    assert "matched_criteria" not in ScreenerResultRow.model_fields
+    rows = [(_make_fundamentals("A", pe_ratio=10.0), _make_quote("A"))]
+    flat = screener.apply_criteria(
+        rows, [NumericThresholdCriterion(field="pe_ratio", operator="lt", value=15.0)]
+    )
+    grouped = screener.apply_criteria(
+        rows,
+        [],
+        group=CriterionGroup(
+            combinator="or",
+            criteria=[NumericThresholdCriterion(field="pe_ratio", operator="lt", value=15.0)],
+        ),
+    )
+    for result in (flat, grouped):
+        assert [r.symbol for r in result] == ["A"]
+        assert "matched_criteria" not in result[0].model_dump()
+
+
+def test_apply_criteria_empty_group_matches_all() -> None:
+    """An empty group is a no-op filter regardless of combinator (mirrors flat path)."""
+    rows = [
+        (_make_fundamentals("A", market_cap=200e9), _make_quote("A")),
+        (_make_fundamentals("B", market_cap=100e9), _make_quote("B")),
+    ]
+    group = CriterionGroup(combinator="or", criteria=[])
+    result = screener.apply_criteria(rows, [], group=group)
+    assert {r.symbol for r in result} == {"A", "B"}
+
+
+@pytest.mark.asyncio
+async def test_run_screener_or_group_end_to_end(monkeypatch: pytest.MonkeyPatch) -> None:
+    """run_screener honours ``req.group`` (OR) over the flat criteria."""
+
+    fake = {
+        "CHEAP": _make_fundamentals("CHEAP", market_cap=300e9, pe_ratio=10.0, dividend_yield=0.0),
+        "YIELD": _make_fundamentals("YIELD", market_cap=200e9, pe_ratio=40.0, dividend_yield=0.06),
+        "MEH": _make_fundamentals("MEH", market_cap=100e9, pe_ratio=40.0, dividend_yield=0.0),
+    }
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        return fake[symbol]
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    request = ScreenerRequest(
+        universe="custom",
+        custom_symbols=["CHEAP", "YIELD", "MEH"],
+        criteria=[],
+        group=CriterionGroup(
+            combinator="or",
+            criteria=[
+                NumericThresholdCriterion(field="pe_ratio", operator="lt", value=15.0),
+                NumericThresholdCriterion(field="dividend_yield", operator="gt", value=0.04),
+            ],
+        ),
+        limit=10,
+    )
+    result = await screener.run_screener(request)
+    assert {row.symbol for row in result.rows} == {"CHEAP", "YIELD"}
+
+
+@pytest.mark.asyncio
+async def test_run_screener_mixed_currency_universe_ranked_within_currency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-043: custom=[AAPL, RELIANCE.NS] must not rank RELIANCE.NS's
+    raw INR market cap (~1.95e13) above AAPL's raw USD one (~3.5e12) as one
+    number, and the coverage line discloses the currency-grouped basis."""
+
+    fake_fundamentals = {
+        "AAPL": _make_fundamentals("AAPL", market_cap=3.5e12, currency="USD"),
+        "RELIANCE.NS": _make_fundamentals("RELIANCE.NS", market_cap=1.95e13, currency="INR"),
+    }
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        return fake_fundamentals[symbol]
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    request = ScreenerRequest(
+        universe="custom",
+        custom_symbols=["AAPL", "RELIANCE.NS"],
+        criteria=[],
+        limit=10,
+    )
+    result = await screener.run_screener(request)
+    assert {r.symbol for r in result.rows} == {"AAPL", "RELIANCE.NS"}
+    assert result.coverage is not None
+    assert "ranked within each currency" in result.coverage
+
+
+@pytest.mark.asyncio
+async def test_run_screener_caches_pairs_across_runs(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The batching layer caches each symbol's pair — a second run hits the cache
+    and does NOT re-call the provider (key prerequisite for the full-500 universe)."""
+
+    calls: dict[str, int] = {}
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        calls[symbol] = calls.get(symbol, 0) + 1
+        return _make_fundamentals(symbol, sector="Technology", market_cap=200e9)
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    request = ScreenerRequest(
+        universe="custom",
+        custom_symbols=["AAA", "BBB"],
+        criteria=[StringEqCriterion(field="sector", operator="eq", value="Technology")],
+        limit=10,
+    )
+    first = await screener.run_screener(request)
+    assert {r.symbol for r in first.rows} == {"AAA", "BBB"}
+    assert calls == {"AAA": 1, "BBB": 1}
+
+    # Second identical run resolves entirely from the per-symbol cache.
+    second = await screener.run_screener(request)
+    assert {r.symbol for r in second.rows} == {"AAA", "BBB"}
+    assert calls == {"AAA": 1, "BBB": 1}, "expected cache hit, provider re-called"
 
 
 # ---------------------------------------------------------------------------
@@ -392,3 +667,370 @@ async def test_run_screener_limit_clamps_result_set(monkeypatch: pytest.MonkeyPa
     assert result.result_count == 5
     # Sorted by market_cap desc — S00 has the highest market cap.
     assert result.rows[0].symbol == "S00"
+
+
+@pytest.mark.asyncio
+async def test_run_screener_sort_by_applies_before_limit_cut(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-UI-006: `sort_by`/`sort_dir` apply BEFORE the `limit` cut — a
+    lowest-P/E screen must surface the lowest-P/E stock even though it is
+    the smallest cap (the old market-cap-desc-only cut would drop it first).
+    `matched_count` reports the true pre-cut count."""
+    fake = {
+        "BIG": _make_fundamentals("BIG", sector="Technology", market_cap=900e9, pe_ratio=30.0),
+        "SMALL": _make_fundamentals("SMALL", sector="Technology", market_cap=10e9, pe_ratio=5.0),
+        "MID": _make_fundamentals("MID", sector="Technology", market_cap=200e9, pe_ratio=15.0),
+    }
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        return fake[symbol]
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    request = ScreenerRequest(
+        universe="custom",
+        custom_symbols=["BIG", "SMALL", "MID"],
+        criteria=[StringEqCriterion(field="sector", operator="eq", value="Technology")],
+        limit=2,
+        sort_by="pe_ratio",
+        sort_dir="asc",
+    )
+    result = await screener.run_screener(request)
+    assert [row.symbol for row in result.rows] == ["SMALL", "MID"]
+    assert result.result_count == 2
+    assert result.matched_count == 3
+
+
+@pytest.mark.asyncio
+async def test_run_screener_itemizes_null_non_enrichment_field(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-044: a NULL value for a field the v7 batch row ALREADY
+    carries (pe_ratio needs no further enrichment) previously failed
+    `_evaluate_criterion` silently instead of itemizing missing_field:<f>."""
+    fake = {
+        "HASPE": _make_fundamentals("HASPE", market_cap=200e9, pe_ratio=15.0),
+        "NOPE": _make_fundamentals("NOPE", market_cap=200e9, pe_ratio=None),
+    }
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        return fake[symbol]
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    request = ScreenerRequest(
+        universe="custom",
+        custom_symbols=["HASPE", "NOPE"],
+        criteria=[NumericThresholdCriterion(field="pe_ratio", operator="lt", value=20.0)],
+        limit=10,
+    )
+    result = await screener.run_screener(request)
+    assert {row.symbol for row in result.rows} == {"HASPE"}
+    itemized = {d.symbol: d.reason for d in result.skip_details}
+    assert itemized.get("NOPE") == "missing_field:pe_ratio"
+
+
+@pytest.mark.asyncio
+async def test_run_screener_itemizes_null_field_under_nested_group(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Case not written against: the same itemization holds for a field
+    referenced only inside a nested ``group`` tree, not the flat criteria."""
+    fake = {
+        "HASPB": _make_fundamentals("HASPB", market_cap=200e9, price_to_book=1.2),
+        "NOPB": _make_fundamentals("NOPB", market_cap=200e9, price_to_book=None),
+    }
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        return fake[symbol]
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    request = ScreenerRequest(
+        universe="custom",
+        custom_symbols=["HASPB", "NOPB"],
+        criteria=[],
+        group=CriterionGroup(
+            combinator="and",
+            criteria=[
+                NumericThresholdCriterion(field="price_to_book", operator="lt", value=3.0),
+            ],
+        ),
+        limit=10,
+    )
+    result = await screener.run_screener(request)
+    assert {row.symbol for row in result.rows} == {"HASPB"}
+    itemized = {d.symbol: d.reason for d in result.skip_details}
+    assert itemized.get("NOPB") == "missing_field:price_to_book"
+
+
+@pytest.mark.asyncio
+async def test_resolve_universe_custom_symbols_canonicalise_india_names(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-093: a bare India custom symbol canonicalises through the same
+    ``_yahoo_symbol`` mapping the rest of the app uses (C3), so it hits the
+    same warm store row a quote/history lookup already keyed under `.NS`."""
+    monkeypatch.setattr(config, "get_region", lambda: "IN")
+    universe = await screener.resolve_universe("custom", ["reliance"])
+    assert universe.symbols == ["RELIANCE.NS"]
+
+
+@pytest.mark.asyncio
+async def test_resolve_universe_custom_symbols_bo_code_maps_to_its_ticker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Case not written against: an already-suffixed .BO keeps its suffix, and a
+    numeric scrip code reaches Yahoo as its ticker (R15-LEAD-028)."""
+    monkeypatch.setattr(config, "get_region", lambda: "IN")
+    universe = await screener.resolve_universe("custom", ["532540.bo", "reliance.bo"])
+    assert universe.symbols == ["TCS.BO", "RELIANCE.BO"]
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-048: a derived debt_to_equity of 0.0 (a debt-free name) is a real
+# value the formula engine can screen on, never an itemized missing_field.
+# ---------------------------------------------------------------------------
+
+
+def test_debt_free_zero_debt_to_equity_passes_a_threshold_screen() -> None:
+    """A debt-free row's ``debt_to_equity`` is a served 0.0 (yfinance_provider's
+    derived leg — R15-DATA-048), not ``None`` — ``evaluate_formula`` must treat
+    it as a real value and match ``debt_to_equity < 0.5``, never skip the row
+    as ``missing_field:debt_to_equity``."""
+    from services.screener_formula import compile_formula, evaluate_formula
+
+    fund = _make_fundamentals("DEBTFREE", debt_to_equity=0.0)
+    compiled = compile_formula("debt_to_equity < 0.5")
+    matched, missing = evaluate_formula(compiled, fund, None)
+    assert missing is None
+    assert matched is True
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-112: a missing listing currency must sort LAST, not first.
+# ---------------------------------------------------------------------------
+
+
+def test_apply_criteria_missing_currency_sorts_last_desc() -> None:
+    """MANIKA.NS has no fundamentals currency (None) — it must never form its
+    own leading group ahead of every real currency code."""
+    rows = [
+        (_make_fundamentals("MANIKA.NS", market_cap=None, currency=None), _make_quote("MANIKA.NS")),
+        (
+            _make_fundamentals("RELIANCE.NS", market_cap=1.655e13, currency="INR"),
+            _make_quote("RELIANCE.NS"),
+        ),
+        (_make_fundamentals("TCS.NS", market_cap=7.55e12, currency="INR"), _make_quote("TCS.NS")),
+    ]
+    result = screener.apply_criteria(rows, [], sort_by="market_cap", sort_dir="desc")
+    assert [r.symbol for r in result] == ["RELIANCE.NS", "TCS.NS", "MANIKA.NS"]
+
+
+def test_apply_criteria_missing_currency_sorts_last_asc() -> None:
+    """Same rule holds ascending — the missing-currency group stays last
+    regardless of sort_dir (it is not scaled by the value's sign)."""
+    rows = [
+        (_make_fundamentals("MANIKA.NS", market_cap=None, currency=None), _make_quote("MANIKA.NS")),
+        (
+            _make_fundamentals("RELIANCE.NS", market_cap=1.655e13, currency="INR"),
+            _make_quote("RELIANCE.NS"),
+        ),
+        (_make_fundamentals("TCS.NS", market_cap=7.55e12, currency="INR"), _make_quote("TCS.NS")),
+    ]
+    result = screener.apply_criteria(rows, [], sort_by="market_cap", sort_dir="asc")
+    assert [r.symbol for r in result] == ["TCS.NS", "RELIANCE.NS", "MANIKA.NS"]
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-043: the top-K cut is round-robin per currency, and the disclosure
+# is computed over the full matched set, not the served page.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_run_screener_top_k_cut_is_round_robin_per_currency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A mixed-currency universe cut to a top-K smaller than the matched set
+    must not silently keep only the alphabetically-first currency group
+    (INR before USD) — each currency is represented, and the 'ranked within
+    each currency' disclosure survives the cut."""
+    fake_fundamentals = {
+        "AAPL": _make_fundamentals("AAPL", market_cap=3.5e12, currency="USD"),
+        "RELIANCE.NS": _make_fundamentals("RELIANCE.NS", market_cap=1.95e13, currency="INR"),
+        "MSFT": _make_fundamentals("MSFT", market_cap=3.0e12, currency="USD"),
+        "TCS.NS": _make_fundamentals("TCS.NS", market_cap=7.5e12, currency="INR"),
+    }
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        return fake_fundamentals[symbol]
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    request = ScreenerRequest(
+        universe="custom",
+        custom_symbols=["AAPL", "RELIANCE.NS", "MSFT", "TCS.NS"],
+        criteria=[],
+        sort_by="market_cap",
+        sort_dir="desc",
+        limit=2,
+    )
+    result = await screener.run_screener(request)
+    assert result.matched_count == 4
+    assert result.result_count == 2
+    assert "ranked within each currency" in result.coverage
+    assert any(row.currency == "USD" for row in result.rows)
+
+
+# ---------------------------------------------------------------------------
+# R15-LEAD-044 — a universe's symbols resolve under the universe's region
+# ---------------------------------------------------------------------------
+
+
+def _namesake_registry(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """Registry fakes for a bare ticker in both masters: the region the call
+    resolves under (explicit arg, else the request region, as the registry's
+    ``_effective_region`` does for an ambiguous ticker) picks the company.
+    Returns the list of regions each call resolved under."""
+    seen: list[str] = []
+
+    def _region(region: str | None) -> str:
+        eff = region or config.get_region()
+        seen.append(eff)
+        return eff
+
+    async def fake_fund(symbol: str, region: str | None = None) -> Fundamentals:
+        if _region(region) == "US":
+            return _make_fundamentals(
+                symbol, name="Halliburton Company", currency="USD", market_cap=2.4e10, roe=0.2
+            )
+        return _make_fundamentals(
+            symbol, name="Hindustan Aeronautics Limited", currency="INR", market_cap=3.2e12, roe=0.2
+        )
+
+    def fake_quote(symbol: str, asset_class: str = "equity", region: str | None = None) -> Quote:
+        quote = _make_quote(symbol)
+        if _region(region) != "US":
+            quote.currency = "INR"
+        return quote
+
+    monkeypatch.setattr(config, "get_region", _REAL_GET_REGION)
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_fund)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_quote)
+    provider_health.reset_for_tests()
+    return seen
+
+
+def _one_symbol_universe(monkeypatch: pytest.MonkeyPatch, universe_id: str, symbol: str) -> None:
+    async def resolve(_universe_id: str, _custom: object = None) -> ScreenerUniverse:
+        return ScreenerUniverse(
+            id=universe_id, label=universe_id, symbols=[symbol], asset_class="equity"
+        )
+
+    monkeypatch.setattr(screener, "resolve_universe", resolve)
+
+
+def _v7_serves(monkeypatch: pytest.MonkeyPatch, rows: dict[str, dict[str, Any]]) -> None:
+    async def fake_batch(
+        symbols: list[str], **_kwargs: Any
+    ) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
+        return (
+            {s: rows[s] for s in symbols if s in rows},
+            {s: "not_found" for s in symbols if s not in rows},
+        )
+
+    monkeypatch.setattr(screener.yahoo_batch_provider, "fetch_quotes_batch", fake_batch)
+
+
+@pytest.mark.asyncio
+async def test_sp500_fallback_resolves_a_namesake_under_us_in_an_in_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen = _namesake_registry(monkeypatch)
+    _one_symbol_universe(monkeypatch, "sp500", "HAL")
+    _v7_serves(monkeypatch, {})  # the v7 miss sends HAL to the per-symbol fallback
+    token = config.set_request_region("IN")
+    try:
+        result = await screener.run_screener(ScreenerRequest(universe="sp500", criteria=[]))
+    finally:
+        config.reset_request_region(token)
+
+    assert seen == ["US", "US"]  # fundamentals + quote
+    assert [(r.symbol, r.name, r.currency) for r in result.rows] == [
+        ("HAL", "Halliburton Company", "USD")
+    ]
+
+
+@pytest.mark.asyncio
+async def test_sp500_enrichment_resolves_a_namesake_under_us_in_an_in_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen = _namesake_registry(monkeypatch)
+    _one_symbol_universe(monkeypatch, "sp500", "HAL")
+
+    async def no_seed(_region: str) -> None:  # the bundled pack already carries HAL's roe
+        return None
+
+    monkeypatch.setattr(fundamentals_store, "ensure_seed_pack", no_seed)
+    _v7_serves(
+        monkeypatch,
+        {
+            "HAL": {
+                "symbol": "HAL",
+                "longName": "Halliburton Company",
+                "regularMarketPrice": 32.0,
+                "regularMarketTime": 1_700_000_000,
+                "currency": "USD",
+                "marketCap": 2.4e10,
+            }
+        },
+    )
+    token = config.set_request_region("IN")
+    try:
+        result = await screener.run_screener(
+            ScreenerRequest(
+                universe="sp500",
+                criteria=[NumericThresholdCriterion(field="roe", operator="gt", value=0.1)],
+            )
+        )
+    finally:
+        config.reset_request_region(token)
+
+    assert seen == ["US"]  # the one .info enrichment call
+    assert [(r.symbol, r.name, r.currency) for r in result.rows] == [
+        ("HAL", "Halliburton Company", "USD")
+    ]
+
+
+@pytest.mark.asyncio
+async def test_nifty50_fallback_resolves_under_in_in_a_us_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen = _namesake_registry(monkeypatch)
+    _one_symbol_universe(monkeypatch, "nifty50", "RELIANCE.NS")
+    _v7_serves(monkeypatch, {})
+    token = config.set_request_region("US")
+    try:
+        await screener.run_screener(ScreenerRequest(universe="nifty50", criteria=[]))
+    finally:
+        config.reset_request_region(token)
+
+    assert seen == ["IN", "IN"]

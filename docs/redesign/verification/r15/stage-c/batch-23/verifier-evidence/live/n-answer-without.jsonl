@@ -1,0 +1,63 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " don"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " sales"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " nor"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " perform"}
+{"kind": "delta", "text": " calculations"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " external"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " sale"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " track"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " local"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " do"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " add"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " tracked"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2746, "output_tokens": 61, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

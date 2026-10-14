@@ -1,0 +1,15 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: for p in openrouter gemini xai; do k=sk-or-v1-0000000000000000000000000000000000000000notarealkey; [ $p = gemini ] && k=AIzaSyNOTAREALKEY0000000000000000000000; echo "== $p"; curl -s -m 60 -X POST localhost:52344/llm/keys/validate -H 'Content-Type: application/json' -d "{\"provider\":\"$p\",\"api_key\":\"$k\"}"; echo; done; echo '== direct openrouter comparison (fake bearer)'; curl -s -o /dev/null -w 'models %{http_code}
+' -H 'Authorization: Bearer sk-or-v1-fake' https://openrouter.ai/api/v1/models; curl -s -o /dev/null -w 'key %{http_code}
+' -H 'Authorization: Bearer sk-or-v1-fake' https://openrouter.ai/api/v1/key
+== openrouter
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+== gemini
+{"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+== xai
+{"ok":false,"reason":"invalid","detail":"xAI rejected this key."}
+== direct openrouter comparison (fake bearer)
+models 200
+key 401
+
+exit=0

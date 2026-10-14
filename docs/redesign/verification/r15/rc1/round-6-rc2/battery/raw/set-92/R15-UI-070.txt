@@ -1,0 +1,12 @@
+# probe at ace7dd76 (candidate worktree), run 05:55:38
+$ grep -n 'R15-UI-070' src/modules/platform/WorkspaceDialog.test.tsx
+43:describe("WorkspaceDialog export / import (R15-UI-070)", () => {
+$ grep -n 'vysted-workspace\|Export\|Import' src/modules/platform/WorkspaceDialog.tsx | head -8
+38: *   to `loadWorkspace`, export or delete one, or import a `.vysted-workspace`
+173:  const [pendingImport, setPendingImport] = useState<{
+234:  async function handleExport(name: string) {
+240:      const filename = `${name.replace(/[^A-Za-z0-9 _-]/g, "-")}.vysted-workspace`;
+242:      setNotice(result.path ? `Exported to ${result.path}` : `Downloaded ${filename}`);
+250:  async function handleImportFile(file: File) {
+259:      setPendingImport({ workspace, name });
+265:  async function handleImport(event: FormEvent<HTMLFormElement>) {

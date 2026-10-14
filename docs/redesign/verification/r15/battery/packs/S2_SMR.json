@@ -1,0 +1,670 @@
+{
+  "slot": "S2",
+  "symbol": "SMR",
+  "name": "SMR Jewels Ltd",
+  "exchange": "BSE",
+  "bse_code": "544774",
+  "collected_at": "2026-09-19",
+  "collected_by": "claude-opus-5[1m]",
+  "collection_notes": [
+    "WebSearch was unavailable for this sweep (session-wide search budget already exhausted by earlier workers). All values below were obtained by direct WebFetch and by curl against BSE's public JSON API (api.bseindia.com, Referer-gated, GET-only), so every field is traceable to a named URL.",
+    "www.bseindia.com HTML returns 403 to WebFetch; api.bseindia.com JSON answers normally with a browser UA + Referer. The BSE shareholding/pledge endpoints (ShpSummaryQtr, GetPledgeData, ShareholdingPatternData, ShpPromoterNGroupData) all 302 to api.bseindia.com/error_Bse.html - pledge is therefore a recorded gap, not a zero.",
+    "Rate limiting: >=1.2s between requests to each host."
+  ],
+
+  "identity": {
+    "legal_name": {
+      "value": "SMR Jewels Ltd",
+      "unit": "name",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid=",
+      "note": "BSE master 'FullN' = \"SMR Jewels Ltd\". The company's own site writes it \"SMR Jewels Ltd.\" (trailing period) and screener.in writes \"SMR Jewels Limited\" - three spellings of one legal name, which defeats exact-string entity matching."
+    },
+    "former_names": {
+      "value": null,
+      "unit": "name",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544774",
+      "note": "No rename found. BSE CorporateAction returns empty Table/Table1/Table2, and no name-change announcement appears in the 2026 announcement feed. Recorded as 'none found', not 'none exists' - the company has only ~3.5 months of listed history so a pre-listing rename would not surface in exchange announcements."
+    },
+    "isin": {
+      "value": "INE11XK01017",
+      "unit": "ISIN",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid="
+    },
+    "bse_code": {
+      "value": "544774",
+      "unit": "BSE scrip code",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid="
+    },
+    "bse_security_id": {
+      "value": "SMR",
+      "unit": "ticker",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid="
+    },
+    "nse_symbol": {
+      "value": null,
+      "unit": "ticker",
+      "as_of": "2026-09-19",
+      "source_url": "https://ipowatch.in/smr-jewels-ipo/",
+      "note": "Not listed on NSE. The IPO was a BSE SME issue only. Any NSE quote for 'SMR' is a different security."
+    },
+    "board": {
+      "value": "SME",
+      "unit": "board",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid=",
+      "note": "BSE API returns Group=\"M\", Grp_Index=\"M / BSE SME IPO\", Index=\"BSE SME IPO\". NOTE the manifest records group \"MT\" from the bundled bse_instruments.json (generated 2026-06-09, one day after listing); BSE now reports group \"M\". This is a live master-staleness diff: the bundled master's group letter for this scrip is already wrong."
+    },
+    "sector": {
+      "value": "Consumer Discretionary",
+      "unit": "BSE sector",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid="
+    },
+    "industry": {
+      "value": "Gems, Jewellery And Watches (BSE IGroup: Consumer Durables)",
+      "unit": "BSE industry",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid=",
+      "conflict": "stockanalysis.com (S&P Global Market Intelligence data) classifies it \"Jewelry, Precious Metal\". Both are defensible; they do not map to one another."
+    },
+    "listing_date": {
+      "value": "2026-06-08",
+      "unit": "date",
+      "as_of": "2026-06-08",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260601&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory=",
+      "note": "BSE announcement 2026-06-08T09:36:28.96, category \"New Listing\", headline \"Listing of Equity Shares of SMR Jewels Ltd\". Independently corroborated by https://ipowatch.in/smr-jewels-ipo/ (listing date June 8, 2026). This CLOSES the manifest's recorded world_gap (\"Exact listing date not collected\"). 102 days of listed history as of 2026-09-19."
+    },
+    "incorporation_year": {
+      "value": "CONFLICT: 2018 vs 1988",
+      "unit": "year",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/544774/ | https://smrjewels.in/ | https://stockanalysis.com/quote/bom/544774/",
+      "conflict": "screener.in: \"Incorporated in 2018, SMR Jewels Limited is engaged in the design and distribution of Designer Heritage Jewellery.\" The company's own site brands itself \"Preserving Traditions since 1988\" and stockanalysis.com (S&P Global) records Founded: 1988. Most likely reading: the family business dates to 1988, the limited company was incorporated in 2018. BOTH recorded; not reconciled. A terminal that prints one of these as 'the' founding year is wrong 50% of the time.",
+      "as_of_sources": "2026-09-19"
+    },
+    "registered_office": {
+      "value": "3, Vrundavan Apartment, Nr Venudhar Society, New Alkapuri Road, Gulabi Tekra, Off CG Road, Ambawadi, Ahmedabad, Gujarat 380015",
+      "unit": "address",
+      "as_of": "2026-09-19",
+      "source_url": "https://smrjewels.in/"
+    },
+    "business_description": {
+      "value": "Design, development and distribution of 'Designer Heritage Jewellery' (antique, bridal, jadtar, polki, minakari) on a B2B model supplying wholesalers and retailers across India.",
+      "unit": "text",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/544774/ | https://smrjewels.in/"
+    },
+    "investor_relations_url": {
+      "value": "https://smrjewels.in/index.php/investors/",
+      "unit": "url",
+      "as_of": "2026-09-19",
+      "source_url": "https://smrjewels.in/"
+    },
+    "rhp_url": {
+      "value": "https://smrjewels.in/wp-content/uploads/2026/05/RHP.pdf",
+      "unit": "url",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/544774/",
+      "note": "Red Herring Prospectus hosted on the company's own domain; screener.in deep-links to page 154 of it."
+    },
+    "sebi_filing_url": {
+      "value": "https://www.sebi.gov.in/filings/public-issues/jul-2026/smr-jewels-limited_102481.html",
+      "unit": "url",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/544774/"
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 95.0,
+      "unit": "INR",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid=",
+      "note": "BSE 'Ason' timestamp \"18 Sep 26 | 16:00\". Agrees exactly with screener.in and stockanalysis.com."
+    },
+    "change_pct": { "value": -1.04, "unit": "percent", "as_of": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid=" },
+    "prev_close": { "value": 96.0, "unit": "INR", "as_of": "2026-09-17", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid=" },
+    "open": { "value": 101.4, "unit": "INR", "as_of": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid=" },
+    "day_high": { "value": 101.4, "unit": "INR", "as_of": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid=" },
+    "day_low": { "value": 95.0, "unit": "INR", "as_of": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid=" },
+    "intraday_liquidity_note": {
+      "value": "The BSE intraday tape for 2026-09-18 shows the price pinned at 101.40 with volume 0 for ~1h40m of consecutive ticks (10:56 to 12:36+), total session high volume 2500 shares. Effectively untraded for long stretches.",
+      "unit": "text",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=544774&flag=0&fromdate=&todate=&seriesid="
+    }
+  },
+
+  "market_cap": {
+    "value": 177,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/544774/",
+    "corroboration": "stockanalysis.com: 1.77 billion INR = 177 crore. Two independent sources agree.",
+    "derived_check": "177 cr / INR 95.0 => 1.863 crore shares, consistent with stockanalysis.com's 18.65 million shares outstanding."
+  },
+
+  "pe_ttm": {
+    "value": "CONFLICT: 7.16 vs 5.63",
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/544774/ | https://stockanalysis.com/quote/bom/544774/",
+    "conflict": "screener.in headline 'Stock P/E' = 7.16. stockanalysis.com 'PE Ratio' = 5.63. SAME price (95.00) and SAME published EPS (16.89) on both pages. screener is computing market cap / net profit (177/24.75 = 7.15); stockanalysis is computing price / EPS (95/16.89 = 5.62). The gap exists because EPS 16.89 is struck on the PRE-IPO share count while market cap uses the POST-IPO count. A 27% valuation disagreement between two reputable sources, with neither page flagging it. This is the single best differ target in this pack.",
+    "note": "screener.in's own page is internally inconsistent: its headline P/E (7.16) cannot be reproduced from its own Current Price (95.0) and its own EPS row (16.89)."
+  },
+
+  "pb": {
+    "value": null,
+    "unit": "x",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.screener.in/company/544774/ | https://stockanalysis.com/quote/bom/544774/",
+    "note": "NOT PUBLISHED by any source reached. screener.in renders the 'Book Value' label with an empty value; stockanalysis.com lists Book Value Per Share and Price-to-Book as not provided. See book_value_per_share for why (no post-IPO balance sheet has been filed yet). Recorded as a genuine world gap, not merely unreached."
+  },
+
+  "roe": {
+    "value": 67,
+    "unit": "percent (FY2026, last year)",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544774/",
+    "variants": [
+      { "value": 66.7, "unit": "percent", "label": "screener.in headline ROE tile", "note": "same page reports 66.7 in the tile and 67 in the 'Return on Equity / Last Year' block - a rounding inconsistency inside one source" },
+      { "value": 71.7, "unit": "percent", "label": "3-year ROE", "source_url": "https://www.screener.in/company/544774/" },
+      { "value": 72, "unit": "percent", "label": "3-year ROE, rounded, same page different block" }
+    ],
+    "note": "All of these are struck on PRE-IPO equity (net worth ~INR 50 cr at 2026-03-31). The INR 48 cr fresh issue landed in June 2026 and will roughly double the equity base, so a forward ROE near 67% is arithmetically impossible on unchanged profit. Any tool that carries 67% forward as a current metric is publishing a number the next filing will halve."
+  },
+
+  "roce": {
+    "value": 71.5,
+    "unit": "percent",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544774/",
+    "variants": [{ "value": 71, "unit": "percent", "label": "screener.in ratios table, FY2026 row" }],
+    "note": "Same pre-IPO caveat as ROE."
+  },
+
+  "debt_to_equity": {
+    "value": 0.34,
+    "unit": "x",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544774/",
+    "derivation": "DERIVED, not published: Borrowings INR 17 cr / (Equity Capital INR 15 cr + Reserves INR 35 cr = net worth INR 50 cr) = 0.34. No source reached publishes a D/E figure for this scrip.",
+    "note": "Post-IPO this falls to roughly 0.18 on the same borrowings, once the INR 48 cr fresh issue is on the balance sheet. Marked derived so the differ does not treat it as an outside-truth anchor."
+  },
+
+  "revenue_ttm": {
+    "value": 432,
+    "unit": "INR crore",
+    "as_of": "2026-03-31 (FY2026, full year)",
+    "source_url": "https://www.screener.in/company/544774/",
+    "corroboration": "stockanalysis.com: Revenue (ttm) 4.32 billion INR = 432 crore. Exact agreement.",
+    "note": "TTM here is simply FY2026 - the company files half-yearly (SME), so no rolling-twelve-month figure more recent than 31-Mar-2026 exists."
+  },
+
+  "net_profit_ttm": {
+    "value": 25,
+    "unit": "INR crore",
+    "as_of": "2026-03-31 (FY2026, full year)",
+    "source_url": "https://www.screener.in/company/544774/",
+    "precise_value": { "value": 24.749, "unit": "INR crore", "source_url": "https://stockanalysis.com/quote/bom/544774/", "note": "stockanalysis.com reports Net Income 247.49 million INR. screener.in rounds to 25." }
+  },
+
+  "revenue_growth_yoy": {
+    "value": 64.3,
+    "unit": "percent",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544774/",
+    "basis": "FY2026 sales INR 432 cr vs FY2025 sales INR 263 cr, standalone, full year. screener.in's own 'TTM sales growth' tile reads 64%, which matches."
+  },
+
+  "net_profit_growth_yoy": {
+    "value": 127,
+    "unit": "percent",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544774/",
+    "basis": "FY2026 net profit INR 25 cr vs FY2025 INR 11 cr. screener.in's 'TTM profit growth' tile reads 130% (struck on unrounded figures). Both recorded."
+  },
+
+  "eps_ttm": {
+    "value": 16.89,
+    "unit": "INR per share",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544774/",
+    "corroboration": "stockanalysis.com reports the identical EPS of 16.89.",
+    "warning": "This EPS is struck on the PRE-IPO share count (INR 25 cr / 1.48 cr shares). On the post-issue count of ~1.865 cr shares the same profit gives EPS ~13.3. The published 16.89 is therefore not comparable to the current market cap.",
+    "historical_series_unrestated": {
+      "FY2023": 910.0,
+      "FY2024": 3850.0,
+      "FY2025": 22.05,
+      "FY2026": 16.89,
+      "unit": "INR per share",
+      "source_url": "https://www.screener.in/company/544774/",
+      "note": "NOT restated for the pre-IPO capital increases. Equity capital went INR 0.01 cr (FY23, FY24) -> INR 5 cr (FY25) -> INR 15 cr (FY26), i.e. ~10,000 shares to 1.5 crore shares. FY2024 EPS of INR 3,850 against FY2026 EPS of INR 16.89 is a 99.6% 'decline' that is pure denominator. Any EPS chart, EPS-CAGR or PEG computed from this series is nonsense."
+    }
+  },
+
+  "book_value_per_share": {
+    "value": null,
+    "unit": "INR per share",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.screener.in/company/544774/ | https://stockanalysis.com/quote/bom/544774/",
+    "note": "NOT PUBLISHED. screener.in renders the 'Book Value' tile with the rupee sign and no number; stockanalysis.com marks Book Value Per Share as not provided. Genuine world gap.",
+    "derived_estimates": [
+      { "value": 33.3, "unit": "INR per share", "basis": "PRE-IPO: net worth INR 50 cr (equity 15 + reserves 35, audited 2026-03-31) / 1.5 cr shares", "confidence": "arithmetic from the filed balance sheet" },
+      { "value": "~51", "unit": "INR per share", "basis": "POST-IPO estimate: net worth ~INR 95 cr (50 + ~45 cr net fresh-issue proceeds after issue expenses on a INR 48 cr fresh issue) / 1.865 cr shares", "confidence": "ESTIMATE - issue expenses not disclosed in any source reached; do NOT treat as outside truth" }
+    ],
+    "why_it_is_missing": "The IPO closed 2026-06-03 and listed 2026-06-08, i.e. AFTER the 2026-03-31 balance sheet date. No post-issue balance sheet has been filed yet - the company reports half-yearly, so the first one is H1 FY2027, due around November 2026. Every book-value, P/B and net-worth figure in the world for this scrip is therefore either pre-IPO or fabricated."
+  },
+
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR per share",
+    "as_of": "2026-09-18",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid=",
+    "corroboration": "screener.in Face Value tile: INR 10.0. ipowatch.in IPO page: Face Value INR 10 per share."
+  },
+
+  "shares_outstanding": {
+    "value": 18650000,
+    "unit": "shares",
+    "as_of": "2026-09-18",
+    "source_url": "https://stockanalysis.com/quote/bom/544774/",
+    "conflict": "stockanalysis.com reports 18.65 million. Derived from the filed balance sheet plus the IPO fresh issue: 1.5 cr (equity capital INR 15 cr at FV 10, audited 2026-03-31) + 37,51,000 fresh-issue shares = 1,87,51,000 = 18.751 million. Market cap / price gives 177 cr / 95 = 18.63 million. Three figures within ~0.7% of each other; the spread is recorded, not averaged. The offer-for-sale portion (9,80,000 shares) does NOT change the count - a pipeline that adds the full 49.80 lakh issue size to the pre-issue count overstates shares by ~5%."
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": null,
+      "unit": "INR per share",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544774",
+      "note": "None. BSE CorporateAction returns {\"Table\":[],\"Table1\":[],\"Table2\":[]} - no dividend, bonus, split or rights on record for this scrip."
+    },
+    "record_or_ex_date": { "value": null, "unit": "date", "as_of": "2026-09-19", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544774" },
+    "paid_trailing_12m_per_share": { "value": 0, "unit": "INR per share", "as_of": "2026-09-18", "source_url": "https://www.screener.in/company/544774/", "note": "screener.in Dividend Payout row reads -0% for every year FY2023-FY2026." },
+    "yield": { "value": 0.0, "unit": "percent", "as_of": "2026-09-18", "source_url": "https://www.screener.in/company/544774/" }
+  },
+
+  "week52": {
+    "high": { "value": 115.0, "unit": "INR", "as_of": "2026-06-22", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544774" },
+    "low": { "value": 75.85, "unit": "INR", "as_of": "2026-06-16", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544774" },
+    "note": "BSE reports adjusted and unadjusted as identical (no corporate action to adjust for). screener.in rounds the low to 75.8. CRITICAL: the label '52-week' is a lie for this scrip - it has only existed for 14 weeks (listed 2026-06-08). Both extremes fall in the first 14 days of trading. A terminal that renders a 52-week range band here implies 52 weeks of price discovery that never happened.",
+    "month_high_low": { "value": "108.45 / 85.00", "unit": "INR", "as_of": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544774" },
+    "week_high_low": { "value": "108.45 / 85.00", "unit": "INR", "as_of": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544774" }
+  },
+
+  "ipo": {
+    "issue_open": { "value": "2026-05-26", "unit": "date", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/" },
+    "issue_close": { "value": "2026-06-03", "unit": "date", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/" },
+    "allotment_date": { "value": "2026-06-04", "unit": "date", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/" },
+    "listing_date": { "value": "2026-06-08", "unit": "date", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/" },
+    "price_band": { "value": [125, 128], "unit": "INR per share", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/" },
+    "issue_price": { "value": 128, "unit": "INR per share", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/", "derivation": "DERIVED from the source's own figures: issue size INR 63.74 cr / 49,80,000 shares = INR 128.0; fresh issue INR 48 cr / 37,51,000 shares = INR 127.97. The source does not state the final price explicitly (recorded there as 'Not specified'), so this is arithmetic on the top of the band, not a quoted value." },
+    "issue_size": { "value": 63.74, "unit": "INR crore", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/" },
+    "fresh_issue": { "value": 48, "unit": "INR crore (37,51,000 shares)", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/" },
+    "offer_for_sale": { "value": 13, "unit": "INR crore (9,80,000 shares)", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/", "note": "48 + 13 = 61 != 63.74 as printed by the source; the components do not reconcile to the stated total. Recorded as printed." },
+    "lot_size": { "value": 2000, "unit": "shares", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/", "note": "Minimum application INR 2,56,000 at the INR 128 issue price. At the current INR 95 a lot is INR 1,90,000 - still far above any retail round-lot assumption." },
+    "lead_manager": { "value": "Wealth Mine Networks Pvt. Ltd.", "unit": "entity", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/" },
+    "registrar": { "value": "Purva Sharegistry (India) Pvt. Ltd.", "unit": "entity", "as_of": "2026-09-19", "source_url": "https://ipowatch.in/smr-jewels-ipo/" },
+    "promoter_holding_pre_issue": { "value": 90.37, "unit": "percent", "as_of": "2026-06-03", "source_url": "https://ipowatch.in/smr-jewels-ipo/" },
+    "promoter_holding_post_issue": { "value": 65.74, "unit": "percent", "as_of": "2026-06-08", "source_url": "https://ipowatch.in/smr-jewels-ipo/", "corroboration": "Matches the Jun-2026 filed shareholding pattern on screener.in exactly." },
+    "performance_since_issue": { "value": -25.8, "unit": "percent", "as_of": "2026-09-18", "source_url": "https://ipowatch.in/smr-jewels-ipo/ + https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid=", "derivation": "DERIVED: INR 95.00 vs INR 128 issue price. The 52-week low of INR 75.85 (2026-06-16, 8 days after listing) was -40.7% from issue." }
+  },
+
+  "shareholding": {
+    "quarter": {
+      "value": "Jun 2026",
+      "unit": "quarter",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/544774/",
+      "note": "This is the ONLY shareholding pattern ever filed by this company - it listed 2026-06-08, three weeks before the quarter end. There is no prior quarter to compare against, so every quarter-on-quarter delta for this scrip is undefined."
+    },
+    "promoter_pct": { "value": 65.74, "unit": "percent", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/544774/" },
+    "fii_pct": { "value": 9.88, "unit": "percent", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/544774/", "note": "9.88% FII in a INR 177 cr BSE SME scrip three weeks after listing is anchor-book allocation, not secondary-market accumulation. Reading it as institutional conviction is a category error." },
+    "dii_pct": { "value": 0.84, "unit": "percent", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/544774/" },
+    "public_pct": { "value": 23.55, "unit": "percent", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/544774/" },
+    "sum_check": { "value": 100.01, "unit": "percent", "note": "65.74 + 9.88 + 0.84 + 23.55 = 100.01. Rounding, but a strict validator will reject it." },
+    "no_of_shareholders": { "value": 516, "unit": "count", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/544774/", "note": "516 shareholders in total. Extreme concentration; the free float is a few hundred holders." },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "unit": "percent",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/544774/",
+      "note": "UNREACHED, not zero. screener.in renders no 'Pledged percentage' row for this scrip (it omits the row when the filing reports nil or when the field is absent), and every BSE shareholding/pledge JSON endpoint tried (ShpSummaryQtr, GetPledgeData, ShareholdingPatternData, ShpPromoterNGroupData) 302-redirects to api.bseindia.com/error_Bse.html. Recorded as a collection gap. A pipeline that renders 'Pledged: 0%' here is asserting something no source confirmed."
+    }
+  },
+
+  "corporate_actions_2026": {
+    "value": [],
+    "unit": "list",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544774",
+    "note": "BSE returns empty Table, Table1 and Table2 - no dividend, bonus, split, rights or scheme on record. The only capital event in 2026 is the IPO itself (see ipo block), which BSE does not file as a corporate action. Unlike battery slot P14 (JONJUA, 7:24 bonus), there is nothing here to adjust historical prices for - which is itself worth diffing: a tool that invents an adjustment factor for this scrip is wrong."
+  },
+
+  "latest_results": {
+    "period": {
+      "value": "FY2026 - year ended 2026-03-31 (and half year ended 2026-03-31)",
+      "unit": "period",
+      "as_of": "2026-06-25",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=Result&strPrevDate=20260101&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory="
+    },
+    "filing_date": { "value": "2026-06-25", "unit": "date", "as_of": "2026-06-25", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=Result&strPrevDate=20260101&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory=", "note": "BSE NEWSID 8074b32b-27a8-4e6c-a4aa-64d0bccebd0e, SUBCATNAME 'Financial Results', headline \"Audited financial results for the year ended on 31st March, 2026.\", attachment 3ef4cba6-4cb0-4560-8873-75804ba99173.pdf (1,451,877 bytes)." },
+    "audited": { "value": true, "unit": "bool", "as_of": "2026-06-25", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260601&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory=" },
+    "reporting_cadence": {
+      "value": "HALF-YEARLY, not quarterly",
+      "unit": "cadence",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=Result&strPrevDate=20260101&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory=",
+      "note": "Exactly ONE announcement of category 'Result' exists for the whole of 2026. The board-meeting intimation of 2026-06-22 states the purpose verbatim: \"To Consider And Approve The Audited Standalone Financial Results Of The Company For The Half Year And Year Ended On March 31, 2026.\" BSE SME issuers report half-yearly. There is no Jun-2026 quarter result and there never will be; the next filing is H1 FY2027, expected ~November 2026."
+    },
+    "next_expected_filing": { "value": "H1 FY2027 (half year ended 2026-09-30), expected ~November 2026", "unit": "period", "as_of": "2026-09-19", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=Result&strPrevDate=20260101&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory=", "note": "DERIVED from the half-yearly cadence; no source states the date." }
+  },
+
+  "consolidated_vs_standalone": {
+    "value": "STANDALONE ONLY",
+    "unit": "basis",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260601&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory=",
+    "note": "The board-meeting intimation of 2026-06-22 says \"Audited STANDALONE Financial Results\". No subsidiary or consolidated filing appears anywhere in the announcement feed. Every figure in this pack is standalone. TRAP: https://www.screener.in/company/544774/consolidated/ is a live, 200-OK URL that serves the same standalone numbers under a 'consolidated' path, and the screener HTML exposes no consolidated/standalone toggle link for this scrip. A scraper keyed on the URL path will label standalone data as consolidated."
+  },
+
+  "financials_detail": {
+    "source_url": "https://www.screener.in/company/544774/",
+    "as_of": "2026-03-31",
+    "basis": "standalone, INR crore",
+    "profit_and_loss_annual": {
+      "columns": ["Mar 2023", "Mar 2024", "Mar 2025", "Mar 2026"],
+      "Sales": [68, 125, 263, 432],
+      "Expenses": [66, 118, 248, 397],
+      "Operating Profit": [2, 6, 16, 36],
+      "OPM %": ["2.9%", "4.9%", "6%", "8%"],
+      "Other Income": [-0, -0, -0, -0],
+      "Interest": [1, 1, 1, 3],
+      "Depreciation": [0, 0, 0, 0],
+      "Profit before tax": [1, 5, 15, 33],
+      "Tax %": ["26%", "27%", "26%", "25%"],
+      "Net Profit": [1, 4, 11, 25],
+      "EPS in Rs": [910.0, 3850.0, 22.05, 16.89],
+      "Dividend Payout %": ["-0%", "-0%", "-0%", "-0%"]
+    },
+    "half_yearly_results": {
+      "columns": ["Mar 2025", "Mar 2026"],
+      "Sales": [191, 233],
+      "Expenses": [181, 213],
+      "Operating Profit": [11, 21],
+      "OPM %": ["6%", "9%"],
+      "Interest": [1, 2],
+      "Profit before tax": [10, 18],
+      "Tax %": ["26%", "24%"],
+      "Net Profit": [7, 14],
+      "EPS in Rs": [15.01, 9.6],
+      "MISLABEL_WARNING": "screener.in renders this table under the heading 'Quarterly Results' with only TWO columns. They are NOT quarters - they are the second half of FY2025 and the second half of FY2026 (H2 sales 191 of FY25's 263; 233 of FY26's 432). Any engine that reads this table as quarterly data will compute a ~4x annualisation error and will show a 'latest quarter' that is six months long."
+    },
+    "balance_sheet": {
+      "columns": ["Mar 2023", "Mar 2024", "Mar 2025", "Mar 2026"],
+      "Equity Capital": [0.01, 0.01, 5, 15],
+      "Reserves": [1, 5, 20, 35],
+      "Borrowings": [6, 8, 9, 17],
+      "Other Liabilities": [14, 3, 11, 19],
+      "Total Liabilities": [21, 15, 44, 86],
+      "Fixed Assets": [0, 0, 0, 0],
+      "CWIP": [-0, -0, -0, 0],
+      "Investments": [-0, -0, -0, -0],
+      "Other Assets": [21, 15, 44, 85],
+      "Total Assets": [21, 15, 44, 86],
+      "note": "Fixed Assets 0 on INR 432 cr of sales - an asset-light B2B trading/distribution model, not a manufacturer, whatever 'design and distribution' implies. Equity capital 0.01 -> 5 -> 15 across three years is the pre-IPO capital restructuring that breaks the EPS series."
+    },
+    "cash_flow": {
+      "columns": ["Mar 2023", "Mar 2024", "Mar 2025", "Mar 2026"],
+      "Cash from Operating Activity": [-1, -1, 0, -16],
+      "Cash from Investing Activity": [-0, -0, -0, -0],
+      "Cash from Financing Activity": [1, 1, 10, 7],
+      "Net Cash Flow": [0, -0, 10, -10],
+      "Free Cash Flow": [-1, -1, 0, -17],
+      "CFO/OP": ["-68%", "-16%", "16%", "-34%"],
+      "note": "FY2026 reports net profit of +INR 25 cr against operating cash flow of -INR 16 cr and free cash flow of -INR 17 cr. The company has NEVER produced positive free cash flow in any year shown. Profit is being absorbed by working capital (inventory days 36 -> 52, debtor days 11 -> 18, cash conversion cycle 44 -> 64). This is the single most important fact about the business and it appears in none of the headline tiles."
+    },
+    "ratios": {
+      "columns": ["Mar 2023", "Mar 2024", "Mar 2025", "Mar 2026"],
+      "Debtor Days": [31, 12, 11, 18],
+      "Inventory Days": [72, 29, 36, 52],
+      "Days Payable": [45, 1, 2, 6],
+      "Cash Conversion Cycle": [58, 40, 44, 64],
+      "Working Capital Days": [26, 29, 30, 50],
+      "ROCE %": [null, "61%", "68%", "71%"]
+    },
+    "growth": {
+      "Compounded Sales Growth": { "3 Years": "86%", "TTM": "64%", "5 Years": null, "10 Years": null },
+      "Compounded Profit Growth": { "3 Years": "201%", "TTM": "130%", "5 Years": null, "10 Years": null },
+      "Stock Price CAGR": { "1 Year": null, "3 Years": null, "5 Years": null, "10 Years": null, "note": "ALL BLANK - the stock has 102 days of history. A tool that renders 0% or '-' here without explaining why is hiding the reason." },
+      "Return on Equity": { "3 Years": "72%", "Last Year": "67%", "5 Years": null, "10 Years": null }
+    },
+    "data_provenance_note": "screener.in states at the page foot: \"Data provided by C-MOTS Internet Technologies Pvt Ltd\" (Mittal Analytics Private Ltd). stockanalysis.com states: \"Fundamental and historical data is provided by S&P Global Market Intelligence.\" Two different upstream vendors - which is why the two sites' P/E disagree while their EPS and price agree."
+  },
+
+  "last_3_announcements": [
+    {
+      "date": "2026-08-29",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=0a72b379-dc80-4a72-aa63-ec40a947117c.pdf",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260601&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory="
+    },
+    {
+      "date": "2026-08-27",
+      "headline": "Board Meeting Outcome for Outcome Of Board Meeting Held On Thursday, August 27, 2026 Pursuant To Regulation 30 Of The SEBI (LODR) Regulations",
+      "category": "Board Meeting",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=f7a21660-0950-4125-9585-cf19fd1b7698.pdf",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260601&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory="
+    },
+    {
+      "date": "2026-08-26",
+      "headline": "Company Announces Significant Milestone In Driving Growth And Innovation In The Jewellery Market",
+      "category": "Company Update",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=02b08dd4-16cc-4764-9ab9-bbb113415a73.pdf",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260601&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory="
+    }
+  ],
+
+  "notable_earlier_announcements": [
+    {
+      "date": "2026-08-25",
+      "headline": "Disclosure Under Regulation 30 - Utilization Of Funds Raised Through IPO Proceeds",
+      "category": "Company Update",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=0d51e484-abda-4391-bd1b-0f425aa4895e.pdf",
+      "note": "screener.in summarises this as a Bhumi Poojan for studio construction. Relevant because the fresh-issue proceeds are what break every pre-IPO per-share metric."
+    },
+    {
+      "date": "2026-08-14",
+      "headline": "Announcement under Regulation 30 (LODR) - Monitoring Agency Report",
+      "category": "Company Update",
+      "note": "IPO-proceeds monitoring agency report - mandatory post-issue oversight."
+    },
+    {
+      "date": "2026-06-24",
+      "headline": "Clarification On Price Movement In The Shares Of SMR Jewels Limited.",
+      "category": "Company Update",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=604bc239-1015-4470-82bd-8e3aa038cf52.pdf",
+      "note": "Exchange surveillance event. Paired with the 2026-06-23 'Clarification sought from SMR Jewels Ltd'. These bracket the 52-week high of 115.00 on 2026-06-22 and the low of 75.85 on 2026-06-16 - i.e. the entire 'range' of this stock was set during a period BSE formally questioned."
+    },
+    {
+      "date": "2026-06-23",
+      "headline": "Clarification sought from SMR Jewels Ltd",
+      "category": "Company Update",
+      "note": "Exchange-originated, no attachment."
+    },
+    {
+      "date": "2026-06-12",
+      "headline": "Disclosures under Reg. 29(1) of SEBI (SAST) Regulations, 2011",
+      "category": "Insider Trading / SAST",
+      "note": "A SAST 29(1) disclosure four days after listing means someone crossed the 5% threshold - consistent with the 9.88% FII block."
+    },
+    {
+      "date": "2026-06-08",
+      "headline": "Listing of Equity Shares of SMR Jewels Ltd",
+      "category": "New Listing",
+      "note": "The listing event itself. No attachment."
+    }
+  ],
+
+  "traps": [
+    {
+      "id": "T1",
+      "name": "Ticker collision with NuScale Power (the P20 pair)",
+      "detail": "'SMR' resolves to SMR Jewels Ltd (BSE 544774, INR, jewellery, INR 177 cr cap) in bse_instruments.json AND to NUSCALE POWER Corp (NYSE, USD, nuclear SMRs, ~USD 4.59 bn cap) in us_instruments.json. Both masters ship inside the product. A bare 'SMR' query has no correct answer without an exchange qualifier. Worse, 'SMR' is also the generic industry abbreviation for 'small modular reactor', so news and web search for the string are dominated by nuclear coverage - an agent doing retrieval on the ticker alone will return reactor news for a Gujarati jewellery distributor.",
+      "evidence": "manifest.json slots S2 and P20; https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid="
+    },
+    {
+      "id": "T2",
+      "name": "Pre-IPO EPS denominator - the 3,850 rupee EPS",
+      "detail": "Equity capital went INR 0.01 cr -> INR 5 cr -> INR 15 cr over FY24-FY26 and screener.in does NOT restate EPS. The published series is 910.00, 3,850.00, 22.05, 16.89. FY24's INR 3,850 EPS will blow the y-axis off any chart and make every EPS-CAGR, PEG and 'EPS growth' figure meaningless (FY24 -> FY26 reads as -99.6%). Correct handling is to refuse an EPS series that spans an unrestated capital change, not to plot it.",
+      "evidence": "https://www.screener.in/company/544774/ profit-loss table"
+    },
+    {
+      "id": "T3",
+      "name": "P/E disagreement of 27% between two reputable sources, on identical inputs",
+      "detail": "screener.in prints Stock P/E 7.16; stockanalysis.com prints PE Ratio 5.63. Both print price 95.00 and EPS 16.89. screener computes mcap/net-profit (post-IPO share count in the numerator), stockanalysis computes price/EPS (pre-IPO share count in the denominator). Neither page flags the mismatch, and screener.in's headline P/E is not reproducible from its own two adjacent tiles. An aggregator that picks one, or averages them, publishes a number with no meaning.",
+      "evidence": "https://www.screener.in/company/544774/ ; https://stockanalysis.com/quote/bom/544774/"
+    },
+    {
+      "id": "T4",
+      "name": "'Quarterly Results' table that contains half-years",
+      "detail": "BSE SME issuers file half-yearly. screener.in renders the half-yearly data under a 'Quarterly Results' heading with two columns labelled 'Mar 2025' and 'Mar 2026' (H2 FY25 sales 191, H2 FY26 sales 233). Reading these as quarters over-annualises by ~2x and reports a 'latest quarter' that is six months stale and six months long. Confirmed against the company's own board-meeting intimation: \"...For The Half Year And Year Ended On March 31, 2026.\"",
+      "evidence": "https://www.screener.in/company/544774/ quarters section; BSE ann. 2026-06-22"
+    },
+    {
+      "id": "T5",
+      "name": "Revenue is mostly gold pass-through - the scale trap the manifest flagged",
+      "detail": "FY2026 sales INR 432 cr against a market cap of INR 177 cr (0.41x P/S) and an operating margin of 8%, with INR 0 of fixed assets. This is a B2B jewellery distributor whose 'revenue' is largely the value of the gold passing through it. Any screen that ranks on price-to-sales, revenue growth or revenue-per-employee will mis-tier this against manufacturers, and a 'cheap on sales' verdict is an artifact of the metal price, not the business.",
+      "evidence": "https://www.screener.in/company/544774/ profit-loss and balance-sheet tables"
+    },
+    {
+      "id": "T6",
+      "name": "Profit without cash - never positive FCF",
+      "detail": "FY2026: net profit +INR 25 cr, cash from operations -INR 16 cr, free cash flow -INR 17 cr, CFO/OP -34%. FCF has been negative or zero in all four years shown. Every headline tile (P/E 7.16, ROE 67%, ROCE 71.5%, profit growth 130%) is computed from the accrual line and none of them surface this. A terminal that shows only the tiles tells the user the opposite of what the cash flow says.",
+      "evidence": "https://www.screener.in/company/544774/ cash-flow section"
+    },
+    {
+      "id": "T7",
+      "name": "Post-IPO share count vs pre-IPO balance sheet",
+      "detail": "The IPO closed 2026-06-03 and listed 2026-06-08 - AFTER the 2026-03-31 balance sheet date. Market cap uses ~1.865 cr shares; the filed equity capital of INR 15 cr implies 1.5 cr shares. Every per-share figure sourced from the FY26 filing (EPS, book value, net worth per share) is on the pre-issue base and is ~24% too high. Because the company reports half-yearly, no post-issue balance sheet exists until ~November 2026. There is currently NO correct book value in the world for this scrip - which is exactly why both screener.in and stockanalysis.com leave the field blank.",
+      "evidence": "https://ipowatch.in/smr-jewels-ipo/ ; https://www.screener.in/company/544774/ balance sheet ; https://stockanalysis.com/quote/bom/544774/"
+    },
+    {
+      "id": "T8",
+      "name": "'52-week' range on a 14-week-old stock",
+      "detail": "Listed 2026-06-08. BSE reports a 52-week high of 115.00 (2026-06-22) and low of 75.85 (2026-06-16) - both inside the first fortnight of trading, and both bracketed by an exchange clarification on price movement (2026-06-23/24). The scrip has 102 days of history. Rendering a 52-week band, a 52-week percentile, or 'near 52-week low' for this name implies a year of price discovery that does not exist.",
+      "evidence": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544774 ; BSE ann. 2026-06-08, 2026-06-23, 2026-06-24"
+    },
+    {
+      "id": "T9",
+      "name": "Bundled master is already stale on group letter",
+      "detail": "bse_instruments.json (generated 2026-06-09, the day after this scrip listed) carries group 'MT' per the battery manifest. BSE's live API returns Group 'M' with Grp_Index 'M / BSE SME IPO'. The bundled master captured this scrip during its listing week and its group classification has since changed. Any UI that renders the group letter from the bundled master shows a wrong value.",
+      "evidence": "manifest.json masters_consulted.bse ; https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid="
+    },
+    {
+      "id": "T10",
+      "name": "SME lot size 2,000 - no retail round lot",
+      "detail": "Minimum tradeable lot is 2,000 shares (INR 2,56,000 at the issue price, INR 1,90,000 at INR 95). Any position sizer, 'shares you can buy' calculator, or portfolio allocator that assumes a lot of 1 produces an unexecutable order. The intraday tape shows session volume peaking at 2,500 shares - roughly one lot.",
+      "evidence": "https://ipowatch.in/smr-jewels-ipo/ ; https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=544774&flag=0&fromdate=&todate=&seriesid="
+    },
+    {
+      "id": "T11",
+      "name": "Incorporation year: 2018 or 1988",
+      "detail": "screener.in says incorporated 2018; the company's own site brands 'Preserving Traditions since 1988' and stockanalysis.com (S&P Global) records Founded 1988. A 30-year discrepancy on a basic identity field, from sources of comparable authority. Both recorded, unreconciled.",
+      "evidence": "https://www.screener.in/company/544774/ ; https://smrjewels.in/ ; https://stockanalysis.com/quote/bom/544774/"
+    },
+    {
+      "id": "T12",
+      "name": "Legal-name spelling drift across three sources",
+      "detail": "BSE: 'SMR Jewels Ltd'. Company site: 'SMR Jewels Ltd.' Screener: 'SMR Jewels Limited'. Exact-string entity matching or headline attribution keyed on any one of these misses the other two.",
+      "evidence": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid= ; https://smrjewels.in/ ; https://www.screener.in/company/544774/"
+    },
+    {
+      "id": "T13",
+      "name": "A live /consolidated/ URL serving standalone data",
+      "detail": "https://www.screener.in/company/544774/consolidated/ returns 200 and serves the same standalone figures, and the page exposes no consolidated/standalone toggle for this scrip. The company files standalone only (board intimation 2026-06-22: 'Audited STANDALONE Financial Results'). A fetcher that infers the reporting basis from the URL path will label standalone data consolidated.",
+      "evidence": "https://www.screener.in/company/544774/consolidated/ ; BSE ann. 2026-06-22"
+    },
+    {
+      "id": "T14",
+      "name": "Shareholding percentages sum to 100.01",
+      "detail": "65.74 + 9.88 + 0.84 + 23.55 = 100.01. Rounding in the filed pattern. A strict validator rejects the row; a lenient one silently renormalises and changes the promoter figure. Also: this is the only shareholding pattern ever filed, so every QoQ shareholding delta for this scrip is undefined rather than zero.",
+      "evidence": "https://www.screener.in/company/544774/ shareholding section"
+    },
+    {
+      "id": "T15",
+      "name": "IPO component figures do not reconcile",
+      "detail": "ipowatch.in states issue size INR 63.74 cr, fresh issue INR 48 cr, offer for sale INR 13 cr. 48 + 13 = 61, not 63.74. Recorded as printed. Separately, the OFS shares (9,80,000) must NOT be added to the pre-issue count - only the fresh issue (37,51,000) increases shares outstanding; adding the full 49,80,000 overstates the count by ~5%.",
+      "evidence": "https://ipowatch.in/smr-jewels-ipo/"
+    }
+  ],
+
+  "world_gaps": [
+    {
+      "field": "book_value_per_share / pb",
+      "kind": "genuinely does not exist",
+      "detail": "No correct value exists anywhere today. The last filed balance sheet (2026-03-31) predates the June IPO, and the half-yearly cadence means the first post-issue balance sheet is H1 FY2027 (~November 2026). Both screener.in and stockanalysis.com leave the field blank rather than guess - correct behaviour that the app should match. Derived estimates are recorded in the book_value_per_share block and are explicitly NOT outside truth."
+    },
+    {
+      "field": "pledged_pct_of_promoter",
+      "kind": "could not reach",
+      "detail": "screener.in renders no pledge row for this scrip; all four BSE shareholding/pledge JSON endpoints tried 302 to api.bseindia.com/error_Bse.html. The value is very likely nil for a company three months past IPO, but no source confirmed it. Recorded as unreached, NOT as 0."
+    },
+    {
+      "field": "identity.incorporation_year",
+      "kind": "sources disagree",
+      "detail": "2018 (screener.in) vs 1988 (company site, S&P Global via stockanalysis.com). Both recorded with dates; not reconciled. See trap T11."
+    },
+    {
+      "field": "pe_ttm",
+      "kind": "sources disagree",
+      "detail": "7.16 (screener.in) vs 5.63 (stockanalysis.com) on identical price and EPS. Both recorded; not averaged. See trap T3."
+    },
+    {
+      "field": "shares_outstanding",
+      "kind": "sources disagree (narrow)",
+      "detail": "18.65 million (stockanalysis.com) vs 18.751 million (derived from filed equity capital + fresh issue) vs 18.63 million (market cap / price). ~0.7% spread. Recorded as a spread."
+    },
+    {
+      "field": "ipo.issue_price",
+      "kind": "could not reach directly",
+      "detail": "ipowatch.in records the final issue price as 'Not specified'. INR 128 is arithmetic on that page's own issue size and share count (63.74 cr / 49.80 lakh = 128.0; 48 cr / 37.51 lakh = 127.97), consistent with the top of the INR 125-128 band. Flagged as derived, not quoted."
+    },
+    {
+      "field": "listing_price / listing-day open",
+      "kind": "could not reach",
+      "detail": "No source reached states the 2026-06-08 listing-day price. BSE's StockReachGraph only returns the current session. Not guessed."
+    },
+    {
+      "field": "ipo subscription multiples",
+      "kind": "could not reach",
+      "detail": "ipowatch.in gave the QIB/NII/Retail allocation split (50/15/35) but no subscription numbers. WebSearch was unavailable for this sweep, so the usual chittorgarh/investorgain cross-check could not be run."
+    },
+    {
+      "field": "roe / roce current-basis",
+      "kind": "exists but is misleading",
+      "detail": "The published 67% ROE and 71.5% ROCE are struck on pre-IPO equity. They are correctly sourced for FY2026 but cannot survive the June equity raise. Recorded with the caveat rather than omitted."
+    },
+    {
+      "field": "corporate_actions_2026",
+      "kind": "genuinely empty",
+      "detail": "BSE CorporateAction returns three empty tables. This is a confirmed nil, not an unreached field - distinguishable from the pledge gap above, and the distinction is itself worth diffing."
+    }
+  ],
+
+  "collision_partner": {
+    "slot": "P20",
+    "symbol": "SMR",
+    "name": "NuScale Power Corp",
+    "exchange": "NYSE",
+    "note": "See manifest.json slot P20. Both halves of this collision ship inside the product's own masters."
+  }
+}

@@ -1,0 +1,7 @@
+CMD: in-process python (candidate sidecar venv), model_registry._PROVIDERS_BY_ID monkeypatched in memory only (never wrote to the read-only worktree's config/model_registry.json on disk)
+  "deepseek_base_url_before": "https://api.deepseek.com",
+  "xai_base_url_before": "https://api.x.ai/v1",
+  "deepseek_base_url_after_edit": "https://edited.deepseek.example/v9",
+  "xai_base_url_after_edit": "https://edited.x.example/v2"
+}
+VERDICT: holds

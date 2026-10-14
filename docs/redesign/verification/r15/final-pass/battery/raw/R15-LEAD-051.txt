@@ -1,0 +1,26 @@
+# R15-LEAD-051 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:33:36+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import datetime as dt, inspect
+from services import exchange_financials as ef
+print(inspect.signature(ef.FiledPeriod)); print(inspect.signature(ef.FiledPeriods))
+D=dt.date
+def P(s,e): return ef.FiledPeriod(start=s,end=e,revenue=1.0,net_profit=1.0,eps=1.0)
+def F(ps): return ef.FiledPeriods(venue='bse',basis='standalone',periods=sorted(ps,key=lambda p:p.end,reverse=True)).cadence()
+q=lambda y,m1,m2,d2: P(D(y,m1,1),D(y,m2,d2))
+print('2 quarters Jan-Mar26 + Apr-Jun26 ->',F([q(2026,1,3,31),q(2026,4,6,30)]))
+print('1 quarter ->',F([q(2026,4,6,30)]))
+print('former-SME half Jul-Dec25 + 2 quarters (12 months covered) ->',F([P(D(2025,7,1),D(2025,12,31)),q(2026,1,3,31),q(2026,4,6,30)]))
+print('pure half-yearly ->',F([P(D(2025,4,1),D(2025,9,30)),P(D(2025,10,1),D(2026,3,31))]))
+print('4 quarters ->',F([q(2025,7,9,30),q(2025,10,12,31),q(2026,1,3,31),q(2026,4,6,30)]))
+PY
+--- output ---
+(start: 'date', end: 'date', revenue: 'float | None', net_profit: 'float | None', eps: 'float | None', filed: 'date | None' = None, url: 'str | None' = None) -> None
+(venue: 'str', basis: 'str', periods: 'tuple[FiledPeriod, ...]') -> None
+2 quarters Jan-Mar26 + Apr-Jun26 -> quarterly-gap
+1 quarter -> quarterly-gap
+former-SME half Jul-Dec25 + 2 quarters (12 months covered) -> quarterly
+pure half-yearly -> half-yearly
+4 quarters -> quarterly
+
+EXIT=0 (0.6s)

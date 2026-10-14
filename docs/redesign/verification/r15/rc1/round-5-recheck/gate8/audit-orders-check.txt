@@ -1,0 +1,20 @@
+== /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-data-rc1-gate8
+(no audit_log.db)
+== /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-seed-data
+(no audit_log.db)
+data_cache.db: Error: in prepare, unable to open database file (14)
+== /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vysted-iso/data
+audit_log.db
+audit_log.db-shm
+audit_log.db-wal
+audit_log.db: audit_orders
+== post-run (after all agent calls) own data dir
+(no audit_log.db)
+== row count (sqlite3 file:...?immutable=1, 2026-09-27 19:02:06)
+audit_orders rows|0
+== file stats
+25k Sep 04:58 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vysted-iso/data/audit_log.db  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vysted-iso/data/audit_log.db
+33k Sep 18:53 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vysted-iso/data/audit_log.db-shm  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vysted-iso/data/audit_log.db-shm
+0 Sep 10:23 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vysted-iso/data/audit_log.db-wal  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vysted-iso/data/audit_log.db-wal
+== candidate non-test sidecar/src/src-tauri references to audit_log / audit_orders
+(none)

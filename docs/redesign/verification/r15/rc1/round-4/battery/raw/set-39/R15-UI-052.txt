@@ -1,0 +1,12 @@
+=== UI-052 live-ish source check ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/components/OnboardingFlow.tsx:232:          Local-first, bring-your-own-keys. Your keys, notes and portfolio stay on this machine —
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/components/OnboardingFlow.tsx:242:          agent (and its web research), or explore first.
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/components/OnboardingFlow.tsx:690:              : "You're exploring keyless — data, charts, news and screeners all work. Add a model anytime from Settings to turn on the agent and its web research."}
+
+VERDICT BASIS: SOURCE CONFIRMED (static copy, no runtime needed). Neither "no key, no account ...
+web research run right now" nor "fully private ... offline" strings remain anywhere in the three
+named files (grep above returns 0 matches for those phrases). The surviving copy instead says
+"Your keys, notes and portfolio stay on this machine" (scoped, true claim) and "add a model
+anytime from Settings to turn on the agent and its web research" (web research now gated behind
+having a model, not claimed to work keyless). Matches fix_shape ("Drop 'web research' from the
+keyless claims; reword privacy to what is true").

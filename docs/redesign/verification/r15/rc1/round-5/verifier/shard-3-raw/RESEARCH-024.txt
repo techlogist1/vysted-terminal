@@ -1,0 +1,42 @@
+# RESEARCH-024, in-process, worktree venv HEAD 633f8440
+## live keyless (DDG) web_search._dispatch -> deep._record_web
+backend KeylessSearchBackend keyless-fallback searxng_degraded
+ok True keyless:ddg None
+ row investor.nvidia.com None https://investor.nvidia.com/financial-info/financial-reports/
+ row investor.nvidia.com None https://investor.nvidia.com/financial-info/quarterly-results/default.aspx
+ row nasdaq.com None https://www.nasdaq.com/press-release/nvidia-announces-financial-results-fourth-quarter-and
+ row unite.ai None https://www.unite.ai/nvidia-posts-96-2b-quarter-as-data-center-revenue-hits-89b/
+ row nvidianews.nvidia.com None https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-fourth-quarter-a
+ row fortune.com None https://fortune.com/company-assets/1936/quartr/earnings-release-8-k-73c0d-2026-02-25-09-17
+ src investor.nvidia.com None None
+ src investor.nvidia.com None None
+ src nasdaq.com None None
+ src unite.ai None None
+ src nvidianews.nvidia.com None None
+ src fortune.com None None
+## fresh SearXNG-shaped payload (searxng._map_results -> normalize_results_to_citations -> _dispatch -> _record_web -> ResearchSource.to_dict)
+[('livemint.com', '2026-09-18T14:05:00'), ('economictimes.indiatimes.com', None)]
+[('livemint.com', '2026-09-18T14:05:00'), ('economictimes.indiatimes.com', None)]
+[{'domain': 'livemint.com', 'published_at': '2026-09-18T14:05:00'}, {'domain': 'economictimes.indiatimes.com', 'published_at': None}]
+## script
+import asyncio, sys, os
+sys.path.insert(0, os.getcwd())
+from services.search import searxng
+from services.agent_tools import web_search
+from services.research import deep
+payload = {"results": [
+  {"url": "https://www.livemint.com/market/stock-market-news/infosys-q2-results-2026.html", "title": "Infosys Q2 results beat estimates", "content": "Infosys reported net profit ...", "publishedDate": "2026-09-18T14:05:00"},
+  {"url": "https://economictimes.indiatimes.com/markets/stocks/news/infosys-buyback.cms", "title": "Infosys buyback record date", "content": "Infosys board ...", "publishedDate": None},
+]}
+class B:
+    async def search(self, q, options=None):
+        from services.search.base import SearchResponse, normalize_results_to_citations
+        rs = searxng._map_results(payload)
+        return SearchResponse(backend="searxng", query=q, results=rs, citations=normalize_results_to_citations(rs))
+async def main():
+    res = await web_search._dispatch(B(), "Infosys results", 5, "news", "IN")
+    print([ (c["domain"], c["published_at"]) for c in res["citations"]])
+    f = deep._Findings(); deep._record_web(f, res, query="Infosys results")
+    print([ (s.domain, s.published_at) for s in f.web_sources])
+    print([ {k: v for k, v in s.to_dict().items() if k in ("domain","published_at")} for s in f.web_sources])
+asyncio.run(main())

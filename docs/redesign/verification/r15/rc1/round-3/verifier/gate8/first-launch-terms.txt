@@ -1,0 +1,8 @@
+const TOS_BODY = `Vysted Terminal is a data and analysis tool. It does not provide investment advice and is not a registered broker-dealer or investment adviser.
+
+By continuing you acknowledge:
+
+- Vysted has no brokerage connection. It cannot place, route or simulate orders.
+- Market data may be delayed, incomplete or wrong. Check anything you rely on against the source.
+- AI-generated analysis can be wrong. You remain solely responsible for your own decisions.
+- Vysted Terminal is source-available under PolyForm Strict 1.0.0 (noncommercial use) or a commercial license — see LICENSING.md.`;

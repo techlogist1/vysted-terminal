@@ -1,0 +1,7 @@
+CMD: python3 /tmp/option_chain_direct2.py (in sidecar venv) — direct call to services.agent_tools.quant_tools._option_chain({'symbol':'AAPL','expiry':'nearest'})
+ok: False error: invalid argument: Invalid isoformat string: 'nearest'
+
+CMD: python3 /tmp/grader_probe.py (in sidecar venv) — scripts/agent_eval/grader.grade() against reconstructed event streams
+grade() result: ["option_chain errored: invalid argument: Invalid isoformat string: 'nearest'", 'empty answer']
+control (ok=true) grade() result: ['empty answer']
+control (errored then ok retry) grade() result: ['empty answer']

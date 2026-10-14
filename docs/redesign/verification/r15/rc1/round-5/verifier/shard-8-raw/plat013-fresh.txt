@@ -1,0 +1,5 @@
+633f844071d972b337f4c3526d86555c80df0568
+
+bridgeable plugins:vysted-example
+{"pick":"vysted-example","offAfter":false,"offPanels":0,"onAfter":true,"onPanels":0,"modPanels":0,"modCmds":1,"offCmds":0,"onCmds":1,"savedHasPluginKey":false} Test Files  1 passed (1)
+      Tests  1 passed (1)

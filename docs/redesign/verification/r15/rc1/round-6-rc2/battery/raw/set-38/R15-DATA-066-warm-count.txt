@@ -1,0 +1,5 @@
+# warm re-run, 20 NIFTY names, full count (ace7dd76 :52359)
+real 0.00
+user 0.00
+sys 0.00
+20 quotes; ['ASIANPAINT.NS', 'AXISBANK.NS', 'BHARTIARTL.NS', 'HDFCBANK.NS', 'HINDUNILVR.NS'] providers ['nse_direct'] freshness ['eod']

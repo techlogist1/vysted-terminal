@@ -1,0 +1,15 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand && grep -rn 'read_notes\|__notes__' --include=*.test.ts --include=*.test.tsx --include=test_*.py src sidecar/tests | cut -c1-200 | head -12
+exit=0
+src/modules/chat/ChatSidebar.test.tsx:632:  it("an agent send carries the user's notes as __notes__ (R15-AGENT-020)", async () => {
+src/modules/chat/ChatSidebar.test.tsx:642:    expect(payload.contextSnapshot.bySource["__notes__"]).toEqual({
+src/modules/chat/context-provider.test.ts:323:describe("captureNotes — the __notes__ entry (R15-AGENT-020)", () => {
+sidecar/tests/test_llm_gemini.py:371:    assert (second.name, second.input) == ("read_notes", {"scope": "RELIANCE"})
+sidecar/tests/test_b5_runtime_notes.py:23:            "__notes__": {
+sidecar/tests/test_b5_runtime_notes.py:33:    result = await _build_local_tools(_snapshot())["read_notes"]({"scope": "BDL"})
+sidecar/tests/test_b5_runtime_notes.py:36:    assert "User notes exist for: global, BDL (read them with read_notes)." in preamble
+sidecar/tests/test_b5_runtime_notes.py:43:    general = await tools["read_notes"]({"scope": "global"})
+sidecar/tests/test_b5_runtime_notes.py:45:    missing = await tools["read_notes"]({"scope": "hal"})
+sidecar/tests/test_runtime_phases.py:192:    async def read_notes(_args: dict[str, Any]) -> dict[str, Any]:
+sidecar/tests/test_runtime_phases.py:195:    run = _setup(model="deepseek-reasoner", local_tools={"read_notes": read_notes})
+sidecar/tests/test_runtime_phases.py:199:    notes = LLMToolUseEvent(tool_call_id="call_n", name="read_notes", input={})

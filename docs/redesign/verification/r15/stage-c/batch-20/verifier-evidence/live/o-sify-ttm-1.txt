@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  43.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_4c004c3ad3034a33b120b2d5c9442673", "name": "financial_statements", "input": {"statement": "income", "symbol": "SIFY.US", "period": "annual"}}
+[  50.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_4c004c3ad3034a33b120b2d5c9442673", "name": "financial_statements", "ok": true, "error": null}
+[  56.3s] done: {"kind": "done", "usage": {"input_tokens": 2887, "output_tokens": 95, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Since the tool call response indicates that there is no data available for SIFY's TTM revenue in USD, I will say:
+
+I'm unable to fetch SIFY's TTM revenue in USD from our tools. Our provider does not carry this value. 
+
+Please note that we do not have a specific figure for the TTM revenue in USD due to missing data. If you need more information or would like me to look into other metrics, feel free to ask!
+
+=== ok · 56.3s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 95, 'done': 1} · usage in=2887 out=95 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,406 @@
+{
+  "slot": "P3",
+  "symbol": "CHTR",
+  "diffed_at": "2026-09-23",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P3_CHTR.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P3_CHTR.json",
+  "subtle_tier_covered": true,
+  "note": "collected snapshot is 2026-09-19; pack outside truth is dated 2026-09-23 unless noted. No field was re-fetched fresh from :52152 for this diff — the 19-Sep snapshot is used throughout as the app's value of record.",
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Chatterbox Technologies Limited",
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": "Chatterbox Technologies Limited",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match",
+      "note": "app fundamentals.name field matches exactly; the /resolve endpoint's own candidate list uses the abbreviated 'Chatterbox Technologies Ltd' but that is a display-label choice, not a different value."
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": "none found",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match"
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE1B4801017",
+      "app_as_of": "2026-09-19T09:41:56Z",
+      "outside_value": "INE1B4801017",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "544546",
+      "app_as_of": "2026-09-19T15:11:56+0530",
+      "outside_value": "544546",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": "502: nse_direct: 'CHTR' is not a known NSE instrument",
+      "app_as_of": "2026-09-19T15:11:56+0530",
+      "outside_value": "absent (BSE SME only, not NSE listed)",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match",
+      "note": "app's own results-calendar call independently confirms CHTR is not an NSE instrument, consistent with outside truth -- see the separate raw finding about that same call being a hard 502 rather than an honest empty/'BSE-only' response."
+    },
+    {
+      "field": "identity.board",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "SME (BSE SME IPO platform)",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid=",
+      "status": "not collected",
+      "note": "no field in any collected call surfaces mainboard/SME board; the app's Fundamentals/resolve schemas have no such field (schema gap, not a returned blank) -- out of DIFF-stage scope, not filed as a DAT- finding."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Communication Services",
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": "BSE Sector=Consumer Discretionary; BSE IndustryNew=Media, Entertainment & Publication>Media; screener groups as Media, Entertainment & Publication>Media",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid=",
+      "status": "definitional difference",
+      "note": "app uses yfinance's GICS-style taxonomy; outside truth uses BSE's own (internally inconsistent) sector taxonomy. Different classification systems, not a data error."
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Advertising Agencies",
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": "Advertising & Media Agencies",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid=",
+      "status": "definitional difference",
+      "note": "same taxonomy-source difference as sector; conceptually the same industry."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "pack itself could not confirm a listing date from a reachable primary source (world_gap); app does not expose a listing_date field either."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 35.02,
+      "app_as_of": "2026-09-18T00:00:00Z",
+      "outside_value": 38.00,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544546&seriesid=",
+      "status": "as-of skew",
+      "note": "4 trading days apart; price genuinely moved 35.02 -> 38.00 (+8.5%) over that window per both sides' own sources -- not a value error. (The pack's speculation that the battery manifest's 35.0 reference might actually be the 52w-low rather than that day's close is REFUTED by this app quote call: 35.02 independently confirmed as the 18-Sep EOD close.)"
+    },
+    {
+      "field": "market_cap",
+      "app_value": 49.53,
+      "app_value_unit": "INR crore",
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 53.8,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "as-of skew",
+      "note": "fully explained by the same price move as price.last_close (49.53 cr = 35.02 price x shares; consistent)."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 4.726046,
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 5.84,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "mismatch",
+      "note": "NOT fully explained by the price-date skew (35.02/38.00 alone would only account for pe~5.38, still far from 5.84). The remainder is the eps_ttm mismatch below -- see the combined DAT finding for eps_ttm/pe_ttm."
+    },
+    {
+      "field": "pb",
+      "app_value": 0.7080469,
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 0.768,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "as-of skew",
+      "note": "fully explained by price move: 35.02/49.46=0.708 (app) vs 38.00/49.5=0.768 (pack); book_value itself matches (see book_value_per_share row)."
+    },
+    {
+      "field": "roe",
+      "app_value": 19.035,
+      "app_value_unit": "percent",
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 19.2,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match",
+      "note": "within rounding."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 26.0,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "not collected",
+      "note": "ROCE is not a modelled field anywhere in the app (grep of sidecar/models/*.py and types/data.ts finds no roce/return_on_capital field) -- a feature gap, not a returned-blank value; belongs to the intent/promise census track, not filed here."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 0.00,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "app blank",
+      "note": "field_meta marks debt_to_equity 'unavailable — provider did not publish this field'; the true value (debt-free, zero borrowings every FY Mar2022-Mar2026) is a knowable, sourced fact. See DAT finding."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": 84.22,
+      "app_value_unit": "INR crore",
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 84.22,
+      "outside_as_of": "FY ended 2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match"
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": 9.098,
+      "app_value_unit": "INR crore",
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 9.20,
+      "outside_as_of": "FY ended 2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match",
+      "note": "1.1% apart, within FY-vs-TTM cutoff/rounding."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": 68.0,
+      "app_value_unit": "percent, yfinance growth_basis='mrq_yoy'",
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 42.4,
+      "outside_as_of": "FY ended 2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "mismatch",
+      "note": "68% vs 42.4% -- nearly 1.6x apart. Possibly a basis difference (yfinance's 'most recent quarter' concept does not cleanly exist for a HALF-YEARLY BSE SME filer), but this was not confirmed as a legitimate alternate-but-correct number and the app does not appear to surface the 'mrq_yoy' basis label to the end user (a headline growth % with no caveat). See DAT finding; flagged for the refute stage to adjudicate basis vs bug."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 7.41,
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 6.50,
+      "outside_as_of": "FY ended 2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "mismatch",
+      "note": "3 independent outside figures cluster at 6.50-6.51 (screener FY EPS 6.50, BSE header EPS 6.51, and the battery manifest's own curated reference implicitly uses ~6.50 -> its reference pe=5.38 at price 35.0). App's yfinance trailingEps=7.41 is ~14% higher and is even internally inconsistent with the SAME response's own net_income_ttm/shares_outstanding = 90,980,000/14,143,800 = 6.43. See combined DAT finding with pe_ttm."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 49.46,
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 49.5,
+      "outside_as_of": "FY ended 2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match"
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 10.00,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid=",
+      "status": "not collected",
+      "note": "no face_value field in any collected app call/schema."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 0,
+      "outside_as_of": "FY ended 2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "app blank",
+      "note": "dividend_per_share field_meta = 'unavailable — provider did not publish this field'; true value (never declared a dividend since incorporation) is a determinable, sourced fact. See DAT finding (combined with paid_trailing_12m + yield)."
+    },
+    {
+      "field": "dividend.record_date",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "no dividend ever declared, so no record date exists on either side."
+    },
+    {
+      "field": "dividend.ex_date",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth"
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 0,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "app blank",
+      "note": "dividend_per_share_ttm field_meta = 'unavailable'. Same DAT finding as dividend.last_declared_per_share."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 0.00,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "app blank",
+      "note": "dividend_yield field_meta = 'unavailable'. Same DAT finding as the other two dividend legs."
+    },
+    {
+      "field": "week52.high",
+      "app_value": 156.75,
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 157,
+      "outside_as_of": "2026-09-23 (screener snapshot, no per-leg date)",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match"
+    },
+    {
+      "field": "week52.low",
+      "app_value": 35.0,
+      "app_as_of": "2026-09-19T09:41:44Z",
+      "outside_value": 35.0,
+      "outside_as_of": "2026-09-23 (screener snapshot, no per-leg date)",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.promoter_pct",
+      "app_value": 60.39,
+      "app_as_of": "2026-06-30",
+      "outside_value": 60.39,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match",
+      "note": "same as-of quarter both sides; app's /disclosures/shareholding is itself BSE-sourced (xbrl_url cited) and agrees exactly with screener."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": 2.43,
+      "app_as_of": "2026-06-30",
+      "outside_value": 2.43,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": 6.66,
+      "app_as_of": "2026-06-30",
+      "outside_value": 6.66,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": 39.61,
+      "app_value_note": "app 'public_percent' basis = incl. institutions; app ALSO returns public_non_institutional_percent=30.52, which is the screener-equivalent basis",
+      "app_as_of": "2026-06-30",
+      "outside_value": 30.51,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "definitional difference",
+      "note": "app's public_non_institutional_percent=30.52 reconciles with the pack's 30.51 to within 0.01pp -- the apparent 39.61-vs-30.51 gap is purely the incl./excl.-institutions basis choice, not a data error; app already carries the reconciling field."
+    },
+    {
+      "field": "shareholding.no_of_shareholders",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 628,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "not collected",
+      "note": "/disclosures/shareholding response has no shareholder-count field."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "neither side surfaces a pledge figure for this SME name (pack explicitly logs this as unconfirmed, not a confirmed 0%; app's shareholding response also has no pledge field)."
+    },
+    {
+      "field": "corporate_actions_2026",
+      "app_value": "4 announcements incl. the book-closure/AGM action",
+      "app_as_of": "2026-09-19T15:11:56+0530",
+      "outside_value": "1 corporate action (book closure, 18-24 Sep 2026, 10th AGM)",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.bseindia.com/stock-share-price/chatterbox-technologies-ltd/chtr/544546/",
+      "status": "match",
+      "note": "app's announcements feed is a superset of the pack's manually-curated single action; no contradiction."
+    },
+    {
+      "field": "latest_results",
+      "app_value": "502: nse_direct: 'CHTR' is not a known NSE instrument",
+      "app_as_of": "2026-09-19T15:11:56+0530",
+      "outside_value": "H2 FY2025-26 half-year ended 2026-03-31 (Sales 48.24 Cr, NP 4.50 Cr, EPS 3.18, standalone), filing_date inferred 2026-08-25",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "app blank",
+      "note": "the app has zero results-calendar coverage for this BSE-SME stock -- see DAT finding (results endpoint is NSE-only by design, per sidecar/routers/disclosures.py:75-89, and 502s instead of degrading gracefully for a BSE-only symbol)."
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "matches pack's 3 (+1 older) exactly by date/headline",
+      "app_as_of": "2026-09-19T15:11:56+0530",
+      "outside_value": "3 announcements, 2026-09-02 to 2026-09-04",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.bseindia.com/stock-share-price/chatterbox-technologies-ltd/chtr/544546/",
+      "status": "match"
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "screener serves both standalone (used here) and consolidated pages; minor differences (PE 5.84 vs 5.91), book value identical",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "not collected",
+      "note": "app's fundamentals response does not distinguish consolidated vs standalone (single figure only)."
+    },
+    {
+      "field": "financial_statements (income/balance/cashflow)",
+      "app_value": "Charter Communications, Inc. (US, NASDAQ:CHTR) financials -- revenue ~$51-55 BILLION, EPS ~$36, shares outstanding ~126-152 million, symbol echoed back as bare 'CHTR' with no exchange suffix",
+      "app_as_of": "2026-09-19T15:11:56+0530",
+      "outside_value": "Chatterbox Technologies Ltd (India, BSE SME 544546) -- revenue Rs 84.22 crore, EPS Rs 6.50, ~1.41 crore shares",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/544546/",
+      "status": "mismatch",
+      "note": "CRITICAL wrong-company data bug -- see the DAT finding. The /fundamentals/CHTR/income, /balance, /cashflow endpoints silently serve the WRONG COMPANY's entire financial statements. This is exactly the ticker-collision hostile trait this battery slot was built to test (BSE CHTR = Chatterbox Technologies vs US CHTR = Charter Communications Inc.), and it is a real, reproducible bug, not merely a documentation trap."
+    }
+  ]
+}

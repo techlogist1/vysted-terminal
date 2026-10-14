@@ -1,0 +1,703 @@
+{"_meta": {"t0": 1790130690.8174431, "status": 200, "request": {"prompt": "Is Cochin Shipyard a business you would own for ten years at today's price?", "context_snapshot": {"focused_source": "chart-1", "by_source": {"__terminal__": {"focusedPanel": "chart-1", "capturedAt": 0, "charts": [{"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}], "focusedChart": {"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}, "watchlist": {"symbols": ["KPITTECH", "BDL", "CAMS"], "selected": "KPITTECH"}, "portfolio": {"positionCount": 1, "totalValue": null, "activePortfolioName": "Main", "holdings": [{"id": "h1", "symbol": "BDL", "quantity": 10, "costBasis": 1450, "assetClass": "equity", "marketValue": null, "pnl": null}]}, "openPanels": ["chart", "watchlist", "brief"], "brief": {"phase": "empty"}, "viewport": {"width": 1920, "height": 1080}}}, "captured_at": 1790130690817}, "provider": "ollama", "model": "llama3.1:8b", "mode": "agent", "autonomy": "ask", "options": {"history": "<0 turns>", "deepResearchBackend": "auto", "research_depth": "normal"}}}}
+{"kind": "delta", "text": "To", "_t": 94.86}
+{"kind": "delta", "text": " answer", "_t": 94.92}
+{"kind": "delta", "text": " this", "_t": 94.99}
+{"kind": "delta", "text": " question", "_t": 95.05}
+{"kind": "delta", "text": ",", "_t": 95.12}
+{"kind": "delta", "text": " I", "_t": 95.18}
+{"kind": "delta", "text": " will", "_t": 95.25}
+{"kind": "delta", "text": " use", "_t": 95.31}
+{"kind": "delta", "text": " the", "_t": 95.38}
+{"kind": "delta", "text": " l", "_t": 95.44}
+{"kind": "delta", "text": "att", "_t": 95.51}
+{"kind": "delta", "text": "ic", "_t": 95.58}
+{"kind": "delta", "text": "ework", "_t": 95.64}
+{"kind": "delta", "text": " of", "_t": 95.71}
+{"kind": "delta", "text": " mental", "_t": 95.78}
+{"kind": "delta", "text": " models", "_t": 95.84}
+{"kind": "delta", "text": " to", "_t": 95.91}
+{"kind": "delta", "text": " evaluate", "_t": 95.97}
+{"kind": "delta", "text": " Co", "_t": 96.04}
+{"kind": "delta", "text": "chin", "_t": 96.11}
+{"kind": "delta", "text": " Ship", "_t": 96.17}
+{"kind": "delta", "text": "yard", "_t": 96.24}
+{"kind": "delta", "text": " as", "_t": 96.3}
+{"kind": "delta", "text": " an", "_t": 96.37}
+{"kind": "delta", "text": " investment", "_t": 96.43}
+{"kind": "delta", "text": " opportunity", "_t": 96.5}
+{"kind": "delta", "text": ".\n\n", "_t": 96.57}
+{"kind": "delta", "text": "First", "_t": 96.63}
+{"kind": "delta", "text": ",", "_t": 96.7}
+{"kind": "delta", "text": " I", "_t": 96.77}
+{"kind": "delta", "text": "'ll", "_t": 96.83}
+{"kind": "delta", "text": " apply", "_t": 96.9}
+{"kind": "delta", "text": " the", "_t": 96.97}
+{"kind": "delta", "text": " inversion", "_t": 97.03}
+{"kind": "delta", "text": " model", "_t": 97.1}
+{"kind": "delta", "text": ".", "_t": 97.17}
+{"kind": "delta", "text": " What", "_t": 97.23}
+{"kind": "delta", "text": " would", "_t": 97.3}
+{"kind": "delta", "text": " make", "_t": 97.36}
+{"kind": "delta", "text": " Co", "_t": 97.43}
+{"kind": "delta", "text": "chin", "_t": 97.5}
+{"kind": "delta", "text": " Ship", "_t": 97.56}
+{"kind": "delta", "text": "yard", "_t": 97.63}
+{"kind": "delta", "text": " fail", "_t": 97.7}
+{"kind": "delta", "text": " in", "_t": 97.76}
+{"kind": "delta", "text": " the", "_t": 97.83}
+{"kind": "delta", "text": " next", "_t": 97.89}
+{"kind": "delta", "text": " ", "_t": 97.96}
+{"kind": "delta", "text": "10", "_t": 98.02}
+{"kind": "delta", "text": " years", "_t": 98.09}
+{"kind": "delta", "text": "?", "_t": 98.16}
+{"kind": "delta", "text": " Some", "_t": 98.22}
+{"kind": "delta", "text": " possible", "_t": 98.29}
+{"kind": "delta", "text": " failure", "_t": 98.35}
+{"kind": "delta", "text": " modes", "_t": 98.42}
+{"kind": "delta", "text": " could", "_t": 98.49}
+{"kind": "delta", "text": " be", "_t": 98.56}
+{"kind": "delta", "text": ":\n\n", "_t": 98.62}
+{"kind": "delta", "text": "*", "_t": 98.69}
+{"kind": "delta", "text": " The", "_t": 98.76}
+{"kind": "delta", "text": " Indian", "_t": 98.82}
+{"kind": "delta", "text": " ship", "_t": 98.89}
+{"kind": "delta", "text": "building", "_t": 98.95}
+{"kind": "delta", "text": " industry", "_t": 99.02}
+{"kind": "delta", "text": " experiencing", "_t": 99.09}
+{"kind": "delta", "text": " a", "_t": 99.15}
+{"kind": "delta", "text": " decline", "_t": 99.22}
+{"kind": "delta", "text": " due", "_t": 99.29}
+{"kind": "delta", "text": " to", "_t": 99.35}
+{"kind": "delta", "text": " global", "_t": 99.42}
+{"kind": "delta", "text": " market", "_t": 99.48}
+{"kind": "delta", "text": " trends", "_t": 99.55}
+{"kind": "delta", "text": " or", "_t": 99.62}
+{"kind": "delta", "text": " government", "_t": 99.68}
+{"kind": "delta", "text": " policies", "_t": 99.75}
+{"kind": "delta", "text": ".\n", "_t": 99.82}
+{"kind": "delta", "text": "*", "_t": 99.92}
+{"kind": "delta", "text": " Co", "_t": 99.99}
+{"kind": "delta", "text": "chin", "_t": 100.06}
+{"kind": "delta", "text": " Ship", "_t": 100.12}
+{"kind": "delta", "text": "yard", "_t": 100.19}
+{"kind": "delta", "text": " facing", "_t": 100.25}
+{"kind": "delta", "text": " significant", "_t": 100.32}
+{"kind": "delta", "text": " operational", "_t": 100.38}
+{"kind": "delta", "text": " challenges", "_t": 100.45}
+{"kind": "delta", "text": " or", "_t": 100.52}
+{"kind": "delta", "text": " quality", "_t": 100.58}
+{"kind": "delta", "text": " control", "_t": 100.65}
+{"kind": "delta", "text": " issues", "_t": 100.72}
+{"kind": "delta", "text": " that", "_t": 100.78}
+{"kind": "delta", "text": " lead", "_t": 100.85}
+{"kind": "delta", "text": " to", "_t": 100.91}
+{"kind": "delta", "text": " a", "_t": 100.98}
+{"kind": "delta", "text": " loss", "_t": 101.05}
+{"kind": "delta", "text": " of", "_t": 101.11}
+{"kind": "delta", "text": " business", "_t": 101.18}
+{"kind": "delta", "text": " and", "_t": 101.24}
+{"kind": "delta", "text": " revenue", "_t": 101.31}
+{"kind": "delta", "text": ".\n", "_t": 101.38}
+{"kind": "delta", "text": "*", "_t": 101.44}
+{"kind": "delta", "text": " The", "_t": 101.51}
+{"kind": "delta", "text": " company", "_t": 101.57}
+{"kind": "delta", "text": "'s", "_t": 101.64}
+{"kind": "delta", "text": " financial", "_t": 101.71}
+{"kind": "delta", "text": "s", "_t": 101.77}
+{"kind": "delta", "text": " deterior", "_t": 101.84}
+{"kind": "delta", "text": "ating", "_t": 101.91}
+{"kind": "delta", "text": ",", "_t": 101.97}
+{"kind": "delta", "text": " leading", "_t": 102.04}
+{"kind": "delta", "text": " to", "_t": 102.1}
+{"kind": "delta", "text": " debt", "_t": 102.17}
+{"kind": "delta", "text": " repayment", "_t": 102.24}
+{"kind": "delta", "text": " difficulties", "_t": 102.3}
+{"kind": "delta", "text": " or", "_t": 102.37}
+{"kind": "delta", "text": " even", "_t": 102.44}
+{"kind": "delta", "text": " bankruptcy", "_t": 102.5}
+{"kind": "delta", "text": ".\n\n", "_t": 102.57}
+{"kind": "delta", "text": "Next", "_t": 102.63}
+{"kind": "delta", "text": ",", "_t": 102.71}
+{"kind": "delta", "text": " I", "_t": 102.77}
+{"kind": "delta", "text": "'ll", "_t": 102.84}
+{"kind": "delta", "text": " assess", "_t": 102.9}
+{"kind": "delta", "text": " the", "_t": 102.97}
+{"kind": "delta", "text": " L", "_t": 103.04}
+{"kind": "delta", "text": "oll", "_t": 103.1}
+{"kind": "delta", "text": "ap", "_t": 103.17}
+{"kind": "delta", "text": "al", "_t": 103.24}
+{"kind": "delta", "text": "oo", "_t": 103.3}
+{"kind": "delta", "text": "za", "_t": 103.37}
+{"kind": "delta", "text": " effect", "_t": 103.43}
+{"kind": "delta", "text": ".", "_t": 103.5}
+{"kind": "delta", "text": " What", "_t": 103.57}
+{"kind": "delta", "text": " are", "_t": 103.63}
+{"kind": "delta", "text": " the", "_t": 103.7}
+{"kind": "delta", "text": " multiple", "_t": 103.77}
+{"kind": "delta", "text": " psychological", "_t": 103.83}
+{"kind": "delta", "text": " biases", "_t": 103.9}
+{"kind": "delta", "text": " or", "_t": 103.97}
+{"kind": "delta", "text": " economic", "_t": 104.03}
+{"kind": "delta", "text": " forces", "_t": 104.1}
+{"kind": "delta", "text": " that", "_t": 104.17}
+{"kind": "delta", "text": " could", "_t": 104.23}
+{"kind": "delta", "text": " be", "_t": 104.3}
+{"kind": "delta", "text": " comp", "_t": 104.36}
+{"kind": "delta", "text": "ounding", "_t": 104.43}
+{"kind": "delta", "text": " in", "_t": 104.5}
+{"kind": "delta", "text": " the", "_t": 104.56}
+{"kind": "delta", "text": " same", "_t": 104.63}
+{"kind": "delta", "text": " direction", "_t": 104.7}
+{"kind": "delta", "text": " for", "_t": 104.77}
+{"kind": "delta", "text": " Co", "_t": 104.85}
+{"kind": "delta", "text": "chin", "_t": 104.94}
+{"kind": "delta", "text": " Ship", "_t": 105.01}
+{"kind": "delta", "text": "yard", "_t": 105.07}
+{"kind": "delta", "text": "?", "_t": 105.14}
+{"kind": "delta", "text": " Some", "_t": 105.2}
+{"kind": "delta", "text": " possible", "_t": 105.27}
+{"kind": "delta", "text": " factors", "_t": 105.34}
+{"kind": "delta", "text": " could", "_t": 105.4}
+{"kind": "delta", "text": " include", "_t": 105.47}
+{"kind": "delta", "text": ":\n\n", "_t": 105.53}
+{"kind": "delta", "text": "*", "_t": 105.6}
+{"kind": "delta", "text": " Over", "_t": 105.67}
+{"kind": "delta", "text": "confidence", "_t": 105.73}
+{"kind": "delta", "text": " bias", "_t": 105.8}
+{"kind": "delta", "text": " among", "_t": 105.86}
+{"kind": "delta", "text": " investors", "_t": 105.93}
+{"kind": "delta", "text": " and", "_t": 106.0}
+{"kind": "delta", "text": " analysts", "_t": 106.06}
+{"kind": "delta", "text": ",", "_t": 106.13}
+{"kind": "delta", "text": " leading", "_t": 106.2}
+{"kind": "delta", "text": " to", "_t": 106.26}
+{"kind": "delta", "text": " over", "_t": 106.33}
+{"kind": "delta", "text": "valuation", "_t": 106.4}
+{"kind": "delta", "text": " of", "_t": 106.46}
+{"kind": "delta", "text": " the", "_t": 106.53}
+{"kind": "delta", "text": " stock", "_t": 106.59}
+{"kind": "delta", "text": ".\n", "_t": 106.66}
+{"kind": "delta", "text": "*", "_t": 106.73}
+{"kind": "delta", "text": " Her", "_t": 106.79}
+{"kind": "delta", "text": "d", "_t": 106.86}
+{"kind": "delta", "text": " behavior", "_t": 106.93}
+{"kind": "delta", "text": ",", "_t": 106.99}
+{"kind": "delta", "text": " with", "_t": 107.06}
+{"kind": "delta", "text": " many", "_t": 107.12}
+{"kind": "delta", "text": " investors", "_t": 107.19}
+{"kind": "delta", "text": " buying", "_t": 107.26}
+{"kind": "delta", "text": " into", "_t": 107.32}
+{"kind": "delta", "text": " the", "_t": 107.39}
+{"kind": "delta", "text": " stock", "_t": 107.45}
+{"kind": "delta", "text": " due", "_t": 107.52}
+{"kind": "delta", "text": " to", "_t": 107.59}
+{"kind": "delta", "text": " its", "_t": 107.65}
+{"kind": "delta", "text": " popularity", "_t": 107.72}
+{"kind": "delta", "text": " or", "_t": 107.79}
+{"kind": "delta", "text": " momentum", "_t": 107.85}
+{"kind": "delta", "text": ".\n", "_t": 107.92}
+{"kind": "delta", "text": "*", "_t": 107.98}
+{"kind": "delta", "text": " The", "_t": 108.05}
+{"kind": "delta", "text": " Indian", "_t": 108.12}
+{"kind": "delta", "text": " government", "_t": 108.18}
+{"kind": "delta", "text": "'s", "_t": 108.25}
+{"kind": "delta", "text": " policies", "_t": 108.32}
+{"kind": "delta", "text": " supporting", "_t": 108.38}
+{"kind": "delta", "text": " the", "_t": 108.45}
+{"kind": "delta", "text": " ship", "_t": 108.52}
+{"kind": "delta", "text": "building", "_t": 108.58}
+{"kind": "delta", "text": " industry", "_t": 108.65}
+{"kind": "delta", "text": ",", "_t": 108.71}
+{"kind": "delta", "text": " potentially", "_t": 108.78}
+{"kind": "delta", "text": " driving", "_t": 108.85}
+{"kind": "delta", "text": " growth", "_t": 108.92}
+{"kind": "delta", "text": ".\n\n", "_t": 108.99}
+{"kind": "delta", "text": "Now", "_t": 109.05}
+{"kind": "delta", "text": ",", "_t": 109.12}
+{"kind": "delta", "text": " I", "_t": 109.18}
+{"kind": "delta", "text": "'ll", "_t": 109.25}
+{"kind": "delta", "text": " consider", "_t": 109.32}
+{"kind": "delta", "text": " the", "_t": 109.38}
+{"kind": "delta", "text": " psychology", "_t": 109.45}
+{"kind": "delta", "text": " of", "_t": 109.52}
+{"kind": "delta", "text": " human", "_t": 109.58}
+{"kind": "delta", "text": " mis", "_t": 109.65}
+{"kind": "delta", "text": "jud", "_t": 109.72}
+{"kind": "delta", "text": "gment", "_t": 109.78}
+{"kind": "delta", "text": ".", "_t": 109.89}
+{"kind": "delta", "text": " Are", "_t": 109.94}
+{"kind": "delta", "text": " there", "_t": 110.01}
+{"kind": "delta", "text": " any", "_t": 110.08}
+{"kind": "delta", "text": " biases", "_t": 110.14}
+{"kind": "delta", "text": " that", "_t": 110.21}
+{"kind": "delta", "text": " could", "_t": 110.28}
+{"kind": "delta", "text": " be", "_t": 110.34}
+{"kind": "delta", "text": " affecting", "_t": 110.41}
+{"kind": "delta", "text": " the", "_t": 110.48}
+{"kind": "delta", "text": " management", "_t": 110.54}
+{"kind": "delta", "text": " or", "_t": 110.61}
+{"kind": "delta", "text": " analyst", "_t": 110.68}
+{"kind": "delta", "text": " consensus", "_t": 110.74}
+{"kind": "delta", "text": " on", "_t": 110.81}
+{"kind": "delta", "text": " Co", "_t": 110.88}
+{"kind": "delta", "text": "chin", "_t": 110.94}
+{"kind": "delta", "text": " Ship", "_t": 111.01}
+{"kind": "delta", "text": "yard", "_t": 111.08}
+{"kind": "delta", "text": "?", "_t": 111.14}
+{"kind": "delta", "text": " Some", "_t": 111.21}
+{"kind": "delta", "text": " possible", "_t": 111.27}
+{"kind": "delta", "text": " biases", "_t": 111.34}
+{"kind": "delta", "text": " include", "_t": 111.41}
+{"kind": "delta", "text": ":\n\n", "_t": 111.47}
+{"kind": "delta", "text": "*", "_t": 111.54}
+{"kind": "delta", "text": " Confirmation", "_t": 111.61}
+{"kind": "delta", "text": " bias", "_t": 111.67}
+{"kind": "delta", "text": " among", "_t": 111.74}
+{"kind": "delta", "text": " analysts", "_t": 111.81}
+{"kind": "delta", "text": " and", "_t": 111.87}
+{"kind": "delta", "text": " investors", "_t": 111.94}
+{"kind": "delta", "text": ",", "_t": 112.01}
+{"kind": "delta", "text": " who", "_t": 112.07}
+{"kind": "delta", "text": " may", "_t": 112.14}
+{"kind": "delta", "text": " focus", "_t": 112.21}
+{"kind": "delta", "text": " only", "_t": 112.27}
+{"kind": "delta", "text": " on", "_t": 112.34}
+{"kind": "delta", "text": " positive", "_t": 112.4}
+{"kind": "delta", "text": " news", "_t": 112.47}
+{"kind": "delta", "text": " and", "_t": 112.54}
+{"kind": "delta", "text": " ignore", "_t": 112.6}
+{"kind": "delta", "text": " negative", "_t": 112.67}
+{"kind": "delta", "text": " factors", "_t": 112.74}
+{"kind": "delta", "text": ".\n", "_t": 112.8}
+{"kind": "delta", "text": "*", "_t": 112.87}
+{"kind": "delta", "text": " Anch", "_t": 112.94}
+{"kind": "delta", "text": "oring", "_t": 113.01}
+{"kind": "delta", "text": " bias", "_t": 113.07}
+{"kind": "delta", "text": ",", "_t": 113.14}
+{"kind": "delta", "text": " where", "_t": 113.21}
+{"kind": "delta", "text": " investors", "_t": 113.27}
+{"kind": "delta", "text": " and", "_t": 113.34}
+{"kind": "delta", "text": " analysts", "_t": 113.41}
+{"kind": "delta", "text": " rely", "_t": 113.47}
+{"kind": "delta", "text": " too", "_t": 113.54}
+{"kind": "delta", "text": " heavily", "_t": 113.61}
+{"kind": "delta", "text": " on", "_t": 113.67}
+{"kind": "delta", "text": " initial", "_t": 113.74}
+{"kind": "delta", "text": " impressions", "_t": 113.81}
+{"kind": "delta", "text": " or", "_t": 113.87}
+{"kind": "delta", "text": " pre", "_t": 113.94}
+{"kind": "delta", "text": "con", "_t": 114.01}
+{"kind": "delta", "text": "ceived", "_t": 114.07}
+{"kind": "delta", "text": " notions", "_t": 114.14}
+{"kind": "delta", "text": ".\n\n", "_t": 114.21}
+{"kind": "delta", "text": "Moving", "_t": 114.27}
+{"kind": "delta", "text": " on", "_t": 114.34}
+{"kind": "delta", "text": " to", "_t": 114.41}
+{"kind": "delta", "text": " micro", "_t": 114.47}
+{"kind": "delta", "text": "e", "_t": 114.54}
+{"kind": "delta", "text": "conomics", "_t": 114.61}
+{"kind": "delta", "text": " and", "_t": 114.68}
+{"kind": "delta", "text": " competitive", "_t": 114.74}
+{"kind": "delta", "text": " dynamics", "_t": 114.81}
+{"kind": "delta", "text": ".", "_t": 114.9}
+{"kind": "delta", "text": " How", "_t": 114.97}
+{"kind": "delta", "text": " does", "_t": 115.03}
+{"kind": "delta", "text": " Co", "_t": 115.1}
+{"kind": "delta", "text": "chin", "_t": 115.17}
+{"kind": "delta", "text": " Ship", "_t": 115.23}
+{"kind": "delta", "text": "yard", "_t": 115.3}
+{"kind": "delta", "text": " compete", "_t": 115.37}
+{"kind": "delta", "text": " with", "_t": 115.43}
+{"kind": "delta", "text": " other", "_t": 115.5}
+{"kind": "delta", "text": " ship", "_t": 115.57}
+{"kind": "delta", "text": "building", "_t": 115.64}
+{"kind": "delta", "text": " companies", "_t": 115.7}
+{"kind": "delta", "text": " in", "_t": 115.77}
+{"kind": "delta", "text": " the", "_t": 115.84}
+{"kind": "delta", "text": " Indian", "_t": 115.9}
+{"kind": "delta", "text": " market", "_t": 115.97}
+{"kind": "delta", "text": "?", "_t": 116.03}
+{"kind": "delta", "text": " Some", "_t": 116.1}
+{"kind": "delta", "text": " possible", "_t": 116.17}
+{"kind": "delta", "text": " competitive", "_t": 116.23}
+{"kind": "delta", "text": " dynamics", "_t": 116.3}
+{"kind": "delta", "text": " include", "_t": 116.37}
+{"kind": "delta", "text": ":\n\n", "_t": 116.43}
+{"kind": "delta", "text": "*", "_t": 116.5}
+{"kind": "delta", "text": " Porter", "_t": 116.56}
+{"kind": "delta", "text": "'s", "_t": 116.63}
+{"kind": "delta", "text": " five", "_t": 116.7}
+{"kind": "delta", "text": " forces", "_t": 116.77}
+{"kind": "delta", "text": " analysis", "_t": 116.84}
+{"kind": "delta", "text": " revealing", "_t": 116.9}
+{"kind": "delta", "text": " high", "_t": 116.97}
+{"kind": "delta", "text": " barriers", "_t": 117.04}
+{"kind": "delta", "text": " to", "_t": 117.1}
+{"kind": "delta", "text": " entry", "_t": 117.17}
+{"kind": "delta", "text": " for", "_t": 117.24}
+{"kind": "delta", "text": " new", "_t": 117.31}
+{"kind": "delta", "text": " competitors", "_t": 117.37}
+{"kind": "delta", "text": ".\n", "_t": 117.44}
+{"kind": "delta", "text": "*", "_t": 117.51}
+{"kind": "delta", "text": " The", "_t": 117.57}
+{"kind": "delta", "text": " company", "_t": 117.64}
+{"kind": "delta", "text": " benefiting", "_t": 117.71}
+{"kind": "delta", "text": " from", "_t": 117.77}
+{"kind": "delta", "text": " economies", "_t": 117.84}
+{"kind": "delta", "text": " of", "_t": 117.91}
+{"kind": "delta", "text": " scale", "_t": 117.98}
+{"kind": "delta", "text": " due", "_t": 118.04}
+{"kind": "delta", "text": " to", "_t": 118.11}
+{"kind": "delta", "text": " its", "_t": 118.18}
+{"kind": "delta", "text": " large", "_t": 118.24}
+{"kind": "delta", "text": " order", "_t": 118.31}
+{"kind": "delta", "text": " book", "_t": 118.38}
+{"kind": "delta", "text": " or", "_t": 118.47}
+{"kind": "delta", "text": " existing", "_t": 118.53}
+{"kind": "delta", "text": " infrastructure", "_t": 118.6}
+{"kind": "delta", "text": ".\n\n", "_t": 118.67}
+{"kind": "delta", "text": "Next", "_t": 118.74}
+{"kind": "delta", "text": ",", "_t": 118.81}
+{"kind": "delta", "text": " I", "_t": 118.87}
+{"kind": "delta", "text": "'ll", "_t": 118.94}
+{"kind": "delta", "text": " examine", "_t": 119.01}
+{"kind": "delta", "text": " accounting", "_t": 119.07}
+{"kind": "delta", "text": " as", "_t": 119.14}
+{"kind": "delta", "text": " the", "_t": 119.21}
+{"kind": "delta", "text": " language", "_t": 119.28}
+{"kind": "delta", "text": " of", "_t": 119.34}
+{"kind": "delta", "text": " business", "_t": 119.41}
+{"kind": "delta", "text": ".", "_t": 119.48}
+{"kind": "delta", "text": " What", "_t": 119.55}
+{"kind": "delta", "text": " are", "_t": 119.61}
+{"kind": "delta", "text": " Co", "_t": 119.68}
+{"kind": "delta", "text": "chin", "_t": 119.75}
+{"kind": "delta", "text": " Ship", "_t": 119.82}
+{"kind": "delta", "text": "yard", "_t": 119.93}
+{"kind": "delta", "text": "'s", "_t": 120.0}
+{"kind": "delta", "text": " key", "_t": 120.06}
+{"kind": "delta", "text": " financial", "_t": 120.13}
+{"kind": "delta", "text": " metrics", "_t": 120.2}
+{"kind": "delta", "text": " and", "_t": 120.27}
+{"kind": "delta", "text": " trends", "_t": 120.33}
+{"kind": "delta", "text": "?", "_t": 120.4}
+{"kind": "delta", "text": " Some", "_t": 120.47}
+{"kind": "delta", "text": " important", "_t": 120.53}
+{"kind": "delta", "text": " factors", "_t": 120.6}
+{"kind": "delta", "text": " could", "_t": 120.67}
+{"kind": "delta", "text": " be", "_t": 120.73}
+{"kind": "delta", "text": ":\n\n", "_t": 120.8}
+{"kind": "delta", "text": "*", "_t": 120.87}
+{"kind": "delta", "text": " Revenue", "_t": 120.93}
+{"kind": "delta", "text": " growth", "_t": 121.0}
+{"kind": "delta", "text": " rates", "_t": 121.07}
+{"kind": "delta", "text": " and", "_t": 121.14}
+{"kind": "delta", "text": " profitability", "_t": 121.2}
+{"kind": "delta", "text": " margins", "_t": 121.27}
+{"kind": "delta", "text": ".\n", "_t": 121.34}
+{"kind": "delta", "text": "*", "_t": 121.4}
+{"kind": "delta", "text": " Debt", "_t": 121.47}
+{"kind": "delta", "text": "-to", "_t": 121.54}
+{"kind": "delta", "text": "-equ", "_t": 121.61}
+{"kind": "delta", "text": "ity", "_t": 121.68}
+{"kind": "delta", "text": " ratios", "_t": 121.75}
+{"kind": "delta", "text": " and", "_t": 121.81}
+{"kind": "delta", "text": " interest", "_t": 121.88}
+{"kind": "delta", "text": " coverage", "_t": 121.95}
+{"kind": "delta", "text": " ratios", "_t": 122.02}
+{"kind": "delta", "text": ".\n", "_t": 122.08}
+{"kind": "delta", "text": "*", "_t": 122.15}
+{"kind": "delta", "text": " Return", "_t": 122.22}
+{"kind": "delta", "text": " on", "_t": 122.28}
+{"kind": "delta", "text": " equity", "_t": 122.35}
+{"kind": "delta", "text": " (", "_t": 122.42}
+{"kind": "delta", "text": "RO", "_t": 122.49}
+{"kind": "delta", "text": "E", "_t": 122.55}
+{"kind": "delta", "text": ")", "_t": 122.62}
+{"kind": "delta", "text": " and", "_t": 122.69}
+{"kind": "delta", "text": " return", "_t": 122.75}
+{"kind": "delta", "text": " on", "_t": 122.82}
+{"kind": "delta", "text": " assets", "_t": 122.89}
+{"kind": "delta", "text": " (", "_t": 122.95}
+{"kind": "delta", "text": "RO", "_t": 123.02}
+{"kind": "delta", "text": "A", "_t": 123.09}
+{"kind": "delta", "text": ").\n\n", "_t": 123.16}
+{"kind": "delta", "text": "Finally", "_t": 123.22}
+{"kind": "delta", "text": ",", "_t": 123.29}
+{"kind": "delta", "text": " I", "_t": 123.36}
+{"kind": "delta", "text": "'ll", "_t": 123.42}
+{"kind": "delta", "text": " consider", "_t": 123.49}
+{"kind": "delta", "text": " probabil", "_t": 123.56}
+{"kind": "delta", "text": "istic", "_t": 123.62}
+{"kind": "delta", "text": " decision", "_t": 123.69}
+{"kind": "delta", "text": "-making", "_t": 123.76}
+{"kind": "delta", "text": ".", "_t": 123.83}
+{"kind": "delta", "text": " What", "_t": 123.89}
+{"kind": "delta", "text": " is", "_t": 123.96}
+{"kind": "delta", "text": " the", "_t": 124.03}
+{"kind": "delta", "text": " expected", "_t": 124.1}
+{"kind": "delta", "text": " value", "_t": 124.17}
+{"kind": "delta", "text": " of", "_t": 124.23}
+{"kind": "delta", "text": " owning", "_t": 124.3}
+{"kind": "delta", "text": " Co", "_t": 124.37}
+{"kind": "delta", "text": "chin", "_t": 124.44}
+{"kind": "delta", "text": " Ship", "_t": 124.5}
+{"kind": "delta", "text": "yard", "_t": 124.57}
+{"kind": "delta", "text": " for", "_t": 124.64}
+{"kind": "delta", "text": " ", "_t": 124.71}
+{"kind": "delta", "text": "10", "_t": 124.77}
+{"kind": "delta", "text": " years", "_t": 124.87}
+{"kind": "delta", "text": " at", "_t": 124.96}
+{"kind": "delta", "text": " today", "_t": 125.03}
+{"kind": "delta", "text": "'s", "_t": 125.09}
+{"kind": "delta", "text": " price", "_t": 125.16}
+{"kind": "delta", "text": "?", "_t": 125.23}
+{"kind": "delta", "text": " This", "_t": 125.29}
+{"kind": "delta", "text": " involves", "_t": 125.36}
+{"kind": "delta", "text": " calculating", "_t": 125.43}
+{"kind": "delta", "text": " the", "_t": 125.5}
+{"kind": "delta", "text": " potential", "_t": 125.56}
+{"kind": "delta", "text": " returns", "_t": 125.63}
+{"kind": "delta", "text": " and", "_t": 125.7}
+{"kind": "delta", "text": " risks", "_t": 125.77}
+{"kind": "delta", "text": " associated", "_t": 125.83}
+{"kind": "delta", "text": " with", "_t": 125.9}
+{"kind": "delta", "text": " the", "_t": 125.97}
+{"kind": "delta", "text": " investment", "_t": 126.04}
+{"kind": "delta", "text": ".\n\n", "_t": 126.1}
+{"kind": "delta", "text": "Based", "_t": 126.17}
+{"kind": "delta", "text": " on", "_t": 126.24}
+{"kind": "delta", "text": " these", "_t": 126.31}
+{"kind": "delta", "text": " mental", "_t": 126.37}
+{"kind": "delta", "text": " models", "_t": 126.44}
+{"kind": "delta", "text": ",", "_t": 126.51}
+{"kind": "delta", "text": " here", "_t": 126.58}
+{"kind": "delta", "text": " is", "_t": 126.64}
+{"kind": "delta", "text": " my", "_t": 126.71}
+{"kind": "delta", "text": " analysis", "_t": 126.78}
+{"kind": "delta", "text": ":\n\n", "_t": 126.85}
+{"kind": "delta", "text": "C", "_t": 126.91}
+{"kind": "delta", "text": "och", "_t": 126.98}
+{"kind": "delta", "text": "in", "_t": 127.05}
+{"kind": "delta", "text": " Ship", "_t": 127.12}
+{"kind": "delta", "text": "yard", "_t": 127.18}
+{"kind": "delta", "text": " appears", "_t": 127.25}
+{"kind": "delta", "text": " to", "_t": 127.32}
+{"kind": "delta", "text": " have", "_t": 127.39}
+{"kind": "delta", "text": " a", "_t": 127.45}
+{"kind": "delta", "text": " strong", "_t": 127.52}
+{"kind": "delta", "text": " competitive", "_t": 127.59}
+{"kind": "delta", "text": " position", "_t": 127.66}
+{"kind": "delta", "text": " in", "_t": 127.73}
+{"kind": "delta", "text": " the", "_t": 127.79}
+{"kind": "delta", "text": " Indian", "_t": 127.86}
+{"kind": "delta", "text": " ship", "_t": 127.93}
+{"kind": "delta", "text": "building", "_t": 128.0}
+{"kind": "delta", "text": " industry", "_t": 128.06}
+{"kind": "delta", "text": " due", "_t": 128.13}
+{"kind": "delta", "text": " to", "_t": 128.2}
+{"kind": "delta", "text": " its", "_t": 128.27}
+{"kind": "delta", "text": " large", "_t": 128.33}
+{"kind": "delta", "text": " order", "_t": 128.4}
+{"kind": "delta", "text": " book", "_t": 128.47}
+{"kind": "delta", "text": " and", "_t": 128.54}
+{"kind": "delta", "text": " existing", "_t": 128.6}
+{"kind": "delta", "text": " infrastructure", "_t": 128.67}
+{"kind": "delta", "text": ".", "_t": 128.74}
+{"kind": "delta", "text": " The", "_t": 128.81}
+{"kind": "delta", "text": " company", "_t": 128.87}
+{"kind": "delta", "text": " benefits", "_t": 128.94}
+{"kind": "delta", "text": " from", "_t": 129.01}
+{"kind": "delta", "text": " government", "_t": 129.08}
+{"kind": "delta", "text": " support", "_t": 129.14}
+{"kind": "delta", "text": " and", "_t": 129.21}
+{"kind": "delta", "text": " has", "_t": 129.28}
+{"kind": "delta", "text": " been", "_t": 129.35}
+{"kind": "delta", "text": " growing", "_t": 129.41}
+{"kind": "delta", "text": " its", "_t": 129.48}
+{"kind": "delta", "text": " revenue", "_t": 129.55}
+{"kind": "delta", "text": " at", "_t": 129.62}
+{"kind": "delta", "text": " a", "_t": 129.68}
+{"kind": "delta", "text": " moderate", "_t": 129.75}
+{"kind": "delta", "text": " pace", "_t": 129.82}
+{"kind": "delta", "text": ".", "_t": 129.9}
+{"kind": "delta", "text": " However", "_t": 129.96}
+{"kind": "delta", "text": ",", "_t": 130.03}
+{"kind": "delta", "text": " the", "_t": 130.1}
+{"kind": "delta", "text": " stock", "_t": 130.17}
+{"kind": "delta", "text": " price", "_t": 130.23}
+{"kind": "delta", "text": " may", "_t": 130.3}
+{"kind": "delta", "text": " be", "_t": 130.37}
+{"kind": "delta", "text": " over", "_t": 130.44}
+{"kind": "delta", "text": "val", "_t": 130.5}
+{"kind": "delta", "text": "ued", "_t": 130.57}
+{"kind": "delta", "text": " due", "_t": 130.64}
+{"kind": "delta", "text": " to", "_t": 130.71}
+{"kind": "delta", "text": " investor", "_t": 130.77}
+{"kind": "delta", "text": " sentiment", "_t": 130.84}
+{"kind": "delta", "text": " and", "_t": 130.91}
+{"kind": "delta", "text": " momentum", "_t": 130.98}
+{"kind": "delta", "text": ".\n\n", "_t": 131.04}
+{"kind": "delta", "text": "To", "_t": 131.11}
+{"kind": "delta", "text": " determine", "_t": 131.18}
+{"kind": "delta", "text": " whether", "_t": 131.24}
+{"kind": "delta", "text": " Co", "_t": 131.31}
+{"kind": "delta", "text": "chin", "_t": 131.38}
+{"kind": "delta", "text": " Ship", "_t": 131.45}
+{"kind": "delta", "text": "yard", "_t": 131.51}
+{"kind": "delta", "text": " is", "_t": 131.58}
+{"kind": "delta", "text": " a", "_t": 131.65}
+{"kind": "delta", "text": " business", "_t": 131.72}
+{"kind": "delta", "text": " I", "_t": 131.79}
+{"kind": "delta", "text": " would", "_t": 131.85}
+{"kind": "delta", "text": " own", "_t": 131.92}
+{"kind": "delta", "text": " for", "_t": 131.99}
+{"kind": "delta", "text": " ", "_t": 132.06}
+{"kind": "delta", "text": "10", "_t": 132.12}
+{"kind": "delta", "text": " years", "_t": 132.19}
+{"kind": "delta", "text": " at", "_t": 132.26}
+{"kind": "delta", "text": " today", "_t": 132.33}
+{"kind": "delta", "text": "'s", "_t": 132.39}
+{"kind": "delta", "text": " price", "_t": 132.46}
+{"kind": "delta", "text": ",", "_t": 132.53}
+{"kind": "delta", "text": " I", "_t": 132.59}
+{"kind": "delta", "text": " would", "_t": 132.66}
+{"kind": "delta", "text": " need", "_t": 132.73}
+{"kind": "delta", "text": " more", "_t": 132.8}
+{"kind": "delta", "text": " information", "_t": 132.87}
+{"kind": "delta", "text": " on", "_t": 132.93}
+{"kind": "delta", "text": " the", "_t": 133.0}
+{"kind": "delta", "text": " company", "_t": 133.07}
+{"kind": "delta", "text": "'s", "_t": 133.14}
+{"kind": "delta", "text": " future", "_t": 133.2}
+{"kind": "delta", "text": " prospects", "_t": 133.27}
+{"kind": "delta", "text": " and", "_t": 133.34}
+{"kind": "delta", "text": " potential", "_t": 133.41}
+{"kind": "delta", "text": " risks", "_t": 133.48}
+{"kind": "delta", "text": ".", "_t": 133.54}
+{"kind": "delta", "text": " I", "_t": 133.61}
+{"kind": "delta", "text": " recommend", "_t": 133.68}
+{"kind": "delta", "text": " conducting", "_t": 133.75}
+{"kind": "delta", "text": " further", "_t": 133.81}
+{"kind": "delta", "text": " research", "_t": 133.88}
+{"kind": "delta", "text": " and", "_t": 133.95}
+{"kind": "delta", "text": " analysis", "_t": 134.02}
+{"kind": "delta", "text": " before", "_t": 134.09}
+{"kind": "delta", "text": " making", "_t": 134.15}
+{"kind": "delta", "text": " an", "_t": 134.22}
+{"kind": "delta", "text": " investment", "_t": 134.29}
+{"kind": "delta", "text": " decision", "_t": 134.36}
+{"kind": "delta", "text": ".\n\n", "_t": 134.43}
+{"kind": "delta", "text": "As", "_t": 134.49}
+{"kind": "delta", "text": " for", "_t": 134.56}
+{"kind": "delta", "text": " my", "_t": 134.63}
+{"kind": "delta", "text": " tool", "_t": 134.7}
+{"kind": "delta", "text": " call", "_t": 134.77}
+{"kind": "delta", "text": " response", "_t": 134.88}
+{"kind": "delta", "text": ",", "_t": 134.93}
+{"kind": "delta", "text": " I", "_t": 135.0}
+{"kind": "delta", "text": " will", "_t": 135.07}
+{"kind": "delta", "text": " dispatch", "_t": 135.14}
+{"kind": "delta", "text": " the", "_t": 135.21}
+{"kind": "delta", "text": " following", "_t": 135.28}
+{"kind": "delta", "text": " functions", "_t": 135.34}
+{"kind": "delta", "text": " to", "_t": 135.41}
+{"kind": "delta", "text": " gather", "_t": 135.48}
+{"kind": "delta", "text": " relevant", "_t": 135.55}
+{"kind": "delta", "text": " data", "_t": 135.62}
+{"kind": "delta", "text": ":\n\n", "_t": 135.69}
+{"kind": "delta", "text": "*", "_t": 135.75}
+{"kind": "delta", "text": " resolve", "_t": 135.82}
+{"kind": "delta", "text": "_symbol", "_t": 135.89}
+{"kind": "delta", "text": ":", "_t": 135.96}
+{"kind": "delta", "text": " Co", "_t": 136.03}
+{"kind": "delta", "text": "chin", "_t": 136.09}
+{"kind": "delta", "text": " Ship", "_t": 136.16}
+{"kind": "delta", "text": "yard", "_t": 136.23}
+{"kind": "delta", "text": "\n", "_t": 136.3}
+{"kind": "delta", "text": "*", "_t": 136.36}
+{"kind": "delta", "text": " market", "_t": 136.43}
+{"kind": "delta", "text": "_over", "_t": 136.5}
+{"kind": "delta", "text": "view", "_t": 136.57}
+{"kind": "delta", "text": ":", "_t": 136.64}
+{"kind": "delta", "text": " current", "_t": 136.7}
+{"kind": "delta", "text": " market", "_t": 136.77}
+{"kind": "delta", "text": " snapshot", "_t": 136.84}
+{"kind": "delta", "text": " (", "_t": 136.91}
+{"kind": "delta", "text": "Indian", "_t": 136.98}
+{"kind": "delta", "text": " region", "_t": 137.05}
+{"kind": "delta", "text": ")\n", "_t": 137.11}
+{"kind": "delta", "text": "*", "_t": 137.18}
+{"kind": "delta", "text": " news", "_t": 137.25}
+{"kind": "delta", "text": ":", "_t": 137.32}
+{"kind": "delta", "text": " recent", "_t": 137.38}
+{"kind": "delta", "text": " headlines", "_t": 137.45}
+{"kind": "delta", "text": " on", "_t": 137.52}
+{"kind": "delta", "text": " Co", "_t": 137.59}
+{"kind": "delta", "text": "chin", "_t": 137.66}
+{"kind": "delta", "text": " Ship", "_t": 137.72}
+{"kind": "delta", "text": "yard", "_t": 137.79}
+{"kind": "delta", "text": "\n", "_t": 137.86}
+{"kind": "delta", "text": "*", "_t": 137.93}
+{"kind": "delta", "text": " compare", "_t": 138.0}
+{"kind": "delta", "text": "_symbols", "_t": 138.07}
+{"kind": "delta", "text": ":", "_t": 138.13}
+{"kind": "delta", "text": " Co", "_t": 138.2}
+{"kind": "delta", "text": "chin", "_t": 138.27}
+{"kind": "delta", "text": " Ship", "_t": 138.34}
+{"kind": "delta", "text": "yard", "_t": 138.41}
+{"kind": "delta", "text": " vs", "_t": 138.47}
+{"kind": "delta", "text": ".", "_t": 138.54}
+{"kind": "delta", "text": " other", "_t": 138.61}
+{"kind": "delta", "text": " major", "_t": 138.68}
+{"kind": "delta", "text": " Indian", "_t": 138.75}
+{"kind": "delta", "text": " ship", "_t": 138.82}
+{"kind": "delta", "text": "building", "_t": 138.88}
+{"kind": "delta", "text": " companies", "_t": 138.95}
+{"kind": "delta", "text": " (", "_t": 139.02}
+{"kind": "delta", "text": "e", "_t": 139.09}
+{"kind": "delta", "text": ".g", "_t": 139.16}
+{"kind": "delta", "text": ".,", "_t": 139.22}
+{"kind": "delta", "text": " Pip", "_t": 139.29}
+{"kind": "delta", "text": "av", "_t": 139.36}
+{"kind": "delta", "text": "av", "_t": 139.43}
+{"kind": "delta", "text": ",", "_t": 139.5}
+{"kind": "delta", "text": " AB", "_t": 139.56}
+{"kind": "delta", "text": "G", "_t": 139.63}
+{"kind": "delta", "text": " Ship", "_t": 139.7}
+{"kind": "delta", "text": "yard", "_t": 139.77}
+{"kind": "delta", "text": ")\n", "_t": 139.84}
+{"kind": "delta", "text": "*", "_t": 139.94}
+{"kind": "delta", "text": " scre", "_t": 140.01}
+{"kind": "delta", "text": "ener", "_t": 140.07}
+{"kind": "delta", "text": "_run", "_t": 140.14}
+{"kind": "delta", "text": ":", "_t": 140.21}
+{"kind": "delta", "text": " screen", "_t": 140.28}
+{"kind": "delta", "text": " for", "_t": 140.35}
+{"kind": "delta", "text": " companies", "_t": 140.41}
+{"kind": "delta", "text": " with", "_t": 140.48}
+{"kind": "delta", "text": " similar", "_t": 140.55}
+{"kind": "delta", "text": " industry", "_t": 140.62}
+{"kind": "delta", "text": " and", "_t": 140.69}
+{"kind": "delta", "text": " sector", "_t": 140.75}
+{"kind": "delta", "text": " characteristics", "_t": 140.82}
+{"kind": "delta", "text": "\n", "_t": 140.89}
+{"kind": "delta", "text": "*", "_t": 140.96}
+{"kind": "delta", "text": " research", "_t": 141.03}
+{"kind": "delta", "text": ":", "_t": 141.09}
+{"kind": "delta", "text": " conduct", "_t": 141.16}
+{"kind": "delta", "text": " a", "_t": 141.23}
+{"kind": "delta", "text": " deep", "_t": 141.3}
+{"kind": "delta", "text": " dive", "_t": 141.37}
+{"kind": "delta", "text": " analysis", "_t": 141.43}
+{"kind": "delta", "text": " on", "_t": 141.5}
+{"kind": "delta", "text": " Co", "_t": 141.57}
+{"kind": "delta", "text": "chin", "_t": 141.64}
+{"kind": "delta", "text": " Ship", "_t": 141.71}
+{"kind": "delta", "text": "yard", "_t": 141.77}
+{"kind": "delta", "text": " using", "_t": 141.84}
+{"kind": "delta", "text": " the", "_t": 141.91}
+{"kind": "delta", "text": " research", "_t": 141.98}
+{"kind": "delta", "text": " tool", "_t": 142.05}
+{"kind": "done", "usage": {"input_tokens": 6842, "output_tokens": 701, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop", "_t": 142.12}
+{"_summary": {"status": "ok", "secs": 147.1, "kinds": {"delta": 700, "done": 1}, "usage": {"input_tokens": 6842, "output_tokens": 701, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}}}

@@ -1,0 +1,14 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ grep -n -i 'screener' docs/CURRENT_STATE.md | head -12; python3 -c "import json;print('sp500 json symbols:',len(json.load(open('sidecar/services/screener_universes/sp500.json'))) if isinstance(json.load(open('sidecar/services/screener_universes/sp500.json')),list) else {k:len(v) for k,v in json.load(open('sidecar/services/screener_universes/sp500.json')).items() if hasattr(v,'__len__')})"
+exit=0
+128:  Earnings, Analyst Ratings, Screener, Quant (QuantLib) — and Phase-4/5
+300:| POST                | `/screener/run`                                                                            | Run screener (`ScreenerRequest`)                 | `screener.run_screener`; universe failure → 502, unknown → 400             |
+301:| GET                 | `/screener/universe`                                                                       | Resolve universe (`?id=`)                        | `screener.resolve_universe`; `custom` → 400                                |
+369:- **`screener.py` + `screener_universes/` + `screener_universe_india.py`** —
+380:  via `CriterionGroup` (`models/screener.py`, `combinator: "and"|"or"`) — OR-
+539:### 3.9 Panels — market (Chart / Equity Overview / Watchlist / News / Portfolio / Screener)
+548:| screener        | `ScreenerPanel.tsx`            | yes              | `/screener/run`, `/screener/universe`                           |
+562:resolved-cost). Screener: client-side sort with null-last pinning.
+712:| `screener_run`                                                                                                                                                                                                                 | run the screener                                                     | yes                                                             |
+862:| Phase-6 analysis panels (macro/SEC/earnings/analyst/screener/quant)                    | **Works** (tests); backend liveness unverified from frontend                                                  | §11                              |
+sp500 json symbols: {'id': 5, 'label': 7, 'asset_class': 6, 'snapshot_date': 10, 'source': 405, 'symbols': 503}

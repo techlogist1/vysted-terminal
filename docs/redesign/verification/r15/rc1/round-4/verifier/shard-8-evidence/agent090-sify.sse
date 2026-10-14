@@ -1,0 +1,75 @@
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "tool_use", "tool_call_id": "call_d39bc1a96f8a440797d5baa579901c7d", "name": "fundamentals", "input": {"symbol": "SIFY"}}
+
+data: {"kind": "tool_result", "tool_call_id": "call_d39bc1a96f8a440797d5baa579901c7d", "name": "fundamentals", "ok": true, "error": null}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "delta", "text": "S"}
+
+data: {"kind": "delta", "text": "IFY"}
+
+data: {"kind": "delta", "text": "'s"}
+
+data: {"kind": "delta", "text": " T"}
+
+data: {"kind": "delta", "text": "TM"}
+
+data: {"kind": "delta", "text": " revenue"}
+
+data: {"kind": "delta", "text": " is"}
+
+data: {"kind": "delta", "text": " \u20b9"}
+
+data: {"kind": "delta", "text": "4"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": "651"}
+
+data: {"kind": "delta", "text": " cr"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "According"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " SEC"}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "20"}
+
+data: {"kind": "delta", "text": "-F"}
+
+data: {"kind": "delta", "text": " cover"}
+
+data: {"kind": "delta", "text": " page"}
+
+data: {"kind": "delta", "text": " filed"}
+
+data: {"kind": "delta", "text": " on"}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources."}
+
+data: {"kind": "done", "usage": {"input_tokens": 5696, "output_tokens": 43, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+rmdir: /tmp/vysted-r15-ollama.lock: No such file or directory

@@ -1,0 +1,15 @@
+{
+  "enqueueOutcome": "staged",
+  "acceptOutcome": "applied",
+  "bySymbolKeys": [
+    "COCHIN SHIPYARD"
+  ],
+  "noteFor_COCHIN_SHIPYARD": "valuation looks stretched at ~50x trailing P/E; revisit after Q2 results.",
+  "noteFor_COCHINSHIP": "",
+  "symbolsWithNotes": [
+    "COCHIN SHIPYARD"
+  ],
+  "loadErr": "TypeError: __vi_import_4__.loadSymbolIntoChart is not a function",
+  "focusAfterChartLoadCOCHINSHIP": "",
+  "noteShownForThatFocus": ""
+}

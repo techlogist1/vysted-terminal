@@ -1,0 +1,108 @@
+{
+ "Table": [
+  {
+   "purpose_name": "Final Dividend",
+   "BCRD_from": "05 Jun 2026",
+   "Amount": 6.0
+  },
+  {
+   "purpose_name": "Final Dividend",
+   "BCRD_from": "14 Aug 2025",
+   "Amount": 5.5
+  },
+  {
+   "purpose_name": "Final Dividend",
+   "BCRD_from": "19 Aug 2024",
+   "Amount": 10.0
+  },
+  {
+   "purpose_name": "Final Dividend",
+   "BCRD_from": "21 Aug 2023",
+   "Amount": 9.0
+  },
+  {
+   "purpose_name": "Final Dividend",
+   "BCRD_from": "18 Aug 2022",
+   "Amount": 8.0
+  }
+ ],
+ "Table1": [
+  {
+   "XTYPE": "Bonus",
+   "BCRD_FROM": "28 Oct 2024",
+   "VALUE": "issue 1:1"
+  },
+  {
+   "XTYPE": "Bonus",
+   "BCRD_FROM": "07 Sep 2017",
+   "VALUE": "issue 1:1"
+  },
+  {
+   "XTYPE": "Bonus",
+   "BCRD_FROM": "26 Nov 2009",
+   "VALUE": "issue 1:1"
+  }
+ ],
+ "Table2": [
+  {
+   "DR": 1,
+   "scrip_code": 500325,
+   "sLongName": "Reliance Industries Ltd",
+   "BCRD": "RD 05/06/2026",
+   "purpose_code": "DP ",
+   "short_name": "RELIANCE",
+   "Ex_date": "05 Jun 2026",
+   "purpose": "Final Dividend",
+   "Details": "6.00",
+   "PAYMENT_DATE": "2026-07-19T00:00:00"
+  },
+  {
+   "DR": 2,
+   "scrip_code": 500325,
+   "sLongName": "Reliance Industries Ltd",
+   "BCRD": "RD 14/08/2025",
+   "purpose_code": "DP ",
+   "short_name": "RELIANCE",
+   "Ex_date": "14 Aug 2025",
+   "purpose": "Final Dividend",
+   "Details": "5.50",
+   "PAYMENT_DATE": null
+  },
+  {
+   "DR": 3,
+   "scrip_code": 500325,
+   "sLongName": "Reliance Industries Ltd",
+   "BCRD": "RD 28/10/2024",
+   "purpose_code": "BN ",
+   "short_name": "RELIANCE",
+   "Ex_date": "28 Oct 2024",
+   "purpose": "Bonus issue 1:1",
+   "Details": null,
+   "PAYMENT_DATE": null
+  },
+  {
+   "DR": 4,
+   "scrip_code": 500325,
+   "sLongName": "Reliance Industries Ltd",
+   "BCRD": "RD 19/08/2024",
+   "purpose_code": "DP ",
+   "short_name": "RELIANCE",
+   "Ex_date": "19 Aug 2024",
+   "purpose": "Final Dividend",
+   "Details": "10.00",
+   "PAYMENT_DATE": "2024-09-28T00:00:00"
+  },
+  {
+   "DR": 5,
+   "scrip_code": 500325,
+   "sLongName": "Reliance Industries Ltd",
+   "BCRD": "RD 21/08/2023",
+   "purpose_code": "DP ",
+   "short_name": "RELIANCE",
+   "Ex_date": "21 Aug 2023",
+   "purpose": "Final Dividend",
+   "Details": "9.00",
+   "PAYMENT_DATE": "2023-09-27T00:00:00"
+  }
+ ]
+}

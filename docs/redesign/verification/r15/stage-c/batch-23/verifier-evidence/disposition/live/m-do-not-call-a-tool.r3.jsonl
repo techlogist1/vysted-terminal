@@ -1,0 +1,95 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_1b12410a3ee54f7882583e051c4a8e73", "name": "get_portfolio", "input": {}}
+{"kind": "tool_result", "tool_call_id": "call_1b12410a3ee54f7882583e051c4a8e73", "name": "get_portfolio", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " sold"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " calculate"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " proceeds"}
+{"kind": "delta", "text": " based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " sold"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": " each"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "So"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " proceeds"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " x"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " estimate"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " reflect"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " potential"}
+{"kind": "delta", "text": " taxes"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " fees"}
+{"kind": "delta", "text": " associated"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " sale"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2821, "output_tokens": 89, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

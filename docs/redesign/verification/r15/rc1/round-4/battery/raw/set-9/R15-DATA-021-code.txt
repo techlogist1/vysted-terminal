@@ -1,0 +1,8 @@
+1121:                patterns = _merge_bse_split(bare, patterns)
+1231:def _merge_bse_split(
+1254:    with_split = [p for p in bse_patterns if _pattern_has_split(p)]
+1255:    if not with_split:
+1257:    with_split.sort(key=lambda p: p.quarter_end, reverse=True)
+1258:    by_quarter = {p.quarter_end: p for p in with_split}
+1263:            nearest = min(with_split, key=lambda p: abs((p.quarter_end - pattern.quarter_end).days))
+1228:_SPLIT_MERGE_MAX_DAYS = 100

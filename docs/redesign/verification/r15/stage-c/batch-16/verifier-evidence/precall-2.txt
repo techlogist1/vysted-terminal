@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+The market cap of Tata Consultancy Services (TCS) is ₹753,286 crore.
+
+=== ok · 66.6s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 19, 'done': 1} · usage in=5896 out=20 · est $0.00000 · llama3.1:8b

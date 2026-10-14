@@ -1,0 +1,4 @@
+nse-all 3506
+bse-all 5042
+india-all 5891
+sp500 503 2026-09-24

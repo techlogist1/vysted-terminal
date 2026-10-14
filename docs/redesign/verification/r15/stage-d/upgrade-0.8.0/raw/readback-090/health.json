@@ -1,0 +1,17 @@
+{
+    "agents_degraded": [],
+    "providers": {
+        "analyst_rating": "yfinance",
+        "balance_sheet": "yfinance",
+        "cash_flow": "yfinance",
+        "fundamentals": "yfinance",
+        "income_statement": "yfinance",
+        "macro_series": "unavailable",
+        "ohlcv": "ccxt (nse_direct, nse, bse, yfinance fallback)",
+        "openbb-mcp": "unavailable",
+        "quote": "ccxt (nse_direct, nse, bse, yfinance fallback)"
+    },
+    "service": "vysted-sidecar",
+    "status": "ok",
+    "version": "0.9.0"
+}

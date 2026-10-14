@@ -1,0 +1,29 @@
+== PLX
+POST A 200
+POST B 200
+DELETE 204
+files after delete: 
+POST C 200
+corrupting PLX.vysted-workspace
+GET: {"detail":"Workspace 'PLX' not found."} [404]
+files: PLX.vysted-workspace.corrupt-1791036895771 
+== fresh: Desk Two
+POST A 200
+POST B 200
+DELETE 404
+files after delete: 
+POST C 200
+corrupting 
+run:4: is a directory: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-fix-r1-verify/workspaces/
+GET: {"detail":"Workspace 'Desk Two' not found."} [404]
+files: 
+== fresh: desk_two (3 saves, then C saved twice so C has its own .bak)
+POST A 200
+POST B 200
+POST B2 200
+DELETE 204
+after delete: 
+POST C1 200
+POST C2 200
+GET: {"marker":"FRESH_C1"} [200]
+files: desk_two.vysted-workspace desk_two.vysted-workspace.bak desk_two.vysted-workspace.corrupt-1791036905562 

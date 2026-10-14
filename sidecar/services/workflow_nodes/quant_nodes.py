@@ -26,6 +26,7 @@ from models.quant import (
 )
 from services import workflow_engine
 from services.quant import bonds, greeks, options, yield_curve
+from services.quant.pool import run_quant
 
 
 def _merge(inputs: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
@@ -48,7 +49,7 @@ async def price_option(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
         req = OptionPricingRequest.model_validate(args)
     except Exception as exc:
         raise ValueError(f"quant.price_option: invalid request: {exc}") from exc
-    result = options.price(req)
+    result = await run_quant(options.price, req)
     return {"result": result.model_dump(mode="json")}
 
 
@@ -59,7 +60,7 @@ async def compute_greeks(inputs: dict[str, Any], config: dict[str, Any]) -> dict
         req = GreeksRequest.model_validate(args)
     except Exception as exc:
         raise ValueError(f"quant.compute_greeks: invalid request: {exc}") from exc
-    result = greeks.compute_greeks(req)
+    result = await run_quant(greeks.compute_greeks, req)
     return {"result": result.model_dump(mode="json")}
 
 
@@ -70,7 +71,7 @@ async def price_bond(inputs: dict[str, Any], config: dict[str, Any]) -> dict[str
         req = BondPricingRequest.model_validate(args)
     except Exception as exc:
         raise ValueError(f"quant.price_bond: invalid request: {exc}") from exc
-    result = bonds.price_bond(req)
+    result = await run_quant(bonds.price_bond, req)
     return {"result": result.model_dump(mode="json")}
 
 
@@ -81,12 +82,12 @@ async def bootstrap_yield_curve(inputs: dict[str, Any], config: dict[str, Any]) 
         req = YieldCurveRequest.model_validate(args)
     except Exception as exc:
         raise ValueError(f"quant.yield_curve: invalid request: {exc}") from exc
-    result = yield_curve.bootstrap_curve(req)
+    result = await run_quant(yield_curve.bootstrap_curve, req)
     return {"result": result.model_dump(mode="json")}
 
 
 def register() -> None:
-    """Register every quant workflow-node type. Called from the v0.6.0 aggregator."""
+    """Register every quant workflow-node type. Called from ``workflow_nodes.register_all``."""
     workflow_engine.register_node_type("quant.price_option", price_option)
     workflow_engine.register_node_type("quant.compute_greeks", compute_greeks)
     workflow_engine.register_node_type("quant.price_bond", price_bond)

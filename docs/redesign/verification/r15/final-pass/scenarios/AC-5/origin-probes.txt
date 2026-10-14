@@ -1,0 +1,21 @@
+origin=NONE /mcp/ -> 200 event: message data: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities
+origin=NONE /mcp/status -> 200 {"ready":true,"toolCount":39,"endpoint":"/mcp","protocolVersion":"2025-11-25"}
+origin=NONE /health -> 200 {"status":"ok","service":"vysted-sidecar","version":"0.9.0","providers":{"analyst_rating":"openbb-mc
+origin=http://evil.example /mcp/ -> 403 {"detail":"origin not allowed"}
+origin=http://evil.example /mcp/status -> 403 {"detail":"origin not allowed"}
+origin=http://evil.example /health -> 403 {"detail":"origin not allowed"}
+origin=null /mcp/ -> 403 {"detail":"origin not allowed"}
+origin=null /mcp/status -> 403 {"detail":"origin not allowed"}
+origin=null /health -> 403 {"detail":"origin not allowed"}
+origin=tauri://localhost /mcp/ -> 200 event: message data: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities
+origin=tauri://localhost /mcp/status -> 200 {"ready":true,"toolCount":39,"endpoint":"/mcp","protocolVersion":"2025-11-25"}
+origin=tauri://localhost /health -> 200 {"status":"ok","service":"vysted-sidecar","version":"0.9.0","providers":{"analyst_rating":"openbb-mc
+origin=http://localhost:5173 /mcp/ -> 200 event: message data: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities
+origin=http://localhost:5173 /mcp/status -> 200 {"ready":true,"toolCount":39,"endpoint":"/mcp","protocolVersion":"2025-11-25"}
+origin=http://localhost:5173 /health -> 200 {"status":"ok","service":"vysted-sidecar","version":"0.9.0","providers":{"analyst_rating":"openbb-mc
+origin=http://127.0.0.1:5174 /mcp/ -> 403 {"detail":"origin not allowed"}
+origin=http://127.0.0.1:5174 /mcp/status -> 403 {"detail":"origin not allowed"}
+origin=http://127.0.0.1:5174 /health -> 403 {"detail":"origin not allowed"}
+origin=http://localhost:5173.evil.example /mcp/ -> 403 {"detail":"origin not allowed"}
+origin=http://localhost:5173.evil.example /mcp/status -> 403 {"detail":"origin not allowed"}
+origin=http://localhost:5173.evil.example /health -> 403 {"detail":"origin not allowed"}

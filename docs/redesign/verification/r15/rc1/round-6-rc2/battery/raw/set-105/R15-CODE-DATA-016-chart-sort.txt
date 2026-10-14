@@ -1,0 +1,7 @@
+# rc1-battery-22 raw R15-CODE-DATA-016 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -n -i 'reverse\|sort' src/modules/earnings/EarningsSurpriseChart.tsx | head; grep -n 'fmtDate' src/modules/earnings/EarningsCalendarPanel.tsx | head -3
+115:    // Sort by period_end (R15-LEAD-016: the fiscal quarter end, never null —
+117:    const trimmed = [...surprises].sort(
+16:import { fmtDate } from "../analyst-ratings/format";
+408:                        {fmtDate(event.scheduled_date)}
+EXIT=0

@@ -1,0 +1,52 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_0d3a3c1d79e64046bda9d6916403dfc6", "name": "fundamentals", "input": {"symbol": "TCS.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_0d3a3c1d79e64046bda9d6916403dfc6", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " might"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " changed"}
+{"kind": "delta", "text": " since"}
+{"kind": "delta", "text": " my"}
+{"kind": "delta", "text": " knowledge"}
+{"kind": "delta", "text": " cutoff"}
+{"kind": "delta", "text": " date"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " December"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " do"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " real"}
+{"kind": "delta", "text": "-time"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5877, "output_tokens": 46, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

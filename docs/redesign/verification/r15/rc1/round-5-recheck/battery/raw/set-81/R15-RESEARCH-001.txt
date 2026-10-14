@@ -1,0 +1,42 @@
+Probe: live external news fetch (own sidecar :52352, real Yahoo/region feeds — outside world)
+for the register's original IN target (BDL) and the batch-29 fresh non-IN case (AI = C3.ai),
+then the real gate applied in-process exactly as services/research/deep.py:920-928 wires it
+(`gate_news` before the extraction prompt sees the news dimension).
+
+Command 1 (original repro target):
+  curl -s "http://127.0.0.1:52352/news?symbols=BDL"
+Output: [] (0 items) — matches batch-29's cert table row "BDL (IN) | original repro | 0".
+
+Command 2 (fresh non-IN target, external Yahoo feed):
+  curl -s "http://127.0.0.1:52352/news?symbols=AI" -> saved as R15-RESEARCH-001-news-AI-raw.json
+Output: 30 raw items, alias-tagged symbols:['AI'] but many off-entity (Air India 171 crash,
+India bond-market roundups, OpenAI training pause, SK Hynix IPO, Dow-index roundup) — the exact
+shape the register/batch-29 evidence describes (region-wide + per-symbol feed blended, no
+per-item relevance check at the tool layer).
+
+Command 3 (in-process, real ResearchTarget resolved via /resolve?q=AI: symbol AI, name "C3.ai,
+Inc.", exchange US, isin US12468P1049):
+  cd <cand>/sidecar && .venv/bin/python3 /tmp/probe_research001.py  (script saved alongside)
+Output:
+  raw count: 30
+  kept count: 20
+  note: None
+  dropped examples: OpenAI Pauses Training…, Air India AI 171 crash…, India's bond market…,
+    SK Hynix's Solidigm IPO…, Battered bonds…, Dow ends 400 points higher…
+  (kept items are C3.ai itself or direct AI-infra peers: "C3.ai, Inc. (AI) is Attracting
+  Investor Attention", "C3.ai (AI) Stock Trades At A Premium…", "C3.ai Jumps 7%…", "Compared to
+  Estimates, C3.ai (AI) Q1 Earnings…")
+
+Exit: 0 (all)
+
+Verdict basis: services/research/deep.py:918-928 now calls relevance.gate_news on the news
+dimension's structured_res BEFORE _record_structured/extraction ever see it (the register's
+root cause: "the R13 #9 off-entity gate was added only to fast._news_value and never ported to
+the DEEP/ULTRA structured news leg" — it is now ported, same one gate for both legs per
+relevance.gate_news's own docstring: "The ONE gate for every news leg: FAST's snapshot and the
+DEEP/ULTRA researchers' structured news pull."). All obviously off-entity items (Air India
+flight-171 crash, India bond-market roundups, Dow index roundups) that would previously have
+reached the LLM extraction as "News for AI" are dropped before the extraction prompt sees them,
+closing the exact failure class the register named (BDL brief stating Sterling & Wilson's news
+as BDL's own facts). Live BDL (IN, original repro symbol) still returns 0 raw news items
+(pre-existing data-availability gap, unrelated to this gate — matches batch-29's own table).

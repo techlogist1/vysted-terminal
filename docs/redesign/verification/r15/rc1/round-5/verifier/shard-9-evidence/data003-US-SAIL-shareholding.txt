@@ -1,0 +1,3 @@
+### 16:47:04 curl -H X-Vysted-Region: US http://127.0.0.1:52609/disclosures/shareholding?symbol=SAIL
+{"symbol":"SAIL","count":0,"patterns":[],"coverage":"not_applicable","note":"SAIL is not an NSE/BSE instrument; Indian exchange disclosures do not apply","provider":null,"major_shareholders":[],"source_url":null}
+HTTP 200 29.493616s

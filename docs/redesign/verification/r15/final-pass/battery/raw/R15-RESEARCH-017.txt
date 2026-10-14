@@ -1,0 +1,12 @@
+# R15-RESEARCH-017 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:50+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/t017.py 2>&1 | grep -v '^ \|Traceback' | grep -v Warning | tail -8
+--- output ---
+iter research loop raised
+RuntimeError: injected loop failure
+heavy research loop raised
+RuntimeError: injected loop failure
+deep -> {'ok': 'False', 'message': 'Deep research could not finish — the iter research loop failed: RuntimeError: injected loop failure.', 'execution_loop': 'iter', 'degraded_reason': 'the iter research loop failed: RuntimeError: injected loop failure'}
+ultra -> {'ok': 'False', 'message': 'Deep research could not finish — the heavy research loop failed: RuntimeError: injected loop failure.', 'execution_loop': 'heavy', 'degraded_reason': 'the heavy research loop failed: RuntimeError: injected loop failure'}
+
+EXIT=0 (1.4s)

@@ -18,16 +18,23 @@ import type { IndicatorResponse } from "../../../types/data";
  * @param indicators  Canonical indicator keys, e.g. `["rsi", "macd"]`.
  * @param timeframe   Bar interval; must match the chart's history timeframe.
  * @param assetClass  `equity` (default) or `crypto`.
+ * @param region      The picked listing's region (R15-DATA-002), so the
+ *                    indicators compute on the same listing the candles show.
  */
 export function fetchIndicators(
   symbol: string,
   indicators: string[],
   timeframe = "1d",
   assetClass = "equity",
+  region?: string,
 ): Promise<IndicatorResponse> {
-  return sidecarGet<IndicatorResponse>(`/indicators/${encodeURIComponent(symbol)}`, {
-    indicators: indicators.join(","),
-    timeframe,
-    asset_class: assetClass,
-  });
+  return sidecarGet<IndicatorResponse>(
+    `/indicators/${encodeURIComponent(symbol)}`,
+    {
+      indicators: indicators.join(","),
+      timeframe,
+      asset_class: assetClass,
+    },
+    { "X-Vysted-Region": region },
+  );
 }

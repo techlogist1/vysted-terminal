@@ -1,0 +1,12 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: in-process error_frame / humanize on the four register exceptions
+RuntimeError -> internal | The terminal hit an internal error. | RuntimeError: runs_store: database connection is closed
+ValueError -> internal | The terminal hit an internal error. | ValueError: could not parse depth 'ultra2'
+TypeError -> internal | The terminal hit an internal error. | TypeError: f() got an unexpected keyword argument 'research_depth'
+KeyError -> internal | The terminal hit an internal error. | KeyError: 'connect_args'
+humanize direct RuntimeError -> unknown
+humanize direct ValueError -> unknown
+humanize direct TypeError -> unknown
+real ConnectError humanize -> network
+humanize(None, KeyError connect_args) direct -> unknown
+EXIT=0

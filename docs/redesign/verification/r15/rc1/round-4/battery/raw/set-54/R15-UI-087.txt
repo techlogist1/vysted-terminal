@@ -1,0 +1,28 @@
+COMMAND 1 (node, re-running llm-providers.ts orderedProviders verbatim -- pure sort logic, no TS-
+specific runtime behavior stripped): see R15-UI-087-orderedProviders.txt
+
+OUTPUT:
+no order (catalog order): ["ollama","openrouter","anthropic","openai"]
+order=[openai,ollama]: ["openai","ollama","openrouter","anthropic"]
+
+COMMAND 2 (source re-read, candidate sha 1006c6da): confirmed the fallback consumer wiring the
+register said never existed:
+  - src/store/settings.ts: providerPreferenceOrder / palette* / starterCockpitPanelIds /
+    panelDefaults are present (no longer "deliberately dropped").
+  - src/modules/chat/ChatSidebar.tsx:944-950, 2186-2202: nextFallbackAttempt() calls
+    orderedProviders(providers, useSettingsStore.getState().providerOrder) and returns the first
+    untried CONFIGURED provider (keyed-with-secret or keyless-and-ready); the caller only invokes
+    it on a classified provider failure landing BEFORE any output ("produced" guard) -- matches
+    "does not fire after answer text or on a content error".
+  - sidecar/services/errors.py:278-563: PROVIDER_FAILURE_CODES-equivalent codes (auth,
+    provider_402, insufficient_credit, network, ollama_not_running, provider_5xx, rate_limit) all
+    present and distinct.
+
+VERDICT: holds.
+The core repro claim ("no provider/model fallback order exists") is now demonstrably false: a
+pure, independently re-run orderedProviders sort plus the live-read fallback call site confirm an
+ordered list with a real consumer in the chat send path. Batch-11's own certification leaned on
+vitest for the palette-option and start-layout-restore sub-claims and one live free-lane run for
+provider_5xx; this battery re-run could not re-run vitest (out of scope for this role) or drive a
+live paid fallback trial, so those two sub-claims are re-confirmed only by source inspection, not
+independently re-executed -- the mechanism under direct test here (ordering + wiring) holds.

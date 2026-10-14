@@ -1,0 +1,27 @@
+Probe: live POST /llm/keys/validate on my own sidecar (:52352) with fake Gemini and xAI keys,
+the register's own repro strings.
+
+Commands + output:
+
+curl -s -X POST http://127.0.0.1:52352/llm/keys/validate -H "Content-Type: application/json" \
+  -d '{"provider":"gemini","api_key":"AIzaSyNOTAREALKEY0000000000000000000"}'
+-> HTTP 200 {"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+
+curl -s -X POST http://127.0.0.1:52352/llm/keys/validate -H "Content-Type: application/json" \
+  -d '{"provider":"xai","api_key":"<redacted synthetic test key, prefix xai-no, 49 chars; the provider rejected it>"}'
+-> HTTP 200 {"ok":false,"reason":"invalid","detail":"xAI rejected this key."}
+
+Exit: 0 (both)
+
+Verdict basis: register repro showed Gemini's real ClientError 400 INVALID_ARGUMENT surfacing as
+detail "transport error: 400 INVALID_ARGUMENT. {...}" (reason not "invalid"), and xAI's
+BadRequestError taking the same "transport error" path (OpenRouter's false-positive is the same
+underlying defect, covered separately in R15-UI-008's raw file in this set). Now both Gemini and
+xAI report reason "invalid" with a provider-named rejection message, not a raw transport-error
+string. Matches batch-3's certification ("Live /llm/keys/validate returns {ok:false,
+"unauthorized…"} for fake OpenRouter, Gemini and xAI keys. Gemini is no longer reported as a
+'transport error'.").
+
+Note: positive-control checks with real/funded keys were not run on this shard (no keys
+provisioned to this lane / BYOK spend-guard scope); the fake-key path above is the entry's
+stated repro and is sufficient to confirm the fix holds.

@@ -1,0 +1,8 @@
+[   1.0s] error: {"kind": "error", "message": "OpenAI returned a server error \u2014 it may be a temporary outage.", "action": "Try again in a few minutes.", "detail": "Error code: 500 - {'error': {'message': 'internal upstream failure', 'type': 'server_error'}}", "code": "provider_5xx"}
+[   1.0s] done: {"kind": "done", "usage": null, "finish_reason": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 1.0s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · junk-500
+exit=0

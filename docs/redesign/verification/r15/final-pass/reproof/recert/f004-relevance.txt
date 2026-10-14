@@ -1,0 +1,19 @@
+== FOCUS Focus Lighting and Fixtures Limited NSE
+  expect DROP Focus on flying, not selfies                                 score=0.25 keep=False OK
+  expect DROP European shares focus on inflation data                      score=0.25 keep=False OK
+  expect KEEP Focus Lighting and Fixtures shares hit upper circuit         score=1.00 keep=True OK
+== CAMPUS Campus Activewear Limited NSE
+  expect DROP Campus placements surge as IT hiring revives                 score=1.00 keep=True MISMATCH
+  expect DROP Back to campus: retailers bet on festive demand              score=1.00 keep=True MISMATCH
+  expect KEEP Campus Activewear Q2 profit rises 18%                        score=1.00 keep=True OK
+  expect KEEP Campus Activewear shares jump after brokerage upgrade        score=1.00 keep=True OK
+== SAFARI Safari Industries (India) Limited NSE
+  expect DROP Safari tourism booms in Kenya as visitors return             score=1.00 keep=True MISMATCH
+  expect DROP Apple Safari update fixes security flaw                      score=1.00 keep=True MISMATCH
+  expect KEEP Safari Industries Q1 results beat estimates                  score=1.00 keep=True OK
+  expect KEEP Safari Industries stock hits 52-week high                    score=1.00 keep=True OK
+== ETERNAL ETERNAL LIMITED NSE
+  expect DROP The eternal debate: growth vs value investing                score=1.00 keep=True MISMATCH
+  expect KEEP Eternal shares rise as Blinkit orders grow                   score=1.00 keep=True OK
+  expect KEEP Eternal Ltd Q2 profit falls on quick-commerce costs          score=1.00 keep=True OK
+mismatches 5

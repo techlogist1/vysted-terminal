@@ -1,0 +1,10 @@
+# R15-RESEARCH-021 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:50+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p021.py 2>&1 | grep -v Warning
+--- output ---
+'BAJFINANCE 200 DMA breakout as stock nears record' 1.0 True
+'BAJFINANCE 52-week high' 1.0 True
+'BAJFINANCE breakout as stock nears record' 1.0 True
+KPITTECH 1.0 True
+
+EXIT=0 (0.0s)

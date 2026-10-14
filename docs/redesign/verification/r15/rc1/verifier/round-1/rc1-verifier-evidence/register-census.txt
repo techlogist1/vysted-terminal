@@ -1,0 +1,67 @@
+ref WT entries 631
+  ('critical', 'fixed') 16
+  ('high', 'blocked_tier4') 4
+  ('high', 'fixed') 102
+  ('high', 'needs_gui') 4
+  ('high', 'open') 1
+  ('high', 'removed_with_feature') 1
+  ('low', 'fixed') 10
+  ('low', 'open') 207
+  ('low', 'removed_with_feature') 4
+  ('medium', 'blocked_tier4') 11
+  ('medium', 'fixed') 248
+  ('medium', 'needs_gui') 5
+  ('medium', 'not_a_defect') 5
+  ('medium', 'open') 4
+  ('medium', 'removed_with_feature') 9
+c/h/m 410
+NONCONFORMING 11
+   ('R15-AGENT-017', 'high', 'open', 'agent', 'The shipped default chat model (DeepSeek V4 Flash via OpenRouter) returns content_filter w')
+   ('R15-LEAD-010', 'high', 'fixed but not certified in stage-c', 'data', 'SEC filing viewer 404s a 10-K it just listed: get_filing resolves metadata from only the l')
+   ('R15-AGENT-049', 'medium', 'open', 'agent', 'Native web search has no per-run cap off Anthropic and per-search billing is never metered')
+   ('R15-AGENT-083', 'medium', 'not_a_defect without rationale', 'agent', '')
+   ('R15-DATA-080', 'medium', 'not_a_defect without rationale', 'data', '')
+   ('R15-LEAD-028', 'medium', 'open', 'data', 'BSE scrip-code addressing (e.g. 506597.BO, 544774.BO) 404s on data routes; only the BSE ti')
+   ('R15-RELEASE-007', 'medium', 'open', 'release', 'The design-token audit that enforces the R9 spacing/type law runs in no script, gate or wo')
+   ('R15-UI-041', 'medium', 'not_a_defect without rationale', 'ui', '')
+   ('R15-UI-047', 'medium', 'not_a_defect without rationale', 'ui', '')
+   ('R15-UI-059', 'medium', 'not_a_defect without rationale', 'ui', '')
+   ('R15-UI-088', 'medium', 'open', 'ui', 'In-webview drag gestures (dockview tab reorder, node-editor palette-to-canvas) have no aut')
+needs_gui c/h/m: ['R15-CODE-AGENT-001', 'R15-LIFECYCLE-001', 'R15-LIFECYCLE-008', 'R15-UI-009', 'R15-UI-022', 'R15-UI-025', 'R15-UI-050', 'R15-UI-083', 'R15-UI-084']
+not_a_defect c/h/m in 4 areas not in concur: []
+
+=== register as committed at the candidate sha ===
+ref 1d6511c89bb27f1785f7af4d2290983b2852d70a entries 631
+c/h/m 410
+NONCONFORMING 29
+   ('R15-AGENT-007', 'high', 'open', 'agent', 'No agent eval loop exists: no fixed real-data scenario set, grader or pass^k per provider ')
+   ('R15-AGENT-017', 'high', 'open', 'agent', 'The shipped default chat model (DeepSeek V4 Flash via OpenRouter) returns content_filter w')
+   ('R15-LEAD-010', 'high', 'fixed but not certified in stage-c', 'data', 'SEC filing viewer 404s a 10-K it just listed: get_filing resolves metadata from only the l')
+   ('R15-AGENT-049', 'medium', 'open', 'agent', 'Native web search has no per-run cap off Anthropic and per-search billing is never metered')
+   ('R15-AGENT-083', 'medium', 'not_a_defect without rationale', 'agent', '')
+   ('R15-CODE-AGENT-009', 'medium', 'open', 'code', 'invoke_agent is a ~400-line function owning fourteen concerns, so the branches holding pro')
+   ('R15-CODE-PLATFORM-023', 'medium', 'open', 'code', 'Portfolio risk analytics promised under Portfolio & Risk (Sharpe, Sortino, Calmar, VaR, Be')
+   ('R15-CODE-PLATFORM-025', 'medium', 'open', 'code', "BLUEPRINT's 'Multi-window' is unbuilt: the app is one fixed Tauri window with no pop-out p")
+   ('R15-CODE-PLATFORM-026', 'medium', 'open', 'code', 'The three ensure-*.mjs sidecar build scripts are one script copied twice (~90 of ~190 line')
+   ('R15-CODE-PLATFORM-027', 'medium', 'open', 'code', 'audit-design-tokens.mjs resolves ROOT via URL.pathname, which is invalid on Windows, so th')
+   ('R15-CODE-PLATFORM-028', 'medium', 'open', 'code', 'The scripts-build subsystem has zero tests, including sidecar-staleness.mjs (a pure module')
+   ('R15-DATA-059', 'medium', 'open', 'data', "Former company names never resolve and non-Indian identity stays empty: 'BeiGene' does not")
+   ('R15-DATA-071', 'medium', 'open', 'data', 'A cold-cache BSE range request silently returns at most 8 daily bars as if that were the y')
+   ('R15-DATA-079', 'medium', 'open', 'data', 'No market-observed open interest and no options chain exist, in the market where F&O is th')
+   ('R15-DATA-080', 'medium', 'open', 'data', 'No segment revenue or operational-metric data exists (revenue by product/geography, capaci')
+   ('R15-LEAD-013', 'medium', 'open', 'data', 'The bundled sp500 screener universe pack carries about 15 delisted names (rate_limited noi')
+   ('R15-LEAD-028', 'medium', 'open', 'data', 'BSE scrip-code addressing (e.g. 506597.BO, 544774.BO) 404s on data routes; only the BSE ti')
+   ('R15-LIFECYCLE-024', 'medium', 'open', 'lifecycle', 'No persistent store records a schema version (user_version 0 on all 8 SQLite DBs; no top-l')
+   ('R15-LIFECYCLE-026', 'medium', 'open', 'lifecycle', 'Under light realistic load the sidecar burns ~60% of a CPU core continuously, 99% of it on')
+   ('R15-RELEASE-005', 'medium', 'open', 'release', 'Sidecar staleness gate ignores .json.gz, so regenerating the bundled Indian fundamentals s')
+   ('R15-RELEASE-006', 'medium', 'open', 'release', "The CI freshness gate hand-copies each sidecar's staleness config instead of reading the e")
+   ('R15-RELEASE-007', 'medium', 'open', 'release', 'The design-token audit that enforces the R9 spacing/type law runs in no script, gate or wo')
+   ('R15-UI-041', 'medium', 'not_a_defect without rationale', 'ui', '')
+   ('R15-UI-047', 'medium', 'open', 'ui', 'Panels cannot pop out to a second window: no multi-monitor path for the dockview layout')
+   ('R15-UI-059', 'medium', 'open', 'ui', 'No composite score or scorecard exists, so nothing in a watchlist row is triage-able, sort')
+   ('R15-UI-085', 'medium', 'open', 'ui', 'About 19 readable text labels use text-charcoal-600 (#484848), about 1.98:1 on the panel s')
+   ('R15-UI-087', 'medium', 'open', 'ui', "FR-038's preference depth does not exist: no provider/model fallback order, no palette-beh")
+   ('R15-UI-088', 'medium', 'open', 'ui', 'In-webview drag gestures (dockview tab reorder, node-editor palette-to-canvas) have no aut')
+   ('R15-UI-091', 'medium', 'open', 'ui', "Chart indicator defaults never produce the spec's named combos (EMA9/21 for intraday equit")
+needs_gui c/h/m: ['R15-CODE-AGENT-001', 'R15-LIFECYCLE-001', 'R15-LIFECYCLE-008', 'R15-UI-009', 'R15-UI-022', 'R15-UI-025', 'R15-UI-050', 'R15-UI-083', 'R15-UI-084']
+not_a_defect c/h/m in 4 areas not in concur: []

@@ -1,0 +1,4 @@
+CMD: grep -rn 'provider-health\|providerHealth' src (non-test) @d38b5d1a
+src/components/StatusChrome.tsx:74:/** One run of registry fall-throughs (`/system/provider-health`, C14). */
+src/components/StatusChrome.tsx:102:        const health = await sidecarGet<{ fallthroughs: Fallthrough[] }>("/system/provider-health");
+(end)

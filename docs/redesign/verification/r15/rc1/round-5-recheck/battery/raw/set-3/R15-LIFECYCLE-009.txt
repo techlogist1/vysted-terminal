@@ -1,0 +1,7 @@
+CMD: grep -n "R15-LIFECYCLE-009" src/lib/workspace.test.ts (candidate 949c3c9f); supplementary live probe below.
+1600:// ── one-time import of the pre-blob positions ledger (R15-LIFECYCLE-009) ───
+1602:describe("legacy positions import (R15-LIFECYCLE-009)", () => {
+--- supplementary live probe (own sidecar :52357, keyless seed data dir, no legacy ledger rows seeded): ---
+CMD: curl -m 5 http://127.0.0.1:52357/portfolio/positions
+[]
+HTTP_STATUS=200

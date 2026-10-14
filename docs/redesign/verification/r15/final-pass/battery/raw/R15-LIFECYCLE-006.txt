@@ -1,0 +1,15 @@
+# R15-LIFECYCLE-006 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:12:09+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+python3 $B/vy.py invoke researcher 'Research Reliance Industries (RELIANCE, NSE): latest quarter results and outlook. Use only the research tool.' --provider openrouter --model nvidia/nemotron-3-super-120b-a12b:free --tier tier_b --port 52862 --timeout 110 --header X-Vysted-Research-Models=normal=openai/o3-deep-research,deep=openai/o3-deep-research,ultra=openai/o3-deep-research --out $B/out/vy006.jsonl > $B/out/vy006.txt 2>&1; echo "vy exit $?"
+grep -o 'no longer available on OpenRouter[^"]*' $B/out/vy006.txt | sort | uniq -c | head -3; grep -c '"status": "error"' $B/out/vy006.txt; tail -4 $B/out/vy006.txt | cut -c1-400
+--- output ---
+vy exit 0
+   4 no longer available on OpenRouter; pick another in Settings > Research.
+   1 no longer available on OpenRouter; pick another in Settings > Research.”
+2
+
+If you would like me to proceed using other available tools (such as fundamentals, financial statements, news, or filings) to compile the latest quarterly results and outlook, please let me know and I will do so. Otherwise, I must await the restoration of the research service to fulfill your original request.
+
+=== ok · 36.4s · events {'thinking': 269, 'tool_use': 2, 'research_step': 6, 'tool_result': 2, 'delta': 54, 'done': 1} · usage in=15299 out=441 · est $0.00000 · nvidia/nemotron-3-super-120b-a12b:free
+
+EXIT=0 (36.5s)

@@ -108,6 +108,23 @@ describe("MacroSeriesPicker", () => {
     expect(onProviderChange).toHaveBeenCalledWith("ecb");
   });
 
+  it("shows the catalog failure with a Retry that reloads it (R15-UI-029)", async () => {
+    vi.mocked(sidecarGet).mockRejectedValueOnce(new Error("engine not up"));
+    render(
+      <MacroSeriesPicker
+        provider="fred"
+        onProviderChange={() => undefined}
+        onSelect={() => undefined}
+      />,
+    );
+    expect(await screen.findByText("Could not load featured series.")).toBeInTheDocument();
+    expect(screen.queryByTestId("macro-catalog-skeleton")).not.toBeInTheDocument();
+
+    vi.mocked(sidecarGet).mockResolvedValueOnce(SAMPLE_CATALOG);
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(await screen.findByText("10-Year Treasury")).toBeInTheDocument();
+  });
+
   it("fires onSelect when a catalog row is clicked", async () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce(SAMPLE_CATALOG);
     const onSelect = vi.fn();

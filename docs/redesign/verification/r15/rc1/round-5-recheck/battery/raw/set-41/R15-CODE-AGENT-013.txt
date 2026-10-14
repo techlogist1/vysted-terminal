@@ -1,0 +1,10 @@
+=== R15-CODE-AGENT-013: in-process catalog projections (candidate venv) ===
+CMD: sidecar/.venv/bin/python3 probe_catalog.py (imports services.agent_tools.catalog, calls internal_tool_ids/agent_selectable_tool_ids/default_grant_tool_ids/mcp_capabilities/resolve_tool_ids source-check)
+internal_tool_ids: 56
+agent_selectable_tool_ids: 56
+default_grant_tool_ids: 55
+equal internal==selectable: True
+equal selectable==default_grant: False
+selectable-not-default_grant: ['ask_user']
+resolve_tool_ids reads aliases: True
+mcp_capabilities count: 32

@@ -1,0 +1,2 @@
+{"yahoo":{"open":true,"cooldown_remaining":38.09770400769776,"consecutive_throttles":0.0,"consecutive_opens":1,"opens_total":1,"throttles_total":42.0},"fallthroughs":[]}
+HTTP 200

@@ -1,0 +1,44 @@
+# packaged (tauri://localhost) run, pid 8295, sidecar :54339 — grep for ' 403' and 'Origin'
+## vysted.log (whole file, boot1+boot2)
+hits: 0
+## app-stdout-packaged.log
+hits: 0
+## app-stdout-boot1.log
+hits: 0
+## status histogram of uvicorn.access lines (vysted.log)
+2309 HTTP/1.1" 200
+   1 HTTP/1.1" 201
+   3 HTTP/1.1" 202
+   1 HTTP/1.1" 502
+## OPTIONS preflights (carry the webview Origin) — statuses
+  80 HTTP/1.1" 200
+## the one 502: GET /macro/DGS10?provider=fred (no FRED key; the Macro panel shows 'FRED needs a free API key') — not an Origin refusal
+## guard is live on this sidecar (curl, my port 54339): Origin https://evil.example -> 403; Origin tauri://localhost -> 200
+
+# dev (http://localhost:5173) run 3, pid 28886, sidecar :62896 — grep for ' 403', 'Origin', 'origin not allowed'
+## vysted.log lines 4455.. (raw/vysted-dev.log)
+hits: 0
+## app-stdout-dev.log
+hits: 0
+## app-stdout-dev-boot1.log
+hits: 0
+## app-stdout-dev-boot2.log
+hits: 0
+## vite.log
+hits: 0
+## status histogram of uvicorn.access lines (raw/vysted-dev.log)
+ 586 HTTP/1.1" 200
+   1 HTTP/1.1" 202
+   2 HTTP/1.1" 409
+   2 HTTP/1.1" 502
+## OPTIONS preflights (carry Origin http://localhost:5173) — statuses
+  91 HTTP/1.1" 200
+## non-200 lines
+2026-10-02T23:07:01.317Z [sidecar] 2026-10-03 04:37:01,316 INFO uvicorn.access: 127.0.0.1:63854 - "POST /custom-agents HTTP/1.1" 409
+2026-10-02T23:07:01.318Z [sidecar] 2026-10-03 04:37:01,318 INFO uvicorn.access: 127.0.0.1:63854 - "POST /custom-agents HTTP/1.1" 409
+2026-10-02T23:09:06.711Z [sidecar] 2026-10-03 04:39:06,711 INFO uvicorn.access: 127.0.0.1:63850 - "GET /macro/DGS10?provider=fred HTTP/1.1" 502
+2026-10-02T23:09:06.712Z [sidecar] 2026-10-03 04:39:06,712 INFO uvicorn.access: 127.0.0.1:64064 - "GET /macro/DGS10?provider=fred HTTP/1.1" 502
+## guard live on this sidecar (curl, my port 62896)
+Origin https://evil.example -> 403
+Origin http://localhost:5173 -> 200
+## the 409s: POST /custom-agents at boot re-registering the already-seeded lens agent (Quant Tutor, see capture 49) — conflict, not an Origin refusal; the 502s: FRED keyless (capture 39). raw/vysted-dev.log was copied before the curl probe, so the probe's own 403 is not in it.

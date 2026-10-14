@@ -1,0 +1,6 @@
+COMMAND: _coerce_history on 12-message history (turn1 constraint + 5 exchanges) then invoke_agent options.history
+EXIT: 0
+OUTPUT:
+folded=4; verbatim msgs=9
+summary msg sent to provider contains turn-1 constraint: True; tool-steps trailer kept: True
+notice events: ['LLMResearchStepEvent {"kind": "research_step", "tool": "history", "step_kind": "notice", "detail": "Older turns summarised: the 4 earliest messages of this thread were folded into a summary of your asks, tool steps and failures.", "status": "ok", "index": "0"}']

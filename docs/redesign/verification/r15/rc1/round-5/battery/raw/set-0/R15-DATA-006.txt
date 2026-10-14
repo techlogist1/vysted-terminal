@@ -1,0 +1,2 @@
+$ curl -s http://127.0.0.1:52351/quotes/DAL?asset_class=equity
+{"symbol":"DAL","price":49.88,"change":0.0,"change_percent":0.0,"volume":12000.0,"open":49.88,"high":49.88,"low":49.88,"prev_close":47.51,"currency":"INR","market_state":"CLOSED","timestamp":"2025-03-12T00:00:00Z","provider":"bse","freshness":"stale"}

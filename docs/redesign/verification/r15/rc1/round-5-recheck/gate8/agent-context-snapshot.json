@@ -1,0 +1,59 @@
+{
+  "focusedSource": null,
+  "bySource": {
+    "__terminal__": {
+      "focusedPanel": null,
+      "focusedSymbol": "SPY",
+      "charts": [],
+      "watchlist": {
+        "symbols": [
+          "SPY",
+          "QQQ",
+          "BTC/USDT",
+          "ETH/USDT",
+          "NVDA",
+          "AAPL"
+        ],
+        "selected": null
+      },
+      "portfolio": {
+        "positionCount": 2,
+        "totalValue": 3936,
+        "activePortfolioId": "default",
+        "activePortfolioName": "Portfolio",
+        "holdings": [
+          {
+            "id": "h-e201407a-8562-4dde-bfc3-f895ed16d378",
+            "symbol": "AAPL",
+            "quantity": 7,
+            "costBasis": 175,
+            "assetClass": "equity",
+            "marketValue": 2387.4900512695312,
+            "pnl": 1162.4900512695312
+          },
+          {
+            "id": "h-a023b310-6e3a-4f5e-8e6e-af342c3d1c2f",
+            "symbol": "MSFT",
+            "quantity": 3,
+            "costBasis": 400,
+            "assetClass": "equity",
+            "marketValue": 1548.5099487304688,
+            "pnl": 348.50994873046875
+          }
+        ]
+      },
+      "brief": {
+        "phase": "empty"
+      },
+      "otherPanels": [],
+      "openPanels": [],
+      "region": "IN",
+      "capturedAt": 1790515373851
+    },
+    "__notes__": {
+      "general": "",
+      "bySymbol": {}
+    }
+  },
+  "capturedAt": 1790515373851
+}

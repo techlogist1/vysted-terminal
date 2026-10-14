@@ -1,0 +1,31 @@
+# after-quit.txt — run copy after the app quit (2026-10-03T21:07:23Z)
+-rw-r--r--@ 1 lokavyasingh  staff       35 Oct  4 02:19 ./app-meta.json
+-rw-r--r--@ 1 lokavyasingh  staff    24576 May 22 12:24 ./audit_log.db
+-rw-r--r--@ 1 lokavyasingh  staff       35 Oct  4 02:19 ./backups/unversioned-2026-10-04/app-meta.json
+-rw-r--r--@ 1 lokavyasingh  staff    24576 May 22 12:24 ./backups/unversioned-2026-10-04/audit_log.db
+-rw-r--r--@ 1 lokavyasingh  staff    12288 May 22 18:00 ./backups/unversioned-2026-10-04/custom_agents.db
+-rw-r--r--@ 1 lokavyasingh  staff     4096 May 22 12:21 ./backups/unversioned-2026-10-04/data_cache.db
+-rw-r--r--@ 1 lokavyasingh  staff    32768 Oct  4 02:21 ./backups/unversioned-2026-10-04/data_cache.db-shm
+-rw-r--r--@ 1 lokavyasingh  staff   271952 Oct  4 02:21 ./backups/unversioned-2026-10-04/data_cache.db-wal
+-rw-r--r--@ 1 lokavyasingh  staff    12288 May 22 12:24 ./backups/unversioned-2026-10-04/plugins.db
+-rw-r--r--@ 1 lokavyasingh  staff    12288 May 27 23:51 ./backups/unversioned-2026-10-04/portfolio.db
+-rw-r--r--@ 1 lokavyasingh  staff     3932 May 22 12:16 ./backups/unversioned-2026-10-04/workspaces/phase9test.vysted-workspace
+-rw-r--r--@ 1 lokavyasingh  staff    12288 Oct  4 02:36 ./custom_agents.db
+-rw-r--r--@ 1 lokavyasingh  staff     4096 May 22 12:21 ./data_cache.db
+-rw-r--r--@ 1 lokavyasingh  staff    32768 Oct  4 02:21 ./data_cache.db-shm
+-rw-r--r--@ 1 lokavyasingh  staff   589192 Oct  4 02:21 ./data_cache.db-wal
+-rw-r--r--@ 1 lokavyasingh  staff  3010560 Oct  4 02:37 ./fundamentals_cache.db
+-rw-r--r--@ 1 lokavyasingh  staff   278437 Oct  4 02:37 ./logs/vysted.log
+-rw-r--r--@ 1 lokavyasingh  staff       95 Oct  4 02:21 ./mcp-endpoint.json
+-rw-r--r--@ 1 lokavyasingh  staff    12288 Oct  4 02:36 ./plugins.db
+-rw-r--r--@ 1 lokavyasingh  staff    12288 Oct  4 02:23 ./portfolio.db
+-rw-r--r--@ 1 lokavyasingh  staff   500652 Oct  4 02:21 ./resolver_masters/bse_instruments.json
+-rw-r--r--@ 1 lokavyasingh  staff   321902 Oct  4 02:21 ./resolver_masters/nse_instruments.json
+-rw-r--r--@ 1 lokavyasingh  staff    24576 Oct  4 02:21 ./workflows.db
+-rw-r--r--@ 1 lokavyasingh  staff    23870 Oct  4 02:36 ./workspaces/__autosave__.vysted-workspace
+-rw-r--r--@ 1 lokavyasingh  staff     3932 May 22 12:16 ./workspaces/phase9test.vysted-workspace
+portfolio positions: 84
+positions
+sqlite_sequence
+__autosave__.vysted-workspace
+phase9test.vysted-workspace

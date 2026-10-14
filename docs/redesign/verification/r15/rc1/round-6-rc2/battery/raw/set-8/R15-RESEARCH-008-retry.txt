@@ -1,0 +1,14 @@
+# R15-RESEARCH-008 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:35:10Z, sidecar :52348
+# kind=py
+# command:
+#   import asyncio, time
+#   from services.agent_tools.web_search import _web_search
+#   async def main():
+#       t=time.monotonic()
+#       r=await _web_search({'query':'Dixon Technologies share price news today'})
+#       rows=r.get('results') or []
+#       print('%.1fs'%(time.monotonic()-t),'ok',r.get('ok'),'rows',len(rows),[ (x.get('url') or '')[:60] for x in rows[:4]], (r.get('message') or '')[:200])
+#   asyncio.run(main())
+# output:
+10.3s ok False rows 0 [] keyless web search has no engine available right now — DuckDuckGo: rate-limiting; Brave: rate-limiting; Mojeek: rate-limiting. Wait a moment and retry, or add an Exa key / local SearXNG for a dedicate
+# exit=0

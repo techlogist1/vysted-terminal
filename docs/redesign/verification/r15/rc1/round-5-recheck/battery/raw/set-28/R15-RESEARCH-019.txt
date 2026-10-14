@@ -1,0 +1,47 @@
+=== R15-RESEARCH-019: visit_for_research surfaces fetch_page error reason instead of silent None ===
+cmd: sidecar/.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/battery2-scripts/research019.py
+(fetch_page stubbed to return {ok: False, error: 'HTTP 403'}; visit_for_research is the real function)
+VisitResult: VisitResult(text=None, reason='HTTP 403')
+
+code confirms the fix shape (sidecar/services/search/extract.py:759-797):
+async def visit_for_research(url: str, *, max_chars: int = RESEARCH_VISIT_MAX_CHARS) -> VisitResult:
+    """The research-shaped visit: extracted page text, or why it could not be read.
+
+    Soft by design — a researcher with no page text still has the SERP
+    snippets; a visit failure must never fail the round, but its ``reason``
+    (``HTTP 403``, a blocked URL, an unsupported type) is returned so the loop
+    records it as a step instead of the filing silently vanishing. The caller is
+    responsible for fencing the returned text with
+    :func:`services.search.scrub.wrap_untrusted` before it enters a prompt.
+
+    A ``.pdf`` URL gets the wider :data:`PDF_RESEARCH_MAX_CHARS` budget —
+    results filings carry their numbers deep in tables, and starving them was
+    the "no quarterly results announced" failure mode.
+
+    R9 scanned-filing honesty: a PDF with image-only pages gets the one-line
+    :func:`scanned_pages_note` APPENDED to its excerpt (partial text layer) or
+    RETURNED as the excerpt (no text layer at all) — the researcher prompt then
+    treats the missing figures as unparsed scans, never as "not announced".
+    """
+    budget = max(max_chars, PDF_RESEARCH_MAX_CHARS) if _is_pdf_url(url) else max_chars
+    if _is_pdf_url(url) and _needs_impersonated_pdf_lane(url):
+        # Exchange-archive filing: the primary document for the run — read deeper.
+        budget = max(budget, PDF_EXCHANGE_MAX_CHARS)
+    try:
+        page = await fetch_page(url, max_chars=budget)
+    except Exception as exc:  # noqa: BLE001 — belt-and-suspenders; fetch_page shouldn't raise
+        return VisitResult(None, f"fetch raised: {exc}")
+    pages_empty = int(page.get("pages_empty") or 0)
+    page_count = int(page.get("page_count") or 0)
+    if not page.get("ok"):
+        if pages_empty and page_count:
+            # Fully scanned filing: the honest note IS the visit text, so the
+            # researcher learns WHY there are no figures instead of a silent miss.
+            return VisitResult(scanned_pages_note(pages_empty, page_count))
+        return VisitResult(None, str(page.get("error") or "unreadable page"))
+    content = str(page.get("content") or "")
+    if content and pages_empty and page_count:
+        content = content.rstrip() + "\n\n" + scanned_pages_note(pages_empty, page_count)
+    return VisitResult(content) if content else VisitResult(None, "no readable content extracted")
+
+VERDICT: holds. fetch_page(ok=False, error='HTTP 403') is not swallowed under a blanket except -- visit_for_research reads page.get('error') and returns it as VisitResult.reason.

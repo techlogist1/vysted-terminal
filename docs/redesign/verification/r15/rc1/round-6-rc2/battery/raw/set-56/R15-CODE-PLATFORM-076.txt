@@ -1,0 +1,17 @@
+# rc1-battery-22 raw R15-CODE-PLATFORM-076 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ python3 -c "import json,glob; [print(f, len(json.load(open(f)).get('systemPrompt','').encode())) for f in sorted(glob.glob('sidecar/agents/*.json'))]"
+sidecar/agents/_schema.json 0
+sidecar/agents/buffett.json 2581
+sidecar/agents/copilot.json 4382
+sidecar/agents/dalio.json 3687
+sidecar/agents/druckenmiller.json 3272
+sidecar/agents/graham.json 2696
+sidecar/agents/klarman.json 3209
+sidecar/agents/lynch.json 2733
+sidecar/agents/marks.json 3145
+sidecar/agents/munger.json 3084
+sidecar/agents/portfolio_advisor.json 3421
+sidecar/agents/researcher.json 3556
+sidecar/agents/soros.json 3467
+sidecar/agents/strategy_critic.json 3900
+EXIT=0

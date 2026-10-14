@@ -1,0 +1,23 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ grep -n -B2 -A12 'event === .error.\|ScreenerErrorFrame\|frame.message' src/store/screener.ts | head -60; grep -n 'missing universe snapshot\|error frame' src/store/screener.test.ts | head
+exit=0
+555-        return true;
+556-      }
+557:      if (frame.event === "error") {
+558:        // R15-UI-056: the engine's own reason (ScreenerErrorFrame) reaches the panel.
+559:        serverError = typeof frame.message === "string" ? frame.message : "screener run failed";
+560-        return true;
+561-      }
+562-      return false;
+563-    }
+564-
+565-    /** Parse + apply complete lines; returns true once a terminal frame landed. */
+566-    function processLines(lines: string[]): boolean {
+567-      for (const line of lines) {
+568-        const frame = parseLine(line);
+569-        if (frame && processFrame(frame)) return true;
+570-      }
+571-      return false;
+337:    it("R15-UI-056: the stream's error frame puts the server's reason in store.error", async () => {
+340:        { event: "error", message: "missing universe snapshot 'nifty50.json'" },
+357:      expect(state.error).toBe("missing universe snapshot 'nifty50.json'");

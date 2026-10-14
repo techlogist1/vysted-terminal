@@ -1,0 +1,6 @@
+case C (www + nsearchives.nseindia.com) -> registrable domains: {'nseindia.com'} (n=1)
+case D (SearXNG-only, two subdomains, e.g. investors.example.com + ir.example.com) -> registrable domains: {'example.com'} (n=1)
+control B (two genuinely independent domains) -> registrable domains: {'reuters.com', 'moneycontrol.com'} (n=2)
+fresh: www.sebi.gov.in + sebi.gov.in -> registrable domains: {'sebi.gov.in'} (n=1)
+fresh: m.economictimes.com + economictimes.indiatimes.com -> registrable domains: {'indiatimes.com', 'economictimes.com'} (n=2)
+deep.distinct_web_domains(www/rbidocs.rbi.org.in + www/api.bseindia.com) -> {'rbi.org.in', 'bseindia.com'}

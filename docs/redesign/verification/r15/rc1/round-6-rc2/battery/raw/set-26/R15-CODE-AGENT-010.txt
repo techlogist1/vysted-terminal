@@ -1,0 +1,15 @@
+CMD: on done run 61fcf8c48b764bccb071aed3cef5fc50: POST cancel/resume/start/answer, then GET row
+--cancel
+{"detail":"run '61fcf8c48b764bccb071aed3cef5fc50' is done; it cannot become cancelled"}
+HTTP 409
+--resume
+{"detail":"run '61fcf8c48b764bccb071aed3cef5fc50' is done; it cannot become running"}
+HTTP 409
+--start
+{"detail":"run '61fcf8c48b764bccb071aed3cef5fc50' is done; it cannot become running"}
+HTTP 409
+--answer
+{"detail":"run '61fcf8c48b764bccb071aed3cef5fc50' is done; it cannot become running"}
+HTTP 409
+--row
+done completed {'tokens': 1798, 'spend_usd': 0.0, 'steps': 1}

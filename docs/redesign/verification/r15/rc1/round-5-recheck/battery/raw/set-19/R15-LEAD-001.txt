@@ -1,0 +1,45 @@
+COMMAND: grep pins in sidecar/openbb_mcp_subprocess/requirements.txt and sidecar/sec_edgar_mcp_subprocess/requirements.txt (candidate worktree)
+EXIT: 0
+--openbb--
+fastmcp==3.3.1
+fastmcp-slim==3.3.1
+mcp==1.27.1
+httpx==0.28.1
+--sec-edgar--
+mcp==1.27.1
+httpx==0.28.1
+
+COMMAND: launch the freshly built vysted-openbb-mcp-sidecar-aarch64-apple-darwin binary (built today for this candidate sha, per env prep) standalone on :52397 --no-watchdog
+EXIT: launched, no PackageNotFoundError (copy_metadata succeeded), booted cleanly:
+
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│                                                                              │
+│                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+│                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                FastMCP 3.3.1                                 │
+│                            https://gofastmcp.com                             │
+│                                                                              │
+│                  🖥  Server:      OpenBB MCP, 3.3.1                           │
+│                  🚀 Deploy free: https://horizon.prefect.io                  │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                         🎉 Update available: 4.0.10                          │
+│                      Run: pip install --upgrade fastmcp                      │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+[09/27/26 20:14:18] INFO     Starting MCP server 'OpenBB MCP'   transport.py:301
+                             with transport 'streamable-http'                   
+                             on http://127.0.0.1:52397/mcp                      
+INFO:     Started server process [88353]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:52397 (Press CTRL+C to quit)
+
+NOTE: this is a lighter check than a full 'fresh venv, node scripts/ensure-all-sidecars.mjs --force' rebuild (that belongs to the ci-local/build chain lane, ~9min+ each, harness stall risk for a battery shard); the pins match the fix, and the binary already built fresh for this candidate + boots without the PackageNotFoundError this entry names. Main sidecar's own /health also reports openbb-mcp:available confirming the live MCP subprocess is healthy.

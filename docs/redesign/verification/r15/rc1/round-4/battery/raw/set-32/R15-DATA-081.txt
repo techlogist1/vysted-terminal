@@ -1,0 +1,5 @@
+== GET /quotes/BTC%2FUSDT?asset_class=crypto ==
+{"symbol":"BTC/USDT","price":84122.01,"change":272.31,"change_percent":0.325,"volume":7654.81699,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-09-26T21:54:42.006000Z","provider":"ccxt:binance","freshness":"live"}
+HTTP:200
+== GET /history/ETH%2FUSDT?range=1y&asset_class=crypto ==
+provider ccxt:binance n_bars 365

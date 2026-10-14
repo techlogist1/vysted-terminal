@@ -1,0 +1,23 @@
+CMD: POST /workspace 'b9v-ws2' v1, then v2 (creates .bak of v1), then truncate current, then GET, then re-save
+{"status":"saved","name":"b9v-ws2"} HTTP:200
+{"status":"saved","name":"b9v-ws2"} HTTP:200
+files before truncation:
+b9v-ws2.vysted-workspace
+b9v-ws2.vysted-workspace.bak
+--- GET after truncating v2 (should serve .bak = v1) ---
+{"v":1} HTTP:200
+files after GET:
+b9v-ws2.vysted-workspace
+b9v-ws2.vysted-workspace.bak
+b9v-ws2.vysted-workspace.corrupt-1790501344723
+--- content of restored .vysted-workspace file (should be v1, and parseable) ---
+{
+  "v": 1
+}
+--- next save (v3) after recovery, confirm .bak stays parseable ---
+{"status":"saved","name":"b9v-ws2"} HTTP:200
+{
+  "v": 1
+}
+--- non-dict body (list) -> expect 422 ---
+{"detail":[{"type":"dict_type","loc":["body","workspace"],"msg":"Input should be a valid dictionary","input":[1,2,3]}]} HTTP:422

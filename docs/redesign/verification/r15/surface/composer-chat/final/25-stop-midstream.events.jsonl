@@ -1,0 +1,7 @@
+{"t":2.579,"_request":{"agentId":"copilot","prompt":"research Mazagon Dock Shipbuilders in depth — order book and margins","contextSnapshot":{"focusedSource":null,"bySource":{"__terminal__":{"focusedPanel":null,"focusedSymbol":"^NSEI","charts":[],"watchlist":{"symbols":["^NSEI","RELIANCE.NS","TCS.NS","HDFCBANK.NS"],"selected":null},"portfolio":{"positionCount":0,"totalValue":null,"activePortfolioId":"default","activePortfolioName":"Portfolio","holdings":[]},"brief":{"phase":"empty"},"otherPanels":[],"openPanels":[],"region":"IN","capturedAt":1791024469533},"__notes__":{"general":"","bySymbol":{}}},"capturedAt":1791024469533},"provider":"ollama","model":"llama3.1:8b","mode":"agent","autonomy":"auto","options":{"history":[],"deepResearchBackend":"native","researchDepth":"deep"}}}
+{"t":12.6,"event":{"kind":"heartbeat"}}
+{"t":22.602,"event":{"kind":"heartbeat"}}
+{"t":32.604,"event":{"kind":"heartbeat"}}
+{"t":42.605,"event":{"kind":"heartbeat"}}
+{"t":40.147,"_stopClicked":true}
+{"t":42.702,"onError":"This operation was aborted"}

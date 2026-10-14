@@ -1,0 +1,28 @@
+=== R15-UI-038: hostMatches now prefers the URL host over a provenance-labelled domain string ===
+cmd: no live/in-process path (TS logic; vitest suites are the heavy lane's -- never run here). grep for the pinned test + source mechanism.
+161:  it("prefers the URL host over a provenance-labelled domain (R15-UI-038)", () => {
+162-    const sonar = at("https://www.sec.gov/Archives/x", {
+163-      domain: "sec.gov (via Perplexity Sonar)",
+164-    });
+165-    expect(deriveSourceType(sonar)).toBe("filing");
+166-    const wire = at("https://www.reuters.com/x", { domain: "reuters.com (via Perplexity Sonar)" });
+167-    expect(deriveSourceType(wire)).toBe("news");
+168-  });
+169-
+170-  it("defaults an unknown host to web (never a fabricated authority)", () => {
+171-    expect(deriveSourceType(at("https://some-random-blog.example/post"))).toBe("web");
+172-  });
+173-});
+174-
+175-// ── asset-class derivation ────────────────────────────────────────────────────
+176-
+
+source mechanism (src/lib/brief-ingest.ts, hostOf/hostMatches area):
+253:function hostOf(source: BriefSource): string {
+318:function hostMatches(host: string, list: string[]): boolean {
+341:  const host = hostOf(source);
+342:  if (hostMatches(host, FILING_HOSTS)) {
+345:  if (hostMatches(host, RESEARCH_HOSTS)) {
+348:  if (hostMatches(host, NEWS_HOSTS)) {
+
+VERDICT: ci_pinned. certified only via src/lib/brief-ingest.test.ts:161 "prefers the URL host over a provenance-labelled domain (R15-UI-038)" -- test present, not re-run (vitest is the heavy lane's job per the battery rules).

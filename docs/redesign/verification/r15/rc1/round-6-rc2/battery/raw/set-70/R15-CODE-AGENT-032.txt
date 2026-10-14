@@ -1,0 +1,4 @@
+# in-process (candidate venv): runs_store bounded list + retention prune
+== GET /runs 200 rows 100 LIST_LIMIT 100
+== checkpoint_json in list rows: False
+== after fresh-process open: old-done None old-error None old-cancelled None old-paused kept True

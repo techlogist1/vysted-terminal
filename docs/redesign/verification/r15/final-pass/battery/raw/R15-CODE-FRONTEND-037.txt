@@ -1,0 +1,8 @@
+# R15-CODE-FRONTEND-037 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'R15-CODE-FRONTEND-037' src/lib/workspace.test.ts; grep -n 'Array.isArray(workspace.watchlist)' src/lib/workspace.ts
+--- output ---
+454:  it("R15-CODE-FRONTEND-037: empty watchlist round-trips to []; a blob without the key keeps defaults", () => {
+370:      if (Array.isArray(workspace.watchlist)) {
+
+EXIT=0 (0.0s)

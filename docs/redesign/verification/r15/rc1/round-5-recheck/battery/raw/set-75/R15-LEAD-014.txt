@@ -1,0 +1,4 @@
+CMD: in-process _repair_tool_args with a mocked oneshot reply that echoes the tool's own JSON schema back
+schema-echo repair result: None
+placeholder-echo repair result: None
+EXIT: 0

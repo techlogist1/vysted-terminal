@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_782f3e99ab08434ca6c66a94afff023a", "name": "price_data", "input": {"range": "1d", "symbol": "TCS.NS", "timeframe": "1d", "asset_class": "equity"}}
+[  42.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_782f3e99ab08434ca6c66a94afff023a", "name": "price_data", "ok": true, "error": null}
+[  52.7s] heartbeat: {"kind": "heartbeat"}
+[  62.7s] heartbeat: {"kind": "heartbeat"}
+[  72.7s] heartbeat: {"kind": "heartbeat"}
+[  77.5s] done: {"kind": "done", "usage": {"input_tokens": 7034, "output_tokens": 55, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The closing price for TCS.NS on 2026-09-25 is not available in the data I have access to.
+
+However, I can tell you that the last recorded close was on 2026-08-13 at ₹2349.7.
+
+=== ok · 77.5s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 54, 'done': 1} · usage in=7034 out=55 · est $0.00000 · llama3.1:8b

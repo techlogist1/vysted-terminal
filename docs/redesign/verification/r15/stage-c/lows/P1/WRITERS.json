@@ -1,0 +1,633 @@
+{
+  "partition": "P1",
+  "base_sha": "ebc5ed4194f9362422c3178c27d4cdf946428968",
+  "sets": [
+    {
+      "name": "W1",
+      "model": "sonnet",
+      "branch": "worktree-agent-lows-P1-W1-backtest",
+      "merge_order_hint": 1,
+      "returned": true,
+      "head_sha_returned": "6cb980bf5fc8ab1a57e9d33563fbb2b679a17837",
+      "head_sha_origin": "6cb980bf5fc8ab1a57e9d33563fbb2b679a17837",
+      "head_verified": true,
+      "pushed": true,
+      "entries": [
+        {
+          "id": "R15-AGENT-079",
+          "outcome": "fixed",
+          "commit": "6dc5d030",
+          "test": "sidecar/tests/test_backtest_lows.py::test_uppercase_and_or_parse_like_lowercase",
+          "note": "DSL keyword matching was case-sensitive; folded token.text.lower() in _accept_keyword so AND/OR/NOT parse regardless of case."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-036",
+          "outcome": "fixed",
+          "commit": "53faeaed",
+          "test": "sidecar/tests/test_backtest_lows.py::test_each_rule_compiled_once",
+          "note": "CustomDslStrategy recompiled entry/exit separately from validate_definition; now reuses report[\"compiled\"] so each rule compiles exactly once."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-034",
+          "outcome": "fixed",
+          "commit": "647f3d21",
+          "test": "sidecar/tests/test_backtest_lows.py::test_each_bar_in_exactly_one_slice",
+          "note": "Walk-forward slices were closed on both ends, double-counting boundary bars; made every slice but the last half-open."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-035",
+          "outcome": "fixed",
+          "commit": "31d51888",
+          "test": "sidecar/tests/test_backtest_lows.py::test_no_dead_backtest_scaffolding",
+          "note": "Deleted dead _default_bar_loader/_encode_event_dict, an unreachable error handler, and stale build narrative; bar_loader made required."
+        },
+        {
+          "id": "R15-UI-060",
+          "outcome": "fixed",
+          "commit": "c999e5f9",
+          "test": "sidecar/tests/test_backtest_engine.py::test_event_sequence_has_progress_between_start_and_complete",
+          "note": "SSE stream had no progress signal; threaded on_event/run_id into the full run's bar loop, emitting progress every PROGRESS_EVERY_BARS bars; dropped dead trade-event kind."
+        },
+        {
+          "id": "R15-UI-061",
+          "outcome": "fixed",
+          "commit": "6cb980bf",
+          "test": "src/modules/backtest/BacktestResultView.test.tsx",
+          "note": "Trade-log header counted open+closed trades together; split into \"(N closed, M open)\" using exitedAt."
+        }
+      ],
+      "focused_tests": "pytest sidecar/tests/{test_backtest_lows,test_backtest_engine,test_backtest_custom,test_bar_loader,test_backtest_agent_parity,test_backtest_store,test_backtest_strategies,test_strategy_critic_e2e}.py -> 107 passed; vitest src/modules/backtest/ src/store/backtest.test.ts -> 32 passed; ruff format --check + ruff check on all touched .py files clean; eslint + prettier on all touched .ts/.tsx clean.",
+      "issues": [
+        "Pre-existing, out-of-scope: `pnpm exec tsc --noEmit` fails on src/modules/notes/notes.test.ts and NotesPanel.tsx with \"Cannot find module '@tiptap/extension-list'\" \u2014 a dependency-resolution issue in the notes module, not among my owned files, unrelated to any of the 6 entries."
+      ]
+    },
+    {
+      "name": "W2",
+      "model": "opus",
+      "branch": "worktree-agent-lows-P1-W2-runtime-catalog",
+      "merge_order_hint": 1,
+      "returned": true,
+      "head_sha_returned": "31e61ce5d5eeb4e722c635f2c06977aeffd8aac3",
+      "head_sha_origin": "31e61ce5d5eeb4e722c635f2c06977aeffd8aac3",
+      "head_verified": true,
+      "pushed": true,
+      "entries": [
+        {
+          "id": "R15-AGENT-070",
+          "outcome": "fixed",
+          "commit": "c2b8d2af",
+          "test": "sidecar/tests/test_agent_runtime.py::test_timeout_from_args_flag_not_name_selects_guard",
+          "note": "Added a Capability.timeout_from_args flag, set on research and checked in __post_init__. _tool_timeout_seconds now uses the flag instead of the hardcoded name 'research'. The existing no-timeout test now keys on the flag."
+        },
+        {
+          "id": "R15-AGENT-071",
+          "outcome": "fixed",
+          "commit": "a0dabe74",
+          "test": "sidecar/tests/test_agent_runtime.py::test_every_tool_named_in_prompts_resolves_in_catalog",
+          "note": "The preamble's tool list is now generated from the catalog's default-grant host actions. Removed copilot's restated routing. The test checks that every snake_case tool name in each effective prompt resolves in the catalog."
+        },
+        {
+          "id": "R15-AGENT-073",
+          "outcome": "fixed",
+          "commit": "27c9c12a",
+          "test": "sidecar/tests/test_agent_runtime.py::test_provider_override_without_model_uses_provider_default",
+          "note": "_resolve_model now takes the provider id. spec.default_model applies only to the spec's own provider. Any other provider gets model_registry.default_model_for, or a clear ValueError."
+        },
+        {
+          "id": "R15-AGENT-089",
+          "outcome": "fixed",
+          "commit": "627f4c96",
+          "test": "sidecar/tests/test_planner.py::test_coerce_steps_keeps_close_and_focus_panel_and_plan_marks_staged",
+          "note": "Added close_panel and focus_panel to planner PLAN_ACTIONS and the prompt. _STAGEABLE_PLAN_ACTIONS is now derived as PLAN_ACTIONS intersected with HOST_ACTION_TOOLS, so the two lists cannot drift apart."
+        },
+        {
+          "id": "R15-CODE-AGENT-018",
+          "outcome": "fixed",
+          "commit": "0aeb18a5",
+          "test": "sidecar/tests/test_toolbelt_integrity.py::test_stageable_and_read_safe_relation_is_pinned",
+          "note": "Added comments beside both sets saying they are independent, because the pre-pass never runs on read turns. The test pins both sets as subsets of the host actions and pins their exact set differences."
+        },
+        {
+          "id": "R15-AGENT-066",
+          "outcome": "fixed",
+          "commit": "08a851d8",
+          "test": "sidecar/tests/test_mcp_catalog_parity.py::test_run_custom_backtest_not_read_only_on_mcp",
+          "note": "run_custom_backtest is now internal-only, alongside backtest_summary. read_only stays True internally, as test_backtest_custom (not owned) pins it. It is no longer advertised to MCP clients as readOnlyHint=true."
+        },
+        {
+          "id": "R15-AGENT-067",
+          "outcome": "fixed",
+          "commit": "fdf26843",
+          "test": "sidecar/tests/test_mcp_catalog_parity.py::test_mcp_projection_is_explicit_per_entry",
+          "note": "The exposed MCP set (31 ids) is now pinned by name, so every exposure is an explicit decision. I did not restore a per-entry mcp field, because that would reverse the certified CODE-AGENT-013 pinned in test_capability_catalog.py."
+        },
+        {
+          "id": "R15-CODE-AGENT-026",
+          "outcome": "fixed",
+          "commit": "5aee98e3",
+          "test": "sidecar/tests/test_mcp_catalog_parity.py::test_toolkind_has_no_unprojected_mcp_endpoint",
+          "note": "Removed the unused mcp_endpoint kind from ToolKind. The test asserts that every ToolKind member is used by some catalog entry."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-076",
+          "outcome": "fixed",
+          "commit": "31e61ce5",
+          "test": "sidecar/tests/test_agent_runtime.py::test_agent_system_prompts_within_byte_budget",
+          "note": "Condensed the copilot prompt from 8906 to 4382 bytes and capped every agent prompt at 4608 bytes. In an A/B on qwen2.5:7b, 8 of 8 first-round tool choices matched the old prompt."
+        }
+      ],
+      "focused_tests": "cd sidecar && .venv/bin/python -m pytest -q tests/test_agent_runtime.py tests/test_planner.py tests/test_toolbelt_integrity.py tests/test_mcp_catalog_parity.py tests/test_capability_completeness.py tests/test_capability_catalog.py -> 286 passed. Neighbour files (sonar_lane, custom_agents_router, native_search, budget_guard, run_manager, runs_router, agents_router, b3_runtime_intent_gate, tool_loop_e2e) -> 189 passed, run after 071. ruff format --check sidecar (442 files already formatted) and ruff check sidecar -> all passed.",
+      "issues": [
+        "Capability.internal now always returns True. Removing it would mean editing unowned tests that read .internal (test_mcp_catalog_parity uses it too).",
+        "The research capability description in catalog.py still mentions \"publish_brief, mode='FAST'\" wording.",
+        "The comment on the _host_action_ids lazy import in agent_runtime.py describes an import cycle that no longer exists, since schemas is now imported at module level.",
+        "qwen2.5:7b does not call get_terminal_state for 'is this cheap?' under either the old or the new copilot prompt; it asks the user for a ticker instead. This weakness predates these changes.",
+        "The test_mcp_catalog_parity module docstring still names only the backtest digest as a local-only case; run_custom_backtest is now local-only too.",
+        "The Capability docstring says a single read_only flag serves both consumers. The MCP-hint meaning is now also governed by _MCP_INTERNAL_ONLY, because test_backtest_custom pins run_custom_backtest read_only=True.",
+        "A/B runs were slowed by another process's ollama llama3.1:8b runner, at about 100 s per prompt. Each result is a single sample."
+      ]
+    },
+    {
+      "name": "W3",
+      "model": "opus",
+      "branch": "worktree-agent-lows-P1-W3-actions-research",
+      "merge_order_hint": 2,
+      "returned": true,
+      "head_sha_returned": "dd1ceed263534c3b56988b132cc3f6b465c5cc75",
+      "head_sha_origin": "dd1ceed263534c3b56988b132cc3f6b465c5cc75",
+      "head_verified": true,
+      "pushed": true,
+      "entries": [
+        {
+          "id": "R15-CODE-FRONTEND-034",
+          "outcome": "fixed",
+          "commit": "1860dbce",
+          "test": "src/store/proposed-changes.test.ts::a reworded Kept label still acks kept_previous",
+          "note": "ApplyResult now carries status (applied|kept_previous|failed) set by done/kept/fail; accept() acks with it. publishAckStatus label-prefix matching deleted."
+        },
+        {
+          "id": "R15-CODE-FRONTEND-035",
+          "outcome": "fixed",
+          "commit": "7e43c55b",
+          "test": "src/lib/host-actions.test.ts::write_note append with a trailing-whitespace addendum equals appendSymbolNote",
+          "note": "write_note routes through notes.appendSymbolNote/setSymbolNote seams instead of re-implementing the join, so trimming and General scope match the store."
+        },
+        {
+          "id": "R15-RESEARCH-041",
+          "outcome": "fixed",
+          "commit": "e776cd99",
+          "test": "sidecar/tests/test_research_iter.py::test_structured_only_sources_are_not_web_available",
+          "note": "web_available now derives from is_web_search_source (http(s) URL, not filing/news) in deep, iter, research.py, deep_research and host-actions briefFromInput; stale deep test assertion corrected."
+        },
+        {
+          "id": "R15-CODE-RESEARCH-005",
+          "outcome": "could_not",
+          "commit": "",
+          "test": "",
+          "note": "Extracting shared loop helpers to _loop.py needs edits to services/research/citecheck.py (imports deep._emit/_safe_llm) and five non-owned tests referencing private deep names."
+        },
+        {
+          "id": "R15-CODE-RESEARCH-006",
+          "outcome": "fixed",
+          "commit": "ab1ec33b",
+          "test": "sidecar/tests/test_research_depth.py::test_panel_threshold_single_source",
+          "note": "One PANEL_MIN_ANGLES in depth.py read via DepthProfile.is_panel; iter _MIN_ANGLES and deep_research _MIN_HEAVY_ANGLES removed; docstrings corrected."
+        },
+        {
+          "id": "R15-RESEARCH-035",
+          "outcome": "fixed",
+          "commit": "010794d5",
+          "test": "sidecar/tests/test_research_iter.py::test_over_cap_report_keeps_facts_established",
+          "note": "_Report.render over cap trims Dead ends, Planned next, Open questions lines before Facts established; headings kept; headingless bodies keep the tail as before."
+        },
+        {
+          "id": "R15-RESEARCH-042",
+          "outcome": "fixed",
+          "commit": "dd1ceed263534c3b56988b132cc3f6b465c5cc75",
+          "test": "sidecar/tests/test_research_fast.py::test_below_floor_marker",
+          "note": "depth.source_floor_leg counts distinct cited URLs vs SC-016 floor 3; FAST and native/research-model deep lanes stamp a structured leg plus 'N sources (below 3)' markdown marker; recorded basket asserts >=3."
+        }
+      ],
+      "focused_tests": "vitest src/lib/host-actions.test.ts src/store/proposed-changes.test.ts -> 120 passed; pytest tests/test_research_{fast,iter,deep,depth}.py + test_research_model_lane + test_research_tools + test_sonar_lane + test_perplexity_backend + test_agent_runtime -> 375 passed (after 042); earlier pytest research_iter/deep/depth/fast + sonar/agent_runtime/model_lane/perplexity/tools -> 369 passed; test_research_depth -> 20 passed; ruff format --check + ruff check sidecar clean; eslint + prettier --check on owned TS files clean",
+      "issues": [
+        "src/lib/host-actions.ts ~1664: default arrange with a null dockview API reports success",
+        "services/research/citecheck.py imports private _emit/_safe_llm from services.research.deep (blocks R15-CODE-RESEARCH-005 extraction)",
+        "BriefPanel bodyCitesWeb 'Sources were not captured' copy can now fire on a sourced structured-only brief; its webAvailable comment is stale (not owned)",
+        "Frontend does not render the new structured.source_floor leg; types/brief.ts / brief-blocks.tsx not owned",
+        "Sonar and Perplexity vendor lanes are not floor-stamped: tests/test_sonar_lane.py (not owned) asserts exact markdown '# fake'",
+        "FAST no-target (web-only) path keeps structured == {} so it carries no source_floor leg (stamping it would start auto-publishing unbound briefs)",
+        "tsc reports missing @tiptap/extension-list dependency in notes files (pre-existing)"
+      ]
+    },
+    {
+      "name": "W4",
+      "model": "sonnet",
+      "branch": "worktree-agent-lows-P1-W4-chat-composer",
+      "merge_order_hint": 2,
+      "returned": true,
+      "head_sha_returned": "57d0e546097a04f4777b3e99d3cad35f9f23a3ea",
+      "head_sha_origin": "57d0e546097a04f4777b3e99d3cad35f9f23a3ea",
+      "head_verified": true,
+      "pushed": true,
+      "entries": [
+        {
+          "id": "R15-RESEARCH-040",
+          "outcome": "fixed",
+          "commit": "1dc2219e",
+          "test": "src/modules/chat/DepthControl.test.tsx::Tier B + ULTRA renders an estimate before dispatch",
+          "note": "DepthControl reads researchTier/researchModels from search-settings; renders '~$x.xx est.' beside the active depth stop when tier_b, derived from the pricing table (estimateResearchRunUsd)."
+        },
+        {
+          "id": "R15-UI-093",
+          "outcome": "fixed",
+          "commit": "57d0e546",
+          "test": "src/modules/chat/mentions.test.ts::R15-UI-093: a quoted candidate renders description '[NMS: 227.1 +0.8%]'",
+          "note": "resolveMention debounces a batch /quotes fetch for visible resolved candidates and appends [exchange: price chg%] to the description; /resolve contract untouched; fetch failure/supersession degrades gracefully."
+        }
+      ],
+      "focused_tests": "pnpm exec vitest run src/modules/chat/DepthControl.test.tsx src/store/search-settings.test.ts src/modules/chat/mentions.test.ts -> 3 files, 62 tests passed. pnpm exec eslint on all 7 owned files -> clean. pnpm exec prettier --check -> clean (one file auto-fixed with --write). pnpm exec tsc --noEmit -> 2 pre-existing unrelated errors in src/modules/notes (missing @tiptap/extension-list dep), zero errors touching owned files.",
+      "issues": [
+        "tsc --noEmit reports 2 pre-existing type errors unrelated to this scope: src/modules/notes/notes.test.ts:261 and src/modules/notes/NotesPanel.tsx:33 both fail to resolve module '@tiptap/extension-list' (missing/mismatched dependency) \u2014 left untouched, outside owned files and outside these two register entries."
+      ]
+    },
+    {
+      "name": "W5",
+      "model": "sonnet",
+      "branch": "worktree-agent-lows-P1-W5-portfolio",
+      "merge_order_hint": 2,
+      "returned": true,
+      "head_sha_returned": "95a94e16ad55e3dd24f5f0f4e8bf4f5ecd46c9c0",
+      "head_sha_origin": "95a94e16ad55e3dd24f5f0f4e8bf4f5ecd46c9c0",
+      "head_verified": true,
+      "pushed": true,
+      "entries": [
+        {
+          "id": "R15-UI-078",
+          "outcome": "fixed",
+          "commit": "7c08a033",
+          "test": "src/store/portfolios.test.ts::validateHolding rejects blank cost, qty>1e12, names the field for 1,000 (R15-UI-078)",
+          "note": "Blank-as-0 bug: validateHolding() checks raw pre-Number() input so blank cost/qty is rejected; one rule set shared by form, agent path, restore."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-050",
+          "outcome": "fixed",
+          "commit": "4e4a7a3a",
+          "test": "src/modules/portfolio/metrics.test.ts::rows carry the real holding id (R15-CODE-PLATFORM-050)",
+          "note": "metrics.ts computes directly on Holding[]; removed the index-join Position adapter whose correctness depended only on array ordering."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-051",
+          "outcome": "fixed",
+          "commit": "16a1ce1d",
+          "test": "src/modules/portfolio/PortfolioPanel.test.tsx (existing suite, 32 passed)",
+          "note": "P&L cell now calls shared pnlTone() instead of re-inlining the ternary. Triage said no dedicated test needed (one-line call); relied on existing suite."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-052",
+          "outcome": "fixed",
+          "commit": "f4dd306f",
+          "test": "src/store/portfolios.test.ts (existing replace-semantics test, stays green)",
+          "note": "Doc-comment-only reword stating updateHolding's replace (not partial-merge) semantics. No isolated per-commit run; verified in the final combined 85-test pass."
+        },
+        {
+          "id": "R15-UI-079",
+          "outcome": "fixed",
+          "commit": "9a9d2bf0",
+          "test": "src/lib/csv.test.ts::R15-UI-079 prefixes a formula-trigger leading char with a quote",
+          "note": "escapeCsvCell now prefixes =+-@/tab/CR leading chars with a quote, closing the CSV formula-injection hole."
+        },
+        {
+          "id": "R15-AGENT-091",
+          "outcome": "fixed",
+          "commit": "95a94e16",
+          "test": "src/modules/chat/context-provider.test.ts::get_portfolio holdings carry a currency field on both paths (R15-AGENT-091)",
+          "note": "TerminalHolding gained currency; new fallbackCurrency() resolves quote currency -> crypto pair quote-side -> region default on both extraction paths."
+        }
+      ],
+      "focused_tests": "Per-stage: portfolios.test.ts+PortfolioPanel.test.tsx 45 passed; metrics.test.ts+PortfolioPanel.test.tsx 32 passed; context-provider.test.ts+... 43 passed; csv.test.ts 8 passed. Final combined run (all 5 owned test files): `pnpm exec vitest run src/store/portfolios.test.ts src/modules/portfolio/metrics.test.ts src/modules/portfolio/PortfolioPanel.test.tsx src/modules/chat/context-provider.test.ts src/lib/csv.test.ts` -> 5 files passed, 85 tests passed, 0 failed.",
+      "issues": [
+        "Pre-existing, unrelated to this work: tsc reports 2 errors for missing module '@tiptap/extension-list' in src/modules/notes/notes.test.ts and NotesPanel.tsx \u2014 neither file is owned or touched by any of the 6 entries; left alone.",
+        "R15-CODE-PLATFORM-051 (pnlTone call-site) and R15-CODE-PLATFORM-052 (doc-comment reword) were trivial enough that LOWS_TRIAGE/root-cause analysis didn't warrant a dedicated new pinning test; both are covered by the existing suite and the final 85-test combined run.",
+        "Currency-fallback logic is now duplicated in two owned files (PortfolioPanel.tsx and context-provider.ts) rather than sharing one helper, because the natural shared location (src/lib/format.ts's private activeCurrency/resolveCurrency) is outside the owned-files list \u2014 flagging for a future consolidation pass, not fixed here."
+      ]
+    },
+    {
+      "name": "W6",
+      "model": "opus",
+      "branch": "worktree-agent-lows-P1-W6-runs-stores",
+      "merge_order_hint": 2,
+      "returned": true,
+      "head_sha_returned": "104d96a500d66cb907f6de56856e6b710fe0c234",
+      "head_sha_origin": "104d96a500d66cb907f6de56856e6b710fe0c234",
+      "head_verified": true,
+      "pushed": true,
+      "entries": [
+        {
+          "id": "R15-CODE-AGENT-017",
+          "outcome": "fixed",
+          "commit": "f870382e",
+          "test": "sidecar/tests/test_agents_store.py::test_unparseable_row_is_skipped_and_logged",
+          "note": "list_agents now skips a row that _row_to_read cannot parse and logs a warning, the same way _discover_specs handles a bad agent file. Catching ValueError/TypeError covers JSONDecodeError and pydantic ValidationError."
+        },
+        {
+          "id": "R15-CODE-AGENT-029",
+          "outcome": "fixed",
+          "commit": "5728cd5a",
+          "test": "sidecar/tests/test_agents_store.py::test_connect_is_idempotent (+ same-named tests in test_plugins.py, test_portfolio.py; test_schema_version.py openers)",
+          "note": "Deleted all four _ensure_schema functions. The three idempotency tests were converted, not deleted: each now calls _connect() twice. The schema_version openers also call _connect(). The grep now comes back empty."
+        },
+        {
+          "id": "R15-CODE-AGENT-031",
+          "outcome": "could_not",
+          "test": "sidecar/tests/test_runs_router.py::test_runs_rows_carry_only_snake_case_keys (not written)",
+          "note": "A snake_case-only wire renames RunDetail hostActions to host_actions. That breaks sidecar/tests/test_run_manager.py:758,760, which reads wire['hostActions'] and belongs to P3 W2 llm-chat. The fix needs that file, so no code was changed."
+        },
+        {
+          "id": "R15-CODE-AGENT-032",
+          "outcome": "fixed",
+          "commit": "104d96a5",
+          "test": "sidecar/tests/test_runs_store.py::test_list_runs_is_bounded_and_prunes_old_terminal_rows; src/lib/delegate-runs.test.ts::skips a poll while one is in flight, and bounds the /runs read with a timeout",
+          "note": "list_runs reads summary columns only, LIMIT 100. Terminal rows older than 30 days are pruned at first connect. update_run returns None. The poll has an in-flight guard and an 8 s AbortSignal timeout. Two migration fixtures were restamped to the current time because retention pruned their epoch-1 rows."
+        }
+      ],
+      "focused_tests": "sidecar: pytest tests/test_agents_store.py -> 13 passed (017); pytest test_agents_store+test_plugins+test_portfolio+test_schema_version+test_runs_store -> 81 passed (029); pytest test_runs_store+test_runs_router+test_schema_version -> first run 2 failed/45 passed (two migration fixtures with epoch-1 'done' rows were pruned by the new retention; restamped to now), rerun 47 passed (032). vitest run src/lib/delegate-runs.test.ts -> 11 passed. ruff format/check clean on all touched py files; prettier --check + eslint clean on delegate-runs.ts/.test.ts; tsc --noEmit -> 2 errors, both a dependency problem (missing @tiptap/extension-list in the shared node_modules, src/modules/notes/*), none in touched files.",
+      "issues": [
+        "R15-CODE-AGENT-031 needs the P3 W2 owner or the lead to also change sidecar/tests/test_run_manager.py:758,760 (wire['hostActions'] -> wire['host_actions']). With that file available the fix is: drop the aliases in models/run.py, delete _dual_case, have launch return {run_id} only, have delegate-runs.ts read run_id/host_actions, update the router tests to snake_case, and add a runs section to SIDECAR_API.md. The PARTITION note asking the lead to update the CLAUDE.md 'GET /runs emits BOTH' gotcha does not apply until 031 lands.",
+        "If 031 lands with extra='forbid' and no aliases, a stale client that sends camelCase 'apiKey' gets a 422. FastAPI's default 422 body includes the input value, so the key would be echoed back. No in-repo client sends camelCase.",
+        "LIST_LIMIT=100 is newest-first. A paused or planned run with more than 100 newer runs above it drops out of GET /runs, so adoptSidecarRuns no longer sees it.",
+        "tsc: @tiptap/extension-list cannot be resolved from the shared node_modules (src/modules/notes/NotesPanel.tsx:33, notes.test.ts:261). This was already the case and is unrelated to this set.",
+        "agents_store.get_agent still raises on an unparseable row, so the single-agent route 500s for that one agent only. Left alone: it is outside the list blast radius in 017."
+      ]
+    },
+    {
+      "name": "W7",
+      "model": "opus",
+      "branch": "worktree-agent-lows-P1-W7-rust-core",
+      "merge_order_hint": 2,
+      "returned": true,
+      "head_sha_returned": "8d07e2f692fbdbe50d1d3d9a6e24e706e5e324ee",
+      "head_sha_origin": "8d07e2f692fbdbe50d1d3d9a6e24e706e5e324ee",
+      "head_verified": true,
+      "pushed": true,
+      "entries": [
+        {
+          "id": "R15-CODE-PLATFORM-055",
+          "outcome": "fixed",
+          "commit": "738f40fa",
+          "test": "src-tauri/src/lib.rs::tests::write_atomic_text_and_bytes",
+          "note": "write_text_atomic and write_bytes_atomic are now one-liners over a single private write_atomic(path, &[u8])."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-054",
+          "outcome": "fixed",
+          "commit": "522e22e6",
+          "test": "src-tauri/src/lib.rs::tests::write_atomic_round_trip_leaves_no_tmp",
+          "note": "write_atomic calls sync_all on the temp file before the rename and then does a best-effort parent-directory fsync on unix. There is no portable crash test, so fsync presence is pinned by review."
+        },
+        {
+          "id": "R15-CROSS-PLATFORM-007",
+          "outcome": "fixed",
+          "commit": "078b577c",
+          "test": "sidecar/tests/test_workspace.py::test_replace_retries_permission_error_then_succeeds",
+          "note": "save_workspace retries os.replace 5 times on PermissionError. Rust write_atomic retries PermissionDenied/32 and removes the temp on final failure (lib.rs::tests::rename_failure_removes_tmp). The router already maps OSError to a detailed 507."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-058",
+          "outcome": "fixed",
+          "commit": "d00aafce",
+          "test": "cargo test --lib (22/22); single app_data_dir resolver",
+          "note": "A single pub(crate) app_data_dir(&AppHandle) (creates the dir, logs, falls back to a temp dir) is used by the sidecar spawn, diag_log, get_app_data_dir and the dev keystore. The commit prefix is refactor( instead of fix(."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-059",
+          "outcome": "fixed",
+          "commit": "368f93f3",
+          "test": "cargo clippy --all-targets -D warnings -W clippy::significant_drop_in_scrutinee",
+          "note": "take() now runs in its own statement, so the mutex guard drops before kill(), in lib.rs, openbb_mcp.rs and sec_edgar_mcp.rs. No behaviour change."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-056",
+          "outcome": "fixed",
+          "commit": "d1feca22",
+          "test": "src-tauri/src/keychain.rs::tests::dev::migrate_with_erroring_reader_leaves_unmigrated_and_retries",
+          "note": "Read errors no longer count as migrated. migrated=true only when no account errored. Failed accounts are reported in MigrateReport.failed, which is mirrored in keychain.ts."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-057",
+          "outcome": "fixed",
+          "commit": "1906030b",
+          "test": "src-tauri/src/keychain.rs::tests::dev::on_wait_called_before_sleep",
+          "note": "Before the 140 s idle wait, the migration emits keychain-migrate:waiting(secs), which migrateDevKeystore logs. The wait is injected so it can be tested. Also covered by the keychain.test.ts countdown test."
+        },
+        {
+          "id": "R15-CROSS-PLATFORM-011",
+          "outcome": "fixed",
+          "commit": "442c4958",
+          "test": "src/store/onboarding.test.ts::rejecting keychain keeps seen:true once markSeen ran (R15-CROSS-PLATFORM-011)",
+          "note": "The onboarding flags now live in data-dir app-meta.json (app_meta_get/set), with the legacy keychain value read and carried over. Keychain errors carry a secret-store-unavailable prefix, which KeyEntryDialog shows. The migrate wait is macOS-only."
+        },
+        {
+          "id": "R15-CROSS-PLATFORM-008",
+          "outcome": "fixed",
+          "commit": "be3b6f28",
+          "test": "src-tauri/src/lib.rs::tests::no_env_mutation_in_src",
+          "note": "MCP ports reach the main sidecar through Command::envs, and set_var/remove_var are removed. An unavailable child gets an empty port rather than an omitted var, which masks any inherited value. Also tests::sidecar_command_env_carries_mcp_ports."
+        },
+        {
+          "id": "R15-LIFECYCLE-037",
+          "outcome": "fixed",
+          "commit": "45ee687e",
+          "test": "src-tauri/src/lib.rs::tests::clear_mcp_endpoint_file_removes_existing",
+          "note": "The discovery file is removed at boot start (before the port==0 return), when the sidecar terminates and on app Exit. MCP_INTEGRATION.md corrected."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-074",
+          "outcome": "fixed",
+          "commit": "45ee687e",
+          "test": "src-tauri/src/lib.rs::tests::clear_mcp_endpoint_file_removes_existing",
+          "note": "Duplicate of R15-LIFECYCLE-037, closed by the same commit."
+        },
+        {
+          "id": "R15-LIFECYCLE-038",
+          "outcome": "fixed",
+          "commit": "fac92f89",
+          "test": "src-tauri/src/lib.rs::tests::plain_tcp_listener_is_not_healthy",
+          "note": "The main-sidecar wait now requires GET /health to return 200 with service=vysted-sidecar (15 s) before it settles Ready or writes the discovery file. The MCP children keep the TCP probe."
+        },
+        {
+          "id": "R15-RELEASE-009",
+          "outcome": "fixed",
+          "commit": "8d07e2f6",
+          "test": "src-tauri/src/lib.rs::tests::smoke_bind_budget_matches_supervisor",
+          "note": "Test-only fix: the test include_str-reads MCP_BIND_TIMEOUT_MS from smoke-test-sidecars.mjs and asserts it equals MCP_PORT_WAIT_SECS*ATTEMPTS*1000. Both are 90 s today."
+        }
+      ],
+      "focused_tests": "cargo test --manifest-path src-tauri/Cargo.toml --lib: 30 passed, 0 failed. cargo fmt --check: clean. cargo clippy --all-targets -D warnings: clean. cargo clippy --lib --release -D warnings: clean. pytest sidecar/tests/test_workspace.py: 21 passed. vitest (onboarding, KeyEntryDialog, keychain, OnboardingFlow, OnboardingBanner, ChatSidebar): 6 files, 72 passed. eslint + prettier --check on touched TS/MD files: clean. ruff format + check on touched Python: clean. tsc: only 2 pre-existing @tiptap/extension-list module-not-found errors in notes files, a dependency issue and not a verdict.",
+      "issues": [
+        "src/store/safety.ts (not owned) still stores first-launch-terms in the OS keychain, so on Linux without Secret Service that ack is lost every launch (same class as CROSS-PLATFORM-011)",
+        "tsc reports TS2307 Cannot find module '@tiptap/extension-list' in src/modules/notes/notes.test.ts and NotesPanel.tsx. This is a dependency gap in the symlinked node_modules, not something this branch changed",
+        "Commit d00aafce (R15-CODE-PLATFORM-058) uses the prefix refactor(rust-core) instead of fix(...). It was not amended because force-push is forbidden",
+        "sidecar/routers/workspace.py already mapped OSError to a detailed 507 (not the 500/503 the finding assumed), so it was left unchanged",
+        "The shared session scratchpad is being written by another workflow (one of my scratch scripts was overwritten after it had run). This had no effect on the committed work"
+      ]
+    },
+    {
+      "name": "W8",
+      "model": "sonnet",
+      "branch": "worktree-agent-lows-P1-W8-tokens-market",
+      "merge_order_hint": 2,
+      "returned": true,
+      "head_sha_returned": "2a2f0564cdd123d2bbcc1a34ca6779535437ddad",
+      "head_sha_origin": "2a2f0564cdd123d2bbcc1a34ca6779535437ddad",
+      "head_verified": true,
+      "pushed": true,
+      "entries": [
+        {
+          "id": "R15-UI-075",
+          "outcome": "fixed",
+          "commit": "4e3563a9",
+          "test": "scripts/audit-design-tokens.test.mjs::body font-feature-settings enables zero (matches tokens.css's slashed-zero claim)",
+          "note": "Added \"zero\" 1 to globals.css font-feature-settings; tokens.css already claimed it."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-070",
+          "outcome": "fixed",
+          "commit": "2466e973",
+          "test": "scripts/audit-design-tokens.test.mjs::a mismatched fallback fails the audit",
+          "note": "Re-valued 36 stale globals.css var() fallbacks (27 color + 9 type/weight/radius) to match tokens.css; extended audit script to catch drift going forward."
+        },
+        {
+          "id": "R15-UI-076",
+          "outcome": "fixed",
+          "commit": "fe356e17",
+          "test": "src/store/symbols.test.ts + src/store/chart-drawings.test.ts (per-region default tests)",
+          "note": "DEFAULT_SYMBOLS/DEFAULT_CHART_SYMBOL now derive from region.DEFAULT_REGION (IN). Ripple noted for integration."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-049",
+          "outcome": "fixed",
+          "commit": "2a2f0564",
+          "test": "src/store/marketplace.test.ts::remove(vysted-news) deletes each granted secret; disable does not",
+          "note": "remove() deletes every granted plugin secret; disable() unaffected. Skipped unverifiable exa one-shot migration."
+        },
+        {
+          "id": "R15-UI-089",
+          "outcome": "fixed",
+          "commit": "b80a3ead",
+          "test": "src/modules/marketplace/MarketplacePanel.test.tsx (invalid/valid NewsAPI key tests)",
+          "note": "Root cause already fixed by prior R15-DATA-094/R15-UI-033; added missing pinning test only."
+        }
+      ],
+      "focused_tests": "pnpm vitest run scripts/audit-design-tokens.test.mjs src/store/symbols.test.ts src/store/chart-drawings.test.ts src/store/marketplace.test.ts src/modules/marketplace/MarketplacePanel.test.tsx -> 5 files, 40 tests passed. eslint + prettier --check clean on every touched file.",
+      "issues": [
+        "R15-UI-076's fix changes DEFAULT_SYMBOLS's runtime value (US SPY/QQQ/BTC/ETH/NVDA/AAPL -> IN ^NSEI/RELIANCE.NS/TCS.NS/HDFCBANK.NS since DEFAULT_REGION=IN). This is correct per the register's fix_shape but breaks assertions in four out-of-partition test files that hardcode the old US symbols on screen: src/modules/watchlist/WatchlistPanel.test.tsx, src/modules/news/NewsFeedPanel.test.tsx, src/modules/panel-context-publishers.test.tsx, src/modules/notes/NotesPanel.test.tsx. None of these are in W8's owned files (some are owned by P2 writers, panel-context-publishers.test.tsx is unowned anywhere in the partition) so left untouched; the lead needs to update their fixtures at integration.",
+        "R15-CODE-PLATFORM-049's fix_shape also asked for a one-shot migration deleting a legacy 'plugin-secret:vysted-search-exa' orphan secret. No source in this repo's git history (including the deleted exa search backend commit f02998bf) ever wrote that literal keychain account string -- the exa search tier never had a marketplace credential form, only a sidecar-side backend. Fabricating a guessed field-key suffix to delete would be speculative, so this part of the fix was skipped; only the general remove()-deletes-every-grant fix (the verified, reproducible part) was implemented."
+      ]
+    },
+    {
+      "name": "W9",
+      "model": "sonnet",
+      "branch": "worktree-agent-lows-P1-W9-docs-truth",
+      "merge_order_hint": 3,
+      "returned": true,
+      "head_sha_returned": "dd10d2e03783a8de2e15577c729f0c7ddaa88aed",
+      "head_sha_origin": "dd10d2e03783a8de2e15577c729f0c7ddaa88aed",
+      "head_verified": true,
+      "pushed": true,
+      "entries": [
+        {
+          "id": "R15-DOCS-007",
+          "outcome": "fixed",
+          "commit": "0215736c",
+          "test": "n/a (docs-only)",
+          "note": "BLUEPRINT.md palette/theming back-ported to dark-only zinc; added UC2/UC4 MCP-degrade caveat. grep confirms no 'warm amber'/'light option'."
+        },
+        {
+          "id": "R15-DOCS-009",
+          "outcome": "fixed",
+          "commit": "2a68e9f1",
+          "test": "n/a (docs-only)",
+          "note": "Struck LangGraph from BLUEPRINT.md (2 spots + appendix ref), named the hand-rolled loop. DECISIONS.md line left to the lead per brief."
+        },
+        {
+          "id": "R15-CODE-PLATFORM-060",
+          "outcome": "fixed",
+          "commit": "f10855fc",
+          "test": "n/a (docs-only)",
+          "note": "Dropped 'system tray' from BLUEPRINT.md \u00a73.1; grep confirms zero hits."
+        },
+        {
+          "id": "R15-RELEASE-010",
+          "outcome": "fixed",
+          "commit": "07b31a06",
+          "test": "n/a (docs-only)",
+          "note": "All domain lines outside \u00a72 Locked table moved to planned tense; README.md named as today's install surface; \u00a72 row verified untouched."
+        },
+        {
+          "id": "R15-DOCS-014",
+          "outcome": "fixed",
+          "commit": "a3f58c4a",
+          "test": "n/a (docs-only)",
+          "note": "True TTFT stays honestly 'unmeasured' (no r15 log has per-chunk stream timestamps); added sourced per-provider round-trip median from r15/spend-ledger.jsonl for 4 lanes, explicitly labeled not-first-token."
+        },
+        {
+          "id": "R15-DOCS-019",
+          "outcome": "fixed",
+          "commit": "05c1b9ee",
+          "test": "n/a (docs-only)",
+          "note": "Annotated \u00a73.11/\u00a74(x2)/\u00a77(x2)/\u00a78 stale claims as closed by 0e248f98; verified live via sidecar/.venv python (catalog=56, TOOL_SCHEMAS=56, KNOWN_TOOL_IDS=56, 0 unreachable) and corrected banner count 27->56."
+        },
+        {
+          "id": "R15-DOCS-020",
+          "outcome": "fixed",
+          "commit": "006fd05b",
+          "test": "n/a (docs-only)",
+          "note": "Named useDesktopNotificationBridge + src/app/page.tsx:46 mount in \u00a73.10; verified both exist in code."
+        },
+        {
+          "id": "R15-DOCS-021",
+          "outcome": "fixed",
+          "commit": "f08ca119",
+          "test": "n/a (docs-only)",
+          "note": "Listed all 7 DB_FILENAME SQLite stores (grep-verified) in \u00a76; named runs_store._ensure_added_columns as the real ALTER migration (the one exception)."
+        },
+        {
+          "id": "R15-DOCS-022",
+          "outcome": "fixed",
+          "commit": "50f4dcb1",
+          "test": "n/a (docs-only)",
+          "note": "Split PLUGIN_DEVELOPMENT.md Roadmap into shipped-since-v0.3.0 (verified sidecar() + node-registry.ts + syncPluginAgents) vs still-open; pointed agent-picker gap at R15-AGENT-014."
+        },
+        {
+          "id": "R15-DOCS-023",
+          "outcome": "fixed",
+          "commit": "9e2bf6f3",
+          "test": "n/a (docs-only)",
+          "note": "README Status now defers to CURRENT_STATE.md; CURRENT_STATE.md's dead P1_P3_BUILD_REPORT.md link replaced with a note that it was removed (d3d9456c)."
+        },
+        {
+          "id": "R15-AGENT-087",
+          "outcome": "fixed",
+          "commit": "dd10d2e0",
+          "test": "src/store/agent-mode.test.ts::vitest run",
+          "note": "Amended FR-003, US3 (title+body+scenarios), SC-029 to the two-mode+autonomy spine with REBUILD_SPEC.md:179 pointer; rewrote agent-mode.ts docblock; closed S-15 in R4_STALE_CODE_REGISTER.md. 3/3 tests pass, eslint+prettier clean."
+        }
+      ],
+      "focused_tests": "vitest run src/store/agent-mode.test.ts -> 1 file, 3 tests, all passed (482ms); eslint src/store/agent-mode.ts -> clean; prettier --check src/store/agent-mode.ts -> clean. All other 10 entries are docs-only (no code touched, no test applicable).",
+      "issues": [
+        "spec.md has other stale 'four-mode' mentions outside FR-003/US3/SC-029 (lines ~47 TL;DR summary, ~1112 'Agent Run' entity Ask/Edit/Build/Delegate, ~1260/~1285 pass-summary prose) \u2014 left untouched, out of this entry's named scope.",
+        "R15-DOCS-023's fix_shape mentions 'a markdown link check over docs/ + README.md in ci-local' as a possible pin \u2014 that touches package.json/scripts, owned by a different partition (scripts-gates), so left unimplemented; the dead link itself is fixed.",
+        "R15-DOCS-009's fix_shape names a DECISIONS.md line recording the hand-rolled-orchestration choice \u2014 explicitly deferred to the lead per the entry's own brief ('the DECISIONS.md line is handed to the lead, who owns DECISIONS'); not touched.",
+        "R15-DOCS-022 leaves the plugin-contributed-agent picker UI itself unbuilt (tracked separately as R15-AGENT-014, not in this partition) \u2014 only the Roadmap doc was corrected to point at it instead of hiding it."
+      ]
+    }
+  ],
+  "dropped_sets": [],
+  "counts": {
+    "fixed": 61,
+    "could_not": 2,
+    "not_a_defect_proposed": 0,
+    "out_of_scope_proposed": 0,
+    "not_reported": 0
+  }
+}

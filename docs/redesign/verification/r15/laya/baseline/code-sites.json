@@ -1,0 +1,76 @@
+{
+  "sites": [
+    {
+      "type": "entity_match",
+      "file": "sidecar/services/resolution_policy.py",
+      "line": 119,
+      "path_today": "heuristic",
+      "keyless": true,
+      "hint": "pure/deterministic decide(): band + confidence thresholds (ACCEPT=0.72, REJECT=0.50) plus residual-tie check; no LLM, no network (module docstring line 12)."
+    },
+    {
+      "type": "entity_match",
+      "file": "sidecar/services/research/relevance.py",
+      "line": 522,
+      "path_today": "heuristic",
+      "keyless": true,
+      "hint": "entity_match() scores a web row [0,1] via token/host/url regex rules (junk hosts, SEO patterns, symbol/brand token bounds); module docstring line 12: 'Pure functions, no network, no LLM'."
+    },
+    {
+      "type": "holding_relevance",
+      "file": "sidecar/services/research/relevance.py",
+      "line": 623,
+      "path_today": "heuristic",
+      "keyless": true,
+      "hint": "gate_news() reuses entity_match/row_relevant per news item to drop off-entity items; no LLM call, floor MATCH_FLOOR=0.34."
+    },
+    {
+      "type": "composer_intent",
+      "file": "sidecar/services/planner.py",
+      "line": 178,
+      "path_today": "heuristic",
+      "keyless": true,
+      "hint": "classify_intent(): regex signal-phrase scoring over INTENTS (research/build/edit/read); docstring line 179 'no LLM, no network'."
+    },
+    {
+      "type": "composer_intent",
+      "file": "sidecar/services/planner.py",
+      "line": 353,
+      "path_today": "paid_llm",
+      "keyless": false,
+      "hint": "decompose(): 'LLM-backed decomposition of a COMPOUND request' via injected llm_call(prompt); malformed/empty reply falls back to classify_intent()-derived single step (never dead-ends, per docstring line 16-17)."
+    },
+    {
+      "type": "composer_intent",
+      "file": "src/modules/chat/slash-commands.ts",
+      "line": 65,
+      "path_today": "heuristic",
+      "keyless": true,
+      "hint": "matchBareTicker(): regex token shape + lookup against known-symbol set, no LLM (comment at ChatSidebar.tsx:422-423, R15-AGENT-088/FR-112: 'a lone resolved symbol loads the chart instantly, LLM-free')."
+    },
+    {
+      "type": "thesis_contradiction",
+      "file": "sidecar/services/research/verify.py",
+      "line": 118,
+      "path_today": "paid_llm",
+      "keyless": false,
+      "hint": "_parse_verdict(): AGREE/DISAGREE/UNVERIFIED for a numeric claim cross-check comes from an LLM completion (leading token first), with a marker-word regex scan (_DISAGREE_MARKERS/_AGREE_MARKERS, lines 99-108) as fallback only when the reply doesn't lead with a verdict token; runs under BudgetGuard wall-slice timeout (module docstring lines 39-45), UNVERIFIED on any failure/out-of-budget."
+    },
+    {
+      "type": "other:data_conflict_classification",
+      "file": "sidecar/services/research/semantics.py",
+      "line": 542,
+      "path_today": "heuristic",
+      "keyless": true,
+      "hint": "institutions-divergence conflict flagged as 'always a data contradiction' (cross-source numeric divergence), part of a larger typed-facts module distinguishing definitional mismatch vs genuine data_conflict (lines 82-97); no LLM call in this module, values rendered into a synthesis prompt block for downstream (LLM) narration."
+    }
+  ],
+  "notes": [
+    "Read every listed file/line before recording (Read tool); no site inferred from grep alone.",
+    "No trading/order language used; no secrets encountered or printed.",
+    "'thesis_contradiction' as a first-class holding-thesis concept (vs a bound position's stated thesis) was not found under sidecar/ or src/ — verify.py's numeric-claim AGREE/DISAGREE verdict and semantics.py's data_conflict classification are the closest existing decisions and are recorded as such.",
+    "No separate 'holding_relevance' (portfolio-position-to-news) module found distinct from gate_news() in relevance.py; recorded gate_news as the holding_relevance site since it is the news-to-target relevance gate the loop uses.",
+    "planner.decompose's llm_call is an injected callable; its concrete BYOK/keyless wiring at the call site was not traced further (out of this scout's grep set: sidecar/routers, sidecar/services/agent_runtime.py) — marked keyless:false as an LLM round-trip requires a configured provider key, but the exact caller wiring is unverified beyond planner.py itself."
+  ],
+  "summary": "8 sites: 3 pure regex/token heuristics (resolution_policy.decide, relevance.entity_match, relevance.gate_news), 1 heuristic composer bare-ticker fast path (slash-commands.ts), 1 heuristic intent classifier (planner.classify_intent) with 1 paid-LLM decomposition fallback (planner.decompose), 1 paid-LLM numeric-claim verdict with marker-word heuristic fallback (verify._parse_verdict), 1 heuristic data-conflict classification (semantics.py). No local_model path found; all LLM paths are BYOK paid round-trips, none keyless."
+}

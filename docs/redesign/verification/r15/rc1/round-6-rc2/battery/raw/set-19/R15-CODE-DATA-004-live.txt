@@ -1,0 +1,9 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ for h in 'X-Vysted-Region: IN' 'X-Vysted-Region: US'; do echo "$h"; curl -s -H "$h" localhost:52342/screener/default-universe; echo; done; echo none; curl -s localhost:52342/screener/default-universe
+exit=0
+X-Vysted-Region: IN
+{"universe":"nifty50"}
+X-Vysted-Region: US
+{"universe":"sp500"}
+none
+{"universe":"nifty50"}

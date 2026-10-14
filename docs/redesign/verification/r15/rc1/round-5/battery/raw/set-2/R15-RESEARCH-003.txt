@@ -1,0 +1,14 @@
+R15-RESEARCH-003: in-process probe (see probe_set2.py, probe_set2_output.json), key 'RESEARCH-003'
+{
+  "round1_urls": [
+    "vysted://price/BDL",
+    "vysted://fundamentals/BDL"
+  ],
+  "round2_urls": [
+    "vysted://price/BDL",
+    "vysted://fundamentals/BDL",
+    "https://nsearchives.nseindia.com/f1.pdf",
+    "https://nsearchives.nseindia.com/f2.pdf"
+  ],
+  "round1_prefix_stable": true
+}

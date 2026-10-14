@@ -1,0 +1,7 @@
+# R15-CODE-FRONTEND-010 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'R15-CODE-FRONTEND-010' src --include=*.test.ts* | cut -c1-220
+--- output ---
+src/lib/host-actions.test.ts:1458:  it("write_screener_filters writes the recipe and run:true runs it once (R15-CODE-FRONTEND-010)", () => {
+
+EXIT=0 (0.0s)

@@ -1,0 +1,2 @@
+curl -s --max-time 20 'http://127.0.0.1:52352/quotes/SHERA'
+{"symbol":"SHERA","price":177.9,"change":1.9000000000000057,"change_percent":1.079545454545458,"volume":27000.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}EXIT:0

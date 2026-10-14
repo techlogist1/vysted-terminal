@@ -1,0 +1,90 @@
+{
+ "tag": "intent-R2",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. A previous attempt at your chunk was killed by a usage wall: your two output files may already exist, partial or complete - verify every promise index in your range is covered and continue, never restart.",
+ "stages": [
+  {
+   "label": "verify",
+   "model": "opus",
+   "prompt": "Your task spec is the INTENT section of docs/redesign/verification/r15/tooling/PROMPT_census.md, with <source> = \"{{source}}\", <start> = {{start}}, <end> = {{end}}."
+  }
+ ],
+ "items": [
+  {
+   "id": "spec-0",
+   "source": "spec",
+   "start": 0,
+   "end": 45,
+   "model": "fable"
+  },
+  {
+   "id": "spec-45",
+   "source": "spec",
+   "start": 45,
+   "end": 90
+  },
+  {
+   "id": "spec-90",
+   "source": "spec",
+   "start": 90,
+   "end": 135,
+   "model": "fable"
+  },
+  {
+   "id": "spec-135",
+   "source": "spec",
+   "start": 135,
+   "end": 180
+  },
+  {
+   "id": "spec-180",
+   "source": "spec",
+   "start": 180,
+   "end": 221,
+   "model": "fable"
+  },
+  {
+   "id": "pdd-readme-45",
+   "source": "pdd-readme",
+   "start": 45,
+   "end": 90
+  },
+  {
+   "id": "pdd-readme-90",
+   "source": "pdd-readme",
+   "start": 90,
+   "end": 135
+  },
+  {
+   "id": "pdd-readme-135",
+   "source": "pdd-readme",
+   "start": 135,
+   "end": 180,
+   "model": "fable"
+  },
+  {
+   "id": "pdd-readme-180",
+   "source": "pdd-readme",
+   "start": 180,
+   "end": 225
+  },
+  {
+   "id": "pdd-readme-225",
+   "source": "pdd-readme",
+   "start": 225,
+   "end": 270,
+   "model": "fable"
+  },
+  {
+   "id": "pdd-readme-270",
+   "source": "pdd-readme",
+   "start": 270,
+   "end": 315
+  },
+  {
+   "id": "pdd-readme-315",
+   "source": "pdd-readme",
+   "start": 315,
+   "end": 354
+  }
+ ]
+}

@@ -1,0 +1,13 @@
+R15-AGENT-014: frontend boot-loop logic (bootstrapPlugins/syncPluginAgents), needs vitest+jsdom to execute; ROLE FORBIDS running vitest suites. Static source check + live sidecar half only.
+
+CMD: curl -s http://127.0.0.1:52360/custom-agents (pre-any-sync)
+[]
+CMD: grep -n 'syncPluginAgents' src/lib/plugin-bootstrap.ts
+26:import { syncPluginAgents } from "@/lib/plugin-agents";
+225:    await syncPluginAgents(pluginId, true);
+229:    await syncPluginAgents(pluginId, false);
+
+Confirms: pluginHost.attach() calls syncPluginAgents(pluginId, true) (line 225); bootstrapPlugins() loop calls runtime.loadPlugin(plugin) for every enabled row (incl. pre-installed), which invokes pluginHost.attach — the fixed boot-time call chain. This is a static-code confirmation, not a live execution of the TS boot loop (no GUI, no vitest per role rules).
+
+Pinned test that actually exercises this at runtime: src/lib/plugin-bootstrap.test.ts:43 describe('bootstrapPlugins — plugin agents at boot'), :50 it('registers a pre-installed agent pack's agents once; a disabled one is not synced')
+VERDICT: ci_pinned (frontend boot-loop behavior only executable under vitest/jsdom or a live GUI, both out of scope for this role/round)

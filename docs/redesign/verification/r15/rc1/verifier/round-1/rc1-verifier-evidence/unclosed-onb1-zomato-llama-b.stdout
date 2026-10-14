@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_61695a65a385470982c1f9df4a684c67", "name": "resolve_symbol", "input": {"region": "IN", "query": "Zomato"}}
+[  26.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_f43340f299e7454d81b36aee3bc5b7c8", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "ZOMATO.NS", "timeframe": "1d"}}
+[  35.6s] done: {"kind": "done", "usage": {"input_tokens": 3256, "output_tokens": 66, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Zomato stock is not available at this time. We couldn't retrieve its price data.
+
+However, I can suggest looking up the current symbol for Zomato on NSE (as it was renamed to ETERNAL in 2025). If you'd like to research Eternal Limited instead, I can help with that!
+
+=== ok · 35.6s · events {'heartbeat': 2, 'tool_use': 2, 'delta': 65, 'done': 1} · usage in=3256 out=66 · est $0.00000 · llama3.1:8b
+EXIT=0

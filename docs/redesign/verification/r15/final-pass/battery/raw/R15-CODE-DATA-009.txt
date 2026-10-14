@@ -1,0 +1,31 @@
+# R15-CODE-DATA-009 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:31+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services import provider_health as ph
+try:
+    from yfinance.exceptions import YFRateLimitError
+    print('== is_rate_limit YFRateLimitError', ph.is_rate_limit(YFRateLimitError()))
+except Exception as e: print('yf import', e)
+class MyRateLimited(Exception): pass
+print('== is_rate_limit MyRateLimited(class name)', ph.is_rate_limit(MyRateLimited('x')))
+print('== is_rate_limit HTTP 429 msg', ph.is_rate_limit(RuntimeError('HTTP Error 429: Too Many Requests')))
+try:
+    try: raise MyRateLimited('inner')
+    except Exception as inner: raise RuntimeError('outer') from inner
+except Exception as e: print('== is_rate_limit chained cause', ph.is_rate_limit(e))
+print('== is_rate_limit unrelated', ph.is_rate_limit(ValueError('bad value')))
+PY
+cd "$C/sidecar"; grep -rn 'provider_health.is_rate_limit\|is_rate_limit(' services --include=*.py | grep -v 'def is_rate_limit' | cut -c1-120 | head -6
+--- output ---
+== is_rate_limit YFRateLimitError True
+== is_rate_limit MyRateLimited(class name) True
+== is_rate_limit HTTP 429 msg True
+== is_rate_limit chained cause True
+== is_rate_limit unrelated False
+services/dividend_history.py:146:        if provider_health.is_rate_limit(exc):
+services/yfinance_provider.py:85:    if provider_health.is_rate_limit(exc):
+services/growth_check.py:214:        if provider_health.is_rate_limit(exc):
+services/symbol_resolver.py:1767:        if provider_health.is_rate_limit(exc):
+services/earnings_quality.py:207:        if provider_health.is_rate_limit(exc):
+
+EXIT=0 (0.5s)

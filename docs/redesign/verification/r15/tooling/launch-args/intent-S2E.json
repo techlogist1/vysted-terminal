@@ -1,0 +1,23 @@
+{
+ "tag": "intent-S2E",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_offmachine_s2.md section 1 (INTENT chunks) in full before touching anything.",
+ "stages": [
+  {
+   "label": "chunk",
+   "model": "sonnet",
+   "effort": "high",
+   "prompt": "Your task spec is PROMPT_offmachine_s2.md section 1, with <source> = \"{{source}}\", <start> = {{start}}, <end> = {{end}}. A prior attempt may have left CENSUS/intent/ledger-{{id}}.json partial - verify and continue."
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Raw file: docs/redesign/verification/r15/census/raw/intent-{{id}}.json. Output: docs/redesign/verification/r15/census/refute/intent-{{id}}.json. Follow PROMPT_refute.md exactly; if the raw file has 0 findings, write an empty array and return count 0."
+  }
+ ],
+ "items": [
+  {"id": "pdd-readme-270", "source": "pdd-readme", "start": 270, "end": 315},
+  {"id": "pdd-readme-315", "source": "pdd-readme", "start": 315, "end": 354},
+  {"id": "deferred-42", "source": "deferred", "start": 42, "end": 84}
+ ]
+}

@@ -1,0 +1,27 @@
+CMD: direct call to services.agent_tools.news_tool._news({'symbols':'BTC/USDT'}) in candidate venv (live network)
+news tool result ok= True count= 1
+ item: Bitcoin rebounds strongly this week, trades near $84,000 after climbin | sentiment= 0.802 sentiment_label= positive symbols= ['BTC/USDT']
+--- build_aliases fresh cases (pair symbols, matching original register repro) ---
+BTC/USDT -> {'BTC/USDT': ['BTC/USDT', 'BTC', 'bitcoin']}
+ETH/USDT -> {'ETH/USDT': ['ETH/USDT', 'ETH', 'ethereum']}
+SOL/USDT -> {'SOL/USDT': ['SOL/USDT', 'SOL', 'solana']}
+DOGE/USDT -> {'DOGE/USDT': ['DOGE/USDT', 'DOGE', 'dogecoin']}
+--- _tag_symbols fresh headline cases (news_provider._tag_symbols, mirrors NewsItem) ---
+Traceback (most recent call last):
+  File "<stdin>", line 17, in <module>
+ModuleNotFoundError: No module named 'services.models'
+--- _tag_symbols fresh headline cases (retry with correct import) ---
+Traceback (most recent call last):
+  File "<stdin>", line 10, in <module>
+  File "<stdin>", line 8, in mk
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/pydantic/main.py", line 263, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+pydantic_core._pydantic_core.ValidationError: 1 validation error for NewsItem
+provider
+  Field required [type=missing, input_value={'id': 'x', 'title': 'Eth...:00:00Z', 'symbols': []}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+--- _tag_symbols fresh headline cases (retry, provider field added) ---
+'Ethereum ETF inflows surge' -> ['ETH/USDT']
+'Solana outage' -> ['SOL/USDT']
+'Ethereal plans IPO' -> []
+'SOLID results for Solar firm' -> []

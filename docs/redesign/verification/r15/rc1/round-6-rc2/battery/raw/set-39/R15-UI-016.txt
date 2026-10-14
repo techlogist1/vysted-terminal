@@ -1,0 +1,38 @@
+COMMAND: node --experimental-strip-types kb2.mts (imports candidate src/store/keybindings.ts + region.ts; resolveKeyboardAction on each default chord, mac navigator)
+EXIT: 0
+OUTPUT:
+default ids: 13
+palette.open [⌘K] -> palette.open
+agent.mode.agent [⌥1] -> agent.mode.agent
+agent.mode.delegate [⌥2] -> agent.mode.delegate
+agent.toggle [⌘B] -> agent.toggle
+changes.acceptAll [⌘↵] -> changes.acceptAll
+changes.rejectAll [⌘⌫] -> changes.rejectAll
+platform.save-workspace [⌘S] -> platform.save-workspace
+platform.load-workspace [⌘O] -> platform.load-workspace
+platform.open-settings [⌘,] -> platform.open-settings
+chart.open [⌘1] -> chart.open
+watchlist.open [⌘2] -> watchlist.open
+news.open [⌘3] -> news.open
+portfolio.open [⌘4] -> portfolio.open
+unresolved/mismatched defaults: []
+after remap palette.open=mod+p: Cmd+K -> undefined; Cmd+P -> palette.open
+changes remap present: changes.acceptAll,changes.rejectAll
+mod+b vs Cmd+Shift+B matchesEvent: false
+setOverrides merge w/ bogus: overrides={"changes.acceptAll":"mod+shift+a"}
+regions: DEFAULT_REGION=IN regionConfig(IN).label=India
+
+--- dispatcher/registration (grep) ---
+20:import { executeCommand } from "@/lib/commands";
+38:  getRegisteredAction,
+39:  resolveKeyboardAction,
+151:  // `resolveKeyboardAction` picks the `DEFAULT_KEYBINDINGS` id whose EFFECTIVE
+156:  // the module's own command handler via `executeCommand` — the same path the
+166:      const resolved = resolveKeyboardAction(event, typing);
+170:      const registered = getRegisteredAction(resolved.actionId);
+182:        executeCommand(command);
+src/components/AgentDock.tsx:75:  useEffect(() => registerAction("agent.toggle", toggleCollapsed), [toggleCollapsed]);
+src/components/CommandPalette.tsx:83:  useEffect(() => registerAction("palette.open", toggle), [toggle]);
+src/modules/chat/ChatSidebar.tsx:580:      registerAction(`agent.mode.${m.id}`, () => setMode(m.id)),
+src/modules/chat/ChatSidebar.tsx:586:    const unregisterAccept = registerAction("changes.acceptAll", () => {
+src/modules/chat/ChatSidebar.tsx:591:    const unregisterReject = registerAction("changes.rejectAll", () => {

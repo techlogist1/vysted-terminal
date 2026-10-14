@@ -1,0 +1,19 @@
+cmd: 2 rounds of curl -H 'X-Vysted-Region: IN' -w time_total for TCS INFY ITC HDFCBANK SBIN against candidate sidecar :52361
+-- round 1 --
+TCS: 16.974025s
+INFY: 17.006935s
+ITC: 16.132878s
+HDFCBANK: 15.565090s
+SBIN: 17.682467s
+-- round 2 --
+TCS: 2.242696s
+INFY: 1.087128s
+ITC: 1.338438s
+HDFCBANK: 1.638846s
+SBIN: 0.976645s
+-- round 3 (cache warm) --
+TCS: 1.819142s
+INFY: 1.689965s
+ITC: 2.153126s
+HDFCBANK: 1.793409s
+SBIN: 1.842696s

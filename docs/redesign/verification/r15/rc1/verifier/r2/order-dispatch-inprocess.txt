@@ -1,0 +1,6 @@
+81fbfe910d472ecd154fa62e42d86bce213a697e
+place_order -> {"ok": false, "error": "tool 'place_order' is not available in this build"}
+submit_order -> {"ok": false, "error": "tool 'submit_order' is not available in this build"}
+execute_trade -> {"ok": false, "error": "tool 'execute_trade' is not available in this build"}
+broker_portfolio -> {"ok": false, "error": "tool 'broker_portfolio' is not available in this build"}
+kill_switch -> {"ok": false, "error": "tool 'kill_switch' is not available in this build"}

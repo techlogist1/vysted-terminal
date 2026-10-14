@@ -1,0 +1,20 @@
+[   6.3s] done: {"kind": "done", "usage": {"input_tokens": 2748, "output_tokens": 117, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+To calculate your profit, we need to calculate the total amount of money you made from selling the shares.
+
+You bought 15 WIPRO shares at ₹250 each, so the total cost is:
+
+15 x ₹250 = ₹3,750
+
+You sold the same 15 shares at ₹262 each, so the total revenue is:
+
+15 x ₹262 = ₹3,930
+
+Now, let's calculate your profit by subtracting the total cost from the total revenue:
+
+₹3,930 - ₹3,750 = ₹180
+
+Your profit is ₹180.
+
+=== ok · 6.3s · events {'delta': 115, 'done': 1} · usage in=2748 out=117 · est $0.00000 · llama3.1:8b

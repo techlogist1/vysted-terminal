@@ -1,0 +1,19 @@
+safe_llm result on timeout: ''
+SYNTHESIS_TIMEOUT_REASON constant: synthesis_timeout
+== pinned test file present: test_research_synthesis_timeout.py ==
+123:def test_synthesis_timeout_reaches_the_execution_record(local_run) -> None:
+124-    """The engine's stated reason survives the research tool boundary, so the
+125-    brief's execution record says why instead of null."""
+126-    from services.agent_tools.research import _research
+127-
+128-    token = config.set_request_llm_creds("ollama", "llama3.1:8b", None)
+129-    try:
+130-        out = asyncio.run(_research({"query": "CG Power outlook", "depth": "deep", "rounds": 1}))
+131-    finally:
+132-        config.reset_request_llm_creds(token)
+133-    assert out["execution"]["loop"] == "iter"
+134-    assert out["execution"]["degraded_reason"] == deep.SYNTHESIS_TIMEOUT_REASON
+135-    assert _THIN not in out["markdown"]
+136-
+137-
+138-def test_local_lane_raises_the_per_call_cap_for_adapter_and_loop(local_run) -> None:

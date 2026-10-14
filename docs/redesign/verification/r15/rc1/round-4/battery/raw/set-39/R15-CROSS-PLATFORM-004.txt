@@ -1,0 +1,8 @@
+NOT RUN LIVE: frontend-only (command-palette layout-mode registry) + a Rust cfg gate that only changes behavior on Windows/Linux (this Mac is macOS, so the cfg branch itself can't be exercised live here either way).
+SOURCE CHECK (candidate HEAD 1006c6da):
+  src-tauri/src/lib.rs:452-453 `#[cfg(target_os = "macos")] fn install_layout_menu` -- the native-menu-only scope is still a documented Mac-first choice (unchanged, matches the register's note that this is intentional).
+  src/store/command-palette.ts:153-176 dispatchLayoutMenuCommand is now "the ONE place" both the palette's layout commands AND the macOS menu bridge call route through; MENU_PAYLOAD_TO_MODE maps research-cockpit/single-focus/macro-scan/compare -> the same "Layout: Fundamental/Technical/Macro/Compare" labels; :300 wires it into the palette's command list.
+PINNED TEST (ci_pinned):
+  src/store/command-palette.test.ts:358 describe("dispatchLayoutMenuCommand") -- comment explicitly says "pins the routing contract so Windows/Linux (palette-only; no native menu) get the same deterministic layout modes the menu always gave macOS."
+  src/lib/layout-templates.test.ts:553 asserts MENU_PAYLOAD_TO_MODE covers exactly the menu's modes.
+VERDICT BASIS: source shows the palette now exposes all five layout modes via the same dispatch the menu uses (previously the palette exposed none); pinned tests above.

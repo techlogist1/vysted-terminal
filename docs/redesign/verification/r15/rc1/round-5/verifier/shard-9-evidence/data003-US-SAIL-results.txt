@@ -1,0 +1,3 @@
+### 16:47:33 curl -H X-Vysted-Region: US http://127.0.0.1:52609/disclosures/results?symbol=SAIL
+{"symbol":"SAIL","count":0,"events":[],"sources":[],"errors":{},"coverage":"not_applicable","note":"SAIL is not an NSE/BSE instrument; Indian exchange disclosures do not apply"}
+HTTP 200 0.003253s

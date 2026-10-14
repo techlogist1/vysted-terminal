@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_32705e9604ae4c61a9b28353b8df186e", "name": "price_data", "input": {"symbol": "MSFT"}}
+[  37.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_32705e9604ae4c61a9b28353b8df186e", "name": "price_data", "ok": true, "error": null}
+[  47.6s] heartbeat: {"kind": "heartbeat"}
+[  57.6s] heartbeat: {"kind": "heartbeat"}
+[  65.3s] done: {"kind": "done", "usage": {"input_tokens": 6502, "output_tokens": 29, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The price of MSFT on 2026-09-24 is $449.39.
+
+The result came from the price_data tool.
+
+=== ok · 65.3s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 28, 'done': 1} · usage in=6502 out=29 · est $0.00000 · llama3.1:8b

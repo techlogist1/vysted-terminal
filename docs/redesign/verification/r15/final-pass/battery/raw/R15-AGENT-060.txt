@@ -1,0 +1,9 @@
+# R15-AGENT-060 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:18+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/inv.py shareholding_pattern '{"symbol":"CREST"}' 200000 2>/dev/null | python3 -c "import sys,json;d=json.loads(sys.stdin.read());print(list(d.keys()));print('note' in d, d.get('note'));print({k:d['patterns'][0].get(k) for k in ('fii_percent','dii_percent','split_source')})"
+--- output ---
+['ok', 'symbol', 'coverage', 'count', 'patterns']
+False None
+{'fii_percent': 1.71, 'dii_percent': 0.0, 'split_source': 'BSE'}
+
+EXIT=0 (4.1s)

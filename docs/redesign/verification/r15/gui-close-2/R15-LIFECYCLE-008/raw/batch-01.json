@@ -1,0 +1,11 @@
+[
+{"cmd":"click","x":768,"y":598},
+{"cmd":"wait","seconds":2.5},
+{"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/R15-LIFECYCLE-008/1fddb2b-02-after-terms.png"},
+{"cmd":"click","x":502,"y":722},
+{"cmd":"wait","seconds":2.5},
+{"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/R15-LIFECYCLE-008/1fddb2b-03-after-onboarding.png"},
+{"cmd":"key","combo":"cmd+,"},
+{"cmd":"wait","seconds":4},
+{"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/R15-LIFECYCLE-008/1fddb2b-04-settings-open.png"}
+]

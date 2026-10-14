@@ -1,0 +1,1 @@
+{"universe":"sp500","criteria":[{"field":"pe_ratio","operator":"lt","value":20},{"field":"market_cap","operator":"gt","value":100000000000},{"field":"sector","operator":"eq","value":"Technology"}],"limit":200,"sort_by":"market_cap","sort_dir":"desc"}

@@ -1,0 +1,43 @@
+      ``write_screener_filters.criteria`` as a string and the host drops it),
+      and so is an ``integer``/``number``/``boolean`` param sent as an exact
+      JSON literal string (R15-AGENT-093: ``max_strikes: "10"``);
+    - the args are validated against the catalog ``input_schema``; on failure
+      the input is replaced by :data:`INVALID_ARGS_SENTINEL` with a
+      model-readable reason, which ``_dispatch_tool`` returns as
+      ``{ok: false, error}`` without running the handler.
+
+    No schema default is filled (C2): an omitted optional arg stays omitted.
+    An unknown tool is left to ``_dispatch_tool``'s "not available" result.
+    """
+    args = event.input
+    cap = catalog.CAPABILITY_CATALOG.get(event.name)
+    if cap is None or INVALID_ARGS_SENTINEL in args:
+        return
+    for key in [k for k, v in args.items() if v is None]:
+        del args[key]
+    properties = cap.input_schema.get("properties") or {}
+    for key, value in args.items():
+        expected = (properties.get(key) or {}).get("type")
+        if expected not in _JSON_STRING_TYPES or not isinstance(value, str):
+            continue
+        try:
+            parsed = json.loads(value, parse_constant=_reject_json_constant)
+        except ValueError:
+            continue
+        if type(parsed) in _JSON_STRING_TYPES[expected]:
+            args[key] = parsed
+    validator_cls = jsonschema.validators.validator_for(cap.input_schema)
+    error = jsonschema.exceptions.best_match(validator_cls(cap.input_schema).iter_errors(args))
+    if error is None:
+        return
+    if error.validator == "required" and not error.path and cap.kind == "host_action":
+        missing = next(f for f in error.validator_value if f not in error.instance)
+        reason = (
+            f"invalid arguments for {event.name}: missing {missing} — ask the user "
+            "for it; do not guess"
+        )
+    else:
+        reason = f"invalid arguments for {event.name}: {error.message}; call again with valid args"
+    event.input = {INVALID_ARGS_SENTINEL: reason}
+
+

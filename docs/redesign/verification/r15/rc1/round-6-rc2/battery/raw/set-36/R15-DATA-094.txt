@@ -1,0 +1,9 @@
+# fake key via X-Vysted-Newsapi-Key (ace7dd76 :52359)
+--- /news/sources/status
+{"newsapi":"unauthorized"}
+--- /news?limit=5 headers+count
+HTTP/1.1 200 OK
+x-news-sources: rss=ok;newsapi=unauthorized
+5 items
+key occurrences in body: 0
+key occurrences in sidecar log: 0

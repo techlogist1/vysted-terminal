@@ -1,0 +1,7 @@
+cmd: curl /history/ZZZZNOTREAL
+{"symbol":"ZZZZNOTREAL","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":"unknown_symbol","partial":false,"coverage_start":null}
+HTTP:200
+
+cmd: curl /history/QQZZFAKE.NS
+{"symbol":"QQZZFAKE.NS","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":null,"partial":false,"coverage_start":null}
+HTTP:200

@@ -1,0 +1,12 @@
+# R15-RESEARCH-008 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:35:43Z, sidecar :52348
+# kind=py
+# command:
+#   from curl_cffi import requests
+#   for u in ["https://search.brave.com/search?q=dixon+technologies+news","https://www.mojeek.com/search?q=dixon+technologies+news","https://html.duckduckgo.com/html/?q=dixon+technologies+news"]:
+#       r=requests.get(u, impersonate="chrome", timeout=20)
+#       print(u.split('/')[2], 'HTTP', r.status_code, len(r.text), 'bytes;', ('403/automated-queries wall' if 'automated queries' in r.text else ''))
+# output:
+search.brave.com HTTP 429 73811 bytes; 
+www.mojeek.com HTTP 200 5512 bytes; 
+html.duckduckgo.com HTTP 202 14235 bytes; 
+# exit=0

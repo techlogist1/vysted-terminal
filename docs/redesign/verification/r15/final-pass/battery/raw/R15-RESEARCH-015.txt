@@ -1,0 +1,48 @@
+# R15-RESEARCH-015 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:33:35+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py6/R15-RESEARCH-015.py 2>&1 | grep -v '^DEBUG\|falling through' | tail -c 9000
+[exit 0] [0.99s]
+www.nseindia.com -> nseindia.com
+nsearchives.nseindia.com -> nseindia.com
+m.economictimes.com -> economictimes.com
+economictimes.indiatimes.com -> indiatimes.com
+www.sebi.gov.in -> sebi.gov.in
+www.bbc.co.uk -> bbc.co.uk
+_row_domains(nse www + nsearchives) = {'nseindia.com'}
+_row_domains(nse + moneycontrol) = {'moneycontrol.com', 'nseindia.com'}
+
+
+$ echo '--- earlier probe of this id (batch4) ---'; /bin/cat /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/old/R15-RESEARCH-015.txt
+[exit 0] [0.00s]
+--- earlier probe of this id (batch4) ---
+# R15-RESEARCH-015 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:30:30+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py4/R15-RESEARCH-015.py 2>&1 | grep -v '^DEBUG' | tail -c 9000
+[exit 0] [0.97s]
+https://www.nseindia.com/x -> nseindia.com
+https://nsearchives.nseindia.com/y -> nsearchives.nseindia.com
+https://www.sebi.gov.in/a -> sebi.gov.in
+https://sebi.gov.in/b -> sebi.gov.in
+https://m.economictimes.com/c -> m.economictimes.com
+https://economictimes.indiatimes.com/d -> economictimes.indiatimes.com
+erification round (R7 Component 4).
+
+After the heavy panel synthesizes its brief, ULTRA depth runs ONE more bounded
+round that re-checks the brief's top numeric claims against FRESH web evidence
+from independent sources:
+
+  1. extract — one LLM call lists the brief's most important numeric claims
+     (price, growth, margin, ratio, valuation, dated figure), verbatim;
+  2. re-check — each claim gets a fresh ``web_search`` (parallel, soft-fail);
+  3. verdict — a claim backed by evidence from at least ``min_domains``
+     DISTINCT domains gets an LLM AGREE / DISAGREE / UNVERIFIED comparison;
+     fewer independent domains is honestly UNVERIFIED, never silently passed;
+  4. flag — a "Cross-check" section is appended to the brief markdown naming
+     every verdict, disagreements are counted onto ``brief.note``, and the raw
+     check table rides ``brief.structured["cross_check"]``.
+
+R9 B4 — the dual-channel cross-verification rule (tier_a only): when the
+active chat model serves NATIVE web search, the caller passes the
+``native_search`` channel callable and step 2 runs BOTH channels per c
+
+

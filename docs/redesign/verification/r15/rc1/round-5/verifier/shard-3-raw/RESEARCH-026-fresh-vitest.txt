@@ -1,0 +1,42 @@
+# RESEARCH-026 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/modules/research/vs3-fresh.test.ts
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+ ✓ src/modules/research/vs3-fresh.test.ts > vs3 fresh RESEARCH-026 > A: EUR and JPY market caps read exactly as Equity Overview's formatCompactMoney 33ms
+ ✓ src/modules/research/vs3-fresh.test.ts > vs3 fresh RESEARCH-026 > B: unknown currency is stated on revenue and on a currency-unit derived card too 1ms
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  16:49:53
+   Duration  1.32s (transform 298ms, setup 84ms, import 548ms, tests 34ms, environment 548ms)
+
+## test source (appended part)
+describe("vs3 fresh RESEARCH-026", () => {
+  it("A: EUR and JPY market caps read exactly as Equity Overview's formatCompactMoney", () => {
+    for (const ccy of ["EUR", "JPY"]) {
+      const m = deriveMetrics(
+        structured("equity", {
+          price: { ok: true, provider: "yfinance", data: quote({ currency: ccy }) },
+        }),
+      );
+      const card = m?.items.find((i) => i.label === "Market cap");
+      expect(card?.value).toBe(formatCompactMoney(2_000_000_000, ccy));
+    }
+  });
+
+  it("B: unknown currency is stated on revenue and on a currency-unit derived card too", () => {
+    const m = deriveMetrics(
+      structured("equity", {
+        price: undefined,
+        fundamentals: { ok: true, provider: "yfinance", data: fundamentals({ currency: null }) },
+        derived: derivedLeg({
+          dividend_per_share: { value: 12.5, label: "Dividend / share", unit: "currency" },
+        } as unknown as BriefDerivedMetrics),
+      }),
+    );
+    const byLabel = Object.fromEntries((m?.items ?? []).map((i) => [i.label, i.value]));
+    expect(byLabel["Revenue"]).toMatch(/currency unknown/);
+    expect(byLabel["Dividend / share"]).toMatch(/currency unknown/);
+    // never byte-identical to the USD rendering
+    const usd = deriveMetrics(structured("equity", {}));
+    const usdRev = usd?.items.find((i) => i.label === "Revenue")?.value;
+    expect(byLabel["Revenue"]).not.toBe(usdRev);
+  });
+});

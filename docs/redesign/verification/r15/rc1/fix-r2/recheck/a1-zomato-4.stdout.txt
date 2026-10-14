@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_b4479ba782d34ea5867df632ef535c86", "name": "resolve_symbol", "input": {"query": "Zomato", "region": "IN"}}
+[  32.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_ec938339295c4e88b8c57efa1d935867", "name": "price_data", "input": {"symbol": "ETERNAL.NS"}}
+[  44.9s] heartbeat: {"kind": "heartbeat"}
+[  54.9s] heartbeat: {"kind": "heartbeat"}
+[  67.5s] done: {"kind": "done", "usage": {"input_tokens": 7218, "output_tokens": 48, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The stock that formerly traded under Zomato's name, now trading as Eternal Limited, is doing well. Let me check the current price.
+
+{"name": "price_dataZomato's stock is currently trading at ₹335.5 on the NSE.
+
+Would you like to know more about Zomato's recent price action, or would you like me to open its chart for a closer look?
+
+=== ok · 67.5s · events {'heartbeat': 4, 'tool_use': 2, 'delta': 82, 'done': 1} · usage in=7218 out=48 · est $0.00000 · llama3.1:8b

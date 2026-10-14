@@ -1,0 +1,10 @@
+CMD: curl -s -m 15 'http://127.0.0.1:52348/quotes/ICON?asset_class=equity'
+HTTP 200
+{"symbol":"ICON","price":64.45,"change":0.0,"change_percent":0.0,"volume":1200.0,"open":64.45,"high":64.45,"low":64.45,"prev_close":63.06,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-24T00:00:00Z","provider":"bse","freshness":"eod"}
+
+CMD: curl -s -m 15 'http://127.0.0.1:52348/quotes/AMAL?asset_class=equity'
+HTTP 200
+{"symbol":"AMAL","price":674.4,"change":-13.25,"change_percent":-1.926852323129499,"volume":13368.0,"open":688.85,"high":695.9,"low":658.05,"prev_close":687.65,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+
+OBSERVED: volume is populated (not null) for both BSE-quoted symbols (ICON: 1200, AMAL: 13368); open/high/low/prev_close all populated. Register bug was volume:null + no OHLC fields. Fix holds.
+VERDICT: holds

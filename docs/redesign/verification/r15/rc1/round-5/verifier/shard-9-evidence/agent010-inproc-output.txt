@@ -1,0 +1,6 @@
+A010 stub-1s resolver: status=bound dt=1.34s max_loop_lag=19.4ms
+A010 raising resolver: ok=False status=unresolved reason='resolver error: resolver exploded'
+A010 raising resolver in _canonicalize: canonical=None hnf=None
+A010 FRESH hung-proxy live miss: status=disambiguate dt=9.18s max_loop_lag=17.2ms
+A010 FRESH second miss (cooldown): status=unresolved dt=0.72s max_loop_lag=22.8ms
+A010 FRESH 6 concurrent hung misses: statuses=['unresolved', 'unresolved', 'unresolved', 'unresolved', 'unresolved', 'unresolved'] dt=8.57s max_loop_lag=114.0ms

@@ -1,0 +1,18 @@
+== fundamentals/500209.BO/balance
+{"symbol":"INFY.BO","periods":[],"lines":[],"provider":"yfinance","gaps":[]} HTTP200
+== fundamentals/500209.BO/cashflow
+{"symbol":"INFY.BO","periods":[],"lines":[],"provider":"yfinance","gaps":[]} HTTP200
+== fundamentals/500209.BO/ratings
+{"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."} HTTP429
+== fundamentals/500209.BO
+{"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."} HTTP429
+== fundamentals/500209.BO/estimates
+{"detail":"Not Found"} HTTP404
+== indicators/506597.BO?indicators=rsi
+{"symbol":"AMAL","timeframe":"1d","provider":"bse","indicators":[{"name":"rsi","panel":"separate","lines":[{"label":"RSI(14)","points":[{"time":"2025-09-12T00:00:00+00:00","value":null},{"time":"2025-09-15T00:00:00+00:00","value":null},{"time":"2025-09-16T00:00:00+00:00","value":null},{"time":"2025-09-17T00:00:00+00:00","value":null},{"time":"2025-09-18T00:00:00+00:00","value":null},{"time":"2025-
+== disclosures/shareholding?symbol=506597.BO
+{"symbol":"506597","count":104,"patterns":[{"symbol":"506597","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":71.35,"fii_percent":0.0,"dii_percent":0.03,"institutions_percent":0.03,"public_percent":28.65,"public_basis":"incl. institutions","public_non_institutional_percent":28.62,"employee_trusts_percent":null,"submission_date":"2026-07-05","xbrl_url":"https://www.bseindia.com/X
+== news/506597.BO
+{"detail":"Not Found"} HTTP404
+== fundamentals/999999.BO
+{"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."} HTTP429

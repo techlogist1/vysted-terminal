@@ -1,0 +1,17 @@
+# R15-LIFECYCLE-022 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:47:39+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for a in legacy-live both-404; do echo "== $a"; "$IP" $B/sc/b4_022.py $a 2>&1 | grep -v Warning; done
+--- output ---
+== legacy-live
+legacy-live -> (None, 2934)
+requests: 2 first: https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20261002_F_0000.csv.zip
+empty markers: 0
+== both-404
+LOG WARNING nse_bhavcopy: 2 past trading days 404 on both hosts (latest https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20260930_F_0000.csv.zip) — has the archive path moved?
+LOG WARNING nse_bhavcopy: no bhavcopy found within 7 days of 2026-10-03
+both-404 -> None
+requests: 10 first: https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20261002_F_0000.csv.zip
+  EMPTY marker 2026-10-02 Fri
+empty markers: 1
+
+EXIT=0 (1.2s)

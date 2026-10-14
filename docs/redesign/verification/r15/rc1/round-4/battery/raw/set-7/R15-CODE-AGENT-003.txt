@@ -1,0 +1,6 @@
+CMD: curl -s -X POST http://127.0.0.1:52353/llm/keys/validate (fake OpenRouter key, body api_key)
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+CMD: curl -s -X POST http://127.0.0.1:52353/llm/keys/validate (fake Gemini key, body api_key)
+{"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+CMD: curl -s -X POST http://127.0.0.1:52353/llm/keys/validate (fake xAI key, body api_key)
+{"ok":false,"reason":"invalid","detail":"xAI rejected this key."}

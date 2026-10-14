@@ -1,0 +1,6 @@
+=== CODE-AGENT-007: registry/dispatch parity ===
+mr.default_base_url_for('deepseek') -> https://api.deepseek.com
+mr.default_base_url_for('xai') -> https://api.x.ai/v1
+get_provider('deepseek')._base_url -> https://api.deepseek.com
+get_provider('xai')._base_url -> https://api.x.ai/v1
+services/llm/__init__.py:119-122 get_provider() now calls model_registry.default_base_url_for(provider_id) directly - single source of truth, no separate hardcoded host table to drift.

@@ -1,0 +1,11 @@
+INFO:     Started server process [49733]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:52153 (Press CTRL+C to quit)
+INFO:     127.0.0.1:49888 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49889 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49890 - "POST /plugins/yfinance/config HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49891 - "POST /plugins/vysted-news/config HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49892 - "GET /plugins HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49893 - "GET /plugins/yfinance/config HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49894 - "GET /plugins/vysted-news/config HTTP/1.1" 200 OK

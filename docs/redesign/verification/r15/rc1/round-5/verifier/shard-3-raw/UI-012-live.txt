@@ -1,0 +1,32 @@
+# UI-012 live bodies, own sidecar :52603 from WT 633f8440
+## POST /agents/nope/invoke body={"messages":[{"role":"user","content":"hi"}]}
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{"messages":[{"role":"user","content":"hi"}]}},{"type":"extra_forbidden","loc":["body","messages"],"msg":"Extra inputs are not permitted","input":[{"role":"user","content":"hi"}]}]}
+HTTP 422
+
+## POST /agents/research/invoke body={"messages":[{"role":"user","content":"hi"}]}
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{"messages":[{"role":"user","content":"hi"}]}},{"type":"extra_forbidden","loc":["body","messages"],"msg":"Extra inputs are not permitted","input":[{"role":"user","content":"hi"}]}]}
+HTTP 422
+
+## POST /agents/nope/invoke body={"messages":"bad"}
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{"messages":"bad"}},{"type":"extra_forbidden","loc":["body","messages"],"msg":"Extra inputs are not permitted","input":"bad"}]}
+HTTP 422
+
+## POST /agents/research/invoke body={"messages":"bad"}
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{"messages":"bad"}},{"type":"extra_forbidden","loc":["body","messages"],"msg":"Extra inputs are not permitted","input":"bad"}]}
+HTTP 422
+
+## POST /agents/nope/invoke body={}
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{}}]}
+HTTP 422
+
+## POST /agents/research/invoke body={}
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{}}]}
+HTTP 422
+
+## POST /agents/nope/invoke body={"prompt":"hi"}
+{"detail":"unknown agent: 'nope'"}
+HTTP 404
+
+## POST /llm/chat body={}
+{"detail":[{"type":"missing","loc":["body","provider"],"msg":"Field required","input":{}},{"type":"missing","loc":["body","model"],"msg":"Field required","input":{}},{"type":"missing","loc":["body","messages"],"msg":"Field required","input":{}}]}
+HTTP 422

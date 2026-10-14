@@ -1,0 +1,12 @@
+=== ONC ===
+former_name BeiGene, Ltd. isin None bse_code None
+=== SIFY ===
+former_name SIFY LTD isin None bse_code None
+=== META ===
+former_name None isin INE958L01034 bse_code 534535
+=== TCI (US, no Indian identity) ===
+isin INE688A01022 bse_code 532349
+
+=== corrected with region=US (first pass on TCI/META omitted the region param) ===
+TCI region=US -> name TRANSCONTINENTAL REALTY INVESTORS INC, isin null, bse_code null
+META region=US -> name Meta Platforms, Inc., former_name Facebook Inc

@@ -1,0 +1,7 @@
+NO GUI in this run. Source inspection:
+
+sidecar/routers/portfolio.py (full file dump): module docstring states "no app surface writes this ledger, so the router is GET-only (R15-CODE-PLATFORM-021)"; only route defined is `@router.get("/positions")`. No PUT/POST/DELETE.
+grep -n "syncPositionToSidecar\|portfolioUrl\|sidecarPositionId\|/portfolio/positions" src/lib/host-actions.ts -> 0 matches.
+
+OBSERVED: the write-only sidecar ledger sync path (POST accumulation, PUT/DELETE 405s swallowed, unawaited-timeout fetch) has been removed at the root -- host-actions.ts no longer talks to the sidecar portfolio ledger at all; the sidecar router is GET-only by design, matching R15-CODE-PLATFORM-021's fix.
+VERDICT: holds

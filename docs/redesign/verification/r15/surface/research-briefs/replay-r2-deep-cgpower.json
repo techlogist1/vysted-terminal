@@ -1,0 +1,143 @@
+{
+ "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/research-briefs/r2-deep-cgpower.jsonl": {
+  "phase": "published",
+  "applied": [
+   {
+    "name": "publish_brief",
+    "label": "Published the DEEP research brief",
+    "phaseAfter": "published"
+   }
+  ],
+  "errors": [],
+  "engineNotices": [
+   "Your active model — ollama/llama3.1:8b · IterResearch (evolving report)",
+   "The brief panel did not confirm the publish — treat it as NOT rendered until get_terminal_state shows it."
+  ],
+  "brief": {
+   "symbol": "CGPOWER",
+   "depth": "deep",
+   "mode": "DEEP",
+   "backend": "keyless-fallback",
+   "webAvailable": true,
+   "sourceCount": 21,
+   "sourcesStored": 21,
+   "sourcesRendered": 21,
+   "markdownLen": 2528,
+   "markersInBody": [],
+   "maxMarker": 0,
+   "markersAfterSanitize": 0,
+   "execution": {
+    "runId": "5fbdaeeaa4ed40d1909aee75e0f842f1",
+    "requestedDepth": "deep",
+    "loop": "iter",
+    "backend": "keyless-fallback",
+    "startedAt": 1790128619.982241,
+    "finishedAt": 1790128860.04018,
+    "degradedReason": null
+   },
+   "metrics": {
+    "symbol": "CGPOWER",
+    "provider": "nse_direct",
+    "price": 896.1,
+    "change": -13.899999999999977,
+    "changePercent": -1.527472527472525,
+    "currency": "INR",
+    "assetClass": "equity",
+    "items": [
+     {
+      "label": "Below 52-week high",
+      "value": "-8.65% · vs 52w high",
+      "title": "(52w high - price) / 52w high"
+     },
+     {
+      "label": "52-week price change (Yahoo)",
+      "value": "+15.86% · trailing 52 weeks",
+      "title": "trailing 52 weeks"
+     },
+     {
+      "label": "Dividend yield",
+      "value": "0.15% · fraction of price",
+      "title": "dividend per share / price"
+     },
+     {
+      "label": "Dividend per share",
+      "value": "INR 1.30 · per share, INR",
+      "title": "per share, INR"
+     },
+     {
+      "label": "Revenue growth",
+      "value": "+14.00% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Earnings growth",
+      "value": "+13.10% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Promoter group (exchange filing)",
+      "value": "56.36% · NSE shareholding filing, 2026-06-30",
+      "title": "NSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Institutional holding (exchange filing)",
+      "value": "30.27% · NSE shareholding filing, 2026-06-30",
+      "title": "NSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Market cap",
+      "value": "INR 1.41T"
+     },
+     {
+      "label": "P/E",
+      "value": "113.14"
+     },
+     {
+      "label": "Fwd P/E",
+      "value": "64.34"
+     },
+     {
+      "label": "Price/Book",
+      "value": "17.71"
+     },
+     {
+      "label": "EPS",
+      "value": "7.92"
+     },
+     {
+      "label": "Beta",
+      "value": "0.42"
+     },
+     {
+      "label": "Net margin",
+      "value": "9.75%"
+     },
+     {
+      "label": "Debt/Equity",
+      "value": "0.01"
+     },
+     {
+      "label": "Revenue",
+      "value": "INR 128.21B"
+     },
+     {
+      "label": "52w range",
+      "value": "526–981"
+     },
+     {
+      "label": "Volume",
+      "value": "2.30M"
+     }
+    ],
+    "conflicts": [
+     {
+      "text": "Sources disagree on held percent insiders: 60.002 (yfinance (heldPercentInsiders)) vs 56.36 (NSE shareholding filing) — The provider's heldPercentInsiders (60.00%) counts INSIDERS — a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates — while the NSE shareholding filing reports the strict PROMOTER GROUP at 56.36% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced.",
+      "kind": "data_conflict"
+     }
+    ]
+   }
+  },
+  "anchors": [],
+  "renderedText": " Copy markdownDEEPCGPOWER21 sources DEEPweb + structured dataEOD as of 2026-09-23CG Power and Industrial Solutions — order book, margins, and whether the valuation is justified versus peers.Limited keyless search — set up Unlimited local research for full capability.CGPOWERINR 896.10-13.90 (-1.53%)nse_directBelow 52-week high-8.65% · vs 52w high52-week price change (Yahoo)+15.86% · trailing 52 weeksDividend yield0.15% · fraction of priceDividend per shareINR 1.30 · per share, INRRevenue growth+14.00% · quarterly YoY (MRQ)Earnings growth+13.10% · quarterly YoY (MRQ)Promoter group (exchange filing)56.36% · NSE shareholding filing, 2026-06-30Institutional holding (exchange filing)30.27% · NSE shareholding filing, 2026-06-30Market capINR 1.41TP/E113.14Fwd P/E64.34Price/Book17.71EPS7.92Beta0.42Net margin9.75%Debt/Equity0.01RevenueINR 128.21B52w range526–981Volume2.30MCONFLICTSources disagree on held percent insiders: 60.002 (yfinance (heldPercentInsiders)) vs 56.36 (NSE shareholding filing) — The provider's heldPercentInsiders (60.00%) counts INSIDERS — a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates — while the NSE shareholding filing reports the strict PROMOTER GROUP at 56.36% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced.Research brief: CG Power and Industrial Solutions — order book, margins, and whether the valuation is justified versus peers.Symbol: CGPOWER_Web coverage for this name is thin; this brief is built from exchange data and filings gathered this run._Price & actionPrice / price-history data was gathered this run (via nse_direct): last 896.1, change % -1.527472527472525.Exchange filings & announcements2026-09-20T10:14:13+05:30 · ESOP/ESOS/ESPS: CG Power and Industrial Solutions Limited has informed the Exchange regarding Allotment of 18250 Shares. [PDF]2026-09-20T10:09:11.400000+05:30 · Company Update: Announcement under Regulation 30 (LODR)-Allotment of ESOP / ESPS [PDF]2026-09-19T15:59:54.767000+05:30 · Company Update: Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation [PDF]2026-09-19T15:53:51+05:30 · Analysts/Institutional Investor Meet/Con. Call Updates: CG Power and Industrial Solutions Limited has informed the Exchange about Schedule of meet [PDF]2026-09-16T11:43:27.197000+05:30 · Company Update: Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation [PDF]2026-09-16T11:42:05+05:30 · Analysts/Institutional Investor Meet/Con. Call Updates: CG Power and Industrial Solutions Limited has informed the Exchange about Schedule of meet [PDF]2026-09-08T19:47:53.380000+05:30 · Company Update: Announcement Under Regulation 30 Of The SEBI LODR Regulations, 2015. [PDF]2026-09-08T19:40:55+05:30 · Disclosure of material issue: CG Power and Industrial Solutions Limited has informed regarding Disclosure of material issue [PDF]2026-09-04T15:28:00.830000+05:30 · Company Update: Announcement under Regulation 30 (LODR)-Press Release / Media Release [PDF]2026-09-04T15:23:04.850000+05:30 · Company Update: Announcement Under Regulation 30 Of SEBI Listing Regulations, 2015. [PDF]2026-09-04T15:18:43+05:30 · Capacity addition: CG Power and Industrial Solutions Limited has informed the Exchange about Capacity addition [PDF]2026-09-04T15:18:43+05:30 · Press Release: CG Power and Industrial Solutions Limited has informed the Exchange regarding a press release dated September 04, 2026, titled \"CG strengthens India s power infrastructure manufacturing capabilities with the roll out of first transformer from India s largest transformer manufacturing facility at Sehore, Madhya Pradesh \". [PDF]Fundamentals snapshotFundamentals snapshot gathered this run (via yfinance): market cap 1411777036288.0, P/E 113.143936.Sources(21)"
+ }
+}

@@ -1,0 +1,93 @@
+{
+ "ledgerBefore": [
+  {
+   "symbol": "AAPL",
+   "quantity": 8,
+   "costBasis": 200,
+   "assetClass": "equity"
+  },
+  {
+   "symbol": "MSFT",
+   "quantity": 3,
+   "costBasis": 400,
+   "assetClass": "equity",
+   "note": "gate8 thesis: cloud margin"
+  }
+ ],
+ "toolUse": {
+  "kind": "tool_use",
+  "tool_call_id": "call_0d93cfada9e4455e98b71ac56bef2e14",
+  "name": "portfolio_add_position",
+  "input": {
+   "symbol": "NVDA",
+   "quantity": 4,
+   "cost_basis": 180
+  }
+ },
+ "enqueueOutcome": "staged",
+ "staged": {
+  "kind": "data-write",
+  "status": "pending",
+  "title": "Add 4 NVDA @ ₹180 to the portfolio"
+ },
+ "ledgerWhilePending": [
+  {
+   "symbol": "AAPL",
+   "quantity": 8,
+   "costBasis": 200,
+   "assetClass": "equity"
+  },
+  {
+   "symbol": "MSFT",
+   "quantity": 3,
+   "costBasis": 400,
+   "assetClass": "equity",
+   "note": "gate8 thesis: cloud margin"
+  }
+ ],
+ "unchangedWhilePending": true,
+ "acceptResult": "applied",
+ "ledgerAfterAccept": [
+  {
+   "symbol": "AAPL",
+   "quantity": 8,
+   "costBasis": 200,
+   "assetClass": "equity"
+  },
+  {
+   "symbol": "MSFT",
+   "quantity": 3,
+   "costBasis": 400,
+   "assetClass": "equity",
+   "note": "gate8 thesis: cloud margin"
+  },
+  {
+   "symbol": "NVDA",
+   "quantity": 4,
+   "costBasis": 180,
+   "assetClass": "equity"
+  }
+ ],
+ "readBackAfterSave": [
+  {
+   "symbol": "AAPL",
+   "quantity": 8,
+   "costBasis": 200,
+   "assetClass": "equity"
+  },
+  {
+   "symbol": "MSFT",
+   "quantity": 3,
+   "costBasis": 400,
+   "assetClass": "equity",
+   "note": "gate8 thesis: cloud margin"
+  },
+  {
+   "symbol": "NVDA",
+   "quantity": 4,
+   "costBasis": 180,
+   "assetClass": "equity"
+  }
+ ],
+ "readBackMatches": true
+}

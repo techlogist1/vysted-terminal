@@ -1,0 +1,4 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; scratch vitest b16-fe/probe/fe4.test.ts (real modules/stores/PluginRuntime; own config, not the repo suite), EXIT=0
+PROBE serializeWorkspace.enabledModules (plugin:* must not persist): {"chart":true}
+PROBE after restoring an older blob with plugin:vysted-lenses=false over an enabled plugin: {"chart":false,"news":true,"plugin:vysted-lenses":true}
+pinned: src/lib/workspace.test.ts 'never persists plugin:* flags, and a blob with plugin:x=false keeps an enabled plugin on (R15-CODE-PLATFORM-013)' (exists: 1)

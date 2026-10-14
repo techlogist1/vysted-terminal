@@ -1,0 +1,11 @@
+# probe at ace7dd76 (candidate worktree /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand)
+$ grep -n 'R15-CROSS-PLATFORM-011\|markSeen' src/store/onboarding.ts src/store/onboarding.test.ts; grep -n 'cfg(target_os' src-tauri/src/keychain.rs | head
+src/store/onboarding.ts:10: * Secret Service provider) it would reappear every launch (R15-CROSS-PLATFORM-011).
+src/store/onboarding.ts:54:  markSeen: (choice: string) => Promise<void>;
+src/store/onboarding.ts:57:  /** Close without marking seen (used internally; markSeen is the real exit). */
+src/store/onboarding.ts:82:  markSeen: async (choice) => {
+src/store/onboarding.test.ts:49:  it("rejecting keychain keeps seen:true once markSeen ran (R15-CROSS-PLATFORM-011)", async () => {
+src/store/onboarding.test.ts:54:    await useOnboardingStore.getState().markSeen("keyless");
+src/store/onboarding.test.ts:62:  it("markSeen persists the choice durably + sets seen + clears forceOpen", async () => {
+src/store/onboarding.test.ts:64:    await useOnboardingStore.getState().markSeen("cloud");
+EXIT=0

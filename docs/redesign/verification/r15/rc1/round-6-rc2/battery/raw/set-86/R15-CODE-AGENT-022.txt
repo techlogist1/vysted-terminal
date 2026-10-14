@@ -1,0 +1,10 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: curl -s localhost:52344/mcp/status; echo; curl -s -X POST localhost:52344/mcp/ -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"x","version":"0"}}}' | head -c 400; echo; /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/ip.sh -c 'import mcp.types as t;print("LATEST_PROTOCOL_VERSION",t.LATEST_PROTOCOL_VERSION)'
+{"ready":true,"toolCount":39,"endpoint":"/mcp","protocolVersion":"2025-11-25"}
+event: message
+data: {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-11-25","capabilities":{"experimental":{},"logging":{},"prompts":{"listChanged":true},"resources":{"subscribe":false,"listChanged":true},"tools":{"listChanged":true},"extensions":{"io.modelcontextprotocol/ui":{}}},"serverInfo":{"name":"vysted","version":"3.2.4"}}}
+
+
+LATEST_PROTOCOL_VERSION 2025-11-25
+
+exit=0

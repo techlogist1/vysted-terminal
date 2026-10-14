@@ -1,0 +1,15 @@
+{
+ "label": "warm-limit-1001",
+ "path": "/screener/run/stream",
+ "request": {
+  "universe": "nse-all",
+  "criteria": [],
+  "limit": 1001
+ },
+ "http": 422,
+ "wall_s": 0.15,
+ "progress_frames": [],
+ "result": {
+  "http_error_body": "{\"detail\":[{\"type\":\"less_than_equal\",\"loc\":[\"body\",\"limit\"],\"msg\":\"Input should be less than or equal to 1000\",\"input\":1001,\"ctx\":{\"le\":1000}}]}"
+ }
+}

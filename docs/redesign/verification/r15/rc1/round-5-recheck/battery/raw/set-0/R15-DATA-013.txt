@@ -1,0 +1,20 @@
+=== R15-DATA-013 live repro: GET /fundamentals/DAL on candidate sidecar :52364 ===
+curl -s -m 25 http://127.0.0.1:52364/fundamentals/DAL -> HTTP 200
+eps: 2.0500000000000016
+pe_ratio: 5.6044946
+field_meta.eps: {
+  "status": "ok",
+  "provider": "bse",
+  "as_of": "2026-06-30",
+  "reason": "exchange-filed (BSE) figure served; the provider's 8.90 disagrees with it \u2014 not served",
+  "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+  "basis_note": null
+}
+field_meta.pe_ratio: {
+  "status": "flagged",
+  "provider": "yfinance",
+  "as_of": "2025-03-12T03:58:51+00:00",
+  "reason": "trailing EPS 8.9 disagrees by 77% with the payload's net income / shares outstanding (10,200,000 / 5,010,000 = 2.04); the P/E it implies at the ratio price 49.88 is 24.5 \u2014 the EPS may be from a stale fiscal period; kept, flagged",
+  "label": null,
+  "basis_note": null
+}

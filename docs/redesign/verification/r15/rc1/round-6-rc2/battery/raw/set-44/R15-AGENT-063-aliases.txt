@@ -1,0 +1,8 @@
+# rc1-battery-22 raw R15-AGENT-063 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ cd sidecar && PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/p22_063.py
+(*, id: str, title: str, summary: str | None = None, url: str, source: str, published_at: datetime.datetime | None, symbols: list[str] = [], sentiment: float | None = None, sentiment_label: str | None = None, provider: str, via_symbol_feed: bool = False) -> None
+BTC/USDT {'BTC/USDT': ['BTC/USDT', 'BTC', 'bitcoin']}
+ETH/USDT {'ETH/USDT': ['ETH/USDT', 'ETH', 'ethereum']}
+SOL/USDT {'SOL/USDT': ['SOL/USDT', 'SOL', 'solana']}
+DOGE {'DOGE': ['DOGE']}
+EXIT=0

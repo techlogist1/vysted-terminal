@@ -1,0 +1,21 @@
+=== R15-DATA-065: period-bar freshness (monthly/weekly current bar should not read 'stale') ===
+today (sidecar host clock):
+Sun Sep 27 21:04:03 IST 2026
+-- SPY 1mo --
+last bar: {'timestamp': '2026-09-01T00:00:00-04:00', 'open': 762.010009765625, 'high': 775.1400146484375, 'low': 749.5999755859375, 'close': 771.3499755859375, 'volume': 797886856.0}
+freshness: eod
+-- AAPL 1mo --
+last bar: {'timestamp': '2026-09-01T00:00:00-04:00', 'open': 316.9800109863281, 'high': 345.3399963378906, 'low': 309.8999938964844, 'close': 341.07000732421875, 'volume': 777615087.0}
+freshness: eod
+-- RELIANCE.NS 1wk --
+last bar: {'timestamp': '2026-09-21T00:00:00Z', 'open': 1234.1, 'high': 1252.8, 'low': 1210.5, 'close': 1226.0, 'volume': 56106172.0}
+freshness: eod
+-- RELIANCE.NS 1mo --
+last bar: {'timestamp': '2026-09-01T00:00:00Z', 'open': 1285.0, 'high': 1333.0, 'low': 1210.5, 'close': 1226.0, 'volume': 201865196.0}
+freshness: eod
+-- fresh case TCS.NS 1mo --
+last bar: {'timestamp': '2026-09-01T00:00:00Z', 'open': 2355.0, 'high': 2372.0, 'low': 2038.1, 'close': 2082.0, 'volume': 54253876.0}
+freshness: eod
+-- fresh case AAPL 1wk --
+last bar: {'timestamp': '2026-09-21T00:00:00-04:00', 'open': 335.2799987792969, 'high': 345.3399963378906, 'low': 333.04998779296875, 'close': 341.07000732421875, 'volume': 191702787.0}
+freshness: eod

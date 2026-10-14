@@ -1,0 +1,1103 @@
+"""Tests for ``services.research.fast.gather_fast`` — the FAST structured bundle.
+
+No network, no real LLM, no real tool registry: ``tool_call`` is a fake that
+returns canned dicts shaped like the real agent tools. The tests assert the
+bundle shape, that the four structured legs are pulled in PARALLEL, the
+asset-class-driven ``suggested_indicators``, provenance carry-through, and — the
+honesty contract — that a ``web_search`` returning ``ok: False`` yields
+``web.available = False`` with the honest fallback note (never a fabricated
+section).
+"""
+
+from __future__ import annotations
+
+import asyncio
+import time
+from typing import Any
+
+import pytest
+
+from services import dividend_actions, ownership_check
+from services.dividend_actions import DeclaredDividend
+from services.ownership_check import ExchangeOwnership
+from services.research.fast import _suggested_indicators, gather_fast, snapshot_structured
+
+
+def _instrument(symbol: str, name: str, asset_class: str) -> dict[str, Any]:
+    return {
+        "symbol": symbol,
+        "name": name,
+        "exchange": "NASDAQ",
+        "region": "US",
+        "asset_class": asset_class,
+        "yahoo_symbol": symbol,
+        "confidence": 0.99,
+    }
+
+
+class _FakeToolCall:
+    """A canned ``tool_call`` recording call order + concurrency.
+
+    ``web_ok`` toggles whether ``web_search`` reports a configured backend.
+    ``started``/``max_concurrent`` track that the four structured legs overlap
+    (a serial implementation would never exceed concurrency 1).
+    """
+
+    def __init__(
+        self,
+        *,
+        asset_class: str = "equity",
+        web_ok: bool = True,
+        resolve_ok: bool = True,
+        web_reason: str | None = None,
+    ) -> None:
+        self.asset_class = asset_class
+        self.web_ok = web_ok
+        self.resolve_ok = resolve_ok
+        # When set, a failed web_search reports this TYPED reason (e.g.
+        # "rate_limited") so the bundle picks the transient note over "no backend".
+        self.web_reason = web_reason
+        self.calls: list[str] = []
+        self._active = 0
+        self.max_concurrent = 0
+
+    async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        self.calls.append(name)
+        self._active += 1
+        self.max_concurrent = max(self.max_concurrent, self._active)
+        try:
+            # Yield so genuinely-parallel legs overlap on the event loop.
+            await asyncio.sleep(0)
+            return self._dispatch(name, args)
+        finally:
+            self._active -= 1
+
+    def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "resolve_symbol":
+            if not self.resolve_ok:
+                return {"ok": False, "message": "could not resolve"}
+            return {
+                "ok": True,
+                "query": args.get("query"),
+                "region": "US",
+                "resolved": _instrument("AAPL", "Apple Inc.", self.asset_class),
+                "needs_disambiguation": False,
+                "candidates": [],
+            }
+        if name == "price_data":
+            return {
+                "ok": True,
+                "symbol": "AAPL",
+                "timeframe": "1d",
+                "provider": "yfinance",
+                "quote": {"symbol": "AAPL", "price": 192.5},
+                "bars": [{"close": 192.5}],
+            }
+        if name == "fundamentals":
+            return {
+                "ok": True,
+                "fundamentals": {"symbol": "AAPL", "pe_ratio": 30.0, "provider": "openbb"},
+            }
+        if name == "news":
+            return {
+                "ok": True,
+                "count": 1,
+                "news": [{"headline": "Apple ships", "source": "reuters"}],
+            }
+        if name == "sec_filings_list":
+            return {
+                "ok": True,
+                "filings": {"items": [{"form": "10-K", "provider": "sec-edgar"}]},
+            }
+        if name == "web_search":
+            if not self.web_ok:
+                failed: dict[str, Any] = {
+                    "ok": False,
+                    "query": args.get("query"),
+                    "message": "No web-search backend is configured. Add an Exa key.",
+                }
+                if self.web_reason is not None:
+                    failed["reason"] = self.web_reason
+                return failed
+            return {
+                "ok": True,
+                "backend": "exa",
+                "query": args.get("query"),
+                "results": [{"url": "https://x.com/a", "title": "A", "snippet": "s"}],
+                "citations": [{"url": "https://x.com/a", "title": "A", "excerpt": "e"}],
+            }
+        return {"ok": False, "error": f"unexpected tool {name}"}
+
+
+def test_fast_bundle_shape_and_provenance() -> None:
+    fake = _FakeToolCall(asset_class="equity", web_ok=True)
+    bundle = asyncio.run(gather_fast("Apple outlook", region="US", tool_call=fake))
+
+    assert bundle["ok"] is True
+    assert bundle["symbol"] == "AAPL"
+    assert bundle["suggested_layout"] == "research-cockpit"
+
+    structured = bundle["structured"]
+    # R10 (E8): the derived metric-semantics leg rides every bundle.
+    # R15-RESEARCH-042: so does the cited-source count against SC-016's floor.
+    assert set(structured) == {
+        "price",
+        "fundamentals",
+        "news",
+        "filings",
+        "derived",
+        "source_floor",
+    }
+    for slot in structured.values():
+        assert slot["ok"] is True
+
+    # Provenance carried per leg (FR-041 badge).
+    assert structured["price"]["provider"] == "yfinance"
+    assert structured["fundamentals"]["provider"] == "openbb"
+    assert structured["filings"]["provider"] == "sec-edgar"
+    assert structured["derived"]["provider"] == "derived"
+    # The execution-loop hint (R10, D38) names the lane that ran.
+    assert bundle["execution_loop"] == "fast"
+
+    # Web section present + populated when a backend answered.
+    assert bundle["web"]["available"] is True
+    assert bundle["web"]["citations"]
+    assert "note" not in bundle["web"]
+
+
+def test_below_floor_marker() -> None:
+    """R15-RESEARCH-042: a brief citing fewer than SC-016's 3 distinct sources
+    says so ("N sources (below 3)") in structured and, on the deep lanes, in
+    the markdown; an unbound run (no structured bundle) gains no bundle."""
+    from services.agent_tools.deep_research import _stamp_source_floor
+
+    none = asyncio.run(gather_fast("Apple", region="US", tool_call=_FakeToolCall(web_ok=False)))
+    assert none["structured"]["source_floor"]["data"] == {"cited": 0, "floor": 3}
+    assert none["structured"]["source_floor"]["note"] == "0 sources (below 3)"
+    one = asyncio.run(gather_fast("Apple", region="US", tool_call=_FakeToolCall()))
+    assert one["structured"]["source_floor"]["note"] == "1 source (below 3)"
+
+    two = [{"url": "https://a.com/1"}, {"url": "https://b.com/2"}, {"url": "https://a.com/1"}]
+    bound = {"sources": two, "markdown": "# Brief\n\nBody.", "structured": {"price": {}}}
+    _stamp_source_floor(bound)
+    assert bound["structured"]["source_floor"]["note"] == "2 sources (below 3)"
+    assert bound["markdown"].endswith("_Cited: 2 sources (below 3)._")
+    unbound = {"sources": two, "markdown": "Body.", "structured": {}}
+    _stamp_source_floor(unbound)
+    assert unbound["structured"] == {}
+    assert unbound["markdown"].endswith("_Cited: 2 sources (below 3)._")
+    met = {"sources": [*two, {"url": "https://c.com/3"}], "markdown": "Body."}
+    _stamp_source_floor(met)
+    assert met["markdown"] == "Body."
+
+
+class _BasketToolCall(_FakeToolCall):
+    """A recorded web backend: each basket query answers with its own cited rows."""
+
+    RECORDED: dict[str, list[str]] = {
+        "AAPL": ["https://reuters.com/a1", "https://sec.gov/a2", "https://ft.com/a3"],
+        "NVDA": [
+            "https://bloomberg.com/n1",
+            "https://nvidianews.com/n2",
+            "https://wsj.com/n3",
+            "https://reuters.com/n4",
+        ],
+        "RELIANCE": ["https://ril.com/r1", "https://nseindia.com/r2", "https://livemint.com/r3"],
+    }
+
+    def __init__(self, ticker: str) -> None:
+        super().__init__()
+        self.ticker = ticker
+
+    def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name != "web_search":
+            return super()._dispatch(name, args)
+        rows = [{"url": u, "title": u, "excerpt": "e"} for u in self.RECORDED[self.ticker]]
+        return {"ok": True, "backend": "exa", "query": args.get("query"), "citations": rows}
+
+
+@pytest.mark.parametrize("ticker", sorted(_BasketToolCall.RECORDED))
+def test_recorded_basket_meets_source_floor(ticker: str) -> None:
+    fake = _BasketToolCall(ticker)
+    bundle = asyncio.run(gather_fast(f"{ticker} outlook", region="US", tool_call=fake))
+    leg = bundle["structured"]["source_floor"]
+    assert leg["data"]["cited"] >= 3
+    assert "note" not in leg
+
+
+def test_fast_pulls_four_legs_in_parallel() -> None:
+    fake = _FakeToolCall(asset_class="equity", web_ok=True)
+    asyncio.run(gather_fast("Apple", region="US", tool_call=fake))
+
+    # resolve, then four structured legs alongside one web round (R15-RESEARCH-027:
+    # the web round no longer waits for the fan-out, so no call order is pinned).
+    assert fake.calls[0] == "resolve_symbol"
+    assert {"price_data", "fundamentals", "news", "sec_filings_list"} <= set(fake.calls[1:])
+    assert fake.calls.count("web_search") == 1
+    # The four structured legs overlapped (a serial pull peaks at 1).
+    assert fake.max_concurrent >= 2
+
+
+def test_fast_indicators_per_asset_class() -> None:
+    equity = asyncio.run(
+        gather_fast("AAPL", region="US", tool_call=_FakeToolCall(asset_class="equity"))
+    )
+    etf = asyncio.run(gather_fast("SPY", region="US", tool_call=_FakeToolCall(asset_class="etf")))
+    crypto = asyncio.run(
+        gather_fast("BTC", region="US", tool_call=_FakeToolCall(asset_class="crypto"))
+    )
+
+    # gather_fast has no timeframe concept (the cockpit opens on the daily
+    # read), so equity/etf keep their DAILY set. Crypto is timeframe-agnostic
+    # (FR-092) and now carries the real EMA50/200 + week-VWAP combo — it used
+    # to ship a single generic-period EMA and a non-week VWAP (R15-UI-091).
+    assert equity["suggested_indicators"] == ["ma", "volume", "rsi", "macd"]
+    assert etf["suggested_indicators"] == ["ma", "volume", "rsi"]
+    assert crypto["suggested_indicators"] == ["ema:50", "ema:200", "vwap:week", "rsi"]
+
+
+def test_suggested_indicators_fr092_combos() -> None:
+    """R15-UI-091 acceptance: the FR-092 named multi-period combos, not a
+    generic single-period EMA/VWAP."""
+    assert _suggested_indicators("5m", "equity") == ["ema:9", "ema:21", "vwap", "rsi"]
+    assert _suggested_indicators("1d", "crypto") == ["ema:50", "ema:200", "vwap:week", "rsi"]
+    # Class pin: (equity, 1d) keeps the daily set — the EMA9/21 crossover is
+    # an intraday-only read, never shown on a daily chart.
+    assert _suggested_indicators("1d", "equity") == ["ma", "volume", "rsi", "macd"]
+    # Crypto ignores the timeframe entirely (24/7, no session boundary).
+    assert _suggested_indicators("5m", "crypto") == _suggested_indicators("1d", "crypto")
+    # An unrecognized asset class falls back to the equity table.
+    assert _suggested_indicators("1d", "bond") == _suggested_indicators("1d", "equity")
+
+
+def test_fast_web_unavailable_is_honest() -> None:
+    fake = _FakeToolCall(asset_class="equity", web_ok=False)
+    bundle = asyncio.run(gather_fast("Apple", region="US", tool_call=fake))
+
+    assert bundle["ok"] is True  # structured data still pulled
+    web = bundle["web"]
+    assert web["available"] is False
+    assert web["citations"] == []
+    assert web["results"] == []
+    # The honest fallback note — never an empty/fabricated web section. A genuine
+    # no-backend miss (no typed reason) keeps the "no backend configured" copy.
+    assert web["note"] == "No web-search backend configured — structured data only"
+    assert "detail" in web  # the tool's "how to unlock it" message is surfaced
+
+
+def test_fast_web_rate_limited_is_transient_not_no_backend() -> None:
+    """WS3: a TRANSIENT throttle (typed reason "rate_limited") yields the honest
+    "rate-limited, retry" note — NOT the false "no backend configured" claim. The
+    backend exists; it was merely throttled this run."""
+    fake = _FakeToolCall(asset_class="equity", web_ok=False, web_reason="rate_limited")
+    bundle = asyncio.run(gather_fast("Apple", region="US", tool_call=fake))
+
+    web = bundle["web"]
+    assert web["available"] is False
+    assert web["reason"] == "rate_limited"
+    # The transient note, NOT the false global "no backend configured".
+    assert web["note"] == "Web search was rate-limited — retry in a moment"
+    assert "no backend" not in web["note"].lower()
+    assert "no web-search backend" not in web["note"].lower()
+
+
+def test_fast_resolution_failure_goes_web_only() -> None:
+    """R8: an unresolvable query no longer dead-ends — the bundle proceeds
+    WEB-ONLY with the honest one-line note, ``symbol == ""``, and ZERO
+    structured calls (a free-text query never rides a ``symbol`` arg)."""
+    fake = _FakeToolCall(resolve_ok=False)
+    bundle = asyncio.run(gather_fast("zzzz nonsense", region="US", tool_call=fake))
+
+    assert bundle["ok"] is True
+    assert bundle["symbol"] == ""
+    assert bundle["structured"] == {}
+    assert bundle["note"] == "No listed instrument matched this query — web evidence only."
+    assert bundle["resolved"]["ok"] is False
+    # Resolve attempts (full query + the R10 prefix rungs) and ONE web round —
+    # no structured tool ever fired.
+    assert set(fake.calls) == {"resolve_symbol", "web_search"}
+    assert fake.calls[-1] == "web_search"
+    assert fake.calls.count("web_search") == 1
+    assert bundle["web"]["available"] is True
+
+
+def test_fast_low_confidence_resolution_goes_web_only() -> None:
+    """A fuzzy match below the confidence floor is REJECTED (web-only run),
+    never silently bound to the wrong instrument."""
+
+    class _LowConfidence(_FakeToolCall):
+        def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+            out = super()._dispatch(name, args)
+            if name == "resolve_symbol":
+                out["resolved"]["confidence"] = 0.2
+            return out
+
+    fake = _LowConfidence()
+    bundle = asyncio.run(gather_fast("ambiguous name", region="US", tool_call=fake))
+    assert bundle["ok"] is True
+    assert bundle["symbol"] == ""
+    # Resolve attempts only (full query + prefix rungs) + ONE web round.
+    assert set(fake.calls) == {"resolve_symbol", "web_search"}
+    assert fake.calls.count("web_search") == 1
+
+
+def test_fast_disambiguation_returns_chooser_with_zero_web_spend() -> None:
+    """R10 (D37): an ambiguous resolution returns the explicit "which did you
+    mean?" payload — no markdown, no structured pulls, no web round."""
+
+    class _Ambiguous(_FakeToolCall):
+        def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+            if name == "resolve_symbol":
+                return {
+                    "ok": True,
+                    "query": args.get("query"),
+                    "status": "disambiguate",
+                    "reason": "marquee family name",
+                    "resolved": None,
+                    "needs_disambiguation": True,
+                    "candidates": [
+                        {
+                            "symbol": "TCS",
+                            "name": "Tata Consultancy Services Limited",
+                            "exchange": "NSE",
+                            "confidence": 0.6,
+                            "yahoo_symbol": "TCS.NS",
+                        }
+                    ],
+                    "message": "which did you mean?",
+                }
+            return super()._dispatch(name, args)
+
+    fake = _Ambiguous()
+    bundle = asyncio.run(gather_fast("tata results", region="IN", tool_call=fake))
+    assert bundle["ok"] is True
+    assert bundle["needs_disambiguation"] is True
+    assert bundle["query"] == "tata results"
+    assert bundle["candidates"][0]["symbol"] == "TCS"
+    assert bundle["candidates"][0]["yahoo_symbol"] == "TCS.NS"
+    assert bundle["message"]
+    assert bundle["execution_loop"] == "fast"
+    assert "markdown" not in bundle and "structured" not in bundle
+    # ZERO web/structured spend — only the resolver was consulted.
+    assert set(fake.calls) == {"resolve_symbol"}
+
+
+def test_fast_one_leg_failure_is_non_fatal() -> None:
+    class _PartialFail(_FakeToolCall):
+        def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+            if name == "fundamentals":
+                raise RuntimeError("provider exploded")
+            return super()._dispatch(name, args)
+
+    fake = _PartialFail(asset_class="equity", web_ok=True)
+    bundle = asyncio.run(gather_fast("Apple", region="US", tool_call=fake))
+
+    assert bundle["ok"] is True
+    assert bundle["structured"]["fundamentals"]["ok"] is False
+    assert "error" in bundle["structured"]["fundamentals"]
+    # R13 JARVIS 2a: the failed leg names its CAUSE (provider_error) so the model
+    # narrates OUR feed's gap, not a silent absence it can call a world-absence.
+    assert bundle["structured"]["fundamentals"]["reason"] == "provider_error"
+    # The other legs still came through.
+    assert bundle["structured"]["price"]["ok"] is True
+    assert bundle["structured"]["news"]["ok"] is True
+
+
+def test_structured_value_classifies_failed_leg_reason() -> None:
+    """R13 JARVIS 2a: the leg wrapper stamps a closed-vocabulary reason — an
+    explicit token is honoured, else inferred from the error text; an ok leg
+    carries no reason."""
+    from services.research.fast import _structured_value
+
+    provider_err = _structured_value(
+        {"ok": False, "error": "unexpected error: boom"}, "fundamentals"
+    )
+    assert provider_err["ok"] is False
+    assert provider_err["reason"] == "provider_error"
+
+    explicit = _structured_value(
+        {"ok": False, "reason": "rate_limited", "error": "429"}, "fundamentals"
+    )
+    assert explicit["reason"] == "rate_limited"
+
+    not_found = _structured_value({"ok": False, "error": "SYM not found"}, "fundamentals")
+    assert not_found["reason"] == "not_found"
+
+    ok_leg = _structured_value(
+        {"ok": True, "fundamentals": {"symbol": "X"}, "provider": "yfinance"}, "fundamentals"
+    )
+    assert "reason" not in ok_leg
+
+
+# --- R13 entity-anchored NORMAL (fast-path) web query -----------------------
+
+
+class _QueryCapturingToolCall(_FakeToolCall):
+    """Records the web_search query so the anchored NORMAL query can be pinned."""
+
+    def __init__(self, *, symbol: str, name: str) -> None:
+        super().__init__()
+        self._symbol = symbol
+        self._name = name
+        self.web_query: str | None = None
+
+    def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "resolve_symbol":
+            return {
+                "ok": True,
+                "query": args.get("query"),
+                "region": "IN",
+                "resolved": {
+                    "symbol": self._symbol,
+                    "name": self._name,
+                    "exchange": "BSE",
+                    "region": "IN",
+                    "asset_class": "equity",
+                    "yahoo_symbol": f"{self._symbol}.BO",
+                    "confidence": 1.0,
+                    "isin": "INE953E01022",
+                    "bse_code": "519421",
+                    "industry": None,
+                },
+                "needs_disambiguation": False,
+                "candidates": [],
+            }
+        if name == "web_search":
+            self.web_query = args.get("query")
+            return {"ok": True, "citations": [], "results": []}
+        return super()._dispatch(name, args)
+
+
+def test_fast_normal_query_quotes_the_display_name() -> None:
+    """NORMAL fast path anchors on the QUOTED display name + bare symbol so a
+    famous foreign namesake can't shadow a ≤3-char ticker (KSE ← Karachi)."""
+    tool = _QueryCapturingToolCall(symbol="KSE", name="KSE Ltd")
+    out = asyncio.run(gather_fast("KSE outlook", region="IN", tool_call=tool))
+    assert out["symbol"] == "KSE"
+    assert tool.web_query == '"KSE Ltd" KSE KSE outlook news outlook'
+
+
+# --- R13 ledger #9/#10: news relevance gate + IN filings region routing -----
+
+
+class _INToolCall(_FakeToolCall):
+    """A fake ``tool_call`` resolving to an IN-listed BSE target, with canned
+    ``news``/``corporate_announcements`` results — exercises the R13 ledger #9
+    (news off-entity leakage) and #10 (filings wrong-lane) fixes."""
+
+    def __init__(
+        self,
+        *,
+        symbol: str,
+        name: str,
+        news_items: list[dict[str, Any]] | None = None,
+        announcements_result: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__()
+        self._symbol = symbol
+        self._name = name
+        self._news_items = news_items if news_items is not None else []
+        self._announcements_result = announcements_result
+
+    def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "resolve_symbol":
+            return {
+                "ok": True,
+                "query": args.get("query"),
+                "region": "IN",
+                "resolved": {
+                    "symbol": self._symbol,
+                    "name": self._name,
+                    "exchange": "BSE",
+                    "region": "IN",
+                    "asset_class": "equity",
+                    "yahoo_symbol": f"{self._symbol}.BO",
+                    "confidence": 1.0,
+                    "isin": "INE000X01011",
+                    "bse_code": "500000",
+                    "industry": None,
+                },
+                "needs_disambiguation": False,
+                "candidates": [],
+            }
+        if name == "news":
+            return {"ok": True, "count": len(self._news_items), "news": list(self._news_items)}
+        if name == "corporate_announcements":
+            if self._announcements_result is not None:
+                return dict(self._announcements_result)
+            return {"ok": False, "error": "corporate_announcements failed: boom"}
+        return super()._dispatch(name, args)
+
+
+def test_fast_news_drops_off_entity_items_for_in_target() -> None:
+    """R13 ledger #9: a resolved IN equity's news leg drops off-entity rows —
+    the Yahoo per-symbol feed's foreign-namesake stories (Meta Platforms, not
+    the BSE-listed String Metaverse) and generic macro headlines never count
+    as this instrument's coverage; a genuine on-entity item is kept."""
+    off_entity = [
+        {
+            "title": "Why Microsoft is not this portfolio manager's stock pick",
+            "summary": "Niles Investment Management on Microsoft in the AI landscape.",
+            "url": "https://finance.yahoo.com/video/why-microsoft-not-portfolio-managers.html",
+            "source": "Yahoo! Finance: META News",
+        },
+        {
+            "title": "PM Modi gets special welcome in Auckland",
+            "summary": "New Zealand's iconic Sky Tower lights up in tri-colour.",
+            "url": "https://www.livemint.com/news/world/pm-modi-auckland.html",
+            "source": "mint - news",
+        },
+    ]
+    on_entity = {
+        "title": "String Metaverse Ltd shares rally on BSE after order win",
+        "summary": "The company posted a new client order.",
+        "url": "https://www.moneycontrol.com/news/string-metaverse-order-win.html",
+        "source": "Moneycontrol",
+    }
+    tool = _INToolCall(
+        symbol="META", name="String Metaverse Ltd", news_items=[*off_entity, on_entity]
+    )
+    bundle = asyncio.run(gather_fast("META outlook", region="IN", tool_call=tool))
+
+    news = bundle["structured"]["news"]
+    assert news["ok"] is True
+    assert [item["title"] for item in news["data"]] == [on_entity["title"]]
+    assert "note" not in news
+
+
+def test_fast_news_all_off_entity_yields_honest_note() -> None:
+    """R13 ledger #9: when EVERY row drops, the leg stays ok:True with an empty
+    list and an honest note — never generic filler dressed up as coverage."""
+    off_entity = [
+        {
+            "title": "Stock trading halted as Taiwan braces for Typhoon Bavi",
+            "summary": "Authorities in Taiwan evacuated residents ahead of the storm.",
+            "url": "https://www.livemint.com/news/world/typhoon-bavi.html",
+            "source": "mint - news",
+        },
+        {
+            "title": "Nykaa among 6 midcap stocks that hit 52-week highs",
+            "summary": "Nykaa and five others rallied over the past month.",
+            "url": "https://economictimes.indiatimes.com/markets/nykaa-midcaps.html",
+            "source": "Markets-Economic Times",
+        },
+    ]
+    tool = _INToolCall(symbol="META", name="String Metaverse Ltd", news_items=off_entity)
+    bundle = asyncio.run(gather_fast("META outlook", region="IN", tool_call=tool))
+
+    news = bundle["structured"]["news"]
+    assert news["ok"] is True
+    assert news["data"] == []
+    assert news["note"] == (
+        "No on-entity news found for META — 2 item(s) returned by the news feed "
+        "were off-entity/off-topic and dropped."
+    )
+
+
+def test_fast_filings_leg_routes_to_announcements_for_in_target() -> None:
+    """R13 ledger #10: an IN-listed target's filings leg pulls the exchange
+    announcements feed, never SEC EDGAR (the wrong jurisdiction's index)."""
+    announcements_result = {
+        "ok": True,
+        "symbol": "CDG",
+        "exchange": None,
+        "sources": ["NSE", "BSE"],
+        "errors": {},
+        "count": 2,
+        "announcements": [
+            {
+                "symbol": "CDG",
+                "exchange": "BSE",
+                "headline": "Board Meeting Intimation",
+                "category": "Board Meeting",
+                "attachment_url": None,
+                "ts": "2026-07-08T10:00:00+05:30",
+            },
+            {
+                "symbol": "CDG",
+                "exchange": "NSE",
+                "headline": "Outcome of Board Meeting - Q4 Results",
+                "category": "Financial Results",
+                "attachment_url": "https://x.example/cdg-q4.pdf",
+                "ts": "2026-07-05T18:30:00+05:30",
+            },
+        ],
+    }
+    tool = _INToolCall(
+        symbol="CDG", name="CDG Petchem Ltd", announcements_result=announcements_result
+    )
+    bundle = asyncio.run(gather_fast("CDG outlook", region="IN", tool_call=tool))
+
+    filings = bundle["structured"]["filings"]
+    assert filings["ok"] is True
+    assert filings["provider"] == "nse+bse"
+    assert filings["data"]["announcements"] == announcements_result["announcements"]
+    assert "sec_filings_list" not in tool.calls
+    assert "corporate_announcements" in tool.calls
+
+
+@pytest.mark.parametrize(
+    ("sources", "errors", "provider"),
+    [
+        # R15-RESEARCH-013: a BSE-only listing is served by BSE alone.
+        (["BSE"], {}, "bse"),
+        # A case the fix was not written against: the BSE lane is down.
+        (["NSE"], {"BSE": "bse announcements: HTTP 503"}, "nse"),
+    ],
+)
+def test_fast_filings_leg_provider_names_only_the_serving_exchanges(
+    sources: list[str], errors: dict[str, str], provider: str
+) -> None:
+    announcements_result = {
+        "ok": True,
+        "symbol": "CDG",
+        "exchange": None,
+        "sources": sources,
+        "errors": errors,
+        "count": 0,
+        "announcements": [],
+    }
+    tool = _INToolCall(
+        symbol="CDG", name="CDG Petchem Ltd", announcements_result=announcements_result
+    )
+    bundle = asyncio.run(gather_fast("CDG outlook", region="IN", tool_call=tool))
+    assert bundle["structured"]["filings"]["provider"] == provider
+
+
+def test_fast_filings_leg_us_target_still_uses_sec_edgar() -> None:
+    """The US path is UNCHANGED by the region routing — sec_filings_list,
+    never the exchange-announcements lane."""
+    fake = _FakeToolCall(asset_class="equity", web_ok=True)
+    bundle = asyncio.run(gather_fast("Apple", region="US", tool_call=fake))
+
+    assert bundle["structured"]["filings"]["ok"] is True
+    assert "corporate_announcements" not in fake.calls
+    assert "sec_filings_list" in fake.calls
+
+
+def test_fast_filings_leg_in_target_provider_failure_is_honest() -> None:
+    """A down/erroring exchange-announcements feed for an IN target still
+    carries the SAME closed-vocabulary honesty the other legs carry (R13
+    JARVIS 2a) — never a silent absence."""
+    tool = _INToolCall(symbol="CDG", name="CDG Petchem Ltd", announcements_result=None)
+    bundle = asyncio.run(gather_fast("CDG outlook", region="IN", tool_call=tool))
+
+    filings = bundle["structured"]["filings"]
+    assert filings["ok"] is False
+    assert filings["reason"] == "provider_error"
+
+
+# --- R13 snapshot wiring: ownership_check + dividend_actions ----------------
+#
+# Mirrors the D56/D66 attach-next-to-provider pattern (see test_growth_check.py's
+# "snapshot wiring" section): ``snapshot_structured`` only calls ``price_data`` +
+# ``fundamentals``, so the fake tool only needs to answer those two.
+
+
+def _fund_tool(fund: dict[str, Any]):
+    async def tool(name: str, args: dict[str, Any]) -> dict[str, Any]:  # noqa: ARG001
+        if name == "price_data":
+            return {"ok": True, "provider": "yfinance", "quote": {"symbol": "X", "price": 80.0}}
+        if name == "fundamentals":
+            return {"ok": True, "fundamentals": dict(fund)}
+        raise AssertionError(f"unexpected tool {name}")
+
+    return tool
+
+
+def test_snapshot_attaches_ownership_and_declared_dividend(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(a) A fake IN listing with monkeypatched ownership_check/dividend_actions
+    returning canned objects — fund_data carries ``ownership_exchange`` and
+    ``dividend_declared`` under their documented wire shapes."""
+    canned_ownership = ExchangeOwnership(
+        promoter_percent=55.2,
+        institutions_percent=0.06,
+        public_percent=44.74,
+        as_of_quarter="2026-03-31",
+        source="BSE",
+    )
+    canned_declared = DeclaredDividend(
+        amount=3.95, record_date="2026-07-31", subject="Dividend - Rs 3.95 Per Share"
+    )
+
+    async def fake_ownership(symbol: str) -> ExchangeOwnership:
+        assert symbol == "GEE.BO"  # the RESOLVED listing, not the query
+        return canned_ownership
+
+    async def fake_declared(symbol: str) -> DeclaredDividend:
+        assert symbol == "GEE.BO"
+        return canned_declared
+
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", fake_ownership)
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", fake_declared)
+
+    snap = asyncio.run(
+        snapshot_structured(
+            _fund_tool(
+                {
+                    "symbol": "GEE.BO",
+                    "provider": "yfinance",
+                    "held_percent_insiders": 0.08455,
+                }
+            ),
+            "GEE",
+        )
+    )
+    fund = snap["fundamentals"]["data"]
+    assert fund[ownership_check.OWNERSHIP_KEY] == canned_ownership.as_wire()
+    assert fund[dividend_actions.DECLARED_KEY] == canned_declared.as_wire()
+
+
+def test_snapshot_attaches_nothing_when_both_return_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(b) Both cross-checks monkeypatched to return ``None`` — the keys are
+    absent, and the snapshot never raises."""
+
+    async def none_ownership(_symbol: str) -> None:
+        return None
+
+    async def none_declared(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", none_ownership)
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", none_declared)
+
+    snap = asyncio.run(
+        snapshot_structured(
+            _fund_tool(
+                {
+                    "symbol": "GEE.BO",
+                    "provider": "yfinance",
+                    "held_percent_insiders": 0.08455,
+                }
+            ),
+            "GEE",
+        )
+    )
+    fund = snap["fundamentals"]["data"]
+    assert ownership_check.OWNERSHIP_KEY not in fund
+    assert dividend_actions.DECLARED_KEY not in fund
+
+
+def test_snapshot_skips_ownership_pull_when_not_applicable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(c) A non-applicable target (``should_cross_check`` False — no ownership
+    scalar in the fundamentals payload) — ``get_exchange_ownership`` is never
+    called."""
+
+    # Recorded, not raised: the snapshot isolates a raising leg, so an assert
+    # inside the stub would be swallowed and could never fail this test.
+    pulled: list[str] = []
+
+    async def record(symbol: str) -> ExchangeOwnership:
+        pulled.append(symbol)
+        raise AssertionError("no ownership scalar to reconcile — must not pull the filing")
+
+    async def none_declared(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", record)
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", none_declared)
+
+    snap = asyncio.run(
+        snapshot_structured(
+            _fund_tool({"symbol": "GEE.BO", "provider": "yfinance"}),
+            "GEE",
+        )
+    )
+    fund = snap["fundamentals"]["data"]
+    assert pulled == []
+    assert ownership_check.OWNERSHIP_KEY not in fund
+
+
+def test_snapshot_isolates_a_raising_cross_check(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-RESEARCH-002: one cross-check raising drops only its own leg —
+    the snapshot still returns, with the other legs attached."""
+    canned_declared = DeclaredDividend(
+        amount=3.95, record_date="2026-07-31", subject="Dividend - Rs 3.95 Per Share"
+    )
+
+    async def boom(_symbol: str) -> ExchangeOwnership:
+        raise RuntimeError("exchange shareholding feed exploded")
+
+    async def fake_declared(_symbol: str) -> DeclaredDividend:
+        return canned_declared
+
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", boom)
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", fake_declared)
+
+    snap = asyncio.run(
+        snapshot_structured(
+            _fund_tool(
+                {
+                    "symbol": "GEE.BO",
+                    "provider": "yfinance",
+                    "held_percent_insiders": 0.08455,
+                }
+            ),
+            "GEE",
+        )
+    )
+    fund = snap["fundamentals"]["data"]
+    assert ownership_check.OWNERSHIP_KEY not in fund
+    assert fund[dividend_actions.DECLARED_KEY] == canned_declared.as_wire()
+
+
+def _stub_offline_crosschecks(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Silence the network cross-checks so a snapshot test stays offline+deterministic."""
+
+    async def none_declared(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", none_declared)
+
+
+def test_snapshot_affirmed_zero_dividend_sets_field_and_meta(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """UFO shape: a trailing-12m PAID computation with real history depth that sums
+    to zero AFFIRMS 0.0 on the fundamentals field, labeled "no dividends paid
+    (trailing 12m)" — not a null indistinguishable from unknown."""
+    from services import dividend_history
+
+    _stub_offline_crosschecks(monkeypatch)
+
+    async def affirmed(_symbol: str) -> dividend_history.DividendTTM:
+        return dividend_history.DividendTTM(
+            0.0, "affirmed_zero", dividend_history.AFFIRMED_ZERO_LABEL
+        )
+
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", affirmed)
+
+    snap = asyncio.run(
+        snapshot_structured(_fund_tool({"symbol": "UFO.NS", "provider": "yfinance"}), "UFO")
+    )
+    fund = snap["fundamentals"]["data"]
+    assert fund["dividend_per_share_ttm"] == 0.0
+    meta = fund["field_meta"]["dividend_per_share_ttm"]
+    assert meta["status"] == "ok"
+    assert meta["label"] == dividend_history.AFFIRMED_ZERO_LABEL
+
+
+def test_snapshot_insufficient_dividend_depth_stays_null_with_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When history depth is insufficient, the field stays NULL — but carries a
+    field_meta reason so a consumer reads "unknown, and why", not a bare dash."""
+    from services import dividend_history
+
+    _stub_offline_crosschecks(monkeypatch)
+
+    async def unavailable(_symbol: str) -> dividend_history.DividendTTM:
+        return dividend_history.DividendTTM(
+            None, "unavailable", dividend_history.INSUFFICIENT_DEPTH_REASON
+        )
+
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", unavailable)
+
+    snap = asyncio.run(
+        snapshot_structured(_fund_tool({"symbol": "RBA.NS", "provider": "yfinance"}), "RBA")
+    )
+    fund = snap["fundamentals"]["data"]
+    assert "dividend_per_share_ttm" not in fund  # value honestly null
+    meta = fund["field_meta"]["dividend_per_share_ttm"]
+    assert meta["status"] == "unavailable"
+    assert meta["reason"] == dividend_history.INSUFFICIENT_DEPTH_REASON
+
+
+def test_snapshot_special_dividend_research_output_is_unchanged(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-047: the research snapshot runs the same shared paid-TTM leg as
+    /fundamentals; its derived D56 conflict and paid fact for the ABBOTINDIA
+    shape are what they were (dividendRate 525 vs 656 paid)."""
+    from services import dividend_history
+
+    _stub_offline_crosschecks(monkeypatch)
+
+    async def paid(_symbol: str) -> dividend_history.DividendTTM:
+        return dividend_history.DividendTTM(656.0, "paid")
+
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", paid)
+    fund_in = {
+        "symbol": "ABBOTINDIA.NS",
+        "provider": "yfinance",
+        "dividend_per_share": 525.0,
+        "dividend_yield": 0.0193,
+        "ratio_price": 26935.0,
+    }
+    snap = asyncio.run(snapshot_structured(_fund_tool(fund_in), "ABBOTINDIA"))
+    fund = snap["fundamentals"]["data"]
+    assert fund["dividend_per_share_ttm"] == 656.0
+    derived = snap["derived"]["data"]
+    assert derived["dividend_per_share_ttm"]["value"] == 656.0
+    conflicts = [c for c in derived["conflicts"] if c["field"] == "dividend_per_share"]
+    assert len(conflicts) == 1
+    assert {s["value"] for s in conflicts[0]["sources"]} == {525.0, 656.0}
+
+
+class _SlowWebToolCall(_FakeToolCall):
+    """``web_search`` takes ``web_delay`` seconds and records when it started."""
+
+    def __init__(self, web_delay: float) -> None:
+        super().__init__()
+        self.web_delay = web_delay
+        self.web_started: float | None = None
+
+    async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "web_search":
+            self.web_started = time.perf_counter()
+            await asyncio.sleep(self.web_delay)
+        return await super().__call__(name, args)
+
+
+def test_fast_web_round_runs_alongside_a_time_boxed_fan_out(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-RESEARCH-027: a witness leg that hangs is dropped at its time box and
+    named in a step with its latency; the web round starts before the fan-out
+    ends, so the bundle lands at max(fan-out, web), not their sum."""
+    from services import dividend_history
+    from services.research import fast
+
+    _stub_offline_crosschecks(monkeypatch)
+    monkeypatch.setattr(fast, "_WITNESS_LEG_TIMEOUT_S", 0.5)
+
+    async def hangs(_symbol: str) -> dividend_history.DividendTTM:
+        await asyncio.sleep(20)
+        raise AssertionError("the time box must cancel this leg")
+
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", hangs)
+    fake = _SlowWebToolCall(web_delay=0.4)
+    steps: list[tuple[float, Any]] = []
+
+    async def run() -> dict[str, Any]:
+        return await gather_fast(
+            "Apple",
+            region="US",
+            tool_call=fake,
+            on_step=lambda step: steps.append((time.perf_counter(), step)),
+        )
+
+    t0 = time.perf_counter()
+    bundle = asyncio.run(run())
+    elapsed = time.perf_counter() - t0
+
+    assert bundle["ok"] is True
+    assert elapsed < 0.5 + 0.4 - 0.1  # max(fan-out, web) + margin, never their sum
+    (timed_out,) = [s for _, s in steps if "timed out" in s.detail]
+    assert "dividend TTM" in timed_out.detail
+    assert timed_out.status == "error"
+    assert timed_out.latency_ms is not None and timed_out.latency_ms >= 500
+    fan_out_end = next(t for t, s in steps if s.detail.startswith("pulled "))
+    assert fake.web_started is not None and fake.web_started < fan_out_end
+
+
+class _SlowLegToolCall(_FakeToolCall):
+    """One structured leg sleeps 20 s (a throttled provider)."""
+
+    def __init__(self, slow: str) -> None:
+        super().__init__()
+        self.slow = slow
+
+    async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == self.slow:
+            await asyncio.sleep(20)
+        return await super().__call__(name, args)
+
+
+@pytest.mark.parametrize(
+    ("slow", "leg", "box_s"),
+    [("price_data", "price", None), ("news", "news", 0.5)],
+)
+def test_a_stalled_leading_leg_is_time_boxed_and_the_rest_publish(
+    monkeypatch: pytest.MonkeyPatch, slow: str, leg: str, box_s: float | None
+) -> None:
+    """R15-RESEARCH-027: a 20 s price leg (at the real box) no longer holds the
+    FAST path; it lands under 8 s with that leg timed out and fundamentals
+    intact. The news leg is the class case the fix was not written against."""
+    from services.research import fast
+
+    _stub_offline_crosschecks(monkeypatch)
+    if box_s is not None:
+        monkeypatch.setattr(fast, "_WITNESS_LEG_TIMEOUT_S", box_s)
+    steps: list[Any] = []
+
+    t0 = time.perf_counter()
+    bundle = asyncio.run(
+        gather_fast("Apple", region="US", tool_call=_SlowLegToolCall(slow), on_step=steps.append)
+    )
+    elapsed = time.perf_counter() - t0
+
+    assert elapsed < 8.0
+    structured = bundle["structured"]
+    assert structured[leg]["ok"] is False and "timed out" in structured[leg]["error"]
+    assert structured["fundamentals"]["ok"] is True
+    assert structured["fundamentals"]["data"]["pe_ratio"] == 30.0
+    (timed_out,) = [s for s in steps if s.detail.startswith(f"{leg} timed out")]
+    assert timed_out.status == "error"
+    assert timed_out.latency_ms >= fast._WITNESS_LEG_TIMEOUT_S * 1000
+
+
+def test_a_stalled_web_round_is_time_boxed_and_structured_still_publishes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-RESEARCH-027: a 20 s NORMAL web round (a keyless backend rate-limited
+    into a long wait) no longer holds the FAST bundle past its own 8 s box —
+    fundamentals still publish, and the honest timeout note names the box.
+    Distinct shape from the structured-leg test above: the web round has no
+    ``structured`` slot of its own, so it needs its own bundle-shape
+    assertions rather than a shared parametrize row."""
+    from services.research import fast
+
+    _stub_offline_crosschecks(monkeypatch)
+    steps: list[Any] = []
+
+    t0 = time.perf_counter()
+    bundle = asyncio.run(
+        gather_fast(
+            "Apple",
+            region="US",
+            tool_call=_SlowLegToolCall("web_search"),
+            on_step=steps.append,
+        )
+    )
+    elapsed = time.perf_counter() - t0
+
+    assert elapsed < 10.0
+    web = bundle["web"]
+    assert web["available"] is False
+    assert web["reason"] == "timeout"
+    assert "8" in web["note"]
+    structured = bundle["structured"]
+    assert structured["fundamentals"]["ok"] is True
+    assert structured["fundamentals"]["data"]["pe_ratio"] == 30.0
+    (search_step,) = [s for s in steps if s.kind == "search" and s.status == "skipped"]
+    assert search_step.latency_ms >= fast._WEB_ROUND_TIMEOUT_S * 1000
+
+
+@pytest.mark.parametrize(("leg_timeout_s", "price_ok"), [(None, False), (1.0, True)])
+def test_snapshot_leg_box_comes_from_the_caller(
+    monkeypatch: pytest.MonkeyPatch, leg_timeout_s: float | None, price_ok: bool
+) -> None:
+    """rc1-battery-4:1 — a cold price leg slower than the FAST FR-070 box is
+    dropped by default but kept under the longer box a deep caller passes."""
+    from services.research import fast
+
+    monkeypatch.setattr(fast, "_WITNESS_LEG_TIMEOUT_S", 0.05)
+
+    async def tool(name: str, _args: dict[str, Any]) -> dict[str, Any]:
+        if name == "price_data":
+            await asyncio.sleep(0.2)
+            return {"ok": True, "symbol": "NTPC", "provider": "nse_direct", "quote": {"price": 1}}
+        return {"ok": False, "error": f"{name} unavailable"}
+
+    snap = asyncio.run(snapshot_structured(tool, "NTPC", region="IN", leg_timeout_s=leg_timeout_s))
+
+    assert snap["price"]["ok"] is price_ok

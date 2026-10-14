@@ -1,0 +1,20 @@
+## EarningsCalendarPanel colgroup/DataTable
+243:            <colgroup>
+244:              <col style={{ width: "5%" }} />
+245:              <col style={{ width: "16%" }} />
+246:              <col style={{ width: "14%" }} />
+247:              <col style={{ width: "23%" }} />
+248:              <col style={{ width: "16%" }} />
+249:              <col style={{ width: "14%" }} />
+250:              <col style={{ width: "12%" }} />
+251:            </colgroup>
+261:                      style={{ width: `${60 + (i % 3) * 15}%` }}
+305:            <colgroup>
+306:              <col style={{ width: "5%" }} />
+307:              <col style={{ width: "16%" }} />
+308:              <col style={{ width: "14%" }} />
+309:              <col style={{ width: "23%" }} />
+310:              <col style={{ width: "16%" }} />
+311:              <col style={{ width: "14%" }} />
+312:              <col style={{ width: "12%" }} />
+313:            </colgroup>

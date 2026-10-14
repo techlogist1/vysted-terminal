@@ -1,0 +1,29 @@
+3:import { REGIONS } from "@/lib/region";
+20:  /** The listing's region when the user picked one (AMAL is Amal Ltd in IN and
+21:   *  Amalgamated Financial in US); absent follows the session region (R15-DATA-002). */
+22:  region?: string;
+25:/** One key per tracked listing: the same ticker in two regions is two entries. */
+27:  return `${entry.region ?? ""}|${entry.symbol.toUpperCase()}`;
+40:export const DEFAULT_SYMBOLS: SymbolEntry[] = [
+41:  { symbol: "SPY", assetClass: "equity" },
+52:  /** Add a symbol if that listing is not already tracked (case-insensitive symbol + region). */
+53:  addSymbol: (symbol: string, assetClass: "equity" | "crypto", region?: string) => void;
+54:  /** Remove a tracked symbol: every listing of it, or with `region` only that one
+55:   *  (`null` names the region-less entry). */
+56:  removeSymbol: (symbol: string, region?: string | null) => void;
+63:  entries: [...DEFAULT_SYMBOLS],
+64:  addSymbol: (symbol, assetClass, region) =>
+70:      const entry: SymbolEntry = region
+71:        ? { symbol: normalized, assetClass, region }
+78:  removeSymbol: (symbol, region) =>
+83:          (region !== undefined && (entry.region ?? null) !== region),
+96:          // The persisted blob is a trust boundary: keep only a known region.
+2: * Region / locale (default `IN` since R10 E1).
+17:/** The supported regions. `IN` is present as the Pass-B target; `GLOBAL` is a
+19:export type Region = "US" | "IN" | "GLOBAL";
+21:export interface RegionConfig {
+31:export const REGIONS: readonly RegionConfig[] = [
+33:  { id: "IN", label: "India", locale: "en-IN", currency: "INR" },
+39:export const DEFAULT_REGION: Region = "IN";
+42:export function isRegion(value: unknown): value is Region {
+47:export function regionConfig(region: Region): RegionConfig {

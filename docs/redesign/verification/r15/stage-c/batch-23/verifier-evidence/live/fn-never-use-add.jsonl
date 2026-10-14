@@ -1,0 +1,115 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " V"}
+{"kind": "delta", "text": "yst"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": " cop"}
+{"kind": "delta", "text": "ilot"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Unfortunately"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " clarify"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " V"}
+{"kind": "delta", "text": "yst"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": " doesn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " brokerage"}
+{"kind": "delta", "text": " connection"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " so"}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " execute"}
+{"kind": "delta", "text": " trades"}
+{"kind": "delta", "text": " directly"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " happy"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " track"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": " manually"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " add"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " propose"}
+{"kind": "delta", "text": " adding"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " watch"}
+{"kind": "delta", "text": "list"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " tracking"}
+{"kind": "delta", "text": " purposes"}
+{"kind": "delta", "text": " only"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "This"}
+{"kind": "delta", "text": " will"}
+{"kind": "delta", "text": " allow"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " monitor"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " position"}
+{"kind": "delta", "text": " without"}
+{"kind": "delta", "text": " being"}
+{"kind": "delta", "text": " able"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " buy"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " sell"}
+{"kind": "delta", "text": " through"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " proceed"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " proposal"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2741, "output_tokens": 111, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

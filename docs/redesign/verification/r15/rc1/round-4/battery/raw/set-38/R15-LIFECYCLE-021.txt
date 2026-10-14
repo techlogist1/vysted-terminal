@@ -1,0 +1,4 @@
+=== LIFECYCLE-021 baseline: /system/provider-health ===
+{"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":0.0,"consecutive_opens":0,"opens_total":3,"throttles_total":118.0},"fallthroughs":[{"provider":"nse","model_key":"quote","count":3,"last_error":"nse: 'MAZAGONDOCK' is not a known NSE instrument","last_at":1790461967.4160872},{"provider":"bse","model_key":"quote","count":3,"last_error":"bse: 'MAZAGONDOCK' is not a known BSE instrument","last_at":1790461967.416302}]}
+=== LIFECYCLE-021: /quotes/RELIANCE.NS (live, should be nse_direct normally) ===
+{"symbol":"RELIANCE","price":1226.0,"change":6.7999999999999545,"change_percent":0.5577427821522273,"volume":13138735.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}

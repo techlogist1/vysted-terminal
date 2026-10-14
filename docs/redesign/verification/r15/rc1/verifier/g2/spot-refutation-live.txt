@@ -1,0 +1,28 @@
+# rc1-verifier g2 live probes against own sidecar :52312 booted from 4c6dfe8c export; 2026-09-26T12:19:18Z
+== GET /resolve?q=SIFY
+{"ok":true,"query":"SIFY","region":"IN","resolved":{"symbol":"SIFY","name":"SIFY TECHNOLOGIES LTD","exchange":"US","region":"US","asset_class":"equity","yahoo_symbol":"SIFY","confidence":1.0,"isin":null,"bse_code":null,"industry":null,"former_name":"SIFY LTD","board":null,"exchange_group":null,"face_value":null},"needs_disambiguation":false,"candidates":[{"symbol":"SIFY","name":"SIFY TECHNOLOGIES LTD","exchange":"US","region":"US","asset_class":"equity","yahoo_symbol":"SIFY","confidence":1.0,"isin":null,"bse_code":null,"industry":null,"former_name":"SIFY LTD","board":null,"exchange_group":null,"face_value":null}],"rename_lane":"available"}
+HTTP 200
+== GET /resolve?q=ONC
+{"ok":true,"query":"ONC","region":"IN","resolved":{"symbol":"ONC","name":"BeOne Medicines Ltd.","exchange":"US","region":"US","asset_class":"equity","yahoo_symbol":"ONC","confidence":1.0,"isin":null,"bse_code":null,"industry":null,"former_name":"BeiGene, Ltd.","board":null,"exchange_group":null,"face_value":null},"needs_disambiguation":false,"candidates":[{"symbol":"ONC","name":"BeOne Medicines Ltd.","exchange":"US","region":"US","asset_class":"equity","yahoo_symbol":"ONC","confidence":1.0,"isin":null,"bse_code":null,"industry":null,"former_name":"BeiGene, Ltd.","board":null,"exchange_group":null,"face_value":null}],"rename_lane":"available"}
+HTTP 200
+== GET /fundamentals/506597.BO
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+== GET /fundamentals/532540.BO
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+== GET /fundamentals/AMAL.BO
+{"symbol":"AMAL.BO","name":"Amal Ltd","sector":"Basic Materials","industry":"Chemicals","sector_source":"yfinance","currency":"INR","financial_currency":null,"ratio_price":673.05,"market_cap":8320689664.0,"pe_ratio":28.032068,"forward_pe":null,"peg_ratio":null,"price_to_book":6.909171,"price_to_sales":2.88041,"ev_to_ebitda":19.276,"book_value":97.414,"dividend_yield":0.0022,"dividend_per_share":1.5,"eps":5.47,"beta":0.01,"fifty_two_week_high":1010.0,"fifty_two_week_low":408.2,"fifty_two_week_change":-0.2204656,"fifty_two_week_high_date":"2025-10-15","fifty_two_week_low_date":"2026-03-30","listing_date":null,"first_trade_date":"2002-01-03","forward_pe_fiscal_year":null,"roe":0.246785906778450
+HTTP 200
+== GET /history/RELIANCE.NS?timeframe=30m&range=1y
+{"symbol":"RELIANCE.NS","timeframe":"30m","bars":[],"provider":"none","freshness":null,"reason":"in_eod_only","partial":false,"coverage_start":null}
+HTTP 200
+== GET /history/RELIANCE.NS?timeframe=30m&range=3mo
+{"symbol":"RELIANCE.NS","timeframe":"30m","bars":[],"provider":"none","freshness":null,"reason":"in_eod_only","partial":false,"coverage_start":null}
+HTTP 200
+== GET /history/RELIANCE.NS?timeframe=30m
+{"symbol":"RELIANCE.NS","timeframe":"30m","bars":[{"timestamp":"2026-08-26T09:00:00+05:30","open":1311.0999755859375,"high":1313.0,"low":1308.5999755859375,"close":1311.0999755859375,"volume":138763.0},{"timestamp":"2026-08-26T09:30:00+05:30","open":1311.300048828125,"high":1314.800048828125,"low":1309.199951171875,"close":1312.4000244140625,"volume":484423.0},{"timestamp":"2026-08-26T10:00:00+05:30","open":1312.4000244140625,"high":1315.5,"low":1310.4000244140625,"close":1311.5999755859375,"volume":274184.0},{"timestamp":"2026-08-26T10:30:00+05:30","open":1311.5,"high":1314.0,"low":1311.0999755859375,"close":1311.5999755859375,"volume":271142.0},{"timestamp":"2026-08-26T11:00:00+05:30","ope
+HTTP 200
+== GET /earnings/INFY/estimates
+{"symbol":"INFY.NS","fiscal_period":null,"eps_estimate_mean":19.61527,"eps_estimate_median":null,"eps_estimate_high":20.33,"eps_estimate_low":19.2,"eps_estimate_stddev":null,"estimate_analyst_count":8,"revenue_estimate_mean":491654926200.0,"revenue_estimate_median":null,"revenue_estimate_high":510007656000.0,"revenue_estimate_low":472000000000.0,"revenue_analyst_count":16,"currency":"INR","revenue_currency":"USD","provider":"yfinance","as_of":"2026-09-26T12:19:30.685487Z"}
+HTTP 200

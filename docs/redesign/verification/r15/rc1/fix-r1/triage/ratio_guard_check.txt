@@ -1,0 +1,3 @@
+traced with the live cashflow result: True
+traced with an ads-free result: False
+guarded (ads-free): The ADR-to-ordinary-share ratio is not available from this session's sources.

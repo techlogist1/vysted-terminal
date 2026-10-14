@@ -1,0 +1,43 @@
+=== R15-CODE-PLATFORM-005 probe (candidate 1006c6da) ===
+Code check: quant/_common.py holds_ql_lock (threading.RLock) decorates options.py/greeks.py/bonds.py/yield_curve.py/monte_carlo.py public entry points.
+Code check: services/quant/pool.py -- pricing now runs in a ProcessPoolExecutor (evolved beyond asyncio.to_thread per R15-CODE-PLATFORM-018 fix: to_thread still froze the event loop under the GIL).
+routers/quant.py: all 5 routes are now 'async def' (were sync 'def').
+
+Script:
+import asyncio, sys
+sys.path.insert(0, ".")
+from datetime import date
+from models.quant import OptionPricingRequest
+from services.quant import options
+from services.quant.pool import run_quant
+
+def req(vd, ed):
+    return OptionPricingRequest(
+        exercise="european", payoff="call", spot=100.0, strike=100.0,
+        risk_free_rate=0.05, dividend_yield=0.0, volatility=0.2,
+        valuation_date=vd, expiry_date=ed, method="black-scholes",
+    )
+
+async def main():
+    r1 = req(date(2026, 5, 16), date(2027, 5, 16))
+    r2 = req(date(2030, 1, 2), date(2031, 1, 2))
+    results = await asyncio.gather(
+        *[run_quant(options.price, r1) for _ in range(30)],
+        *[run_quant(options.price, r2) for _ in range(30)],
+    )
+    npvs1 = [x.price for x in results[:30]]
+    npvs2 = [x.price for x in results[30:]]
+    print("r1 (2026 valuation) npv set:", set(round(v, 4) for v in npvs1))
+    print("r2 (2030 valuation) npv set:", set(round(v, 4) for v in npvs2))
+    zeros1 = sum(1 for v in npvs1 if v == 0.0)
+    zeros2 = sum(1 for v in npvs2 if v == 0.0)
+    print("zero-npv count r1:", zeros1, "r2:", zeros2)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+OUTPUT (60 concurrent pricings, 30 at valuation_date=2026-05-16, 30 at 2030-01-02, gathered together):
+r1 (2026 valuation) npv set: {10.4506}
+r2 (2030 valuation) npv set: {10.4506}
+zero-npv count r1: 0 r2: 0
+
+VERDICT: holds. Zero-npv corruption count is 0/30 for both valuation-date groups (original repro found 1413/3000 zeroed by cross-thread date corruption); routes are async; process-pool isolation plus per-worker RLock guards the QuantLib global.

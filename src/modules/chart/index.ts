@@ -21,9 +21,13 @@ export const chartModule: VystedModule = {
       title: "Chart",
       icon: "line-chart",
       component: "chart-panel",
-      // Phase 2 makes the chart non-singleton so the user can open multiple
-      // chart panels and opt them into crosshair / zoom / symbol sync.
-      singleton: false,
+      // Singleton (fixes #7): openPanel('chart') REUSES the literal-id 'chart'
+      // panel instead of minting a fresh `chart-<ts>-<rand>` each time, so the
+      // command-palette "Open Chart" and `ensureChartOpen` retarget the existing
+      // tab rather than spawning a duplicate. (The Phase-2 multi-chart flag was
+      // never finished — abandoned here; default-layout / layout-templates /
+      // ensureChartOpen all already address the literal 'chart' id.)
+      singleton: true,
       defaultSize: { w: 8, h: 6 },
     },
   ],

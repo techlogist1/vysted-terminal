@@ -1,0 +1,95 @@
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " want"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " calculate"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " profit"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " sale"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": " W"}
+{"kind": "delta", "text": "IP"}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " break"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " down"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " bought"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "250"}
+{"kind": "delta", "text": " each"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " so"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "250"}
+{"kind": "delta", "text": " *"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "375"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " sold"}
+{"kind": "delta", "text": " them"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "262"}
+{"kind": "delta", "text": " each"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " so"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "262"}
+{"kind": "delta", "text": " *"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "393"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " profit"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " then"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " minus"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "393"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "375"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "180"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2748, "output_tokens": 95, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

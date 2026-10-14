@@ -1,0 +1,47 @@
+## sidecar-staleness.mjs:45-90
+ * SOURCE_EXT. `excludeDirs` is a list of absolute paths to prune (used to keep
+ * the main sidecar's walk from descending into the MCP subprocess dirs, which
+ * have their own ensure scripts).
+ */
+function newestMtime(dir, excludeDirs, acc) {
+  let entries;
+  try {
+    entries = readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return acc.t; // unreadable / missing dir contributes nothing
+  }
+  for (const entry of entries) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (IGNORE_DIRS.has(entry.name)) continue;
+      if (excludeDirs.includes(full)) continue;
+      newestMtime(full, excludeDirs, acc);
+    } else if (entry.isFile() && SOURCE_EXT.test(entry.name)) {
+      const m = statSync(full).mtimeMs;
+      if (m > acc.t) acc.t = m;
+    }
+  }
+  return acc.t;
+}
+
+/**
+ * Newest source mtime (ms) across `sourceDirs` plus any `extraFiles`
+ * (e.g. the ensure script itself + this module — editing the build recipe
+ * must also invalidate the binary).
+ */
+export function newestSourceMtime(sourceDirs, { excludeDirs = [], extraFiles = [] } = {}) {
+  const dirs = Array.isArray(sourceDirs) ? sourceDirs : [sourceDirs];
+  const acc = { t: 0 };
+  for (const d of dirs) newestMtime(d, excludeDirs, acc);
+  for (const f of extraFiles) {
+    try {
+      const m = statSync(f).mtimeMs;
+      if (m > acc.t) acc.t = m;
+    } catch {
+      /* missing extra file contributes nothing */
+    }
+  }
+  return acc.t;
+}
+
+/**

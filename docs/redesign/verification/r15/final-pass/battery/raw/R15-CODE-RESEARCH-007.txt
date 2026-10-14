@@ -1,0 +1,11 @@
+# R15-CODE-RESEARCH-007 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:52+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; for k in dividend_per_share_ttm dividend_declared promoter_percent_exchange institutions_percent_exchange; do echo "$k emitted:$(grep -c "\"$k\"" sidecar/services/research/semantics.py) declared-in-brief.ts:$(grep -c "$k" types/brief.ts)"; done; grep -n 'def test_emitted_keys_subset_of_brief_ts_mirror' sidecar/tests/test_research_semantics.py
+--- output ---
+dividend_per_share_ttm emitted:4 declared-in-brief.ts:2
+dividend_declared emitted:2 declared-in-brief.ts:1
+promoter_percent_exchange emitted:2 declared-in-brief.ts:1
+institutions_percent_exchange emitted:2 declared-in-brief.ts:1
+1190:def test_emitted_keys_subset_of_brief_ts_mirror() -> None:
+
+EXIT=0 (0.0s)

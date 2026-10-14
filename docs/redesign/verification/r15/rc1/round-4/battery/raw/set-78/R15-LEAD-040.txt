@@ -1,0 +1,7 @@
+CMD: idle baseline curl -s http://127.0.0.1:52351/quotes/AAPL x3
+idle: 0.53s, 0.40s, 0.69s
+CMD: 16 concurrent cold /resolve + /resolve/autocomplete (unique nonsense queries) fired in background; timed one unrelated GET /quotes/AAPL during the storm
+quote-under-storm elapsed: 1.6383681297302246
+EXIT: 0
+
+Code check: sidecar/services/symbol_resolver.py:160 _RESOLVE_POOL = ThreadPoolExecutor(max_workers=4); resolve_async/autocomplete_async use run_in_executor(_RESOLVE_POOL, ...); grep for to_thread(symbol_resolver...) in routers/services -> 0 hits.

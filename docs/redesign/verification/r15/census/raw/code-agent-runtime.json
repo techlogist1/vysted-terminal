@@ -1,0 +1,152 @@
+[
+  {
+    "raw_id": "COD-agent-runtime-1",
+    "title": "At the tool-round cap the last round's tool calls are streamed to the UI, never dispatched, and the turn ends with no answer",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "agent-runtime",
+    "repro": "PROVEN, sidecar/.venv/bin/python, scripted fake provider that emits one tool_use per round (no network): invoke_agent('copilot', ...) -> provider rounds 7, tool_use events yielded 7 (tc1..tc7), tools actually dispatched 6 (tc1..tc6), undispatched-but-announced ['tc7'], assistant text frames 0, last event LLMDoneEvent. The frontend stages/auto-applies host actions off the tool_use EVENT (src/modules/chat/ChatSidebar.tsx:941), so tc7 lands in the proposal gate or is auto-applied while the runtime never ran it and the model never learns the outcome.",
+    "evidence": "sidecar/services/agent_runtime.py:1472, sidecar/services/agent_runtime.py:1627, sidecar/services/agent_runtime.py:1459, sidecar/services/agent_runtime.py:1438, sidecar/services/agent_runtime.py:1554, src/modules/chat/ChatSidebar.tsx:941",
+    "notes": "Define errors out of existence / obviousness: the loop body ends with 'rounds += 1; if rounds >= _MAX_TOOL_ROUNDS: continue' -- a literal no-op as the last statement of a while True -- under a comment asserting 'the subsequent loop iteration sees no pending tools'. Nothing enforces that: tool_ids is still sent on the capped round, so a looping model calls tools again and they are silently dropped. The invariant is held by a comment when the structure could hold it. Consequence: a long research turn can terminate with zero assistant text and a permanently pending tool chip, plus a host action applied with no server-side dispatch or grounded read-back. Smallest fix: on the final round re-enter once with tool_ids=[] and a synthesized tool result -- exactly the pattern the web-search cap already uses 60 lines earlier (agent_runtime.py:1554-1565)."
+  },
+  {
+    "raw_id": "COD-agent-runtime-2",
+    "title": "The context preamble labels charts[0] 'Focused chart' and contradicts the deixis line in the same system message",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "agent-runtime",
+    "repro": "Two chart panels open, the SECOND focused. The frontend builds `charts` by iterating Object.entries(bySource) -- bus insertion order (src/modules/chat/context-provider.ts:225-236) -- and resolves focusedSymbol from the chart whose panelId === focusedPanel (context-provider.ts:276-278). The sidecar then renders 'Focused chart: <charts[0].symbol> (<its timeframe>, <its indicators>)' and, four lines later, 'When the user says \"this\" or \"it\", they mean <focusedSymbol>'. Two different symbols asserted about the same thing in one system message.",
+    "evidence": "sidecar/services/agent_runtime.py:406, sidecar/services/agent_runtime.py:436, src/modules/chat/context-provider.ts:225, src/modules/chat/context-provider.ts:276, src/modules/chat/context-provider.ts:315",
+    "notes": "Obviousness / information hiding: the snapshot ALREADY carries focusedPanel (context-provider.ts:315) and _render_terminal_preamble never reads it -- grep for 'focusedPanel' in agent_runtime.py returns nothing. Consequence: the agent grounds price/indicator/timeframe talk on the wrong instrument while being told 'this' means another one; copilot.json's own prompt calls loading the wrong instrument 'a correctness failure, never acceptable'. Smallest fix: in _render_terminal_preamble pick next((c for c in charts if c.get('panelId') == ts.get('focusedPanel')), charts[0]) before rendering the line."
+  },
+  {
+    "raw_id": "COD-agent-runtime-3",
+    "title": "Planner pre-pass awaits an LLM completion with no timeout -- the only oneshot.complete caller on a user-facing path that omits it",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "agent-runtime",
+    "repro": "mode='agent' + a capable provider + a compound prompt (classify_intent(prompt).compound) -> invoke_agent awaits oneshot.complete(...) BEFORE the first token of the turn streams, with no timeout= argument. oneshot.py:60-73 states adapters carry no per-stream timeout (OpenAI SDK default ~600 s) and that timeout= exists for exactly this case. A hung provider socket is not an exception, so the 'except Exception -> best-effort' guard at agent_runtime.py:1412 does not fire: the composer sits dead with no frames.",
+    "evidence": "sidecar/services/agent_runtime.py:1396, sidecar/services/agent_runtime.py:1401, sidecar/services/agent_runtime.py:1412, sidecar/services/llm/oneshot.py:60, sidecar/services/agent_tools/deep_research.py:323, sidecar/services/company_narrative.py:468",
+    "notes": "Consistency / define errors out of existence: two of the three other oneshot.complete call sites (deep_research.py:323, company_narrative.py:468) pass an explicit timeout and the helper's docstring warns why -- the hot chat path is the one that opted out, and it runs BEFORE any streaming so the failure mode is a silent dead composer rather than a truncated answer. Smallest fix: timeout=15 on the call; the planner is documented as advisory, and a timeout degrades to the preamble-driven loop that weak models already use."
+  },
+  {
+    "raw_id": "COD-agent-runtime-4",
+    "title": "Stop does not stop: an aborted stream leaves the running tool task alive, still spending the user's BYOK key",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "agent-runtime",
+    "repro": "PROVEN, sidecar/.venv/bin/python: drive _dispatch_tool_with_progress with a 0.4 s local tool, cancel the pending __anext__ and aclose() the generator at 0.05 s (what an SSE disconnect does). Output: 'right after aclose(): tool finished = False' / '0.6s later: tool finished = True'. In the app: the Stop button calls AbortController.abort() (ChatSidebar.tsx:1297, :879-885), the ASGI layer closes the generator, and the in-flight tool runs to completion -- up to the research guard's 570 s (480 s ultra wall + 90 s headroom).",
+    "evidence": "sidecar/services/agent_runtime.py:752, sidecar/services/agent_runtime.py:761, sidecar/services/agent_runtime.py:762, sidecar/services/agent_runtime.py:585, sidecar/services/agent_runtime.py:609, src/modules/chat/ChatSidebar.tsx:1297",
+    "notes": "The finally clause resets the step sink but never cancels `task`, and `await task` is only reached on the happy path. Consequence: money -- a deep/ultra research run keeps calling the BYOK provider after the user abandoned the turn, and three stop-and-retry cycles leave three research runs racing for the same sidecar; the discarded task's result is also never retrieved. Smallest fix: cancel the task in the finally (task.cancel() + contextlib.suppress(asyncio.CancelledError) around an await task)."
+  },
+  {
+    "raw_id": "COD-agent-runtime-5",
+    "title": "The agent loop decodes the research tool's private payload variants and hand-mirrors the frontend's brief parser",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "agent-runtime",
+    "repro": "design",
+    "evidence": "sidecar/services/agent_runtime.py:846, sidecar/services/agent_runtime.py:863, sidecar/services/agent_runtime.py:866, sidecar/services/agent_runtime.py:883, sidecar/services/agent_runtime.py:894, sidecar/services/agent_runtime.py:906, sidecar/services/agent_runtime.py:770, sidecar/services/agent_runtime.py:786",
+    "notes": "Information hiding / better-together: _auto_publish_event (138 lines) knows that a FAST research payload strands its citations under web.citations OR web.results, that a row's text is excerpt OR snippet, that web_available lives top-level OR nested, that execution.loop in {fast,iter,heavy,research-model} maps to the brief's (mode,depth) badges, and that the frontend's briefFromInput reads snake_case keys. Three layers' internals restated in the agent loop. Consequence: change amplification -- adding a research engine means editing _LOOP_TO_MODE_DEPTH in agent_runtime.py, and a FAST-payload field rename silently empties the brief's sources (the exact bug the comment at :857-862 says it already fixed once). Smallest fix: have the research tool return a brief-shaped result (markdown, sources, structured, mode, depth, backend) so the loop publishes it without interpreting it."
+  },
+  {
+    "raw_id": "COD-agent-runtime-6",
+    "title": "invoke_agent is a 403-line function owning fourteen concerns; nothing in the turn can be tested or changed in isolation",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "agent-runtime",
+    "repro": "design",
+    "evidence": "sidecar/services/agent_runtime.py:1229, sidecar/services/agent_runtime.py:1631, sidecar/services/agent_runtime.py:1281, sidecar/services/agent_runtime.py:1321, sidecar/services/agent_runtime.py:1350, sidecar/services/agent_runtime.py:1381, sidecar/services/agent_runtime.py:1393, sidecar/services/agent_runtime.py:1426",
+    "notes": "Strategic-over-tactical: agent resolution, read-only intent gating, native-search tier dispatch, three ContextVar publications, option scrubbing, the planner pre-pass, the round loop, per-round reasoning echo, assistant-turn reconstruction, tool dispatch, the web-search cap, research auto-publish, host-action read-back and end-of-stream divergence notices all live in one body, four levels of nesting deep. Every increment (D21, R9, R10 E2/E3.3/E7, R13 JARVIS 1b, WS8, FR-081, FR-115) was appended in place. Consequence: cognitive load -- a reader must hold the whole turn to change one branch, and the two proven defects above (COD-1, COD-4) both hide in branches no unit test can reach without driving a full fake provider. Smallest fix shape: extract the three self-contained blocks named in findings 3/5/15 (planner pre-pass, brief translation, option scrub); that is ~250 lines out without touching the loop's logic."
+  },
+  {
+    "raw_id": "COD-agent-runtime-7",
+    "title": "Two frozensets with identical membership and different safety meanings -- one of them is the read-only gate",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "agent-runtime",
+    "repro": "PROVEN: sidecar/.venv/bin/python -c \"from services import agent_runtime as a; print(a._STAGEABLE_PLAN_ACTIONS == a._READ_SAFE_PANEL_ACTIONS)\" -> True. Both are {open_panel, set_chart_symbol, set_chart_indicators, add_to_watchlist, arrange_layout, open_company_overview}.",
+    "evidence": "sidecar/services/agent_runtime.py:61, sidecar/services/agent_runtime.py:76, sidecar/services/agent_runtime.py:1300",
+    "notes": "Duplicated truth: _STAGEABLE_PLAN_ACTIONS bounds what a plan may pre-stage into the diff gate; _READ_SAFE_PANEL_ACTIONS is the section-6.5-adjacent allow-list that survives the read-only strip on an inferred read intent (agent_runtime.py:1300-1305). Their 25 lines of rationale comments describe different properties, but they are the same set. Consequence: the next person adding a panel action edits one of the two -- either silently widening what a read-only turn may do, or silently failing to stage a step -- and no test pins the relationship. Smallest fix: define one constant and derive the other from it (_STAGEABLE_PLAN_ACTIONS = _READ_SAFE_PANEL_ACTIONS), or add a one-line test asserting the intended relation."
+  },
+  {
+    "raw_id": "COD-agent-runtime-8",
+    "title": "The tool catalog is restated as English prose in two places, re-introducing the exact drift the catalog-derived grant was built to kill",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "agent-runtime",
+    "repro": "design",
+    "evidence": "sidecar/services/agent_runtime.py:151, sidecar/services/agent_runtime.py:217, sidecar/agents/copilot.json:5, sidecar/services/agent_tools/catalog.py:1531, sidecar/services/agent_runtime.py:670",
+    "notes": "Information leakage: TERMINAL_CAPABILITIES_PREAMBLE names ~20 tools in prose and is appended to EVERY first-party system prompt; copilot.json's 6,000-word systemPrompt names them again, so the flagship agent carries both copies (verified: the preamble IS present in copilot's effective prompt, ~1.5k extra tokens per turn, and the two copies already disagree -- the JSON tells the model to publish with mode='FAST' while the runtime derives mode/depth from the execution record at :903). CLAUDE.md declares the catalog the ONE source of truth and _grant_first_party_hands:189-220 removed this drift for the tool LIST; the prose re-introduces it. Consequence: rename or remove a catalog tool and 13 agents keep promising a capability that answers \"tool 'x' is not available in this build\". Smallest fix: generate the capability sentence from catalog.default_grant_tool_ids() at load time instead of hand-writing it."
+  },
+  {
+    "raw_id": "COD-agent-runtime-9",
+    "title": "Persona `tools` arrays are dead config but are still schema-documented as allow-lists and still published verbatim by GET /agents",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "agent-runtime",
+    "repro": "PROVEN: agent_runtime.get_agent('buffett').tools has 50 entries; buffett.json declares 3 ('price_data','fundamentals','news'). catalog.default_grant_tool_ids() returns 50, so every first-party agent ends up with the identical belt, and routers/agents.py:76 serialises spec.tools into AgentSummary -- the picker shows the same 50 tools for all 13 personas.",
+    "evidence": "sidecar/services/agent_runtime.py:207, sidecar/services/agent_runtime.py:275, sidecar/routers/agents.py:76, sidecar/agents/buffett.json:7, sidecar/agents/_schema.json:36",
+    "notes": "Modifying existing code: the new mechanism (catalog-derived grant) was added and the old one was left standing and still looks authoritative -- _schema.json still describes tools as 'Allow-list of tool ids the agent may call'. Consequence: the next maintainer curates a persona's tool list and nothing happens; any plugin or UI reading AgentSummary.tools cannot distinguish the personas; and the 13 JSON files carry ~200 lines of config that no longer means anything. Smallest fix: either drop `tools` to the specialty tools it actually contributes and expose the union separately on AgentSummary, or delete the field from the schema and the JSONs."
+  },
+  {
+    "raw_id": "COD-agent-runtime-10",
+    "title": "The provider allow-list is forked three ways; a first-party agent cannot declare openrouter and would vanish from the roster with only a warning log",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "agent-runtime",
+    "repro": "PROVEN: model_registry.provider_ids() -> 8 ids including 'openrouter'; sidecar/agents/_schema.json defaultProvider enum -> 7 ids, no 'openrouter'; agent_runtime._PLANNER_PROVIDERS -> 6 ids including 'openrouter'. An agent JSON with defaultProvider 'openrouter' fails Draft7 validation at _discover_specs, logs a warning, and is skipped -- GET /agents then returns 12 agents with HTTP 200.",
+    "evidence": "sidecar/agents/_schema.json:43, sidecar/models/custom_agent.py:44, sidecar/services/agent_runtime.py:90, sidecar/services/agent_runtime.py:253",
+    "notes": "Duplicated truth across three layers, one of which (models/custom_agent.py:44) correctly DERIVES from the registry while the schema hardcodes and the planner hardcodes a third list. Consequence: the roster silently loses an agent for a reason that is only visible in a log line, and 'which providers are supported' has three different answers depending on where you look. Smallest fix: generate the schema's enum from model_registry.provider_ids() in the same way models/custom_agent.py already does, or drop the enum and let the Pydantic LLMProviderId union be the single gate."
+  },
+  {
+    "raw_id": "COD-agent-runtime-11",
+    "title": "A malformed agent JSON degrades the roster silently -- warning log only, HTTP 200, no runtime surface",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "agent-runtime",
+    "repro": "Corrupt or schema-violate any file in sidecar/agents/ (e.g. a defaultProvider the enum omits, per COD-10). _discover_specs logs 'agent <file>: schema violation ...' and continues; _specs is built once at module import (agent_runtime.py:280) so nothing re-checks. GET /agents returns 200 with 12 entries instead of 13; the only detector in the repo is the CI count assertion (tests/test_agent_runtime.py:95, tests/test_agents_router.py:41).",
+    "evidence": "sidecar/services/agent_runtime.py:250, sidecar/services/agent_runtime.py:256, sidecar/services/agent_runtime.py:280, sidecar/routers/agents.py:68, sidecar/tests/test_agent_runtime.py:95",
+    "notes": "Partial-load resilience is the right call; the missing half is the report. A user whose picker lost an agent has no way to learn why, and the packaged app has no runtime signal at all -- CLAUDE.md's own deferred item asks the smoke test to verify '/agents count > 0' for exactly this reason. Smallest fix: keep the skipped filenames + reasons in a module-level list and expose them on GET /agents (or /health) as a `degraded` field."
+  },
+  {
+    "raw_id": "COD-agent-runtime-12",
+    "title": "One corrupt custom-agent row 500s the entire GET /custom-agents list, while the sibling first-party loader skips one bad entry and keeps the rest",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "agent-runtime",
+    "repro": "A custom_agents.db row whose tools_json is not valid JSON (a hand edit, a truncated write, a partially-restored data dir) -> agents_store._row_to_read raises json.JSONDecodeError inside list_agents; agents_store.py has zero exception handling and routers/custom_agents.py:51-54 has none either, so FastAPI returns 500 and EVERY custom agent disappears from the picker. Per CLAUDE.md's CORS gotcha the webview reports it as a CORS policy error, not a 500.",
+    "evidence": "sidecar/services/agents_store.py:87, sidecar/services/agents_store.py:103, sidecar/routers/custom_agents.py:51, sidecar/services/agent_runtime.py:250",
+    "notes": "Consistency: the same subsystem answers 'one bad record among many' two opposite ways -- _discover_specs deliberately skips the bad file and keeps the roster (and its docstring says tests rely on that), agents_store lets one row take out the collection. sqlite3.OperationalError on a locked/corrupt DB has the same blast radius. Smallest fix: wrap the per-row mapping in _row_to_read's caller and skip+log an unparseable row, mirroring the first-party loader."
+  },
+  {
+    "raw_id": "COD-agent-runtime-13",
+    "title": "The same problem (unsupported option keys reaching the provider SDK) is solved by an allow-list in the runtime and a deny-list in the chat router; the chat path is still broken",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "agent-runtime",
+    "repro": "POST /llm/chat with options {\"depth\": \"deep\"}: routers/llm.py:126-130 strips only {research_depth, deepResearchBackend, modelWebSearch, history}, so `depth` rides **adapter_options into the SDK. agent_runtime.py:1363-1366 documents that exact crash ('AsyncCompletions.create() got an unexpected keyword argument depth') and fixes it only for the agent path, by popping `depth` (:1368) and then scrubbing everything outside _ADAPTER_OPTION_KEYS (:1381-1385).",
+    "evidence": "sidecar/services/agent_runtime.py:98, sidecar/services/agent_runtime.py:1368, sidecar/services/agent_runtime.py:1381, sidecar/routers/llm.py:126",
+    "notes": "Different layer / pull complexity downward: which kwargs a provider SDK tolerates is the adapter layer's knowledge, restated in two callers with opposite (and unequal) policies -- the allow-list is safe, the deny-list is a list of the four keys someone remembered. Consequence: the hardened fix did not reach the sibling route, and every future control key must be added to the deny-list or it crashes /llm/chat. Smallest fix: move the allow-list scrub into the adapter base (or get_provider) and delete both call-site filters."
+  },
+  {
+    "raw_id": "COD-agent-runtime-14",
+    "title": "Default model resolution ships two wrong answers: the flagship agent defaults to the provider the planner disables, and an unknown provider falls back to an OpenAI model id",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "agent-runtime",
+    "repro": "PROVEN: get_agent('copilot').default_provider == 'ollama', default_model == 'qwen2.5:7b', and _planner_enabled('ollama','agent') is False -- the shipped default for the primary agent is the lane the runtime itself classifies as too unreliable for the visible planner (and MEMORY.md records qwen-7b tool-use as inconsistent). Separately, _resolve_model returns the literal 'gpt-4.1-mini' whenever model_registry.default_model_for(provider) is None, so a provider absent from the registry sends an OpenAI model id to (e.g.) Anthropic.",
+    "evidence": "sidecar/agents/copilot.json:59, sidecar/services/agent_runtime.py:90, sidecar/services/agent_runtime.py:110, sidecar/services/agent_runtime.py:536",
+    "notes": "Design for the future / define errors out of existence: the out-of-box experience of the product's main agent is the deliberately degraded path (no plan surface, unreliable tool-calling), and the last-resort model fallback produces a request that cannot succeed -- a cross-provider 404 the user reads as 'my key is broken' rather than 'no default model configured'. Smallest fix: point copilot's default at a provider in _PLANNER_PROVIDERS (or gate the planner on model capability, not provider id), and make _resolve_model raise a stated error instead of inventing a foreign model id."
+  },
+  {
+    "raw_id": "COD-agent-runtime-15",
+    "title": "agents_store._ensure_schema is production-dead -- its only caller is the test that tests it, and the dead pair is copy-pasted across four stores",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "agent-runtime",
+    "repro": "grep -rn '_ensure_schema' sidecar --include=*.py -> services/agents_store.py:79 (definition) and tests/test_agents_store.py:49-51 (the only call). The schema is in fact ensured by _connect() on every call (agents_store.py:72), so the function is redundant as well as unused. The identical dead-function + 'test_ensure_schema_is_idempotent' pair exists in plugins_store.py:89, portfolio_db.py:61 and runs_store.py:119.",
+    "evidence": "sidecar/services/agents_store.py:79, sidecar/services/agents_store.py:72, sidecar/tests/test_agents_store.py:49, sidecar/services/plugins_store.py:89, sidecar/services/runs_store.py:119",
+    "notes": "Code kept alive by its own test -- the cheapest possible false signal of coverage, replicated four times. Consequence: a reader assumes there is an initialisation step to call and looks for where it happens. Smallest fix: delete the function and its test in all four stores (the connect-time CREATE TABLE IF NOT EXISTS is the real mechanism and is already exercised by every other test in the file)."
+  }
+]

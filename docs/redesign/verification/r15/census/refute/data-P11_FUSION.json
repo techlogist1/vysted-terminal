@@ -1,0 +1,38 @@
+[
+  {
+    "raw_id": "DAT-P11-1",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The finding misreads the field: Instrument.former_name is documented and implemented as 'the retired symbol, when answered as its renamed form' (populated only from the NSE symbol-change lane when the QUERY was a retired ticker), not a legal-name-change history, so null on a query for the current, never-changed symbol FUSION is correct by design. The claimed user consequence also does not hold: querying the old company name on the isolated stack returns FUSION (Fusion Finance Limited) as the top candidate (0.88 for 'Fusion Micro Finance Limited', 0.67 for 'Fusion Micro Finance'), so a user searching the pre-2024 name is steered to the right entity (via a disambiguation list rather than a confident resolve, a residual polish gap at most).",
+    "evidence": "sidecar/services/symbol_resolver.py:239 (former_name = 'the retired symbol, when answered as its renamed form'), sidecar/services/symbol_resolver.py:192-203 (RenameAnnotation: NSE symbol-change lane), sidecar/services/symbol_resolver.py:782-824 (_rename_instrument sets renamed_from=inst.symbol only when nse_symbol_change.lookup_current hits), sidecar/services/symbol_resolver.py:896 (former_name derived solely from inst.rename)",
+    "evidence_checked": "Opened the resolver dataclass, rename lane and enrichment join; re-ran resolve against the isolated stack :52152 at 2026-09-23T01:08Z for the old legal name.",
+    "repro_check": "curl -s '127.0.0.1:52152/resolve?q=Fusion+Micro+Finance+Limited' -> needs_disambiguation=true, candidates[0]={FUSION, 'Fusion Finance Limited', NSE, 0.88}; q=Fusion+Micro+Finance -> candidates[0]=FUSION at 0.6667"
+  },
+  {
+    "raw_id": "DAT-P11-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real but over-graded: the app does not show a silent blank, it serves dividend_yield/dividend_per_share/dividend_per_share_ttm as null with field_meta status 'unavailable' + reason 'provider did not publish this field', which the Equity Overview renders as an 'unavailable' chip (and the brief simply omits the Div yield card) - per the diff spec an honestly labelled gap is not a medium. The residual gap is real (screener confirms Dividend Yield 0.00% and 0% payout every FY, so 'unavailable' understates a known zero for a never-payer), which is low-severity polish for income screening, not a wrong value shown as true.",
+    "evidence": "sidecar/services/yfinance_provider.py:185 (_NULL_FIELD_REASON), sidecar/services/yfinance_provider.py:343-347,374 (dividendYield/dividendRate pass-through), src/modules/equity-overview/EquityOverviewPanel.tsx:183-201 (fieldReasonChip renders 'unavailable' chip, never a silent blank), src/modules/research/brief-blocks.tsx:359-361 (brief omits yield when null), docs/redesign/verification/r15/battery/collected/P11_FUSION.json:257-258,281,370-383, https://www.screener.in/company/FUSION/ (fetched 2026-09-23T01:08:55Z: 'Dividend Yield 0.00 %')",
+    "evidence_checked": "Opened the provider mapping and both UI render paths; re-fetched the pack's cited screener.in page (the one allowed re-fetch) to confirm the 0.00% yield.",
+    "repro_check": "curl screener.in/company/FUSION/ -> 'Dividend Yield <span class=\"number\">0.00</span> %'; collected fundamentals show null + field_meta unavailable for all three dividend fields"
+  },
+  {
+    "raw_id": "DAT-P11-3",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds: revenue_ttm is a straight pass-through of yfinance info.totalRevenue (no app-side rollup, so the fix is a cross-check, not a rollup audit) and 858.2cr does not reconcile to any standard NBFC definition - screener's trailing 4 quarters (Sep25-Jun26) sum to 1,699cr total revenue and 1,160cr net of interest (539cr), and the same provider's own FY26 annual Total Revenue is 1,513cr - while net income ties (168.5 vs 168cr). It is served status 'ok' and drives the brief's 'Revenue' card, company_narrative 'Revenue (TTM)', and the derived price_to_sales 3.49 (vs ~1.76 true) and profit_margin 19.6% (vs ~10%), so a P/S<2 screener preset would wrongly exclude this name.",
+    "evidence": "sidecar/services/yfinance_provider.py:391 (revenue_ttm=_num(info.get('totalRevenue'))), src/modules/research/brief-blocks.tsx:365,368, sidecar/services/company_narrative.py:297, docs/redesign/verification/r15/battery/collected/P11_FUSION.json:254,268,272-273 (price_to_sales 3.488, profit_margin 0.196, revenue_ttm 8.582e9), collected calls.income Total Revenue 2026=1513.1cr, https://www.screener.in/company/FUSION/ (fetched 2026-09-23T01:08:55Z, quarterly Revenue 401/416/424/458, Interest 134/123/132/150, Net Profit -22/14/114/62)",
+    "evidence_checked": "Opened the provider mapping and UI/narrative consumers; parsed the collected annual income statement; re-fetched screener.in and summed the quarterly table to test the NII-definition hypothesis (rejected: 1,160cr, not 858cr).",
+    "repro_check": "GET :52152/fundamentals/FUSION (collected 19-Sep) revenue_ttm=8582000128 status ok; screener quarters Sep25..Jun26 revenue sum=1699cr, revenue-minus-interest=1160cr; neither equals 858cr"
+  },
+  {
+    "raw_id": "DAT-P11-4",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The outside value cannot contradict the app: screener's High/Low widget prints integer-rounded prices (the same widget shows Current Price '184' for a ~184.5 close), so its '136' is consistent with an actual 136.50 low. The app's own NSE daily series shows the 52-week low bar at exactly 136.50 on 2026-03-30, matching fifty_two_week_low=136.5, so there is no demonstrated mismatch.",
+    "evidence": "https://www.screener.in/company/FUSION/ (fetched 2026-09-23T01:08:55Z: 'Current Price <span class=\"number\">184</span>' and 'High / Low <span class=\"number\">243</span> / <span class=\"number\">136</span>' - integer display), sidecar/routers/history.py:13,55-59 (GET /history/{symbol}), docs/redesign/verification/r15/battery/packs/P11_FUSION.json:100-113,296-312",
+    "evidence_checked": "Inspected the raw screener markup for display precision (the one allowed pack-source re-fetch) and pulled 1y daily bars from the isolated stack :52152 (GET) to locate the actual minimum low.",
+    "repro_check": "curl -s '127.0.0.1:52152/history/FUSION?period=1y&interval=1d' -> 258 bars, min low = 136.5 on 2026-03-30T00:00:00Z (next lowest 139.02)"
+  }
+]

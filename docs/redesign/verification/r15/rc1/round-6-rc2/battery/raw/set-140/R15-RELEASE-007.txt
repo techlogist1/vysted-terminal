@@ -1,0 +1,17 @@
+# candidate ace7dd76; entry repro: grep -rn audit-design package.json .github/workflows/ ; node scripts/audit-design-tokens.mjs; plus negative case on a scratch dir (candidate not edited)
+$ grep -rn audit-design package.json .github/workflows/
+package.json:10:    "lint": "eslint . && node scripts/audit-design-tokens.mjs",
+grep exit=0
+$ node scripts/audit-design-tokens.mjs
+design-token audit clean (392 files)
+exit=0
+$ node scripts/audit-design-tokens.mjs <scratch dir with gap-1.5 px-[7px] text-[12px]>
+../b16-audit/src/bad.tsx:1  off-grid step  gap-1.5
+../b16-audit/src/bad.tsx:1  arbitrary value  px-[7px]
+../b16-audit/src/bad.tsx:1  arbitrary value  text-[12px]
+
+— per-file —
+   3  ../b16-audit/src/bad.tsx
+
+3 violation(s) of R9_DESIGN_SYSTEM.md
+exit=1

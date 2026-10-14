@@ -1,0 +1,23 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_3fc4e8d7d7724f37ba72e967a973a0bb", "name": "publish_brief", "input": {"markdown": "Built you a brief on Microsoft \u2014 it\u2019s at the top of the cockpit; click any ticker to dig in.", "symbol": "MSFT", "web_available": true, "sources": [{"title": "Bloomberg", "url": "https://www.bloomberg.com/quote/MSFT:US"}, {"title": "Yahoo Finance", "url": "https://finance.yahoo.com/quote/MSFT"}], "structured": {}}}
+{"kind": "tool_result", "tool_call_id": "call_3fc4e8d7d7724f37ba72e967a973a0bb", "name": "publish_brief", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " proposed"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " MS"}
+{"kind": "delta", "text": "FT"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " queue"}
+{"kind": "delta", "text": "."}
+{"kind": "research_step", "tool_call_id": "call_3fc4e8d7d7724f37ba72e967a973a0bb", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: publish_brief MSFT. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 3055, "output_tokens": 14, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

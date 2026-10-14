@@ -1,0 +1,11 @@
+# R15-AGENT-055 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:07+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" -c "from services.agent_tools import catalog; print(catalog.CAPABILITY_CATALOG['arrange_layout'].description)" 2>&1 | grep -v Warning; cd "$C"; grep -n 'planLayout\|R15-AGENT-055' src/lib/layout-templates.test.ts | head -4
+--- output ---
+Arrange the cockpit using a named template, for the user to review. 'auto' arranges the panels ALREADY OPEN around their content — a published brief gets the dominant column, the chart gets width, the watchlist parks in a side rail; pick 'auto' whenever the user asks to arrange/organise/tidy their windows without naming a layout. Templates: 'single-focus' (the chart alone, maximised: a quick look; places chart); 'research-cockpit' (the chart beside the company overview, the research brief and news: the flagship deep dive; places chart + equity-overview + brief + news); 'compare' (one maximised chart with the second ticker overlaid on it; pass two tickers as `symbols`; places chart); 'macro-scan' (the macro panel with the chart beside it and the screener below: a market overview; places macro + chart + screener). 'default' resets the panel arrangement (chart drawings and module choices are kept); 'focus' maximises one panel (pass `panel`); 'custom' places exactly the panels you name in `panels` ('put the chart here and news there') — use it for an ad-hoc arrangement no template fits. When the user says 'set me up to research X' pick 'research-cockpit'; for 'compare X vs Y' pick 'compare'. Choose the arrangement yourself — do not ask the user how to arrange.
+25:  planLayout,
+75:describe("planLayout", () => {
+77:    const plan = planLayout("single-focus");
+84:    const plan = planLayout("research-cockpit");
+
+EXIT=0 (0.4s)

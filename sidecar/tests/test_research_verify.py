@@ -1,0 +1,629 @@
+"""Tests for ``services.research.verify`` — the ULTRA cross-check round.
+
+Everything model/tool-facing is injected, mirroring the loop suites: a routing
+FakeLLM (claim extraction vs per-claim verdict) and a canned ``web_search``
+tool. Properties under test: disagreements are FLAGGED in the brief (markdown
+section + note + structured), independence is enforced (fewer than
+``min_domains`` distinct domains → honest UNVERIFIED, never a silent pass), a
+breached budget skips the round honestly, ambiguity degrades to UNVERIFIED,
+and the existing ``[n]`` source rail is never renumbered.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import time
+from typing import Any
+
+from models.llm import LLMUsage
+from services.budget_guard import BudgetGuard
+from services.research.deep import reflect_says_complete
+from services.research.models import ResearchBrief, ResearchSource
+from services.research.verify import _parse_verdict, _row_domains, cross_check
+
+
+def _run(coro):
+    return asyncio.run(coro)
+
+
+def _brief(markdown: str = "# Brief\nNVDA revenue grew 94% in FY2024 [1].") -> ResearchBrief:
+    return ResearchBrief(
+        query="NVDA thesis",
+        symbol="NVDA",
+        mode="deep",
+        markdown=markdown,
+        sources=[ResearchSource(url="https://ex.com/a", title="A", excerpt="x")],
+        source_count=1,
+    )
+
+
+class _FakeLLM:
+    """Routes by system prompt: claim extraction vs per-claim verdict."""
+
+    def __init__(self, *, claims: str, verdict: str) -> None:
+        self.claims_text = claims
+        self.verdict_text = verdict
+        self.verdict_prompts: list[str] = []
+
+    async def __call__(self, messages: list[dict[str, Any]]) -> str:
+        system = messages[0]["content"].lower()
+        if "numeric claims" in system:
+            return self.claims_text
+        if "verify one numeric claim" in system:
+            self.verdict_prompts.append(messages[-1]["content"])
+            return self.verdict_text
+        return ""
+
+
+def _web_tool(urls: list[str]):
+    """A web_search fake returning one citation per url; records queries."""
+    queries: list[str] = []
+
+    async def _tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
+        assert name == "web_search"
+        queries.append(args["query"])
+        return {
+            "ok": True,
+            "citations": [{"url": u, "title": u, "excerpt": "evidence"} for u in urls],
+        }
+
+    _tool.queries = queries  # type: ignore[attr-defined]
+    return _tool
+
+
+TWO_DOMAINS = ["https://www.reuters.com/a", "https://www.bloomberg.com/b"]
+
+
+def test_disagreement_is_flagged_in_markdown_note_and_structured() -> None:
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="DISAGREE — Reuters reports 78%, not 94%",
+    )
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    assert "## Cross-check" in brief.markdown
+    assert "DISAGREEMENT" in brief.markdown
+    assert brief.note is not None and "1 numeric disagreement" in brief.note
+    payload = brief.structured["cross_check"]
+    assert payload["disagreements"] == 1
+    assert payload["claims"][0]["verdict"] == "disagree"
+    assert payload["claims"][0]["domains"] == ["bloomberg.com", "reuters.com"]
+
+
+def test_agreement_keeps_note_clean_and_records_section() -> None:
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="AGREE — both sources state 94%",
+    )
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    assert "AGREE" in brief.markdown
+    assert brief.note is None  # nothing to flag
+    assert brief.structured["cross_check"]["disagreements"] == 0
+    # The verdict prompt carried BOTH independent domains as fenced evidence.
+    assert "reuters.com" in llm.verdict_prompts[0]
+    assert "bloomberg.com" in llm.verdict_prompts[0]
+
+
+def test_single_domain_is_unverified_never_silently_passed() -> None:
+    """Independence floor: one domain (however many rows) cannot verify a claim."""
+    llm = _FakeLLM(claims="EPS was $12.96", verdict="AGREE — looks right")
+    one_domain = ["https://blog.example/a", "https://blog.example/b"]
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(one_domain),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            min_domains=2,
+        )
+    )
+    payload = brief.structured["cross_check"]
+    assert payload["claims"][0]["verdict"] == "unverified"
+    assert "1 independent source" in payload["claims"][0]["detail"]
+    # The verdict LLM was never consulted — there was nothing independent to compare.
+    assert llm.verdict_prompts == []
+    assert "UNVERIFIED" in brief.markdown
+
+
+def test_breached_budget_skips_honestly() -> None:
+    llm = _FakeLLM(claims="x 1", verdict="AGREE")
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=0),  # already breached
+        )
+    )
+    assert brief.structured["cross_check"]["skipped"] is True
+    # R8: the published reason is the HUMAN sentence; the raw breach telemetry
+    # ("step ceiling…") rides only the dev step below.
+    assert brief.structured["cross_check"]["reason"] == (
+        "Skipped to stay within the run's time budget."
+    )
+    assert any("step ceiling" in s.detail for s in brief.steps)
+    assert "## Cross-check" not in brief.markdown  # no fake section
+    assert any("cross-check skipped" in s.detail for s in brief.steps)
+
+
+def test_no_numeric_claims_is_an_honest_noop() -> None:
+    llm = _FakeLLM(claims="the outlook is positive", verdict="AGREE")  # no digits
+    brief = _run(
+        cross_check(
+            _brief("# Brief\nQualitative outlook only."),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    assert brief.structured["cross_check"] == {"claims": [], "disagreements": 0}
+    assert "## Cross-check" not in brief.markdown
+    assert any("no numeric claims" in s.detail for s in brief.steps)
+
+
+def test_sources_rail_is_never_renumbered() -> None:
+    """Re-check evidence is named by domain in the section text — the gathered
+    ``[n]`` source list must stay byte-identical."""
+    llm = _FakeLLM(claims="grew 94% in FY2024", verdict="AGREE — confirmed")
+    brief = _brief()
+    before = [s.url for s in brief.sources]
+    out = _run(
+        cross_check(
+            brief,
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    assert [s.url for s in out.sources] == before
+
+
+def test_parse_verdict_reads_through_underscore_and_star_emphasis() -> None:
+    """R15-LEAD-060: ``_`` is a word character, so ``_UNVERIFIED_`` defeated both
+    the ``\\b`` scan and the leading-token strip and fell through to the
+    marker scan, where "confirms" read as agree."""
+    for text in (
+        "_UNVERIFIED_ - no source confirms the figure",
+        "__UNVERIFIED__ - no source confirms the figure",
+        "*UNVERIFIED* - no source confirms the figure",
+        "`UNVERIFIED` - no source confirms the figure",
+    ):
+        assert _parse_verdict(text)[0] == "unverified", text
+    assert _parse_verdict("_AGREE_ - consistent across both")[0] == "agree"
+    assert _parse_verdict("_DISAGREE_ - sources differ")[0] == "disagree"
+
+
+def test_parse_verdict_is_conservative() -> None:
+    assert _parse_verdict("DISAGREE — sources differ")[0] == "disagree"
+    # "the sources disagree" contains "agree" as a substring — disagreement wins.
+    assert _parse_verdict("the sources disagree on the figure")[0] == "disagree"
+    assert _parse_verdict("AGREE — consistent across both")[0] == "agree"
+    assert _parse_verdict("")[0] == "unverified"
+    assert _parse_verdict("cannot tell from the evidence")[0] == "unverified"
+
+
+def test_parse_verdict_reads_the_leading_verdict_word_not_the_reason() -> None:
+    """R15-RESEARCH-002: an UNVERIFIED reason routinely says "confirm", "support"
+    or "match" — the leading verdict word decides, never a marker in the reason."""
+    for reply in (
+        "UNVERIFIED - no source confirms the 23% operating margin.",
+        "UNVERIFIED - evidence does not support the figure",
+        "UNVERIFIED - no matching figure",
+    ):
+        assert _parse_verdict(reply)[0] == "unverified", reply
+    assert _parse_verdict("**AGREE** — reuters.com and bloomberg.com match")[0] == "agree"
+
+
+def test_parse_verdict_reads_a_labelled_verdict_word() -> None:
+    """R15-RESEARCH-002 (rc1 refutation audit): a 'Verdict:'/'Answer:' label, a
+    bracketed word, a list-numbered word, or a mid-line standalone uppercase
+    word must all decide as the verdict word — never a marker in the reason."""
+    for reply in (
+        "Verdict: UNVERIFIED - no source confirms the 23% operating margin.",
+        "**Verdict:** UNVERIFIED - no source confirms it.",
+        "Answer: UNVERIFIED - evidence does not support the figure.",
+        "[UNVERIFIED] the sources do not confirm this.",
+        "The claim is UNVERIFIED; nothing I found confirms the 23% margin.",
+        "1. UNVERIFIED - no source confirms",
+    ):
+        assert _parse_verdict(reply)[0] == "unverified", reply
+    assert _parse_verdict("Verdict: DISAGREE - sources agree on 21% not 23%")[0] == "disagree"
+    assert _parse_verdict("Verdict: AGREE - reuters confirms")[0] == "agree"
+
+
+def test_a_verdict_word_followed_by_a_colon_is_the_verdict_not_a_label() -> None:
+    """R15-RESEARCH-002 review: the label skip must not swallow the verdict word
+    itself, or a title-case "Unverified:" reply falls through to the marker scan
+    and its reason's "agree" upgrades the claim."""
+    reply = "Unverified: the sources agree on revenue but not the 23% margin"
+    assert _parse_verdict(reply)[0] == "unverified"
+    assert reflect_says_complete("Complete: all four sourced, margins not covered in depth")
+
+
+def test_reflect_says_complete_class_pin_on_bracket_and_list_marker() -> None:
+    """Class pin (R15-RESEARCH-002): the same leading_token fix that unblocks
+    labelled verdict words must also unblock a bracketed or list-numbered
+    reflect word, a case the fix was not written against directly."""
+    assert reflect_says_complete("[GAPS] revenue covered but margins are not") is False
+    assert reflect_says_complete("1. COMPLETE - all dimensions covered") is True
+
+
+def test_dead_llm_degrades_to_unverified_never_raises() -> None:
+    async def _dead(_messages: list[dict[str, Any]]) -> str:
+        return ""
+
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=_dead,
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    # No claims could be extracted — honest no-op, brief intact.
+    assert brief.markdown.startswith("# Brief")
+    assert brief.structured["cross_check"]["claims"] == []
+
+
+# --- R9 B4: the dual-channel cross-verification rule --------------------------------
+
+
+def _native_channel(reply: dict[str, Any]):
+    """A native-search channel fake recording every prompt."""
+    prompts: list[str] = []
+
+    async def _channel(prompt: str) -> dict[str, Any]:
+        prompts.append(prompt)
+        return reply
+
+    _channel.prompts = prompts  # type: ignore[attr-defined]
+    return _channel
+
+
+_NATIVE_OK = {
+    "ok": True,
+    "text": "NVDA's FY2024 data-center revenue grew 94%, per the company's 10-K.",
+    "citations": [],
+}
+_NATIVE_DARK = {"ok": False, "reason": "empty", "text": "", "citations": []}
+
+
+def test_dual_channel_agreement_is_corroborated() -> None:
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="AGREE — both channels state 94%",
+    )
+    channel = _native_channel(_NATIVE_OK)
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            native_search=channel,
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["channels"] == ["searxng", "native"]
+    assert check["corroborated"] is True
+    assert brief.structured["cross_check"]["channels"] == ["searxng", "native"]
+    assert "corroborated across channels" in brief.markdown
+    # The native channel saw the claim, and the verdict prompt saw BOTH
+    # labeled evidence blocks.
+    assert channel.prompts and "94%" in channel.prompts[0]
+    user = llm.verdict_prompts[0]
+    assert "SearXNG lane" in user
+    assert "native model web search" in user
+
+
+def test_channel_disagreement_is_flagged_honestly() -> None:
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="DISAGREE — the native channel reports 78%, the web rows 94%",
+    )
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            native_search=_native_channel(_NATIVE_OK),
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "disagree"
+    assert check["corroborated"] is False
+    assert "DISAGREEMENT" in brief.markdown
+    assert brief.note is not None and "disagreement" in brief.note
+    # The verdict system prompt carried the channel-conflict rule.
+    # (Prompt content rides the recorded user message; the rule is system-side
+    # and exercised by the dual evidence blocks being present.)
+    assert "native model web search" in llm.verdict_prompts[0]
+
+
+def test_single_channel_claim_is_flagged_not_corroborated() -> None:
+    """The native channel comes back dark — the claim is still cross-checked
+    on the SearXNG lane but FLAGGED single-channel, never corroborated."""
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="AGREE — both web sources state 94%",
+    )
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            native_search=_native_channel(_NATIVE_DARK),
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["channels"] == ["searxng"]
+    assert check["corroborated"] is False
+    assert "single-channel (searxng)" in brief.markdown
+    assert "not corroborated by the other channel" in brief.markdown
+
+
+def test_native_channel_compensates_a_thin_searx_lane() -> None:
+    """One SearXNG domain + the native grounded completion = two independent
+    retrieval paths — the verdict runs instead of an automatic UNVERIFIED."""
+    llm = _FakeLLM(
+        claims="EPS was $12.96",
+        verdict="AGREE — the grounded search confirms $12.96",
+    )
+    one_domain = ["https://blog.example/a"]
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(one_domain),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            min_domains=2,
+            native_search=_native_channel(_NATIVE_OK),
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "agree"
+    assert check["channels"] == ["searxng", "native"]
+    assert llm.verdict_prompts, "the verdict LLM should have been consulted"
+
+
+def test_both_channels_dark_is_unverified() -> None:
+    llm = _FakeLLM(claims="EPS was $12.96", verdict="AGREE")
+
+    async def _dark_web(name: str, args: dict[str, Any]) -> dict[str, Any]:
+        return {"ok": False, "error": "backend dark"}
+
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_dark_web,
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            native_search=_native_channel(_NATIVE_DARK),
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "unverified"
+    assert check["channels"] == []
+    assert llm.verdict_prompts == []
+
+
+def test_native_channel_crash_degrades_to_single_lane() -> None:
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="AGREE — both web sources state 94%",
+    )
+
+    async def _boom(prompt: str) -> dict[str, Any]:
+        raise RuntimeError("provider down")
+
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            native_search=_boom,
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "agree"
+    assert check["channels"] == ["searxng"]
+
+
+def test_no_native_channel_keeps_single_lane_shape() -> None:
+    """native_search=None (tier_b, or a native-less chat model) must keep the
+    pre-R9 wire shape byte-compatible: no channels keys anywhere."""
+    llm = _FakeLLM(
+        claims="NVDA revenue grew 94% in FY2024",
+        verdict="AGREE — both sources state 94%",
+    )
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    payload = brief.structured["cross_check"]
+    assert "channels" not in payload
+    assert set(payload["claims"][0].keys()) == {"claim", "verdict", "detail", "domains"}
+    assert "single-channel" not in brief.markdown
+    assert "corroborated across channels" not in brief.markdown
+
+
+def test_claims_keep_their_sign_and_decimal() -> None:
+    """R15-RESEARCH-004: a figure that starts a claim line reaches the
+    cross-check intact, and the step label counts each verdict separately."""
+    claims = "40.5% revenue growth\n-0.4% earnings growth\n67.13953 P/E"
+    llm = _FakeLLM(claims=claims, verdict="UNVERIFIED - no matching figure")
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    checked = [c["claim"] for c in brief.structured["cross_check"]["claims"]]
+    assert checked == ["40.5% revenue growth", "-0.4% earnings growth", "67.13953 P/E"]
+    assert any("0 verified, 3 unverified, 0 disagreement(s)" in s.detail for s in brief.steps), [
+        s.detail for s in brief.steps
+    ]
+
+
+def test_numbered_claim_line_loses_only_its_marker() -> None:
+    from services.research.verify import _split_claims
+
+    assert _split_claims("1. 40.5% revenue growth", limit=5) == ["40.5% revenue growth"]
+    assert _split_claims("- -0.4% earnings growth", limit=5) == ["-0.4% earnings growth"]
+
+
+def test_one_domain_reached_by_both_lanes_is_not_independent() -> None:
+    """R15-RESEARCH-015: the native lane's cited domain is already counted in
+    ``domains`` — the same lane may not add a second independence point."""
+    llm = _FakeLLM(claims="EPS was $12.96", verdict="AGREE — both state $12.96")
+    native = {
+        "ok": True,
+        "text": "EPS was $12.96 per blog.example.",
+        "citations": [{"url": "https://blog.example/native", "title": "t"}],
+    }
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(["https://blog.example/a"]),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            min_domains=2,
+            native_search=_native_channel(native),
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "unverified"
+    assert check["corroborated"] is False
+    assert llm.verdict_prompts == []
+    assert "corroborated across channels" not in brief.markdown
+
+
+def _one_claim_dual(searx_url: str, native_url: str) -> tuple[ResearchBrief, _FakeLLM]:
+    llm = _FakeLLM(claims="EPS was $12.96", verdict="AGREE — both state $12.96")
+    native = {
+        "ok": True,
+        "text": "EPS was $12.96.",
+        "citations": [{"url": native_url, "title": "t"}],
+    }
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool([searx_url]),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            min_domains=2,
+            native_search=_native_channel(native),
+        )
+    )
+    return brief, llm
+
+
+def test_two_hosts_of_one_registrable_domain_are_not_independent() -> None:
+    """R15-RESEARCH-015: independence counts registrable domains, not hosts —
+    www.nseindia.com and nsearchives.nseindia.com are one source."""
+    urls = ["https://www.nseindia.com/q", "https://nsearchives.nseindia.com/x.pdf"]
+    assert _row_domains([{"url": u} for u in urls]) == {"nseindia.com"}
+    brief, llm = _one_claim_dual(*urls)
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "unverified"
+    assert check["corroborated"] is False
+    assert llm.verdict_prompts == []
+    assert "corroborated across channels" not in brief.markdown
+    # Control: two genuinely different registrable domains still corroborate.
+    brief, _ = _one_claim_dual("https://blog.example/a", "https://other.example/b")
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "agree"
+    assert check["corroborated"] is True
+
+
+# --- R15-RESEARCH-006: the claim loop is bounded by the round's own wall -------
+
+_FIVE_CLAIMS = "\n".join(f"NVDA metric {i} was {i}0%" for i in range(1, 6))
+_OUT_OF_BUDGET = "ran out of its time budget"
+
+
+class _SlowVerdictLLM:
+    """Claim extraction answers at once; verdict turns sleep per ``delays``."""
+
+    def __init__(self, delays: list[float], budget: BudgetGuard | None = None) -> None:
+        self.delays = delays
+        self.budget = budget
+        self.verdict_calls = 0
+
+    async def __call__(self, messages: list[dict[str, Any]]) -> str:
+        system = messages[0]["content"].lower()
+        if "numeric claims" in system:
+            return _FIVE_CLAIMS
+        delay = self.delays[min(self.verdict_calls, len(self.delays) - 1)]
+        self.verdict_calls += 1
+        await asyncio.sleep(delay)
+        if self.budget is not None:
+            # A metered verdict turn (usage folded into the round's guard).
+            self.budget.add_usage(LLMUsage(input_tokens=600, output_tokens=0), "m")
+        return "AGREE — matches"
+
+
+def test_slow_verdicts_cannot_carry_the_round_past_its_wall() -> None:
+    budget = BudgetGuard(max_steps=10, max_wall_seconds=0.3)
+    t0 = time.monotonic()
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=_SlowVerdictLLM([5.0]),
+            budget=budget,
+        )
+    )
+    assert time.monotonic() - t0 < 1.0  # the 0.3 s wall plus epsilon, not 5 x 5 s
+    claims = brief.structured["cross_check"]["claims"]
+    assert len(claims) == 5
+    assert all(c["verdict"] == "unverified" for c in claims)
+    assert all(_OUT_OF_BUDGET in c["detail"] for c in claims)
+
+
+def test_verdicts_reached_in_budget_are_kept_and_the_tail_is_unverified() -> None:
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=_SlowVerdictLLM([0.0, 5.0]),
+            budget=BudgetGuard(max_steps=10, max_wall_seconds=0.4),
+        )
+    )
+    claims = brief.structured["cross_check"]["claims"]
+    assert [c["verdict"] for c in claims] == ["agree"] + ["unverified"] * 4
+    assert all(_OUT_OF_BUDGET in c["detail"] for c in claims[1:])
+
+
+def test_guard_breach_between_verdicts_stops_the_loop() -> None:
+    """The guard is re-checked before each verdict, not only at round entry."""
+    budget = BudgetGuard(max_steps=10, max_tokens=1000)
+    llm = _SlowVerdictLLM([0.0], budget=budget)
+    brief = _run(
+        cross_check(_brief(), tool_call=_web_tool(TWO_DOMAINS), llm_call=llm, budget=budget)
+    )
+    claims = brief.structured["cross_check"]["claims"]
+    assert llm.verdict_calls == 2  # 600 + 600 tokens crosses the 1000 ceiling
+    assert [c["verdict"] for c in claims] == ["agree", "agree"] + ["unverified"] * 3

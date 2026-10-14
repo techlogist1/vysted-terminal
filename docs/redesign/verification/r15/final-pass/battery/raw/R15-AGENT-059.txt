@@ -1,0 +1,10 @@
+# R15-AGENT-059 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:09+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd $B/sc; "$C/sidecar/.venv/bin/python3" s18c_059.py 2>&1 | grep -v Warning
+--- output ---
+$ VYSTED_SIDECAR_INTERNAL_BASE_URL -> local stub returning 500; call list_agents/list_workflows/list_runs
+list_agents: {'ok': False, 'error': "GET /agents failed: Server error '500 Internal Server Error' for url 'http://127.0.0.1:58862/agents'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"}
+list_workflows: {'ok': False, 'error': "GET /workflow/saved failed: Server error '500 Internal Server Error' for url 'http://127.0.0.1:58862/workflow/saved'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"}
+list_runs: {'ok': False, 'error': "GET /runs failed: Server error '500 Internal Server Error' for url 'http://127.0.0.1:58862/runs'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"}
+
+EXIT=0 (1.7s)

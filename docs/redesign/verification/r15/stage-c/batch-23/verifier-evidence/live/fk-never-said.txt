@@ -1,0 +1,14 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_851833e2df754682b5517b806bb05674", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "RELIANCE.NS", "timeframe": "1d"}}
+[  41.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_851833e2df754682b5517b806bb05674", "name": "price_data", "ok": true, "error": null}
+[  51.7s] heartbeat: {"kind": "heartbeat"}
+[  61.7s] heartbeat: {"kind": "heartbeat"}
+[  71.7s] heartbeat: {"kind": "heartbeat"}
+[  72.8s] done: {"kind": "done", "usage": {"input_tokens": 7008, "output_tokens": 15, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Reliance's current price is ₹1226.0 per share.
+
+=== ok · 72.8s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 14, 'done': 1} · usage in=7008 out=15 · est $0.00000 · llama3.1:8b

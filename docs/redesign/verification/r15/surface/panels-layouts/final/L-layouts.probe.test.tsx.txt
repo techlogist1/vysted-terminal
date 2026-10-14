@@ -1,0 +1,182 @@
+// Scratch-only probe (never committed): drives the real layout planners/appliers and the
+// workspace save/load path against a REAL dockview-core grid in jsdom and OWN sidecar :52843.
+import { writeFileSync } from "fs";
+import { it, vi, expect } from "vitest";
+
+vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn(async () => null) }));
+vi.mock("@/lib/sidecar-client", async (orig) => ({
+  ...(await orig<Record<string, unknown>>()),
+  getSidecarBaseUrl: async () => "http://127.0.0.1:52843",
+}));
+
+import { DockviewComponent, DockviewApi } from "dockview";
+import {
+  planLayout,
+  fitLayoutTemplate,
+  LAYOUT_TEMPLATE_IDS,
+  applyResearchSpaceLayout,
+  planCustom,
+  resolvePanelToken,
+} from "@/lib/layout-templates";
+import { dispatchLayoutMenuCommand } from "@/store/command-palette";
+import { useWorkspaceStore } from "@/store/workspace";
+import { applyHostAction } from "@/lib/host-actions";
+import * as ws from "@/lib/workspace";
+import { vystedModules } from "@/modules";
+import { useModulesStore } from "@/store/modules";
+
+const OUT = process.env.PROBE_OUT ?? "/dev/null";
+const out: Record<string, unknown> = {};
+
+function makeGrid(width: number) {
+  const el = document.createElement("div");
+  document.body.appendChild(el);
+  const comp = new DockviewComponent(el, {
+    createComponent: () => {
+      const e = document.createElement("div");
+      return { element: e, init: () => {} };
+    },
+  });
+  comp.layout(width, 900);
+  return new DockviewApi(comp);
+}
+
+function snapshot(api: DockviewApi) {
+  const groups = api.groups.map((g) => g.panels.map((p) => p.id));
+  return {
+    panels: api.panels.map((p) => p.id).sort(),
+    groups,
+    active: api.activePanel?.id ?? null,
+    maximized: api.hasMaximizedGroup(),
+    width: api.width,
+  };
+}
+
+it("arrange templates, menu modes, research space, custom arrange", () => {
+  const plans: Record<string, unknown> = {};
+  for (const t of LAYOUT_TEMPLATE_IDS) plans[t] = planLayout(t as never);
+  out.planLayout = plans;
+
+  const fit: Record<string, unknown> = {};
+  for (const width of [1440, 1179, 1100, 1079, 800]) {
+    for (const t of LAYOUT_TEMPLATE_IDS) {
+      const g = makeGrid(width);
+      let res: unknown = null;
+      let err: string | null = null;
+      try {
+        res = fitLayoutTemplate(g as never, t as never);
+      } catch (e) {
+        err = String(e);
+      }
+      fit[`${t}@${width}`] = { res, err, after: snapshot(g) };
+      g.dispose();
+    }
+  }
+  out.fit = fit;
+
+  const modes: Record<string, unknown> = {};
+  for (const payload of ["fundamental", "technical", "macro", "compare-desk", "bogus"]) {
+    const g = makeGrid(1440);
+    g.addPanel({ id: "notes", component: "notes-panel" });
+    useWorkspaceStore.getState().setDockviewApi(g as never);
+    const ok = dispatchLayoutMenuCommand(payload);
+    modes[payload] = { ok, after: snapshot(g) };
+    g.dispose();
+  }
+  useWorkspaceStore.getState().setDockviewApi(null);
+  modes["no-api"] = { ok: dispatchLayoutMenuCommand("technical") };
+  out.menuModes = modes;
+
+  const rs: Record<string, unknown> = {};
+  for (const width of [1440, 1000]) {
+    const g = makeGrid(width);
+    applyResearchSpaceLayout(g as never);
+    rs[String(width)] = snapshot(g);
+    g.dispose();
+  }
+  out.researchSpace = rs;
+
+  // agent host-action path, synchronous read-back on the very next line
+  const agent: Record<string, unknown> = {};
+  const cases: Array<[string, Record<string, unknown>]> = [
+    ["research-cockpit", { pattern: "research-cockpit", symbol: "RELIANCE" }],
+    ["macro-scan", { pattern: "macro-scan" }],
+    ["compare", { pattern: "compare", symbols: ["INFY", "TCS"] }],
+    ["single-focus", { pattern: "single-focus", symbol: "AAPL" }],
+    ["fundamental-mode", { pattern: "fundamental" }],
+    ["custom-list", { pattern: "custom", panels: ["chart", "news", "watchlist"] }],
+    ["custom-tool-id-as-panel", { pattern: "custom", panels: ["sec_filings_list"] }],
+    ["custom-string-panels", { pattern: "custom", panels: "chart, sec-filings" }],
+    ["unknown", { pattern: "dashboard-xyz" }],
+    ["auto", { pattern: "auto" }],
+  ];
+  for (const [label, input] of cases) {
+    const g = makeGrid(1440);
+    g.addPanel({ id: "chart", component: "chart-panel" });
+    g.addPanel({ id: "watchlist", component: "watchlist-panel", position: { referencePanel: "chart", direction: "right" } });
+    g.addPanel({ id: "news", component: "news-panel", position: { referencePanel: "watchlist", direction: "below" } });
+    useWorkspaceStore.getState().setDockviewApi(g as never);
+    let lbl: string | null = null;
+    let err: string | null = null;
+    try {
+      lbl = applyHostAction("arrange_layout", input);
+    } catch (e) {
+      err = String(e);
+    }
+    agent[label] = { input, label: lbl, err, after: snapshot(g) };
+    g.dispose();
+  }
+  useWorkspaceStore.getState().setDockviewApi(null);
+  out.agentArrange = agent;
+  out.tokens = Object.fromEntries(
+    ["screener", "screener-panel", "sec_filings_list", "Sec Filings", "options", "audit-log", "broker"].map((t) => [t, resolvePanelToken(t)]),
+  );
+  out.planCustomDup = planCustom([{ panel: "chart" }, { panel: "chart" }, { panel: "bogus" }, { panel: "news" }]);
+  writeFileSync(OUT, JSON.stringify(out, null, 1));
+  expect(true).toBe(true);
+});
+
+it("workspace save/load round trip through the real client against :52843", async () => {
+  const r: Record<string, unknown> = {};
+  useModulesStore.getState().registerModules(vystedModules);
+  const g = makeGrid(1440);
+  g.addPanel({ id: "chart", component: "chart-panel" });
+  g.addPanel({ id: "news", component: "news-panel", position: { referencePanel: "chart", direction: "right" } });
+  useWorkspaceStore.getState().setDockviewApi(g as never);
+  const step = async (k: string, f: () => Promise<unknown>) => {
+    try {
+      r[k] = { ok: true, value: await f() };
+    } catch (e) {
+      r[k] = { ok: false, err: String(e) };
+    }
+  };
+  const blob = ws.serializeWorkspace("R15 Final PL");
+  r.serializedKeys = Object.keys(blob);
+  await step("save", () => ws.saveWorkspace("R15 Final PL"));
+  await step("saveResearch", () => ws.saveWorkspace("Research: RELIANCE"));
+  await step("saveLong", () => ws.saveWorkspace("L".repeat(300)));
+  await step("saveReserved", () => ws.saveWorkspace("__autosave__"));
+  await step("saveUnderscore", () => ws.saveWorkspace("__x"));
+  await step("list", () => ws.listWorkspaces());
+  g.clear();
+  r.afterClear = snapshot(g);
+  await step("load", () => ws.loadWorkspace("R15 Final PL"));
+  r.afterLoad = snapshot(g);
+  await step("loadMissing", () => ws.loadWorkspace("nope-final"));
+  await step("exportImport", async () => {
+    const text = await ws.exportWorkspace("R15 Final PL");
+    const parsed = ws.parseWorkspaceFile(text);
+    return { bytes: text.length, name: parsed.name, keys: Object.keys(parsed).length };
+  });
+  await step("parseGarbage", async () => ws.parseWorkspaceFile("{not json"));
+  await step("migrateOld", async () => {
+    const old = { name: "old", layout: null } as never;
+    return Object.keys(ws.migrateWorkspace(old));
+  });
+  await step("deleteSaved", () => ws.deleteWorkspace("R15 Final PL"));
+  await step("deleteResearch", () => ws.deleteWorkspace("Research: RELIANCE"));
+  await step("listFinal", () => ws.listWorkspaces());
+  writeFileSync(OUT.replace(/\.json$/, "-workspace.json"), JSON.stringify(r, null, 1));
+  g.dispose();
+  expect(true).toBe(true);
+});

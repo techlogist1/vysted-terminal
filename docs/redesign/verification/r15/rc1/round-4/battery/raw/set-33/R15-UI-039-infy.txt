@@ -1,0 +1,4 @@
+CMD: curl -s -m 20 'http://127.0.0.1:52344/resolve/autocomplete?q=INFY'
+---
+{"query":"INFY","region":"IN","candidates":[{"symbol":"INFY","name":"Infosys Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"INFY.NS","confidence":1.0,"isin":"INE009A01021","bse_code":"500209","industry":"Information Technology / Computers - Software & Consulting","former_name":"INFOSYSTCH","board":"mainboard","exchange_group":"A","face_value":5.0},{"symbol":"INFY","name":"Infosys Ltd","exchange":"US","region":"US","asset_class":"equity","yahoo_symbol":"INFY","confidence":1.0,"isin":null,"bse_code":null,"industry":null,"former_name":"INFOSYS TECHNOLOGIES LTD","board":null,"exchange_group":null,"face_value":null}]}
+EXIT: 0

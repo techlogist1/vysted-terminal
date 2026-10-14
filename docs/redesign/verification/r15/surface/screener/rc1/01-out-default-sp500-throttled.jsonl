@@ -1,0 +1,22 @@
+data: {"event": "progress", "phase": "universe", "done": 1, "total": 1, "detail": "S&P 500: 503 symbols"}
+
+data: {"event": "progress", "phase": "prefilter", "done": 91, "total": 503, "detail": "prefilter kept 91 of 503"}
+
+data: {"event": "progress", "phase": "sweep", "done": 50, "total": 91, "detail": "sweeping quotes 50/91"}
+
+data: {"event": "progress", "phase": "sweep", "done": 91, "total": 91, "detail": "sweeping quotes 91/91"}
+
+data: {"event": "progress", "phase": "sweep", "done": 25, "total": 91, "detail": "retrying misses 25/91"}
+
+data: {"event": "progress", "phase": "sweep", "done": 50, "total": 91, "detail": "retrying misses 50/91"}
+
+data: {"event": "progress", "phase": "sweep", "done": 75, "total": 91, "detail": "retrying misses 75/91"}
+
+data: {"event": "progress", "phase": "sweep", "done": 91, "total": 91, "detail": "retrying misses 91/91"}
+
+data: {"event": "progress", "phase": "enrich", "done": 1, "total": 1, "detail": "enriching fundamentals 1/1"}
+
+data: {"event": "progress", "phase": "evaluate", "done": 1, "total": 1, "detail": "evaluating 91 candidates"}
+
+data: {"event": "result", "universe": "sp500", "evaluated_count": 500, "skipped_count": 3, "skip_details": [{"symbol": "ECHO", "reason": "not_found"}, {"symbol": "FISV", "reason": "missing_field:sector"}, {"symbol": "VMRK", "reason": "not_found"}], "result_count": 4, "matched_count": 4, "rows": [{"symbol": "INTC", "name": "Intel Corporation", "sector": "Technology", "industry": "Semiconductors", "market_cap": 673396948992.0, "pe_ratio": -61.24519230769231, "forward_pe": 61.77743, "peg_ratio": 1.36, "price_to_book": 7.338557, "dividend_yield": null, "roe": -0.10715, "debt_to_equity": 0.48997, "price": 127.38999938964844, "change_percent_1d": 4.315426948614832, "volume": 118581605.0, "matched_criteria": [0, 1, 2], "currency": "USD", "data_basis": "live", "data_as_of": null}, {"symbol": "WDC", "name": "Western Digital Corporation", "sector": "Technology", "industry": "Computer Hardware", "market_cap": 162355183616.0, "pe_ratio": 16.733929, "forward_pe": 14.183202, "peg_ratio": 0.9019, "price_to_book": 21.53048, "dividend_yield": 0.0013, "roe": 1.30853, "debt_to_equity": 0.13436, "price": 450.30999755859375, "change_percent_1d": -4.519744221517389, "volume": 7119933.0, "matched_criteria": [0, 1, 2], "currency": "USD", "data_basis": "live", "data_as_of": null}, {"symbol": "UBER", "name": "Uber Technologies, Inc.", "sector": "Technology", "industry": "Software - Application", "market_cap": 141386006528.0, "pe_ratio": 15.179825, "forward_pe": 15.683734, "peg_ratio": 5.919, "price_to_book": 5.1695294, "dividend_yield": null, "roe": 0.3716, "debt_to_equity": 0.51872, "price": 69.22000122070312, "change_percent_1d": -0.2880996532654519, "volume": 14421686.0, "matched_criteria": [0, 1, 2], "currency": "USD", "data_basis": "live", "data_as_of": null}, {"symbol": "ACN", "name": "Accenture plc", "sector": "Technology", "industry": "Information Technology Services", "market_cap": 108564643840.0, "pe_ratio": 14.170128, "forward_pe": 12.090833, "peg_ratio": 1.3333, "price_to_book": 3.4038105, "dividend_yield": 0.0355, "roe": 0.24406, "debt_to_equity": 0.25035, "price": 177.41000366210938, "change_percent_1d": -3.329335406435612, "volume": 4586991.0, "matched_criteria": [0, 1, 2], "currency": "USD", "data_basis": "live", "data_as_of": null}], "duration_ms": 44207.10783300456, "partial": false, "coverage": "screened 500 of 503 \u2014 3 unavailable", "freshness": {"quotes_as_of": 1790293952.754262, "valuation_as_of": 1790293952.754251, "deep_as_of": 1790293952.752128, "seed_as_of": 1790192403.011791}, "basis_counts": {"live": 4}, "throttled": true}
+

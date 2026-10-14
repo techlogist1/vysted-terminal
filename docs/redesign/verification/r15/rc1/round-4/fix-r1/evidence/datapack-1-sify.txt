@@ -1,0 +1,51 @@
+# rc1-datapack:1 triage probe, own sidecar :52331, candidate 1006c6da694ede5776c3dabbd27b305aeb56b5ad, 2026-09-26T23:02:17Z
+GET /fundamentals/SIFY (selected fields):
+{
+ "symbol": "SIFY",
+ "currency": "USD",
+ "financial_currency": "INR",
+ "revenue_ttm": 46506049536.0,
+ "net_income_ttm": -912369984.0,
+ "market_cap": 967002176.0,
+ "price_to_sales": null,
+ "price_to_book": null
+}
+{
+ "revenue_ttm": {
+  "status": "ok",
+  "provider": "yfinance",
+  "as_of": "2026-09-26T22:55:32.524369+00:00",
+  "reason": null,
+  "label": null,
+  "basis_note": null
+ },
+ "net_income_ttm": {
+  "status": "ok",
+  "provider": "yfinance",
+  "as_of": "2026-09-26T22:55:32.524369+00:00",
+  "reason": null,
+  "label": null,
+  "basis_note": null
+ },
+ "price_to_sales": {
+  "status": "withheld",
+  "provider": "yfinance",
+  "as_of": "2026-09-25T20:00:00+00:00",
+  "reason": "Yahoo's price/sales (market cap over trailing revenue) divides or states a USD listing value against INR statements; its basis cannot be verified without FX, so it is withheld",
+  "label": null,
+  "basis_note": null
+ },
+ "price_to_book": {
+  "status": "withheld",
+  "provider": "yfinance",
+  "as_of": "2026-09-25T20:00:00+00:00",
+  "reason": "Yahoo's price/book (listing price over book value per share) divides or states a USD listing value against INR statements; its basis cannot be verified without FX, so it is withheld",
+  "label": null,
+  "basis_note": null
+ }
+}
+
+Agent-facing view (services.agent_tools.research.fundamentals_content on the same payload):
+{'revenue_ttm': '₹4,651 cr', 'net_income_ttm': '₹-91.24 cr', 'currency': 'USD', 'financial_currency': 'INR', 'market_cap': 'USD 967.00M'}
+
+Panel formatting: src/modules/research/brief-blocks.tsx:336 formatInstrumentMoney(revenue_ttm, fund.financial_currency ?? currency); src/modules/equity-overview/EquityOverviewPanel.tsx:833 statementCurrency = financial_currency ?? instrumentCurrency; types/data.ts:143-148 documents sizes in financial_currency ?? currency.

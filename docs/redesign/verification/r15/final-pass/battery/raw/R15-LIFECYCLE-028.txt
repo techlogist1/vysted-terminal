@@ -1,0 +1,17 @@
+# R15-LIFECYCLE-028 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:35+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- 'R15-LIFECYCLE-028: pagehide with a pending autos' src/lib/workspace.test.ts | head -3; test -f src/lib/workspace.test.ts || echo 'MISSING src/lib/workspace.test.ts'
+[exit 0] [0.01s]
+1452:  it("R15-LIFECYCLE-028: pagehide with a pending autosave issues the POST immediately", async () => {
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-LIFECYCLE-028\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/lib/workspace.ts:1130: * going away (R15-LIFECYCLE-028). `keepalive` lets the POST outlive the page.
+src/lib/workspace.test.ts:1452:  it("R15-LIFECYCLE-028: pagehide with a pending autosave issues the POST immediately", async () => {
+

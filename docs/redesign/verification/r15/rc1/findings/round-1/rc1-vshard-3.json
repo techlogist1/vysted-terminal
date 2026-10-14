@@ -1,0 +1,94 @@
+[
+ {
+  "key": "rc1-vshard-3:1",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-059",
+  "title": "US identity still empty on a ticker resolve: /resolve?q=ONC and ?q=SIFY return isin=null and former_name=null although former_names.json carries BeiGene and SATYAM INFOWAY for them",
+  "repro": "GET :52603/resolve?q=ONC -> resolved.isin null, former_name null (index has ONC:['BeiGene, Ltd.']). GET /resolve?q=SIFY -> isin null, former_name null (index has SIFY:['SIFY LTD','SATYAM INFOWAY LTD']). Contrast: ?q=ETERNAL (NSE) returns former_name ZOMATO, and name queries (BeiGene, Satyam Infoway, Facebook) do attach former_name. us_instruments.json rows are still [ticker, name] only, so no ISIN/CUSIP for any US name. The register's own repro lines (P18-4, P17-4, P17-5) reproduce verbatim.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-3-evidence/data059-r_ONC.json",
+  "suspected_files": [
+   "sidecar/services/symbol_resolver.py",
+   "sidecar/services/resolver_masters/us_instruments.json",
+   "sidecar/services/resolver_masters/regenerate_former_names.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:2",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-LEAD-010",
+  "title": "The windowed get_filing lookup still 404s a listed 10-K on every caller that sends no form hint: GET /sec/filings/{acc}/sections and the data.fetch_sec_filing workflow node",
+  "repro": "GET :52603/sec/filings?symbol=AAPL&form_type=10-K lists 0000320193-23-000106. GET /sec/filings/0000320193-23-000106?identifier=AAPL&form_type=10-K would pass, but GET /sec/filings/0000320193-23-000106/sections?identifier=AAPL -> 404 not_found, GET /sec/filings/0000320193-23-000106?identifier=AAPL (no hint) -> 404, and in-process services.workflow_nodes.sec_nodes.fetch_sec_filing({}, {accession, identifier:'AAPL'}) -> ProviderError 'filing metadata unavailable'. get_filing_sections (sec_filings_provider.py:661) and sec_nodes.py:50 call get_filing without form_type, so they fall back to the unfiltered 40/100 window. The viewer path and the llama3.1:8b agent path (which passed form_type=10-K) do work.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-3-evidence/lead010-sections-23-000106-404.json",
+  "suspected_files": [
+   "sidecar/services/sec_filings_provider.py",
+   "sidecar/routers/sec_filings.py",
+   "sidecar/services/workflow_nodes/sec_nodes.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DOCS-017",
+  "title": "CURRENT_STATE.md section 3.3's screener bullet is stale again and still omits nse-all/bse-all/india-all: it says sp500 is 506 symbols dated 2026-06-04 and 'R15-LEAD-013 open', but the pack is 503 symbols dated 2026-09-24 and LEAD-013 is fixed",
+  "repro": "git show 1d6511c:docs/CURRENT_STATE.md lines 358-365 vs sidecar/services/screener_universes/sp500.json (503 symbols, snapshot_date 2026-09-24) and sidecar/services/screener_universe_india.py (nse-all/bse-all/india-all, used by fundamentals_warm.py). grep of CURRENT_STATE.md for nse-all|bse-all|india-all returns 0 hits. The fix_shape asked for 'the real universe list and sizes (sp500, nse-all, bse-all, india-all)'. f7f58adf re-pinned the line to the reverted batch-10 pack, and batch 11 re-landed LEAD-013 without updating it.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-3-evidence/docs017-018-current-state-s3.3-excerpt.md",
+  "suspected_files": [
+   "docs/CURRENT_STATE.md"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:4",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-DOCS-018",
+  "title": "CURRENT_STATE.md section 3.3 still says nothing about the India provider chain (nse_direct 15 / nse 20 / bse 25 ahead of yfinance 50) and still calls yfinance 'the no-key default for equities', so the understatement of India coverage that the entry names is still there",
+  "repro": "The asset-class sentence is gone (f10fb8ce), but grep CURRENT_STATE.md for nse_direct|NSE|BSE|jugaad returns nothing in section 3.3; provider_registry.py:161-219 ranks nse_direct 15, nse 20, bse 25 and yfinance 50; /health on :52603 reports 'ccxt (nse_direct, nse, bse, yfinance fallback)'. The fix_shape asked for the IN chain and its ranks to be listed.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-3-evidence/docs017-018-current-state-s3.3-excerpt.md",
+  "suspected_files": [
+   "docs/CURRENT_STATE.md"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:5",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-CODE-PLATFORM-013",
+  "title": "Plugin 'on' is still split: the Settings > Modules toggle writes plugin:<id> only in the module map, so the Marketplace shows the plugin enabled and active while its panels are hidden, and the choice is silently lost on relaunch now that plugin:* flags are not persisted",
+  "repro": "Scratch vitest (evidence plugin-variants-scratch-test.ts.txt): install vysted-example through the marketplace, then call useModulesStore.setModuleEnabled('plugin:vysted-example', false), as SettingsPanel.tsx:1940 does for any module row. Result: module enabled=false, marketplace {enabled:true, runtimeState:'active'}, plugins.db enabled=true, serializeWorkspace drops the flag, and after a relaunch over the same plugins.db the module is enabled=true again. The Plugin Manager now routes through the marketplace store, but this third writer remains.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-3-evidence/plugin-variants-output.txt",
+  "suspected_files": [
+   "src/components/SettingsPanel.tsx",
+   "src/lib/workspace.ts",
+   "src/lib/plugin-bootstrap.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-LEAD-013",
+  "title": "The regenerated US seed pack leaves out exactly the constituents LEAD-013 added (BXP, NVR, UDR, plus ECHO and VMRK), so a cold, throttled sp500 screen still leaves them out of the rows and labels them rate_limited",
+  "repro": "POST :52603/screener/run {universe:'sp500',criteria:[],limit:1000} on the keyless seed profile while Yahoo v7 returned 429 -> evaluated 498/503, skip_details = BXP, ECHO, NVR, UDR, VMRK all 'rate_limited' (throttled:true). us_fundamentals_seed.json.gz has 498 rows and none of those 5. BXP itself resolves fine: GET /quotes/BXP -> 200 yfinance. The pin test only checks the universe pack, not seed coverage of the pinned names.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-3-evidence/lead013-sp500-vs-wikipedia.txt",
+  "suspected_files": [
+   "sidecar/services/screener_universes/us_fundamentals_seed.json.gz",
+   "sidecar/tests/test_sp500_universe.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-LIFECYCLE-024",
+  "title": "The pre-upgrade backup keys on the app version string while the migrations key on user_version, so the shipped 0.8.0 profile (marker 0.8.0) is migrated 0 -> 1 by this 0.8.0 candidate with no backup",
+  "repro": "rc1-seed-data (the operator's 0.8.0 profile snapshot): data_cache meta.build = 0.8.0 and every DB at user_version 0. Booting the candidate (FastAPI version 0.8.0) on a copy moved all 7 stores to user_version 1 and created no backups/ dir. Harmless today because step 1 is the pre-versioning schema. A schema step shipped without a version bump would run with no backup. With an older marker (0.7.5) the backup does fire and a second boot is a no-op (verified in-process).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-3.md",
+  "suspected_files": [
+   "sidecar/services/data_cache.py",
+   "sidecar/services/schema_version.py"
+  ]
+ }
+]

@@ -1,0 +1,16 @@
+# R15-AGENT-074 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:31:39+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+echo '== live half (run under the Ollama lock: launch with NO provider, model llama3.1:8b; driver lr.py) =='; cat $B/out/L-AGENT-074.txt
+echo '== in-process half (inproc_runs.py: opus-default agent, no provider) =='; "$IP" $B/sc/inproc_runs.py 2>&1 | grep -v Warning | grep 'AGENT-074'
+--- output ---
+== live half (run under the Ollama lock: launch with NO provider, model llama3.1:8b; driver lr.py) ==
+# launch {"prompt": "Reply with the single word OK. Do not use tools.", "model": "llama3.1:8b", "budget": {}}
+launch resp: 201 {'run_id': '4f05c8592c7042d3969f7b4a135b77cd'}
+final status poll: done (5 polls)
+{"id": "4f05c8592c7042d3969f7b4a135b77cd", "status": "done", "provider": null, "model": "llama3.1:8b", "cost": {"tokens": 1801, "spend_usd": 0.0, "steps": 1}, "budget": {"max_tokens": 120000, "max_spend_usd": 1.0, "max_wall_seconds": 600.0, "max_steps": 12}, "detail": "completed", "question": null, "plan": null}
+activity: []
+EXIT=0
+== in-process half (inproc_runs.py: opus-default agent, no provider) ==
+AGENT-074: spend 0.0021 expected opus 0.0021 default-rate 0.00035
+
+EXIT=0 (1.4s)

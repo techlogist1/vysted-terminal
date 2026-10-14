@@ -1,0 +1,23 @@
+$^DJI: possibly delisted; no price data found  (period=1y)
+$^GSPC: possibly delisted; no price data found  (period=1y)
+$SPY: possibly delisted; no price data found  (period=1y)
+$QQQ: possibly delisted; no price data found  (period=1y)
+$^IXIC: possibly delisted; no price data found  (period=1y)
+$^DJI: possibly delisted; no price data found  (period=5d)
+$^GSPC: possibly delisted; no price data found  (period=5d)
+$SPY: possibly delisted; no price data found  (period=5d)
+$QQQ: possibly delisted; no price data found  (period=5d)
+$^IXIC: possibly delisted; no price data found  (period=5d)
+provider yfinance failed for quote, falling through: yfinance quote failed for '^DJI': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 1 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+provider yfinance failed for quote, falling through: yfinance quote failed for '^GSPC': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 1 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+provider yfinance failed for quote, falling through: yfinance quote failed for 'SPY': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 1 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+provider yfinance failed for quote, falling through: yfinance quote failed for 'QQQ': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 1 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+provider yfinance failed for quote, falling through: yfinance quote failed for '^IXIC': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 1 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.
+news: RSS source Economic Times Markets failed after retries: All connection attempts failed
+news: RSS source ET Stocks failed after retries: All connection attempts failed
+news: RSS source LiveMint failed after retries: All connection attempts failed
+news: RSS source Zerodha Pulse failed after retries: All connection attempts failed
+ok: False
+headlines_error: news feed unavailable: all news sources failed
+headlines_count: 0
+indices: [('^GSPC', None, "no data for ^GSPC: yfinance quote failed for '^GSPC': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 1 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details."), ('^IXIC', None, "no data for ^IXIC: yfinance quote failed for '^IXIC': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 1 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details."), ('^DJI', None, "no data for ^DJI: yfinance quote failed for '^DJI': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 1 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details."), ('SPY', None, "no data for SPY: yfinance quote failed for 'SPY': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 1 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details."), ('QQQ', None, "no data for QQQ: yfinance quote failed for 'QQQ': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 1 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.")]

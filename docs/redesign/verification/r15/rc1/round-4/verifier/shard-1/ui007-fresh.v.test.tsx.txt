@@ -1,0 +1,37 @@
+import { afterEach, expect, it, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+vi.mock("@/lib/sidecar-client", () => ({
+  getSidecarBaseUrl: vi.fn(async () => "http://127.0.0.1:1"),
+  sidecarGet: vi.fn(),
+}));
+import { useScreenerStore } from "@/store/screener";
+import { ScreenerPresets } from "@/modules/screener/ScreenerPresets";
+
+afterEach(() => vi.restoreAllMocks());
+
+it("fresh: 'High insider holding' preset after nested OR group + formula + OR combinator sends only the preset", async () => {
+  const bodies: unknown[] = [];
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+    if (init?.body) bodies.push(JSON.parse(String(init.body)));
+    return new Response(null, { status: 404 });
+  });
+  const s = useScreenerStore.getState();
+  s.__resetForTests();
+  s.setGroup({ combinator: "or", criteria: [
+    { combinator: "and", criteria: [{ field: "pe_ratio", operator: "lt", value: 12 }] },
+    { field: "dividend_yield", operator: "gt", value: 0.04 },
+  ] } as never);
+  s.setAdvanced(true);
+  s.setFormula("roe > 0.3");
+  render(<ScreenerPresets />);
+  fireEvent.click(screen.getByText(/High insider holding/));
+  await new Promise((r) => setTimeout(r, 50));
+  const st = useScreenerStore.getState();
+  console.log("BODY", JSON.stringify(bodies[0]));
+  console.log("STATE", JSON.stringify({ group: st.group, advanced: st.advanced, formula: st.formula, criteria: st.criteria, universe: st.universe }));
+  const b = bodies[0] as Record<string, unknown>;
+  expect(b.formula ?? null).toBeFalsy();
+  expect(JSON.stringify(b)).not.toContain("dividend_yield");
+  expect(st.group).toBeNull();
+  expect(st.advanced).toBe(false);
+});

@@ -1,0 +1,8 @@
+CMD: grep -n "R15-CODE-FRONTEND-001" src/lib/workspace.test.ts (candidate 949c3c9f)
+Not a live probe: frontend-only rollback logic (loadWorkspace overwriting global stores),
+no sidecar endpoint to exercise it against; certified via pinned vitest per batch-2 VERDICTS.md.
+603:  it("loading a named workspace never rolls back portfolios or notes (R15-CODE-FRONTEND-001)", async () => {
+  it("loading a named workspace never rolls back portfolios or notes (R15-CODE-FRONTEND-001)", async () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    usePortfoliosStore.getState().setAll([], undefined);

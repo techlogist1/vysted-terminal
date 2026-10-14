@@ -1,0 +1,9 @@
+=== DATA-080: segment/operational data capability check (should remain absent, not_a_defect/roadmap) ===
+70:    "fundamentals",
+95:        "fundamentals",
+317:            "fundamentals",
+326:            domain="fundamentals",
+353:            domain="fundamentals",
+1868:    "fundamentals": "retry, or check the symbol — coverage gaps look like hangs",
+grep for any segment capability:
+exit=1

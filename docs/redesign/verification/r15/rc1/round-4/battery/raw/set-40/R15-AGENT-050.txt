@@ -1,0 +1,67 @@
+=== R15-AGENT-050 probe (candidate 1006c6da) ===
+import sys, json
+sys.path.insert(0, ".")
+from models.llm import LLMMessage
+from services.llm.anthropic import _split_system_and_messages
+
+persona = "You are Buffett. [huge stable capabilities block, ~10k tokens worth of schemas...]"
+msgs_turn1 = [
+    LLMMessage(role="system", content=persona),
+    LLMMessage(role="system", content="Today is 2026-09-27."),
+    LLMMessage(role="system", content="Focused chart: AAPL. Watchlist: AAPL,MSFT."),
+    LLMMessage(role="user", content="What's AAPL doing?"),
+]
+msgs_turn2 = [
+    LLMMessage(role="system", content=persona),
+    LLMMessage(role="system", content="Today is 2026-09-27."),
+    LLMMessage(role="system", content="Focused chart: TSLA. Watchlist: AAPL,MSFT,TSLA."),  # changed!
+    LLMMessage(role="user", content="What's AAPL doing?"),
+]
+
+sys1, _ = _split_system_and_messages(msgs_turn1)
+sys2, _ = _split_system_and_messages(msgs_turn2)
+print("turn1 system blocks:", json.dumps(sys1, indent=1))
+print("turn2 system blocks:", json.dumps(sys2, indent=1))
+print("first block content identical across turns:", sys1[0]["text"] == sys2[0]["text"])
+print("first block has cache_control breakpoint in both:", "cache_control" in sys1[0], "cache_control" in sys2[0])
+print("preamble (3rd block) differs across turns:", sys1[2]["text"] != sys2[2]["text"])
+OUTPUT:
+turn1 system blocks: [
+ {
+  "type": "text",
+  "text": "You are Buffett. [huge stable capabilities block, ~10k tokens worth of schemas...]",
+  "cache_control": {
+   "type": "ephemeral"
+  }
+ },
+ {
+  "type": "text",
+  "text": "Today is 2026-09-27."
+ },
+ {
+  "type": "text",
+  "text": "Focused chart: AAPL. Watchlist: AAPL,MSFT."
+ }
+]
+turn2 system blocks: [
+ {
+  "type": "text",
+  "text": "You are Buffett. [huge stable capabilities block, ~10k tokens worth of schemas...]",
+  "cache_control": {
+   "type": "ephemeral"
+  }
+ },
+ {
+  "type": "text",
+  "text": "Today is 2026-09-27."
+ },
+ {
+  "type": "text",
+  "text": "Focused chart: TSLA. Watchlist: AAPL,MSFT,TSLA."
+ }
+]
+first block content identical across turns: True
+first block has cache_control breakpoint in both: True True
+preamble (3rd block) differs across turns: True
+
+VERDICT: holds. System messages are split into separate content blocks; the persona/capabilities block carries the cache_control breakpoint and stays byte-identical across turns even though the terminal-preamble block after it changes.

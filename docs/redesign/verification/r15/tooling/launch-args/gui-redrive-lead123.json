@@ -1,0 +1,8 @@
+{
+  "sha": "d38b5d1a",
+  "ids": ["R15-LIFECYCLE-001", "R15-LIFECYCLE-008", "R15-UI-022"],
+  "scratch": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad",
+  "gui_wait_min": 60,
+  "max_entries": 3,
+  "note": "IDLE-MACHINE REDRIVE at the R15-LEAD-123 fix merge d38b5d1a (core main-sidecar wait 45 s x 6 = 270 s, renderer readiness deadline 300 s). The previous round at ace7dd7 was confounded by our own concurrent heavy load (main sidecar bound at 96-108 s and the old 90 s core latch fired); this run is the ONLY workload on the machine, so a late bind under that latch is no longer an excuse: if the main sidecar binds late the chip must still reach CONNECTED and panels must populate, and that is part of what you record. Record machine load (uptime) at each launch. Prior evidence and DRIVE/VERIFY files for these ids live under docs/redesign/verification/r15/gui-round/<id>/ (ace7dd7-* and 9368c62-*): read them, never overwrite them; new captures carry the d38b5d1 prefix. Judge each entry only against its own stated repro (gate rule change 1); anything else is an adjacent note."
+}

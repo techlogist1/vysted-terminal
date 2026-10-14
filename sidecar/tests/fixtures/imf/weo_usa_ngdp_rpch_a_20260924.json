@@ -1,0 +1,698 @@
+{
+ "meta": {},
+ "data": {
+  "dataSets": [
+   {
+    "structure": 0,
+    "action": "Replace",
+    "series": {
+     "0:0:0": {
+      "attributes": [
+       0,
+       0,
+       0,
+       "9/30/2025"
+      ],
+      "observations": {
+       "0": [
+        "-0.256666"
+       ],
+       "1": [
+        "2.537436"
+       ],
+       "2": [
+        "-1.80307"
+       ],
+       "3": [
+        "4.584115"
+       ],
+       "4": [
+        "7.236392"
+       ],
+       "5": [
+        "4.169463"
+       ],
+       "6": [
+        "3.462575"
+       ],
+       "7": [
+        "3.454815"
+       ],
+       "8": [
+        "4.176904"
+       ],
+       "9": [
+        "3.672228"
+       ],
+       "10": [
+        "1.886209"
+       ],
+       "11": [
+        "-0.108651"
+       ],
+       "12": [
+        "3.522422"
+       ],
+       "13": [
+        "2.751965"
+       ],
+       "14": [
+        "4.02909"
+       ],
+       "15": [
+        "2.68452"
+       ],
+       "16": [
+        "3.772663"
+       ],
+       "17": [
+        "4.447128"
+       ],
+       "18": [
+        "4.483117"
+       ],
+       "19": [
+        "4.788441"
+       ],
+       "20": [
+        "4.077519"
+       ],
+       "21": [
+        "0.955589"
+       ],
+       "22": [
+        "1.70037"
+       ],
+       "23": [
+        "2.795781"
+       ],
+       "24": [
+        "3.847802"
+       ],
+       "25": [
+        "3.483384"
+       ],
+       "26": [
+        "2.784597"
+       ],
+       "27": [
+        "2.003876"
+       ],
+       "28": [
+        "0.113647"
+       ],
+       "29": [
+        "-2.576498"
+       ],
+       "30": [
+        "2.695251"
+       ],
+       "31": [
+        "1.564196"
+       ],
+       "32": [
+        "2.289267"
+       ],
+       "33": [
+        "2.117782"
+       ],
+       "34": [
+        "2.523695"
+       ],
+       "35": [
+        "2.945509"
+       ],
+       "36": [
+        "1.819587"
+       ],
+       "37": [
+        "2.457596"
+       ],
+       "38": [
+        "2.966663"
+       ],
+       "39": [
+        "2.583574"
+       ],
+       "40": [
+        "-2.081277"
+       ],
+       "41": [
+        "6.151865"
+       ],
+       "42": [
+        "2.524222"
+       ],
+       "43": [
+        "2.934535"
+       ],
+       "44": [
+        "2.793116"
+       ],
+       "45": [
+        "2.11733"
+       ],
+       "46": [
+        "2.323695"
+       ],
+       "47": [
+        "2.1"
+       ],
+       "48": [
+        "2.1"
+       ],
+       "49": [
+        "1.880588"
+       ],
+       "50": [
+        "1.753132"
+       ],
+       "51": [
+        "1.755"
+       ]
+      }
+     }
+    },
+    "dimensionGroupAttributes": {
+     ":0::": [
+      null,
+      null,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      0,
+      null,
+      null,
+      null,
+      0,
+      null
+     ]
+    }
+   }
+  ],
+  "structures": [
+   {
+    "dataSets": [
+     0
+    ],
+    "links": [
+     {
+      "urn": "urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:WEO(9.0.0)",
+      "title": "Dataflow"
+     },
+     {
+      "urn": "urn:sdmx:org.sdmx.infomodel.datastructure.DataStructure=IMF.RES:DSD_WEO(9.0.0)",
+      "title": "DataStructureDefinition"
+     }
+    ],
+    "dimensions": {
+     "series": [
+      {
+       "id": "COUNTRY",
+       "keyPosition": 0,
+       "roles": [],
+       "values": [
+        {
+         "id": "USA"
+        }
+       ]
+      },
+      {
+       "id": "INDICATOR",
+       "keyPosition": 1,
+       "roles": [],
+       "values": [
+        {
+         "id": "NGDP_RPCH"
+        }
+       ]
+      },
+      {
+       "id": "FREQUENCY",
+       "keyPosition": 2,
+       "roles": [
+        "FREQ"
+       ],
+       "values": [
+        {
+         "id": "A"
+        }
+       ]
+      }
+     ],
+     "observation": [
+      {
+       "id": "TIME_PERIOD",
+       "keyPosition": 3,
+       "values": [
+        {
+         "value": "1980"
+        },
+        {
+         "value": "1981"
+        },
+        {
+         "value": "1982"
+        },
+        {
+         "value": "1983"
+        },
+        {
+         "value": "1984"
+        },
+        {
+         "value": "1985"
+        },
+        {
+         "value": "1986"
+        },
+        {
+         "value": "1987"
+        },
+        {
+         "value": "1988"
+        },
+        {
+         "value": "1989"
+        },
+        {
+         "value": "1990"
+        },
+        {
+         "value": "1991"
+        },
+        {
+         "value": "1992"
+        },
+        {
+         "value": "1993"
+        },
+        {
+         "value": "1994"
+        },
+        {
+         "value": "1995"
+        },
+        {
+         "value": "1996"
+        },
+        {
+         "value": "1997"
+        },
+        {
+         "value": "1998"
+        },
+        {
+         "value": "1999"
+        },
+        {
+         "value": "2000"
+        },
+        {
+         "value": "2001"
+        },
+        {
+         "value": "2002"
+        },
+        {
+         "value": "2003"
+        },
+        {
+         "value": "2004"
+        },
+        {
+         "value": "2005"
+        },
+        {
+         "value": "2006"
+        },
+        {
+         "value": "2007"
+        },
+        {
+         "value": "2008"
+        },
+        {
+         "value": "2009"
+        },
+        {
+         "value": "2010"
+        },
+        {
+         "value": "2011"
+        },
+        {
+         "value": "2012"
+        },
+        {
+         "value": "2013"
+        },
+        {
+         "value": "2014"
+        },
+        {
+         "value": "2015"
+        },
+        {
+         "value": "2016"
+        },
+        {
+         "value": "2017"
+        },
+        {
+         "value": "2018"
+        },
+        {
+         "value": "2019"
+        },
+        {
+         "value": "2020"
+        },
+        {
+         "value": "2021"
+        },
+        {
+         "value": "2022"
+        },
+        {
+         "value": "2023"
+        },
+        {
+         "value": "2024"
+        },
+        {
+         "value": "2025"
+        },
+        {
+         "value": "2026"
+        },
+        {
+         "value": "2027"
+        },
+        {
+         "value": "2028"
+        },
+        {
+         "value": "2029"
+        },
+        {
+         "value": "2030"
+        },
+        {
+         "value": "2031"
+        }
+       ]
+      }
+     ]
+    },
+    "measures": {
+     "observation": [
+      {
+       "id": "OBS_VALUE",
+       "roles": []
+      }
+     ]
+    },
+    "attributes": {
+     "dimensionGroup": [
+      {
+       "id": "FUNCTIONAL_CAT",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "INT_ACC_ITEM",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "NA_STO",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       },
+       "values": [
+        {
+         "id": "B1GQ"
+        }
+       ]
+      },
+      {
+       "id": "GFS_STO",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "COICOP_1999",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "TRADE_FLOW",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "COMMODITY",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "SOC_CONCEPTS",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "SECTOR",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "ACCOUNTING_ENTRY",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "INDEX_TYPE",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "PRICES",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       },
+       "values": [
+        {
+         "id": "Q"
+        }
+       ]
+      },
+      {
+       "id": "STATISTICAL_MEASURES",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "EXRATE",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "TRANSFORMATION",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      },
+      {
+       "id": "UNIT",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       },
+       "values": [
+        {
+         "id": "PT"
+        }
+       ]
+      },
+      {
+       "id": "REPORTING_PERIOD_TYPE",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "INDICATOR"
+        ]
+       }
+      }
+     ],
+     "series": [
+      {
+       "id": "SCALE",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "COUNTRY",
+         "INDICATOR",
+         "FREQUENCY"
+        ]
+       },
+       "values": [
+        {
+         "id": "0"
+        }
+       ]
+      },
+      {
+       "id": "DECIMALS_DISPLAYED",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "COUNTRY",
+         "INDICATOR",
+         "FREQUENCY"
+        ]
+       },
+       "values": [
+        {
+         "id": "3"
+        }
+       ]
+      },
+      {
+       "id": "OVERLAP",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "COUNTRY",
+         "INDICATOR",
+         "FREQUENCY"
+        ]
+       },
+       "values": [
+        {
+         "id": "OL"
+        }
+       ]
+      },
+      {
+       "id": "COUNTRY_UPDATE_DATE",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "dimensions": [
+         "COUNTRY",
+         "INDICATOR",
+         "FREQUENCY"
+        ]
+       }
+      }
+     ],
+     "observation": [
+      {
+       "id": "PRECISION",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "observation": {}
+       }
+      },
+      {
+       "id": "DERIVATION_TYPE",
+       "roles": [],
+       "isMandatory": false,
+       "relationship": {
+        "observation": {}
+       }
+      }
+     ]
+    },
+    "annotations": []
+   }
+  ]
+ }
+}

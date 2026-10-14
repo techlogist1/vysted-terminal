@@ -1,0 +1,6 @@
+CMD: sidecar/.venv/bin/python3 battery13_research010.py (live OpenRouter HTTP call with a canary fake key, not-real key never printed above beyond the canary literal 'R15CANARY')
+EXIT: 0
+result: {'ok': False, 'message': 'OpenRouter rejected the request — check that your OpenRouter API key is valid and active.'}
+steps: [ResearchStep(kind='engine', detail='research-model:perplexity/sonar — hosted research model (normal stop, via OpenRouter)', latency_ms=None, status='ok'), ResearchStep(kind='engine', detail='OpenRouter rejected the request — check that your OpenRouter API key is valid and active.', latency_ms=None, status='error')]
+error_steps: [ResearchStep(kind='engine', detail='OpenRouter rejected the request — check that your OpenRouter API key is valid and active.', latency_ms=None, status='error')]
+PASS RESEARCH-010: a rejected OpenRouter key surfaces as an error step + ok:false, not a silent fabricated-source answer

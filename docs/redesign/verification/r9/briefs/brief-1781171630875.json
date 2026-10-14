@@ -1,0 +1,285 @@
+{
+ "query": "SAKSOFT.NS Saksoft Limited",
+ "symbol": "SAKSOFT",
+ "mode": "DEEP",
+ "depth": "deep",
+ "markdown": "# Saksoft Limited (SAKSOFT) \u2014 Research Brief\n\n## Q4 FY26 Financial Highlights (as of 11 June 2026)\n\n### Revenue & Profit\n- **Revenue from operations:** \u20b9256.23 crore (Q4 FY26) [6][7]\n- **Net profit:** ~\u20b935.93\u201336 crore (Q4 FY26) [6][7]\n- **Year-on-year growth:** Revenue +4%, Net profit +20% [6][7]\n- **PAT margin:** 14.44% [10]\n- **EBITDA margin:** 18.19% (earnings call, 26-May-2026) [6][7]\n- **Sequential (QoQ) changes:** Not quantified in any extracted source.\n\n## Dividend & Capital Returns\n- **Interim dividend (declared Nov 2025):** \u20b90.45 per share [4]\n- **Final dividend (proposed 25-May-2026, subject to approval):** \u20b90.55 per share [1][2]\n- **Total for FY26 (if approved):** \u20b91.00 per share (\u20b90.45 + \u20b90.55) [1][2][4]\n\n## Management Changes\n- Cessation of V.V.R. Babu as per exchange filings [8][9]\n\n## Valuation & Market Data (as of 10 June 2026)\n- **Share price (NSE):** \u20b9142.28 [19]\n- **Market cap:** \u20b91,767 crore [20]\n- **P/E ratio (trailing):** 13.56 [20]; **Forward P/E:** 4.05 [20]\n- **Price-to-book:** 2.27 [20]\n- **EV/EBITDA:** 8.62 [20]\n- **Dividend yield:** ~0.70% [20]\n- **EPS (trailing):** \u20b910.19 [20]\n- **52-week range:** \u20b9107.59 \u2013 \u20b9253.99 [20]\n\n## Open Questions & Data Gaps\n- **Revenue breakdown** (geography/service line) \u2013 not available in Q4 filings or transcript [6][7]\n- **Order pipeline, deal wins, client additions, client concentration** \u2013 not discussed in earnings call [6][7][10]\n- **Management forward guidance** (near-term demand, hiring, margins) \u2013 no extractable commentary [6][7][10]\n- **Sequential quarterly comparisons** \u2013 no quantified data in available sources [12][13][15][17]\n\n## Key Sources Used\n- Exchange filings: Q4 FY26 results [1][2], interim dividend [4], transcripts [6][7], management change [8][9]\n- Earnings call transcript [6][7], newspaper publication [10]\n- Stock price and fundamentals via NSE/Yahoo finance [19][20]\n\n*Note: Segmental revenue data may be available in the FY2024\u201125 annual report [11] or investor presentation [5] but were not extracted in this run.*",
+ "sources": [
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/03e389c9-1d06-4667-bcc0-ec69b41febcf.pdf",
+   "title": "Board Meeting Outcome for Financial Results March 31, 2026",
+   "excerpt": "BSE \u00b7 Board Meeting \u00b7 2026-05-25T13:48:01.757000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_25052026134035_OutcomeofBM25052026Signed.pdf",
+   "title": "Saksoft Limited has submitted to the Exchange, the financial results for the period ended March 31, 2026.",
+   "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-05-25T13:41:54+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_02022026125728_OutcomeSEintimationsigned.pdf",
+   "title": "Saksoft Limited has submitted to the Exchange, the financial results for the period ended December 31, 2025.",
+   "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2026-02-02T12:57:42+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_10112025123949_OutcomeSEIntimationsigned.pdf",
+   "title": "Saksoft Limited has submitted to the Exchange, the financial results for the period ended September 30, 2025.",
+   "excerpt": "NSE \u00b7 Outcome of Board Meeting \u00b7 2025-11-10T12:42:44+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0784b3dd-f8ce-43cc-9dbb-90d012760adc.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Investor Presentation",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-25T21:57:13.703000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/e5245b6a-ea85-45b1-96c2-52eb3df7b513.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Earnings Call Transcript",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-06-02T18:18:31.877000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_02062026181355_Earningscalltransacript.pdf",
+   "title": "Saksoft Limited has informed the Exchange about Transcript",
+   "excerpt": "NSE \u00b7 Analysts/Institutional Investor Meet/Con. Call Updates \u00b7 2026-06-02T18:14:03+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/4e4ff600-373b-49ca-b934-782bbd237952.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Change in Management",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-29T15:03:28.003000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/SAKSOFT_29052026144751_VVR_Babu_cessation-Reg_30signed.pdf",
+   "title": "Saksoft Limited has informed the Exchange about change in Management",
+   "excerpt": "NSE \u00b7 Change in Management \u00b7 2026-05-29T14:48:13+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/38d86f8a-d437-4e71-99f2-3d4aae138a26.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-27T17:19:56.613000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ebdbfc33-34d9-497d-8802-fa07109cfa3b.pdf",
+   "title": "[PDF] Saksoft Limited Annual Report 2024-25 - BSE",
+   "excerpt": "This document contains statements about expected future events and financial and operating results of. Saksoft Limited, which are forward- looking. By their ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.angelone.in/news/stocks/saksoft-share-price-gains-over-7-after-q4-fy26-earnings-results-net-profit-up-19-6-yoy",
+   "title": "Saksoft Share Price Gains Over 7% After Q4 FY26 Earnings Results",
+   "excerpt": "26 May 2026 \u00b7 Saksoft reports 4% YoY income growth to \u20b9256.23 crore in March 2026 quarter, with a 19.6% YoY rise in net profit to \u20b935.93 crore.",
+   "domain": "web"
+  },
+  {
+   "url": "https://univest.in/blogs/saksoft-q4-fy26-results",
+   "title": "Saksoft Q4 FY26 Results: PAT Rs 36 Cr - Univest",
+   "excerpt": "27 May 2026 \u00b7 The company reported PAT of Rs 36 crore for the quarter ended March 31, 2026, up 20.0% YoY compared to Rs 30 crore in Q4 FY25. Revenue from ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.mnclgroup.com/saksoft-ltd-temporary-headwinds-normalization-in-sight-company-update",
+   "title": "Saksoft Ltd: Temporary headwinds, normalization in sight",
+   "excerpt": "The company is expected to deliver mid-teen revenue growth over FY25\u201328E with EBITDA margins stabilizing in the 18\u201319% range. 5. What are the key risks to the ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://anandrathi.com/stocks/saksoft/financial-results/190051",
+   "title": "Saksoft Financial Results - Annual, Quarterly and Half-Yearly",
+   "excerpt": "Saksoft Financial Results ; PBDT, 193.11, 154.59 ; Depreciation, 13.46, 12.63 ; Profit Before Tax, 179.65, 141.96 ; Tax, 46.38, 33.16 ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/markets/stocks/articles/saksoft-ltd-bom-590051-q4-010110029.html",
+   "title": "Saksoft Ltd (BOM:590051) Q4 2026 Earnings Call Highlights",
+   "excerpt": "2 Jun 2026 \u00b7 Quarterly Net Profit: INR36 crores, 20% year-on-year growth, profit after tax margin at 14.44%. Annual Revenue: INR1,007 crores, 14% year-on- ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.kotakneo.com/financial-results/saksoft-share-price-q4fy2025-26-results/",
+   "title": "Saksoft's Q4 FY 2025-26 Quarterly Results - Kotak Securities",
+   "excerpt": "26 May 2026 \u00b7 In the fourth quarter of fiscal year 2026 (Q4FY26), Saksoft Ltd reported a total income of \u20b9256.23 crores. This marks a slight quarter-over- ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.saksoft.com/wp-content/uploads/2026/05/Saksoft-Limited_Consolidated-financials-SEBI-format-signed.pdf",
+   "title": "[PDF] Consolidated - Saksoft",
+   "excerpt": "25 May 2026 \u00b7 I The audited consolidated financial statements for the quarter and year ended March 31, 2026 were reviewed by the Audit Committee and approved ...",
+   "domain": "web"
+  },
+  {
+   "url": "vysted://price/SAKSOFT",
+   "title": "Price for SAKSOFT",
+   "excerpt": "Structured price snapshot via nse_direct gathered this run.",
+   "domain": "nse_direct"
+  },
+  {
+   "url": "vysted://fundamentals/SAKSOFT",
+   "title": "Fundamentals for SAKSOFT",
+   "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+   "domain": "yfinance"
+  },
+  {
+   "url": "vysted://news/SAKSOFT",
+   "title": "News for SAKSOFT",
+   "excerpt": "Structured news pull.",
+   "domain": "vysted"
+  }
+ ],
+ "sourceCount": 21,
+ "cost": {
+  "tokens": 0,
+  "spendUsd": 0
+ },
+ "webAvailable": true,
+ "structured": {
+  "resolved": {
+   "ok": true,
+   "query": "SAKSOFT.NS Saksoft Limited",
+   "region": "IN",
+   "resolved": {
+    "symbol": "SAKSOFT",
+    "name": "Saksoft Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "SAKSOFT.NS",
+    "confidence": 0.812
+   },
+   "needs_disambiguation": false,
+   "candidates": [
+    {
+     "symbol": "SAKSOFT",
+     "name": "Saksoft Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "SAKSOFT.NS",
+     "confidence": 0.812
+    },
+    {
+     "symbol": "SAKHTISUG",
+     "name": "Sakthi Sugars Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "SAKHTISUG.NS",
+     "confidence": 0.761
+    },
+    {
+     "symbol": "MARSONS",
+     "name": "Marsons Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "MARSONS.NS",
+     "confidence": 0.714
+    },
+    {
+     "symbol": "SANSTAR",
+     "name": "Sanstar Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "SANSTAR.NS",
+     "confidence": 0.714
+    },
+    {
+     "symbol": "TAKE",
+     "name": "Take Solutions Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "TAKE.NS",
+     "confidence": 0.705
+    },
+    {
+     "symbol": "RANASUG",
+     "name": "Rana Sugars Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "RANASUG.NS",
+     "confidence": 0.702
+    }
+   ]
+  },
+  "price": {
+   "ok": true,
+   "provider": "nse_direct",
+   "data": {
+    "symbol": "SAKSOFT",
+    "price": 142.28,
+    "change": 1.509999999999991,
+    "change_percent": 1.0726717340342338,
+    "volume": 193697,
+    "currency": "INR",
+    "market_state": "REGULAR",
+    "timestamp": "2026-06-10T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "SAKSOFT.NS",
+    "name": "Saksoft Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "currency": "INR",
+    "market_cap": 17669933056,
+    "pe_ratio": 13.56428,
+    "forward_pe": 4.0486236,
+    "peg_ratio": null,
+    "price_to_book": 2.2689145,
+    "price_to_sales": 1.7543771,
+    "ev_to_ebitda": 8.618,
+    "book_value": 60.919,
+    "dividend_yield": 0.006999999999999999,
+    "dividend_per_share": 1,
+    "eps": 10.19,
+    "beta": 0.356,
+    "fifty_two_week_high": 253.99,
+    "fifty_two_week_low": 107.59,
+    "fifty_two_week_change": -0.29228014,
+    "roe": 0.19065,
+    "roa": 0.10484,
+    "gross_margin": 0.492,
+    "operating_margin": 0.16792999,
+    "profit_margin": 0.13232,
+    "debt_to_equity": 0.05607,
+    "current_ratio": 2.166,
+    "quick_ratio": 1.882,
+    "revenue_ttm": 10071912448,
+    "net_income_ttm": 1332697984,
+    "free_cash_flow": 851386496,
+    "shares_outstanding": 127839193,
+    "revenue_growth": 0.037,
+    "earnings_growth": 0.216,
+    "held_percent_insiders": 0.72541,
+    "held_percent_institutions": 0.00217,
+    "provider": "yfinance"
+   }
+  }
+ },
+ "backend": "native",
+ "createdAt": 1781171630875
+}

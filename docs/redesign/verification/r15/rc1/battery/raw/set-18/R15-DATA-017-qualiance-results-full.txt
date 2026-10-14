@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+date: Fri, 25 Sep 2026 00:25:13 GMT
+server: uvicorn
+content-length: 107
+content-type: application/json
+vary: Origin
+
+{"symbol":"QUALIANCE","count":0,"events":[],"sources":["NSE"],"errors":{},"coverage":"covered","note":null}

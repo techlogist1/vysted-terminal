@@ -1,0 +1,13 @@
+{
+  "certified": ["R15-LEAD-031"],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-LEAD-030",
+      "reason": "The literal repro and the batch-16 escapes are fixed. Humanised names, the next-line dump, the history-seeded follow-up (live and offline) and figure-less pre-call narration all hold on fresh cases. The claim 'no true citation is replaced' fails on a fresh case in the entry's own scenario, where the named tool errored. Fundamentals errors, financial_statements returns ok, and the model writes 'The fundamentals tool returned an error, so I used financial statements, which shows revenue of ₹4,411 cr.' The whole sentence is replaced with 'The fundamentals tool returned no data for this in this turn.', so the true ok-sourced ₹4,411 cr answer never reaches the user (verifier-evidence/probe2.out err-mention-plus-true-figure; base 5d4ca99c behaves the same, so this is pre-existing and not a regression). The guard replaces any sentence that names an untraced tool with a cue word. It should only replace a sentence that attributes a value to that tool. A minor second escape: a camel-cased humanised name, 'PriceData returned a close of $2.11.', streams when price_data was never called (probe3.out fab-camelcase)."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-17-int@a340ad7b34dcec85f347c64813e6a135af9903ae"
+}

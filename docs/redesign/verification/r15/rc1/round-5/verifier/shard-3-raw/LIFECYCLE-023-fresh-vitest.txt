@@ -1,0 +1,47 @@
+# LIFECYCLE-023 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/components/vs3-lc023.test.tsx
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+ ✓ src/components/vs3-lc023.test.tsx > vs3 fresh LIFECYCLE-023 > a panel that throws on a later interaction / in an effect stays contained; persistent throw re-shows the card 98ms
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  16:58:23
+   Duration  1.28s (transform 206ms, setup 67ms, import 460ms, tests 100ms, environment 533ms)
+
+## test source (appended part)
+// vs3 fresh: LIFECYCLE-023 — throw after interaction (state-driven), throw in an effect, persistent throw on Reload
+import { fireEvent, render, screen } from "@testing-library/react";
+import { useEffect, useState } from "react";
+import { describe, expect, it, vi } from "vitest";
+import { withPanelErrorBoundaries } from "@/components/PanelHost";
+
+describe("vs3 fresh LIFECYCLE-023", () => {
+  it("a panel that throws on a later interaction / in an effect stays contained; persistent throw re-shows the card", () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    function Clicky() {
+      const [n, setN] = useState(0);
+      if (n > 0) throw new Error("rows[3].price undefined");
+      return <button onClick={() => setN(1)}>load more</button>;
+    }
+    function Effecty() {
+      useEffect(() => { throw new Error("effect blew up"); }, []);
+      return <p>effect panel</p>;
+    }
+    const g = withPanelErrorBoundaries({ a: Clicky, b: Effecty, c: () => <p>Chat still here</p> });
+    const A = g.a, B = g.b, C = g.c;
+    render(<><A /><B /><C /></>);
+    expect(screen.getByText("effect blew up")).toBeInTheDocument();
+    expect(screen.getByText("Chat still here")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("load more"));
+    expect(screen.getAllByRole("alert")).toHaveLength(2);
+    expect(screen.getByText("rows[3].price undefined")).toBeInTheDocument();
+    expect(screen.getByText("Chat still here")).toBeInTheDocument();
+    // Reload the effect panel: it throws again -> card again, sibling intact
+    const reloads = screen.getAllByRole("button", { name: "Reload panel" });
+    fireEvent.click(reloads[1]);
+    expect(screen.getAllByRole("alert")).toHaveLength(2);
+    expect(screen.getByText("Chat still here")).toBeInTheDocument();
+    // Reload the clicky panel: fresh state (n=0) -> recovers
+    fireEvent.click(screen.getAllByRole("button", { name: "Reload panel" })[0]);
+    expect(screen.getByText("load more")).toBeInTheDocument();
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+  });
+});

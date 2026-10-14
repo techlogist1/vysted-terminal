@@ -1,0 +1,8 @@
+# R15-CODE-PLATFORM-014 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:39+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; echo '(rc2 used a scratch vitest probe; battery does not run vitest: source + pin check)'; grep -n 'runtime.reloadPlugin(row.discovered)' src/lib/marketplace.ts; grep -n 'loadPlugin is idempotent, while reloadPlugin re-runs initialize with fresh secrets' src/lib/plugin-runtime.test.ts
+--- output ---
+(rc2 used a scratch vitest probe; battery does not run vitest: source + pin check)
+175:  it("loadPlugin is idempotent, while reloadPlugin re-runs initialize with fresh secrets", async () => {
+
+EXIT=0 (0.0s)

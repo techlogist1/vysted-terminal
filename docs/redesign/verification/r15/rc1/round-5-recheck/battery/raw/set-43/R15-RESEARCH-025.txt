@@ -1,0 +1,11 @@
+CMD: POST /screener/formula/validate for 5 formulas
+--- formula: (pe > 10) + 1 ---
+{"ok":false,"error":"a boolean expression can't be used in arithmetic — wrap the comparison on its own, or combine with 'and'/'or'","position":10,"fields":[]}
+--- formula: abs(pe > 10) ---
+{"ok":false,"error":"abs() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+--- formula: max(pe > 10, 1) ---
+{"ok":false,"error":"max() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+--- formula: (pe > 10) * 2 + 1 ---
+{"ok":false,"error":"a boolean expression can't be used in arithmetic — wrap the comparison on its own, or combine with 'and'/'or'","position":10,"fields":[]}
+--- formula: pe > 10 and pb < 3 ---
+{"ok":true,"error":null,"position":null,"fields":["pe_ratio","price_to_book"]}

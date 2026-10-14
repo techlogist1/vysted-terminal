@@ -1,0 +1,2 @@
+Committed pinned test: src/modules/portfolio/PortfolioPanel.test.tsx:213 'refreshes quotes on the Watchlist interval and dates the totals by the oldest quote (R15-UI-036)'.
+NOT RUN: vitest (role forbids running vitest/pytest suites).

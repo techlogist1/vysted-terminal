@@ -1,0 +1,92 @@
+CMD: sed -n '105,135p' src/modules/macro/MacroSeriesPicker.test.tsx
+      />,
+    );
+    fireEvent.click(screen.getByTestId("macro-provider-ecb"));
+    expect(onProviderChange).toHaveBeenCalledWith("ecb");
+  });
+
+  it("shows the catalog failure with a Retry that reloads it (R15-UI-029)", async () => {
+    vi.mocked(sidecarGet).mockRejectedValueOnce(new Error("engine not up"));
+    render(
+      <MacroSeriesPicker
+        provider="fred"
+        onProviderChange={() => undefined}
+        onSelect={() => undefined}
+      />,
+    );
+    expect(await screen.findByText("Could not load featured series.")).toBeInTheDocument();
+    expect(screen.queryByTestId("macro-catalog-skeleton")).not.toBeInTheDocument();
+
+    vi.mocked(sidecarGet).mockResolvedValueOnce(SAMPLE_CATALOG);
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(await screen.findByText("10-Year Treasury")).toBeInTheDocument();
+  });
+
+  it("fires onSelect when a catalog row is clicked", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce(SAMPLE_CATALOG);
+    const onSelect = vi.fn();
+    render(
+      <MacroSeriesPicker provider="fred" onProviderChange={() => undefined} onSelect={onSelect} />,
+    );
+    await waitFor(() => expect(screen.getByText("10-Year Treasury")).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId("macro-result-DGS10"));
+
+CMD: sed -n '85,100p' src/store/macro.ts
+      seriesStatus: { ...state.seriesStatus, [key]: { status: "loading" } },
+    }));
+    try {
+      const series = await sidecarGet<MacroSeriesExtended>(
+        `/macro/${encodeURIComponent(seriesId)}`,
+        { provider },
+      );
+      set((state) => ({
+        seriesStatus: {
+          ...state.seriesStatus,
+          [key]: { status: "ready", series },
+        },
+      }));
+    } catch (err) {
+      set((state) => ({
+        seriesStatus: {
+          ...state.seriesStatus,
+          [key]: { status: "error", error: errorMessage(err), cause: err },
+        },
+      }));
+    }
+  },
+
+  search: async (provider, query, limit = 25) => {
+    if (!query) return;
+    const key = searchKey(provider, query);
+    try {
+      const results = await sidecarGet<MacroSearchResult[]>("/macro/search", {
+        q: query,
+        provider,
+        limit,
+      });
+      set((state) => ({
+        searchResults: { ...state.searchResults, [key]: results },
+      }));
+    } catch {
+      set((state) => ({
+        searchResults: { ...state.searchResults, [key]: [] },
+      }));
+    }
+  },
+
+  loadCatalog: async (provider) => {
+    if (get().catalogByProvider[provider]) return;
+    set((state) => ({ catalogError: { ...state.catalogError, [provider]: undefined } }));
+    try {
+      const catalog = await sidecarGet<MacroCatalog>("/macro/catalog", { provider });
+      set((state) => ({
+        catalogByProvider: { ...state.catalogByProvider, [provider]: catalog },
+      }));
+    } catch (err) {
+      // Recorded, not swallowed: the picker renders it with a Retry instead of
+      // a skeleton that never resolves (R15-UI-029).
+      set((state) => ({ catalogError: { ...state.catalogError, [provider]: errorMessage(err) } }));
+    }
+  },
+
+VERDICT RATIONALE: R15-UI-029's certified repro is a React-component mount test (fail /macro/catalog, assert Retry UI replaces the skeleton, no infinite spinner). This is pinned by the test above, present verbatim in the candidate tree naming the entry id. No component-render harness is available in this shard outside vitest (no tsx/ts-node; the role may not run vitest suites — that lane belongs to the heavy/chain role). Verdict: ci_pinned, naming src/modules/macro/MacroSeriesPicker.test.tsx:111.

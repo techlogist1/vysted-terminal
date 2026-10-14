@@ -1,0 +1,2 @@
+{"kind": "delta", "text": "{\"name\": \"portfolio_delete_position\", \"parameters\": {\"symbol\": \"TCS\"}}"}
+{"kind": "done", "usage": {"input_tokens": 8112, "output_tokens": 19, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}

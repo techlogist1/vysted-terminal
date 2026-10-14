@@ -1,0 +1,29 @@
+[
+  {
+    "raw_id": "INT-blueprint-288-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. The workflow node set (logic.compare, action.notify_desktop, ai.agent_invoke) is registered, but nothing re-runs a workflow on a timer or event. The sidecar has no scheduler, cron or recurring-run mechanism, and the only frontend interval is the delegate-runs status poll. So BLUEPRINT UC3 ('alert on entry trigger') and UC5 ('monitors news -> notifications') only work if the user re-runs the workflow by hand, and no separate price-alert feature exists either. One nuance: the repro says 'close the app', but a sidecar scheduler would stop with the app too. The fix only covers the app-open case, which is still the core promise, so severity stays high.",
+    "evidence": "sidecar/services/workflow_nodes/__init__.py:10-17,50-56; sidecar/services/workflow_nodes/builtin.py:325-344; docs/BLUEPRINT.md:740-747; src/lib/delegate-runs.ts:41,65 (status poll only)",
+    "evidence_checked": "Opened the node registrations and the notify_desktop handler. `find sidecar src src-tauri -iname '*schedul*'` returned nothing. grepped schedul|cron|recurring|periodic|interval|trigger across workflow_engine.py, routers/workflow.py, workflow_store.py and workflow_nodes/*: the only hits are the OHLCV 'interval' config and the static 'trigger' node category. grepped alert|notif across sidecar (non-test): only the workflow_nodes files.",
+    "repro_check": "find sidecar src src-tauri -iname '*schedul*' (empty); grep -rniE 'schedul|cron|recurring' sidecar/services/workflow_engine.py sidecar/routers/workflow.py sidecar/services/workflow_store.py (no hits)"
+  },
+  {
+    "raw_id": "INT-blueprint-288-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The updater endpoint and pubkey are configured but createUpdaterArtifacts is false, build.yml only uploads CI artifacts (upload-artifact@v4, no release publish step), and the public repo has zero GitHub Releases. BLOCKERS.md already records this as a Phase 10 carry-forward. One correction to the evidence: the flag is at src-tauri/tauri.conf.json:45, not :33. Severity stays medium because this is a known launch-ops step, not a product defect a user can hit today.",
+    "evidence": "src-tauri/tauri.conf.json:45,48-52; BLOCKERS.md:291-296; .github/workflows/build.yml:80-83",
+    "evidence_checked": "Opened tauri.conf.json updater block and BLOCKERS.md carry-forwards. grepped the workflows for release/tauri-action: none, only upload-artifact. Ran gh release list and gh api repos/techlogist1/vysted-terminal.",
+    "repro_check": "gh release list -R techlogist1/vysted-terminal -> rc=0, 0 rows; gh api repos/techlogist1/vysted-terminal -> private=false"
+  },
+  {
+    "raw_id": "INT-blueprint-288-3",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "It is true that no doc or test had measured it before, but the risk the finding raises (that the <30s bar could turn out false at launch) is disproved by a direct measurement. Three timed runs of a 60-trading-day backtest over the full HTTP path on the isolated stack took 0.5-2.1s, about 15x under the bar, including a 3-symbol run with fresh data fetches. A missing wall-clock assertion in CI would not change any decision, and such assertions are flaky on shared runners anyway.",
+    "evidence": "docs/archive/PHASE_8_PERF_BASELINE.md:144-150; docs/BLUEPRINT.md:696; sidecar/routers/backtest.py:42-60; sidecar/models/backtest.py:42-56; sidecar/services/backtest_engine.py:404",
+    "evidence_checked": "Opened the Phase 8 deferral, the BLUEPRINT success criterion, and the backtest route/request model. Ran 3 timed POST /backtest/run requests through scripts/r15/vy.py against :52152. Each returned run-complete with totalBars=62 and metrics.",
+    "repro_check": "vy.py post --port 52152 /backtest/run {mean_reversion, SPY, 2026-06-15..2026-09-12} -> 2.07s, 62 bars, run-complete; {IWM,TLT,GLD} -> 1.99s; SPY walkForwardSlices=5 -> 0.5s"
+  }
+]

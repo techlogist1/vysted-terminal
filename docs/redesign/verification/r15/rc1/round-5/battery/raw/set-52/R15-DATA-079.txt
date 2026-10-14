@@ -1,0 +1,23 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98, own sidecar :52347 (source run, data dir
+rc1-round-5-data-battery-7, keyless isolated profile).
+
+Command: curl -s -m 60 "http://127.0.0.1:52347/quant/option/chain/NIFTY" -o /tmp/data079.json -w "HTTP %{http_code}\n"
+Result: HTTP 200
+
+Parsed:
+  provider: nse-fo-bhavcopy
+  as_of: 2026-09-25
+  freshness: eod
+  expiry: 2026-09-29
+  n contracts: 276
+  with open_interest: 244
+  sample contract: {'expiry': '2026-09-29', 'strike': 15000.0, 'option_type': 'call',
+    'open_interest': 0.0, 'change_in_oi': 0.0, 'last_price': 10499.3, 'settle_price': 8150.24,
+    'volume': 0.0, 'implied_volatility': None}
+
+VERDICT: holds. The register's defect ("no market-observed open interest and no options chain
+exist") is fixed: /quant/option/chain/NIFTY returns a live 276-contract NSE F&O chain with 244
+contracts carrying market-observed open interest, provider-labelled nse-fo-bhavcopy — matches
+batch-11's cert shape (same route, same provider, same freshness label; a later trading day's
+snapshot naturally differs by a few OI/volume values from the 2026-09-24 cert capture, which is
+expected day-over-day data drift, not a regression).

@@ -1,0 +1,21 @@
+# R15-DATA-072 at ace7dd76
+478:    provider_health.record_success(provider_health.YAHOO)
+557:    provider_health.record_success(provider_health.YAHOO)
+843:    provider_health.record_success(provider_health.YAHOO)
+993:    provider_health.record_success(provider_health.YAHOO)
+1016:    provider_health.record_success(provider_health.YAHOO)
+1028:    provider_health.record_success(provider_health.YAHOO)
+1055:    provider_health.record_success(provider_health.YAHOO)
+1077:    provider_health.record_success(provider_health.YAHOO)
+1097:    provider_health.record_success(provider_health.YAHOO)
+--- in-process: trip then get_history MSFT 1h
+provider health: yahoo circuit OPEN for 55s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+after trip True
+ERR ProviderError yfinance history rate-limited for 'MSFT': Too Many Requests. Rate limited. Try after a while.
+after {'open': True, 'cooldown_remaining': 54.634410716127604, 'consecutive_throttles': 0.0, 'consecutive_opens': 1, 'opens_total': 1, 'throttles_total': 4.0}
+
+--- in-process, yf.Ticker stubbed (Yahoo is throttling this IP live): trip then successful get_history
+provider health: yahoo circuit OPEN for 61s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+after trip open= True
+bars 3
+after successful get_history open= False

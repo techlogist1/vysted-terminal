@@ -1,0 +1,10 @@
+183:def _load_universe_snapshot(filename: str) -> dict[str, Any]:
+184:    """Load one of the shipped universe JSON snapshots."""
+193:        raise ProviderError(f"missing universe snapshot {filename!r}") from exc
+205:    the shipped JSON snapshots; crypto additionally checks the data cache for
+228:        snapshot = _load_universe_snapshot("sp500.json")
+231:            label=snapshot.get("label", "S&P 500"),
+232:            symbols=list(snapshot["symbols"]),
+237:        snapshot = _load_universe_snapshot("nifty50.json")
+240:            label=snapshot.get("label", "NIFTY 50"),
+241:            symbols=list(snapshot["symbols"]),

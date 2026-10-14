@@ -1,0 +1,17 @@
+# R15-AGENT-039 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:31:40+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+echo '== plan half: in-process patched planner decompose, fake provider (inproc_plan.py) =='; "$IP" $B/sc/inproc_plan.py 2>&1 | grep -v Warning | tail -6
+echo '== activity half: live ollama llama3.1:8b compound delegate launch (lock-held) =='; cat $B/out/L-AGENT-039.txt
+--- output ---
+== plan half: in-process patched planner decompose, fake provider (inproc_plan.py) ==
+after launch: planned | plan ready: start or discard it | plan steps: ['Open the chart', 'Research NVDA'] | provider calls before Start: 0
+after start: done Done. | activity: [('price_data', 'ok')]
+== activity half: live ollama llama3.1:8b compound delegate launch (lock-held) ==
+# launch {"prompt": "Screen PSU defence names, compare the top 3, save a note.", "provider": "ollama", "model": "llama3.1:8b", "budget": {}}
+launch resp: 201 {'run_id': 'cada1f96f7b349e48acce4de42bd7db5'}
+final status poll: done (16 polls)
+{"id": "cada1f96f7b349e48acce4de42bd7db5", "status": "done", "provider": "ollama", "model": "llama3.1:8b", "cost": {"tokens": 9502, "spend_usd": 0.0, "steps": 2}, "budget": {"max_tokens": 120000, "max_spend_usd": 1.0, "max_wall_seconds": 600.0, "max_steps": 12}, "detail": "completed", "question": null, "plan": null}
+activity: [{"tool": "write_screener_filters", "status": "error", "summary": "invalid arguments for write_screener_filters: 'False' is not of type 'boolean'; call again with valid args"}]
+EXIT=0
+
+EXIT=0 (1.2s)

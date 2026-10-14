@@ -1,0 +1,91 @@
+{"kind": "thinking", "text": "We"}
+{"kind": "thinking", "text": " need to write a"}
+{"kind": "thinking", "text": " note on A"}
+{"kind": "thinking", "text": "APL."}
+{"kind": "thinking", "text": " The user wants"}
+{"kind": "thinking", "text": ":"}
+{"kind": "thinking", "text": " \"Write a note"}
+{"kind": "thinking", "text": " on AAPL"}
+{"kind": "thinking", "text": ": Watch for earnings"}
+{"kind": "thinking", "text": " beat, resistance"}
+{"kind": "thinking", "text": " at 23"}
+{"kind": "thinking", "text": "0.\"\n\nWe need"}
+{"kind": "thinking", "text": " to call"}
+{"kind": "thinking", "text": " write_note with scope"}
+{"kind": "thinking", "text": " A"}
+{"kind": "thinking", "text": "APL, text"}
+{"kind": "thinking", "text": " as"}
+{"kind": "thinking", "text": " given"}
+{"kind": "thinking", "text": ", mode maybe replace"}
+{"kind": "thinking", "text": " or append? Probably"}
+{"kind": "thinking", "text": " replace"}
+{"kind": "thinking", "text": " to"}
+{"kind": "thinking", "text": " overwrite existing"}
+{"kind": "thinking", "text": " note? The user"}
+{"kind": "thinking", "text": " didn't specify,"}
+{"kind": "thinking", "text": " but we can choose"}
+{"kind": "thinking", "text": " replace"}
+{"kind": "thinking", "text": " to"}
+{"kind": "thinking", "text": " set note exactly"}
+{"kind": "thinking", "text": ".\n\n"}
+{"kind": "thinking", "text": "We should"}
+{"kind": "thinking", "text": " first"}
+{"kind": "thinking", "text": " maybe"}
+{"kind": "thinking", "text": " check if there is"}
+{"kind": "thinking", "text": " an"}
+{"kind": "thinking", "text": " existing note? Not"}
+{"kind": "thinking", "text": " required.\n\n"}
+{"kind": "thinking", "text": "We'll call"}
+{"kind": "thinking", "text": " write_note with scope"}
+{"kind": "thinking", "text": " \""}
+{"kind": "thinking", "text": "AAPL\","}
+{"kind": "thinking", "text": " text: \"Watch"}
+{"kind": "thinking", "text": " for earnings beat"}
+{"kind": "thinking", "text": ", resistance at "}
+{"kind": "thinking", "text": "230.\""}
+{"kind": "thinking", "text": " mode"}
+{"kind": "thinking", "text": " \""}
+{"kind": "thinking", "text": "replace\"."}
+{"kind": "thinking", "text": " Then confirm"}
+{"kind": "thinking", "text": ".\n\nLet"}
+{"kind": "thinking", "text": "'s do that.\n\n"}
+{"kind": "tool_use", "tool_call_id": "call_6d35cb5926334a168fc6199e4e6e1eb8", "name": "write_note", "input": {"mode": "replace", "text": "Watch for earnings beat, resistance at 230.", "scope": "AAPL"}}
+{"kind": "thinking", "text": "We"}
+{"kind": "thinking", "text": " need to respond"}
+{"kind": "thinking", "text": " that"}
+{"kind": "thinking", "text": " we"}
+{"kind": "thinking", "text": "'ve"}
+{"kind": "thinking", "text": " proposed the note for"}
+{"kind": "thinking", "text": " review."}
+{"kind": "thinking", "text": " Should"}
+{"kind": "thinking", "text": " mention"}
+{"kind": "thinking", "text": " that they"}
+{"kind": "thinking", "text": " can accept"}
+{"kind": "thinking", "text": " in"}
+{"kind": "thinking", "text": " the review"}
+{"kind": "thinking", "text": " queue. Also maybe"}
+{"kind": "thinking", "text": " confirm"}
+{"kind": "thinking", "text": " the"}
+{"kind": "thinking", "text": " note content"}
+{"kind": "thinking", "text": ". Provide"}
+{"kind": "thinking", "text": " a"}
+{"kind": "thinking", "text": " short"}
+{"kind": "thinking", "text": " answer"}
+{"kind": "thinking", "text": ".\n\n"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "\u2019ve proposed the note"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " AAPL:"}
+{"kind": "delta", "text": " \u201cWatch for earnings"}
+{"kind": "delta", "text": " beat, resistance at"}
+{"kind": "delta", "text": " 230"}
+{"kind": "delta", "text": ".\u201d It\u2019s"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " staged in"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " review queue\u2014please"}
+{"kind": "delta", "text": " accept it there"}
+{"kind": "delta", "text": " to apply the"}
+{"kind": "delta", "text": " change."}
+{"kind": "research_step", "tool_call_id": "call_6d35cb5926334a168fc6199e4e6e1eb8", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: write_note AAPL. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 16406, "output_tokens": 80, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.0}

@@ -1,0 +1,56 @@
+# AGENT-043 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/lib/vs3-fresh-ha.test.ts
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+stdout | src/lib/vs3-fresh-ha.test.ts > vs3 fresh AGENT-043 > A: two different malformed leaves among four are both named in label and ack
+LABEL: Wrote 2 of 4 screener criteria; dropped revenue_growth: value must be a number; roe: unknown operator "approx" — review and Run
+ACK: {"action":"write_screener_filters","dropped":["revenue_growth: value must be a number","roe: unknown operator \"approx\""]}
+STORE: [{"field":"pe_ratio","operator":"lt","value":25},{"field":"market_cap","operator":"gt","value":1000000000}]
+stdout | src/lib/vs3-fresh-ha.test.ts > vs3 fresh AGENT-043 > B (observe): an unknown FIELD name leaf
+UNKNOWN-FIELD LABEL: Wrote 2 screener criteria — review and Run
+UNKNOWN-FIELD ACK: {"action":"write_screener_filters"}
+UNKNOWN-FIELD STORE: [{"field":"pe_ratio","operator":"lt","value":25},{"field":"promoter_pledge_pct","operator":"lt","value":5}]
+ ✓ src/lib/vs3-fresh-ha.test.ts > vs3 fresh AGENT-043 > A: two different malformed leaves among four are both named in label and ack 2ms
+ ✓ src/lib/vs3-fresh-ha.test.ts > vs3 fresh AGENT-043 > B (observe): an unknown FIELD name leaf 0ms
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  16:54:25
+   Duration  947ms (transform 240ms, setup 68ms, import 271ms, tests 3ms, environment 505ms)
+
+## test source (appended part)
+describe("vs3 fresh AGENT-043", () => {
+  it("A: two different malformed leaves among four are both named in label and ack", () => {
+    useScreenerStore.getState().__resetForTests();
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    const input = {
+      criteria: [
+        { field: "pe_ratio", operator: "lt", value: 25 },
+        { field: "revenue_growth", operator: "gt", value: "high" },
+        { field: "roe", operator: "approx", value: 0.2 },
+        { field: "market_cap", operator: "gt", value: 1e9 },
+      ],
+    };
+    const label = applyHostAction("write_screener_filters", input);
+    console.log("LABEL:", label);
+    console.log("ACK:", JSON.stringify(hostActionAckDetail("write_screener_filters", input)));
+    console.log("STORE:", JSON.stringify(useScreenerStore.getState().criteria));
+    expect(label).toMatch(/Wrote 2 of 4 screener criteria; dropped .*revenue_growth.*roe|dropped .*roe.*revenue_growth/);
+    const dropped = hostActionAckDetail("write_screener_filters", input).dropped as string[];
+    expect(dropped).toHaveLength(2);
+    expect(dropped.join(" ")).toMatch(/revenue_growth/);
+    expect(dropped.join(" ")).toMatch(/roe/);
+  });
+
+  it("B (observe): an unknown FIELD name leaf", () => {
+    useScreenerStore.getState().__resetForTests();
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    const input = {
+      criteria: [
+        { field: "pe_ratio", operator: "lt", value: 25 },
+        { field: "promoter_pledge_pct", operator: "lt", value: 5 },
+      ],
+    };
+    const label = applyHostAction("write_screener_filters", input);
+    console.log("UNKNOWN-FIELD LABEL:", label);
+    console.log("UNKNOWN-FIELD ACK:", JSON.stringify(hostActionAckDetail("write_screener_filters", input)));
+    console.log("UNKNOWN-FIELD STORE:", JSON.stringify(useScreenerStore.getState().criteria));
+  });
+});

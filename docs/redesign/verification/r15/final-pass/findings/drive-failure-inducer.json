@@ -1,0 +1,33 @@
+[
+ {
+  "key": "FI-FINAL-CORRUPT-CACHE-BRICKS-BOOT",
+  "kind": "new_defect",
+  "severity": "high",
+  "register_id": null,
+  "scenario": "drive:failure-inducer 8x corrupt copy of own data file",
+  "title": "A corrupt data_cache.db (a rebuildable cache) makes the sidecar fail startup on every launch: sqlite3.DatabaseError 'file is not a database' escapes data_cache._connect (PRAGMA journal_mode=WAL) from the app lifespan's ensure_build, uvicorn exits, and the app can only say 'The data engine stopped (exit code N)'; nothing quarantines/recreates the cache or names the file, so the whole product is dead until the user finds and deletes it by hand",
+  "area": "lifecycle",
+  "repro": "cp -R final-seed-data fi-final/corrupt-data_cache; overwrite bytes 0-15 of data_cache.db with 'NOT A SQLITE DB!' and remove its -wal/-shm; (sleep 40 | VYSTED_OPENBB_MCP_PORT=52801 VYSTED_SEC_EDGAR_MCP_PORT=52802 ./.venv/bin/python3 main.py --host 127.0.0.1 --port 52847 --data-dir <that dir>) from final-cand/sidecar @d38b5d1a -> /health never answers; log: 'sqlite3.DatabaseError: file is not a database' ... 'ERROR uvicorn.error: Application startup failed. Exiting.' Code: app.py:125 await data_cache.ensure_build(app.version) (first thing in _lifespan) -> data_cache.py:113 _run -> :232 _get_conn -> :105 _connect conn.execute('PRAGMA journal_mode=WAL') with no DatabaseError handling; the Tauri core (src-tauri/src/lib.rs:85-90, :438-442) only announces 'The data engine stopped (exit code N).' and never respawns. Contrast: a corrupt workspace file is quarantined as .corrupt-<ts> (workspace_store.py:191-195, R15-DATA-090) and a corrupt legacy portfolio.db only 500s its one GET. Trigger is SQLite file damage (power loss / disk-full / crash during write on a laptop); rare, but the consequence is total and persistent, and the file is pure cache (safe to quarantine and recreate). Per-db matrix for the other stores in 83-corrupt-each-db-boot.txt.",
+  "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/final/81-corrupt-cache-boot-fails.txt",
+  "suspected_files": [
+   "sidecar/services/data_cache.py",
+   "sidecar/app.py"
+  ]
+ },
+ {
+  "key": "FI-FINAL-HANG-NETWORK-COPY",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "scenario": "drive:failure-inducer 52 junk-hang (provider accepts, never streams)",
+  "title": "A hosted provider that accepts and then goes silent ends after 180 s with 'Could not reach OpenAI - check your network / Check your internet connection' (code network, empty detail): the SDK read timeout (client_timeout 180 s) dead-heats the relay's own idle watchdog (180 s), so the designed provider_idle frame ('The provider went quiet') never reaches the user on the hosted lane",
+  "area": "agent-chat",
+  "repro": "stub :52848 mode junk-hang (200 text/event-stream headers, then sleep 600); sidecar booted with OPENAI_BASE_URL=http://127.0.0.1:52848/v1; POST /agents/copilot/invoke {provider:openai, model:junk-hang, api_key:<fake>} -> 17 heartbeats, then at 180.1 s error{code:'network', message:'Could not reach OpenAI \u2014 check your network.', action:'Check your internet connection and try again.', detail:''}. Code: llm/base.py:54 IDLE_TIMEOUT_S=180 used by client_timeout (openai.py:345-351, max_retries=0) and agent_runtime._relay_provider idle (agent_runtime.py:3359 -> :1148-1163 provider_idle after quiet>=idle in 10 s steps); humanize class heuristic errors.py:495-508 maps any 'timeout' class to network copy for hosted providers. Core of R15-AGENT-025 (no silent spinner) holds; only the copy is wrong. R3: the R15-AGENT-025 batch-5 certifier recorded this exact copy as a 'follow-up copy fix, not re-opened as a new defect' (register note); no entry was ever filed for it, so it is listed here as low (not a regression of 025: the silent-spinner defect stays fixed). Same class as open R15-AGENT-027's timeout->network copy (its note: errors.py class heuristic), which covers Ollama only.",
+  "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/final/52-junk-hang.txt",
+  "suspected_files": [
+   "sidecar/services/llm/base.py",
+   "sidecar/services/agent_runtime.py",
+   "sidecar/services/errors.py"
+  ]
+ }
+]

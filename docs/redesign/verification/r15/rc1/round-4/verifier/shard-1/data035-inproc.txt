@@ -1,0 +1,6 @@
+cache /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vshard1/bsecache today IST 2026-09-27
+html200 download -> None | _bhavcopy_for(today) -> None | files []
+404 download -> None | _bhavcopy_for(today) -> None | files ['2026-09-27.csv']
+header-only-csv download -> None | _bhavcopy_for(today) -> None | files ['2026-09-27.csv']
+after publish -> cached chars 858112
+404 for yesterday, marker written today -> ''

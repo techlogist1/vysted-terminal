@@ -1,0 +1,16 @@
+GET /disclosures/<lane>?symbol=<S> with X-Vysted-Region: IN, five lanes x {FOCUS, FOCUS.BO, 543312} (script /tmp/b18_l116.py); FOCUS rows must be NSE only
+announcements      FOCUS     HTTP 200 rows=44 exch={'NSE': 44} focus_lighting_rows=44 note=BSE FOCUS is a different company; only the NSE feed is served
+announcements      FOCUS.BO  HTTP 200 rows=23 exch={'BSE': 23} focus_lighting_rows=0 note=
+announcements      543312    HTTP 200 rows=23 exch={'BSE': 23} focus_lighting_rows=0 note=
+results            FOCUS     HTTP 200 rows=35 exch={'NSE': 35} focus_lighting_rows=35 note=BSE FOCUS is a different company; only the NSE feed is served
+results            FOCUS.BO  HTTP 200 rows=10 exch={'BSE': 10} focus_lighting_rows=0 note=
+results            543312    HTTP 200 rows=10 exch={'BSE': 10} focus_lighting_rows=0 note=
+shareholding       FOCUS     HTTP 200 rows=21 exch={'NSE': 21} focus_lighting_rows=0 note=BSE FOCUS is a different company; only the NSE feed is served
+shareholding       FOCUS.BO  HTTP 200 rows=12 exch={'BSE': 12} focus_lighting_rows=0 note=
+shareholding       543312    HTTP 200 rows=12 exch={'BSE': 12} focus_lighting_rows=0 note=
+corporate-actions  FOCUS     HTTP 200 rows=4 exch={'NSE': 4} focus_lighting_rows=0 note=BSE FOCUS is a different company; only the NSE feed is served
+corporate-actions  FOCUS.BO  HTTP 200 rows=5 exch={'BSE': 5} focus_lighting_rows=0 note=
+corporate-actions  543312    HTTP 200 rows=5 exch={'BSE': 5} focus_lighting_rows=0 note=
+deals              FOCUS     HTTP 200 rows=11 exch={'NSE': 11} focus_lighting_rows=0 note=BSE FOCUS is a different company; only the NSE feed is served
+deals              FOCUS.BO  HTTP 200 rows=39 exch={'BSE': 39} focus_lighting_rows=0 note=
+deals              543312    HTTP 200 rows=39 exch={'BSE': 39} focus_lighting_rows=0 note=

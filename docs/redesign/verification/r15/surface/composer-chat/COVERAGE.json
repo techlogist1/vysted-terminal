@@ -1,0 +1,376 @@
+[
+ {
+  "id": "composer-mount",
+  "area": "composer",
+  "surface": "Chat composer shell (field + controls row)",
+  "entry": "src/modules/chat/ChatSidebar.tsx:1577 (Composer function)",
+  "states": [
+   "controls-collapse-ladder steps at dock-width breakpoints (composer-collapse.ts)",
+   "streaming(square morphs to stop)"
+  ],
+  "drive": "browser",
+  "notes": "composer-collapse.ts + composer-collapse.test.ts define the exact width thresholds — headlessly testable as pure functions (composerControlsStepForWidth / composerControlsPlan) without mounting the ResizeObserver-driven component.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/51-pure-logic-on-real-inputs.json#collapse (composerControlsStepForWidth/Plan at 220/300/360/420/520/800 px: icons<=300, compact 360, full>=420); stop-morph state = 40-stop-midstream.* (the stop itself is broken, see composer-send-stop-button). Pixel paint of the ResizeObserver-driven shell not proven headlessly.",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "composer-depth-control",
+  "area": "composer",
+  "surface": "Research-depth selector (Normal/Deep/Ultra)",
+  "entry": "src/modules/chat/DepthControl.tsx:48",
+  "states": [
+   "collapsed/icons-only(expandable=false, click-cycles, :67-79)",
+   "expanded(hover/focus reveals all 3 stops)",
+   "live-pulse(liveDepth===depth, PULSE_TRANSITION)"
+  ],
+  "drive": "browser",
+  "notes": "nextResearchDepth() (:23-26) is a pure cycle fn — headless-testable. Backing store: store/research-depth.ts (research-depth.test.ts).",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/51-pure-logic-on-real-inputs.json#depthCycle (normal->deep->ultra->normal); the selected depth rides options.research_depth and changes the engine: ../research-briefs/10-normal-kpit (fast loop), 11-deep-bdl-llama / 12-deep-bdl-4omini (iter), 13-ultra-hal-4omini (heavy); DepthControl tests in 50-existing-unit-tests.log",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "composer-model-control",
+  "area": "composer",
+  "surface": "Inline model/provider picker",
+  "entry": "src/modules/chat/ModelControl.tsx:92",
+  "states": [
+   "icon-collapsed(narrow ladder step)",
+   "popover-open(provider/model listbox, role=listbox :26-27)",
+   "no-key(providerConfigured=false affordance)",
+   "catalog-loading/catalogNote"
+  ],
+  "drive": "browser",
+  "notes": "buildModelGroups/modelOptionLabel in lib/model-options.ts (model-options.test.ts) are pure and headless-testable independent of the popover DOM. Backed by GET /llm/providers,/llm/models.",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/EVIDENCE.md#1 (GET /llm/providers, /llm/models?provider=ollama live) -> 51-pure-logic-on-real-inputs.json#modelPicker (buildModelGroups on the live catalog: one group, selectedIsNoTools false); no-key state = 20-err-nokey-openai.* (composer blocks send, ChatSidebar.tsx:786-792)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "composer-plus-menu",
+  "area": "composer",
+  "surface": "Composer '+' menu (persona/autonomy/mode/context)",
+  "entry": "src/modules/chat/ComposerPlusMenu.tsx:127",
+  "states": [
+   "persona-roster(drill-in)",
+   "autonomy-ask/auto(CheckRow :72-100)",
+   "mode-agent/delegate",
+   "context/scope/route-to sections(buildPlusMenuSections :49-56)"
+  ],
+  "drive": "browser",
+  "notes": "buildPlusMenuSections is pure (derives from STATIC_MENTIONS catalog) — headless-testable via ComposerPlusMenu.test.tsx without opening the menu DOM.",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/51-pure-logic-on-real-inputs.json#plusMenu (buildPlusMenuSections: Context @chart/@news/@filings/@terminal, Scope @watchlist/@portfolio, Route to @analyst/@quant); persona roster = GET /agents 13 agents (EVIDENCE.md#1); autonomy/mode rows = composer-chat 15-ask-autonomy-chart (ask) vs 12/16 (auto), 30-delegate-launch.txt (delegate)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "composer-mention-picker",
+  "area": "composer",
+  "surface": "'@' mention picker",
+  "entry": "src/modules/chat/MentionPicker.tsx:23",
+  "states": [
+   "open(role=listbox, filtered options)",
+   "closed"
+  ],
+  "drive": "browser",
+  "notes": "Mention matching logic in mentions.ts (mentions.test.ts) is pure/headless; picker itself keyboard-first (up/down/enter/esc per CLAUDE.md FR-100/101).",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/51-pure-logic-on-real-inputs.json#mentions (matchMention open on '@ana'; applyMentionPrefixes '@analyst …' -> '[Act as a fundamental analyst] …', stacked @quant @analyst, @watchlist leaves text)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "composer-slash-picker",
+  "area": "composer",
+  "surface": "'/' slash-command picker",
+  "entry": "src/modules/chat/SlashCommandPicker.tsx:15",
+  "states": [
+   "open(role=listbox)",
+   "closed"
+  ],
+  "drive": "browser",
+  "notes": "10 commands: research, compare, chart, screener, watch, portfolio, layout, export, sources, clear (slash-commands.ts:162-223). Each has a handler wired in ChatSidebar.tsx:626-680 (enqueueSlashChange for cockpit-mutating ones).",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/51-pure-logic-on-real-inputs.json#slash (10 commands, '/c' filter, closes after space, '/BDL' -> null) + 14-multiturn-t5-screen.* (the /screener expansion 'screen for …' driven end-to-end) + 52-intent-gate-probe.txt: the expansion classifies as read intent so write_screener_filters is stripped and no screen is authored (SURF-COMPOSER-CHAT-5)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "composer-send-stop-button",
+  "area": "composer",
+  "surface": "Send/Stop button (depth-keyed fill, streaming morph)",
+  "entry": "src/modules/chat/ChatSidebar.tsx:1923",
+  "states": [
+   "send(idle)",
+   "stop(streaming, sentDepth heat token retained)"
+  ],
+  "drive": "browser",
+  "notes": "onStop -> abortRef.current?.abort() (:1297) aborts the in-flight fetch AbortController set at :880.",
+  "driven": "broken",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/40-stop-midstream.jsonl + 40-stop-midstream-watch.txt: client closed the stream at 170 s; the sidecar kept research running ~3 min (3 Ollama connections to 07:51:35, 1 to 07:54:06; 9-11 outbound HTTPS; Ollama GIN /api/chat completions logged after the stop) (SURF-COMPOSER-CHAT-6). Send path ok on every other transcript.",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "composer-queue",
+  "area": "composer",
+  "surface": "Queued-prompt FIFO chips",
+  "entry": "src/modules/chat/ChatSidebar.tsx:1359 (QueuedPrompts)",
+  "states": [
+   "empty(hidden, queue.length===0 :1362)",
+   "populated(chips, oldest-first)",
+   "remove-one(aria-label 'Remove queued prompt', :1379)"
+  ],
+  "drive": "browser",
+  "notes": "Backed by store/chat-pending.ts (chat-pending.test.ts) — queuePrompt is a pure store action, drain loop at ChatSidebar.tsx:1100-1127 serial-drains one at a time via the SAME handleSend.",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/51-pure-logic-on-real-inputs.json#queue (useChatPendingStore: queue 3, remove index 1, consume -> head 'first', rest ['third'] FIFO); chat-pending tests in 50-existing-unit-tests.log. Logic-level; chip paint not proven.",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "chat-agents-rail",
+  "area": "composer",
+  "surface": "Running-agents rail (Delegate runs)",
+  "entry": "src/modules/chat/AgentsRail.tsx:20",
+  "states": [
+   "hidden(active.length===0)",
+   "running",
+   "paused(human-in-the-loop answer box)",
+   "populated(cost-so-far vs budget)"
+  ],
+  "drive": "api",
+  "notes": "Synced by GET /runs poller (routers/runs.py:87). cancelRun -> POST /runs/{id}/cancel; answer -> POST /runs/{id}/answer (lib/delegate-runs.ts). Durable/detached per CLAUDE.md run_manager.py — DO NOT cancel a live operator run in this census.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/30-delegate-launch.txt, 31-delegate-lifecycle.txt: running/cancelled/error(budget)/done rows with cost-so-far; the paused answer-box state is unreachable (no production caller of run_manager.pause_run; answer -> 409) and resume swaps the model to the agent default (SURF-COMPOSER-CHAT-11)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "chat-empty-state",
+  "area": "composer",
+  "surface": "Chat dock empty (hero) state",
+  "entry": "src/modules/chat/ChatSidebar.tsx:1479",
+  "states": [
+   "empty-with-suggestion-chips"
+  ],
+  "drive": "browser",
+  "notes": "Shows SuggestionChips (SuggestionChips.tsx:83) + current mode/persona line.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/50-existing-unit-tests.log (existing ChatSidebar empty-state/suggestion tests pass). No new real-data drive: the state is static copy with no sidecar input.",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "chat-suggestion-chips",
+  "area": "composer",
+  "surface": "Suggestion chips (empty-state prompts)",
+  "entry": "src/modules/chat/SuggestionChips.tsx:83",
+  "states": [
+   "populated"
+  ],
+  "drive": "browser",
+  "notes": "SuggestionChips.test.tsx exists.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/50-existing-unit-tests.log (existing tests); a chip only fills the composer — the prompts it would send were driven as typed prompts (10-16).",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "chat-error-row",
+  "area": "composer",
+  "surface": "Chat transcript error row + Details disclosure",
+  "entry": "src/modules/chat/ChatSidebar.tsx:1430 (ErrorRow); src/modules/chat/message-notices.ts:19",
+  "states": [
+   "message-error(plain .error string)",
+   "structured-error-frame(action/detail/code behind 'Details' disclosure, D43)"
+  ],
+  "drive": "browser",
+  "notes": "message-notices.test.ts covers the structured-frame store logic headlessly.",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/20-err-nokey-openai.* + replay-plan-and-error.json (real error SSE -> errorFrameOf: message/action/detail/code carried to the Details disclosure) + 21-err-edges.txt (404 / 422 shapes; the raw 422 pydantic text is COD-error-layer-2)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "chat-message-notices",
+  "area": "composer",
+  "surface": "End-of-stream divergence notice chip",
+  "entry": "src/modules/chat/message-notices.ts:57-61 (isDivergenceNotice); src/modules/chat/ChatSidebar.tsx:1404 (MessageNotices)",
+  "states": [
+   "no-notice",
+   "divergence(quiet system chip, verbatim-matched copy)"
+  ],
+  "drive": "browser",
+  "notes": "isDivergenceNotice is a pure regex match — headless-testable without streaming anything.",
+  "driven": "broken",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/51-pure-logic-on-real-inputs.json#divergenceChip (isDivergenceNotice matches the no-ack copy only; kept_previous and failed copies render as plain step text) + ../research-briefs/30-staleack-run1-noack-fresh.* (no-ack notice fires) + 12/16 transcripts (every Ollama host action is unconfirmable: empty tool_call_id, SURF-COMPOSER-CHAT-8). kept_previous mismatch is SURF-RESEARCH-BRIEFS-5.",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "chat-plan-view",
+  "area": "composer",
+  "surface": "Agent plan view (Delegate multi-step plan)",
+  "entry": "src/modules/chat/PlanView.tsx:56",
+  "states": [
+   "active(current step highlighted)",
+   "inactive/historical"
+  ],
+  "drive": "browser",
+  "notes": "Renders AgentPlanView shape from a delegate run's structured plan.",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/18-plan-compound-4omini.jsonl + replay-plan-and-error.json (agent_plan with 4 steps reaches the transport; both follow-on host actions apply with real call ids). Every plan step has args {} — cosmetic, not filed. Ollama never plans (planner providers exclude ollama, agent_runtime.py:90).",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "chat-research-activity",
+  "area": "composer",
+  "surface": "Research step-trace / activity feed",
+  "entry": "src/modules/chat/ResearchActivity.tsx:78",
+  "states": [
+   "active(streaming steps)",
+   "completed",
+   "elapsed-time formatting (formatElapsed :55)"
+  ],
+  "drive": "browser",
+  "notes": "formatElapsed is a pure fn, headless unit-testable in isolation.",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/10-multiturn-t1.jsonl, 40-stop-midstream.jsonl, ../research-briefs/11-13 (research_step engine/phase frames stream in order with begin/end markers) + 51-pure-logic-on-real-inputs.json#elapsed (formatElapsed 0/950/61000/3725000 ms)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "chat-budget-config",
+  "area": "composer",
+  "surface": "Delegate budget config (tokens/spend/wall/steps ceilings)",
+  "entry": "src/modules/chat/BudgetConfig.tsx:20",
+  "states": [
+   "populated(default ceilings)",
+   "edited"
+  ],
+  "drive": "browser",
+  "notes": "Ceilings enforced server-side by BudgetGuard (sidecar/services/budget_guard.py per CLAUDE.md) — first breach aborts run to 'error' with a resumable checkpoint (SC-008).",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/30-delegate-launch.txt, 31-delegate-lifecycle.txt: ceilings travel and the first breach aborts with a stated reason, but run A overshot its 2000-token ceiling 5x (10126 used, COD-runs-durable-delegate-3) and an all-null budget (cleared fields) is accepted and runs unbounded (COD-runs-durable-delegate-12)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "agent-mode-toggle",
+  "area": "chat-agent",
+  "surface": "Agent mode toggle (Agent vs Delegate)",
+  "entry": "src/store/agent-mode.ts; src/store/agent-autonomy.ts; types/agent-modes.ts (AGENT_MODES)",
+  "states": [
+   "agent(interactive)",
+   "delegate(durable/budget-capped)"
+  ],
+  "drive": "browser",
+  "notes": "Bound to alt+1/alt+2 (keybindings.ts:66-77). agent-mode.test.ts, agent-autonomy tested indirectly via ComposerPlusMenu.test.tsx.",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/agent mode: 10-18 (interactive SSE); delegate mode: 30-delegate-launch.txt (POST /agents/{id}/runs, detached, visible in GET /runs)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "agent-autonomy-ask-auto",
+  "area": "chat-agent",
+  "surface": "Autonomy: ASK vs AUTO",
+  "entry": "src/store/agent-autonomy.ts",
+  "states": [
+   "ask(every proposal queues for review)",
+   "auto(still gated for orders per §6.5 — 'orders always confirm regardless')"
+  ],
+  "drive": "browser",
+  "notes": "Per ComposerPlusMenu.tsx:19-20 comment: a standing mode, not a per-message control.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/15-ask-autonomy-chart.* (ask: runtime returns awaiting_user_review but the model narrates 'I've set BDL', SURF-COMPOSER-CHAT-10) + 12/16 (auto: applied, but narrated as 'pending confirmation' because Ollama acks are impossible, SURF-COMPOSER-CHAT-8)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "agent-persona-picker",
+  "area": "chat-agent",
+  "surface": "Persona / active-lens picker (Buffett / researcher / custom)",
+  "entry": "src/modules/chat/ComposerPlusMenu.tsx (persona section); src/store/active-agent.ts",
+  "states": [
+   "first-party-persona(firstParty list)",
+   "custom-persona(custom list, from Agent Builder)",
+   "display-name-always(never raw id, per comment ComposerPlusMenu.tsx:18)"
+  ],
+  "drive": "api",
+  "notes": "Roster combines first-party agents + user-authored custom agents (GET /agents, GET /agents/custom).",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/EVIDENCE.md#1 (13 agents, custom []) + 17-persona-munger.* (persona driven on the local lane: zero tool calls, claims it 'will dispatch' tools, ungrounded figures). Not filed: persona default is anthropic (no key); the local-model substitute is the degraded lane.",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "agent-command-bus",
+  "area": "chat-agent",
+  "surface": "Agent-command bus (cross-surface 'ask AI' routing)",
+  "entry": "src/store/agent-command.ts (sendToAgent); src/store/agent-dock.ts (setCollapsed)",
+  "states": [
+   "idle",
+   "query-pending(consumed by ChatSidebar)"
+  ],
+  "drive": "browser",
+  "notes": "Single funnel used by CommandPalette Ask-AI row, chat itself, and any future entry point (agent-command.test.ts, agent-dock.test.ts).",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/50-existing-unit-tests.log (existing command-bus tests pass). The bus is an in-memory store hand-off with no sidecar input; nothing new to drive with real data.",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "agent-runs-store",
+  "area": "chat-agent",
+  "surface": "Delegate run lifecycle (running/paused/error/done)",
+  "entry": "src/store/agent-runs.ts",
+  "states": [
+   "running",
+   "paused(awaiting human answer)",
+   "error(budget breach, resumable checkpoint)",
+   "done"
+  ],
+  "drive": "api",
+  "notes": "GET /runs, /runs/{id}; POST /runs/{id}/cancel,/answer,/resume (routers/runs.py). Mirrors sidecar's runs_store SQLite per CLAUDE.md. agent-runs.test.ts covers the store transitions headlessly.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/30-delegate-launch.txt, 31-delegate-lifecycle.txt (running/cancelled/error/done; 409 answer when not paused; 404 unknown cancel). paused state unreachable; resume model swap live (SURF-COMPOSER-CHAT-11)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "llm-chat-streaming",
+  "area": "chat-agent",
+  "surface": "LLM chat streaming transport",
+  "entry": "src/modules/chat/streaming.ts (streaming.test.ts)",
+  "states": [
+   "connecting",
+   "streaming-tokens",
+   "tool-call-turn",
+   "tool-result-turn",
+   "aborted",
+   "error"
+  ],
+  "drive": "api",
+  "notes": "POST /llm/chat (SSE). Backend per-adapter tool-call/tool-result turn quirks documented in CLAUDE.md (Gemini needs metadata.name on the result turn) — a good place for a targeted regression test per provider, headlessly, once a BYOK key exists for that provider.",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/10-18 agent SSE transcripts (delta/tool_use/research_step/agent_plan/done/error) replayed through streamAgentInvocation (replay-*.json, no transport errors) + 19-raw-chat-history.sse (/llm/chat with history: 'Cochin Shipyard, your favorite.') + 40-stop (aborted) + 20-err (error)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "chat-markdown-render",
+  "area": "chat-agent",
+  "surface": "Chat markdown streaming renderer",
+  "entry": "src/lib/markdown-stream.ts (markdown-stream.test.ts); src/modules/chat/chat-markdown.ts (chat-markdown.test.ts)",
+  "states": [
+   "partial-markdown(mid-stream)",
+   "complete",
+   "malformed(unterminated code fence, table, etc.)"
+  ],
+  "drive": "browser",
+  "notes": "Both are pure parsing/formatting modules — fully headless unit-test targets, high value for streaming edge cases (a code fence that never closes, a table cut mid-row).",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/51-pure-logic-on-real-inputs.json#markdown (232 real delta frames, no stuck open-fence; cut fence/table completed) — but a leaked tool call renders verbatim as prose JSON ({\"name\": \"write_note\", …}) (13-*, 14-*, 15-*; SURF-COMPOSER-CHAT-1)",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ },
+ {
+  "id": "context-provider-badge",
+  "area": "chat-agent",
+  "surface": "Context badge (what-the-agent-sees snapshot)",
+  "entry": "src/modules/chat/context-provider.ts (context-provider.test.ts); src/modules/chat/ChatSidebar.tsx:1391 (ContextBadge), :2038 (describeContext)",
+  "states": [
+   "populated(symbol/panel/viewport snapshot)"
+  ],
+  "drive": "browser",
+  "notes": "describeContext is a pure formatter — headless-testable given a fixed snapshot object.",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/10-multiturn-t1.jsonl _meta.request.context_snapshot + 11-multiturn-t2 ('it' resolved to COCHINSHIP from context+history) + conv1-t1.stdout.txt (get_terminal_state read the snapshot back correctly). describeContext itself is module-private; badge text not unit-driven.",
+  "driven_by": "agent B (claude-opus-5-5[1m]); merged over agent A's partial rows"
+ }
+]

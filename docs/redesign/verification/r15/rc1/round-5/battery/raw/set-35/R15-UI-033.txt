@@ -1,0 +1,7 @@
+=== UI-033: marketplace configure() error path, frontend-only (no sidecar API repro; setSecret rejection is a keychain-layer mock) ===
+src/store/marketplace.ts:45:      throw new Error("NewsAPI rejected this key");
+src/store/marketplace.ts:48:    if (err instanceof Error && err.message === "NewsAPI rejected this key") {
+src/store/marketplace.test.ts:141:    ).rejects.toThrow("NewsAPI rejected this key");
+src/store/marketplace.test.ts:159:    ).rejects.toThrow("NewsAPI rejected this key");
+--- catch present on setSecret call ---
+210:            await setSecret(account, value);

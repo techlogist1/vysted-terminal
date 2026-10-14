@@ -1,0 +1,10 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  25.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_942b69f3f4814398af3e09b510bea286", "name": "price_data", "input": {"timeframe": "1d", "asset_class": "equity", "range": "1d", "symbol": "AAPL"}}
+[  25.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_942b69f3f4814398af3e09b510bea286", "name": "price_data", "ok": true, "error": null}
+[  28.6s] done: {"kind": "done", "usage": {"input_tokens": 3089, "output_tokens": 12, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+AAPL's latest price is $139.98.
+
+=== ok · 28.6s · events {'heartbeat': 2, 'tool_use': 1, 'tool_result': 1, 'delta': 11, 'done': 1} · usage in=3089 out=12 · est $0.00000 · llama3.1:8b

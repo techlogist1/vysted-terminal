@@ -1,0 +1,26 @@
+HEAD 633f844071d972b337f4c3526d86555c80df0568
+78:>   — the write surface is the catalog's 19 host actions (`open_panel`/
+582:host-actions.ts` — 19 host actions total), staged through the diff/accept
+682:host-actions.ts` — 19 host actions total) are per-invocation closures that
+753:   `src/lib/host-actions.ts`) — every agent-proposed mutation over the 18
+869:  trust gate over the 19 host actions is the most trustworthy asset — preserve
+export const AUTO_APPLIED_KINDS: readonly ProposedChangeKind[] = [
+  "panel",
+  "chart",
+  "watchlist",
+] as const;
+
+export function autoApplies(kind: ProposedChangeKind): boolean {
+  return (AUTO_APPLIED_KINDS as readonly ProposedChangeKind[]).includes(kind);
+}
+    set((state) => ({ changes: [...state.changes, change] }));
+    // Autonomy: in AUTO mode an auto-applicable kind applies without a
+    // per-action confirmation (still recorded in the transcript). Any other
+    // kind stays pending, and the ledger learns it is awaiting review, not failed.
+    if (useAgentAutonomyStore.getState().autonomy === "auto") {
+      if (autoApplies(change.kind)) {
+        return { id, outcome: get().accept(id) };
+      }
+      ackHostAction(toolCallId, "staged", hostActionAckDetail(name, input));
+    }
+    return { id, outcome: Promise.resolve("staged") };

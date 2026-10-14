@@ -1,0 +1,63 @@
+{"kind": "tool_use", "tool_call_id": "call_fcc5761e18cf41beaa2ff21d52bd4003", "name": "resolve_symbol", "input": {"query": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_fcc5761e18cf41beaa2ff21d52bd4003", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_98bb193823984f1fa37f92c3c6a5ff16", "name": "sec_filings_list", "input": {"symbol": "SIFY", "form_type": "10-K", "limit": 20}}
+{"kind": "tool_result", "tool_call_id": "call_98bb193823984f1fa37f92c3c6a5ff16", "name": "sec_filings_list", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_95af50451d8d45e38a63e46d259c57f1", "name": "sec_filings_list", "input": {"symbol": "SIFY", "form_type": "8-K", "limit": 20}}
+{"kind": "tool_result", "tool_call_id": "call_95af50451d8d45e38a63e46d259c57f1", "name": "sec_filings_list", "ok": true, "error": null}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources. "}
+{"kind": "delta", "text": "This"}
+{"kind": "delta", "text": " detail"}
+{"kind": "delta", "text": " might"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " publicly"}
+{"kind": "delta", "text": " disclosed"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " SEC"}
+{"kind": "delta", "text": " documents"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": " Ltd"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources. "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources. \n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you're"}
+{"kind": "delta", "text": " looking"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " recommend"}
+{"kind": "delta", "text": " checking"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " investor"}
+{"kind": "delta", "text": " relations"}
+{"kind": "delta", "text": " section"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " website"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " reports"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " anything"}
+{"kind": "delta", "text": " else"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 9052, "output_tokens": 112, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.02161}

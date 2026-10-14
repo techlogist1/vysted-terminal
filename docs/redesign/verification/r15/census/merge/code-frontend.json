@@ -1,0 +1,912 @@
+{
+ "entries": [
+  {
+   "id": "R15-CODE-FRONTEND-001",
+   "severity": "critical",
+   "area": "code",
+   "subsystem": "workspace-layout",
+   "title": "Loading a named workspace silently rolls back portfolios, watchlist, notes, brief, settings, keybindings and the whole research-space archive to save-time, then autosaves the rollback",
+   "files": [
+    "src/lib/workspace.ts",
+    "src/app/page.tsx",
+    "src/modules/platform/WorkspaceDialog.tsx",
+    "src/lib/workspace.test.ts"
+   ],
+   "repro": "Save layout 'Swing' (week 1) -> add holdings / write notes / create research spaces (week 2) -> Load Workspace 'Swing' -> deserializeWorkspace overwrites every global store from the week-1 blob (portfolios.setAll, notes.fromBundle, researchSpaces.replaceAll, settings.setAll, keybindings.setOverrides) and the page.tsx subscriptions immediately autosave the rolled-back state over __autosave__. No undo, no warning; the dialog promised only 'panel layout and the enabled modules'.",
+   "evidence": "src/lib/workspace.ts:198-226, src/lib/workspace.ts:283-289, src/lib/workspace.ts:322-355, src/store/research-spaces.ts:124, src/app/page.tsx:108-117, src/modules/platform/WorkspaceDialog.tsx:82-84, src/modules/platform/WorkspaceDialog.tsx:228-230; portfolios/notes/research memory persist only in this blob (portfolios.ts:14, notes.ts:6, research-spaces.ts:10); refuter admitted -> critical",
+   "root_cause": "One SerializedWorkspace blob conflates per-workspace state (layout, enabledModules, drawings, researchSymbol) with global user data (portfolios, watchlist, notes, settings, keybindings, research archive); deserializeWorkspace restores both unconditionally on every loadWorkspace.",
+   "fix_shape": "Split deserializeWorkspace into applyLayoutSlice (always) and applyGlobalSlice (only on the boot restore of __autosave__); a named-workspace load applies the layout slice only. Pin with a vitest: save named -> mutate portfolios/notes -> loadWorkspace(named) -> portfolios/notes unchanged.",
+   "defect_class": "workspace-blob-scope-conflation",
+   "raw_ids": [
+    "COD-workspace-layout-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-002",
+   "severity": "high",
+   "area": "code",
+   "subsystem": "frontend-stores",
+   "title": "Switching a chat tab mid-stream drops the reply, archives a forever-pending partial and unlocks a concurrent second run; entering a research space discards the active chat tab's transcript",
+   "files": [
+    "src/store/chat-history.ts",
+    "src/store/agent-spaces.ts",
+    "src/store/research-spaces.ts",
+    "src/modules/chat/ChatSidebar.tsx"
+   ],
+   "repro": "(a) Chat tab 1: send a prompt; while it streams click '+' or another tab (ChatSidebar.tsx:1146/1167, not disabled while streaming) -> loadMessages/clear sets streamingMessageId=null, later deltas hit an id no longer in messages (no-op), switching back restores {content:'Partial ', pending:true} forever; streaming=false so the composer/queue drain starts a second run while run 1 is live. (b) Chat tab 2 has a conversation; create/load a research space -> research-spaces.switchSpace(null,next) -> restoreSpace clears the live transcript without saving it; agent-spaces still thinks tab 2 is live, so its conversation is lost and the next switch archives the research transcript under tab 2's id.",
+   "evidence": "src/store/agent-spaces.ts:43-64, src/store/research-spaces.ts:178-198, src/store/chat-history.ts:236-237, src/modules/chat/ChatSidebar.tsx:886-935, src/modules/chat/ChatSidebar.tsx:1105-1111, src/modules/chat/ChatSidebar.tsx:1146; proof docs/redesign/verification/r15/census/code/evidence/frontend-stores-proof.test.ts.txt P2, docs/redesign/verification/r15/census/code/evidence/frontend-stores-proof-output.txt; refuter admitted -> high",
+   "root_cause": "The live transcript is a shared mutable buffer overwritten by two independent 'space' stores through chat-history's public loadMessages/clear, which unconditionally nulls streamingMessageId; no store knows a stream is in flight.",
+   "fix_shape": "Make chat-history the single thread owner (threads keyed by threadId + activeThreadId), address streaming writes by (threadId, messageId), and make agent tabs and research spaces naming/persistence policies over it. Interim: disable the space strip and research-space switches while streamingMessageId !== null (or abort first). Pin with a store test: switch tab mid-stream -> deltas land in the original thread, no second run starts.",
+   "defect_class": "transcript-ownership-split",
+   "raw_ids": [
+    "COD-frontend-stores-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-003",
+   "severity": "high",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "write_note treats an omitted mode as REPLACE while the catalog tells the model the default is append, so a mode-less agent note write wipes the user's existing note",
+   "files": [
+    "src/lib/host-actions.ts",
+    "src/lib/host-actions.test.ts"
+   ],
+   "repro": "Notes: NVDA='my long thesis'. Agent calls write_note {scope:'NVDA', text:'new line'} (no mode, per the schema default) -> NVDA note becomes 'new line', label 'Wrote the NVDA note'. Under AUTO it lands with no review (proof P2, P8: {\"INFY\":\"x\"} after a two-page note).",
+   "evidence": "sidecar/services/agent_tools/catalog.py:1388 (default 'append'), src/lib/host-actions.ts:805, src/lib/host-actions.ts:1183-1185 (str(input,'mode') === 'append'), src/store/proposed-changes.ts:118-120; sidecar passes args raw with no schema-default fill (agent_runtime.py:1190-1219); proof docs/redesign/verification/r15/census/code/evidence/host-actions-proposed-changes-proof.test.ts.txt P2/P8; refuter admitted -> high",
+   "root_cause": "Argument default re-encoded by hand in host-actions with the opposite polarity to the catalog; a JSON-schema default is advisory and models omit defaulted args, so the destructive branch is the one taken.",
+   "fix_shape": "Treat anything but an explicit 'replace' as append in both describe and apply (one shared helper), derived from the catalog default. Pin with a vitest feeding write_note without mode and asserting the prior note text survives.",
+   "defect_class": "catalog-arg-semantics-drift",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-004",
+   "severity": "high",
+   "area": "code",
+   "subsystem": "workspace-layout",
+   "title": "Research spaces can never be saved or loaded: the sidecar rejects every 'Research: TICKER' name with HTTP 400, after the cockpit has already been cleared and re-tiled",
+   "files": [
+    "sidecar/services/workspace_store.py",
+    "sidecar/routers/workspace.py",
+    "src/lib/workspace.ts",
+    "sidecar/tests/test_workspace.py",
+    "src/lib/workspace.test.ts"
+   ],
+   "repro": "curl -X POST http://127.0.0.1:52152/workspace -H 'Content-Type: application/json' -d '{\"name\":\"Research: NVDA\",\"workspace\":{}}' -> 400 'Invalid workspace name ... use letters, digits, spaces, hyphens, or underscores.' Same for GET/DELETE and for 'Research: RELIANCE.NS', 'Research: M&M', 'My Layout (2)', any Hindi name. In-app: New Research Space -> cockpit cleared and re-tiled -> 'Could not save workspace \"Research: NVDA\" (HTTP 400).'",
+   "evidence": "sidecar/services/workspace_store.py:31 (_SAFE_NAME ^[A-Za-z0-9 _-]+$), src/lib/workspace.ts:560-565 (RESEARCH_SPACE_PREFIX 'Research: '), src/lib/workspace.ts:627-637 (mutates before save, no rollback), src/lib/workspace.ts:408-410 (detail discarded); masked by src/lib/workspace.test.ts:392 (fetch mocked ok) and sidecar/tests/test_workspace.py; reproduced live on :52152; refuter admitted -> high",
+   "root_cause": "The name rule lives only in Python and the name generator only in TS; each side's tests mock the other, so the colon the generator always emits was never tested against the real router.",
+   "fix_shape": "Define the error out of existence: the sidecar maps any name to a safe filename (percent-encode + unquote on list) instead of rejecting; createResearchSpace saves before mutating the cockpit (or rolls back); surface the sidecar detail. Pin with a router contract test posting researchSpaceName('M&M') and 'Research: RELIANCE.NS'.",
+   "defect_class": "sidecar-frontend-contract-drift",
+   "raw_ids": [
+    "COD-workspace-layout-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-005",
+   "severity": "high",
+   "area": "code",
+   "subsystem": "workspace-layout",
+   "title": "Chart drawings, keybinding overrides and research-space memory are serialized into the workspace blob but nothing triggers an autosave when they change, so they are lost on relaunch",
+   "files": [
+    "src/lib/workspace.ts",
+    "src/app/page.tsx",
+    "src/store/chart-drawings.ts",
+    "src/store/keybindings.ts",
+    "src/store/research-spaces.ts",
+    "src/store/settings.ts",
+    "src/store/search-settings.ts",
+    "src/store/brief.ts",
+    "src/components/SettingsPanel.tsx"
+   ],
+   "repro": "Draw a trendline (ChartPanel addDrawing) or remap a shortcut (SettingsPanel setBinding) -> quit without moving a panel or touching a subscribed store -> relaunch: gone. grep -rln autosaveLayout src => only page.tsx, PanelHost, brief.ts, settings.ts, search-settings.ts, SettingsPanel, OnboardingFlow; nothing in chart-drawings.ts / keybindings.ts / research-spaces.ts / ChartPanel.tsx.",
+   "evidence": "src/lib/workspace.ts:202,217,225 (fields serialized), src/store/chart-drawings.ts, src/store/keybindings.ts, src/store/research-spaces.ts (no trigger), src/modules/chart/ChartPanel.tsx:671,697,1076; three trigger conventions: src/app/page.tsx:108-181, src/store/settings.ts:112-113 / search-settings.ts:348 / brief.ts:103, src/components/SettingsPanel.tsx:493,627; refuter admitted -> high",
+   "root_cause": "Adding a persisted field needs four edits in three files (interface, buildWorkspacePayload, deserializeWorkspace, a trigger) and only the first three are single-sourced; triggers follow three different conventions, so some fields fire twice and three never.",
+   "fix_shape": "One PERSISTED_SLICES table in workspace.ts ({key, read, restore, subscribe}) iterated by buildWorkspacePayload, deserializeWorkspace and a single trigger-wiring loop; delete page.tsx:108-181 and the per-store persist helpers. Pin with a test that every SerializedWorkspace key has a registered slice and that mutating each slice schedules autosaveLayout.",
+   "defect_class": "persisted-slice-registry",
+   "raw_ids": [
+    "COD-workspace-layout-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-006",
+   "severity": "high",
+   "area": "code",
+   "subsystem": "frontend-stores",
+   "title": "The node editor's 'Show a native desktop notification' node never notifies while reporting notified:true: the workflow store's SSE consumer that feeds the notification bridge has no caller",
+   "files": [
+    "src/modules/node-editor/NodeEditorPanel.tsx",
+    "src/store/workflow.ts",
+    "src/lib/desktop-notification.ts",
+    "sidecar/services/workflow_nodes/builtin.py"
+   ],
+   "repro": "Node editor: build data.fetch_quote -> action.notify_desktop, click Run -> NodeEditorPanel.tsx:386 POSTs /workflow/run and parses SSE into local state only; nothing calls useWorkflowStore.appendEvent, so pendingNotifications stays empty and useDesktopNotificationBridge (mounted page.tsx:43) never fires, while the node output row shows notified:true.",
+   "evidence": "src/store/workflow.ts:17-23, src/store/workflow.ts:203-220, src/store/workflow.ts:240-310, src/modules/node-editor/NodeEditorPanel.tsx:386-431, src/lib/desktop-notification.ts:92-110, src/app/page.tsx:43, sidecar/services/workflow_nodes/builtin.py:325-344; refuter admitted -> high (only desktop-alert path in the product)",
+   "root_cause": "Two SSE parsers for one wire: the panel's private parser runs, the store's parser (the only feeder of the notification queue) is dead; the sidecar node only logs and returns notified:true.",
+   "fix_shape": "Drive NodeEditorPanel from useWorkflowStore.runWorkflow + selectRunLog and delete the private parser (minimum: call appendEvent(event) in the panel's loop); add a terminal run-error on stream failure and an AbortController. Pin with a test: a run-event stream containing a notify intent reaches pendingNotifications.",
+   "defect_class": "duplicate-sse-consumer",
+   "raw_ids": [
+    "COD-frontend-stores-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-007",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "Accepting a staged portfolio add/update re-resolves its target against whichever portfolio is active at accept time, so it can mutate a lot in a different portfolio than the one the diff showed",
+   "files": [
+    "src/lib/host-actions.ts",
+    "src/store/proposed-changes.ts",
+    "types/proposed-change.ts"
+   ],
+   "repro": "Two portfolios A (TCS x10, id h-a) and B (TCS x99, id h-b), active=A, autonomy ASK. Agent emits portfolio_update_position {position_id:'h-a', symbol:'TCS', ...} -> diff describes A's lot. User switches the active portfolio to B (PortfolioPanel.tsx:560), clicks Accept -> B's TCS lot is changed (id-miss falls back to first same-symbol holding), A untouched. portfolio_add_position likewise lands in the accept-time portfolio. Proof P5: [[\"A\",[\"h-a:10\"]],[\"B\",[]]].",
+   "evidence": "src/lib/host-actions.ts:532-536, src/lib/host-actions.ts:545-560, src/lib/host-actions.ts:1352-1389, src/store/proposed-changes.ts:95-111; proof docs/redesign/verification/r15/census/code/evidence/host-actions-proposed-changes-proof.test.ts.txt P5; refuter admitted_with_correction -> medium (delete needs a symbol the schema does not declare; update/add are the realistic paths)",
+   "root_cause": "The proposal stores only raw {name,input}; describe resolves the target at enqueue, apply resolves it again at accept via activePortfolio() + resolveHolding() with a symbol fallback.",
+   "fix_shape": "Resolve once at enqueue into a bound {portfolioId, holdingId} on the ProposedChange; apply against exactly that pair and fail honestly if it no longer exists. Pin with the P5 scenario as a vitest.",
+   "defect_class": "proposal-target-not-bound",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-008",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "AUTO autonomy auto-applies data writes and settings (note overwrites, portfolio deletes, set_region) while the UI hint and store docs tell the user only 'UI changes apply instantly'",
+   "files": [
+    "src/store/proposed-changes.ts",
+    "src/store/agent-autonomy.ts",
+    "src/modules/chat/ComposerPlusMenu.tsx",
+    "types/proposed-change.ts"
+   ],
+   "repro": "Autonomy=AUTO (hint 'UI changes apply instantly; orders always confirm', ComposerPlusMenu.tsx:185). Agent emits write_note replace / portfolio_delete_position / set_region -> each applies immediately with no review (proof P8). The predicate is kind !== 'order', which becomes 'auto-apply everything' once the order kind is deleted with trading.",
+   "evidence": "src/store/proposed-changes.ts:113-120, src/store/agent-autonomy.ts:7-17, src/modules/chat/ComposerPlusMenu.tsx:185, types/proposed-change.ts:16-21, sidecar/services/agent_tools/catalog.py:1303-1307; refuter admitted_with_correction -> medium (data-write auto-apply is a documented R10 decision; the defect is the copy the user reads and the blacklist predicate)",
+   "root_cause": "Policy written as a blacklist of the one kind being removed, while three doc/UI sites describe a whitelist of panel/chart/watchlist kinds.",
+   "fix_shape": "Own the auto-apply set in one explicit function (autoApplicable(kind) in types/proposed-change.ts) that keeps the R10 policy but is a whitelist, and render the ComposerPlusMenu hint from it so the copy states exactly which kinds apply without review. Changing the R10 policy itself (staging data writes under AUTO) is an operator call. Pin with a test enumerating kinds against the hint text.",
+   "defect_class": "autonomy-policy-copy-drift",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-009",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "Agent save_screen ignores the agent's criteria and saves whatever filters are on screen under the agent's name, silently replacing a same-name screen, and reports success",
+   "files": [
+    "src/lib/host-actions.ts",
+    "src/store/screener.ts",
+    "src/lib/host-actions.test.ts"
+   ],
+   "repro": "Screener at defaults (pe<20, mcap>1e11, sector=Technology). Agent: save_screen {name:'IT value', criteria:[pe_ratio lt 15]} -> saved 'IT value' holds pe<20 + mcap + sector, not pe<15; label 'Saved the screen as \"IT value\"'; diff promised '(1 criterion)' and '+\"IT value\"' even when replacing (proof P3).",
+   "evidence": "src/lib/host-actions.ts:1212-1235, src/store/screener.ts:218, src/store/screener.ts:612-627, src/lib/host-actions.test.ts:1079-1093; proof docs/redesign/verification/r15/census/code/evidence/host-actions-proposed-changes-proof.test.ts.txt P3; refuter admitted_with_correction -> medium",
+   "root_cause": "A duck-typed cast (as unknown as {saveScreen?(name, payload)}) hid that the real saveScreen(name) snapshots the current draft; the unit test mocks saveScreen and asserts the cast.",
+   "fix_shape": "Delete the cast, give saveScreen an explicit recipe parameter (or applyFilters(recipe) then saveScreen(name)), say 'replaced' in the diff when the name exists; replace the mock test with one against the real store.",
+   "defect_class": "cast-hides-store-api-mismatch",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-010",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "write_screener_filters with run:true never runs the screen but narrates 'running'",
+   "files": [
+    "src/lib/host-actions.ts",
+    "src/store/screener.ts",
+    "src/lib/host-actions.test.ts"
+   ],
+   "repro": "applyHostAction('write_screener_filters', {criteria:[roe gt 0.18], run:true}) -> label 'Wrote 1 screener criterion — running'; runScreener call count 0 (proof P4); the diff promises 'runs on apply' and the catalog tells the model run:true runs the screen.",
+   "evidence": "src/lib/host-actions.ts:1140-1174, src/lib/host-actions.ts:752-759, src/store/screener.ts:200-210, src/store/screener.ts:302, sidecar/services/agent_tools/catalog.py:1279-1285, src/lib/host-actions.test.ts:1107-1124; proof docs/redesign/verification/r15/census/code/evidence/host-actions-proposed-changes-proof.test.ts.txt P4; refuter admitted -> medium",
+   "root_cause": "applyFilters destructures without run and documents that the host-action caller must chain runScreener(); host-actions forwards run through a cast and never chains; the test mocks applyFilters.",
+   "fix_shape": "In apply: if input.run === true, call screener.runScreener() after applyFilters (or make applyFilters own run); drop the cast; test against the real store asserting runScreener fires.",
+   "defect_class": "cast-hides-store-api-mismatch",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-011",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "The reviewed diff promises something other than what apply does: describeHostAction and applyHostAction parse every action's input independently",
+   "files": [
+    "src/lib/host-actions.ts",
+    "src/lib/host-actions.test.ts"
+   ],
+   "repro": "(a) portfolio_update_position {position_id:'h-a', cost_basis:3100} on a x10 lot -> diff 'TCS: x0 @ Rs3,100', apply 'Updated TCS: x10 @ Rs3,100' (proof P6). (b) close_panel {panel:'screener'} with the screener open -> diff 'Screener panel: not open' while apply resolves the alias and closes it (P7b). (c) open_panel diff always says 'not open'. (d) set_region diff echoes an invalid value. Unknown names default to kind 'panel'.",
+   "evidence": "src/lib/host-actions.ts:577-867, src/lib/host-actions.ts:880-1248, src/lib/host-actions.ts:776-789 vs 1262-1273, src/lib/host-actions.ts:615-624 vs 950-960, src/lib/host-actions.ts:603-614, src/lib/host-actions.ts:855-864; proof docs/redesign/verification/r15/census/code/evidence/host-actions-proposed-changes-proof.test.ts.txt P6/P7b; refuter admitted -> medium",
+   "root_cause": "Two independent switches with different helpers (num() -> 0 vs positionBody fallback; raw getPanel vs resolvePanelToken); the 'diff must promise exactly what apply does' invariant is held by discipline only.",
+   "fix_shape": "One per-action record {parse(input) -> Intent, describe(Intent), apply(Intent)} keyed by name so both sides read one parsed Intent (also binds targets, see proposal-target-not-bound). Pin with a table test asserting describe(label) and apply(label) agree for every HOST_ACTION_NAMES entry.",
+   "defect_class": "describe-apply-divergence",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-012",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "Every agent portfolio write syncs to a write-only sidecar /portfolio/positions ledger: nothing reads it, PUT/DELETE never address a row (405 swallowed), and the awaited fetch has no timeout inside the accept path",
+   "files": [
+    "src/lib/host-actions.ts",
+    "sidecar/routers/portfolio.py",
+    "src/store/portfolios.ts"
+   ],
+   "repro": "portfolio_delete_position {position_id:'h-a'} -> sidecarPositionId('h-a') undefined (frontend ids are 'h-<uuid>') -> DELETE .../portfolio/positions with no id -> 405, swallowed (proof P5 fetch log). POSTs accumulate forever; nothing reads GET /portfolio/positions; a hung sidecar blocks accept with the change stuck 'accepted'; purchased_at is persisted only into this unread ledger.",
+   "evidence": "src/lib/host-actions.ts:1270-1317, src/lib/host-actions.ts:1337, src/lib/host-actions.ts:1361, src/lib/host-actions.ts:1381, sidecar/routers/portfolio.py:21-47, sidecar/services/agent_runtime.py:1154, src/store/portfolios.ts:53-57; refuter admitted -> medium",
+   "root_cause": "A second id space and store (sidecar ledger) added alongside the frontend portfolio store with no reader; the comment at host-actions.ts:1276-1280 concedes no surface reads it.",
+   "fix_shape": "Delete syncPositionToSidecar + sidecarPositionId + the PUT/DELETE router pair (or make the sidecar the single store and have the frontend read it, not both); if purchase date matters, add it to Holding. Pin with a test that accept does no network call for portfolio writes.",
+   "defect_class": "dead-write-only-path",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-013",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "safety-audit",
+   "title": "Kill switch and append-only audit log gate only broker adapters: the surviving agent data-write gate (portfolio, notes, screens, layouts, region) has no stop button and no durable record of what the agent changed",
+   "files": [
+    "sidecar/services/kill_switch.py",
+    "sidecar/models/audit_log.py",
+    "sidecar/services/broker_base.py",
+    "types/safety.ts",
+    "src/store/proposed-changes.ts",
+    "src/lib/host-actions.ts"
+   ],
+   "repro": "design: fire the kill switch (POST /safety/kill-switch) while an AUTO agent run writes notes/portfolio -> nothing in agent runtime or proposed-changes consults it; afterwards GET /safety/audit-log has no row for any agent data write (only the in-memory 10-minute action_ledger saw them).",
+   "evidence": "sidecar/services/kill_switch.py:63-77, sidecar/services/broker_base.py:103,142,158,190,251,345, types/safety.ts:41-54, types/safety.ts:81-93, sidecar/services/action_ledger.py:1-25, src/store/proposed-changes.ts:95-121, src/modules/safety/index.ts:10-12; refuter admitted -> medium",
+   "root_cause": "Both mechanisms were built for order placement only (KillSwitchBus subscribers are BrokerAdapters; every audit_log.append is in broker_base.py, table audit_orders); with trading removed they gate nothing.",
+   "fix_shape": "Operator decides (§6.5): either retarget the append-only log to host-action outcomes (the ack path host-actions.ts:1452-1486 already has {tool_call_id, action, status}) and let the kill switch flip autonomy to ASK + cancel in-flight runs, or delete both with trading and accept the gap explicitly in SAFETY_ARCHITECTURE.md.",
+   "defect_class": "safety-scope-orders-only",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-10"
+   ],
+   "tier4": true,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-014",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "Host-action argument semantics diverge from the catalog the model is shown: write_note scope 'global' writes a phantom GLOBAL ticker note, save_layout without a name forks a layout called 'Agent layout'",
+   "files": [
+    "src/lib/host-actions.ts",
+    "src/lib/host-actions.test.ts",
+    "sidecar/services/agent_tools/catalog.py"
+   ],
+   "repro": "write_note {scope:'global', text:'hello'} -> notes.bySymbol = {GLOBAL:'hello'}, General untouched (proof P1). save_layout {} -> saveWorkspace('Agent layout') creating/overwriting a layout literally named 'Agent layout', though the catalog says 'Omit name to update the active saved layout'.",
+   "evidence": "sidecar/services/agent_tools/catalog.py:1377, sidecar/services/agent_tools/catalog.py:1385, sidecar/services/agent_tools/catalog.py:1408, src/lib/host-actions.ts:563-566, src/lib/host-actions.ts:829, src/lib/host-actions.ts:1391, src/lib/host-actions.test.ts:1045; proof docs/redesign/verification/r15/census/code/evidence/host-actions-proposed-changes-proof.test.ts.txt P1; refuter admitted -> medium",
+   "root_cause": "Argument semantics (bucket names, defaults) re-encoded by hand in host-actions with no parity test against the catalog; tests use 'general', a word the model is never told.",
+   "fix_shape": "Accept 'global'/'general'/'' as the General bucket; save_layout defaults to the active workspace name. Pin with a vitest that feeds every catalog-documented example arg through describe + apply.",
+   "defect_class": "catalog-arg-semantics-drift",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-015",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "frontend-panels-agent-shell",
+   "title": "The agent is told the wrong focused symbol: focus source ids and panel-context bus keys never match, and the focused symbol is derived three different ways (badge, chips, terminal snapshot)",
+   "files": [
+    "src/modules/chat/context-provider.ts",
+    "src/modules/chat/ChatSidebar.tsx",
+    "src/modules/chat/SuggestionChips.tsx",
+    "src/components/PanelHost.tsx"
+   ],
+   "repro": "Open Equity Overview for INFY while the chart shows SPY, focus the Equity Overview -> PanelHost sets focusedSource 'equity-overview' but the panel publishes under bus key 'equity' (chart under 'chart-chart'), so the badge reads 'Context: equity-overview' with no ticker, symbol chips never render, and captureTerminalState reports focusedSymbol SPY (charts[0]) to the agent.",
+   "evidence": "src/modules/chat/ChatSidebar.tsx:2052-2062, src/modules/chat/SuggestionChips.tsx:45-67, src/modules/chat/context-provider.ts:275-278; refuter admitted_with_correction -> medium (corrected repro: bus-key vs dockview-id mismatch)",
+   "root_cause": "Three copies of 'focused symbol' logic coupled only by a comment, with divergent casing and sources, plus two id conventions (dockview panel id vs panel-context publish key) for the same panel.",
+   "fix_shape": "One exported focusedSymbolFromBus(bus, focusedSource) in context-provider.ts consumed by all three, and a single key convention (publish under the dockview panel id). Pin with a test: focus equity-overview publishing {ticker:'INFY'} -> badge, chips and snapshot all report INFY.",
+   "defect_class": "context-bus-key-drift",
+   "raw_ids": [
+    "COD-frontend-panels-agent-shell-14"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-016",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "frontend-stores",
+   "title": "Settings advertises 11 remappable shortcuts but only agent.toggle honours a remap; six shown defaults (mod+s, mod+o, mod+, and mod+1..4) do nothing at all",
+   "files": [
+    "src/store/keybindings.ts",
+    "src/components/AgentDock.tsx",
+    "src/components/CommandPalette.tsx",
+    "src/modules/chat/ChatSidebar.tsx",
+    "src/components/SettingsPanel.tsx"
+   ],
+   "repro": "Settings -> Keybindings ('Remap any shortcut'): remap 'Accept all proposed changes' to mod+shift+a -> Cmd+Enter still accepts (hard-coded ChatSidebar.tsx:554-561), Cmd+Shift+A does nothing. Press Cmd+S / Cmd+O / Cmd+, / Cmd+1 -> nothing happens (no keydown handler anywhere; Tauri menu is Menu::default). matchesEvent ignores an unrequested Shift, so mod+b also fires on Cmd+Shift+B.",
+   "evidence": "src/store/keybindings.ts:58-157, src/store/keybindings.ts:100-107, src/store/keybindings.ts:389-395, src/components/AgentDock.tsx:70-71, src/components/CommandPalette.tsx:72-80, src/modules/chat/ChatSidebar.tsx:538-565, src/components/SettingsPanel.tsx:1365-1415; refuter admitted -> medium",
+   "root_cause": "The store is a lookup table; dispatch lives in each owning component, which re-decides whether to honour remaps (one does). A preference nothing reads violates the R9 settings-truth rule (settings.ts:10-15).",
+   "fix_shape": "Give the store registerAction(id, handler) and one global keydown listener (bindingFor + matchesEvent with exact modifier match); migrate the four hard-coded handlers; delete defaults with no registered action. Pin with a test that every DEFAULT_KEYBINDINGS id has a registered action and a remap changes the firing key.",
+   "defect_class": "setting-without-reader",
+   "raw_ids": [
+    "COD-frontend-stores-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-017",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "frontend-stores",
+   "title": "A slower stale response overwrites the newer one: the SEC panel reverts to the previous symbol and earnings shows a 7-day window under a 30-day picker",
+   "files": [
+    "src/store/sec.ts",
+    "src/store/earnings.ts",
+    "src/modules/sec/SecFilingsPanel.tsx",
+    "src/modules/earnings/EarningsCalendarPanel.tsx"
+   ],
+   "repro": "SEC: default AAPL load in flight (cold sidecar / slow EDGAR); submit MSFT -> MSFT resolves, then AAPL resolves -> set({activeIdentifier:'AAPL', filingsStatus:'ready'}) and the panel reverts to AAPL while the input shows MSFT (proof P1); a late AAPL error overwrites MSFT's ready state. Earnings: default 7-day load in flight, apply 30 days -> 30-day payload lands, then the 7-day payload replaces upcoming.",
+   "evidence": "src/store/sec.ts:78-79, src/store/sec.ts:147-175, src/modules/sec/SecFilingsPanel.tsx:55-93, src/store/earnings.ts:81-98, src/modules/earnings/EarningsCalendarPanel.tsx:109-118, src/modules/earnings/EarningsCalendarPanel.tsx:152; proof docs/redesign/verification/r15/census/code/evidence/frontend-stores-proof.test.ts.txt P1, docs/redesign/verification/r15/census/code/evidence/frontend-stores-proof-output.txt; refuter admitted -> medium",
+   "root_cause": "No async slice carries a request generation or AbortController; loadFilings writes activeIdentifier from the response; status/error are single scalars across keys.",
+   "fix_shape": "Per-slice generation counter (or AbortController) checked before commit, shared as one small helper for sec/earnings/analyst-ratings/quant/macro; stop loadFilings writing activeIdentifier; key status/error by cache key. Pin with the P1 race as a vitest.",
+   "defect_class": "fetch-no-request-generation",
+   "raw_ids": [
+    "COD-frontend-stores-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-018",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "workspace-layout",
+   "title": "Screener saved screens are session-only: they never ride the workspace blob, although the store documents deserializeWorkspace wiring",
+   "files": [
+    "src/lib/workspace.ts",
+    "src/store/screener.ts"
+   ],
+   "repro": "Screener -> save a screen -> relaunch -> Saved screens list is empty. grep 'setSavedScreens|savedScreens' src (non-test) => only src/store/screener.ts and the read in ScreenerPanel.tsx:93,323-326; SerializedWorkspace has no savedScreens field; the sidecar does not persist screens either.",
+   "evidence": "src/store/screener.ts:68, src/store/screener.ts:224-225, src/store/screener.ts:637, src/lib/workspace.ts:45-155, src/lib/workspace.ts:198-226, src/lib/workspace.ts:245-371; refuter admitted -> medium",
+   "root_cause": "A comment asserts wiring that does not exist; no structure forces a persisted store slice to be registered with the blob.",
+   "fix_shape": "Add savedScreens as a slice in the PERSISTED_SLICES registry (see persisted-slice-registry), with restore + autosave trigger. Pin with a round-trip test: save screen -> serialize -> fresh store -> deserialize -> screen present.",
+   "defect_class": "persisted-slice-registry",
+   "raw_ids": [
+    "COD-workspace-layout-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-019",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "workspace-layout",
+   "title": "Autosave failure is invisible end-to-end: non-2xx ignored, exceptions swallowed without a log, OSError unmapped in the router, no fetch timeout",
+   "files": [
+    "src/lib/workspace.ts",
+    "sidecar/routers/workspace.py",
+    "src/store/workspace.ts"
+   ],
+   "repro": "design: make the workspaces dir read-only / disk full -> save_workspace raises OSError -> bare 500 without CORS headers -> autosaveLayout never inspects the response and its catch {} logs nothing, so every autosave of the session fails silently and the user discovers it at next launch.",
+   "evidence": "src/lib/workspace.ts:546-555, src/lib/workspace.ts:382,403,422,500,548,647 (six raw fetches, no AbortSignal), sidecar/routers/workspace.py:36-39, sidecar/routers/workspace.py:53-60, src/lib/sidecar-client.ts:197-205; refuter admitted -> medium",
+   "root_cause": "Best-effort masking applied to persistent failures; workspace.ts bypasses sidecar-client's detail extraction and the router maps only WorkspaceNameError.",
+   "fix_shape": "Check response.ok, console.warn, set lastAutosaveError on the workspace store after N consecutive failures and show a 'not saving' badge in the shell; map OSError to a detailed 5xx in the router. Pin with a vitest: fetch returns 500 three times -> lastAutosaveError set.",
+   "defect_class": "silent-persistence-failure",
+   "raw_ids": [
+    "COD-workspace-layout-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-020",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "frontend-panels-agent-shell",
+   "title": "The Agent Builder test asserts the UI against the very constants it renders from, so it can never catch drift from the sidecar tool catalog or provider registry",
+   "files": [
+    "src/modules/agent-builder/agent-builder.test.tsx",
+    "src/modules/agent-builder/form.tsx"
+   ],
+   "repro": "design: agent-builder.test.tsx:137 loops KNOWN_TOOL_IDS asserting a button per id and :143 asserts provider options toEqual([...KNOWN_PROVIDER_IDS]); both are the hardcoded arrays in form.tsx, so deleting 30 ids from form.tsx or adding a provider to the sidecar leaves the suite green.",
+   "evidence": "src/modules/agent-builder/agent-builder.test.tsx:133-144, src/modules/agent-builder/form.tsx:21-54; refuter admitted -> medium",
+   "root_cause": "Tautological assertion (UI rendered from X equals X); no contract test against the sidecar's agent_selectable_tool_ids()/provider ids.",
+   "fix_shape": "Assert against a checked-in fixture generated from the sidecar catalog (regenerated by a script and diffed in CI) or fetch it in a contract test; better, render the builder from GET catalog data instead of a frontend constant.",
+   "defect_class": "tautological-test",
+   "raw_ids": [
+    "COD-frontend-panels-agent-shell-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-021",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "frontend-panels-agent-shell",
+   "title": "The chat context badge's visibility is gated on string equality with the user-facing sentence 'Context: none' minted 850 lines away",
+   "files": [
+    "src/modules/chat/ChatSidebar.tsx"
+   ],
+   "repro": "design: ChatSidebar.tsx:1191 renders the badge only when contextBadge !== 'Context: none', the literal returned by describeContext at :2045. Editing either string silently shows a dead standing row on every boot or hides the badge entirely; no test fails.",
+   "evidence": "src/modules/chat/ChatSidebar.tsx:1189-1191, src/modules/chat/ChatSidebar.tsx:2037-2064; refuter admitted_with_correction -> low (latent)",
+   "root_cause": "A render decision is encoded in prose and re-derived by string comparison.",
+   "fix_shape": "describeContext returns {kind:'none'} | {kind:'panels', text}; branch on kind. Fold into the focusedSymbolFromBus refactor.",
+   "defect_class": "render-decision-in-prose",
+   "raw_ids": [
+    "COD-frontend-panels-agent-shell-13"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-022",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "frontend-panels-agent-shell",
+   "title": "The command palette's agent row re-parses the 'agent:' id prefix instead of reading the agentSummary it already holds",
+   "files": [
+    "src/components/CommandPalette.tsx"
+   ],
+   "repro": "design: CommandPalette.tsx:184 setActiveAgent(item.id.replace(/^agent:/, '')) while the item carries agentSummary.id; a corpus id scheme change makes the strip a no-op and activates a nonexistent agent silently.",
+   "evidence": "src/components/CommandPalette.tsx:175-207, src/store/command-palette.ts:219-227, src/modules/chat/ChatSidebar.tsx:496-505; refuter admitted -> low (latent)",
+   "root_cause": "Id encoding chosen in the store is decoded by string surgery in a component.",
+   "fix_shape": "setActiveAgent(item.agentSummary.id).",
+   "defect_class": "id-encoding-leak",
+   "raw_ids": [
+    "COD-frontend-panels-agent-shell-15"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-023",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Every mouse move and pan re-renders the whole ChartPanel because it selects the sync bus's crosshair/visibleRange objects as React state and broadcasts on every move with no peer chart",
+   "files": [
+    "src/modules/chart/ChartPanel.tsx",
+    "src/store/chart-sync.ts"
+   ],
+   "repro": "Move the mouse across the chart -> onCrosshair -> setCrosshair creates a new object per event -> ChartPanel's own useChartSyncBus(s => s.crosshair) changes identity -> full re-render at pointer rate, although syncSubscriptions.crosshair is false and the chart is a singleton. Same for visible-range while panning.",
+   "evidence": "src/modules/chart/ChartPanel.tsx:321-325, src/modules/chart/ChartPanel.tsx:846-872, src/store/chart-sync.ts:73-80, src/modules/chart/index.ts:30; refuter admitted_with_correction -> low (wasted re-render, no measured jank)",
+   "root_cause": "Broadcast payloads are selected as React state instead of read in a store subscription callback; the bus has no second consumer.",
+   "fix_shape": "Move the subscriber effects to useChartSyncBus.subscribe (no re-render) or delete the dead sync bus; pin with a render-count test on crosshair move.",
+   "defect_class": "state-selected-as-react-state",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-12"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-024",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Dead modules claim features that do not exist: indicator-presets.ts and fuzzy.ts have tests but no consumers, and the per-note .md mirror is write-only with an unused exportNoteMd",
+   "files": [
+    "src/lib/indicator-presets.ts",
+    "src/lib/fuzzy.ts",
+    "src/modules/notes/notes-persistence.ts",
+    "src/modules/chart/ChartPanel.tsx"
+   ],
+   "repro": "grep 'indicator-presets|presetFor' src -> only its own test (header says the chart seeds from it; ChartPanel starts with an empty Set at :262). grep 'fuzzyRank|fuzzyScore' -> only fuzzy.ts/test (palette uses cmdk ranking). exportNoteMd has no caller; nothing reads the .md files persistNoteMd writes, and agent write_note never updates them.",
+   "evidence": "src/lib/indicator-presets.ts:1-89, src/lib/fuzzy.ts:1-24, src/modules/notes/notes-persistence.ts:55-98, src/modules/chart/ChartPanel.tsx:262, src/components/CommandPalette.tsx:30; refuter admitted -> low",
+   "root_cause": "Code and tests kept after the consuming feature was cut or never wired; comments still describe the behaviour.",
+   "fix_shape": "Wire presetFor into first chart load per asset class or delete it; delete fuzzy.ts and exportNoteMd; read the .md mirror on restore or stop writing it.",
+   "defect_class": "dead-code-claims-feature",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-14"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-025",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "Panel minimum sizes are enforced only on boot restore: loading a named layout keeps sub-minimum panels, and PANEL_MIN_SIZE has dead keys and misses brief-panel/notes-panel",
+   "files": [
+    "src/components/PanelHost.tsx",
+    "src/lib/workspace.ts",
+    "src/lib/layout-templates.ts"
+   ],
+   "repro": "Load (from Settings or the Load dialog) a legacy named layout captured with a squeezed panel -> loadWorkspace -> deserializeWorkspace -> api.fromJSON restores the sub-minimum size; enforceConstraintsAfterRestore runs only in PanelHost's boot finally. PANEL_MIN_SIZE keys 'chat-sidebar' (no longer registered) and 'broker-order-entry' (trading), while brief-panel and notes-panel fall to the 300x180 default.",
+   "evidence": "src/components/PanelHost.tsx:25-71, src/components/PanelHost.tsx:92-109, src/components/PanelHost.tsx:166-186, src/lib/workspace.ts:265,432, src/lib/layout-templates.ts:363-365,479-480,723, src/modules/chat/index.ts:11; refuter admitted_with_correction -> low (needs a legacy/sub-minimum blob)",
+   "root_cause": "Min-size policy is a private const in a React component, tied to 'boot' rather than to 'fromJSON'; layout-templates re-derives the numbers as magic widths.",
+   "fix_shape": "Move PANEL_MIN_SIZE + helpers to src/lib/panel-sizing.ts, call the grow sweep from deserializeWorkspace, compute template fit widths from the table, add a parity test (every key is a registered component).",
+   "defect_class": "panel-id-table-drift",
+   "raw_ids": [
+    "COD-frontend-panels-shell-chrome-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-026",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "frontend-stores",
+   "title": "drainNotifications() clears every pending intent including ones appended while the bridge awaited a send, so a second notification arriving mid-flush is dropped",
+   "files": [
+    "src/store/workflow.ts",
+    "src/lib/desktop-notification.ts"
+   ],
+   "repro": "Bridge flush: snapshot=[A]; await _sendOne(A); meanwhile appendEvent adds B; drainNotifications() empties [A,B]; the rerun loop reads an empty slice -> B never shown (proof P3: sent ['a'], 0 left pending). Latent until the notification feed is fixed.",
+   "evidence": "src/store/workflow.ts:234-238, src/lib/desktop-notification.ts:88-101; proof docs/redesign/verification/r15/census/code/evidence/frontend-stores-proof.test.ts.txt P3; refuter admitted -> low",
+   "root_cause": "A 'drain everything' interface cannot be combined with an async send of a snapshot.",
+   "fix_shape": "takeNotifications() that atomically returns and clears the queue before sending (or drain(ids)); pin with the P3 test.",
+   "defect_class": "drain-all-after-async",
+   "raw_ids": [
+    "COD-frontend-stores-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-027",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "frontend-stores",
+   "title": "Stores reach the sidecar through hand-rolled fetch paths with divergent error policies: the custom-agents list turns a non-2xx into a successful empty list, and other sites drop the server detail, region headers and any timeout",
+   "files": [
+    "src/lib/sidecar-client.ts",
+    "src/store/agents.ts",
+    "src/store/quant.ts",
+    "src/store/workflow.ts",
+    "src/store/safety.ts"
+   ],
+   "repro": "A CORS-headered non-2xx on GET /custom-agents (e.g. 404 from a stale sidecar) -> agents.ts:223-227 sets customStatus 'ready' with an empty list -> Agent Builder shows the empty state instead of error+Retry and the chat picker drops custom personas. Across stores, six hand-rolled fetches carry four error policies, no X-Vysted-Region/search headers and no timeout (sidecarGet attaches these).",
+   "evidence": "src/store/agents.ts:201-240, src/modules/agent-builder/AgentBuilderPanel.tsx:436-457, src/store/quant.ts:53-78, src/store/workflow.ts:241-252, src/store/safety.ts:212-243, src/lib/sidecar-client.ts:154-215; refuters admitted_with_correction -> low for both (an unhandled 500 reaches the error branch via the CORS-less TypeError; the broker/orders examples go with trading removal)",
+   "root_cause": "Transport concerns (base URL, headers, error normalisation, timeout) re-decided per store; there is no shared POST helper, and refreshCustom hand-rolls fetch where refreshFirstParty uses sidecarGet.",
+   "fix_shape": "Add sidecarPost<T>(path, body, headers?) reusing sidecarGet's header merge + extractSidecarDetail + a timeout; switch agents.refreshCustom to sidecarGet and the remaining live sites (quant, workflow, safety if kept) to the helpers. Pin with a test: refreshCustom on a 404 -> customStatus 'error'.",
+   "defect_class": "hand-rolled-sidecar-fetch",
+   "raw_ids": [
+    "COD-frontend-stores-6",
+    "COD-frontend-stores-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-028",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "frontend-stores",
+   "title": "Research-space archives restore failed, stopped or still-streaming partial answers as clean finished replies, and agent-space chat tabs are not persisted at all",
+   "files": [
+    "src/store/research-spaces.ts",
+    "types/research-space.ts",
+    "src/store/agent-spaces.ts",
+    "src/modules/chat/ChatSidebar.tsx"
+   ],
+   "repro": "In a research space let a research stream fail mid-answer -> leave and re-enter the space (or relaunch) -> captureLiveTranscript kept it (filter is only non-empty content) and turnsToMessages rebuilds it with no error/stopped/pending flag -> truncated text renders as a normal answer. Chat tabs vanish on relaunch ('persisting spaces ... is a follow-up (task #11)').",
+   "evidence": "src/store/research-spaces.ts:48-67, types/research-space.ts:19-26, src/store/agent-spaces.ts:5-11, src/modules/chat/ChatSidebar.tsx:749-753; refuter admitted -> low",
+   "root_cause": "ResearchSpaceTurn has only {role, content, createdAt}, so the archive cannot represent message status; agent-space persistence was deferred.",
+   "fix_shape": "Exclude pending messages from capture, add optional status 'error'|'stopped' to ResearchSpaceTurn and restore it onto ChatMessage; persist agent spaces through the same blob once transcript ownership is unified. Pin with a capture/restore round-trip test on an errored message.",
+   "defect_class": "archive-drops-message-status",
+   "raw_ids": [
+    "COD-frontend-stores-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-029",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "frontend-stores",
+   "title": "Dead interface surface in the command-palette and agents stores, and the palette corpus is memoised once so agents or plugins that load while it is open never appear",
+   "files": [
+    "src/store/command-palette.ts",
+    "src/app/page.tsx",
+    "src/components/CommandPalette.tsx",
+    "src/store/agents.ts"
+   ],
+   "repro": "page.tsx:51,91,94-103 compute enabledCommands() on every module change to call setCommands, a documented no-op (command-palette.ts:178-180); the store's query/setQuery and pushRecent are unused; CommandPalette.tsx:122 memoises buildPaletteCorpus with [] despite its 'rebuilt on each render' doc; agents.error mirrors firstPartyError only.",
+   "evidence": "src/store/command-palette.ts:151-208, src/app/page.tsx:51, src/app/page.tsx:91-103, src/components/CommandPalette.tsx:115-122, src/store/agents.ts:154-171, src/store/agents.ts:242-251; refuter admitted -> low",
+   "root_cause": "Compatibility aliases and no-op setters kept after the palette moved to cmdk and per-slice agent statuses.",
+   "fix_shape": "Delete commands/setCommands/query/setQuery/pushRecent and the page.tsx wiring; make the corpus a selector over the live stores (drop the [] memo); drop agents.loading/error/refreshAll.",
+   "defect_class": "dead-code-claims-feature",
+   "raw_ids": [
+    "COD-frontend-stores-10"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-030",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "frontend-stores",
+   "title": "On a fresh install a mid-session settings import switches the active chat persona, via a module-level 'first setAll' latch, contrary to the store's own rule",
+   "files": [
+    "src/store/settings.ts",
+    "src/lib/workspace.ts"
+   ],
+   "repro": "Fresh install (no autosave -> deserializeWorkspace never runs, defaultAgentApplied stays false) -> import a settings bundle -> setAll -> setActiveAgent(imported default) switches the persona mid-conversation; settings.ts:131-137 says an import must not yank the current lens.",
+   "evidence": "src/store/settings.ts:131-138, src/store/settings.ts:162-183, src/store/settings.ts:201-205; refuter admitted -> low",
+   "root_cause": "Temporal coupling hidden in module state: the store infers 'boot restore' from call order.",
+   "fix_shape": "setAll(bundle, {applyDefaultAgent: true}) passed only from restoreLastSessionOrDefault; delete the latch. Pin with a test: fresh store, import -> active agent unchanged.",
+   "defect_class": "temporal-latch",
+   "raw_ids": [
+    "COD-frontend-stores-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-031",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "Under AUTO the transcript narrates 'Applied:' before the async apply resolves, so a failed apply stays recorded as applied in the chat step line",
+   "files": [
+    "src/store/proposed-changes.ts",
+    "src/modules/chat/ChatSidebar.tsx"
+   ],
+   "repro": "AUTO, sidecar down: agent emits save_layout -> ChatSidebar appends 'Applied: Save the current layout as ...' synchronously; applyHostActionAsync returns null and the change re-pends with a failure detail (visible in the review card), but the transcript line stays 'Applied'.",
+   "evidence": "src/store/proposed-changes.ts:118-121, src/store/proposed-changes.ts:165-169, src/modules/chat/ChatSidebar.tsx:582-590, src/modules/chat/ChatSidebar.tsx:959-968, src/modules/chat/ProposedChangesReview.tsx:121-123; refuter admitted_with_correction -> low (failure IS surfaced in the review card and the model's tool result)",
+   "root_cause": "enqueue returns only an id and fire-and-forgets accept; callers re-implement the auto-apply predicate to guess the outcome.",
+   "fix_shape": "enqueue returns {id, outcome: Promise<'pending'|'applied'|'failed'>}; narrate from the resolved outcome and delete the duplicated predicate at ChatSidebar.tsx:965.",
+   "defect_class": "apply-outcome-not-exposed",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-032",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "Pending agent proposals survive /clear and a new conversation, so Cmd+Enter accept-all can later apply stale mutations reviewed against another context",
+   "files": [
+    "src/store/proposed-changes.ts",
+    "src/modules/chat/ChatSidebar.tsx"
+   ],
+   "repro": "ASK mode: agent proposes write_note replace + portfolio_delete_position; user runs /clear without resolving -> the review bar still shows the old batch; Cmd+Enter (acceptAll) applies them. Resolved entries are never pruned.",
+   "evidence": "src/store/proposed-changes.ts:209-216, src/store/proposed-changes.ts:229, src/modules/chat/ChatSidebar.tsx:554-557, src/modules/chat/ChatSidebar.tsx:631-633, src/modules/chat/ChatSidebar.tsx:708-711; refuter admitted_with_correction -> low (items stay visible and need explicit accept)",
+   "root_cause": "clear() has no production caller; nothing ties a batch to a conversation lifetime.",
+   "fix_shape": "Reject (and ack failed) pending changes when the conversation is cleared/switched; prune resolved entries on batch completion. Pin with a test: /clear -> no pending changes.",
+   "defect_class": "proposal-lifetime",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-033",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "arrange_layout pattern=focus looks the panel up by raw id, so 'focus the screener' fails while focus_panel succeeds",
+   "files": [
+    "src/lib/host-actions.ts"
+   ],
+   "repro": "Screener open (id 'screener-panel'): applyHostAction('arrange_layout',{pattern:'focus',panel:'screener'}) -> null ('could not apply'); applyHostAction('focus_panel',{panel:'screener'}) -> 'Focused Screener' (proof P7).",
+   "evidence": "src/lib/host-actions.ts:1010-1019, src/lib/host-actions.ts:962-975, src/lib/layout-templates.ts:39-42; proof docs/redesign/verification/r15/census/code/evidence/host-actions-proposed-changes-proof.test.ts.txt P7; refuter admitted -> low",
+   "root_cause": "The focus branch of arrange_layout was missed when open/close/focus_panel were routed through resolvePanelToken.",
+   "fix_shape": "const resolved = resolvePanelToken(panel); const target = resolved && findOpenPanel(resolved); pin with the P7 test.",
+   "defect_class": "panel-alias-resolver-bypass",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-12"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-034",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "Every apply failure is shown as 'its arguments were incomplete', and the kept_previous ack status is derived by string-matching the label prefix 'Kept'",
+   "files": [
+    "src/lib/host-actions.ts",
+    "src/store/proposed-changes.ts"
+   ],
+   "repro": "save_layout with the sidecar down, open_panel on a disabled module, portfolio update whose holding vanished -> all re-pend with 'Could not apply this change — its arguments were incomplete.' Rewording 'Kept the richer research brief…' flips its ack from kept_previous to applied.",
+   "evidence": "src/store/proposed-changes.ts:149-153, src/lib/host-actions.ts:1117, src/lib/host-actions.ts:1125, src/lib/host-actions.ts:1392-1396, src/lib/host-actions.ts:1404-1416; refuter admitted -> low",
+   "root_cause": "The apply contract is string | null: one channel carries display copy, success and outcome class.",
+   "fix_shape": "Return {status:'applied'|'kept_previous'|'failed', label, reason?} from apply and read status/reason directly (same change as the enqueue outcome promise).",
+   "defect_class": "apply-outcome-not-exposed",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-13"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-035",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "host-actions.ts bypasses the store seams built for it (portfolios add/update/deletePosition, notes appendSymbolNote/appendGeneral) and re-implements note append with different trimming",
+   "files": [
+    "src/lib/host-actions.ts",
+    "src/store/portfolios.ts",
+    "src/store/notes.ts"
+   ],
+   "repro": "design: grep shows zero production callers of addPosition/updatePosition/deletePosition (portfolios.ts:223-264) or appendGeneral/appendSymbolNote (notes.ts:26-31); host-actions inlines its own append (trailing-whitespace strip + untrimmed addendum) where joinNote trims the addendum.",
+   "evidence": "src/lib/host-actions.ts:1182-1190, src/lib/host-actions.ts:1331-1348, src/store/portfolios.ts:215-270, src/store/notes.ts:39-75; refuter admitted_with_correction -> low (the missing null-check does not bite: apply pre-validates)",
+   "root_cause": "Duplicated truth: two append semantics and two add-holding paths; host-actions.ts is a 1,572-line module mixing brief ingestion, screener parsing, portfolio HTTP and the ack protocol.",
+   "fix_shape": "Call the store seams and delete the inline copies; move briefFromInput/carryBriefDepth into brief-ingest.",
+   "defect_class": "duplicated-store-seam",
+   "raw_ids": [
+    "COD-host-actions-proposed-changes-14"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-036",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "workspace-layout",
+   "title": "Panel id<->component truth is hand-copied into six tables with no parity test, and the two rail-panel definitions already disagree about portfolio",
+   "files": [
+    "src/lib/layout-templates.ts",
+    "src/lib/layout-templates.test.ts",
+    "src/store/workspace.ts",
+    "src/config/default-layout.ts"
+   ],
+   "repro": "design: all 25 ARRANGEABLE entries match registered PanelSpecs today, but grep 'ARRANGEABLE|PanelSpec|modules' src/lib/layout-templates.test.ts => no match. portfolio is in the store's RAIL_PANEL_IDS but absent from layout-templates RAIL_PANELS and scored 60 as a main panel. A prior drift already minted duplicate panels (migrateLegacyLayout cleanup).",
+   "evidence": "src/lib/layout-templates.ts:27-61, src/lib/layout-templates.ts:166-175, src/lib/layout-templates.ts:450-472, src/lib/layout-templates.ts:655-686, src/store/workspace.ts:31, src/config/default-layout.ts:32-58, src/lib/workspace.ts:435-460; refuter admitted -> low",
+   "root_cause": "Invariant held by a 'MUST match' comment instead of a test.",
+   "fix_shape": "One vitest asserting every ARRANGEABLE/PANEL/DEFAULT_PANELS {id, component} equals a PanelSpec in vystedModules; derive PANEL from ARRANGEABLE; export one RAIL set.",
+   "defect_class": "panel-id-table-drift",
+   "raw_ids": [
+    "COD-workspace-layout-13"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-FRONTEND-037",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "workspace-layout",
+   "title": "An emptied watchlist resurrects the default symbols on relaunch",
+   "files": [
+    "src/lib/workspace.ts"
+   ],
+   "repro": "Remove every symbol from the watchlist -> autosave writes watchlist: [] -> relaunch: deserializeWorkspace skips the restore because length == 0 -> the store keeps DEFAULT_SYMBOLS.",
+   "evidence": "src/lib/workspace.ts:283-285, src/store/symbols.ts:43; contrast src/lib/workspace.ts:272-280, 341-347; refuter admitted -> low",
+   "root_cause": "Restore guard conflates 'field absent' with 'user chose empty'; three different older-blob conventions in one function.",
+   "fix_shape": "Guard on Array.isArray only; pin with a round-trip test of an empty watchlist.",
+   "defect_class": "absent-vs-empty-restore",
+   "raw_ids": [
+    "COD-workspace-layout-14"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  }
+ ],
+ "rejections": []
+}

@@ -1,0 +1,2 @@
+77:- File system access — custom atomic-write commands (`write_text_atomic`,
+78:  `write_bytes_atomic`), not the `tauri-plugin-fs` capability (R15-CODE-PLATFORM-024:

@@ -1,0 +1,12 @@
+# R15-UI-031 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:40+0530
+
+$ git merge-base --is-ancestor e81c9e7 HEAD && echo 'closure e81c9e7 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure e81c9e7 NOT an ancestor'
+[exit 0] [0.02s]
+closure e81c9e7 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-031\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.29s]
+src/modules/equity-overview/EquityOverviewPanel.tsx:774:      // `finally` leaves the newer load's spinner alone (R15-UI-031).
+src/modules/equity-overview/EquityOverviewPanel.test.tsx:368:  it("a superseded load never lands: the newest command wins and keeps the spinner until it does (R15-UI-031)", async () => {
+

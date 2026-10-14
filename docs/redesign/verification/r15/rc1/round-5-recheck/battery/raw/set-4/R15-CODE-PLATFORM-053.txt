@@ -1,0 +1,5 @@
+CMD: node --experimental-strip-types wrapper over src/modules/portfolio/metrics.ts buildPortfolioSummary, live quotes RELIANCE.NS(INR)+AAPL(USD) from :52350
+mixedCurrencies: true
+concentration: null
+weights: [ null, null ]
+EXIT: 0

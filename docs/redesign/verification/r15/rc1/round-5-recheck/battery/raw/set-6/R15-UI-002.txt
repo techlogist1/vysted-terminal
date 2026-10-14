@@ -1,0 +1,7 @@
+COMMAND: pnpm exec vitest run src/components/CommandPalette.test.tsx (candidate 949c3c9f)
+EXIT: 0
+OUTPUT (relevant):
+ ✓ src/components/CommandPalette.test.tsx > CommandPalette (cmdk) > a ticker pick commands the chart through the always-consumed chart-command channel 33ms
+
+SOURCE CHECK: src/lib/host-actions.ts:259 loadSymbolIntoChart is the always-consumed chart-command channel (ChartPanel.tsx consumes it unconditionally, not gated by chart-sync DEFAULT_SUBS.symbol=false). CommandPalette.tsx now routes ticker picks through loadSymbolIntoChart instead of useChartSyncBus.setSymbol.
+VERDICT: holds. Cmd-K ticker pick now updates the chart under default settings (the original repro's chart-unchanged symptom is gone).

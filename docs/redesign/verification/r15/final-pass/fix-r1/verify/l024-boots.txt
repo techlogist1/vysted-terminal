@@ -1,0 +1,28 @@
+== first dir=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm1 port=52890 sleep_pid=55423
+health after 60s: 
+backups: 
+meta: Error: in prepare, no such table: meta
+stopped; port answers: 000
+== second dir=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm1 port=52890 sleep_pid=55833
+health after 60s: 
+backups: 
+meta: Error: in prepare, no such table: meta
+stopped; port answers: 000
+== first dir=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm2 port=52890 sleep_pid=56217
+health after 3s: {"status":"ok","service":"vysted-sidecar
+backups: unversioned-2026-10-03 
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm2/backups/unversioned-2026-10-03: custom_agents.db data_cache.db data_cache.db-shm data_cache.db-wal delegate_runs.db dev-keystore.json fundamentals_cache.db notes plugins.db portfolio.db searxng workflows.db workspaces 
+meta: build|0.9.0
+2026-10-03 19:40:58,633 INFO services.data_cache: data_cache: data dir backed up to /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm2/backups/unversioned-2026-10-03
+stopped; port answers: 000
+== second dir=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm2 port=52890 sleep_pid=56280
+health after 3s: {"status":"ok","service":"vysted-sidecar
+backups: unversioned-2026-10-03 
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm2/backups/unversioned-2026-10-03: custom_agents.db data_cache.db data_cache.db-shm data_cache.db-wal delegate_runs.db dev-keystore.json fundamentals_cache.db notes plugins.db portfolio.db searxng workflows.db workspaces 
+meta: build|0.9.0
+stopped; port answers: 000
+== first dir=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm3 port=52890 sleep_pid=56333
+health after 3s: {"status":"ok","service":"vysted-sidecar
+backups: 
+meta: build|0.9.0
+stopped; port answers: 000

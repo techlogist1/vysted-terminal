@@ -1,0 +1,14 @@
+## LEAD-010 2026-09-25T03:57:28Z
+10-K list: ['0000320193-25-000079', '0000320193-24-000123', '0000320193-23-000106', '0000320193-22-000108', '0000320193-21-000105', '0000320193-20-000096', '0000320193-19-000119', '0000320193-18-000145', '0000320193-17-000070', '0001628280-16-020309']
+GET /sec/filings/0000320193-23-000106?identifier=AAPL&form_type=10-K -> 200 {"filing":{"accession":"0000320193-23-000106","cik":"0000320193","company_name":"Apple Inc.","symbol":null,"form_type":"10-K","filed_date":"2023-11-03","period_
+GET /sec/filings/0000320193-23-000106?identifier=AAPL -> 200 {"filing":{"accession":"0000320193-23-000106","cik":"0000320193","company_name":"Apple Inc.","symbol":null,"form_type":"10-K","filed_date":"2023-11-03","period_
+GET /sec/filings/0000320193-23-000106/sections?identifier=AAPL -> 200 {"sections":[{"id":"business","title":"Business","text":"Item 1.    Business
+
+Company Background
+
+The Company designs, manufactures and markets smartpho
+GET /sec/filings/0000320193-23-000106/sections?identifier=AAPL&form_type=10-K -> 200 {"sections":[{"id":"business","title":"Business","text":"Item 1.    Business
+
+Company Background
+
+The Company designs, manufactures and markets smartpho

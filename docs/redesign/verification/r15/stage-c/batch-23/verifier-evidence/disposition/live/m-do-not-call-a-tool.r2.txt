@@ -1,0 +1,9 @@
+[   4.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_84a216f9c12246e8b38378adacc92507", "name": "portfolio_update_position", "input": {"position_id": "<nil>", "quantity": -5, "cost_basis": 3100, "note": "", "asset_class": "equity", "symbol": "TCS.NS"}}
+[   4.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_84a216f9c12246e8b38378adacc92507", "name": "portfolio_update_position", "ok": true, "error": null}
+[   7.7s] research_step: {"kind": "research_step", "tool_call_id": "call_84a216f9c12246e8b38378adacc92507", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_update_position TCS.NS. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[   7.7s] done: {"kind": "done", "usage": {"input_tokens": 2968, "output_tokens": 44, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You sold 5 shares of TCS at ₹3,100 each. I've proposed this change for review in the portfolio update queue. To confirm and apply this change, please accept it from the proposal bar.
+
+=== ok · 7.7s · events {'tool_use': 1, 'tool_result': 1, 'delta': 45, 'research_step': 1, 'done': 1} · usage in=2968 out=44 · est $0.00000 · llama3.1:8b

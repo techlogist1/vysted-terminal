@@ -1,0 +1,17 @@
+$ curl /earnings/AAPL/history (x2), ratings/history, ratings/individual, ratings/price-target-history, ratings; grep as_of
+-- /earnings/AAPL/history
+934 bytes; as_of/cached_at matches: ['"as_of":"2026-10-03T01:13:10.760673Z"'] | head: {"symbol":"AAPL","history":[{"fiscal_period":null,"period_end":"2026-06-30","reported_date":"2026-07-30","eps_actual":2.
+-- /earnings/AAPL/surprises
+1495 bytes; as_of/cached_at matches: ['"as_of":"2026-10-03T01:13:11.295175Z"'] | head: {"symbol":"AAPL","surprises":[{"symbol":"AAPL","period_end":"2026-06-30","reported_date":"2026-07-30","fiscal_period":nu
+-- /earnings/AAPL/estimates
+473 bytes; as_of/cached_at matches: ['"as_of":"2026-10-03T01:13:11.809492Z"'] | head: {"symbol":"AAPL","fiscal_period":null,"eps_estimate_mean":1.98236,"eps_estimate_median":null,"eps_estimate_high":2.07,"e
+-- /fundamentals/AAPL/ratings/history
+171143 bytes; as_of/cached_at matches: ['"as_of":"2026-10-03T01:13:12.912727Z"'] | head: {"symbol":"AAPL","history":[{"symbol":"AAPL","date":"2026-10-01","firm":"Morgan Stanley","analyst_name":null,"rating_fro
+-- /fundamentals/AAPL/ratings/individual
+14414 bytes; as_of/cached_at matches: ['"as_of":"2026-10-03T01:13:13.793716Z"'] | head: {"symbol":"AAPL","analysts":[{"symbol":"AAPL","firm":"Morgan Stanley","analyst_name":"Morgan Stanley","current_rating":"
+-- /fundamentals/AAPL/ratings/price-target-history
+151488 bytes; as_of/cached_at matches: ['"as_of":"2026-10-03T01:13:14.310171Z"'] | head: {"symbol":"AAPL","history":[{"symbol":"AAPL","date":"2026-10-01","firm":"Needham","analyst_name":null,"target_from":0.0,
+-- /fundamentals/AAPL/ratings
+217 bytes; as_of/cached_at matches: ['"as_of":"2026-10-03T01:13:08.130445Z"'] | head: {"symbol":"AAPL","consensus":"buy","target_mean":328.09384,"target_high":405.0,"target_low":215.0,"strong_buy":6,"buy":1
+-- /earnings/upcoming?days=14
+10295 bytes; as_of/cached_at matches: ['"as_of":"2026-10-03T01:13:14.431468Z"'] | head: {"start_date":"2026-10-03","end_date":"2026-10-17","events":[{"symbol":"LCCPROJECT.NS","company_name":"LCC Projects Limi

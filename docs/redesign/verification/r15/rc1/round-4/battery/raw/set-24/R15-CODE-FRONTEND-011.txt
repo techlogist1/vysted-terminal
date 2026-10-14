@@ -1,0 +1,84 @@
+=== parseHostAction exists, describe/apply both use HostIntent ===
+947:export function parseHostAction(name: string, input: Record<string, unknown>): HostIntent {
+1453:export function describeHostAction(name: string, input: Record<string, unknown>) {
+1994:export function applyHostAction(name: string, input: Record<string, unknown>): string | null {
+--- portfolio_update_position parse binds portfolioId+holding ---
+88:  "portfolio_update_position",
+125:  "Edit a portfolio position": "portfolio_update_position",
+855:      name: "portfolio_update_position";
+1025:    case "portfolio_update_position":
+1386:    case "portfolio_update_position":
+1389:      const update = intent.name === "portfolio_update_position";
+1877:    case "portfolio_update_position":
+      return { name, screenName: str(input, "name").trim(), ...parseScreenRecipe(input) };
+    case "portfolio_add_position": {
+      const holding = holdingFields(input);
+      return {
+        name,
+        portfolioId: activePortfolio()?.id ?? "",
+        holding,
+        problem: holdingProblem(holding),
+      };
+    }
+    case "portfolio_update_position":
+    case "portfolio_delete_position": {
+      const portfolio = activePortfolio();
+      const { target, problem } = resolveHolding(portfolio, input);
+      const portfolioId = portfolio?.id ?? "";
+      const label = target?.symbol || symbol || "position";
+      if (name === "portfolio_delete_position") {
+        return { name, portfolioId, label, target, problem };
+      }
+      const holding = holdingFields(input, target);
+      return {
+        name,
+        portfolioId,
+        label,
+        target,
+        holding,
+        problem: problem || holdingProblem(holding),
+      };
+    }
+    case "write_note":
+      return {
+      };
+    }
+    case "unknown":
+      return {
+        kind: "panel",
+        title: intent.raw.replace(/_/g, " "),
+        before: "—",
+        after: `Unknown action — ${CANT_APPLY}`,
+      };
+  }
+}
+
+/** Describe a host action from its raw args (parses, then {@link describeIntent}). */
+export function describeHostAction(name: string, input: Record<string, unknown>) {
+  return describeIntent(parseHostAction(name, input));
+}
+
+/**
+ * Apply a parsed host action to the live stores. Returns a short TRUTHFUL
+ * label describing what actually happened, or a null label (with the reason
+ * when there is one) if it could not apply — the proposed-changes gate
+  }
+}
+
+/** Apply a host action from its raw args — the label, or null when it did not land. */
+export function applyHostAction(name: string, input: Record<string, unknown>): string | null {
+  return applyIntent(parseHostAction(name, input)).label;
+}
+
+// ---------------------------------------------------------------------------
+// Async apply seam + publish ack (R10 §3/§4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply a parsed host action, including the cases the synchronous path cannot
+ * finish: `save_layout` (awaits the workspace save) and a backtest
+ * `open_panel` (awaits its run). Everything else delegates to
+103:    const intent = parseHostAction(name, input);
+104:    const described = describeIntent(intent);
+109:      intent,
+146:    const { label, reason, preImage } = await applyIntentAsync(change.intent);

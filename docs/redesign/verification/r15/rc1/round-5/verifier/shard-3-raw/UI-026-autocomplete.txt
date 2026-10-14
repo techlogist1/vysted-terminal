@@ -1,0 +1,6 @@
+== /resolve/autocomplete?q=TCS&region=IN
+TCS [('TCS', 'IN', 'Tata Consultancy Services Limited'), ('BTCS', 'US', 'BTCS Inc.')]
+== /resolve/autocomplete?q=TC&region=IN
+TC [('TC', 'US', 'Token Cat Ltd'), ('TCS', 'IN', 'Tata Consultancy Services Limited'), ('TCI', 'IN', 'Transport Corporation of India Limited'), ('TCPLPACK', 'IN', 'TCPL Packaging Limited')]
+== /resolve/autocomplete?q=INFY&region=IN
+INFY [('INFY', 'IN', 'Infosys Limited'), ('INFY', 'US', 'Infosys Ltd')]

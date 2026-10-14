@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_e3a72168edd44bdc932ad4fc38ad576f", "name": "fundamentals", "input": {"symbol": "SIFY"}}
+[  25.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_e3a72168edd44bdc932ad4fc38ad576f", "name": "fundamentals", "ok": true, "error": null}
+[  35.2s] heartbeat: {"kind": "heartbeat"}
+[  45.2s] heartbeat: {"kind": "heartbeat"}
+[  47.4s] done: {"kind": "done", "usage": {"input_tokens": 5755, "output_tokens": 30, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The TTM revenue for SIFY in USD is ₹4,651 cr. I obtained this information from the fundamentals tool provided by yfinance.
+
+=== ok · 47.4s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 30, 'done': 1} · usage in=5755 out=30 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,25 @@
+# R15-DATA-040 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:50:32+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+SID=$(curl -s -m 30 "$H/backtest/strategies" | python3 -c "import sys,json;d=json.load(sys.stdin);d=d if isinstance(d,list) else d.get('strategies',d);print([s['id'] for s in d][0])")
+echo "\$ POST /backtest/run strategyId=$SID symbols AAPL,MSFT,ZZZZNOTREAL 2025-01-01..2026-09-01"
+curl -s -m 100 -N -X POST "$H/backtest/run" -H 'content-type: application/json' -d "{\"strategyId\":\"$SID\",\"symbols\":[\"AAPL\",\"MSFT\",\"ZZZZNOTREAL\"],\"startDate\":\"2025-01-01\",\"endDate\":\"2026-09-01\",\"initialCapital\":100000}" > $B/out/bt040.txt
+python3 - "$B/out/bt040.txt" <<'PY'
+import sys,json
+evs=[]
+for l in open(sys.argv[1]):
+    l=l.strip()
+    if l.startswith('data:'):
+        try: evs.append(json.loads(l[5:]))
+        except Exception: pass
+print('kinds=',[e.get('kind') for e in evs])
+r=(evs[-1].get('result') if evs else None) or {}
+print('warnings=',r.get('warnings')); print('request.symbols=',(r.get('request') or {}).get('symbols'))
+if not evs: print(open(sys.argv[1]).read()[:600])
+PY
+--- output ---
+$ POST /backtest/run strategyId=mean_reversion symbols AAPL,MSFT,ZZZZNOTREAL 2025-01-01..2026-09-01
+kinds= ['run-start', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'progress', 'run-complete']
+warnings= ['No price history loaded for ZZZZNOTREAL in 2025-01-01..2026-09-01 (provider error or empty series); metrics cover 2 of 3 symbols.']
+request.symbols= ['AAPL', 'MSFT', 'ZZZZNOTREAL']
+
+EXIT=0 (1.8s)

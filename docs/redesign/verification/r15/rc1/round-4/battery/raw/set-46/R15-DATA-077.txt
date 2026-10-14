@@ -1,0 +1,57 @@
+CMD: curl -s http://127.0.0.1:52351/data-sources (same probe, filtered for IN region lanes)
+EXIT: 0, HTTP 200
+[
+ {
+  "id": "nse_direct",
+  "keys": [
+   "ohlcv",
+   "quote"
+  ],
+  "rank": 15,
+  "available": true,
+  "asset_classes": [
+   "equity"
+  ],
+  "region": [
+   "IN"
+  ]
+ },
+ {
+  "id": "nse",
+  "keys": [
+   "ohlcv",
+   "quote"
+  ],
+  "rank": 20,
+  "available": true,
+  "asset_classes": [
+   "equity"
+  ],
+  "region": [
+   "IN"
+  ]
+ },
+ {
+  "id": "bse",
+  "keys": [
+   "ohlcv",
+   "quote"
+  ],
+  "rank": 25,
+  "available": true,
+  "asset_classes": [
+   "equity"
+  ],
+  "region": [
+   "IN"
+  ]
+ }
+]
+
+Code check: src/lib/marketplace.ts:196-215 INDIA_DATA_LANES lists exactly nse_direct/nse/bse (keyless EOD) as informational rows, rendered once /data-sources confirms they exist. No EODHD/Twelve Data/broker-realtime lane anywhere: grep -ri 'eodhd|twelve' sidecar src below.
+/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/tests/test_screener_batch.py:        "epsTrailingTwelveMonths": 6.0,
+/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/tests/test_b4_v7_gate.py:        "epsTrailingTwelveMonths": 7.5,
+/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/tests/test_yahoo_batch_provider.py:        "epsTrailingTwelveMonths": 6.1,
+/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/tests/test_dividend_history.py:def test_sums_trailing_twelve_months_including_special(monkeypatch: pytest.MonkeyPatch) -> None:
+/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/agents/README.md:The twelve first-party agent slots, per the Phase-3 plan's Tier-3 §3.4-vs-§4
+(0 hits expected)

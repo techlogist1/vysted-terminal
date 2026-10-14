@@ -76,6 +76,7 @@ async def test_earnings_history_tool(monkeypatch: pytest.MonkeyPatch) -> None:
             history=[
                 EarningsHistoryEntry(
                     fiscal_period=FiscalPeriod(quarter="Q1", year=2026),
+                    period_end=date(2026, 1, 31),
                     reported_date=date(2026, 2, 1),
                     eps_actual=1.32,
                     eps_estimate_mean=1.30,

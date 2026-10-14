@@ -1,0 +1,9 @@
+=== R15-AGENT-074 (in-process fake-provider probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+CMD: launch_run(agent_id='copilot', NO provider kwarg, budget=RunBudget(max_spend_usd=0.01)); fake provider emits 100000 tokens, no tool call. copilot's agents/copilot.json defaultProvider is 'ollama' (0$/M).
+
+{
+  "status": "done",
+  "spend_usd": 0.0,
+  "tokens": 100000,
+  "resolved_provider": null
+}

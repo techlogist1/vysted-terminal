@@ -1,0 +1,15 @@
+# R15-CODE-FRONTEND-015 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'R15-CODE-FRONTEND-015' src | cut -c1-200 | head -4; grep -rn 'focusedSymbolFromBus' src --include=*.ts --include=*.tsx | grep -v test | cut -c1-160
+--- output ---
+src/modules/chat/ChatSidebar.test.tsx:600:  it("a focused Equity Overview's ticker drives the badge, the chips and the snapshot (R15-CODE-FRONTEND-015)", async () => {
+src/modules/chat/context-provider.ts:262: * the snapshot's `focusedSymbol` (R15-CODE-FRONTEND-015).
+src/modules/chat/SuggestionChips.tsx:8:import { focusedSymbolFromBus } from "./context-provider";
+src/modules/chat/SuggestionChips.tsx:46:/** The focused panel's symbol off the panel-context bus (`focusedSymbolFromBus`). */
+src/modules/chat/SuggestionChips.tsx:51:    () => focusedSymbolFromBus(lastEventBySource, focusedSource)?.toUpperCase() ?? null,
+src/modules/chat/context-provider.ts:264:export function focusedSymbolFromBus(
+src/modules/chat/context-provider.ts:440:    focusedSymbolFromBus(bySource, focusedPanel) ??
+src/modules/chat/ChatSidebar.tsx:74:import { captureAgentContext, focusedSymbolFromBus } from "./context-provider";
+src/modules/chat/ChatSidebar.tsx:2321:  const symbol = focusedSymbolFromBus(snapshot.lastEventBySource, snapshot.focusedSource);
+
+EXIT=0 (0.1s)

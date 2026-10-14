@@ -1,0 +1,5 @@
+Source check: host-actions.ts:435 `parseScreenerCriterion` returns `ScreenerCriterion | string`
+(the string is the drop reason, doc comment line 431 "returns WHY it was dropped"); `keepLeaf`
+(line 487) pushes the reason onto a `dropped: string[]` accumulator instead of silently discarding
+the null. Matches PLAN.md's fix (label + ack detail say "Wrote N of M criteria; dropped <reason>").
+Verdict: holds (source-confirmed).

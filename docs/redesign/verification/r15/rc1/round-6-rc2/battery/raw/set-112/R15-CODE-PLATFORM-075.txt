@@ -1,0 +1,10 @@
+SHA ace7dd76 sidecar :52343
+$ POST /workflow/run mode=resume-from
+{"detail":[{"type":"extra_forbidden","loc":["body","resumeFrom"],"msg":"Extra inputs are not permitted","input":"a"}]}
+HTTP 422
+$ POST /workflow/run resumeFrom only
+{"detail":[{"type":"extra_forbidden","loc":["body","resumeFrom"],"msg":"Extra inputs are not permitted","input":"a"}]}
+HTTP 422
+$ POST /workflow/run {"spec":..,"mode":"resume-from"} (no resumeFrom)
+{"detail":"unsupported run mode 'resume-from'; only 'full' is implemented"}
+HTTP 400

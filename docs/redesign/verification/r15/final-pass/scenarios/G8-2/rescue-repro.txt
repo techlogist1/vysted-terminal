@@ -1,0 +1,2 @@
+python-literal (verbatim llama-ask-reliance reply): None
+same with null: kind='tool_use' tool_call_id='leaked_e2fb97cbab39494891162270cd40ce3a' name='portfolio_add_position' input={'asset_class': 'equity', 'cost_basis': None, 'note': '', 'purchased_at': None, 'quantity': 10, 'symbol': 'RELIANCE'} provider_meta=None

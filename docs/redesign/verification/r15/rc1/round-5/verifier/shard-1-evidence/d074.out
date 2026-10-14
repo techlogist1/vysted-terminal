@@ -1,0 +1,7 @@
+research gather_floor  INFY limit=50: +2 network lane calls True
+research researcher    INFY limit=50: +0 network lane calls True
+panel route            INFY limit=50: +0 network lane calls AnnouncementsResponse
+fresh: deep.py default INFY (limit 20): +2 network lane calls True
+fresh: FAST INFY limit=20: +0 network lane calls True
+fresh: INFY.NS limit=50: +2 network lane calls True
+fresh: transcripts tool (MAX 200): +2 network lane calls AnnouncementsResponse

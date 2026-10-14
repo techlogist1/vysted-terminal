@@ -1,0 +1,49 @@
+=== R15-LIFECYCLE-010: lib.rs sentinel + rust tests ===
+664:    fn a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason() {
+665-        // R15-LIFECYCLE-010: the arm for a missing sidecar command records the
+666-        // reason; `get_sidecar_port` serializes it for the renderer.
+667-        let status = SidecarStatus::new(54321);
+668-        status.fail("The data engine could not start (binary not found).".to_string());
+669-        let wire = serde_json::to_value(status.snapshot()).expect("serializable");
+670-        assert_eq!(wire["port"], 54321);
+671-        assert_eq!(wire["state"], "failed");
+672-        assert_eq!(
+673-            wire["reason"],
+674-            "The data engine could not start (binary not found)."
+675-        );
+676-    }
+677-
+678-    #[test]
+679:    fn the_boot_wait_keeps_an_earlier_exit_reason() {
+680-        let status = SidecarStatus::new(54321);
+681-        status.fail(terminated_reason(Some(1), None));
+682-        status.settle_boot(false);
+683-        let snapshot = status.snapshot();
+684-        assert_eq!(snapshot.state, SidecarPhase::Failed);
+685-        assert_eq!(
+686-            snapshot.reason.as_deref(),
+687-            Some("The data engine stopped (exit code 1).")
+688-        );
+689-
+690-        let unbound = SidecarStatus::new(54321);
+691-        unbound.settle_boot(false);
+692-        assert_eq!(
+693-            unbound.snapshot().reason.as_deref(),
+694-            Some("The data engine did not come up on port 54321.")
+695-        );
+696-        let bound = SidecarStatus::new(54321);
+697-        bound.settle_boot(true);
+698-        assert_eq!(bound.snapshot().state, SidecarPhase::Ready);
+699-    }
+700-
+701-    #[test]
+702-    fn mcp_endpoint_json_carries_port_endpoint_and_protocol() {
+703-        let json = mcp_endpoint_json(54321);
+704-        let value: serde_json::Value = serde_json::from_str(&json).expect("valid JSON");
+--- state=failed write site on spawn error ---
+61:        snapshot.state = SidecarPhase::Failed;
+75:            snapshot.state = SidecarPhase::Failed;
+671:        assert_eq!(wire["state"], "failed");
+684:        assert_eq!(snapshot.state, SidecarPhase::Failed);
+--- sidecar-client.ts zero-port / failed-state handling ---
+99:  if (status.state === "failed") {

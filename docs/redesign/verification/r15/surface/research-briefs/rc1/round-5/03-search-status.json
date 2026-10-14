@@ -1,0 +1,2 @@
+{"tier":"t1_keyless","available":true,"engines":[{"id":"ddg","label":"DuckDuckGo","state":"half_open","cooldown_remaining_s":0.0,"min_interval_s":3.0,"detail":"DuckDuckGo probing after cooldown"},{"id":"brave","label":"Brave","state":"half_open","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Brave probing after cooldown"},{"id":"mojeek","label":"Mojeek","state":"half_open","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Mojeek probing after cooldown"}]}
+HTTP 200

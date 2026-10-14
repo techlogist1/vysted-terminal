@@ -1,0 +1,12 @@
+{
+  "sha": "d38b5d1a2487bd52fe8a7e741a3a5266e3206611",
+  "data_dir": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-shared-data",
+  "binaries": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/src-tauri/binaries",
+  "started_by": "final-preflight",
+  "stop": "kill the sleep_pid only (closes stdin; the worker's watchdog exits it)",
+  "processes": {
+    "main": {"port": 52800, "sleep_pid": 22800, "worker_pid": 22799, "log": "final-pass/logs/shared-main.log"},
+    "openbb-mcp": {"port": 52801, "sleep_pid": 20806, "worker_pid": 20805, "log": "final-pass/logs/shared-openbb-mcp.log"},
+    "sec-edgar-mcp": {"port": 52802, "sleep_pid": 22413, "worker_pid": 22412, "log": "final-pass/logs/shared-sec-edgar-mcp.log"}
+  }
+}

@@ -1,0 +1,7 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; scratch vitest b16-fe/probe/fe4.test.ts (real modules/stores/PluginRuntime; own config, not the repo suite), EXIT=0
+PROBE openPanel('marketplace-panel') (the old dead literal) -> false addPanel calls 0 console.error: ["openPanel: no registered panel \"marketplace-panel\" (a component id?)"]
+PROBE openPanel('marketplace') (current call sites) -> true addPanel calls 1 
+$ grep -rn "openPanel(\"marketplace" src (non-test)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/components/SettingsPanel.tsx:1709:          <Button size="sm" variant="outline" onClick={() => openPanel("marketplace")}>
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/components/PluginManagerPanel.tsx:72:            onClick: () => openPanel("marketplace"),
+pinned: src/lib/open-panel-literals.test.ts (exists: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/lib/open-panel-literals.test.ts)

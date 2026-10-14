@@ -1,0 +1,5136 @@
+{
+ "slot": "P7",
+ "symbol": "JUMBO",
+ "manifest_name": "Jumbo Bag Ltd",
+ "exchange": "BSE",
+ "bse_code": "516078",
+ "collected_at": "2026-09-26T21:36:50+0530",
+ "sidecar": "http://127.0.0.1:52313",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52313/resolve?q=JUMBO",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "JUMBO",
+    "region": "IN",
+    "resolved": {
+     "symbol": "JUMBO",
+     "name": "Jumbo Bag Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "JUMBO.BO",
+     "confidence": 1.0,
+     "isin": "INE699D01015",
+     "bse_code": "516078",
+     "industry": null,
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "XT",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "JUMBO",
+      "name": "Jumbo Bag Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JUMBO.BO",
+      "confidence": 1.0,
+      "isin": "INE699D01015",
+      "bse_code": "516078",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52313/resolve?q=Jumbo+Bag+Ltd",
+   "status": 200,
+   "elapsed_ms": 445,
+   "body": {
+    "ok": true,
+    "query": "Jumbo Bag Ltd",
+    "region": "IN",
+    "resolved": {
+     "symbol": "JUMBO",
+     "name": "Jumbo Bag Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "JUMBO.BO",
+     "confidence": 1.0,
+     "isin": "INE699D01015",
+     "bse_code": "516078",
+     "industry": null,
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "XT",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "JUMBO",
+      "name": "Jumbo Bag Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JUMBO.BO",
+      "confidence": 1.0,
+      "isin": "INE699D01015",
+      "bse_code": "516078",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "JUMBFNL",
+      "name": "Jumbo Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JUMBFNL.BO",
+      "confidence": 0.7333,
+      "isin": "INE122N01017",
+      "bse_code": "511060",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "AMBOAGRI",
+      "name": "Ambo Agritec Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "AMBOAGRI.BO",
+      "confidence": 0.6897,
+      "isin": "INE0N6V01016",
+      "bse_code": "543678",
+      "industry": null,
+      "former_name": null,
+      "board": "SME",
+      "exchange_group": "M",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "PARAMPARA",
+      "name": "PARAMPARA DAIRY DELIGHTS LIMITED",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "PARAMPARA-SM.NS",
+      "confidence": 0.6667,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": "AMJUMBO",
+      "board": "SME",
+      "exchange_group": null,
+      "face_value": 10.0
+     },
+     {
+      "symbol": "MRP",
+      "name": "MRP Agro Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "MRP.BO",
+      "confidence": 0.64,
+      "isin": "INE0D7801012",
+      "bse_code": "543262",
+      "industry": null,
+      "former_name": null,
+      "board": "SME",
+      "exchange_group": "M",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "DUROPACK",
+      "name": "Duro Pack Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DUROPACK.BO",
+      "confidence": 0.6154,
+      "isin": "INE138B01018",
+      "bse_code": "526355",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52313/resolve?q=516078",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "516078",
+    "region": "IN",
+    "resolved": {
+     "symbol": "JUMBO",
+     "name": "Jumbo Bag Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "JUMBO.BO",
+     "confidence": 1.0,
+     "isin": "INE699D01015",
+     "bse_code": "516078",
+     "industry": null,
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "XT",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "JUMBO",
+      "name": "Jumbo Bag Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JUMBO.BO",
+      "confidence": 1.0,
+      "isin": "INE699D01015",
+      "bse_code": "516078",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52313/quotes/JUMBO?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 840,
+   "body": {
+    "symbol": "JUMBO",
+    "price": 89.95,
+    "change": 0.480000000000004,
+    "change_percent": 0.5364926791103208,
+    "volume": 4581.0,
+    "open": 90.62,
+    "high": 90.62,
+    "low": 88.0,
+    "prev_close": 89.47,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-25T00:00:00Z",
+    "provider": "bse",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52313/fundamentals/JUMBO",
+   "status": 200,
+   "elapsed_ms": 7202,
+   "body": {
+    "symbol": "JUMBO.BO",
+    "name": "Jumbo Bag Limited",
+    "sector": "Consumer Cyclical",
+    "industry": "Packaging & Containers",
+    "sector_source": "yfinance",
+    "currency": "INR",
+    "financial_currency": null,
+    "ratio_price": 89.95,
+    "market_cap": 753214272.0,
+    "pe_ratio": 6.5704894,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 1.6546788,
+    "price_to_sales": 0.5793016,
+    "ev_to_ebitda": 6.321,
+    "book_value": 54.361,
+    "dividend_yield": 0.0,
+    "dividend_per_share": null,
+    "eps": 13.9,
+    "beta": 0.182,
+    "fifty_two_week_high": 105.0,
+    "fifty_two_week_low": 49.06,
+    "fifty_two_week_change": -0.032379508,
+    "fifty_two_week_high_date": "2025-10-24",
+    "fifty_two_week_low_date": "2026-03-30",
+    "listing_date": null,
+    "first_trade_date": "2001-12-31",
+    "forward_pe_fiscal_year": null,
+    "roe": 0.24378845231337076,
+    "roa": null,
+    "gross_margin": 0.48299,
+    "operating_margin": 0.17789,
+    "profit_margin": 0.08951,
+    "debt_to_equity": 0.86495,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": 0.23328099661154653,
+    "basis": "standalone",
+    "revenue_ttm": 1300210000.0,
+    "net_income_ttm": 116380000.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 8373700.0,
+    "revenue_growth": 0.4059981072349313,
+    "earnings_growth": 1.4532979194333775,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.64648,
+    "held_percent_institutions": 0.01517,
+    "dividend_per_share_ttm": 0.0,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector_source": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ratio_price": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:52:19+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:52:19+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:52:19+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:52:19+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:52:19+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_book": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:52:19+00:00",
+      "reason": "P/B 1.655 disagrees by 4.6% with market cap / the provider's newest filed stockholders' equity (753,214,272 / 477,377,000 as of 2026-03-31 = 1.58) \u2014 the book value behind it may sit on a stale share count; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:52:19+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:52:19+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "book_value": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": "book value per share 54.36 disagrees by 4.6% with the provider's newest filed stockholders' equity / shares outstanding (477,377,000 as of 2026-03-31 / 8,373,700 = 57.01) \u2014 it may sit on a stale share count; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_yield": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
+      "basis_note": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "beta": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:52:19+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "listing_date": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "first_trade_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe_fiscal_year": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "net income (TTM) / stockholders equity"
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roce": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "annual EBIT / (total assets - current liabilities)"
+     },
+     "basis": {
+      "status": "ok",
+      "provider": "exchange-filings",
+      "as_of": "2026-09-26T16:06:36.288291+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "held_percent_insiders": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": "yfinance insiders 64.65% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (promoter group: 42.77%) beyond 3pp (insiders \u2260 promoter group); kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_institutions": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": "yfinance institutions 1.52% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: 0.00%) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:06:30.689252+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
+      "basis_note": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52313/fundamentals/JUMBO/income",
+   "status": 200,
+   "elapsed_ms": 401,
+   "body": {
+    "symbol": "JUMBO.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2026-03-31": 1148397000.0,
+       "2025-03-31": 1228309000.0,
+       "2024-03-31": 1049734000.0,
+       "2023-03-31": 1083436000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2026-03-31": 1148397000.0,
+       "2025-03-31": 1228309000.0,
+       "2024-03-31": 1049734000.0,
+       "2023-03-31": 1083436000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cost_of_revenue",
+      "values": {
+       "2026-03-31": 749081000.0,
+       "2025-03-31": 896129000.0,
+       "2024-03-31": 587683000.0,
+       "2023-03-31": 811681000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gross_profit",
+      "values": {
+       "2026-03-31": 399316000.0,
+       "2025-03-31": 332180000.0,
+       "2024-03-31": 462051000.0,
+       "2023-03-31": 271755000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "rent_and_landing_fees",
+      "values": {
+       "2026-03-31": 2120000.0,
+       "2025-03-31": null,
+       "2024-03-31": 971000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "general_and_administrative_expense",
+      "values": {
+       "2026-03-31": 9014000.0,
+       "2025-03-31": null,
+       "2024-03-31": 9049000.0,
+       "2023-03-31": 10107000.0,
+       "2022-03-31": 8852000.0
+      }
+     },
+     {
+      "label": "selling_and_marketing_expense",
+      "values": {
+       "2026-03-31": 27316000.0,
+       "2025-03-31": 30441000.0,
+       "2024-03-31": 18857000.0,
+       "2023-03-31": 20701000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2026-03-31": 36330000.0,
+       "2025-03-31": 37263000.0,
+       "2024-03-31": 27906000.0,
+       "2023-03-31": 30808000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "research_and_development_expense",
+      "values": {
+       "2026-03-31": 2290000.0,
+       "2025-03-31": 2320000.0,
+       "2024-03-31": 1814000.0,
+       "2023-03-31": 2250000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "depreciation_income_statement",
+      "values": {
+       "2026-03-31": 26138000.0,
+       "2025-03-31": 22858000.0,
+       "2024-03-31": 22325000.0,
+       "2023-03-31": 23893000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "depreciation_and_amortization_in_income_statement",
+      "values": {
+       "2026-03-31": 26138000.0,
+       "2025-03-31": 22858000.0,
+       "2024-03-31": 22325000.0,
+       "2023-03-31": 23893000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_operating_expenses",
+      "values": {
+       "2026-03-31": 93672000.0,
+       "2025-03-31": 83381000.0,
+       "2024-03-31": 65891000.0,
+       "2023-03-31": 68948000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "operating_expense",
+      "values": {
+       "2026-03-31": 290401000.0,
+       "2025-03-31": 270679000.0,
+       "2024-03-31": 227402000.0,
+       "2023-03-31": 220471000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "operating_income",
+      "values": {
+       "2026-03-31": 108915000.0,
+       "2025-03-31": 61501000.0,
+       "2024-03-31": 48649000.0,
+       "2023-03-31": 51284000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_income_non_operating",
+      "values": {
+       "2026-03-31": 12518000.0,
+       "2025-03-31": 15793000.0,
+       "2024-03-31": 15020000.0,
+       "2023-03-31": 6425000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_expense_non_operating",
+      "values": {
+       "2026-03-31": 29115000.0,
+       "2025-03-31": 34042000.0,
+       "2024-03-31": 32578000.0,
+       "2023-03-31": 26298000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_other_finance_cost",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 4292000.0,
+       "2023-03-31": 10896000.0,
+       "2022-03-31": 7141000.0
+      }
+     },
+     {
+      "label": "net_non_operating_interest_income_expense",
+      "values": {
+       "2026-03-31": -16597000.0,
+       "2025-03-31": -18249000.0,
+       "2024-03-31": -32578000.0,
+       "2023-03-31": -30769000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "impairment_of_capital_assets",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 0.0,
+       "2024-03-31": 17871000.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "write_off",
+      "values": {
+       "2026-03-31": 53000.0,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": 600000.0
+      }
+     },
+     {
+      "label": "other_special_charges",
+      "values": {
+       "2026-03-31": -18300000.0,
+       "2025-03-31": null,
+       "2024-03-31": 17871000.0,
+       "2023-03-31": 3671000.0,
+       "2022-03-31": 36123000.0
+      }
+     },
+     {
+      "label": "special_income_charges",
+      "values": {
+       "2026-03-31": 18247000.0,
+       "2025-03-31": -1615000.0,
+       "2024-03-31": -17871000.0,
+       "2023-03-31": -3671000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_operating_income_expenses",
+      "values": {
+       "2026-03-31": 787000.0,
+       "2025-03-31": 31000.0,
+       "2024-03-31": 4516000.0,
+       "2023-03-31": 306000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2026-03-31": 115599000.0,
+       "2025-03-31": 49634000.0,
+       "2024-03-31": 13775000.0,
+       "2023-03-31": 18908000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2026-03-31": 32044000.0,
+       "2025-03-31": 17262000.0,
+       "2024-03-31": 1887000.0,
+       "2023-03-31": 4188000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2026-03-31": 83555000.0,
+       "2025-03-31": 32372000.0,
+       "2024-03-31": 11888000.0,
+       "2023-03-31": 14720000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2026-03-31": 83555000.0,
+       "2025-03-31": 32372000.0,
+       "2024-03-31": 11888000.0,
+       "2023-03-31": 14720000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2026-03-31": 83554000.0,
+       "2025-03-31": 32371000.0,
+       "2024-03-31": 11888000.0,
+       "2023-03-31": 14721000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "otherunder_preferred_stock_dividend",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2026-03-31": 83554000.0,
+       "2025-03-31": 32371000.0,
+       "2024-03-31": 11888000.0,
+       "2023-03-31": 14721000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2026-03-31": 83554000.0,
+       "2025-03-31": 32371000.0,
+       "2024-03-31": 11888000.0,
+       "2023-03-31": 14721000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2026-03-31": 9.98,
+       "2025-03-31": 3.87,
+       "2024-03-31": 1.42,
+       "2023-03-31": 1.76,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2026-03-31": 9.77,
+       "2025-03-31": 3.87,
+       "2024-03-31": 1.42,
+       "2023-03-31": 1.76,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2026-03-31": 8373700.0,
+       "2025-03-31": 8373700.0,
+       "2024-03-31": 8373000.0,
+       "2023-03-31": 8373000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2026-03-31": 8452184.0,
+       "2025-03-31": 8373700.0,
+       "2024-03-31": 8373000.0,
+       "2023-03-31": 8373000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "rent_expense_supplemental",
+      "values": {
+       "2026-03-31": 2120000.0,
+       "2025-03-31": null,
+       "2024-03-31": 971000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_expenses",
+      "values": {
+       "2026-03-31": 1039482000.0,
+       "2025-03-31": 1166808000.0,
+       "2024-03-31": 970906000.0,
+       "2023-03-31": 1032152000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2026-03-31": 83554000.0,
+       "2025-03-31": 32371000.0,
+       "2024-03-31": 11888000.0,
+       "2023-03-31": 14721000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2026-03-31": 70365068.4,
+       "2025-03-31": 33554633.5,
+       "2024-03-31": 27310673.0,
+       "2023-03-31": 17578139.3,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_income",
+      "values": {
+       "2026-03-31": 12518000.0,
+       "2025-03-31": 15793000.0,
+       "2024-03-31": 15020000.0,
+       "2023-03-31": 6425000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_expense",
+      "values": {
+       "2026-03-31": 29115000.0,
+       "2025-03-31": 34042000.0,
+       "2024-03-31": 32578000.0,
+       "2023-03-31": 26298000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2026-03-31": -16597000.0,
+       "2025-03-31": -18249000.0,
+       "2024-03-31": -32578000.0,
+       "2023-03-31": -30769000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "ebit",
+      "values": {
+       "2026-03-31": 144714000.0,
+       "2025-03-31": 83676000.0,
+       "2024-03-31": 46353000.0,
+       "2023-03-31": 45206000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "ebitda",
+      "values": {
+       "2026-03-31": 170852000.0,
+       "2025-03-31": 106534000.0,
+       "2024-03-31": 68678000.0,
+       "2023-03-31": 69099000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "reconciled_cost_of_revenue",
+      "values": {
+       "2026-03-31": 749081000.0,
+       "2025-03-31": 896129000.0,
+       "2024-03-31": 587683000.0,
+       "2023-03-31": 811681000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2026-03-31": 26138000.0,
+       "2025-03-31": 22858000.0,
+       "2024-03-31": 22325000.0,
+       "2023-03-31": 23893000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2026-03-31": 83554000.0,
+       "2025-03-31": 32371000.0,
+       "2024-03-31": 11888000.0,
+       "2023-03-31": 14721000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2026-03-31": 18247000.0,
+       "2025-03-31": -1615000.0,
+       "2024-03-31": -17871000.0,
+       "2023-03-31": -3671000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2026-03-31": 18247000.0,
+       "2025-03-31": -1615000.0,
+       "2024-03-31": -17871000.0,
+       "2023-03-31": -3671000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "normalized_ebitda",
+      "values": {
+       "2026-03-31": 152605000.0,
+       "2025-03-31": 108149000.0,
+       "2024-03-31": 86549000.0,
+       "2023-03-31": 72770000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2026-03-31": 0.2772,
+       "2025-03-31": 0.2671,
+       "2024-03-31": 0.137,
+       "2023-03-31": 0.2217,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2026-03-31": 5058068.4,
+       "2025-03-31": -431366.5,
+       "2024-03-31": -2448327.0,
+       "2023-03-31": -813860.7,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52313/fundamentals/JUMBO/balance",
+   "status": 200,
+   "elapsed_ms": 414,
+   "body": {
+    "symbol": "JUMBO.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_financial",
+      "values": {
+       "2026-03-31": 64000.0,
+       "2025-03-31": 6253000.0,
+       "2024-03-31": 6408000.0,
+       "2023-03-31": 14460000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_equivalents",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2026-03-31": 64000.0,
+       "2025-03-31": 31440000.0,
+       "2024-03-31": 6408000.0,
+       "2023-03-31": 14460000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "short_term_investments",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 779000.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_cash_equivalents_and_short_term_investments",
+      "values": {
+       "2026-03-31": 64000.0,
+       "2025-03-31": 6253000.0,
+       "2024-03-31": 7187000.0,
+       "2023-03-31": 14460000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gross_accounts_receivable",
+      "values": {
+       "2026-03-31": 302535000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "allowance_for_doubtful_accounts_receivable",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2026-03-31": 302535000.0,
+       "2025-03-31": 351590000.0,
+       "2024-03-31": 304392000.0,
+       "2023-03-31": 337915000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "taxes_receivable",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 12150000.0,
+       "2024-03-31": 10320000.0,
+       "2023-03-31": 19524000.0,
+       "2022-03-31": 40126000.0
+      }
+     },
+     {
+      "label": "other_receivables",
+      "values": {
+       "2026-03-31": 838000.0,
+       "2025-03-31": 920000.0,
+       "2024-03-31": 356000.0,
+       "2023-03-31": 18227000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "raw_materials",
+      "values": {
+       "2026-03-31": 82382000.0,
+       "2025-03-31": null,
+       "2024-03-31": 82664000.0,
+       "2023-03-31": 69973000.0,
+       "2022-03-31": 56435000.0
+      }
+     },
+     {
+      "label": "work_in_process",
+      "values": {
+       "2026-03-31": 95803000.0,
+       "2025-03-31": null,
+       "2024-03-31": 72812000.0,
+       "2023-03-31": 97140000.0,
+       "2022-03-31": 149865000.0
+      }
+     },
+     {
+      "label": "finished_goods",
+      "values": {
+       "2026-03-31": 68169000.0,
+       "2025-03-31": null,
+       "2024-03-31": 53805000.0,
+       "2023-03-31": 71226000.0,
+       "2022-03-31": 53725000.0
+      }
+     },
+     {
+      "label": "other_inventories",
+      "values": {
+       "2026-03-31": 2810000.0,
+       "2025-03-31": 3304000.0,
+       "2024-03-31": 2234000.0,
+       "2023-03-31": 2087000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "inventories",
+      "values": {
+       "2026-03-31": 249164000.0,
+       "2025-03-31": 220473000.0,
+       "2024-03-31": 211515000.0,
+       "2023-03-31": 240426000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "prepaid_assets",
+      "values": {
+       "2026-03-31": 49838000.0,
+       "2025-03-31": 35399000.0,
+       "2024-03-31": 3629000.0,
+       "2023-03-31": 5740000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "restricted_cash",
+      "values": {
+       "2026-03-31": 32293000.0,
+       "2025-03-31": 25187000.0,
+       "2024-03-31": 17060000.0,
+       "2023-03-31": 16998000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "assets_held_for_sale_current",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 0.0,
+       "2024-03-31": 1831000.0,
+       "2023-03-31": 1831000.0,
+       "2022-03-31": 2240000.0
+      }
+     },
+     {
+      "label": "other_current_assets",
+      "values": {
+       "2026-03-31": -1000.0,
+       "2025-03-31": 30483000.0,
+       "2024-03-31": 14717000.0,
+       "2023-03-31": 17871000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_current_assets",
+      "values": {
+       "2026-03-31": 634731000.0,
+       "2025-03-31": 639822000.0,
+       "2024-03-31": 570651000.0,
+       "2023-03-31": 655121000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "properties",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "land_and_improvements",
+      "values": {
+       "2026-03-31": 121486000.0,
+       "2025-03-31": 119951000.0,
+       "2024-03-31": null,
+       "2023-03-31": 120000000.0,
+       "2022-03-31": 120000000.0
+      }
+     },
+     {
+      "label": "buildings_and_improvements",
+      "values": {
+       "2026-03-31": 61131000.0,
+       "2025-03-31": 60935000.0,
+       "2024-03-31": 60830000.0,
+       "2023-03-31": 51825000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2026-03-31": 204366000.0,
+       "2025-03-31": 137450000.0,
+       "2024-03-31": null,
+       "2023-03-31": 87659000.0,
+       "2022-03-31": 149603000.0
+      }
+     },
+     {
+      "label": "other_properties",
+      "values": {
+       "2026-03-31": 46035000.0,
+       "2025-03-31": 52449000.0,
+       "2024-03-31": 54312000.0,
+       "2023-03-31": 6030000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2026-03-31": 74559000.0,
+       "2025-03-31": 55718000.0,
+       "2024-03-31": 156000.0,
+       "2023-03-31": 2500000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2026-03-31": 507577000.0,
+       "2025-03-31": 426503000.0,
+       "2024-03-31": 347972000.0,
+       "2023-03-31": 268014000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2026-03-31": -77536000.0,
+       "2025-03-31": -61417000.0,
+       "2024-03-31": -41533000.0,
+       "2023-03-31": -135837000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2026-03-31": 430041000.0,
+       "2025-03-31": 365086000.0,
+       "2024-03-31": 306439000.0,
+       "2023-03-31": 268014000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_intangible_assets",
+      "values": {
+       "2026-03-31": 5970000.0,
+       "2025-03-31": 5025000.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2026-03-31": 5970000.0,
+       "2025-03-31": 5025000.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investment_properties",
+      "values": {
+       "2026-03-31": 1831000.0,
+       "2025-03-31": 1831000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "financial_assets_designatedas_fair_value_through_profitor_loss_total",
+      "values": {
+       "2026-03-31": 2004000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "available_for_sale_securities",
+      "values": {
+       "2026-03-31": 1241000.0,
+       "2025-03-31": 12791000.0,
+       "2024-03-31": 861000.0,
+       "2023-03-31": 798000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investmentin_financial_assets",
+      "values": {
+       "2026-03-31": 3245000.0,
+       "2025-03-31": 12791000.0,
+       "2024-03-31": 861000.0,
+       "2023-03-31": 798000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_prepaid_assets",
+      "values": {
+       "2026-03-31": 13045000.0,
+       "2025-03-31": null,
+       "2024-03-31": 9953000.0,
+       "2023-03-31": 13920000.0,
+       "2022-03-31": 13927000.0
+      }
+     },
+     {
+      "label": "other_non_current_assets",
+      "values": {
+       "2026-03-31": 74559000.0,
+       "2025-03-31": -183000.0,
+       "2024-03-31": null,
+       "2023-03-31": 1000.0,
+       "2022-03-31": -9101000.0
+      }
+     },
+     {
+      "label": "total_non_current_assets",
+      "values": {
+       "2026-03-31": 454132000.0,
+       "2025-03-31": 384835000.0,
+       "2024-03-31": 317744000.0,
+       "2023-03-31": 283326000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2026-03-31": 1088863000.0,
+       "2025-03-31": 1024657000.0,
+       "2024-03-31": 888395000.0,
+       "2023-03-31": 938447000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accounts_payable",
+      "values": {
+       "2026-03-31": 113418000.0,
+       "2025-03-31": 99169000.0,
+       "2024-03-31": 114259000.0,
+       "2023-03-31": 131147000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_tax_payable",
+      "values": {
+       "2026-03-31": 2142000.0,
+       "2025-03-31": 4915000.0,
+       "2024-03-31": 979000.0,
+       "2023-03-31": 848000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "dividends_payable",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 0.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "other_payable",
+      "values": {
+       "2026-03-31": 1748000.0,
+       "2025-03-31": 2175000.0,
+       "2024-03-31": 3571000.0,
+       "2023-03-31": 99000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "payables",
+      "values": {
+       "2026-03-31": 117308000.0,
+       "2025-03-31": 106259000.0,
+       "2024-03-31": 118809000.0,
+       "2023-03-31": 131995000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_provisions",
+      "values": {
+       "2026-03-31": 30637000.0,
+       "2025-03-31": 35050000.0,
+       "2024-03-31": 26243000.0,
+       "2023-03-31": 26942000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_debt",
+      "values": {
+       "2026-03-31": 297679000.0,
+       "2025-03-31": 355495000.0,
+       "2024-03-31": 309447000.0,
+       "2023-03-31": 355767000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 1872000.0,
+       "2025-03-31": 5320000.0,
+       "2024-03-31": 5232000.0,
+       "2023-03-31": 3862000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 299551000.0,
+       "2025-03-31": 360815000.0,
+       "2024-03-31": 314679000.0,
+       "2023-03-31": 359629000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_current_liabilities",
+      "values": {
+       "2026-03-31": -1000.0,
+       "2025-03-31": 20570000.0,
+       "2024-03-31": -1000.0,
+       "2023-03-31": 99000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_liabilities",
+      "values": {
+       "2026-03-31": 468521000.0,
+       "2025-03-31": 520519000.0,
+       "2024-03-31": 463032000.0,
+       "2023-03-31": 518665000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_provisions",
+      "values": {
+       "2026-03-31": 5109000.0,
+       "2025-03-31": 8975000.0,
+       "2024-03-31": 68000.0,
+       "2023-03-31": 68000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt",
+      "values": {
+       "2026-03-31": 107853000.0,
+       "2025-03-31": 99812000.0,
+       "2024-03-31": 55534000.0,
+       "2023-03-31": 73502000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 5505000.0,
+       "2025-03-31": 4501000.0,
+       "2024-03-31": 8656000.0,
+       "2023-03-31": 699000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 113358000.0,
+       "2025-03-31": 104313000.0,
+       "2024-03-31": 64190000.0,
+       "2023-03-31": 74201000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": 18872000.0,
+       "2025-03-31": 11902000.0,
+       "2024-03-31": 12087000.0,
+       "2023-03-31": 13939000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_revenue",
+      "values": {
+       "2026-03-31": 2998000.0,
+       "2025-03-31": null,
+       "2024-03-31": 3597000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tradeand_other_payables_non_current",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 134000.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_pension_and_other_postretirement_benefit_plans",
+      "values": {
+       "2026-03-31": 5109000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_current_liabilities",
+      "values": {
+       "2026-03-31": 2628000.0,
+       "2025-03-31": 6089000.0,
+       "2024-03-31": 3360000.0,
+       "2023-03-31": 2992000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_non_current_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 142965000.0,
+       "2025-03-31": 131279000.0,
+       "2024-03-31": 89385000.0,
+       "2023-03-31": 91200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 611486000.0,
+       "2025-03-31": 651798000.0,
+       "2024-03-31": 552417000.0,
+       "2023-03-31": 609865000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2026-03-31": 87817000.0,
+       "2025-03-31": 87817000.0,
+       "2024-03-31": 87817000.0,
+       "2023-03-31": 87817000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2026-03-31": 87817000.0,
+       "2025-03-31": 87817000.0,
+       "2024-03-31": 87817000.0,
+       "2023-03-31": 87817000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "additional_paid_in_capital",
+      "values": {
+       "2026-03-31": 38120000.0,
+       "2025-03-31": null,
+       "2024-03-31": 38120000.0,
+       "2023-03-31": 38120000.0,
+       "2022-03-31": 38120000.0
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2026-03-31": 192425000.0,
+       "2025-03-31": 108877000.0,
+       "2024-03-31": 70933000.0,
+       "2023-03-31": 59045000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "fixed_assets_revaluation_reserve",
+      "values": {
+       "2026-03-31": 122987000.0,
+       "2025-03-31": 123571000.0,
+       "2024-03-31": 124758000.0,
+       "2023-03-31": 125341000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_equity_interest",
+      "values": {
+       "2026-03-31": 21960000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 229094000.0
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2026-03-31": 477377000.0,
+       "2025-03-31": 372859000.0,
+       "2024-03-31": 335978000.0,
+       "2023-03-31": 328582000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2026-03-31": 477377000.0,
+       "2025-03-31": 372859000.0,
+       "2024-03-31": 335978000.0,
+       "2023-03-31": 328582000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2026-03-31": 585230000.0,
+       "2025-03-31": 472671000.0,
+       "2024-03-31": 391512000.0,
+       "2023-03-31": 402084000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2026-03-31": 477377000.0,
+       "2025-03-31": 372859000.0,
+       "2024-03-31": 335978000.0,
+       "2023-03-31": 328582000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_lease_obligations",
+      "values": {
+       "2026-03-31": 7377000.0,
+       "2025-03-31": 9821000.0,
+       "2024-03-31": 13888000.0,
+       "2023-03-31": 4561000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2026-03-31": 471407000.0,
+       "2025-03-31": 367834000.0,
+       "2024-03-31": 335978000.0,
+       "2023-03-31": 328582000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "working_capital",
+      "values": {
+       "2026-03-31": 166210000.0,
+       "2025-03-31": 119303000.0,
+       "2024-03-31": 107619000.0,
+       "2023-03-31": 136456000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2026-03-31": 882909000.0,
+       "2025-03-31": 828166000.0,
+       "2024-03-31": 700959000.0,
+       "2023-03-31": 757851000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2026-03-31": 471407000.0,
+       "2025-03-31": 367834000.0,
+       "2024-03-31": 335978000.0,
+       "2023-03-31": 328582000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2026-03-31": 412909000.0,
+       "2025-03-31": 465128000.0,
+       "2024-03-31": 378869000.0,
+       "2023-03-31": 433830000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_debt",
+      "values": {
+       "2026-03-31": 405468000.0,
+       "2025-03-31": 449054000.0,
+       "2024-03-31": 358573000.0,
+       "2023-03-31": 414809000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "share_issued",
+      "values": {
+       "2026-03-31": 8373700.0,
+       "2025-03-31": 8373700.0,
+       "2024-03-31": 8373700.0,
+       "2023-03-31": 8373700.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "ordinary_shares_number",
+      "values": {
+       "2026-03-31": 8373700.0,
+       "2025-03-31": 8373700.0,
+       "2024-03-31": 8373700.0,
+       "2023-03-31": 8373700.0,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52313/fundamentals/JUMBO/cashflow",
+   "status": 200,
+   "elapsed_ms": 283,
+   "body": {
+    "symbol": "JUMBO.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2026-03-31": 115599000.0,
+       "2025-03-31": 49634000.0,
+       "2024-03-31": 13775000.0,
+       "2023-03-31": 18893000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_foreign_currency_exchange_gain_loss",
+      "values": {
+       "2026-03-31": -4245000.0,
+       "2025-03-31": -1275000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gain_loss_on_investment_securities",
+      "values": {
+       "2026-03-31": -3300000.0,
+       "2025-03-31": -685000.0,
+       "2024-03-31": null,
+       "2023-03-31": 512000.0,
+       "2022-03-31": -2977000.0
+      }
+     },
+     {
+      "label": "depreciation",
+      "values": {
+       "2026-03-31": 26138000.0,
+       "2025-03-31": 22858000.0,
+       "2024-03-31": 22325000.0,
+       "2023-03-31": 23893000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2026-03-31": 26138000.0,
+       "2025-03-31": 22858000.0,
+       "2024-03-31": 22325000.0,
+       "2023-03-31": 23893000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "deferred_tax",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 229000.0,
+       "2024-03-31": -1920000.0,
+       "2023-03-31": -1111000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2026-03-31": 22314000.0,
+       "2025-03-31": 28398000.0,
+       "2024-03-31": 23798000.0,
+       "2023-03-31": 25321000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2026-03-31": 47622000.0,
+       "2025-03-31": -49219000.0,
+       "2024-03-31": 38854000.0,
+       "2023-03-31": 64188000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_inventory",
+      "values": {
+       "2026-03-31": -28691000.0,
+       "2025-03-31": -8958000.0,
+       "2024-03-31": 28911000.0,
+       "2023-03-31": 21812000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_payable",
+      "values": {
+       "2026-03-31": 14248000.0,
+       "2025-03-31": -15091000.0,
+       "2024-03-31": -10415000.0,
+       "2023-03-31": -29626000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_assets",
+      "values": {
+       "2026-03-31": -38206000.0,
+       "2025-03-31": -51448000.0,
+       "2024-03-31": 8817000.0,
+       "2023-03-31": 2566000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_liabilities",
+      "values": {
+       "2026-03-31": -706000.0,
+       "2025-03-31": 7651000.0,
+       "2024-03-31": 11825000.0,
+       "2023-03-31": -8376000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2026-03-31": -14011000.0,
+       "2025-03-31": -106723000.0,
+       "2024-03-31": 72806000.0,
+       "2023-03-31": 55100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "taxes_refund_paid",
+      "values": {
+       "2026-03-31": -27315000.0,
+       "2025-03-31": -13033000.0,
+       "2024-03-31": -3807000.0,
+       "2023-03-31": -5299000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2026-03-31": 115233000.0,
+       "2025-03-31": -18297000.0,
+       "2024-03-31": 126978000.0,
+       "2023-03-31": 117285000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2026-03-31": -66394000.0,
+       "2025-03-31": -38223000.0,
+       "2024-03-31": -53348000.0,
+       "2023-03-31": -34868000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "sale_of_ppe",
+      "values": {
+       "2026-03-31": 3300000.0,
+       "2025-03-31": 1588000.0,
+       "2024-03-31": 599000.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2026-03-31": -63094000.0,
+       "2025-03-31": -36635000.0,
+       "2024-03-31": -52749000.0,
+       "2023-03-31": -34868000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "purchase_of_investment",
+      "values": {
+       "2026-03-31": -1984000.0,
+       "2025-03-31": -400000.0,
+       "2024-03-31": -63000.0,
+       "2023-03-31": -146000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_investment_purchase_and_sale",
+      "values": {
+       "2026-03-31": -1984000.0,
+       "2025-03-31": -400000.0,
+       "2024-03-31": -63000.0,
+       "2023-03-31": -146000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "interest_received_cfi",
+      "values": {
+       "2026-03-31": 1974000.0,
+       "2025-03-31": 1800000.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_other_investing_changes",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": -11000.0,
+       "2024-03-31": 1000.0,
+       "2023-03-31": -12000.0,
+       "2022-03-31": -4000.0
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2026-03-31": -63104000.0,
+       "2025-03-31": -35246000.0,
+       "2024-03-31": -52812000.0,
+       "2023-03-31": -35026000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2026-03-31": 8040000.0,
+       "2025-03-31": 44278000.0,
+       "2024-03-31": -7279000.0,
+       "2023-03-31": 11190000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "short_term_debt_issuance",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 25858000.0
+      }
+     },
+     {
+      "label": "short_term_debt_payments",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": -49907000.0,
+       "2023-03-31": -57954000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_short_term_debt_issuance",
+      "values": {
+       "2026-03-31": -57803000.0,
+       "2025-03-31": 46048000.0,
+       "2024-03-31": -49907000.0,
+       "2023-03-31": -57954000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2026-03-31": -49763000.0,
+       "2025-03-31": 90326000.0,
+       "2024-03-31": -57186000.0,
+       "2023-03-31": -46764000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "issuance_of_common_equity",
+      "values": {
+       "2026-03-31": 21960000.0,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_common_stock_issuance",
+      "values": {
+       "2026-03-31": 21960000.0,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "interest_paid_cff",
+      "values": {
+       "2026-03-31": -25243000.0,
+       "2025-03-31": -28813000.0,
+       "2024-03-31": -26057000.0,
+       "2023-03-31": -26298000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_other_financing_charges",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 2259000.0,
+       "2023-03-31": 977000.0,
+       "2022-03-31": 2506000.0
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2026-03-31": -53046000.0,
+       "2025-03-31": 61513000.0,
+       "2024-03-31": -82156000.0,
+       "2023-03-31": -72049000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2026-03-31": -917000.0,
+       "2025-03-31": 7970000.0,
+       "2024-03-31": -7990000.0,
+       "2023-03-31": 10210000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2026-03-31": 31440000.0,
+       "2025-03-31": 23469000.0,
+       "2024-03-31": 31458000.0,
+       "2023-03-31": 21248000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_cash_adjustment_outside_changein_cash",
+      "values": {
+       "2026-03-31": 1834000.0,
+       "2025-03-31": 1000.0,
+       "2024-03-31": 1000.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2026-03-31": 32357000.0,
+       "2025-03-31": 31440000.0,
+       "2024-03-31": 23469000.0,
+       "2023-03-31": 31458000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2026-03-31": -66394000.0,
+       "2025-03-31": -38223000.0,
+       "2024-03-31": -53348000.0,
+       "2023-03-31": -34868000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "issuance_of_capital_stock",
+      "values": {
+       "2026-03-31": 21960000.0,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "issuance_of_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": 25858000.0
+      }
+     },
+     {
+      "label": "repayment_of_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": -49907000.0,
+       "2023-03-31": -57954000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2026-03-31": 48839000.0,
+       "2025-03-31": -56520000.0,
+       "2024-03-31": 73630000.0,
+       "2023-03-31": 82417000.0,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52313/fundamentals/JUMBO/ratings",
+   "status": 200,
+   "elapsed_ms": 228,
+   "body": {
+    "symbol": "JUMBO.BO",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance",
+    "as_of": "2026-09-26T16:06:42.532123Z"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=JUMBO",
+   "status": 200,
+   "elapsed_ms": 4059,
+   "body": {
+    "symbol": "JUMBO",
+    "count": 110,
+    "patterns": [
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2026-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 42.77,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.23,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.23,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/516078_2272026161650_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2026-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 42.8,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.2,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.2,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-07-10",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/516078_1072026161841_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2026-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 42.77,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.23,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.23,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-04-13",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/516078_1342026125733_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2025-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 42.68,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.32,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.32,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-01-08",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/516078_81202617432_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2025-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-10-15",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/516078_15102025155524_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2025-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/516078_2292025154124_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2025-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-07-19",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/516078_1972025133159_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2025-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-04-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1842025152246_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2024-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-01-09",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_912025165314_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2024-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-10-09",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_9102024141723_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2024-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_4112024174546_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2024-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1172024173958_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2024-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-07-11",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_117202410915_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2024-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-04-08",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_842024173028_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2023-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-01-08",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_812024171957_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2023-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 42.6,
+      "fii_percent": 0.0,
+      "dii_percent": 0.0,
+      "institutions_percent": 0.0,
+      "public_percent": 57.4,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 57.4,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_2412024125232_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": "derived",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2023-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_301120231810_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2023-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-10-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_12102023114741_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2023-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_2972023103738_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2023-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-07-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_77202316936_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2023-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-04-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_742023122527_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2022-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-01-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1212023142235_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2022-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_18102022145637_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2022-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-10-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_18102022132625_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2022-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-07-11",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1172022164759_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2022-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-04-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_742022174656_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2021-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-01-11",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_111202211418_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2021-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-10-14",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_12102021163459_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2021-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-07-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1272021134126_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2021-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-04-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1542021164722_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2020-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-01-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_201202117022_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2020-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-10-21",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_2010202019430_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2020-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-07-21",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_2072020182649_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2020-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-04-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1742020211118_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2019-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-01-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_18120201015_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2019-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-10-22",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_19102019135848_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2019-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-07-22",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_2072019175836_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2019-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-04-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_2042019155132_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2018-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-01-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1912019171620_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2018-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-10-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1610201817035_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2018-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-07-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1972018183154_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2018-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-04-17",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1742018103544_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2017-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-01-13",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1212018172339_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2017-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-10-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_20102017123752_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2017-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-07-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_15720171613_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2017-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-04-17",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_154201716304_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2016-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-01-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_1812017161542_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2016-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-10-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_15102016125538_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2016-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-07-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/516078_127201617036_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2016-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2015-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2015-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2015-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2015-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2014-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2014-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2014-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2014-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2013-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2013-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2013-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2013-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2012-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2012-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2012-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2012-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2011-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2011-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2011-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2011-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2010-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2010-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2010-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2010-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2009-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2009-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2009-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2009-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2008-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2008-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2008-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2008-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2007-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2007-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2007-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2007-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2006-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2006-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2006-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2006-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2005-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2005-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2005-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2005-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2004-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2004-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2004-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2004-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2003-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2003-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2003-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2003-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2002-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2002-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2002-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2002-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2001-12-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2001-09-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2001-06-30",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "JUMBO",
+      "quarter_end": "2001-03-31",
+      "quarter_basis": null,
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     }
+    ],
+    "coverage": "covered",
+    "note": null,
+    "provider": null,
+    "major_shareholders": [],
+    "source_url": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=JUMBO&limit=25",
+   "status": 200,
+   "elapsed_ms": 205,
+   "body": {
+    "symbol": "JUMBO",
+    "exchange": null,
+    "count": 18,
+    "announcements": [
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/3e1e0488-4d87-465e-8d4b-6136bdba2d7e.pdf",
+      "ts": "2026-09-26T12:33:27.443000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Scrutiniser",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e231bbb0-5ec2-4ee6-baf5-3de236542654.pdf",
+      "ts": "2026-07-31T17:43:26.770000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Appointment Of G A Darshan As An Additional Director.",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/dd36ae46-855c-412e-85ad-ea5fc76a0dbb.pdf",
+      "ts": "2026-07-30T16:09:24.737000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/64e3126e-2c55-47d5-8201-dd24c2391b80.pdf",
+      "ts": "2026-07-30T14:58:26.110000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for Outcome Of Board Meeting For Q1 Financial Results FY-2026-2027",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f9727d21-8c14-4ddf-8479-1883652de2c6.pdf",
+      "ts": "2026-07-30T14:14:24.297000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Board Meeting For Quarterly Results FY 2026-2027 Q1 And Appointment Of D A Darshan As Additional Director.",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/72bdef19-37e4-47f4-9869-b642bba1d7d3.pdf",
+      "ts": "2026-07-27T15:36:00.223000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Applicability Of Corporate Governance.",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/473327ff-19f3-4843-8d18-24f64e675163.pdf",
+      "ts": "2026-07-21T11:32:05.680000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c0f90a75-33b5-4bf7-aad1-ea59ee9d8726.pdf",
+      "ts": "2026-07-09T14:23:41.030000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/886fd1ae-c41a-49ea-98c6-426ffd1d1cf2.pdf",
+      "ts": "2026-07-07T17:52:38.200000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/11768159-c33f-48c8-8baa-c949f4a2dedd.pdf",
+      "ts": "2026-07-06T16:48:58.677000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "36TH AGM TO BE HELD ON 30/07/2026. 10.30 AM THURSDAY.",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d0dd6424-0683-47ab-93b1-afa45631bd52.pdf",
+      "ts": "2026-07-06T10:06:44.247000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/cac916c5-ba37-4979-8f5c-067271fc1277.pdf",
+      "ts": "2026-06-27T12:53:09.940000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Issue Of Duplicate Share Certificates.",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/5490700e-711f-446c-b9e9-c25187b20b2a.pdf",
+      "ts": "2026-06-05T11:14:28.623000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Format of the Initial Disclosure to be made by an entity identified as a Large Corporate : Annexure A",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/326cec37-268c-4506-955b-5eb03acc436b.pdf",
+      "ts": "2026-05-06T18:08:11.450000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for Revised Outcome Of Board Meeting For The Quarter Ended 31St March, 2026.",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/166dab7e-991e-40fa-aa27-e603294e6d4b.pdf",
+      "ts": "2026-04-30T16:54:30.593000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for Board Meeting For Adoption Of Financials For The F.Y 2025-2026, For Recommendation Of 7.5% Final Dividend. Allotment Of Shares For The Preferential Warrant Holders. Fixation Of AGM Date, Venue. Draft Directors'' Report.",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4db9985b-38ff-4b07-a683-cfef838fec55.pdf",
+      "ts": "2026-04-29T17:57:40.947000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Board Meeting For Declaration Financial Results For FY 2025-2026.\r\nRecommendation For Final Dividend .\r\nAllotment Of Shares For Preference Warrant Holders.",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/428c5fa6-19b3-4d73-a430-e554682ab886.pdf",
+      "ts": "2026-04-22T16:55:59.907000+05:30"
+     },
+     {
+      "symbol": "JUMBO",
+      "exchange": "BSE",
+      "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/1c73dff1-8d18-4f30-9537-0f0e679a8fb0.pdf",
+      "ts": "2026-04-06T17:54:11.770000+05:30"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {},
+    "windows": {
+     "BSE": {
+      "window_start": "2026-03-30",
+      "window_end": "2026-09-26"
+     }
+    },
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52313/disclosures/results?symbol=JUMBO",
+   "status": 200,
+   "elapsed_ms": 245,
+   "body": {
+    "symbol": "JUMBO",
+    "count": 10,
+    "events": [
+     {
+      "symbol": "JUMBO",
+      "company": "Jumbo Bag ltd.",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-07-30",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "JUMBO",
+      "company": "Jumbo Bag ltd.",
+      "purpose": "Dividend",
+      "description": null,
+      "date": "2026-04-29",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "JUMBO",
+      "company": "Jumbo Bag ltd.",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-04-29",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "JUMBO",
+      "company": "Jumbo Bag ltd.",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-01-30",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "JUMBO",
+      "company": "Jumbo Bag ltd.",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-10-23",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "JUMBO",
+      "company": "Jumbo Bag ltd.",
+      "purpose": "General",
+      "description": null,
+      "date": "2025-07-31",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "JUMBO",
+      "company": "Jumbo Bag ltd.",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-07-31",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "JUMBO",
+      "company": "Jumbo Bag ltd.",
+      "purpose": "Dividend",
+      "description": null,
+      "date": "2025-05-10",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "JUMBO",
+      "company": "Jumbo Bag ltd.",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-05-10",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "JUMBO",
+      "company": "Jumbo Bag ltd.",
+      "purpose": "General",
+      "description": null,
+      "date": "2025-03-25",
+      "exchange": "BSE"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {},
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

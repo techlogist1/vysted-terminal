@@ -1,0 +1,2 @@
+SSRF case: NO exception raised — result: {'ok': False, 'url': 'https://httpbin.org/redirect-to?url=http://127.0.0.1:52490/secret&status_code=302', 'error': 'blocked redirect to a non-public or non-http(s) URL'}
+Control case: fetched ok, len= 339

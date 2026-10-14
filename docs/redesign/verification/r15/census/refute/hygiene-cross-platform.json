@@ -1,0 +1,110 @@
+[
+  {
+    "raw_id": "HYG-1",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "All three workflows trigger only on push to main and pull_request (no workflow_dispatch, no branch trigger); the newest run is 2026-05-30 on main, the only PRs are #1/#2 merged in May, and the branch is 655 commits past its merge-base, so no windows-latest/ubuntu-latest job has built or tested it. Every static cross-platform claim in this sweep is therefore unobserved.",
+    "evidence": ".github/workflows/test.yml:3-6, .github/workflows/build.yml:3-6, .github/workflows/lint.yml:3-6, .github/workflows/test.yml:13 (matrix windows/macos/ubuntu)",
+    "evidence_checked": "Opened the three workflow headers; ran git log main..HEAD | wc -l (655), git merge-base main HEAD (cfcf5be 2026-05-31), gh run list --limit 3 (latest 2026-05-30T19:08Z on main), gh pr list --state all (#1, #2 only).",
+    "repro_check": "git log --oneline main..HEAD | wc -l -> 655; gh run list --limit 3 -> newest 2026-05-30 main push; gh pr list --state all -> only #1/#2 MERGED May 14"
+  },
+  {
+    "raw_id": "HYG-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "_saksoft_pages() calls fixture.read_text() with no encoding, the fixture has 139 non-ASCII bytes and fails cp1252 decode at byte 0x9d, the test job runs on windows-latest with Python 3.13 and a plain pytest step with no PYTHONUTF8, and nothing skips the tests that use it (test_search_extract.py:471,562). The first Windows run of this branch goes red on a test-only defect.",
+    "evidence": "sidecar/tests/test_search_extract.py:463-464, sidecar/tests/test_search_extract.py:471,478,562, .github/workflows/test.yml:13,39-41,77-81",
+    "evidence_checked": "Opened the fixture loader and its callers, grepped for skip markers (none), read the test workflow matrix and pytest step; decoded the fixture as cp1252 locally.",
+    "repro_check": "python3 -c \"open('sidecar/tests/fixtures/saksoft_outcome_pages.json','rb').read().decode('cp1252')\" -> UnicodeDecodeError 'charmap' codec can't decode byte 0x9d in position 871; 139 bytes >127"
+  },
+  {
+    "raw_id": "HYG-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "detect_device routes anything not Darwin/Linux to _detect_fallback, which hardcodes ram = 8 GiB and a 55% CPU budget; to_dict emits it as ramGib with no estimated flag, and /system/local-model-recommendation picks the onboarding model from it. psutil is not installed, so there is no other RAM source on Windows. Linux reads /proc/meminfo correctly but, like Windows, never detects dedicated VRAM.",
+    "evidence": "sidecar/services/hardware_fit.py:124-132, sidecar/services/hardware_fit.py:182-197, sidecar/services/hardware_fit.py:203-219, sidecar/services/hardware_fit.py:89-103, sidecar/routers/system.py:120-139",
+    "evidence_checked": "Read hardware_fit.py detection + budget + to_dict and the /hardware and /local-model-recommendation routes; checked psutil import in the sidecar venv (ModuleNotFoundError) and requirements (absent).",
+    "repro_check": "code read: platform.system()=='Windows' -> _detect_fallback -> ram_bytes=8*_GIB unconditionally; would confirm live with the raw finding's monkeypatched detect_device(force=True) snippet"
+  },
+  {
+    "raw_id": "HYG-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "install_layout_menu and its call are both #[cfg(target_os = \"macos\")], menu-bridge.ts is the only caller of applyLayoutMode, and the command palette exposes panels/agents/actions/symbols but no layout modes. Off-Mac the only route is /layout, which enqueues arrange_layout through the gate and the additive fit-downgraded path, and its argument names (research-cockpit, single-focus) differ from the menu labels (Fundamental, Technical). The Mac-only scope is a documented choice (lib.rs:344-347), but it still leaves Windows/Linux without the deterministic modes.",
+    "evidence": "src-tauri/src/lib.rs:344-380, src-tauri/src/lib.rs:495-500, src/lib/menu-bridge.ts:1-38, src/lib/layout-templates.ts:690-701, src/modules/chat/ChatSidebar.tsx:667-672, src/components/CommandPalette.tsx:359-372,426-437",
+    "evidence_checked": "Read the cfg-gated menu builder and its setup call, menu-bridge.ts, grepped all applyLayoutMode callers (menu-bridge only), read the /layout slash handler and the command palette groups.",
+    "repro_check": "grep -rn applyLayoutMode src (non-test) -> only src/lib/menu-bridge.ts:33; grep of CommandPalette/command-palette store for layout -> no layout-mode entries"
+  },
+  {
+    "raw_id": "HYG-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The chord bug is real: kill_switch_shortcut() sets SHIFT|SUPER|CONTROL, HotKey::new keeps all bits, and the Windows backend ORs MOD_WIN and MOD_CONTROL into one RegisterHotKey call, so the documented Cmd/Ctrl+Shift+K never matches on any OS. Correction: the shortcut is dormant on every OS whatever chord is registered, because nothing in src/ listens for kill-switch:requested (safety.ts:15-17 says the listener was removed with the kill-switch UI). What the kill switch gates: in the sidecar only BrokerAdapter subscribes and checks is_fired (broker_base.py:103,251,345). It gates no agent-autonomy or other control-plane action, so it goes with the trading removal unless it is deliberately repurposed.",
+    "evidence": "src-tauri/src/kill_switch.rs:20-39,72-81,94-96, ~/.cargo/registry/src/*/global-hotkey-0.7.0/src/hotkey.rs:87-99, ~/.cargo/registry/src/*/global-hotkey-0.7.0/src/platform_impl/windows/mod.rs:77-96, src/store/safety.ts:11-17, sidecar/services/broker_base.py:103,251,345",
+    "evidence_checked": "Read kill_switch.rs, global-hotkey 0.7.0 HotKey::new and the Windows register(); grepped src/ and src-tauri/src for kill-switch:requested listeners (none outside the emitter) and the sidecar for kill_switch consumers outside the safety router (broker_base.py only).",
+    "repro_check": "grep -rn 'kill-switch:requested' src -> only a comment in src/store/safety.ts:13; grep -rn 'kill_switch|is_fired' sidecar (non-test) -> services/broker_base.py only"
+  },
+  {
+    "raw_id": "HYG-6",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "persistNoteMd and NotesPanel's exportBaseName each replace only / and \\, SymbolChipInput commits free text (trim + upper-case only), and the Rust write_text_atomic passes the path to File::create/rename without validating it. So 'NSE:RELIANCE' or 'CON' produce an invalid or ADS-addressed Windows filename, and persistNoteMd's empty catch swallows the failure. The workspace blob still holds the note, so no data is lost.",
+    "evidence": "src/modules/notes/notes-persistence.ts:59-73, src/modules/notes/NotesPanel.tsx:220,333,424-433, src-tauri/src/lib.rs:287-310, src/lib/export-artifact.ts:78-106",
+    "evidence_checked": "Read the two sanitiser sites, the symbol chip input and its commit target, the Rust atomic writer, and the export path joins.",
+    "repro_check": "code read: scope 'NSE:RELIANCE' -> filename 'NSE:RELIANCE.md' -> write_text_atomic File::create on Windows fails or targets an ADS -> catch {} swallows; would confirm live on the ROG Windows box"
+  },
+  {
+    "raw_id": "HYG-7",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "save_workspace calls os.replace once with no retry (it does clean its temp in finally), and the POST route catches only WorkspaceNameError, so a Windows PermissionError from a concurrent reader or scanner becomes a 500. Both Rust atomic writers rename once and return early on error with no temp cleanup, which leaks '<name>.tmp.<pid>'. Rare but real on Windows.",
+    "evidence": "sidecar/services/workspace_store.py:69-94, sidecar/routers/workspace.py:53-60, src-tauri/src/lib.rs:287-310,318-342",
+    "evidence_checked": "Read workspace_store.save_workspace, the workspace router, the app exception handlers (only ProviderError is registered, app.py:312), and both Rust writers.",
+    "repro_check": "code read only (Windows sharing-violation needs a Windows host): hold the .vysted-workspace open without FILE_SHARE_DELETE and POST /workspaces -> expect 500 PermissionError"
+  },
+  {
+    "raw_id": "HYG-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The global env mutation is real: openbb_mcp.rs and sec_edgar_mcp.rs call set_var/remove_var from two threads spawned in parallel during setup, on edition 2021 where the call is not unsafe. Correction: the two MCP threads racing each other is not the hazard, because std's env functions are synchronised with each other. The Rust docs say the hazard is concurrent reads through non-std getenv (glibc, GTK/WebKit, libc internals). That narrows the risk to C-level readers running at setup time on Linux/macOS; Windows is safe. The fix shape (pass the ports with .env(...) on the sidecar Command) stands.",
+    "evidence": "src-tauri/src/lib.rs:470-485, src-tauri/src/openbb_mcp.rs:59-60,95-96, src-tauri/src/sec_edgar_mcp.rs:58-59,95-96, src-tauri/Cargo.toml:6, rustup toolchain docs share/doc/rust/html/std/env/fn.set_var.html (Safety: 'no other threads concurrently writing or reading(!) the environment through functions or global variables other than the ones in this module'; 'always safe to call on Windows')",
+    "evidence_checked": "Read the parallel spawn block and every set_var/remove_var site; read the local rustc 1.95 std::env::set_var Safety section.",
+    "repro_check": "grep -n 'set_var|remove_var' src-tauri/src/*.rs -> 8 sites in openbb_mcp.rs + sec_edgar_mcp.rs; not reproducible as a crash (a timing UB); settled by code + std docs"
+  },
+  {
+    "raw_id": "HYG-9",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "page.tsx:233 and :251 hardcode ⌘B/⌘K and ProposedChangesReview.tsx:51,59 hardcode ⌘↵/⌘⌫, while formatBinding already renders Ctrl+ off-Mac. The handlers accept metaKey || ctrlKey (ChatSidebar.tsx:554), so the bindings work and only the labels are wrong. SettingsPanel.tsx:1720 names the palette '⌘K', a minor label-only case.",
+    "evidence": "src/app/page.tsx:233,251, src/modules/chat/ProposedChangesReview.tsx:51,59, src/components/SettingsPanel.tsx:1720, src/store/keybindings.ts:281-291,328-351, src/modules/chat/ChatSidebar.tsx:549-562",
+    "evidence_checked": "grep for ⌘ across src (non-test), read isMacPlatform/formatBinding and the accept/reject key handler.",
+    "repro_check": "grep -rn '⌘' src --include=*.tsx (non-test, non-comment) -> page.tsx:233,251, ProposedChangesReview.tsx:51,59, SettingsPanel.tsx:1720"
+  },
+  {
+    "raw_id": "HYG-10",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "All three ensure scripts create the venv with bare 'python' (win32) or 'python3', with no version check, and never re-validate an existing venv, while CI pins 3.13. ci-local calls bare 'python' twice (for the ruff and requirements-dev installs), and 'python' does not resolve in a non-interactive shell on this Mac.",
+    "evidence": "scripts/ensure-sidecar.mjs:96-100, scripts/ensure-openbb-mcp-sidecar.mjs:106-110, scripts/ensure-sec-edgar-mcp-sidecar.mjs:96-100, package.json scripts.ci-local, .github/workflows/test.yml:39-41",
+    "evidence_checked": "Read the three venv-creation blocks, grepped them for a version check (none), printed package.json ci-local, ran `which python` (not found).",
+    "repro_check": "which python -> 'python not found'; grep version_info|3.13 scripts/ensure-*.mjs -> no hits"
+  },
+  {
+    "raw_id": "HYG-11",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Linux has only the sync-secret-service keyring backend, and os_keychain passes every non-NoEntry error straight through. The onboarding flag is stored in the secret store and refresh() maps any rejection to seen:false, so with no Secret Service provider, onboarding (and BYOK key save) fails on every launch. The debug-build 140 s idle wait is not cfg-gated to macOS. It happens once, because migrate_at then sets migrated=true (keychain.rs:197), and it affects dev builds only.",
+    "evidence": "src-tauri/Cargo.toml:35, src-tauri/src/keychain.rs:63-89, src-tauri/src/keychain.rs:216-293, src/store/onboarding.ts:38-55, src/lib/keychain.ts:48-60",
+    "evidence_checked": "Read the keyring features, os_keychain backend, the dev migrate two-pass with the 140 s sleep, the onboarding store and the appMeta account helper.",
+    "repro_check": "code read only (needs a Linux session without org.freedesktop.secrets): keychain_get -> Err -> onboarding.refresh catch -> seen:false every boot"
+  },
+  {
+    "raw_id": "HYG-12",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "resolve_data_dir uses app.path().app_data_dir(), which on Windows is FOLDERID_RoamingAppData/com.vysted.terminal (dirs::data_dir -> known_folder_roaming_app_data). The sidecar puts everything, including data_cache.db and fundamentals_cache.db, under that single --data-dir, and there is no separate cache dir.",
+    "evidence": "src-tauri/src/lib.rs:116-134,142-151, src-tauri/tauri.conf.json:5, sidecar/config.py:544-549, sidecar/services/data_cache.py:57, sidecar/services/fundamentals_store.py:48, ~/.cargo/registry/src/*/dirs-*/src/win.rs:10-11",
+    "evidence_checked": "Read resolve_data_dir/get_app_data_dir, sidecar get_data_dir, the cache DB filename constants, and the dirs crate's Windows data_dir/data_local_dir mapping; grepped for any cache-dir flag (none).",
+    "repro_check": "grep -n 'fn data_dir' dirs/src/win.rs -> known_folder_roaming_app_data(); grep cache_dir sidecar/main.py sidecar/config.py -> none"
+  }
+]

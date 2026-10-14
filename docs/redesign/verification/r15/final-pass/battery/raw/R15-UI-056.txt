@@ -1,0 +1,12 @@
+# R15-UI-056 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:41+0530
+
+$ git merge-base --is-ancestor 1574ed8 HEAD && echo 'closure 1574ed8 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 1574ed8 NOT an ancestor'
+[exit 0] [0.02s]
+closure 1574ed8 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-056\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/store/screener.test.ts:337:    it("R15-UI-056: the stream's error frame puts the server's reason in store.error", async () => {
+src/store/screener.ts:558:        // R15-UI-056: the engine's own reason (ScreenerErrorFrame) reaches the panel.
+

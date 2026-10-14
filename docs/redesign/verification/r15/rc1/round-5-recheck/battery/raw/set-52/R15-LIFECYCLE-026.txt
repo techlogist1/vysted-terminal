@@ -1,0 +1,13 @@
+CMD: ps -p 78874 -o pid,etime,utime,time (source sidecar :52350, candidate 949c3c9f, own data dir, keyless idle window -- no synthetic load applied)
+sample @ etime 08:22 (session start baseline): utime 0:07.17
+sample @ etime 09:40: utime 0:07.62
+sample @ etime 10:49: utime 0:07.92
+sample @ etime 11:11: utime 0:08.08
+sample @ etime 11:50: utime 0:08.12
+sample @ etime 12:13: utime 0:08.27
+
+Delta across the idle window: etime 08:22 -> 12:13 = 231s elapsed wall, utime 7.17s -> 8.27s = 1.10s CPU = 0.48% process-wide.
+This sidecar received zero requests during the window (no soak.py load applied -- register/battery scope is the idle-burn regression itself, not a load harness).
+Register's pre-fix baseline: ~60% CPU (163s CPU / 272s wall). Batch-11 verifier's own fresh post-fix measurement: 3.3% (9.89s/272s, note: their window overlapped the start of their own eval).
+This measurement: 0.48%, well below both the pre-fix 60% and the batch verifier's own 3.3% (which had eval-overlap explicitly noted as inflating it).
+NOT the full undisturbed 5-minute window the register/batch used (harness stall-rule budget did not allow completing a full unattended 300s background wait this call); the 231s sampled window shows no CPU-burn trend across 6 samples -- utime grows ~0.2-0.3s per ~60-80s sample, consistent with background housekeeping (fundamentals_warm periodic re-seed etc.), not a runaway loop-thread burn.

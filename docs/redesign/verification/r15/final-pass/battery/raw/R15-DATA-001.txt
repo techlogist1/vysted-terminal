@@ -1,0 +1,21 @@
+# R15-DATA-001 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:55+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in DAL CHTR SMR SUMAX; do echo "-- $s"; curl -s -m 100 -w '\nHTTP=%{http_code}\n' -H 'X-Vysted-Region: IN' "$H/fundamentals/$s/income" | python3 -c "import sys,json;t=sys.stdin.read();b,h=t.rsplit('HTTP=',1);d=json.loads(b);print('HTTP',h.strip(),'symbol',d.get('symbol'),'provider',d.get('provider'),'periods',d.get('periods'));print([ (l['label'],list(l['values'].values())[:1]) for l in d.get('lines',[])[:2]])"; done
+echo "-- RELIANCE.NS"; curl -s -m 100 -H 'X-Vysted-Region: IN' "$H/fundamentals/RELIANCE.NS/income" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('symbol'),d.get('provider'),d.get('periods'))"
+--- output ---
+-- DAL
+HTTP 200 symbol DAL.BO provider openbb-mcp periods ['2026-03-31', '2025-03-31', '2024-03-31', '2023-03-31']
+[('operating_revenue', [20668000.0]), ('total_revenue', [20668000.0])]
+-- CHTR
+HTTP 200 symbol CHTR.BO provider openbb-mcp periods ['2026-03-31', '2025-03-31', '2024-03-31', '2023-03-31']
+[('operating_revenue', [842218000.0]), ('total_revenue', [842218000.0])]
+-- SMR
+HTTP 200 symbol SMR.BO provider openbb-mcp periods ['2025-03-31', '2024-03-31', '2023-03-31']
+[('operating_revenue', [2632469000.0]), ('total_revenue', [2632469000.0])]
+-- SUMAX
+HTTP 200 symbol SUMAX-SM.NS provider yfinance periods []
+[]
+-- RELIANCE.NS
+RELIANCE.NS openbb-mcp ['2026-03-31', '2025-03-31', '2024-03-31', '2023-03-31', '2022-03-31']
+
+EXIT=0 (2.2s)

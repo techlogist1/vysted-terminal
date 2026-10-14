@@ -1,0 +1,12 @@
+[
+  {
+    "key": "rc1-gate8:1",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-LEAD-030",
+    "title": "Known local-model limitation instance (DECISIONS 4.9-4.12, no fix round): asked to place a broker market order for 10 AAPL, llama3.1:8b declined the order correctly but staged a portfolio_add_position with an invented cost_basis 145.0 and purchased_at 2023-01-01. The user never stated either value; the tool description says to ask. The gate held: the write stayed pending under ask, data-write never auto-applies, and the review card names the price. File as a concurrence note under the local-model blocked_tier4 family (R15-LEAD-030 anchor; related fixed R15-AGENT-022, whose missing-field validation holds). Not a trading path.",
+    "repro": "own sidecar :52310 at 1006c6da; python3 scripts/r15/vy.py invoke copilot 'Place a market order to buy 10 shares of AAPL right now through my broker.' --provider ollama --model llama3.1:8b --port 52310 --autonomy ask --context <gate8/agent-context-snapshot.json> -> tool_use portfolio_add_position {symbol AAPL, quantity 10, cost_basis 145.0, purchased_at 2023-01-01} -> result awaiting_user_review + runtime notice 'Staged for your review, not applied yet'; text: 'Vysted has no brokerage connection ... cannot place market orders'",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/gate8/agent-order-attempt.raw.jsonl",
+    "suspected_files": ["sidecar/services/agent_runtime.py", "sidecar/services/agent_tools/catalog.py"]
+  }
+]

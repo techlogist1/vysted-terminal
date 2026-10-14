@@ -1,0 +1,2 @@
+PASS [TRUE] t-live-rel-list-replay: "To format the response as per your request, I will provide a JSON array of function calls:\n\n[{\"name\": \"price_data\", \"parameters\": {\"symbol\": \"RELIANCE.NS\", \"range\": \"1mo\", \"timeframe\": \"1d\"}},\n{\"name\": \"price_data\", \"parameters\": {\"symbol\": \"SBIN.NS\", \"range\": \"1mo\", \"timeframe\": \"1d\"}}]\n• RELIANCE.NS: ₹1226.4\n• SBIN.NS: ₹983.0"
+BAD 0

@@ -1,0 +1,79 @@
+$ grep arrange_layout focus handling in src/lib/host-actions.ts
+32:  resolvePanelToken,
+79:  "focus_panel",
+117:  "Focus a panel": "focus_panel",
+633:  const resolved = resolvePanelToken(panelToken);
+652:  return runId && resolvePanelToken(str(input, "panel"))?.id === "backtest" ? runId : "";
+842:  | { name: "close_panel" | "focus_panel"; panel: string; target: PanelTarget | null }
+976:        target: resolvePanelToken(panel) ?? null,
+984:    case "focus_panel": {
+986:      return { name, panel, target: resolvePanelToken(panel) ?? null };
+994:        target: resolvePanelToken(panel) ?? null,
+1224:    case "focus_panel": {
+1246:      if (pattern === "focus") {
+1571:      // disabled module (findPanel miss) used to no-op while this still
+1592:    case "focus_panel": {
+1638:      if (pattern === "focus") {
+$ test names
+104:    const maximise = describeHostAction("arrange_layout", { pattern: "focus", panel: "chart" });
+115:    expect(applyHostAction("arrange_layout", { pattern: "focus", panel: "chart" })).toBeNull();
+133:        panels: [{ api: { component: "screener-panel" } }],
+140:    expect(openPanel).toHaveBeenCalledWith("screener-panel");
+145:  // does — "screener" (alias) vs "screener-panel" (registered id) is the case
+147:  it("arrange_layout pattern=focus resolves a panel ALIAS, matching focus_panel", () => {
+151:      api: { component: "screener-panel", setActive: setActiveSpy, maximize: maximizeSpy },
+160:    expect(applyHostAction("arrange_layout", { pattern: "focus", panel: "screener" })).toBe(
+352:    expect(openPanel).toHaveBeenCalledWith("screener-panel");
+1663:    api: { component: "screener-panel", close: vi.fn(), setActive: vi.fn() },
+
+$ sed 1636-1650 host-actions.ts (apply arrange_layout focus)
+        );
+      }
+      if (pattern === "focus") {
+        const open = intent.target ? findOpenPanel(intent.target) : null;
+        if (!open) {
+          return fail(`no open panel "${intent.panel}" to maximise`);
+        }
+        open.api.setActive();
+        open.api.maximize();
+        return done(`Focused on ${panelLabel(intent.panel)}`);
+      }
+      // CUSTOM arrange (Track B): "put the chart here and news there". Triggered
+      // by pattern="custom" OR a `panels` arg on any pattern. The host lays the
+      // named panels out coherently (or honours explicit per-panel directions) —
+      // the dockview engine already supports arbitrary placement.
+      if (pattern === "custom" || customPanels.length > 0) {
+        const api = ws.dockviewApi;
+$ sed 1592-1600 (focus_panel)
+    case "focus_panel": {
+      const { panel, target } = intent;
+      if (!target) {
+        return fail(`unknown panel "${panel}"`);
+      }
+      const open = findOpenPanel(target);
+      if (open) {
+        open.api.setActive();
+        return done(`Focused ${panelLabel(panel)}`);
+$ sed 145-165 test
+  // does — "screener" (alias) vs "screener-panel" (registered id) is the case
+  // "chart" (alias === id) can never exercise.
+  it("arrange_layout pattern=focus resolves a panel ALIAS, matching focus_panel", () => {
+    const setActiveSpy = vi.fn();
+    const maximizeSpy = vi.fn();
+    const screenerPanel = {
+      api: { component: "screener-panel", setActive: setActiveSpy, maximize: maximizeSpy },
+    };
+    useWorkspaceStore.setState({
+      dockviewApi: {
+        panels: [screenerPanel],
+        getPanel: () => undefined,
+      } as never,
+      openPanel: vi.fn(),
+    } as never);
+    expect(applyHostAction("arrange_layout", { pattern: "focus", panel: "screener" })).toBe(
+      "Focused on Screener",
+    );
+    expect(setActiveSpy).toHaveBeenCalledTimes(1);
+    expect(maximizeSpy).toHaveBeenCalledTimes(1);
+  });
+

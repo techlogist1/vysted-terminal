@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_da988c0a3f8049deb34e87035c0a275e", "name": "price_data", "input": {"symbol": "HCLTECH.NS"}}
+[  46.0s] heartbeat: {"kind": "heartbeat"}
+[  46.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_da988c0a3f8049deb34e87035c0a275e", "name": "price_data", "ok": true, "error": null}
+[  56.1s] heartbeat: {"kind": "heartbeat"}
+[  66.1s] heartbeat: {"kind": "heartbeat"}
+[  76.1s] heartbeat: {"kind": "heartbeat"}
+[  80.5s] done: {"kind": "done", "usage": {"input_tokens": 7039, "output_tokens": 57, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+We were unable to fetch the latest data for HCLTECH.NS.
+
+However, based on the historical data we have, the last close price available is ₹1271.0 on 2026-07-24T00:00:00+00:00.
+
+=== ok · 80.5s · events {'heartbeat': 7, 'tool_use': 1, 'tool_result': 1, 'delta': 56, 'done': 1} · usage in=7039 out=57 · est $0.00000 · llama3.1:8b

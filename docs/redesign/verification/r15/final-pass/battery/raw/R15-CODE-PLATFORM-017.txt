@@ -1,0 +1,70 @@
+# R15-CODE-PLATFORM-017 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:30:48+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py/R15-CODE-PLATFORM-017.py 2>&1 | grep -v '^DEBUG' | tail -c 9000
+[exit 0] [2.01s]
+'2^3^2' {} -> {'value': 512}
+'-2^2' {} -> {'value': -4}
+'2+3*4^2' {} -> {'value': 50}
+'round(2.5)' {} -> {'value': 3.0}
+'round(-2.5)' {} -> {'value': -3.0}
+'a > 1 ? a ^ 2 : 0' {'a': 2} -> {'value': 4}
+'x**2+1' {'x': 3} -> {'value': 10}
+x/0 -> ZeroDivisionError division by zero
+
+
+$ /bin/cat /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/cp017-workflow.txt
+[exit 0] [0.01s]
+# R15-CODE-PLATFORM-017 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:26:30+0530
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-2717374496905306985.json 'http://127.0.0.1:52861/workflow/run' | head -c 700
+[exit 0] [0.01s]
+data: {"kind":"run-start","runId":"211f9aa7-ef5b-4cfc-beb4-5fe54e8f88fe","startedAt":1791028590160}
+
+data: {"kind":"node-start","runId":"211f9aa7-ef5b-4cfc-beb4-5fe54e8f88fe","nodeId":"c","nodeType":"transform.code","startedAt":1791028590160}
+
+data: {"kind":"node-output","runId":"211f9aa7-ef5b-4cfc-beb4-5fe54e8f88fe","nodeId":"c","outputs":{"value":3.0},"durationMs":0.24275}
+
+data: {"kind":"run-complete","runId":"211f9aa7-ef5b-4cfc-beb4-5fe54e8f88fe","durationMs":0.382375}
+
+
+[http 200 0.001464s]
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-5138094407480851412.json 'http://127.0.0.1:52861/workflow/run' | head -c 700
+[exit 0] [0.02s]
+data: {"kind":"run-start","runId":"e87c2e93-e239-42ef-b88c-869162da515c","startedAt":1791028590175}
+
+data: {"kind":"node-start","runId":"e87c2e93-e239-42ef-b88c-869162da515c","nodeId":"c","nodeType":"transform.code","startedAt":1791028590175}
+
+data: {"kind":"node-output","runId":"e87c2e93-e239-42ef-b88c-869162da515c","nodeId":"c","outputs":{"value":8},"durationMs":0.954292}
+
+data: {"kind":"run-complete","runId":"e87c2e93-e239-42ef-b88c-869162da515c","durationMs":1.142917}
+
+
+[http 200 0.002581s]
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-2528831808526435058.json 'http://127.0.0.1:52861/workflow/run' | head -c 700
+[exit 0] [0.01s]
+data: {"kind":"run-start","runId":"e7b4327d-c1bb-49ac-a5cc-192195b782cc","startedAt":1791028590189}
+
+data: {"kind":"node-start","runId":"e7b4327d-c1bb-49ac-a5cc-192195b782cc","nodeId":"c","nodeType":"transform.code","startedAt":1791028590189}
+
+data: {"kind":"node-output","runId":"e7b4327d-c1bb-49ac-a5cc-192195b782cc","nodeId":"c","outputs":{"value":1},"durationMs":0.209583}
+
+data: {"kind":"run-complete","runId":"e7b4327d-c1bb-49ac-a5cc-192195b782cc","durationMs":0.334583}
+
+
+[http 200 0.001423s]
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-886709008717511869.json 'http://127.0.0.1:52861/workflow/run' | head -c 700
+[exit 0] [0.01s]
+data: {"kind":"run-start","runId":"7a79636b-5b96-4df2-bbd1-5adfc5f233de","startedAt":1791028590202}
+
+data: {"kind":"node-start","runId":"7a79636b-5b96-4df2-bbd1-5adfc5f233de","nodeId":"c","nodeType":"transform.code","startedAt":1791028590202}
+
+data: {"kind":"node-error","runId":"7a79636b-5b96-4df2-bbd1-5adfc5f233de","nodeId":"c","message":"division by zero","durationMs":0.181709}
+
+data: {"kind":"run-error","runId":"7a79636b-5b96-4df2-bbd1-5adfc5f233de","message":"failures in nodes: ['c']","durationMs":0.361875}
+
+
+[http 200 0.001573s]
+

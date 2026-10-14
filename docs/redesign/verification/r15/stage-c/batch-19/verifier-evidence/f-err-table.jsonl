@@ -1,0 +1,103 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_60db4ac2bad8499b9578e882c988e541", "name": "price_data", "input": {"symbol": ""}}
+{"kind": "tool_use", "tool_call_id": "call_149b879dbbfc45eaa7e7b198a1950408", "name": "price_data", "input": {"symbol": "SBIN.NS"}}
+{"kind": "tool_use", "tool_call_id": "call_04cfcc9973e84bf3a450fb0c88a27915", "name": "price_data", "input": {"symbol": "AXISBANK.NS"}}
+{"kind": "tool_use", "tool_call_id": "call_b2b314b0de524f59bf859f8da3d8c4fa", "name": "price_data", "input": {"symbol": "[SBIN.NS,AXISBANK.NS]"}}
+{"kind": "tool_result", "tool_call_id": "call_60db4ac2bad8499b9578e882c988e541", "name": "price_data", "ok": false, "error": "missing or non-string symbol"}
+{"kind": "tool_result", "tool_call_id": "call_149b879dbbfc45eaa7e7b198a1950408", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_04cfcc9973e84bf3a450fb0c88a27915", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_b2b314b0de524f59bf859f8da3d8c4fa", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for '[SBIN.NS,AXISBANK.NS]' from 'yfinance'"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " prices"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " SB"}
+{"kind": "delta", "text": "IN"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " AXIS"}
+{"kind": "delta", "text": "B"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " markdown"}
+{"kind": "delta", "text": " table"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " Symbol"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " Price"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " ---"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " ---"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " SB"}
+{"kind": "delta", "text": "IN"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "983"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " AXIS"}
+{"kind": "delta", "text": "B"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "122"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": " |\n\n"}
+{"kind": "delta", "text": "Note"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " prices"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " up"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " date"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " error"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 11317, "output_tokens": 85, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

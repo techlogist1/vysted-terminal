@@ -1,0 +1,3 @@
+CMD: POST /runs/nonexistent/cancel
+{"detail":"unknown run: 'nonexistent'"}
+HTTP 404

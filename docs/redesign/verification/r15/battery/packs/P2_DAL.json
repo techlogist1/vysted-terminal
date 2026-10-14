@@ -1,0 +1,853 @@
+{
+  "slot": "P2",
+  "symbol": "DAL",
+  "collected_at": "2026-09-19",
+  "collected_by": "claude-opus-5[1m]",
+  "role": "BSE-only + in-app US collision",
+  "headline": "Dynamic Archistructures Ltd is a BSE-only, group-X NBFC whose last trade on the exchange was 12 March 2025 - 18 months before collection. Every live-looking number on every site (price, market cap, P/E, P/B, 52w range) is derived from that single stale tick, and no source labels it as stale except by a small 'as on' date.",
+  "identity": {
+    "legal_name": {
+      "value": "Dynamic Archistructures Limited",
+      "unit": "name",
+      "as_of": "2026-06-30",
+      "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "note": "Company's own Reg-31 filing header: 'Name of the company: DYNAMIC ARCHISTRUCTURES LIMITED'. BSE ListofScripData renders Issuer_Name as 'dynamic Archistructures Limited' (lower-case d) and Scrip_Name as 'Dynamic Archistructures Ltd' - three spellings across two authoritative records.",
+      "variants": [
+        "Dynamic Archistructures Ltd (BSE Scrip_Name)",
+        "dynamic Archistructures Limited (BSE Issuer_Name)",
+        "DYNAMIC ARCHISTRUCTURES LIMITED (Reg-31 filing)",
+        "Dynamic Archist. (screener.in short name)",
+        "Dynamic Archist (moneycontrol short name)"
+      ]
+    },
+    "former_names": {
+      "value": null,
+      "unit": "name",
+      "as_of": "2026-09-19",
+      "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "note": "No rename found. 30th AGM in 2026 and incorporation in 1996 are consistent with an unbroken identity; no name-change announcement appears in the 2026 BSE announcement feed.",
+      "confidence": "medium - absence of evidence, not evidence of absence"
+    },
+    "isin": {
+      "value": "INE874E01012",
+      "unit": "isin",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=539681&industry=&segment=Equity&status=Active",
+      "corroborated_by": [
+        "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+        "https://www.moneycontrol.com/india/stockpricequote/constructioncontracting-civil/dynamicarchistructureslimited/DAL"
+      ]
+    },
+    "bse_code": {
+      "value": "539681",
+      "unit": "scrip code",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=539681&industry=&segment=Equity&status=Active"
+    },
+    "nse_symbol": {
+      "value": null,
+      "unit": "symbol",
+      "as_of": "2026-06-30",
+      "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "note": "Company's own filing states 'NSE Symbol: NOTLISTED' and 'MSEI Symbol: NOTLISTED'. BSE-only is confirmed by the issuer, not merely inferred from a master file."
+    },
+    "bse_scrip_id": {
+      "value": "DAL",
+      "unit": "ticker",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=539681&industry=&segment=Equity&status=Active",
+      "note": "BSE's scrip_id / SecurityId is literally 'DAL'. This is the string that collides with NYSE:DAL."
+    },
+    "board": {
+      "value": "Mainboard (BSE), group X",
+      "unit": "board/group",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=539681&industry=&segment=Equity&status=Active",
+      "note": "NOT SME. The Reg-31 filing answers 'Whether company is SME: No'. Group X is BSE's illiquid/non-margin segment, not an SME board. Settlement type T+1 per BSE ComHeader."
+    },
+    "sector": {
+      "value": "Financial Services",
+      "unit": "sector",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid=",
+      "note": "BSE: Sector='Financial Services', IGroup='Finance', ISubGroup='Non Banking Financial Company (NBFC)'. CONTRADICTED by Moneycontrol - see source_conflicts.C1."
+    },
+    "industry": {
+      "value": "Non Banking Financial Company (NBFC)",
+      "unit": "industry",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid="
+    },
+    "business_description": {
+      "value": "Non-Systemically Important Non-Deposit Taking Non-Banking Financial Company in Kolkata, West Bengal, in the business of finance and investment in mutual funds, shares, debentures, stock, bonds and other securities.",
+      "unit": "text",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/539681/",
+      "note": "Moneycontrol's own page text agrees: 'Dynamic Archistructures Ltd is a NBFC and all its activities relates to one segment ie, non banking financial activities and its operations are confined within India.' - while that same page labels the Industry 'Construction & Contracting - Civil'."
+    },
+    "incorporated": {
+      "value": "1996",
+      "unit": "year",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/539681/",
+      "note": "screener: 'Incorporated in 1996'. Corroborated by the 30th AGM held 2026-09-21."
+    },
+    "registered_office": {
+      "value": "Kolkata, West Bengal, India",
+      "unit": "location",
+      "as_of": "2026-09-19",
+      "source_url": "https://dynamicarchistructures.com/"
+    },
+    "listing_date": {
+      "value": null,
+      "unit": "date",
+      "as_of": "2026-09-19",
+      "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "note": "GENUINE GAP. The Reg-31 filing's own field 'Date of allotment / extinguishment ... / Listing Date' is BLANK. No BSE endpoint reachable without auth exposes a listing date. Circumstantial only (NOT recorded as a value): scrip code 539681 is in the 2015-16 allotment range and the company's own site publishes shareholding patterns starting Mar-2016 and Reg-33 quarterly results from June-2014."
+    }
+  },
+  "price": {
+    "last_close": {
+      "value": 49.88,
+      "unit": "INR",
+      "as_of": "2025-03-12",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=539681&seriesid=",
+      "note": "CRITICAL: this is NOT a current price. BSE returns Ason='12 Mar 25 | 16:00'. Open=High=Low=LTP=49.88 and total traded quantity was 12,000 shares - a single print. As of collection this quote is 556 days old.",
+      "prev_close": 47.51,
+      "change_abs": "+2.37",
+      "change_pct": "+4.99",
+      "open": 49.88,
+      "high": 49.88,
+      "low": 49.88
+    },
+    "last_trade_date": {
+      "value": "2025-03-12",
+      "unit": "date",
+      "as_of": "2025-03-12",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=539681&seriesid=",
+      "note": "Independently confirmed by Moneycontrol ('As on 12 Mar, 2025 | 04:00') and screener.in (price stamped '12 Mar 2025')."
+    },
+    "staleness_days_at_collection": {
+      "value": 556,
+      "unit": "days",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=539681&seriesid=",
+      "note": "2025-03-12 -> 2026-09-19. Derived, not sourced."
+    },
+    "traded_quantity_last_session": {
+      "value": 12000,
+      "unit": "shares",
+      "as_of": "2025-03-12",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=539681&seriesid=",
+      "note": "BSE StockTrading: TTQ '0.12' with TTQin '(Lakh)' = 12,000 shares; Turnover '5.99' Lakh = INR 5,98,560 = 12,000 x 49.88. NOTE the unit trap: BSE reports turnover/quantity in LAKH while reporting market cap in CRORE on the same response."
+    },
+    "vwap": {
+      "value": 49.88,
+      "unit": "INR",
+      "as_of": "2025-03-12",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=539681&seriesid="
+    }
+  },
+  "market_cap": {
+    "value": 24.99,
+    "unit": "INR crore",
+    "as_of": "2025-03-12",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=539681&seriesid=",
+    "note": "BSE MktCapFull=24.99. Free-float market cap MktCapFF=7.28 INR crore (29.14% public). screener.in rounds to 25.0 INR crore. Both are 49.88 x 50,10,000 shares, i.e. a market cap computed off an 18-month-old tick.",
+    "free_float_market_cap": {
+      "value": 7.28,
+      "unit": "INR crore"
+    },
+    "screener_value": {
+      "value": 25.0,
+      "unit": "INR crore",
+      "source_url": "https://www.screener.in/company/539681/"
+    }
+  },
+  "pe_ttm": {
+    "value": 24.5,
+    "unit": "ratio",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/539681/",
+    "note": "Agreed by both sources: screener 'Stock P/E 24.5', BSE ComHeaderNew PE='24.50'. But the agreement is hollow - numerator is the stale 2025-03-12 price and the denominator is a TTM EPS built from quarters swinging -7.52 to +11.96. BSE's OTHER endpoint (ComHeader, non-'New') returns PE='-' for the same scrip on the same day.",
+    "basis": "price 49.88 (2025-03-12) / TTM EPS 2.05 (Jul-2025..Jun-2026) = 24.33"
+  },
+  "pb": {
+    "value": 0.69,
+    "unit": "ratio",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid=",
+    "note": "CONFLICT - see source_conflicts.C2. BSE ComHeaderNew PB='0.69'; screener.in states 'Stock is trading at 0.75 times its book value'. 49.88 / 66.7 = 0.748, so screener is internally consistent and BSE's 0.69 implies a book value of ~72.3 that BSE does not publish.",
+    "conflicting_values": [
+      {
+        "value": 0.69,
+        "source": "BSE ComHeaderNew",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid="
+      },
+      {
+        "value": 0.75,
+        "source": "screener.in",
+        "source_url": "https://www.screener.in/company/539681/"
+      }
+    ]
+  },
+  "roe": {
+    "value": -2.57,
+    "unit": "percent",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/539681/",
+    "note": "CONFLICT - see source_conflicts.C3. screener.in headline ROE = -2.57% (FY26, loss year) and its Ratios row confirms 'ROE % Mar 2026: -2.57%'. BSE ComHeaderNew returns ROE='2.83' (positive) for the same company on the same day. screener also publishes multi-year ROE: 3-year 7.39%, 5-year 6%, 10-year 6%.",
+    "screener_multiyear": {
+      "last_year_pct": -2.57,
+      "3y_pct": 7.39,
+      "5y_pct": 6,
+      "10y_pct": 6
+    },
+    "bse_value": {
+      "value": 2.83,
+      "unit": "percent",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid="
+    }
+  },
+  "roce": {
+    "value": -1.45,
+    "unit": "percent",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/539681/",
+    "note": "screener.in only. BSE publishes no ROCE for this scrip (OPM and NPM both return '-')."
+  },
+  "debt_to_equity": {
+    "value": 0.0,
+    "unit": "ratio",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/539681/",
+    "note": "screener Balance Sheet shows Borrowing = 0.00 INR crore in every one of the 12 years Mar-2015..Mar-2026, and flags 'Company is almost debt free.' Equity = 5.01 (capital) + 28.39 (reserves) = 33.40 INR crore."
+  },
+  "revenue_ttm": {
+    "value": 9.97,
+    "unit": "INR crore",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/539681/",
+    "basis": "Sum of Sep-2025 (0.12) + Dec-2025 (2.58) + Mar-2026 (0.01) + Jun-2026 (7.26); screener's own TTM column agrees at 9.97."
+  },
+  "net_profit_ttm": {
+    "value": 1.02,
+    "unit": "INR crore",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/539681/",
+    "basis": "Sum of -2.11 + 0.91 + -3.77 + 5.99 = 1.02; screener TTM column agrees."
+  },
+  "revenue_growth_yoy": {
+    "value": -73.3,
+    "unit": "percent",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/539681/",
+    "note": "BASIS MATTERS AND THE SOURCE CONTRADICTS ITSELF. (a) Annual P&L basis: FY26 revenue 1.56 vs FY25 5.84 INR crore = -73.3%. (b) Sum-of-quarters basis for the same two years: FY26 (5.00+0.12+2.58+0.01)=7.71 vs FY25 (2.62+3.50+1.14+0.48)=7.74 = -0.4%. The two bases come from two tables on the SAME screener page and cannot both be right. FY24 is the control: quarters sum to 7.01 and the annual row is 7.01 - they reconcile, so the FY25/FY26 mismatch is a data defect, not a definitional convention. (c) screener's own 'Compounded Sales Growth TTM' cell reads -1%.",
+    "bases": {
+      "annual_pl_pct": -73.3,
+      "sum_of_quarters_pct": -0.4,
+      "screener_ttm_cell_pct": -1
+    }
+  },
+  "eps_ttm": {
+    "value": 2.05,
+    "unit": "INR per share",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/539681/",
+    "note": "screener TTM EPS 2.05. BSE ComHeaderNew reports EPS='2.04' and CEPS='2.08' - a 1 paisa disagreement on EPS.",
+    "bse_value": 2.04,
+    "bse_ceps": 2.08
+  },
+  "book_value_per_share": {
+    "value": 66.7,
+    "unit": "INR per share",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/539681/",
+    "note": "screener 'Book Value 66.7'. Reconciles exactly with the Mar-2026 balance sheet: (equity capital 5.01 + reserves 28.39) INR crore / 50,10,000 shares = INR 66.67. BSE publishes no book value but its PB of 0.69 implies ~72.3 - see source_conflicts.C2."
+  },
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR per share",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=539681&industry=&segment=Equity&status=Active",
+    "corroborated_by": [
+      "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid=",
+      "https://www.screener.in/company/539681/"
+    ]
+  },
+  "shares_outstanding": {
+    "value": 5010000,
+    "unit": "shares",
+    "as_of": "2026-06-30",
+    "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+    "note": "Reg-31 filing Table I: Total 5,010,000 fully paid equity shares, 1,571 holders. Equity capital 5.01 INR crore at FV 10 confirms."
+  },
+  "dividend": {
+    "last_declared_per_share": {
+      "value": null,
+      "unit": "INR per share",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/539681/",
+      "note": "NO DIVIDEND HAS EVER BEEN DECLARED in the 12 years screener carries: 'Dividend Payout %' is 0.00% for every year Mar-2015 through Mar-2026."
+    },
+    "record_or_ex_date": {
+      "value": null,
+      "unit": "date",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnGetData/w?strCat=Corp.%20Action&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C",
+      "note": "BSE ExDate field returns '--'. The BSE announcement feed filtered to category 'Corp. Action' for 2026-01-01..2026-09-19 returns the literal string 'No Record Found!'."
+    },
+    "paid_trailing_12m_per_share": {
+      "value": 0.0,
+      "unit": "INR per share",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/539681/"
+    },
+    "yield": {
+      "value": 0.0,
+      "unit": "percent",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/539681/",
+      "corroborated_by": [
+        "https://www.bseindia.com/stock-share-price/dynamic-archistructures-ltd/dal/539681/"
+      ]
+    }
+  },
+  "week52": {
+    "high": {
+      "value": 49.88,
+      "unit": "INR",
+      "as_of": "2025-03-12",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=539681",
+      "note": "BSE HighLow: Fifty2WkHigh_unadj = '49.88 (12/03/2025)'."
+    },
+    "low": {
+      "value": 49.88,
+      "unit": "INR",
+      "as_of": "2025-03-12",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=539681",
+      "note": "BSE HighLow: Fifty2WkLow_unadj = '49.88 (12/03/2025)'. THE 52-WEEK HIGH AND LOW ARE THE SAME NUMBER ON THE SAME DAY - the entire 52-week window contains one trade, so range, volatility and %-of-range are all degenerate (range = 0). CONFLICT: Moneycontrol renders the 52-week range as 10.00 - 49.88; see source_conflicts.C4.",
+      "conflicting_value": {
+        "value": 10.0,
+        "source": "moneycontrol 52 Week Range low",
+        "source_url": "https://www.moneycontrol.com/india/stockpricequote/constructioncontracting-civil/dynamicarchistructureslimited/DAL"
+      }
+    },
+    "month_high_low": {
+      "value": "49.88 / 49.88",
+      "unit": "INR",
+      "as_of": "2025-03-12",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=539681"
+    },
+    "week_high_low": {
+      "value": "49.88 / 49.88",
+      "unit": "INR",
+      "as_of": "2025-03-12",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=539681"
+    }
+  },
+  "shareholding": {
+    "quarter": {
+      "value": "Q1 FY2026-27, quarter ended 30-06-2026",
+      "unit": "quarter",
+      "as_of": "2026-06-30",
+      "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "note": "Latest FILED quarter. Taken from the company's own Regulation 31(1)(b) filing, not an aggregator."
+    },
+    "promoter_pct": {
+      "value": 70.86,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "note": "Reg-31 Table I: Promoter & Promoter Group, 10 shareholders, 3,550,200 of 5,010,000 shares = 70.86%. CONFLICT: screener.in publishes 70.87% for the same quarter; Moneycontrol publishes 70.86%. See source_conflicts.C5.",
+      "holders": 10,
+      "shares": 3550200,
+      "breakdown": {
+        "individuals_huf": {
+          "holders": 4,
+          "shares": 287400,
+          "pct": 5.74
+        },
+        "bodies_corporate": {
+          "holders": 6,
+          "shares": 3262800,
+          "pct": 65.13
+        }
+      }
+    },
+    "fii_pct": {
+      "value": 0.0,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "note": "Reg-31 Table III category (2) 'Institutions (Foreign)' is EMPTY, and Table VI 'foreign ownership limits' shows approved 0 / utilised 0 for the current and all four prior quarters."
+    },
+    "dii_pct": {
+      "value": 0.0,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "note": "Reg-31 Table III category (1) 'Institutions (Domestic)' is EMPTY. The entire 29.14% public block is non-institutional."
+    },
+    "public_pct": {
+      "value": 29.14,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "holders": 1561,
+      "shares": 1459800,
+      "breakdown": {
+        "resident_individuals_upto_2lakh": {
+          "holders": 1504,
+          "shares": 1245796,
+          "pct": 24.87
+        },
+        "resident_individuals_above_2lakh": {
+          "holders": 1,
+          "shares": 38000,
+          "pct": 0.76
+        },
+        "bodies_corporate": {
+          "holders": 51,
+          "shares": 133400,
+          "pct": 2.66
+        },
+        "any_other": {
+          "holders": 5,
+          "shares": 42604,
+          "pct": 0.85
+        }
+      }
+    },
+    "pledged_pct_of_promoter": {
+      "value": 0.0,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "note": "Reg-31 Declaration rows 7, 8 and 9 - pledge, non-disposal undertaking, and other encumbrances - are each answered 'No' for both Promoter and Public. Zero encumbrance is declared, not inferred."
+    },
+    "dematerialised_shares": {
+      "value": 3687100,
+      "unit": "shares",
+      "as_of": "2026-06-30",
+      "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "note": "ILLIQUIDITY MECHANISM: of 5,010,000 shares only 3,687,100 are in demat form. Promoters hold all 3,550,200 of theirs in demat; the public holds just 136,900 in demat out of 1,459,800. 1,322,900 public shares - 90.6% of the free float - are still PHYSICAL and therefore untradeable on screen. That, not sentiment, is why the scrip has not printed since March 2025."
+    },
+    "trend": {
+      "value": "Unchanged for 12 consecutive quarters",
+      "unit": "text",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/539681/",
+      "note": "screener's quarterly shareholding table shows promoter 70.87% / public 29.14% identical for every quarter Sep-2023 through Jun-2026, and shareholder count frozen at 1,571 since Dec-2023."
+    }
+  },
+  "corporate_actions_2026": {
+    "value": [],
+    "unit": "list",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnGetData/w?strCat=Corp.%20Action&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C",
+    "note": "NONE. BSE's announcement API filtered to strCat='Corp. Action' over 2026-01-01..2026-09-19 returns the literal body 'No Record Found!'. Independently, none of the 25 announcements filed in 2026 is a dividend, split, bonus or rights. BSE's ExDate field is '--'. No pre-split / pre-bonus price adjustment applies to this name."
+  },
+  "latest_results": {
+    "quarter": {
+      "value": "Q1 FY2026-27, unaudited, quarter ended 30-06-2026",
+      "unit": "quarter",
+      "as_of": "2026-06-30",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1"
+    },
+    "filing_date": {
+      "value": "2026-08-12",
+      "unit": "date",
+      "as_of": "2026-08-12",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "note": "'Board Meeting Outcome for Outcome Of The Board Meeting For The Unaudited Financial Results For The First Quarter Ended June 30, 2026', disseminated 2026-08-12T13:44 per BSE. Board meeting intimation was filed 2026-08-06.",
+      "pdf": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/907b3032-c179-41a2-a01e-525bdb2db121.pdf"
+    },
+    "last_audited_annual": {
+      "value": "FY2025-26, audited, year ended 31-03-2026",
+      "unit": "period",
+      "as_of": "2026-05-25",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "note": "'Audited Financial Results For The Fourth Quarter And Financial Year Ended On March 31, 2026', filed 2026-05-25.",
+      "pdf": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/923672e0-7c85-4a54-bf0b-d502bc1f2ba7.pdf"
+    },
+    "reported_numbers_q1_fy27": {
+      "revenue": {
+        "value": 7.26,
+        "unit": "INR crore"
+      },
+      "net_profit": {
+        "value": 5.99,
+        "unit": "INR crore"
+      },
+      "eps": {
+        "value": 11.96,
+        "unit": "INR per share"
+      },
+      "source_url": "https://www.screener.in/company/539681/",
+      "note": "The single largest quarter in the company's 13-quarter screener history, on a scrip that has not traded since March 2025. Q1 net profit of 5.99 INR crore against a 24.99 INR crore market cap."
+    }
+  },
+  "last_3_announcements": [
+    {
+      "date": "2026-08-29",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update / Newspaper Publication",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/d2df4ced-66d4-4280-aa47-4e93c1e2ae6b.pdf",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1"
+    },
+    {
+      "date": "2026-08-27",
+      "headline": "Notice for the 30th Annual General Meeting and Annual Report for the Financial year 2025-2026 (Reg. 34(1) Annual Report)",
+      "category": "Others / Reg. 34 (1) Annual Report",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a14b85ac-1ebc-469b-8c02-abb1532dcfd2.pdf",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "note": "AGM held 2026-09-21; e-voting 18-20 September 2026."
+    },
+    {
+      "date": "2026-08-13",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update / Newspaper Publication",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a2daa4fc-b393-4f7c-9a00-9d3fb3a9fcc2.pdf",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1"
+    }
+  ],
+  "announcements_2026_count": {
+    "value": 25,
+    "unit": "count",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+    "note": "25 filings between 2026-01-15 and 2026-08-29. The company is a diligent filer while being untradeable - filing activity is NOT a liveness signal for price."
+  },
+  "consolidated_vs_standalone": {
+    "value": "STANDALONE ONLY - no consolidated financials exist",
+    "unit": "note",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid=",
+    "note": "BSE ComHeaderNew returns ConEPS='0.00', ConCEPS='0.00', ConPE='0.00', ConOPM='0.00', ConNPM='0.00', ConPB=null, ConROE=null. Moneycontrol's description says the company 'is a NBFC and all its activities relates to one segment ie, non banking financial activities and its operations are confined within India' - a single segment, no subsidiaries. TRAP: screener.in still SERVES /company/539681/consolidated/ with HTTP 200 and renders the full page chrome with every ratio blank, rather than 404-ing. A scraper that requests the consolidated view by default gets an empty shell, not an error.",
+    "consolidated_url_behaviour": {
+      "url": "https://www.screener.in/company/539681/consolidated/",
+      "http_status": 200,
+      "content": "page renders with Market Cap, Current Price, High/Low, Stock P/E, Book Value, Dividend Yield, ROCE, ROE and Face Value all EMPTY"
+    }
+  },
+  "source_conflicts": [
+    {
+      "id": "C1",
+      "field": "sector / industry",
+      "severity": "high",
+      "a": {
+        "value": "Financial Services / Finance / Non Banking Financial Company (NBFC)",
+        "source": "BSE (the listing exchange)",
+        "as_of": "2026-09-19",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid="
+      },
+      "b": {
+        "value": "Construction & Contracting - Civil",
+        "source": "Moneycontrol",
+        "as_of": "2026-09-19",
+        "source_url": "https://www.moneycontrol.com/india/stockpricequote/constructioncontracting-civil/dynamicarchistructureslimited/DAL"
+      },
+      "note": "Moneycontrol contradicts ITSELF on the same page: the header reads 'Industry : Construction & Contracting - Civil' while the body reads 'Dynamic Archistructures Ltd is a NBFC and all its activities relates to one segment ie, non banking financial activities'. The mis-classification is even baked into Moneycontrol's canonical URL path (/stockpricequote/constructioncontracting-civil/). Almost certainly driven by the word 'Archistructures'. BSE is authoritative; Moneycontrol is wrong."
+    },
+    {
+      "id": "C2",
+      "field": "price-to-book / book value per share",
+      "severity": "medium",
+      "a": {
+        "value": 0.69,
+        "source": "BSE ComHeaderNew PB",
+        "as_of": "2026-09-19",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid="
+      },
+      "b": {
+        "value": 0.75,
+        "source": "screener.in ('trading at 0.75 times its book value')",
+        "as_of": "2026-09-19",
+        "source_url": "https://www.screener.in/company/539681/"
+      },
+      "note": "Same stale price 49.88 on both sides, so the disagreement is entirely in the denominator: screener's book value 66.7 (which reconciles to the Mar-2026 balance sheet exactly) vs BSE's implied ~72.3 (unpublished). Neither side labels its book-value vintage."
+    },
+    {
+      "id": "C3",
+      "field": "return on equity",
+      "severity": "high",
+      "a": {
+        "value": -2.57,
+        "unit": "percent",
+        "source": "screener.in (FY26)",
+        "as_of": "2026-03-31",
+        "source_url": "https://www.screener.in/company/539681/"
+      },
+      "b": {
+        "value": 2.83,
+        "unit": "percent",
+        "source": "BSE ComHeaderNew ROE",
+        "as_of": "2026-09-19",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid="
+      },
+      "note": "Sign disagreement, not a rounding gap. FY26 net profit was -0.87 INR crore on ~33.4 INR crore equity, which supports screener's negative figure; BSE's +2.83 is unexplained and undated. A terminal that picks one at random tells the user the company either lost or made money last year."
+    },
+    {
+      "id": "C4",
+      "field": "52-week low",
+      "severity": "medium",
+      "a": {
+        "value": 49.88,
+        "source": "BSE HighLow (Fifty2WkLow_unadj '49.88 (12/03/2025)')",
+        "as_of": "2025-03-12",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=539681"
+      },
+      "b": {
+        "value": 10.0,
+        "source": "Moneycontrol '52 Week Range' low",
+        "as_of": "2025-03-12",
+        "source_url": "https://www.moneycontrol.com/india/stockpricequote/constructioncontracting-civil/dynamicarchistructureslimited/DAL"
+      },
+      "note": "BSE is authoritative and internally consistent (one trade in the window, so high == low). Moneycontrol's 10.00 is suspiciously equal to the face value of the share, which suggests a field-mapping bug rather than real trade data."
+    },
+    {
+      "id": "C5",
+      "field": "promoter holding",
+      "severity": "low",
+      "a": {
+        "value": 70.86,
+        "unit": "percent",
+        "source": "Company Reg-31 filing (primary)",
+        "as_of": "2026-06-30",
+        "source_url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html"
+      },
+      "b": {
+        "value": 70.87,
+        "unit": "percent",
+        "source": "screener.in",
+        "as_of": "2026-06-30",
+        "source_url": "https://www.screener.in/company/539681/"
+      },
+      "note": "3,550,200 / 5,010,000 = 70.8623% -> 70.86%. Screener rounds the wrong way. Moneycontrol agrees with the filing at 70.86%. Tiny, but it is the primary filing that screener disagrees with."
+    },
+    {
+      "id": "C6",
+      "field": "annual revenue vs sum of quarters (single source, self-contradictory)",
+      "severity": "high",
+      "a": {
+        "value": 1.56,
+        "unit": "INR crore",
+        "source": "screener.in annual P&L, FY26",
+        "as_of": "2026-03-31",
+        "source_url": "https://www.screener.in/company/539681/"
+      },
+      "b": {
+        "value": 7.71,
+        "unit": "INR crore",
+        "source": "screener.in quarterly table, sum of FY26 quarters",
+        "as_of": "2026-03-31",
+        "source_url": "https://www.screener.in/company/539681/"
+      },
+      "note": "Same page, same source, 4.9x apart. FY25 mismatches too (5.84 annual vs 7.74 quarterly). FY24 reconciles exactly (7.01 vs 7.01), which rules out a definitional convention and points to a data defect in the recent years. Net profit reconciles in all three years, so only the revenue line is affected."
+    },
+    {
+      "id": "C7",
+      "field": "BSE's own two quote endpoints disagree",
+      "severity": "medium",
+      "a": {
+        "value": "EPS='-', PE='-', PB='-', ROE='-'",
+        "source": "BSE ComHeader (api/ComHeader/w)",
+        "as_of": "2026-09-19",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=539681&seriesid="
+      },
+      "b": {
+        "value": "EPS='2.04', CEPS='2.08', PE='24.50', PB='0.69', ROE='2.83'",
+        "source": "BSE ComHeaderNew (api/ComHeaderNew/w)",
+        "as_of": "2026-09-19",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid="
+      },
+      "note": "Two endpoints on the same host, same scrip, same minute. A client that happens to call the older one concludes the company has no fundamentals at all; one that calls the newer gets numbers that contradict screener. Both were fetched during this collection."
+    }
+  ],
+  "traps": [
+    {
+      "id": "T1",
+      "severity": "critical",
+      "name": "Stale price presented as live",
+      "detail": "Last trade 2025-03-12, 556 days before collection. BSE, Moneycontrol and screener all render 49.88 as the headline price with only a small date stamp to betray it. Every derived figure - market cap 24.99 crore, P/E 24.5, P/B 0.69/0.75, free-float cap 7.28 crore - inherits that staleness silently. A terminal that shows 'DAL 49.88' with a green +4.99% is quoting March 2025 as today. The +4.99% change is itself 18 months old.",
+      "evidence": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=539681&seriesid="
+    },
+    {
+      "id": "T2",
+      "severity": "high",
+      "name": "Degenerate 52-week range (high == low)",
+      "detail": "52w high and 52w low are both 49.88 dated 12/03/2025, so range = 0. Any %-of-52w-range, volatility, or position-in-range computation divides by zero or returns a meaningless 0/100. Month and week high/low are identically 49.88 / 49.88.",
+      "evidence": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=539681"
+    },
+    {
+      "id": "T3",
+      "severity": "high",
+      "name": "Bare ticker 'DAL' resolves to Delta Air Lines everywhere outside BSE",
+      "detail": "SEC EDGAR maps DAL to {'cik_str': 27904, 'ticker': 'DAL', 'title': 'DELTA AIR LINES, INC.'}. Both sides of this collision sit inside the product's own masters (us_instruments.json DAL = Delta, bse_instruments.json 539681 = DAL). Worse, Indian aggregators do NOT resolve bare 'DAL' to this company either: Tickertape returns 16 hits for 'DAL' whose top two are marked match='EXACT' and are DALBHARAT (Dalmia Bharat) and DALMIASUG - substring matches on a different company - with Dynamic Archistructures absent entirely. Moneycontrol ranks it 11th of 12 behind Dalmia Bharat, Just Dial and Poona Dal & Oil.",
+      "evidence": "https://www.sec.gov/files/company_tickers.json ; https://api.tickertape.in/search?text=Dynamic%20Archistructures&types=stock ; https://www.moneycontrol.com/mccode/common/autosuggestion_solr.php?classic=true&query=DAL&type=1&format=json"
+    },
+    {
+      "id": "T4",
+      "severity": "high",
+      "name": "The name lies about the business, and a major aggregator believed it",
+      "detail": "'Archistructures' reads as architecture/construction; the company is a non-deposit-taking NBFC that invests in mutual funds and securities. Moneycontrol classified it as 'Construction & Contracting - Civil' and hard-coded that into its URL path, while printing 'is a NBFC' in the body of the same page. Any pipeline that trusts Moneycontrol's sector will peer-compare this NBFC against civil contractors.",
+      "evidence": "https://www.moneycontrol.com/india/stockpricequote/constructioncontracting-civil/dynamicarchistructureslimited/DAL"
+    },
+    {
+      "id": "T5",
+      "severity": "high",
+      "name": "Revenue does not reconcile between the annual and quarterly tables of the same source",
+      "detail": "screener FY26: annual revenue 1.56 INR crore vs quarters summing to 7.71. FY25: 5.84 vs 7.74. FY24: 7.01 vs 7.01 (reconciles). Net profit reconciles in all years. Any YoY growth number therefore depends on which table you read: -73.3% or -0.4%.",
+      "evidence": "https://www.screener.in/company/539681/"
+    },
+    {
+      "id": "T6",
+      "severity": "medium",
+      "name": "Lakh/crore scale mixing inside one API response and one page",
+      "detail": "BSE StockTrading returns Turnover '5.99' with Turnoverin '(Lakh)' and TTQ '0.12' with TTQin '(Lakh)' alongside MktCapFull '24.99' in CRORE - three magnitudes in one JSON object, each governed by a separate sibling field. screener's P&L is in 'Rs. Crores' while its Insights block for the same company is in 'INR Lakhs'. Reading the number without its unit sibling is off by 100x.",
+      "evidence": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=539681&seriesid= ; https://www.screener.in/company/539681/"
+    },
+    {
+      "id": "T7",
+      "severity": "medium",
+      "name": "90.6% of the free float is in physical form",
+      "detail": "Reg-31: only 136,900 of the public's 1,459,800 shares are dematerialised. 1,322,900 public shares cannot be sold on screen at all. This is the mechanical cause of the 18-month price gap, and no aggregator surfaces it - they show 29.14% 'public' as if it were tradeable float, and BSE computes a 7.28 crore 'free float market cap' on that basis.",
+      "evidence": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html"
+    },
+    {
+      "id": "T8",
+      "severity": "medium",
+      "name": "Empty consolidated page returns HTTP 200, not 404",
+      "detail": "screener.in/company/539681/consolidated/ returns 200 and renders full page chrome with every single ratio blank. A fetcher that defaults to the consolidated view records nulls for a company that simply has no consolidated statements, and cannot distinguish that from a fetch failure.",
+      "evidence": "https://www.screener.in/company/539681/consolidated/"
+    },
+    {
+      "id": "T9",
+      "severity": "medium",
+      "name": "Three legal-name spellings across two authoritative records",
+      "detail": "BSE's own ListofScripData returns Scrip_Name 'Dynamic Archistructures Ltd' and Issuer_Name 'dynamic Archistructures Limited' (lower-case d) in the SAME row; the company's filing says 'DYNAMIC ARCHISTRUCTURES LIMITED'. Exact-string name matching against any one of them fails against the other two.",
+      "evidence": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=539681&industry=&segment=Equity&status=Active ; https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html"
+    },
+    {
+      "id": "T10",
+      "severity": "medium",
+      "name": "Group X is not SME - an easy mis-tagging",
+      "detail": "The scrip is BSE group X (illiquid segment) with T+1 settlement, and the company's own filing answers 'Whether company is SME: No'. Several battery peers ARE SME (group M/MT). A pipeline that treats 'obscure BSE nano-cap' as SME will apply SME lot sizes and SME disclosure rules that do not apply here.",
+      "evidence": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html ; https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=539681&industry=&segment=Equity&status=Active"
+    },
+    {
+      "id": "T11",
+      "severity": "medium",
+      "name": "Fundamentals move while the price cannot",
+      "detail": "Q1 FY27 (Jun-2026) posted revenue 7.26 crore and net profit 5.99 crore - the largest quarter on record and roughly 24% of the entire market cap in one quarter's profit - on a stock whose last trade predates it by 15 months. Any 'price reaction to results' or momentum/坐 signal is undefined. TTM EPS swung from -7.52 (Mar-2026) to +11.96 (Jun-2026) quarter over quarter.",
+      "evidence": "https://www.screener.in/company/539681/"
+    },
+    {
+      "id": "T12",
+      "severity": "low",
+      "name": "P/E of 24.5 is agreed by both sources and still meaningless",
+      "detail": "Cross-source agreement is not validation: both compute a stale March-2025 price over a TTM EPS dominated by one outlier quarter. Meanwhile BSE's older endpoint reports no P/E at all for the same scrip. Agreement between two derived numbers that share a broken input looks like corroboration to a differ.",
+      "evidence": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid= ; https://www.screener.in/company/539681/"
+    }
+  ],
+  "world_gaps": [
+    {
+      "field": "identity.listing_date",
+      "kind": "genuinely does not exist in reachable sources",
+      "detail": "The company's own Reg-31 filing leaves its 'Date of allotment / extinguishment ... / Listing Date' field BLANK. BSE's ListofScripData row carries no listing-date column, and the BSE endpoints that would (CompanyProfile, getQtrlist, ShpPromoterNGroup) all return HTTP 302 to an error page without a session. Not guessed.",
+      "evidence": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html ; https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=539681&industry=&segment=Equity&status=Active"
+    },
+    {
+      "field": "identity.former_names",
+      "kind": "could not be positively confirmed",
+      "detail": "No rename evidence found, but no source affirmatively states 'never renamed'. Recorded as absent-evidence rather than a confirmed null."
+    },
+    {
+      "field": "roce (BSE view)",
+      "kind": "not published by the exchange",
+      "detail": "BSE ComHeaderNew returns OPM='-' and NPM='-' for this scrip, so only screener's -1.45% exists. Single-sourced, not cross-checked."
+    },
+    {
+      "field": "coverage",
+      "kind": "aggregator coverage genuinely absent",
+      "detail": "Tickertape has NO entry for this company: a search for 'Dynamic Archistructures' returns total=3, all marked match='SIMILAR', being Dynemic Products, Bharat Dynamics and Dynamatic Technologies. A fuzzy-matching fallback would silently substitute a 5,769 crore defence PSU for a 25 crore NBFC. Moneycontrol carries it but only surfaces it for a 'DAL' query, not for its own full name.",
+      "evidence": "https://api.tickertape.in/search?text=Dynamic%20Archistructures&types=stock ; https://www.moneycontrol.com/mccode/common/autosuggestion_solr.php?classic=true&query=DAL&type=1&format=json"
+    },
+    {
+      "field": "quarterly shareholding pledge history",
+      "kind": "reachable only quarter-by-quarter",
+      "detail": "Pledge is confirmed nil for Jun-2026 from the primary filing. Prior quarters would each need a separate fetch from the company's own site; BSE's shareholding API is not reachable unauthenticated (302)."
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://www.bseindia.com/stock-share-price/dynamic-archistructures-ltd/dal/539681/",
+      "role": "BSE quote page (human); returns HTTP 403 to non-browser fetchers - the API endpoints below are the reachable path"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=539681&seriesid=",
+      "role": "BSE live quote: LTP, prev close, OHLC, Ason timestamp"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=539681&seriesid=",
+      "role": "BSE ratios: EPS, CEPS, PE, PB, ROE, sector/industry, consolidated flags"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=539681&seriesid=",
+      "role": "BSE older header endpoint: same scrip, all ratios '-' (conflict C7)"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=539681",
+      "role": "BSE 52-week / month / week high-low with dates"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=539681&seriesid=",
+      "role": "BSE traded quantity, turnover, full and free-float market cap, ex-date"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=539681&industry=&segment=Equity&status=Active",
+      "role": "BSE securities master row: ISIN, group, face value, scrip id, issuer name, market cap"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "role": "BSE announcement feed 2026-01-01..2026-09-19 (25 filings)"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/AnnGetData/w?strCat=Corp.%20Action&strPrevDate=20260101&strScrip=539681&strSearch=P&strToDate=20260919&strType=C",
+      "role": "BSE announcement feed filtered to Corp. Action -> 'No Record Found!'"
+    },
+    {
+      "url": "https://dynamicarchistructures.com/PDF/Regulation31(SHP)/2026-2027/Reg31ShareholdingPatternJune26.html",
+      "role": "PRIMARY: company's own Regulation 31(1)(b) shareholding filing for quarter ended 30-06-2026"
+    },
+    {
+      "url": "https://dynamicarchistructures.com/",
+      "role": "company website: investor corner, filing archive, registered office"
+    },
+    {
+      "url": "https://www.screener.in/company/539681/",
+      "role": "screener.in standalone: P&L, balance sheet, cash flow, ratios, quarterly, shareholding, announcements"
+    },
+    {
+      "url": "https://www.screener.in/company/539681/consolidated/",
+      "role": "screener.in consolidated: HTTP 200 with an entirely empty ratio block"
+    },
+    {
+      "url": "https://www.moneycontrol.com/india/stockpricequote/constructioncontracting-civil/dynamicarchistructureslimited/DAL",
+      "role": "moneycontrol quote page: stale-date corroboration, sector mis-classification, 52w-low conflict"
+    },
+    {
+      "url": "https://www.moneycontrol.com/mccode/common/autosuggestion_solr.php?classic=true&query=DAL&type=1&format=json",
+      "role": "moneycontrol search index: bare 'DAL' ranking"
+    },
+    {
+      "url": "https://api.tickertape.in/search?text=Dynamic%20Archistructures&types=stock",
+      "role": "tickertape search API: demonstrates total absence of coverage"
+    },
+    {
+      "url": "https://www.sec.gov/files/company_tickers.json",
+      "role": "SEC EDGAR company_tickers.json: authoritative US mapping DAL -> Delta Air Lines, CIK 27904"
+    }
+  ]
+}

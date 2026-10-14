@@ -1,0 +1,12 @@
+$ GET /quotes/TATAMOTORS.NS 
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+$ GET /quotes/TATAMOTORS.BO 
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+$ GET /resolve?q=TATAMOTORS 
+{"ok":true,"query":"TATAMOTORS","region":"IN","resolved":{"symbol":"TMPV","name":"Tata Motors Passenger Vehicles Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"TMPV.NS","confidence":1.0,"isin":"INE155A01022","bse_code":"500570","industry":"Automobile and Auto Components / Passenger Cars & Utility Vehicles","former_name":"TATAMOTORS","board":"mainboard","exchange_group":"A","face_value":2.0,"rename":{"renamed_from":"TATAMOTORS","renamed_to":"TMPV","effective_date":
+HTTP 200
+$ POST /screener/run nifty50
+{'universe': 'nifty50', 'evaluated_count': 50, 'skipped_count': 0, 'skip_details': '...', 'result_count': 50, 'matched_count': 50, 'rows': '...', 'duration_ms': 410.9852919355035, 'partial': False, 'coverage': 'screened 50 of 50 — 0 unavailable', 'freshness': '...', 'basis_counts': '...', 'throttled': False}
+has TATAMOTORS False TMPV True

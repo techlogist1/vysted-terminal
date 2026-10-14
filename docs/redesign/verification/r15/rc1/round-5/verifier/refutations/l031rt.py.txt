@@ -1,0 +1,47 @@
+import sys, asyncio; sys.path.insert(0,'.')
+import ollama
+from models.llm import LLMDeltaEvent, LLMToolUseEvent
+from services import agent_runtime, agent_tools
+from services.llm.ollama import OllamaProvider
+
+def mk(chunks_by_round):
+    class Fake:
+        calls=0
+        def __init__(self,**_): pass
+        async def chat(self, **kw):
+            i=Fake.calls; Fake.calls+=1
+            chunks=chunks_by_round[min(i,len(chunks_by_round)-1)]
+            async def it():
+                for c in chunks: yield {"message":{"content":c},"done":False}
+                yield {"message":{"content":""},"done":True,"done_reason":"stop","prompt_eval_count":1,"eval_count":1}
+            return it()
+        async def list(self): return {"models":[{"model":"llama3.1:8b"}]}
+    return Fake
+
+async def canned(name, args):
+    return {"ok": True, "symbol": args.get("symbol"), "name": "Sify Technologies", "market_cap": 1.0e8}
+
+async def run(label, rounds):
+    agent_runtime.reload()
+    ollama.AsyncClient = mk(rounds)
+    prov = OllamaProvider()
+    agent_runtime.get_provider = lambda *_a, **_k: prov
+    agent_runtime._ACK_GRACE_SECONDS = 0.0
+    agent_tools.invoke_tool = canned
+    ev=[e async for e in agent_runtime.invoke_agent(agent_id="copilot", prompt="What is SIFY's ADR ratio?", api_key=None, provider="ollama", model="llama3.1:8b", mode="ask", autonomy="ask")]
+    text="".join(e.text for e in ev if isinstance(e,LLMDeltaEvent))
+    calls=[(e.name,e.input) for e in ev if isinstance(e,LLMToolUseEvent)]
+    print(f"== {label}\n tool_calls={calls}\n streamed_text={text!r}\n")
+
+R2=["SIFY", "'s ADR-to-ordinary-share ratio is 1:1", ", per the ", "fundamentals tool."]
+#asyncio.run(run("repro (llama name-first leak)", [[' {"','name','":',' "','fundamentals','", "parameters": {"symbol": "SIFY"}}'], R2]))
+#asyncio.run(run("fresh (type-first key order leak)", [['{"type": "function", ','"name": "fundamentals", "parameters": {"symbol": "SIFY"}}'], R2]))
+J=['{"name": "fundamentals", "parameters": {"symbol": "SIFY"}}']
+#asyncio.run(run("tail: one chunk", [J, ["SIFY's ADR-to-ordinary-share ratio is 1:1, per the fundamentals tool."]]))
+#asyncio.run(run("tail: word chunks", [J, ["SIFY's"," ADR-to-ordinary-share"," ratio"," is"," 1:1,"," per"," the"," fundamentals"," tool."]]))
+#asyncio.run(run("tail: no tool mention", [J, ["SIFY's ADR-to-ordinary-share ratio is 1:1", " and it trades on Nasdaq."]]))
+S=["SIFY's ADR-to-ordinary-share ratio is 1:1, per the fundamentals tool."]
+asyncio.run(run("A repro name-first leak (sify-1 chunking)", [[' {"','name','":',' "','fundamentals','", "parameters": {"symbol": "SIFY"}}'], S]))
+asyncio.run(run("B fresh type-first leak", [['{"type": "function", ','"name": "fundamentals", "parameters": {"symbol": "SIFY"}}'], S]))
+asyncio.run(run("C fresh type-first leak after prose", [['Let me check. ','{"type": "function", "name": "fundamentals", "parameters": {"symbol": "SIFY"}}'], S]))
+asyncio.run(run("D fresh type-first leak, no guard (plain prose)", [['{"type": "function", "name": "fundamentals", "parameters": {"symbol": "SIFY"}}'], ["Sify is an Indian ICT company."]]))

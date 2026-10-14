@@ -1,0 +1,8 @@
+# rc1-battery-22 raw R15-CODE-PLATFORM-025 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ python3 -c "import json; print(len(json.load(open('src-tauri/tauri.conf.json'))['app']['windows']))"; sed -n 249p docs/BLUEPRINT.md | cut -c1-300; sed -n 322p docs/BLUEPRINT.md | cut -c1-300; grep -n 'PLATFORM-025' docs/BLUEPRINT.md | cut -c1-200
+1
+5. Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred — R15-CODE-PLATFORM-025)
+- Drag-drop panel layout (resize, hide; pop-out to a second window is v1.0 roadmap — R15-CODE-PLATFORM-025)
+249:5. Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred — R15-CODE-PLATFORM-025)
+322:- Drag-drop panel layout (resize, hide; pop-out to a second window is v1.0 roadmap — R15-CODE-PLATFORM-025)
+EXIT=0

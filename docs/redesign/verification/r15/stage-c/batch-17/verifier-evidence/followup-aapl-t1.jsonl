@@ -1,0 +1,51 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_3d2eb492c0e3493788995b132532fe88", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+{"kind": "tool_result", "tool_call_id": "call_3d2eb492c0e3493788995b132532fe88", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "90"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "USD"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": " trillion"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "(Note"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " figure"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " obtained"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "fund"}
+{"kind": "delta", "text": "amentals"}
+{"kind": "delta", "text": "`"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " represents"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Apple"}
+{"kind": "delta", "text": " Inc"}
+{"kind": "delta", "text": ".)"}
+{"kind": "done", "usage": {"input_tokens": 5893, "output_tokens": 45, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

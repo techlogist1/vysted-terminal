@@ -1,0 +1,55 @@
+{
+  "certified": [
+    "R15-DATA-003",
+    "R15-DATA-024",
+    "R15-LEAD-022",
+    "R15-DATA-038",
+    "R15-DATA-053",
+    "R15-DATA-008",
+    "R15-LEAD-014",
+    "R15-AGENT-094",
+    "R15-AGENT-095",
+    "R15-AGENT-092",
+    "R15-AGENT-001",
+    "R15-DATA-114",
+    "R15-RESEARCH-022",
+    "R15-RESEARCH-027",
+    "R15-LEAD-045",
+    "R15-LEAD-044",
+    "R15-DATA-113",
+    "R15-DATA-055",
+    "R15-AGENT-053",
+    "R15-AGENT-055",
+    "R15-AGENT-096",
+    "R15-CODE-FRONTEND-017",
+    "R15-UI-015",
+    "R15-UI-021",
+    "R15-CODE-PLATFORM-017"
+  ],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-UI-090",
+      "reason": "False-live for foreign listings is fixed: BHP.AX, 7203.T, ^N225, HSBA.L and 0700.HK are not live, and the AAPL and ^NSEI controls pass. But the fail-closed design skipped the audit fix_shape's exchange tz/session table, so freshness is still judged on the US/IN calendar and not on the instrument's own exchange. Fresh repro: 7203.T at 2026-09-23T02:00Z, during the Tokyo session, with a tick at 02:00Z reads 'eod' instead of live."
+    },
+    {
+      "id": "R15-RESEARCH-001",
+      "reason": "The IT/Gartner and ALL cases pass (region_feed_items=0). But the off-entity gate still passes common-word tickers. Fresh repro: DEEP research on ON (ON Semiconductor, NASDAQ, US) sends 7 region-feed items with row_relevant=True to the researcher and the extraction prompt. They cover the AP bond market, Lockheed Martin, the On Holding (ONON) buyback, Nvidia and Innate Pharma. Other companies' news still reaches DEEP for a US target."
+    },
+    {
+      "id": "R15-DATA-063",
+      "reason": "The claim's own live acceptance fails. curl /indicators/TCS?indicators=rsi&timeframe=1d&range=1mo returns freshness null, while /history/TCS carries 'eod'. Fresh: /indicators/INFY.NS?indicators=ema and /indicators/AAPL?indicators=sma also return null. Only routers/history.py::_label_series_freshness sets series.freshness. provider_registry.get_history, which /indicators reads, never sets it."
+    },
+    {
+      "id": "R15-LEAD-004",
+      "reason": "NDTV is fixed and JONJUA keeps half-yearly. The fix_shape is not met: half-yearly should apply only when the fiscal half containing the hole has no filed 3-month period. FiledPeriods.cadence() still returns 'half-yearly' whenever trail is None and no 6-month period encloses a 3-month one. Fresh A: a quarterly filer whose Oct-Dec 2025 quarter is simply unfiled, with no 6-month context, gets 'half-yearly' and the '(a half-yearly filer) - annual, not trailing-4Q' reason. Fresh B: an Oct-Mar 6-month period with Oct-Dec filed standalone inside it also gets 'half-yearly'."
+    },
+    {
+      "id": "R15-LIFECYCLE-020",
+      "reason": "Three warm cycles stay closed. But the claim that warm 429s alone can no longer open the circuit is false. The weight is fractional (0.25 divided by the chunk count per cycle), but consecutive_throttles resets only on record_success, so it accumulates. Fresh case: 3 India sweeps plus 15 sp500 warm cycles, all 429, with no success in between. The circuit opens at warm cycle 10 (ct 3.0). A later user fetch_quotes_batch then spends 0 HTTP calls and returns rate_limited. The weight delays the open by about 85 min of sustained background 429s under backoff; it does not prevent it."
+    }
+  ],
+  "concur_not_defect": ["R15-LEAD-046"],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-28-int@c780c5161e26ab2366d991df64503eaf5d384dc6"
+}

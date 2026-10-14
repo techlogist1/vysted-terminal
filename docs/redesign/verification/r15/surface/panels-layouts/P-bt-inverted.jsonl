@@ -1,0 +1,1 @@
+{"kind": "run-error", "runId": "_engine_error", "message": "failed to load historical data for ['SPY'] \u2014 all providers returned no data for 2025-12-31..2024-01-01; check symbol validity and date range.", "_t": 0.7}

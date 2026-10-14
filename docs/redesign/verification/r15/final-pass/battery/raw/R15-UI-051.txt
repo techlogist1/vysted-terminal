@@ -1,0 +1,15 @@
+# R15-UI-051 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:51+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'R15-UI-028\|R15-UI-051\|display-currency\|rupee\|₹' src/modules/quant/OptionPricerPanel.test.tsx src/modules/quant/BondPricerPanel.test.tsx | head -6; grep -n '"\$"' src/modules/quant/OptionPricerPanel.tsx src/modules/quant/BondPricerPanel.tsx; echo dollar-literal-grep-exit=$?
+--- output ---
+src/modules/quant/OptionPricerPanel.test.tsx:70:  it("R15-UI-028: in region IN, ₹ price and vega/theta in market units", async () => {
+src/modules/quant/OptionPricerPanel.test.tsx:75:    expect(screen.getByTestId("option-price").textContent).toBe("₹8.4200");
+src/modules/quant/OptionPricerPanel.test.tsx:82:    fireEvent.change(screen.getByTestId("field-display-currency"), { target: { value: "USD" } });
+src/modules/quant/BondPricerPanel.test.tsx:73:  it("R15-DATA-100: in region IN, prices render with ₹, not a hard-coded $", async () => {
+src/modules/quant/BondPricerPanel.test.tsx:78:    expect(screen.getByTestId("bond-clean").textContent).toContain("₹1,060.58");
+src/modules/quant/BondPricerPanel.test.tsx:82:  it("R15-DATA-100: the display-currency select overrides the region default", async () => {
+src/modules/quant/BondPricerPanel.tsx:125:  // India-first terminal must not hard-prefix "$" on every price. Frontend
+dollar-literal-grep-exit=0
+
+EXIT=0 (0.0s)

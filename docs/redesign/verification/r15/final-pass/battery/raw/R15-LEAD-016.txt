@@ -1,0 +1,36 @@
+# R15-LEAD-016 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:28+0530
+
+$ git merge-base --is-ancestor 6b70230 HEAD && echo 'closure 6b70230 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 6b70230 NOT an ancestor'
+[exit 0] [0.02s]
+closure 6b70230 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-LEAD-016\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+sidecar/tests/test_earnings_provider.py:191:    # Sorted newest-first by period_end (R15-LEAD-016) — reported_date can be
+sidecar/tests/test_earnings_provider.py:202:    """R15-LEAD-016: a quarter ending 2026-01-31 is announced 2026-02-24 (24
+Binary file sidecar/tests/__pycache__/test_earnings_provider.cpython-313-pytest-9.0.3.pyc matches
+sidecar/models/earnings.py:67:    #: The fiscal quarter end (R15-LEAD-016) — the sort key and the chart's
+sidecar/models/earnings.py:169:    #: The fiscal quarter end (R15-LEAD-016) — the sort key, NOT the
+sidecar/models/earnings.py:174:    #: ``period_end``, the R15-LEAD-016 defect).
+Binary file sidecar/services/__pycache__/earnings_provider.cpython-313.pyc matches
+sidecar/services/earnings_provider.py:265:    here), plus ``Ticker.earnings_dates`` (R15-LEAD-016) — the announcement
+sidecar/services/earnings_provider.py:313:    frame (R15-LEAD-016) — a future scheduled event (``Reported EPS`` still
+sidecar/services/earnings_provider.py:331:    quarter's actual report date, never the quarter end itself (R15-LEAD-016).
+
+
+$ curl -s -m 60 -H 'X-Vysted-Region: US' 'http://127.0.0.1:52861/earnings/AAPL/history' | python3 -c "import sys,json;d=json.load(sys.stdin);r=d.get('rows') or d.get('history') or d.get('quarters') or d;r=r if isinstance(r,list) else [];[print({k:x.get(k) for k in ('fiscal_period','period_end','fiscal_date_ending','reported_date','date')}) for x in r[:6]];print('rows',len(r))"
+[exit 0] [3.86s]
+rows 0
+
+
+$ curl -s -m 60 -H 'X-Vysted-Region: IN' 'http://127.0.0.1:52861/earnings/TCS.NS/history' | python3 -c "import sys,json;d=json.load(sys.stdin);r=d.get('rows') or d.get('history') or d.get('quarters') or d;r=r if isinstance(r,list) else [];[print({k:x.get(k) for k in ('fiscal_period','period_end','fiscal_date_ending','reported_date','date')}) for x in r[:4]];print('rows',len(r))"
+[exit 0] [2.03s]
+rows 0
+
+
+$ (follow-up) for s in TCS.NS RELIANCE.NS MSFT: curl /earnings/$s/history -> period_end vs reported_date
+TCS.NS rows 0 []
+RELIANCE.NS rows 4 [('2026-06-30', '2026-07-17'), ('2026-03-31', '2026-04-24'), ('2025-12-31', '2026-01-16'), ('2025-09-30', '2025-10-17')]
+MSFT rows 4 [('2026-06-30', '2026-07-29'), ('2026-03-31', '2026-04-29'), ('2025-12-31', '2026-01-28'), ('2025-09-30', '2025-10-29')]
+(AAPL/TCS.NS empty history above: Yahoo rate-limited this session; RELIANCE.NS and MSFT rows carry announcement dates distinct from period ends)

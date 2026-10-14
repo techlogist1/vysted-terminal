@@ -151,6 +151,8 @@ export interface BacktestResult {
   walkForwardSlices?: WalkForwardSlice[];
   startedAt: number;
   durationMs: number;
+  /** Honest-degradation notes (e.g. entries skipped for insufficient cash). */
+  warnings?: string[] | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -160,8 +162,7 @@ export interface BacktestResult {
 /** One event in a backtest run's SSE stream. */
 export type BacktestRunEvent =
   | { kind: "run-start"; runId: string; totalBars: number; startedAt: number }
-  | { kind: "progress"; runId: string; barsProcessed: number; equity: number }
-  | { kind: "trade"; runId: string; trade: BacktestTrade }
+  | { kind: "progress"; runId: string; barsProcessed: number }
   | { kind: "run-complete"; runId: string; result: BacktestResult }
   | { kind: "run-error"; runId: string; message: string };
 

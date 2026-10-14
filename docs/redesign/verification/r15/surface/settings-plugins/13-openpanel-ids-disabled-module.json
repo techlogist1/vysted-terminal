@@ -1,0 +1,25 @@
+{
+ "open:marketplace-panel": [],
+ "open:marketplace": [
+  "marketplace|marketplace-panel"
+ ],
+ "open:screener-panel": [
+  "screener-panel|screener-panel"
+ ],
+ "open:screener": [],
+ "open:portfolio": [
+  "portfolio|portfolio-panel"
+ ],
+ "open:notes": [
+  "notes|notes-panel"
+ ],
+ "open:portfolio(disabled)": [
+  "portfolio|portfolio-panel"
+ ],
+ "portfolioComponentMounted": false,
+ "agentOpenPanelLabel": null,
+ "agentAdded": [
+  "portfolio|portfolio-panel"
+ ],
+ "agentAddPosition": "n/a"
+}

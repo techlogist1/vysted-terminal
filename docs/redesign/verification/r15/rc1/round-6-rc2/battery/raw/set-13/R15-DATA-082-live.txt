@@ -1,0 +1,3 @@
+# GET /quotes?symbols=BTC/USDT,ETH/USDT&asset_class=crypto  (ace7dd76, own sidecar :52359, headers: none)
+[{"symbol":"BTC/USDT","price":84656.8,"change":-154.04,"change_percent":-0.182,"volume":26007.00467,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-10-03T00:58:10.001000Z","provider":"ccxt:binance","freshness":"live"},{"symbol":"ETH/USDT","price":2676.06,"change":-32.64,"change_percent":-1.205,"volume":426324.6578,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-10-03T00:58:09.009000Z","provider":"ccxt:binance","freshness":"live"}]
+# exit=

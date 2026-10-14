@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PluginManagerPanel } from "@/components/PluginManagerPanel";
 import { type DiscoveredPlugin, PluginRuntime } from "@/lib/plugin-runtime";
@@ -72,8 +72,11 @@ describe("PluginManagerPanel", () => {
   });
 
   it("renders the empty-state copy when no plugins are loaded", () => {
+    // Runtime attached but zero plugins → the inviting empty state (a null
+    // runtime now shows the distinct "loading runtime" state).
+    usePluginsStore.setState({ runtime: new PluginRuntime() });
     render(<PluginManagerPanel />);
-    expect(screen.getByText(/no plugins loaded yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no plugins are loaded/i)).toBeInTheDocument();
   });
 
   it("renders each loaded plugin with its name, version, and active state", async () => {
@@ -112,8 +115,9 @@ describe("PluginManagerPanel", () => {
     expect(screen.getByTestId("plugin-error-broken").textContent).toContain("init crashed");
   });
 
-  it("the toggle calls runtime.unloadPlugin when an active plugin is disabled", async () => {
-    const runtime = new PluginRuntime();
+  it("toggling an active plugin off persists enabled:false and detaches it (R15-CODE-PLATFORM-012)", async () => {
+    const detach = vi.fn(async () => {});
+    const runtime = new PluginRuntime({ host: { attach: async () => {}, detach } });
     await runtime.loadPlugin(discovered(fakePlugin("toggleable")));
     usePluginsStore.getState().attachRuntime(runtime);
 
@@ -124,7 +128,9 @@ describe("PluginManagerPanel", () => {
     fireEvent.click(toggle);
     await waitFor(() => {
       expect(runtime.getPlugin("toggleable")?.state).toBe("stopped");
+      expect(detach).toHaveBeenCalledWith("toggleable");
     });
+    expect((await runtime.readConfig("toggleable"))?.enabled).toBe(false);
   });
 
   it("renders the health-history strip after a healthCheck has run", async () => {

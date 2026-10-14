@@ -1,0 +1,16 @@
+# R15-RESEARCH-014 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:41+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+if [ ! -f $B/out/R15-RESEARCH-014.txt ]; then "$IP" $B/sc/p17c.py > $B/out/p17c.log 2>&1; echo "script exit $?"; fi; cat $B/out/R15-RESEARCH-014.txt 2>/dev/null || tail -20 $B/out/p17c.log
+--- output ---
+script exit 0
+COMMAND: deep.synthesis_llm through real oneshot.complete seam with fake provider finishing max_tokens/length/stop (scratch p17c.py)
+EXIT: 0
+OUTPUT:
+finish_reason=max_tokens: truncated=True body='# Brief\n| FY24 revenue | 1,2'
+finish_reason=length: truncated=True body='# Brief\n| FY24 revenue | 1,2'
+finish_reason=stop: truncated=False body='# Brief\n| FY24 revenue | 1,2'
+finish_reason=end_turn: truncated=False body='# Brief\n| FY24 revenue | 1,2'
+anthropic max_output_tokens(claude-opus-4-8)=128000  (old DEFAULT 4096)
+deep.SYNTHESIS_TRUNCATED_NOTE="The model hit its output limit while writing this synthesis, so the brief's prose ends early."
+
+EXIT=0 (1.3s)

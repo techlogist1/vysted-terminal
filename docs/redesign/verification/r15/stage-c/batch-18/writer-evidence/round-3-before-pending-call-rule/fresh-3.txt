@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_29b35f3d8ee34cff923b045b09d096d8", "name": "fundamentals", "input": {"symbol": "SIFY.NS"}}
+[  39.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_ac60d7a5a4d842f6b918868335839c94", "name": "financial_statements", "input": {"symbol": "SIFY", "statement": "income", "period": "annual"}}
+[  42.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_29b35f3d8ee34cff923b045b09d096d8", "name": "fundamentals", "ok": false, "error": "provider error: yfinance has no instrument data for 'SIFY.NS'"}
+[  43.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_ac60d7a5a4d842f6b918868335839c94", "name": "financial_statements", "ok": true, "error": null}
+[  53.0s] heartbeat: {"kind": "heartbeat"}
+[  63.0s] heartbeat: {"kind": "heartbeat"}
+[  76.9s] done: {"kind": "done", "usage": {"input_tokens": 6795, "output_tokens": 62, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The annual revenue of SIFY for the year 2026-03-31 is ₹2,684 cr. This figure was obtained from the financial statements tool.
+
+Unfortunately, the fundamentals tool failed to provide any data due to provider error: yfinance has no instrument data for 'SIFY.NS'.
+
+=== ok · 76.9s · events {'heartbeat': 5, 'tool_use': 2, 'tool_result': 2, 'delta': 62, 'done': 1} · usage in=6795 out=62 · est $0.00000 · llama3.1:8b

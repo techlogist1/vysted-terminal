@@ -1,0 +1,13 @@
+# R15-DATA-021 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:05:29+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m 100 -H "X-Vysted-Region: IN" "$H/disclosures/shareholding?symbol=SIL" | python3 -c "
+import sys,json;d=json.load(sys.stdin);ps=d.get('patterns') or []
+print('patterns',len(ps))
+bad=[(p.get('quarter_end'),p.get('split_as_of')) for p in ps if p.get('split_as_of') and p.get('split_as_of')!=p.get('quarter_end')]
+print('split_as_of != quarter_end:',bad[:10]); print('with split_as_of:',sum(1 for p in ps if p.get('split_as_of')))"
+--- output ---
+patterns 20
+split_as_of != quarter_end: []
+with split_as_of: 20
+
+EXIT=0 (1.8s)

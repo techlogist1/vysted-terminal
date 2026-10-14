@@ -1,0 +1,16 @@
+agent zz-bad.json: schema violation at <root>: 'philosophy' is a required property
+agent zz-bad.json: schema violation at ['defaultProvider']: 'notaprovider' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']
+agent zz-bad.json: schema violation at ['systemPrompt']: 'test' is too short
+agent zz-bad.json: schema violation at <root>: 'philosophy' is a required property
+agent zz-bad.json: schema violation at ['defaultProvider']: 'notaprovider' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']
+agent zz-bad.json: schema violation at ['systemPrompt']: 'test' is too short
+agent zz-openrouter.json: schema violation at <root>: 'philosophy' is a required property
+agent zz-openrouter.json: schema violation at ['systemPrompt']: 'test' is too short
+agents directory not found at /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/agents-test-16-MISSING; no agents will load
+good dir roster count: 13 degraded: []
+test dir (with zz-bad.json + defaultProvider openrouter check) roster count: 13
+degraded2: [{'file': 'zz-bad.json', 'reason': "schema violation: <root>: 'philosophy' is a required property; ['defaultProvider']: 'notaprovider' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']; ['systemPrompt']: 'test' is too short"}]
+zz-bad in specs2? False
+after adding openrouter agent, roster count: 13 has zz-openrouter: False
+degraded3: [{'file': 'zz-bad.json', 'reason': "schema violation: <root>: 'philosophy' is a required property; ['defaultProvider']: 'notaprovider' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']; ['systemPrompt']: 'test' is too short"}, {'file': 'zz-openrouter.json', 'reason': "schema violation: <root>: 'philosophy' is a required property; ['systemPrompt']: 'test' is too short"}]
+missing dir roster: 0 degraded4: [{'file': 'agents-test-16-MISSING', 'reason': 'agents directory not found'}]

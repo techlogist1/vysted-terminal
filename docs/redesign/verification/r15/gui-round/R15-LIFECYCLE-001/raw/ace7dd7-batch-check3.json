@@ -1,0 +1,6 @@
+[
+ {"cmd":"wait","seconds":1},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/ace7dd7-20-broken-3s.png"},
+ {"cmd":"wait","seconds":11},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/ace7dd7-21-broken-15s.png"}
+]

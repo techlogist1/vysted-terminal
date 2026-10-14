@@ -1,0 +1,80 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.13, pytest-9.0.3, pluggy-1.6.0 -- /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar
+plugins: asyncio-1.3.0, platformdirs-4.12.0, anyio-4.15.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 14 items
+
+tests/test_research_metering.py::test_deep_run_with_reported_usage_has_a_nonzero_cost PASSED [  7%]
+tests/test_research_metering.py::test_unmeasured_usage_reports_unknown_cost_not_zero PASSED [ 14%]
+tests/test_research_metering.py::test_research_guard_takes_its_ceilings_from_the_depth_profile PASSED [ 21%]
+tests/test_research_verify.py::test_slow_verdicts_cannot_carry_the_round_past_its_wall PASSED [ 28%]
+tests/test_research_verify.py::test_verdicts_reached_in_budget_are_kept_and_the_tail_is_unverified PASSED [ 35%]
+tests/test_research_verify.py::test_guard_breach_between_verdicts_stops_the_loop PASSED [ 42%]
+tests/test_research_verify.py::test_one_domain_reached_by_both_lanes_is_not_independent PASSED [ 50%]
+tests/test_research_verify.py::test_two_hosts_of_one_registrable_domain_are_not_independent PASSED [ 57%]
+tests/test_web_search.py::test_keyless_hanging_ddg_serves_brave_inside_the_tool_cap FAILED [ 64%]
+tests/test_search_redirect_ssrf.py::test_fetch_page_blocks_a_public_page_that_redirects_to_loopback PASSED [ 71%]
+tests/test_search_redirect_ssrf.py::test_pdf_lane_blocks_the_same_redirect PASSED [ 78%]
+tests/test_search_redirect_ssrf.py::test_impersonated_lane_blocks_the_same_redirect PASSED [ 85%]
+tests/test_search_redirect_ssrf.py::test_an_allowed_redirect_is_still_followed PASSED [ 92%]
+tests/test_research_model_lane.py::test_retired_model_404_is_an_error_step_naming_the_model PASSED [100%]
+
+=================================== FAILURES ===================================
+__________ test_keyless_hanging_ddg_serves_brave_inside_the_tool_cap ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x114b57980>
+
+    def test_keyless_hanging_ddg_serves_brave_inside_the_tool_cap(
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """R15-RESEARCH-008: with no SearXNG, a hanging DuckDuckGo no longer burns
+        the whole 25 s tool cap — the rotation reaches Brave and its rows serve."""
+        import time
+    
+        from services.agent_tools import catalog
+        from services.search import keyless, registry
+        from services.search.breaker import reset_breakers
+        from services.search.pacing import reset_queue
+    
+        class _Hang:
+            async def search(self, query, *, options=None):  # noqa: ANN001, ANN201
+                await asyncio.sleep(3600)
+    
+        def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+            if active_id == "keyless":
+                return keyless.KeylessSearchBackend(
+                    engines={"ddg": _Hang(), "brave": _FakeBackend("brave"), "mojeek": _Hang()}
+                )
+            return None
+    
+        reset_breakers()
+        reset_queue()
+        monkeypatch.setattr(keyless, "ENGINE_DEADLINE_SECS", 0.2)
+        monkeypatch.setattr(registry, "resolve", _resolve)
+        _set_manager_ready(monkeypatch, False)
+        cap = catalog.timeout_for("web_search")
+        try:
+            with _request(r7="tier_a"):
+                t0 = time.monotonic()
+                out = _run(asyncio.wait_for(_web_search({"query": "Dixon news"}), cap))
+                elapsed = time.monotonic() - t0
+        finally:
+            reset_breakers()
+            reset_queue()
+        assert out["ok"] is True
+        assert out["results"][0]["url"] == "https://x.com/a"
+>       assert elapsed < 1.0
+E       assert 6.7151559999911115 < 1.0
+
+tests/test_web_search.py:688: AssertionError
+=============================== warnings summary ===============================
+.venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_web_search.py::test_keyless_hanging_ddg_serves_brave_inside_the_tool_cap
+=================== 1 failed, 13 passed, 1 warning in 9.78s ====================

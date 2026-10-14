@@ -1,0 +1,17 @@
+=== DATA-104 source ===
+395:    events_raw = await asyncio.gather(*(_one(sym) for sym in universe))
+=== DATA-106 source ===
+70:            rec["industry"] = industry or rec.get("industry")
+71:            rec["sector_source"] = "yfinance"
+83:        doc["coverage"].setdefault("sector_sources", {})["yfinance"] = filled
+=== DATA-108 source ===
+25:from functools import lru_cache
+42:def _load_master(filename: str) -> dict[str, Any]:
+54:@lru_cache(maxsize=1)
+57:    raw = _load_master("nse_instruments.json")
+71:@lru_cache(maxsize=1)
+75:    raw = _load_master("bse_instruments.json")
+92:@lru_cache(maxsize=1)
+101:@lru_cache(maxsize=1)
+107:@lru_cache(maxsize=1)
+108:def _sector_map() -> dict[str, dict[str, Any]]:

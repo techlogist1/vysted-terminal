@@ -1,0 +1,6 @@
+CMD 1: in-process _auto_publish_event with a research result carrying a brief (2 sources, an unknown future field) EXIT=0
+auto id: t1__autobrief | input == brief verbatim: True | sources: 2
+no brief key -> None
+
+CMD 2 (live): vy.py invoke copilot 'Research NVDA briefly.' --provider ollama --model llama3.1:8b (events: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/res.events.jsonl)
+auto publish_brief id=call_9bec189a277c4822b3fa2ebb1e4f5b03__autobrief, input keys: query,symbol,mode,depth,execution,markdown,sources,structured,cost,web_available,note,web_reason,backend; structured keys price,fundamentals,derived,news,filings,source_floor; note 'Web search did not answer within 8s — structured data only', web_reason timeout, sources [] (keyless web lane timed out: adjacent upstream note, not the entry's repro)

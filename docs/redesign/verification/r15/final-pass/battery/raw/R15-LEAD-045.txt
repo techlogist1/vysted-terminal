@@ -1,0 +1,8 @@
+# R15-LEAD-045 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:34+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/l045.py 2>&1 | grep -v Warning
+--- output ---
+<class 'tuple'> 2
+rows 16 failures {}
+
+EXIT=0 (2.9s)

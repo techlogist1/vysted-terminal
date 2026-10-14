@@ -5,10 +5,9 @@ module. The wrappers parse the agent's JSON-shaped args into the
 Pydantic request, dispatch, and return ``model_dump(mode="json")`` so
 the LLM sees plain-JSON.
 
-These are read-only / math-only tools — no broker or order-placement
-side effects. The §6.5 audit suite's tool-id grep
-(``test_safety_end_to_end.py::test_audit_6``) confirms none of the ids
-below collide with ``place_order`` / ``submit_order`` / ``execute_order``.
+These are read-only / math-only tools with no side effects. The Gate-8
+test (``test_no_trading_surface.py``) confirms none of the ids below collide
+with ``place_order`` / ``submit_order`` / ``execute_order``.
 
 Registered tool ids:
 
@@ -16,10 +15,12 @@ Registered tool ids:
 * ``compute_greeks``      — analytic Greeks for a European vanilla.
 * ``price_bond``          — fixed-rate bond clean / dirty / duration / convexity.
 * ``yield_curve_value``   — bootstrap a curve, sample at one tenor.
+* ``option_chain``        — the listed chain with exchange-published OI (R15-DATA-079).
 """
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 from pydantic import ValidationError
@@ -30,8 +31,10 @@ from models.quant import (
     OptionPricingRequest,
     YieldCurveRequest,
 )
+from services import option_chain
 from services.agent_tools import register_tool
 from services.quant import bonds, greeks, options, yield_curve
+from services.quant.pool import run_quant
 
 
 def _bad(msg: str) -> dict[str, Any]:
@@ -51,7 +54,7 @@ async def _price_option(args: dict[str, Any]) -> dict[str, Any]:
     except ValidationError as exc:
         return _bad(f"invalid OptionPricingRequest: {exc.errors()[0]['msg']}")
     try:
-        result = options.price(req)
+        result = await run_quant(options.price, req)
     except ValueError as exc:
         return _bad(str(exc))
     return {"ok": True, "result": result.model_dump(mode="json")}
@@ -64,7 +67,7 @@ async def _compute_greeks(args: dict[str, Any]) -> dict[str, Any]:
     except ValidationError as exc:
         return _bad(f"invalid GreeksRequest: {exc.errors()[0]['msg']}")
     try:
-        result = greeks.compute_greeks(req)
+        result = await run_quant(greeks.compute_greeks, req)
     except ValueError as exc:
         return _bad(str(exc))
     return {"ok": True, "result": result.model_dump(mode="json")}
@@ -77,7 +80,7 @@ async def _price_bond(args: dict[str, Any]) -> dict[str, Any]:
     except ValidationError as exc:
         return _bad(f"invalid BondPricingRequest: {exc.errors()[0]['msg']}")
     try:
-        result = bonds.price_bond(req)
+        result = await run_quant(bonds.price_bond, req)
     except ValueError as exc:
         return _bad(str(exc))
     return {"ok": True, "result": result.model_dump(mode="json")}
@@ -95,10 +98,36 @@ async def _yield_curve_value(args: dict[str, Any]) -> dict[str, Any]:
     except ValidationError as exc:
         return _bad(f"invalid YieldCurveRequest: {exc.errors()[0]['msg']}")
     try:
-        result = yield_curve.bootstrap_curve(req)
+        result = await run_quant(yield_curve.bootstrap_curve, req)
     except ValueError as exc:
         return _bad(str(exc))
     return {"ok": True, "result": result.model_dump(mode="json")}
+
+
+async def _option_chain(args: dict[str, Any]) -> dict[str, Any]:
+    """One expiry of a symbol's listed option chain, trimmed to the strikes nearest spot."""
+    symbol = args.get("symbol")
+    if not isinstance(symbol, str) or not symbol.strip():
+        return _bad("missing or non-string symbol")
+    try:
+        expiry = date.fromisoformat(args["expiry"]) if args.get("expiry") else None
+        max_strikes = int(args.get("max_strikes") or 20)
+    except (TypeError, ValueError) as exc:
+        return _bad(f"invalid argument: {exc}")
+    try:
+        chain = await option_chain.get_option_chain(symbol.strip(), expiry)
+    except ValueError as exc:
+        return _bad(str(exc))
+    except option_chain.OptionChainUnavailable as exc:
+        return _bad(f"provider error: {exc}")
+    if chain is None:
+        return _bad(f"not_found: {symbol.strip().upper()} has no listed options")
+    strikes = sorted({c.strike for c in chain.contracts})
+    if chain.underlying_price is not None and len(strikes) > max_strikes:
+        spot = chain.underlying_price
+        keep = set(sorted(strikes, key=lambda k: abs(k - spot))[:max_strikes])
+        chain.contracts = [c for c in chain.contracts if c.strike in keep]
+    return {"ok": True, "result": chain.model_dump(mode="json"), "strikes_listed": len(strikes)}
 
 
 def register() -> None:
@@ -107,10 +136,12 @@ def register() -> None:
     register_tool("compute_greeks", _compute_greeks)
     register_tool("price_bond", _price_bond)
     register_tool("yield_curve_value", _yield_curve_value)
+    register_tool("option_chain", _option_chain)
 
 
 __all__ = [
     "_compute_greeks",
+    "_option_chain",
     "_price_bond",
     "_price_option",
     "_yield_curve_value",

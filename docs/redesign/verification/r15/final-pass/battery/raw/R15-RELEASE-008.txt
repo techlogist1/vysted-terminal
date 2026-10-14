@@ -1,0 +1,17 @@
+# R15-RELEASE-008 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:36+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$PATH
+cd "$C"; node --input-type=module -e "process.argv=['node','x'];const m=await import('./scripts/smoke-test-sidecars.mjs');console.log('default:',m._shouldProbeExchanges(['node','x']));console.log('--require-network:',m._shouldProbeExchanges(['node','x','--require-network']))"
+grep -n "_shouldProbeExchanges\|--require-network" scripts/smoke-test-sidecars.mjs | head -8
+--- output ---
+default: false
+--require-network: true
+99: * only run when explicitly requested (`--require-network`, wired to
+103:function _shouldProbeExchanges(argv = process.argv) {
+104:  return argv.includes("--require-network");
+958:  // No-SLA external probes — advisory only, gated behind --require-network
+960:  if (_shouldProbeExchanges()) {
+965:      "[smoke] skipping live-exchange probes (pass --require-network, or run " +
+999:export { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight, _shouldProbeExchanges };
+
+EXIT=0 (0.0s)

@@ -1,0 +1,7 @@
+RAW rc1-battery-12 @ ace7dd76 in-process (candidate venv) probe 015
+$ cd sidecar && .venv/bin/python3 probe40.py 015
+newest-first: True
+after restart list newest-first: True get(oldest) found: True
+files 3
+after 39 runs, get(oldest) still found: True
+exit=0

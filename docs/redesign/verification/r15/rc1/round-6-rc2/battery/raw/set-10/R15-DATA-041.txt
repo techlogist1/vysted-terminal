@@ -1,0 +1,18 @@
+# R15-DATA-041 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:30:48Z, sidecar :52348
+# kind=py
+# command:
+#   import asyncio, json
+#   from services.agent_tools.compare_symbols import _rank, _compare_symbols
+#   est={'symbol':'ESTABLISHED','return_pct_window':5.0,'bars':126,'window_start':'2026-04-03','window_end':'2026-10-02'}
+#   new={'symbol':'NEWLY_LISTED','return_pct_window':30.0,'bars':2,'window_start':'2026-10-01','window_end':'2026-10-02'}
+#   print('synthetic _rank:', _rank([est,new]))
+#   async def main():
+#       r=await _compare_symbols({'symbols':['RELIANCE.NS','RENTOMOJO.NS','TCS.NS']})
+#       print('live relative:', json.dumps(r.get('relative') or {k:r[k] for k in r if k in('best','worst','note')}))
+#       print([ (x.get('symbol'),x.get('return_pct_window'),x.get('bars'),x.get('window_start')) for x in r.get('results',r.get('symbols',[])) ] if isinstance(r,dict) else r)
+#   asyncio.run(main())
+# output:
+synthetic _rank: {'best': None, 'worst': None, 'note': 'windows not comparable: NEWLY_LISTED has 2 bars since 2026-10-01'}
+live relative: {"best": "TCS", "worst": "RELIANCE", "note": "windows not comparable: RENTOMOJO has 11 bars since 2026-09-17"}
+[('RELIANCE', -13.381796602625906, 128, '2026-03-27'), ('RENTOMOJO', -1.806270472625171, 11, '2026-09-17'), ('TCS', -13.172650430998411, 128, '2026-03-27')]
+# exit=0

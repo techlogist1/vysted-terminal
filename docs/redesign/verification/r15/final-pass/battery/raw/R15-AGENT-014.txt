@@ -1,0 +1,18 @@
+# R15-AGENT-014 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:06+0530
+
+$ git merge-base --is-ancestor c81d879 HEAD && echo 'closure c81d879 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure c81d879 NOT an ancestor'
+[exit 0] [0.02s]
+closure c81d879 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-AGENT-014\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+
+
+$ (cwd final-cand) grep -n 'it(' src/lib/plugin-agents.test.ts | head -4; grep -n 'registerPluginAgents\|plugin-agents' src/lib/plugin-bootstrap.ts | head -4
+24:  it("derives a custom:-prefixed, slug-safe id", () => {
+28:  it("registers an agent plugin's agents as custom agents so they are runnable", async () => {
+47:  it("is a no-op for a non-agent plugin (yfinance data)", async () => {
+57:  it("updates an already-registered agent via PUT on a 409 so a revised spec replaces it (R15-AGENT-057)", async () => {
+26:import { syncPluginAgents } from "@/lib/plugin-agents";
+[exit 0]

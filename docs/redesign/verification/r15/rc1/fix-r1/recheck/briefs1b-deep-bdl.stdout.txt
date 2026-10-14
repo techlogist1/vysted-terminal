@@ -1,0 +1,40 @@
+[   4.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_7c2a2578a17b4f4c95663693e721c0ce", "name": "resolve_symbol", "input": {"query": "Bharat Dynamics"}}
+[   6.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_48d14d1614fd4d5a8e7ad5585bfe3e0d", "name": "financial_statements", "input": {"symbol": "BDL", "statement": "income", "period": "annual"}}
+[   6.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_26e2db0b19074a428b738fb491c934f6", "name": "fundamentals", "input": {"symbol": "BDL"}}
+[   6.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_71fd89191bb64e5c98f01fa56cd458cc", "name": "sec_filings_list", "input": {"symbol": "BDL", "form_type": "8-K"}}
+[  18.2s] heartbeat: {"kind": "heartbeat"}
+[  23.2s] done: {"kind": "done", "usage": {"input_tokens": 20968, "output_tokens": 335, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.02554}
+
+=== ASSISTANT TEXT ===
+Here's a summary of the key financial aspects for Bharat Dynamics Limited (BDL):
+
+### Order Book and Financial Performance (Annual Figures)
+- **Total Revenue (FY 2026):** ₹24,153.60 million
+- **Cost of Revenue:** ₹12,224.94 million
+- **Gross Profit:** ₹11,928.66 million
+- **Total Operating Expenses:** ₹22,667.18 million
+- **Operating Income:** ₹1,486.42 million
+- **Net Income:** ₹4,203.38 million
+- **Earnings Per Share (EPS):** ₹11.47
+
+### Margins
+- **Gross Margin:** 47.92%
+- **Operating Margin:** 10.98%
+- **Profit Margin:** 18.83%
+
+### Valuation Metrics
+- **Market Capitalization:** ₹42,338 million
+- **Price-to-Earnings (P/E) Ratio:** 81.97
+- **Price-to-Book Ratio:** 9.98
+- **Forward P/E Ratio:** 37.99
+- **Dividend Yield:** 0.42% (₹4.90 per share)
+
+### Additional Insights
+- **Revenue Growth (TTM):** 30.81%
+- **Net Income Growth (TTM):** 5.47%
+- **Debt-to-Equity Ratio:** 0.00007
+- **Return on Equity (ROE):** 12.28%
+
+This overview provides a snapshot of BDL's current financial health, order book status, and valuationmetrics. Let me know if you need further details or specific information!
+
+=== ok · 23.2s · events {'tool_use': 4, 'heartbeat': 1, 'delta': 334, 'done': 1} · usage in=20968 out=335 · est $0.00335 · gpt-4o-mini

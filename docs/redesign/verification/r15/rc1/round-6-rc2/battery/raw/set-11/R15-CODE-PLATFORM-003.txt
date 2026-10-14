@@ -1,0 +1,13 @@
+no-creds ai.agent_invoke strategy_critic HTTP 200
+('run-start', None, None, None)
+('node-start', 'ai.agent_invoke', None, None)
+('node-error', None, None, 'ai.agent_invoke (strategy_critic): No Anthropic API key is set — add it in Settings.')
+('run-error', None, None, "failures in nodes: ['a']")
+
+unknown agent_id HTTP 200
+('run-start', None, None, None)
+('node-start', 'ai.agent_invoke', None, None)
+('node-error', None, None, "ai.agent_invoke (nope_agent): unknown agent: 'nope_agent'")
+('run-error', None, None, "failures in nodes: ['a']")
+
+node config api_key HTTP 422: {"detail":[{"type":"value_error","loc":["body","spec","nodes",0,"config"],"msg":"Value error, node config must not carry 'api_key'; the run uses the selected provider's key from the request","input":{"agent_id":"buffett","api_key":"x"},"ctx":{"error":{}}}]}

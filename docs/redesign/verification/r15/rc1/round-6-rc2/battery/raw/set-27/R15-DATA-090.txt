@@ -1,0 +1,18 @@
+# R15-DATA-090 probe (corrected body key 'workspace') at ace7dd76, :52346
+$ POST v1,v2
+{"status":"saved","name":"b6ws"} [200]
+{"status":"saved","name":"b6ws"} [200]
+__autosave__.vysted-workspace
+b6ws.vysted-workspace
+b6ws.vysted-workspace.bak
+$ truncate main file; GET
+{"v":1} [200]
+__autosave__.vysted-workspace
+b6ws.vysted-workspace
+b6ws.vysted-workspace.bak
+b6ws.vysted-workspace.corrupt-1790986608396
+$ next save then .bak parse
+{"status":"saved","name":"b6ws"} [200]
+bak {'v': 1}
+$ non-dict on disk: write [] then GET
+{"detail":"Workspace 'b6arr' not found."} [404]

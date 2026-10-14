@@ -1,0 +1,12 @@
+# R15-CODE-FRONTEND-011 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'describe/apply parity\|the diff promises what apply does\|the table covers every host action' src/lib/host-actions.test.ts; grep -n 'export function parseHostAction' src/lib/host-actions.ts; grep -n 'parseHostAction(name, input)\|applyIntentAsync(change.intent)' src/store/proposed-changes.ts | head -5
+--- output ---
+1661:describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)", () => {
+1788:  it("the table covers every host action", () => {
+1792:  it.each(ROWS)("%s %j: the diff promises what apply does", async (name, input, said, did) => {
+961:export function parseHostAction(name: string, input: Record<string, unknown>): HostIntent {
+102:    const intent = parseHostAction(name, input);
+145:    const { status, reason, preImage } = await applyIntentAsync(change.intent);
+
+EXIT=0 (0.0s)

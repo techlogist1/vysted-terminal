@@ -1,0 +1,48 @@
+=== R15-CODE-PLATFORM-029 probe (candidate 1006c6da) ===
+Script (both 029/030 in one file, independent of the pinned tests' exact quantities):
+import asyncio, sys
+sys.path.insert(0, ".")
+from services import backtest_engine
+from services.backtest_engine import BacktestStrategy, BacktestOrderIntent
+from models.backtest import BacktestRequest
+from services.backtest_engine import Bar
+
+CAPITAL = 100_000.0
+FEE_RATE = 0.001
+
+class _Scripted(BacktestStrategy):
+    NAME = "scripted-probe"
+    def __init__(self, params):
+        super().__init__(params)
+        self._n = 0
+    async def on_bar(self, bar, portfolio):
+        self._n += 1
+        qty = self.params["script"].get(self._n)
+        return [BacktestOrderIntent(symbol=bar.symbol, quantity=qty)] if qty else []
+
+async def run(script, closes):
+    async def loader(_s, _a, _b):
+        return [Bar(f"2025-01-{i+2:02d}", "AAA", c, c, c, c, 1) for i, c in enumerate(closes)]
+    backtest_engine.register_strategy("scripted-probe", _Scripted)
+    req = BacktestRequest(strategyId="scripted-probe", params={"script": script}, symbols=["AAA"],
+                           startDate="2025-01-01", endDate="2025-12-31", initialCapital=CAPITAL)
+    return await backtest_engine.run_backtest(req, bar_loader=loader)
+
+async def main():
+    # 029: pyramiding -- 4 buys of 10 each (independent of the pinned test's 3-buy case)
+    r = await run({1: 10, 2: 10, 3: 10, 4: 10}, [100.0] * 5)
+    fees = 40 * 100.0 * FEE_RATE
+    print("029: final equity:", r.equity_curve[-1].equity, "expected:", CAPITAL - fees, "trades:", len(r.trades), "held qty:", r.trades[0].quantity if r.trades else None)
+
+    # 030: oversell -- buy 10, then sell 100 (phantom-share oversell, independent qty from pinned test's -20)
+    r2 = await run({2: 10, 4: -100}, [100.0] * 4)
+    fees2 = 2 * 10 * 100.0 * FEE_RATE
+    print("030: final equity:", r2.equity_curve[-1].equity, "expected:", CAPITAL - fees2, "trades:", len(r2.trades), "sold qty:", r2.trades[0].quantity if r2.trades else None)
+
+asyncio.run(main())
+OUTPUT:
+029: final equity: 99996.0 expected: 99996.0 trades: 1 held qty: 40
+030: final equity: 99998.0 expected: 99998.0 trades: 1 sold qty: 10.0
+
+backtest_engine.py:370-378 now merges into the existing _OpenPosition with a weighted-average entry price on a repeat buy (was a flat re-assignment before).
+VERDICT: holds. 4 buys of 10 on a flat market -> 1 trade row, quantity=40, final equity = capital - total fees exactly (no orphaned lots).

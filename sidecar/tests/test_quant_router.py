@@ -146,6 +146,30 @@ def test_post_yield_curve(client: TestClient) -> None:
         assert "discount_factor" in point
 
 
+def test_duplicate_pillar_is_400(client: TestClient) -> None:
+    """R15-UI-077: two instruments at the same pillar (maturity date) 400,
+    not an uncaught 500 (QuantLib raises RuntimeError, not ValueError)."""
+    response = client.post(
+        "/quant/yield-curve",
+        json={
+            "valuation_date": "2026-05-16",
+            "instruments": [
+                {"type": "deposit", "tenor": 1, "tenor_unit": "months", "rate": 0.041},
+                {"type": "deposit", "tenor": 3, "tenor_unit": "months", "rate": 0.043},
+                {"type": "deposit", "tenor": 6, "tenor_unit": "months", "rate": 0.044},
+                {"type": "swap", "tenor": 2, "tenor_unit": "years", "rate": 0.045},
+                {"type": "swap", "tenor": 5, "tenor_unit": "years", "rate": 0.047},
+                {"type": "swap", "tenor": 10, "tenor_unit": "years", "rate": 0.050},
+                {"type": "swap", "tenor": 30, "tenor_unit": "years", "rate": 0.052},
+                {"type": "swap", "tenor": 10, "tenor_unit": "years", "rate": 0.051},
+            ],
+            "sample_count": 10,
+        },
+    )
+    assert response.status_code == 400
+    assert "pillar" in response.json()["detail"].lower()
+
+
 def test_post_yield_curve_empty_instruments_400(client: TestClient) -> None:
     response = client.post(
         "/quant/yield-curve",

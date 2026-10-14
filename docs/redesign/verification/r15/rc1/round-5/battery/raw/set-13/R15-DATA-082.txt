@@ -1,0 +1,5 @@
+provider ccxt failed for quote, falling through: ccxt ticker for binance:BTC/USDT carries no last or close price
+provider ccxt failed for quote, falling through: correctness gate: non-positive price 0.0 for 'BTC/USDT' from 'ccxt:binance'
+no-price-fields -> ProviderError : ccxt ticker for binance:BTC/USDT carries no last or close price
+zero-price -> CorrectnessError : correctness gate: non-positive price 0.0 for 'BTC/USDT' from 'ccxt:binance'
+exit=0

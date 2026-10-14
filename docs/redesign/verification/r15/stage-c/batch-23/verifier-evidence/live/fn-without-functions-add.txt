@@ -1,0 +1,14 @@
+[   4.7s] done: {"kind": "done", "usage": {"input_tokens": 2745, "output_tokens": 87, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Adding HDFC Bank at ₹1,650 to your portfolio... 
+
+The terminal reports: awaiting_user_review — I've proposed adding a position for HDFC Bank with price ₹1,650; it's waiting for you to review in the proposal bar. The current holdings are:
+
+- 1 HDFCBANK @ ₹1650
+
+Your total portfolio value is ₹1650.
+
+Would you like me to proceed or adjust anything?
+
+=== ok · 4.7s · events {'delta': 87, 'done': 1} · usage in=2745 out=87 · est $0.00000 · llama3.1:8b

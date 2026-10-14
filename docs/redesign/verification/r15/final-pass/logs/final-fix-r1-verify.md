@@ -1,0 +1,12 @@
+- Sat Oct  3 19:24:28 IST 2026 booted
+- own sidecar :52887 sleep pid 52189 (final-int source @cac9d206), data final-data-final-fix-r1-verify
+- HTTP repro batches a.out/b.out in fix-r1/verify; pins vitest 5 files 183 passed (scratch fr1v/vt/out/pins.log)
+- FINAL-002/011 live ok; FINAL-003 SUNRAJDI pe 54.09; FINAL-005 YASHOPTICS 200 ok but VOLERCAR partial w/o reasons, SME market_cap no reason
+- F008: corrupt-header dir booted from source :52888 (sleep 54599), truncated dir booted from bundle binary :52889 (sleep 54601)
+- Sat Oct  3 19:54:47 IST 2026 L024: artificial seed (user_version 1, meta dropped) crashes 'no such table: meta' -> not a reachable shape (meta + user_version 1 arrive together); realistic v0.8.0 shape (user_version 0, cache only) backs up once as unversioned-<date>, no 2nd backup, case b backs up 0.8.9-prior -> certified + observation
+- LEAD-060 15 variants ok; LEAD-071 in-process 429 typed, no cache row, refetch; FINAL-031 PLX + desk_two ok; FINAL-028 bin/src exit 1 on taken port
+- FINAL-006: idle cold singles 4.8-7.0 s (:52888); with 100 cold NSE mounted alone, cold singles 15-21 s; 100-name batch aborted at 120 s client budget (server done ~137 s). Cause nse_provider global _Throttle. NOT CERTIFIED
+- FINAL-005: VOLERCAR revenue/NI/EPS/PE null with no reason -> NOT CERTIFIED
+- FINAL-009/024 fresh cases in-process (f009-fresh.txt, f024-fresh.txt); docs re-checks docs-checks.txt
+- stopped own processes by recorded pid: sleeps 52189 (:52887), 54599 (:52888), 54601 (:52889), probe-loop shells 57613/57615/57815/57818/58674/58676; all ports 000
+- VERDICTS.json / VERDICTS.md written: 26 certified, 2 not certified (FINAL-006, FINAL-005), 0 adjudicated

@@ -1,0 +1,4 @@
+user "What is AAPL's market cap?"
+assistant 'The market cap of AAPL is $4.90T.'
+user 'And MSFT?'
+assistant '[failed: Ollama is not running. Start Ollama, then try again.]'

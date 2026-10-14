@@ -1,0 +1,24 @@
+# R15-AGENT-008 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:06+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import json
+from services import agent_runtime as ar
+from services.agent_tools.schemas import openai_tools
+from models.llm import LLMMessage
+spec = ar.get_agent('copilot')
+full = list(spec.tools)
+print('full tools', len(full), 'schema chars', len(json.dumps(openai_tools(full))))
+sysmsg = LLMMessage(role='system', content=getattr(spec,'system_prompt','x'*10964))
+print('system chars', len(sysmsg.content))
+for prompt in ['Screen nse-all for stocks with P/E under 15 and tell me the top names', 'hello']:
+    msgs=[sysmsg, LLMMessage(role='user', content=prompt)]
+    sub = ar._window_tool_subset(full, msgs, 16384)
+    print(repr(prompt[:40]), '->', len(sub), 'tools; schema chars', len(json.dumps(openai_tools(sub))), '; screener_run in subset:', 'screener_run' in sub, '; est tokens', ar._estimate_tokens(msgs, sub))
+PY
+--- output ---
+full tools 55 schema chars 41643
+system chars 6502
+'Screen nse-all for stocks with P/E under' -> 32 tools; schema chars 27163 ; screener_run in subset: True ; est tokens 8433
+'hello' -> 29 tools; schema chars 22132 ; screener_run in subset: False ; est tokens 7159
+
+EXIT=0 (1.2s)

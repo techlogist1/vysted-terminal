@@ -1,0 +1,12 @@
+[   3.7s] done: {"kind": "done", "usage": {"input_tokens": 2743, "output_tokens": 67, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+To find the cost of your INFY holding, we'll multiply the number of shares (10) by the current price (₹1,500). 
+
+Cost = Number of Shares × Current Price
+= 10 × ₹1,500
+= ₹15,000 
+
+Your INFY holding costs ₹15,000.
+
+=== ok · 3.7s · events {'delta': 65, 'done': 1} · usage in=2743 out=67 · est $0.00000 · llama3.1:8b

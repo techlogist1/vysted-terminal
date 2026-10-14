@@ -1,0 +1,67 @@
+-- sidecar-staleness.mjs: extension allow-list --
+39:// litter. An allow-list of extensions silently missed new data kinds: the
+40:// bundled `.json.gz` fundamentals seeds never triggered a rebuild (R15-RELEASE-005).
+71: * Newest source mtime (ms) across `sourceDirs` plus any `extraFiles`
+75:export function newestSourceMtime(sourceDirs, { excludeDirs = [], extraFiles = [] } = {}) {
+79:  for (const f of extraFiles) {
+-- sidecar-specs.mjs SIDECAR_SPECS --
+// scripts/sidecar-specs.mjs
+//
+// The one table of what each sidecar binary is built from, and the one builder
+// that turns a row into a binary (R15-CODE-PLATFORM-026). The three
+// `ensure-*-sidecar.mjs` scripts, the `ensure-all-sidecars.mjs` orchestrator and
+// the smoke-test freshness gate all read SIDECAR_SPECS, so adding a sidecar is a
+// new row here plus its `bundle.externalBin` entry and `.gitignore` lines.
+//
+// PyInstaller `--onefile` silently drops whatever a flag below does not name
+// (dist-info, package data, plain data dirs), and the binary still builds, so
+// every flag carries the reason it exists. `sidecar-specs.test.mjs` pins each
+// row's PyInstaller command byte-for-byte.
+
+import { execFileSync, execSync } from "node:child_process";
+import { copyFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { basename, join, resolve } from "node:path";
+import { platform } from "node:os";
+
+import { ensureBuildVenv } from "./build-python.mjs";
+import { assertFresh, isStale } from "./sidecar-staleness.mjs";
+import { signDevBinary } from "./macos-dev-sign.mjs";
+
+const ROOT = resolve(import.meta.dirname, "..");
+const SIDECAR_DIR = join(ROOT, "sidecar");
+const OPENBB_DIR = join(SIDECAR_DIR, "openbb_mcp_subprocess");
+const SEC_EDGAR_DIR = join(SIDECAR_DIR, "sec_edgar_mcp_subprocess");
+export const BINARIES_DIR = join(ROOT, "src-tauri", "binaries");
+
+const isWin = platform() === "win32";
+const ext = isWin ? ".exe" : "";
+
+const flags = (flag, values) => values.map((v) => `${flag}=${v}`);
+
+// uvicorn resolves its loop/protocol implementations dynamically, so the
+// relevant submodules are hinted explicitly.
+const UVICORN_HIDDEN = [
+  "uvicorn.loops.auto",
+  "uvicorn.loops.asyncio",
+  "uvicorn.protocols.http.auto",
+  "uvicorn.protocols.http.h11_impl",
+  "uvicorn.protocols.websockets.auto",
+  "uvicorn.lifespan.on",
+  "uvicorn.lifespan.off",
+];
+
+// Plain data the main sidecar loads at runtime. --onefile only collects Python
+// modules, so each dir needs an explicit --add-data or it is silently absent:
+// - `agents/` (no __init__.py; services/agent_runtime.py reads it by path):
+//   without it every first-party agent is missing and /agents returns []
+//   (Phase 8 L3-agents-dir-not-bundled).
+// - `services/screener_universes/` and `services/resolver_masters/` are
+//   packages, but their JSON/.json.gz data is not collected: without them the
+//   screener returns 502 "missing universe snapshot" (Phase 9 S2) and the symbol
+//   resolver loads empty masters (Pass B / B1). The dest mirrors the package
+//   path so importlib.resources resolves inside the frozen binary.
+// - `config/` holds model_registry.json (services/model_registry.py loads it
+//   from `sys._MEIPASS/config`); absent, the loader raises at startup.
+// - `services/research/psl/` holds the vendored public_suffix_list.dat
+//   (services/research/finance.py reads it by path via `Path(__file__).parent`);
+//   without it domain_tier()'s registrable-domain check raises at first call

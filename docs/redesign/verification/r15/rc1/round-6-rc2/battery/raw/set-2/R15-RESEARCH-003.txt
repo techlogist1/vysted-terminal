@@ -1,0 +1,7 @@
+ace7dd76 candidate venv, cwd sidecar
+COMMAND: in-process iter loop: round-1 marker minted, round 2 adds PRIMARY filing; marker must still resolve (live gpt-4o-mini Blue Star run replaced: spend/no key)
+EXIT: 0
+OUTPUT:
+sources: ['https://ex.com/a', 'vysted://price/NVDA', 'vysted://fundamentals/NVDA', 'vysted://news/NVDA', 'https://www.sec.gov/Archives/nvda-10q.htm']
+marker 1 -> https://ex.com/a | round1 url: https://ex.com/a | match True
+primary in sources: True

@@ -1,0 +1,9 @@
+# R15-CROSS-PLATFORM-009 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'no string or JSX text under src/ contains' src/lib/source-guards.test.ts; echo '$ glyph outside keybindings.ts (non-comment, non-test)'; grep -rn '⌘' src --include=*.ts --include=*.tsx | grep -v 'src/store/keybindings.ts' | grep -v '\.test\.' | grep -v '^[^:]*:[0-9]*:\s*//' | grep -v '^[^:]*:[0-9]*:\s*\*' | head; echo "(end)"
+--- output ---
+50:  it("no string or JSX text under src/ contains ⌘ outside src/store/keybindings.ts", () => {
+$ glyph outside keybindings.ts (non-comment, non-test)
+(end)
+
+EXIT=0 (0.0s)

@@ -1,0 +1,52 @@
+# R15-CODE-PLATFORM-026 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:39:51Z, sidecar :52348
+# kind=sh
+# command:
+#   export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$HOME/.cargo/bin:$PATH
+#   wc -l scripts/ensure-sidecar.mjs scripts/ensure-openbb-mcp-sidecar.mjs scripts/ensure-sec-edgar-mcp-sidecar.mjs scripts/sidecar-specs.mjs
+#   echo "--- targetTriple definitions (was 3 ensure copies + smoke-test)"; grep -n "function targetTriple\|targetTriple = " scripts/*.mjs
+#   echo "--- ensure scripts"; cat scripts/ensure-sidecar.mjs | head -14
+#   node --input-type=module -e '
+#   import { SIDECAR_SPECS, pyinstallerCommand, targetTriple, binaryPath } from "./scripts/sidecar-specs.mjs";
+#   console.log("rows:", SIDECAR_SPECS.map(s=>s.name));
+#   for (const s of SIDECAR_SPECS) { const c = pyinstallerCommand(s); const argv = Array.isArray(c) ? c : (c.args||c.argv||[String(c)]); console.log(s.name, "pyinstaller argv items:", argv.length, "| triple", targetTriple()); }
+#   '
+#   echo "--- built binaries present (fresh build, per preflight)"; ls -la src-tauri/binaries | head -6
+# output:
+      14 scripts/ensure-sidecar.mjs
+      16 scripts/ensure-openbb-mcp-sidecar.mjs
+      15 scripts/ensure-sec-edgar-mcp-sidecar.mjs
+     318 scripts/sidecar-specs.mjs
+     363 total
+--- targetTriple definitions (was 3 ensure copies + smoke-test)
+scripts/sidecar-specs.mjs:195:export function targetTriple() {
+--- ensure scripts
+// scripts/ensure-sidecar.mjs
+//
+// Idempotently builds the Python sidecar into a single-file binary that Tauri
+// picks up via `bundle.externalBin`. Fast no-op when the binary is present and
+// newer than its source, unless --force. The recipe lives in sidecar-specs.mjs.
+//
+// Output: src-tauri/binaries/vysted-sidecar-<target-triple>[.exe]
+
+import { SIDECAR_SPECS, buildSidecar } from "./sidecar-specs.mjs";
+
+buildSidecar(
+  SIDECAR_SPECS.find((s) => s.name === "vysted-sidecar"),
+  { force: process.argv.includes("--force") },
+);
+rows: [
+  'vysted-sidecar',
+  'vysted-openbb-mcp-sidecar',
+  'vysted-sec-edgar-mcp-sidecar'
+]
+vysted-sidecar pyinstaller argv items: 1 | triple aarch64-apple-darwin
+vysted-openbb-mcp-sidecar pyinstaller argv items: 1 | triple aarch64-apple-darwin
+vysted-sec-edgar-mcp-sidecar pyinstaller argv items: 1 | triple aarch64-apple-darwin
+--- built binaries present (fresh build, per preflight)
+total 437288
+drwxr-xr-x@  5 lokavyasingh  wheel       160 Oct  3 05:09 .
+drwxr-xr-x@ 14 lokavyasingh  wheel       448 Oct  3 05:33 ..
+-rwxr-xr-x@  1 lokavyasingh  wheel  54434304 Oct  3 05:07 vysted-openbb-mcp-sidecar-aarch64-apple-darwin
+-rwxr-xr-x@  1 lokavyasingh  wheel  82787936 Oct  3 05:09 vysted-sec-edgar-mcp-sidecar-aarch64-apple-darwin
+-rwxr-xr-x@  1 lokavyasingh  wheel  86665792 Oct  3 05:06 vysted-sidecar-aarch64-apple-darwin
+# exit=0

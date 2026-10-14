@@ -1,0 +1,10 @@
+# R15-LIFECYCLE-002 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'R15-LIFECYCLE-002\|unknown panel\|unregistered' src/lib/workspace.test.ts | cut -c1-200 | head -5
+--- output ---
+1044:  it("skips to a clean default when the saved layout references an unregistered component", async () => {
+1047:    // No modules registered → "ghost-plugin-x" is an unknown panel component,
+1063:  it("restores holdings, notes and watchlist even when the saved layout has an unregistered panel (R15-LIFECYCLE-002)", async () => {
+1146:  it("strips an unregistered panel from the saved layout and restores the rest, with every data slice and no autosave (R15-LIFECYCLE-002)", async () => {
+
+EXIT=0 (0.0s)

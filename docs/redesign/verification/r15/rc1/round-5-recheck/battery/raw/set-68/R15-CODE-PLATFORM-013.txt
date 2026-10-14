@@ -1,0 +1,82 @@
+Repro attempted: curl / vy.py / in-process python. This entry (plugin-enabled state
+split across plugins.db 'enabled' and workspace blob enabledModules['plugin:<id>'];
+restoring an older workspace hiding a since-re-enabled plugin's panels) is entirely
+frontend workspace/store logic (src/lib/workspace.ts, src/store/workspace.ts,
+src/store/modules.ts, src/components/SettingsPanel.tsx). No sidecar route to curl;
+battery role may not run vitest or a GUI.
+
+batch-25/VERDICTS.md line 16 cites 'plat013.test.tsx' as the re-proof file; that exact
+filename is NOT present at this sha (searched):
+(none found -- likely a scratch/verifier-only filename, never committed under that name)
+
+Searched instead for committed, permanent tests carrying this entry's id, found 4:
+src/components/SettingsPanel.test.tsx
+src/lib/workspace.test.ts
+src/store/modules.test.ts
+src/store/workspace.test.ts
+src/store/workspace.test.ts:98:  it("resetToDefaultLayout keeps lifecycle-owned plugin:* flags (R15-CODE-PLATFORM-013)", () => {
+src/store/modules.test.ts:58:  it("setEnabledMap keeps the live plugin:* flags and ignores incoming ones (R15-CODE-PLATFORM-013)", () => {
+src/components/SettingsPanel.test.tsx:144:  // R15-CODE-PLATFORM-013: a bridged plugin module's toggle must route through
+src/components/SettingsPanel.test.tsx:437:  it("an import cannot flip a lifecycle-owned plugin:* flag; its non-plugin toggles still apply (R15-CODE-PLATFORM-013)", async () => {
+src/lib/workspace.test.ts:464:  it("never persists plugin:* flags, and a blob with plugin:x=false keeps an enabled plugin on (R15-CODE-PLATFORM-013)", () => {
+
+--- src/store/modules.test.ts:58 (setEnabledMap keeps live plugin:* flags) ---
+  it("setEnabledMap replaces the whole enabled map", () => {
+    useModulesStore.getState().registerModules(vystedModules);
+    useModulesStore.getState().setEnabledMap({ chart: true, watchlist: false });
+    const state = useModulesStore.getState();
+    expect(state.enabled).toEqual({ chart: true, watchlist: false });
+    expect(state.enabledModules().map((module) => module.id)).not.toContain("watchlist");
+  });
+
+  it("setEnabledMap keeps the live plugin:* flags and ignores incoming ones (R15-CODE-PLATFORM-013)", () => {
+    useModulesStore.getState().setModuleEnabled("plugin:x", false);
+    useModulesStore.getState().setEnabledMap({ "plugin:x": true, chart: false });
+    expect(useModulesStore.getState().enabled).toEqual({ "plugin:x": false, chart: false });
+  });
+
+  it("appendModules adds new modules and preserves the existing enabled map", () => {
+    useModulesStore.getState().registerModules(vystedModules);
+    useModulesStore.getState().setModuleEnabled("chart", false);
+    useModulesStore.getState().appendModules([fakeModule("plugin-a")]);
+    const state = useModulesStore.getState();
+    expect(state.modules).toHaveLength(vystedModules.length + 1);
+    expect(state.modules.at(-1)?.id).toBe("plugin-a");
+    // Pre-existing disabled flag preserved.
+    expect(state.enabled.chart).toBe(false);
+    // New module starts enabled.
+    expect(state.enabled["plugin-a"]).toBe(true);
+  });
+
+  it("appendModules deduplicates against the existing registry", () => {
+    useModulesStore.getState().registerModules(vystedModules);
+    const lengthBefore = useModulesStore.getState().modules.length;
+    useModulesStore.getState().appendModules([fakeModule("chart")]);
+    expect(useModulesStore.getState().modules).toHaveLength(lengthBefore);
+  });
+
+  it("appendModules into an empty registry adds modules and enables them", () => {
+    useModulesStore.getState().appendModules([fakeModule("plugin-a"), fakeModule("plugin-b")]);
+    const state = useModulesStore.getState();
+    expect(state.modules.map((module) => module.id)).toEqual(["plugin-a", "plugin-b"]);
+    expect(state.enabled).toEqual({ "plugin-a": true, "plugin-b": true });
+  });
+});
+
+--- src/store/workspace.test.ts:98 (resetToDefaultLayout keeps lifecycle-owned plugin:* flags) ---
+    const api = seed();
+    useWorkspaceStore.getState().resetLayout();
+    expect(api.clear).toHaveBeenCalledTimes(1);
+    expect(useModulesStore.getState().enabled).toEqual({ news: false });
+    expect(useChartDrawingsStore.getState().byPanel.chart).toHaveLength(1);
+    expect(useWorkspaceStore.getState().name).toBe("My desk");
+  });
+
+  it("resetToDefaultLayout keeps lifecycle-owned plugin:* flags (R15-CODE-PLATFORM-013)", () => {
+    seed();
+    useModulesStore.getState().setModuleEnabled("plugin:vysted-example", false);
+    useWorkspaceStore.getState().resetToDefaultLayout();
+    expect(useModulesStore.getState().enabled).toEqual({ "plugin:vysted-example": false });
+    useModulesStore.setState({ enabled: {} });
+  });
+});

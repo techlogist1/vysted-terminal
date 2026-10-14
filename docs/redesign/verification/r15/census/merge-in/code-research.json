@@ -1,0 +1,194 @@
+[
+ {
+  "raw_id": "COD-research-depth-iter-deep-6",
+  "title": "snapshot_structured's 'never raises' contract is held by seven other modules, not by its own gather",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "research-depth-iter-deep",
+  "repro": "design - add an eighth disclosure-only cross-check to the fan-out without its own try/except and every research path (FAST bundle, DEEP, ULTRA, tier-B) raises out of snapshot_structured; only DEEP has a caller-side except.",
+  "evidence": "sidecar/services/research/fast.py:377-385, sidecar/services/research/fast.py:273-274, sidecar/services/research/fast.py:303-304, sidecar/services/dividend_history.py:147, sidecar/services/market_cap_witness.py:151, sidecar/services/research/range_check.py:208",
+  "notes": "Pull complexity downward: the docstring promises 'this never raises' and the obligation is pushed outward to every current and future cross-check author. The gather that owns the promise is the one place that can hold it. Smallest fix: `results = await asyncio.gather(..., return_exceptions=True)` plus a coercion of any BaseException to None before the `if x is not None` folds below.",
+  "source_file": "code-research-depth-iter-deep.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Confirmed by reading: the docstring promises 'this never raises' but the seven-way asyncio.gather at fast.py:377-385 has no return_exceptions and the wrapper coroutines call should_cross_check outside any try; the guarantee is held only by each helper's own except (verified in dividend_history, market_cap_witness, range_check). A future cross-check without its own except breaks every research path, and only DEEP has a caller-side except."
+  }
+ },
+ {
+  "raw_id": "COD-research-depth-iter-deep-7",
+  "title": "run_deep_research is an unreachable second copy of the round loop that has already drifted",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "research-depth-iter-deep",
+  "repro": "design - ~310 LOC reachable only from the `except Exception` at deep_research.py:283, guarding a loop the same file documents as never raising. It duplicates iter's round loop (plan -> researchers -> reflect, per-round asyncio.timeout, wind-down retry) and the R13 adaptive round slice landed in only one copy: iter.py:611,628 pass observed_latency, deep.py:1241,1255 do not.",
+  "evidence": "sidecar/services/research/deep.py:986-1295, sidecar/services/research/deep.py:1241, sidecar/services/research/deep.py:1255, sidecar/services/research/deep.py:90-95, sidecar/services/research/iter.py:611, sidecar/services/research/iter.py:628, sidecar/services/agent_tools/deep_research.py:281-288",
+  "notes": "Modifying existing code / duplicated truth. Consequence: deep.py:90-95 now documents adaptive behaviour that module does not have, so a maintainer reading the fallback learns a false fact about it; every future round-loop fix has two homes and one will be missed again. Smallest fix: delete run_deep_research (iter's abort->synthesize already covers degradation - the except has no recorded firing) and keep the shared helpers, or have the fallback call the same extracted round.",
+  "source_file": "code-research-depth-iter-deep.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "run_deep_research's only non-test caller is the except fallback at deep_research.py:288, and its round loop has drifted: deep.py:1242/1261 call _round_wall_limit(budget) without observed_latency while iter.py:611/628 pass it, so the R13 adaptive slice exists only in iter. Duplicated plan/research/reflect + per-round timeout + wind-down logic has two homes."
+  }
+ },
+ {
+  "raw_id": "COD-research-depth-iter-deep-8",
+  "title": "iter.py and verify.py import 15 private names from deep.py; the underscore prefix is a lie",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "research-depth-iter-deep",
+  "repro": "design - iter.py imports _ROUND_MODEL, _ROUND_PROVIDER, _WEB_ONLY_FLOOR_NOTE, _emit, _Findings, _record_structured, _record_web, _reflect_says_complete, _round_wall_limit, _run_researcher, _safe_llm, _split_subquestions, _synthesize_brief from deep.py; verify.py imports _emit, _safe_llm, _safe_tool, _split_subquestions - while never calling deep.py's public run_deep_research.",
+  "evidence": "sidecar/services/research/iter.py:40-67, sidecar/services/research/verify.py:56-64",
+  "notes": "Information hiding/leakage: no edit inside deep.py's 'private' surface is local, and the next maintainer is told by the naming convention that it is. The module split is in the wrong place - the helpers want to be together, the two loops want to be one. Smallest fix: move the shared round helpers to services/research/_loop.py as public names; deep.py keeps only its entry point (or disappears with finding 7).",
+  "source_file": "code-research-depth-iter-deep.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Real but miscounted and over-weighted: iter.py imports 13 underscore names from deep.py and verify.py imports 4 (one, _safe_tool, not in iter's set) - 14 distinct private names, not 15. It is a naming/module-boundary smell with no behavioural consequence on its own; the substantive cost (two round loops) is finding 7, so low."
+  }
+ },
+ {
+  "raw_id": "COD-research-depth-iter-deep-9",
+  "title": "Three second copies of the depth knobs, against a docstring claiming none exist",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "research-depth-iter-deep",
+  "repro": "design - depth.py:29-30 states 'no second copy of these numbers exists anywhere', but deep_research.py:463-467 holds a SECOND per-depth wall table (tier B), :478-483 a second per-depth cost-band table, and :74 _MIN_HEAVY_ANGLES = 2 duplicates iter.py:89 _MIN_ANGLES = 2 with the comment 'Kept in lockstep with'.",
+  "evidence": "sidecar/services/research/depth.py:29-30, sidecar/services/agent_tools/deep_research.py:74, sidecar/services/agent_tools/deep_research.py:463-467, sidecar/services/agent_tools/deep_research.py:478-483, sidecar/services/research/iter.py:89",
+  "notes": "Information leakage held together by a comment asking a human to remember. Consequence: tier A's 'ultra' and tier B's 'ultra' already disagree about wall time (360 vs 480) with no single place that says so; the panel threshold is asserted equal in two files. Smallest fix: move tier_b_wall_seconds and cost_band onto DepthProfile and expose the panel threshold as a profile property (profile.is_panel), so 'the ONE knob table' becomes true again.",
+  "source_file": "code-research-depth-iter-deep.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "depth.py:29-30's 'no second copy of these numbers exists anywhere' is false, and _MIN_HEAVY_ANGLES=2 duplicates iter._MIN_ANGLES=2 held by a lockstep comment. But the tier-B _RESEARCH_MODEL_WALL_SECONDS and cost-band tables are knobs of a different engine (one hosted vendor call), not copies of DepthProfile values, so 360 vs 480 is not a disagreement between two copies of one number. No behaviour bug today; low."
+  }
+ },
+ {
+  "raw_id": "COD-research-depth-iter-deep-10",
+  "title": "run_deep_brief documents stale wall defaults and its clamp cannot express ULTRA's own default",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "research-depth-iter-deep",
+  "repro": "run_deep_brief(q, depth='ultra', wall_seconds=360) -> _clamp(360, 30, 300, 360) returns 300, silently cutting the profile's own default; run_deep_brief(q, depth='ultra') -> _clamp(None, ...) hits the TypeError branch and returns 360 unclamped. Two callers asking for the same thing get different budgets. The docstring says deep 120 / ultra 240; depth.py says 180 / 360.",
+  "evidence": "sidecar/services/agent_tools/deep_research.py:404-405, sidecar/services/agent_tools/deep_research.py:426, sidecar/services/agent_tools/deep_research.py:96-102, sidecar/services/research/depth.py:141, sidecar/services/research/depth.py:157",
+  "notes": "Comment duplicating a value that has since moved, plus a validation ceiling that predates the R13/R9 bumps it now silently contradicts. Consequence: an explicit wall_seconds equal to the documented default is silently reduced by 60s on ULTRA. Smallest fix: clamp against max(300, profile.wall_seconds) (or the profile's own ceiling) and delete the numbers from the docstring in favour of naming depth.PROFILES.",
+  "source_file": "code-research-depth-iter-deep.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Confirmed: _clamp(360, 30, 300, 360) returns 300 while _clamp(None, ...) hits the TypeError path and returns the profile's 360 unclamped; the docstrings at deep_research.py:404-405 and research.py:195-196 still say deep 120 / ultra 240 vs depth.py's 180/360. Scope correction: the defect is wider than stated - the model-facing tool schema (catalog.py:369-372) advertises wall_seconds default 120, range 30-300, so any model-supplied value (the handler forwards args.get('wall_seconds') at research.py:198) caps ULTRA at 300 and a schema-default 120 leaves the heavy panel max(60, 120-90)=60s. Severity kept medium because how often models send the arg is unmeasured."
+  }
+ },
+ {
+  "raw_id": "COD-research-extraction-synthesis-6",
+  "title": "types/brief.ts BriefDerivedMetrics under-declares four metrics the sidecar actually emits",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "research-extraction-synthesis",
+  "repro": "derive_semantics emits dividend_per_share_ttm (semantics.py:327), dividend_declared (semantics.py:340), promoter_percent_exchange (semantics.py:565) and institutions_percent_exchange (semantics.py:580); all four are listed in _PROMPT_KEYS (semantics.py:1175-1176, 1184-1185) so they render into synthesis prompts. types/brief.ts BriefDerivedMetrics (:129-177) declares none of them, and the interface has no index signature. brief-blocks.tsx:250-252 acknowledges all four in a comment while the type does not.",
+  "evidence": "sidecar/services/research/semantics.py:327, sidecar/services/research/semantics.py:340, sidecar/services/research/semantics.py:565, sidecar/services/research/semantics.py:580, types/brief.ts:129, types/brief.ts:177, src/modules/research/brief-blocks.tsx:250",
+  "notes": "Duplicated truth across the wire with no guard - the same failure class CLAUDE.md already names for types/data.ts vs sidecar/models. The drift is invisible: nothing fails, brief-claims.ts happens to survive because it iterates Object.entries on an untyped path (brief-claims.ts:78), but any new typed consumer of the declared-dividend or promoter cards needs a cast or a type widening. Smallest fix: add the four optional fields to BriefDerivedMetrics in the same commit shape the semantics legs landed in, and add the emitted-keys assertion from finding -7 so the two lists cannot drift again.",
+  "source_file": "code-research-extraction-synthesis.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Factually true: BriefDerivedMetrics (types/brief.ts:129-177) omits dividend_per_share_ttm, dividend_declared, promoter_percent_exchange and institutions_percent_exchange, all of which semantics.py emits. However, the omission is documented as deliberate. derivedItems iterates Object.entries over the leg, and brief-blocks.tsx:250-256 says the wire carries more keys than the interface names 'by design'. A test (brief-blocks.test.ts:497-506) pins that the undeclared keys render. With no runtime consequence and no current typed consumer, this is low."
+  }
+ },
+ {
+  "raw_id": "COD-research-extraction-synthesis-8",
+  "title": "perplexity.py and sonar.py are one hosted-research lane written twice, and have already drifted on HTTP 402 handling",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "research-extraction-synthesis",
+  "repro": "diff of the mapping/error/estimate blocks (perplexity.py:100-220 vs sonar.py:126-240) is 143 lines. _domain_of, _extract_markdown, _cost_snapshot, is_configured and the entire research() body are near-identical; the cost constants are duplicated under different names with identical values (_ESTIMATE_BASE_USD/_ESTIMATE_PER_CHAR_USD/_ESTIMATE_CEILING_USD at perplexity.py:70-72 == _DEEP_BASE_USD/_DEEP_PER_CHAR_USD/_DEEP_CEILING_USD at sonar.py:75-77). Drift already present: sonar.py:136-138 maps HTTP 402 to 'insufficient credits - top up your account'; perplexity.py:100-114 has no 402 branch, so the same condition falls through to the generic 'Perplexity deep research failed with HTTP 402.'",
+  "evidence": "sidecar/services/research/perplexity.py:70, sidecar/services/research/perplexity.py:100, sidecar/services/research/perplexity.py:241, sidecar/services/research/sonar.py:75, sidecar/services/research/sonar.py:136, sidecar/services/research/sonar.py:270",
+  "notes": "Repetition of nontrivial code: two backends that are one backend with two base URLs, two model tables and two provenance strings. The consequence is not aesthetic - it is that every vendor-quirk fix lands in whichever file the ticket named, which is exactly how the 402 gap appeared. Smallest fix: collapse into one SonarLane(base_url, model_table, provenance_note, error_map) with two thin constructors; the 402 divergence disappears by construction and the next quirk is fixed once.",
+  "source_file": "code-research-extraction-synthesis.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The duplication is real. The cost constants are identical under different names (perplexity.py:70-72 vs sonar.py:75-77) and the _human_http_error bodies are parallel. The only 'drift' shown is that sonar.py:134 has a 402 branch and perplexity.py:100-114 does not. That drift makes the Perplexity lane show the generic-but-honest 'failed with HTTP 402' message rather than a wrong one, and nothing I read shows the direct Perplexity API uses 402 for credits (OpenRouter does). This is maintenance cost, not a user-facing defect, so low."
+  }
+ },
+ {
+  "raw_id": "COD-research-extraction-synthesis-11",
+  "title": "_dividend_leg returns a positional 4-tuple and carries a parameter used only 'for symmetry'",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "research-extraction-synthesis",
+  "repro": "design. _dividend_leg (semantics.py:863-989) returns (yield_value, dps_value, dividend_facts, conflicts), unpacked positionally at semantics.py:1048 - its six sibling legs all return the uniform (facts, conflicts) pair. Inside _dividend_ttm_leg, semantics.py:349 reads '_ = currency  # currency rides the dps fact's basis; noted here for symmetry' - a parameter threaded through the call only to be discarded.",
+  "evidence": "sidecar/services/research/semantics.py:292, sidecar/services/research/semantics.py:349, sidecar/services/research/semantics.py:863, sidecar/services/research/semantics.py:1048",
+  "notes": "Pass-through variable plus a break in an otherwise strong consistency: this one leg has a different shape from the six around it, so a reader who learned the (facts, conflicts) convention must re-learn it here, and a caller must get four positional values right with no type protection. Smallest fix: drop the unused currency parameter from _dividend_ttm_leg's signature, and fold _dividend_leg's yield/dps into the same facts dict its siblings use so the whole family returns one shape.",
+  "source_file": "code-research-extraction-synthesis.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Holds as stated. _dividend_leg returns a positional 4-tuple (semantics.py:863-865) that is unpacked at :1048, while its sibling legs return (facts, conflicts). _dividend_ttm_leg takes a currency parameter that it discards via '_ = currency  # ... for symmetry' (semantics.py:291, :349)."
+  }
+ },
+ {
+  "raw_id": "COD-research-retrieval-relevance-7",
+  "title": "DuckDuckGo is paced twice by two independently-tuned throttles in two files",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "research-retrieval-relevance",
+  "repro": "design (code read): on the keyless path every DDG hit passes through get_queue().acquire('ddg') at keyless.py:220 (ENGINE_MIN_INTERVALS['ddg'] = 3.0, pacing.py:33) AND _get_bucket().acquire() at ddg.py:384 (_RATE_PER_MIN = 20, i.e. one per 3.0s, ddg.py:69). The Lite fallback takes a second bucket token at ddg.py:391, so one DDG search consumes two of the ~20/min budget.",
+  "evidence": "sidecar/services/search/pacing.py:33, sidecar/services/search/ddg.py:69, sidecar/services/search/keyless.py:220, sidecar/services/search/ddg.py:384, sidecar/services/search/ddg.py:391",
+  "notes": "Information leakage: 'how fast may we hit DuckDuckGo' is one design decision expressed as two numbers in two modules that happen to agree today (3.0s vs 60/20 = 3.0s). Nothing links them, so the next tuning pass changes one and the effective rate silently becomes the min of two disagreeing policies. Concrete consequence on top of the drift risk: the duplication is pure added latency on the primary engine, and it compounds finding 6. Smallest fix: delete ddg.py's _TokenBucket/_get_bucket and its two acquire calls -- pacing.RequestQueue already covers every engine including the bare-ddg fallback lane once registry._build_ddg routes through it.",
+  "source_file": "code-research-retrieval-relevance.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Real and self-admitted: pacing.py:31-32 says 'DDG ~3s mirrors the existing ~20/min token bucket in ddg.py', and both throttles run (keyless.py:220, ddg.py:384/391). Severity lowered: the bucket starts full with capacity 20 (ddg.py:74, _TokenBucket init) and RequestQueue already spaces DDG at 3s, so the bucket only adds latency after sustained Lite-fallback double-spends. This is a drift and maintenance risk, not a normal-use defect."
+  }
+ },
+ {
+  "raw_id": "COD-research-retrieval-relevance-12",
+  "title": "~150 lines of locale/autodetect/metadata scaffolding have zero production callers, and three module docstrings still describe them as the live routing",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "research-retrieval-relevance",
+  "repro": "design (grep): `grep -rn 'locale_domains|preferredDomains|detect_searxng|KNOWN_BACKENDS|breaker_status|untrusted_context_message' --include=*.py sidecar/` returns matches only inside the defining module and under sidecar/tests/. No backend in the partition ever sets SearchResponse.metadata, yet web_search.py:237-239 passes the field through.",
+  "evidence": "sidecar/services/search/base.py:138, sidecar/services/search/base.py:20, sidecar/services/search/searxng.py:105, sidecar/services/search/searxng.py:18, sidecar/services/searxng_manager.py:40, sidecar/services/search/base.py:75, sidecar/services/search/registry.py:38, sidecar/services/search/breaker.py:135, sidecar/services/search/scrub.py:105",
+  "notes": "Design-for-the-future violation compounded by stale prose, which is the part that bites a maintainer. base.py:20-23 states Exa/Tavily domain allow-lists 'are sourced from locale_domains' -- nothing sources them and both vendors are deleted (registry.py:22-24). searxng.py:18-27 and searxng_manager.py:40-42 both present detect_searxng's port probing as the routing story, but production resolves SearXNG via config.get_searxng_url() or manager.ready_base_url_detected() (web_search.py:78, :88) and never calls detect_searxng. SearchResponse.metadata documents a hosted-tier cost annex for a tier the same package declares DEAD. Concrete consequence: a maintainer adding a fifth backend will wire locale_domains and the autodetect probe because three docstrings tell them to, and none of it will run. Smallest fix: delete base.py:138-174, searxng.py:64-142 (plus their test files), base.py:75 and the unused exports, and correct the three docstrings in the same commit.",
+  "source_file": "code-research-retrieval-relevance.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds: locale_domains, detect_searxng, breaker_status, untrusted_context_message and KNOWN_BACKENDS have no production callers outside their defining module, package __init__ re-exports and tests. The docstrings still describe them as live routing: base.py:21-23, searxng.py:18-27 (including the 8888/8080 port probing that production never does), searxng_manager.py:40-42. Production resolves SearXNG only via config.get_searxng_url or ready_base_url_detected (web_search.py:78-88)."
+  }
+ },
+ {
+  "raw_id": "COD-research-retrieval-relevance-14",
+  "title": "brave.py and mojeek.py are near-identical twins with no shared base, so every scrape-contract fix must be made twice",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "research-retrieval-relevance",
+  "repro": "design (diff): after renaming the engine name and the region param, `diff` between mojeek.py and brave.py reports 104 differing lines out of ~145 -- and the genuinely engine-specific content is only the endpoint, the region-param name, the CSS selectors and the skip-host tuple. _clean, _is_organic_url, _node_to_result's shape, _parse's dedup loop, the two status branches and _coerce_limit are the same code twice.",
+  "evidence": "sidecar/services/search/brave.py:52, sidecar/services/search/brave.py:79, sidecar/services/search/brave.py:140, sidecar/services/search/mojeek.py:48, sidecar/services/search/mojeek.py:74, sidecar/services/search/mojeek.py:132",
+  "notes": "Better-together: two modules that change for the same reason (the HTML-SERP scrape contract) with no structure holding them in sync. Concrete consequence: finding 1's option-key fix, finding 6's timeout fix and any future dedup/organic-URL hardening each land in one file and quietly miss the other -- the same duplication that already produced the searxng divergence. Smallest fix: one _HtmlSerpBackend base in the package taking (endpoint, region_param, region_map, container_selectors, title_selector, snippet_selector, skip_hosts, fetch); brave and mojeek become ~25 lines of configuration each.",
+  "source_file": "code-research-retrieval-relevance.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Holds: brave.py and mojeek.py share _clean, _is_organic_url, the _parse dedup loop, the status branches and _coerce_limit almost verbatim. After normalizing engine names, diff shows 78 differing lines rather than the stated 104, which does not change the finding."
+  }
+ },
+ {
+  "raw_id": "COD-research-retrieval-relevance-15",
+  "title": "relevance._host_matches re-implements finance._matches line for line in a module that already imports finance",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "research-retrieval-relevance",
+  "repro": "design (code read): relevance.py:306-307 is `any(host == entry or host.endswith('.' + entry) for entry in table)`; finance.py:122-124 is the same expression under the name _matches. relevance.py:20 already does `from services.research import finance` and uses finance.domain_of at relevance.py:346.",
+  "evidence": "sidecar/services/research/relevance.py:306, sidecar/services/research/finance.py:122, sidecar/services/research/relevance.py:20, sidecar/services/research/relevance.py:346",
+  "notes": "Small duplicated truth with a real drift surface: 'suffix-aware host match' is the rule that decides both the evidence blacklists (JUNK_HOSTS, CRYPTO_HOSTS, INDIA_FINANCE_HOSTS, FOREIGN_MARKET_HOSTS) and the source-tier ranking (PRIMARY_DOMAINS, PRESS_DOMAINS). If one copy gains public-suffix awareness or case folding and the other does not, a host is junk-filtered under one rule and tier-ranked under another. Smallest fix: rename finance._matches to host_matches, export it, and delete the copy.",
+  "source_file": "code-research-retrieval-relevance.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Holds: relevance._host_matches (relevance.py:306-307) is the same expression as finance._matches (finance.py:122-124), and relevance already imports finance (relevance.py:20). A third copy sits in brave/mojeek _is_organic_url."
+  }
+ }
+]

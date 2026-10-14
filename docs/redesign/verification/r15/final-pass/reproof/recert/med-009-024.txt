@@ -1,0 +1,11 @@
+AMAL market_cap 8715738045.0 ok derived 
+    held_percent_institutions ok 
+   keys with inst: ['held_percent_insiders', 'held_percent_institutions'] {'held_percent_institutions': 0.0}
+SUNRAJDI market_cap 66310172.0 ok yfinance 
+    held_percent_institutions ok 
+   keys with inst: ['held_percent_insiders', 'held_percent_institutions'] {'held_percent_institutions': 0.0}
+ICON market_cap 497119712.0 ok yfinance 
+    held_percent_institutions ok 
+   keys with inst: ['held_percent_insiders', 'held_percent_institutions'] {'held_percent_institutions': 0.0}
+{"status": "ok", "provider": "derived", "as_of": "2026-10-01T09:59:58+00:00", "reason": null, "label": null, "basis_note": "ratio price x master share count (705 x 12,362,749, shares from BSE ListOfScripData (bundled India master) (as of 2026-06-11))"}
+{"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T14:43:42.809009+00:00", "reason": null, "label": null, "basis_note": null}

@@ -1,0 +1,13 @@
+# R15-UI-081 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:55+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'disabled portfolio: openPanel returns false' src/store/workspace.test.ts; grep -n 'enabledPanels\|isModuleEnabled' src/store/workspace.ts | head -4; grep -n 'alwaysOn' src/components/SettingsPanel.tsx | head -3
+--- output ---
+71:  it("disabled portfolio: openPanel returns false, no panel added", () => {
+116:    const spec = modules.enabledPanels().find((panel) => panel.id === panelId);
+177:        .enabledPanels()
+1928:          const alwaysOn = module.id === PLATFORM_MODULE_ID || contributesNothing(module);
+1929:          const isEnabled = alwaysOn || enabled[module.id] !== false;
+1938:                  {alwaysOn ? " · always on" : ""}
+
+EXIT=0 (0.0s)

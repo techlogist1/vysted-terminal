@@ -1,0 +1,8 @@
+{
+  "universe": "custom",
+  "custom_symbols": ["AAPL", "MSFT", "RELIANCE.NS", "TCS.NS", "INFY.NS", "HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS"],
+  "criteria": [{"field": "market_cap", "operator": "gt", "value": 0}],
+  "limit": 4,
+  "sort_by": "market_cap",
+  "sort_dir": "desc"
+}

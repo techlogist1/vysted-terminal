@@ -1,0 +1,92 @@
+{
+ "symbol": "509423",
+ "count": 10,
+ "events": [
+  {
+   "symbol": "509423",
+   "company": "BAKELITE HYL",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-07-14",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "company": "BAKELITE HYL",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-04-17",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "company": "BAKELITE HYL",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-01-19",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "company": "BAKELITE HYL",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-10-16",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "company": "BAKELITE HYL",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-07-17",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "company": "BAKELITE HYL",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-04-17",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "company": "BAKELITE HYL",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-01-16",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "company": "BAKELITE HYL",
+   "purpose": "Results",
+   "description": null,
+   "date": "2024-10-17",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "company": "BAKELITE HYL",
+   "purpose": "Scheme of Arrangement",
+   "description": null,
+   "date": "2024-07-30",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "company": "BAKELITE HYL",
+   "purpose": "Results",
+   "description": null,
+   "date": "2024-07-17",
+   "exchange": "BSE"
+  }
+ ],
+ "sources": [
+  "BSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": null
+}

@@ -1,0 +1,48 @@
+=== R15-RESEARCH-037 priority_note callers ===
+    """Parse the vendored PSL once into (normal, wildcard, exception) rule
+    sets, each holding dot-joined lowercase label suffixes with the rule's own
+    ``*.``/``!`` marker stripped. Covers both the ICANN and PRIVATE sections —
+    the registrable-domain algorithm below does not distinguish them."""
+    normal: set[str] = set()
+    wildcard: set[str] = set()
+    exception: set[str] = set()
+    for line in _PSL_PATH.read_text(encoding="utf-8").splitlines():
+        rule = line.strip()
+        if not rule or rule.startswith("//"):
+            continue
+        rule = rule.lower()
+        if rule.startswith("!"):
+            exception.add(rule[1:])
+        elif rule.startswith("*."):
+            wildcard.add(rule[2:])
+        else:
+            normal.add(rule)
+    return frozenset(normal), frozenset(wildcard), frozenset(exception)
+
+
+--- callers ---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/research/deep.py:1122:    priority = finance.priority_note(sources)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/research/iter.py:233:    priority = finance.priority_note(findings.all_sources())
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/research/iter.py:1098:    priority = finance.priority_note(merged_sources)
+=== priority_note def ===
+263:def priority_note(sources: list[ResearchSource]) -> str:
+264-    """A one-line prompt hint naming which ``[n]`` markers are primary/press.
+265-
+266-    Takes the SAME numbered list the synthesis prompt carries (in any order —
+267-    it is never re-ranked) and names the tier of each actual number, so the
+268-    model prefers citing the authoritative sources when several support a
+269-    claim. Empty when no source beats the general tier.
+270-    """
+271-    primary = [str(i + 1) for i, s in enumerate(sources) if source_tier(s) == TIER_PRIMARY]
+272-    press = [str(i + 1) for i, s in enumerate(sources) if source_tier(s) == TIER_PRESS]
+273-    parts: list[str] = []
+274-    if primary:
+275-        parts.append("primary record (exchange/regulator/filings/IR): [" + ", ".join(primary) + "]")
+276-    if press:
+277-        parts.append("tier-1 press: [" + ", ".join(press) + "]")
+278-    if not parts:
+279-        return ""
+280-    return (
+281-        "Citation preference — when several sources support a claim, cite the "
+282-        "most authoritative: " + "; ".join(parts) + "."
+283-    )

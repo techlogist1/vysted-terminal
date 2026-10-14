@@ -1,0 +1,1 @@
+{"symbol":"ZZQXNOTASYM","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":"unknown_symbol","partial":false,"coverage_start":null}

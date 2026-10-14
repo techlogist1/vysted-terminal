@@ -1,0 +1,41 @@
+{
+ "firstFanOutMs": 30352,
+ "firstMaxMs": 30016,
+ "totalQuoteReqs": 100,
+ "statusCounts": {
+  "200": 23,
+  "TimeoutError: The operation was aborted due to timeout": 77
+ },
+ "laterReqs20s": 0,
+ "maxInflightLater20s": 123,
+ "renderedRows": 0,
+ "tenthRow": "HINDUNILVR.NS",
+ "tenthRowRendered": true,
+ "lastRowRendered": true,
+ "optionLabel": "Big · 100",
+ "summary": "Market value: ₹7,17,052.30·Total P&L: +₹6,89,452.30 (+2498.02%)·Concentration: 26.9%·77 without a live quote·as of Oct 1, 2026, 5:30 AMRiskComputing risk metrics…Couldn't refresh live quotes — values shown without market data.RetrySymbolQtyAvg costPriceMkt val",
+ "unresolvedText": null,
+ "snapshot": {
+  "keys": [
+   "positionCount",
+   "totalValue",
+   "totalValueNote",
+   "activePortfolioId",
+   "activePortfolioName",
+   "holdings"
+  ],
+  "holdingsCount": 100,
+  "first": {
+   "id": "h0",
+   "symbol": "RELIANCE.NS",
+   "quantity": 1,
+   "costBasis": 100,
+   "assetClass": "equity",
+   "currency": "INR",
+   "marketValue": 1167.7,
+   "pnl": 1067.7
+  },
+  "totalValue": 717052.3,
+  "totalValueNote": "excludes NTPC.NS, ONGC.NS, COALINDIA.NS, JSWSTEEL.NS, TATASTEEL.NS, ADANIENT.NS, ADANIPORTS.NS, GRASIM.NS, DIVISLAB.NS, DRREDDY.NS, CIPLA.NS, EICHERMOT.NS, HEROMOTOCO.NS, BAJAJ-AUTO.NS, BRITANNIA.NS, APOLLOHOSP.NS, TATACONSUM.NS, INDUSINDBK.NS, SBILIFE.NS, HDFCLIFE.NS, BPCL.NS, M&M.NS, SHREECEM.NS, UPL.NS, BAJAJFINSV.NS, DABUR.NS, GODREJCP.NS, PIDILITIND.NS, HAVELLS.NS, SIEMENS.NS, DLF.NS, AMBUJACEM.NS, ACC.NS, BERGEPAINT.NS, COLPAL.NS, MARICO.NS, MUTHOOTFIN.NS, PEL.NS, LUPIN.NS, AUROPHARMA.NS, BIOCON.NS, TORNTPHARM.NS, GAIL.NS, IOC.NS, HINDPETRO.NS, PETRONET.NS, IGL.NS, MGL.NS, BANKBARODA.NS, PNB.NS, CANBK.NS, UNIONBANK.NS, IDFCFIRSTB.NS, FEDERALBNK.NS, BANDHANBNK.NS, AUBANK.NS, RBLBANK.NS, YESBANK.NS, TATAPOWER.NS, TATAMOTORS.NS, ASHOKLEY.NS, TVSMOTOR.NS, BOSCHLTD.NS, MRF.NS, BALKRISIND.NS, APOLLOTYRE.NS, VOLTAS.NS, TRENT.NS, PAGEIND.NS, JUBLFOOD.NS, NAUKRI.NS, IRCTC.NS, LICI.NS, ZZZZNOTREAL1, ZZZZNOTREAL2, ZZZZNOTREAL3, ZZZZNOTREAL4 (no live quote)"
+ }
+}

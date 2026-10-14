@@ -1,0 +1,129 @@
+[
+ {
+  "cmd": "click",
+  "x": 768,
+  "y": 598
+ },
+ {
+  "cmd": "wait",
+  "seconds": 4
+ },
+ {
+  "cmd": "click",
+  "x": 502,
+  "y": 728
+ },
+ {
+  "cmd": "wait",
+  "seconds": 4
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-009/ace7dd7-02-layout-after-terms.png"
+ },
+ {
+  "cmd": "click",
+  "x": 515,
+  "y": 148
+ },
+ {
+  "cmd": "wait",
+  "seconds": 6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-009/ace7dd7-03-portfolio-populated.png"
+ },
+ {
+  "cmd": "click",
+  "x": 813,
+  "y": 188
+ },
+ {
+  "cmd": "wait",
+  "seconds": 4
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-009/ace7dd7-04-portfolio-export-clicked.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Watchlist"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 8
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-009/ace7dd7-05-watchlist-populated.png"
+ },
+ {
+  "cmd": "click",
+  "x": 648,
+  "y": 194
+ },
+ {
+  "cmd": "wait",
+  "seconds": 4
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-009/ace7dd7-06-watchlist-export-clicked.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Screener"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 8
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-009/ace7dd7-07-screener-open.png"
+ }
+]

@@ -1,0 +1,15 @@
+HEAD 633f844071d972b337f4c3526d86555c80df0568
+$ python a040.py <W>/sidecar vt/a040.json  (client sent_history captured by the shard vitest at 633f844)
+short-6x client_sent 12 runtime_folded 4 verbatim 8 | turn-1 constraint in provider history: True | summary head: ['Earlier in this conversation (older turns, summarised):', '- The user asked: I only care about FY26 guidance vs delivery for BDL, ignore the chart']
+research-6x-12k client_sent 8 runtime_folded 6 verbatim 2 | turn-1 constraint in provider history: False | summary head: ['Earlier in this conversation (older turns, summarised):', '- The user asked: follow-up question 3 about BDL order book']
+chat-20x-3.5k client_sent 32 runtime_folded 24 verbatim 8 | turn-1 constraint in provider history: False | summary head: ['Earlier in this conversation (older turns, summarised):', '- The user asked: follow-up question 5 about BDL order book']
+-- shard vitest log tail
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-9bc600e-fix-int
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  16:39:11
+   Duration  715ms (transform 34ms, setup 71ms, import 21ms, tests 2ms, environment 509ms)
+

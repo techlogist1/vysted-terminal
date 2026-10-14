@@ -1,0 +1,13 @@
+CMD: grep -rn 'def is_applicable|def _is_blocked|def is_block_error|def is_india_target|is_india_listing' services (candidate ace7dd76)
+services/market_cap_witness.py:100:is_applicable = is_india_listing
+services/witness.py:19:def is_india_listing(listing: object) -> bool:
+services/witness.py:24:def is_block_error(exc: BaseException) -> bool:
+services/dividend_actions.py:60:def is_applicable(symbol: str) -> bool:
+services/ownership_check.py:104:is_applicable = is_india_listing
+services/earnings_quality.py:124:def is_applicable(symbol: str) -> bool:
+services/research/range_check.py:128:is_applicable = is_india_listing
+services/research/disclosures.py:33:from services.research.relevance import is_india_target
+services/research/relevance.py:598:def is_india_target(target: ResearchTarget | None) -> bool:
+services/research/fast.py:473:    from services.research.relevance import is_india_target
+services/research/deep.py:885:    from services.research.relevance import is_india_target
+EXIT=0

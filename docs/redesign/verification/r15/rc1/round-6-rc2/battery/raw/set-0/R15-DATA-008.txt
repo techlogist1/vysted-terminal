@@ -1,0 +1,11 @@
+
+$ curl :52364/fundamentals/SIFY  (exit 0, HTTP 200)
+{
+"currency": "USD",
+"financial_currency": "INR",
+"revenue_ttm": 46506049536.0,
+"net_income_ttm": -912369984.0,
+"price_to_sales": null
+}
+field_meta.price_to_sales: {"status": "withheld", "provider": "yfinance", "as_of": "2026-10-02T20:00:00+00:00", "reason": "Yahoo's price/sales (market cap over trailing revenue) divides or states a USD listing value against INR statements; its basis cannot be verified without FX, so it is withheld", "label": null, "basis_note": null}
+field_meta.revenue_ttm: {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.044229+00:00", "reason": null, "label": null, "basis_note": null}

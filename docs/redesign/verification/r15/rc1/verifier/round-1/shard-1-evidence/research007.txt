@@ -1,0 +1,18 @@
+ORIGINAL
+https://medium.com/investor-diary/why-i-bought-xyz 3
+https://someblog.wordpress.com/ir/2024/hot-tip 3
+https://reuters.com/markets/x 2
+https://reuters.com/markets/investors-rush 2
+['Reuters', 'Blog']
+'Citation preference — when several sources support a claim, cite the most authoritative: tier-1 press: [1].'
+VARIANTS
+https://www.investors.com/news/technology/nvidia-stock-buy-now/ 1
+https://ir.hotpennypicks.net/2024/xyz-to-the-moon 1
+https://investors.github.io/pump 1
+https://ir.blogspot.in/post 1
+https://ir.tumblr.com/post/1 1
+https://investor.substack.com/p/x 3
+https://ir.nvidia.com/news 1
+https://investors.wixsite.com/tips 1
+['IBD', 'Reuters']
+'Citation preference — when several sources support a claim, cite the most authoritative: primary record (exchange/regulator/filings/IR): [1]; tier-1 press: [2].'

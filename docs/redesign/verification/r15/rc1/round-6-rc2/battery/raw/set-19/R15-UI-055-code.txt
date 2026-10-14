@@ -1,0 +1,8 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ grep -n 'Nothing could be screened\|evaluated_count === 0' src/modules/screener/ScreenerResultsTable.tsx src/modules/screener/ScreenerResultsTable.test.tsx; grep -n '_UNREACHED_SKIP_REASONS' sidecar/services/screener.py | head -3
+exit=0
+src/modules/screener/ScreenerResultsTable.tsx:535:        {result.evaluated_count === 0 ? (
+src/modules/screener/ScreenerResultsTable.tsx:539:            headline="Nothing could be screened"
+src/modules/screener/ScreenerResultsTable.test.tsx:344:    expect(screen.getByText("Nothing could be screened")).toBeInTheDocument();
+725:_UNREACHED_SKIP_REASONS = frozenset({"budget_exhausted", "rate_limited", "timeout"})
+938:        d.reason in _UNREACHED_SKIP_REASONS for d in skip_details

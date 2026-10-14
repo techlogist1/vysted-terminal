@@ -1,0 +1,14 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  27.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_ecfc1a56808b4ca992c2514b77eb1e72", "name": "financial_statements", "input": {"symbol": "SIFY", "statement": "cashflow", "period": "annual"}}
+[  31.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_ecfc1a56808b4ca992c2514b77eb1e72", "name": "financial_statements", "ok": true, "error": null}
+[  41.8s] heartbeat: {"kind": "heartbeat"}
+[  51.8s] heartbeat: {"kind": "heartbeat"}
+[  62.1s] done: {"kind": "done", "usage": {"input_tokens": 6758, "output_tokens": 30, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+SIFY ADR represents 6 ordinary shares.
+
+For SIFY's TTM revenue in USD, the terminal couldn't find any data available.
+
+=== ok · 62.1s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 29, 'done': 1} · usage in=6758 out=30 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,21 @@
+== d38b5d1-app-stdout-check1.log
+3:[vysted] Python sidecar not up yet on port 59638 after attempt 1/6 (45s); cold PyInstaller extraction may be slow — retrying.
+74:[openbb-mcp] INFO:     Uvicorn running on http://127.0.0.1:59639 (Press CTRL+C to quit)
+76:[openbb-mcp] subprocess healthy on 127.0.0.1:59639
+77:[sec-edgar-mcp] subprocess did not bind to 127.0.0.1:59640 within 45s x 2 attempts; treating as unavailable. /sec routes will 501. Check the bundled binary for a startup deadlock (Phase 8 finding UC1-sec-edgar-mcp-not-listening; Phase 9 residual: cold-boot 
+78:[vysted] Python sidecar not up yet on port 59638 after attempt 2/6 (45s); cold PyInstaller extraction may be slow — retrying.
+93:[sidecar] 2026-10-03 12:59:46,074 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:59638 (Press CTRL+C to quit)
+97:[vysted] Python sidecar healthy on 127.0.0.1:59638
+98:[vysted] wrote MCP endpoint discovery file "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-LIFECYCLE-001/Library/Application Support/com.vysted.terminal/mcp-endpoi
+== d38b5d1-app-stdout-broken.log
+1:[vysted] The data engine could not start (No such file or directory (os error 2)).
+== d38b5d1-app-stdout-launchC.log
+1:[vysted] Python sidecar not up yet on port 63288 after attempt 1/6 (45s); cold PyInstaller extraction may be slow — retrying.
+62:[openbb-mcp] INFO:     Uvicorn running on http://127.0.0.1:63289 (Press CTRL+C to quit)
+64:[openbb-mcp] subprocess healthy on 127.0.0.1:63289
+65:[vysted] Python sidecar not up yet on port 63288 after attempt 2/6 (45s); cold PyInstaller extraction may be slow — retrying.
+66:[sec-edgar-mcp] subprocess did not bind to 127.0.0.1:63290 within 45s x 2 attempts; treating as unavailable. /sec routes will 501. Check the bundled binary for a startup deadlock (Phase 8 finding UC1-sec-edgar-mcp-not-listening; Phase 9 residual: cold-boot 
+81:[sidecar] 2026-10-03 13:16:50,048 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:63288 (Press CTRL+C to quit)
+85:[vysted] Python sidecar healthy on 127.0.0.1:63288
+86:[vysted] wrote MCP endpoint discovery file "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-LIFECYCLE-001/Library/Application Support/com.vysted.terminal/mcp-endpoi
+981:[vysted] The data engine stopped (signal 15).

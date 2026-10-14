@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_9a48d2955a8449c8b216dc81462e7bbd", "name": "get_portfolio", "input": {}}
+[  24.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_9a48d2955a8449c8b216dc81462e7bbd", "name": "get_portfolio", "ok": true, "error": null}
+[  27.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_ee6a77b9ed8440e6bb1acaa06869f970", "name": "get_portfolio", "input": {}}
+[  27.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_ee6a77b9ed8440e6bb1acaa06869f970", "name": "get_portfolio", "ok": true, "error": null}
+[  29.4s] done: {"kind": "done", "usage": {"input_tokens": 2951, "output_tokens": 32, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+To get your current total P&L, I need to fetch the latest portfolio data. Please wait for a moment while I call the tool.
+
+Calling 'get_portfolio' to fetch live data...
+
+I was unable to fetch your portfolio. The terminal's data does not include your portfolio information. Please check your account settings or contact support for more details.
+
+=== ok · 29.4s · events {'heartbeat': 2, 'tool_use': 2, 'tool_result': 2, 'delta': 73, 'done': 1} · usage in=2951 out=32 · est $0.00000 · llama3.1:8b

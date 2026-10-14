@@ -1,0 +1,24 @@
+=== R15-LEAD-018 repro: in-process replay of the captured nemotron free-lane fixture through ReasoningSplitter ===
+
+Live python (sidecar venv, candidate 949c3c9f) replaying
+tests/fixtures/llm/nemotron_cot.jsonl (the register/batch-10-cited captured
+nvidia/nemotron-3-super-120b-a12b:free response) through the real
+services/llm/reasoning_split.py ReasoningSplitter, exactly as the OpenRouter
+adapter would drive it per streamed chunk:
+
+  thinking events: 24 delta events: 0
+  answer text (first 300 chars): ''
+  does answer contain 'produce final' or 'the user asks' (CoT leak markers)? False
+
+A live network call to OpenRouter's free nemotron lane was not attempted (no
+stored free-tier key handed to this shard, and the account's OpenRouter lane
+is shared across concurrently-running battery shards per the run's model
+routing rules — probing it here risks rate/spend contention outside this
+role's remit). The fixture used is the same one the register's own evidence
+cites (tests/fixtures/llm/nemotron_cot.jsonl) and reasoning_split.py is the
+production code path the OpenRouter adapter calls for every streamed delta,
+so replaying it is a direct, live exercise of the fix (not a static read).
+
+VERDICT: holds. Every reasoning chunk in the fixture routes to a `thinking`
+event; zero reached a `delta` (answer) event, so nothing from the model's
+chain-of-thought reaches the visible content channel.

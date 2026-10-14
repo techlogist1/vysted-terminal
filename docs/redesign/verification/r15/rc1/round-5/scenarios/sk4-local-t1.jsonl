@@ -1,0 +1,201 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_e409de5d528e49d4b27c388b4efa12d5", "name": "financial_statements", "input": {"period": "quarterly", "statement": "income", "symbol": "DAL"}}
+{"kind": "tool_result", "tool_call_id": "call_e409de5d528e49d4b27c388b4efa12d5", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Delta"}
+{"kind": "delta", "text": " Air"}
+{"kind": "delta", "text": " Lines"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "DAL"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " net"}
+{"kind": "delta", "text": " income"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "99"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "As"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " internal"}
+{"kind": "delta", "text": " consistency"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " net"}
+{"kind": "delta", "text": " margin"}
+{"kind": "delta", "text": " appears"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " negative"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " some"}
+{"kind": "delta", "text": " quarters"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " make"}
+{"kind": "delta", "text": " sense"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " airline"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " net"}
+{"kind": "delta", "text": " income"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " also"}
+{"kind": "delta", "text": " negative"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " some"}
+{"kind": "delta", "text": " quarters"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " could"}
+{"kind": "delta", "text": " indicate"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " experiencing"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " difficulties"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " without"}
+{"kind": "delta", "text": " further"}
+{"kind": "delta", "text": " analysis"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " context"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " difficult"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " say"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " certain"}
+{"kind": "delta", "text": " whether"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " figures"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " unusual"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " indicative"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " larger"}
+{"kind": "delta", "text": " issue"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " DAL"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "Built"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " DAL"}
+{"kind": "delta", "text": " \u2014"}
+{"kind": "delta", "text": " click"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " dig"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": " \n"}
+{"kind": "delta", "text": "Re"}
+{"kind": "delta", "text": "venues"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " declining"}
+{"kind": "delta", "text": " over"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " past"}
+{"kind": "delta", "text": " year"}
+{"kind": "delta", "text": ";"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " lower"}
+{"kind": "delta", "text": " than"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " quarter"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Net"}
+{"kind": "delta", "text": " income"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " also"}
+{"kind": "delta", "text": " declined"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " down"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "59"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " prior"}
+{"kind": "delta", "text": " period"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "99"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " net"}
+{"kind": "delta", "text": " margin"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "56"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "33"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " Q"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " indicating"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " loss"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6903, "output_tokens": 191, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

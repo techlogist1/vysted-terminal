@@ -1,0 +1,23 @@
+=== R15-UI-085 (grep + pinned-test read, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd) ===
+CMD: grep -rn "text-charcoal-600\|text-charcoal-700" src --include=*.tsx | grep -v ".test.tsx"
+src/components/SettingsPanel.tsx:531:  className="text-charcoal-400 hover:text-charcoal-100 disabled:text-charcoal-600 rounded-control p-1"
+src/components/SettingsPanel.tsx:540:  className="text-charcoal-400 hover:text-charcoal-100 disabled:text-charcoal-600 rounded-control p-1"
+src/modules/chat/ChatSidebar.tsx:2158:  : "disabled:text-charcoal-600",
+
+All 3 remaining hits are `disabled:text-charcoal-600` -- gated behind the disabled
+pseudo-class, never a readable-text default. Zero unprefixed readable-text use remains
+(the original repro's 19 non-test hits are gone).
+
+CMD: find src -iname "design-contrast.test.ts"; grep -n "R15-UI-085" src/lib/design-contrast.test.ts
+src/lib/design-contrast.test.ts
+5:// R15-UI-085: charcoal-600 is a border/disabled-fg token (tokens.css comment),
+57:describe("design token contrast (R15-UI-085)", () => {
+87:describe("no readable-text use of charcoal-600/700 (R15-UI-085)", () => {
+
+The pinned test computes WCAG contrast ratios for every text token against both panel
+surfaces and asserts the 3:1/4.5:1 floors (R4_DESIGN_LANGUAGE.md) -- this live-probe role
+does not execute vitest.
+
+VERDICT: ci_pinned (src/lib/design-contrast.test.ts, both R15-UI-085 describe blocks) --
+the grep corroborates the code-side half live; the numeric WCAG assertion itself was not
+re-executed.

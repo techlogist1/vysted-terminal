@@ -1,0 +1,13 @@
+# R15-CODE-AGENT-014 at ace7dd7: PYTHONPATH=. .venv/bin/python3 b14s76.py 014
+EXIT=0
+{'ok': False, 'error': 'unexpected error: kaboom'}
+{'ok': False, 'error': 'provider error: upstream 503'}
+$ grep -rn "except ProviderError" services/agent_tools (leftover hand-copied envelopes)
+services/agent_tools/market_overview.py:63:    except ProviderError as exc:
+services/agent_tools/fundamentals.py:76:    except ProviderError as exc:
+services/agent_tools/fundamentals.py:303:    except ProviderError as exc:
+services/agent_tools/__init__.py:127:    except ProviderError as exc:
+services/agent_tools/screener_tools.py:68:    except ProviderError as exc:
+services/agent_tools/compare_symbols.py:54:    except ProviderError as exc:
+$ grep -rn "news fetch failed" services
+(none above = removed)

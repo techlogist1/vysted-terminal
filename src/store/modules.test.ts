@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import type { VystedModule } from "@/lib/module-registry";
 import { vystedModules } from "@/modules";
-import { useModulesStore } from "@/store/modules";
+import { contributesNothing, useModulesStore } from "@/store/modules";
 
 function fakeModule(id: string, panelId = `${id}-panel`): VystedModule {
   return {
@@ -47,12 +47,24 @@ describe("modules store", () => {
     expect(useModulesStore.getState().findPanel("chart")).toBeDefined();
   });
 
+  it("only a panel-less, command-less module is always-on in Settings (R15-UI-081)", () => {
+    const alwaysOn = vystedModules.filter(contributesNothing).map((module) => module.id);
+    expect(alwaysOn).toEqual(["chat"]);
+    expect(contributesNothing(fakeModule("portfolio"))).toBe(false);
+  });
+
   it("setEnabledMap replaces the whole enabled map", () => {
     useModulesStore.getState().registerModules(vystedModules);
     useModulesStore.getState().setEnabledMap({ chart: true, watchlist: false });
     const state = useModulesStore.getState();
     expect(state.enabled).toEqual({ chart: true, watchlist: false });
     expect(state.enabledModules().map((module) => module.id)).not.toContain("watchlist");
+  });
+
+  it("setEnabledMap keeps the live plugin:* flags and ignores incoming ones (R15-CODE-PLATFORM-013)", () => {
+    useModulesStore.getState().setModuleEnabled("plugin:x", false);
+    useModulesStore.getState().setEnabledMap({ "plugin:x": true, chart: false });
+    expect(useModulesStore.getState().enabled).toEqual({ "plugin:x": false, chart: false });
   });
 
   it("appendModules adds new modules and preserves the existing enabled map", () => {

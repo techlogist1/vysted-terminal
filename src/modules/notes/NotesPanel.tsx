@@ -1,0 +1,496 @@
+"use client";
+
+/**
+ * Notes panel — Tiptap/Obsidian-grade markdown editor.
+ *
+ * Architecture:
+ * - Tiptap v3 editor with StarterKit + Table(+row/cell/header) + Markdown +
+ *   custom SlashCommandExtension + WikiLinkExtension.
+ * - The notes store is the ONE owner of the note body; the editor mirrors it.
+ *   A user edit captures `{scope, md}` and a debounced flush writes exactly that
+ *   scope (flushed early on scope switch and unmount, so a pending save never
+ *   lands in another scope or is lost). A store change the editor did not make
+ *   (an agent `write_note`, a workspace load) reloads the editor without
+ *   emitting an update.
+ * - Notes persist via two parallel paths:
+ *   (a) workspace blob (existing sidecar autosave, always-written),
+ *   (b) atomic `.md` file via Rust `write_text_atomic` (SC-032 crash-safe).
+ * - Sharing: `.md`, PNG (html-to-image), and PDF (html-to-image → paginated
+ *   jsPDF) all write real files via the Rust atomic-write commands through
+ *   `@/lib/export-artifact` — the WKWebView blocks browser downloads.
+ *
+ * Static-export safe: `'use client'` + `immediatelyRender: false`.
+ */
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FileImage, FileText, Printer, Pencil } from "lucide-react";
+import { EditorContent, useEditor } from "@tiptap/react";
+import { StarterKit } from "@tiptap/starter-kit";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { TaskList, TaskItem } from "@tiptap/extension-list";
+import { Markdown } from "@tiptap/markdown";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useNotesStore } from "@/store/notes";
+import { useSymbolsStore } from "@/store/symbols";
+
+import { saveTextArtifact, savePngArtifact, savePdfArtifact } from "@/lib/export-artifact";
+import { safeFilename } from "@/lib/safe-filename";
+
+import { NotesToolbar } from "./NotesToolbar";
+import { SlashCommandExtension, type SlashMenuDetail } from "./SlashCommandExtension";
+import { WikiLinkExtension, type WikiLinkItem, type WikiLinkMenuDetail } from "./WikiLinkExtension";
+import { WikiLinkNode } from "./WikiLinkNode";
+import { persistNoteMd } from "./notes-persistence";
+
+/** How long a burst of typing coalesces before it is written to the store. */
+const SAVE_DEBOUNCE_MS = 600;
+
+/** A note body tied to the scope it belongs to ("" = General). */
+interface ScopedNote {
+  scope: string;
+  md: string;
+}
+
+// ── Scope chip label ──────────────────────────────────────────────────────────
+
+function ScopeChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  // 24px compact-ladder chip; the active state is a quiet luminance step with
+  // bright text (segmented-toggle treatment), never an inverted bright fill.
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "text-caption rounded-control flex h-6 items-center px-2 font-medium transition-colors",
+        active
+          ? "bg-charcoal-800 text-lume border-charcoal-600 border"
+          : "bg-charcoal-850 text-charcoal-400 hover:text-charcoal-200",
+      )}
+    >
+      {label}
+    </button>
+  );
+}
+
+// ── NotesPanel ────────────────────────────────────────────────────────────────
+
+export function NotesPanel() {
+  const notesStore = useNotesStore();
+
+  // The current note scope: undefined = general, string = symbol.
+  const scope = notesStore.focusSymbol;
+
+  // --- Slash menu state ---
+  const [slashMenu, setSlashMenu] = useState<SlashMenuDetail | null>(null);
+
+  // --- WikiLink menu state ---
+  const [wikiMenu, setWikiMenu] = useState<WikiLinkMenuDetail | null>(null);
+
+  // Ref to the editor container for PNG export.
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+
+  // Build wikilink symbol list from watchlist + symbols-with-notes. Reads
+  // live store state via `getState()` rather than closing over the
+  // `notesStore`/`symbolEntries` render values — `useEditor`'s extensions are
+  // captured once at mount, so a closure over render-time values would stay
+  // frozen at whatever the watchlist/notes were when the editor first
+  // mounted (R15-UI-024 repro d: a symbol added later never showed).
+  const getWikiSymbols = useCallback((): WikiLinkItem[] => {
+    const withNotes = new Set(useNotesStore.getState().symbolsWithNotes());
+    const allSymbols = useSymbolsStore.getState().entries.map((e) => e.symbol.toUpperCase());
+    const merged = Array.from(new Set([...Array.from(withNotes), ...allSymbols]));
+    return merged.map((sym) => ({ symbol: sym, hasNote: withNotes.has(sym) }));
+  }, []);
+
+  // Tiptap editor — `immediatelyRender: false` required for static export SSR-safety.
+  const editor = useEditor({
+    immediatelyRender: false,
+    extensions: [
+      // StarterKit v3 bundles Link/Underline/lists; disable click-to-navigate so
+      // the toolbar Link button governs the mark (markdown round-trip preserved).
+      StarterKit.configure({ link: { openOnClick: false } }),
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableCell,
+      TableHeader,
+      TaskList,
+      TaskItem.configure({ nested: true }),
+      Markdown,
+      SlashCommandExtension,
+      WikiLinkExtension.configure({ getSymbols: getWikiSymbols }),
+      WikiLinkNode,
+    ],
+    content: "",
+    editorProps: {
+      attributes: {
+        class: "notes-prose max-w-none min-h-24 p-4 outline-none focus:outline-none",
+      },
+    },
+    onUpdate({ editor: e }) {
+      // Handled below via subscription to avoid circular dep.
+      void e;
+    },
+  });
+
+  // --- Store ⇄ editor sync (the store is authoritative) ---
+  const storeNote = useNotesStore((s) => (scope ? (s.bySymbol[scope] ?? "") : s.general));
+  // What the editor shows: the note it last loaded from, or last wrote to, the store.
+  const shownRef = useRef<ScopedNote | null>(null);
+  // The user's unsaved edit, captured with the scope it was typed in.
+  const pendingRef = useRef<ScopedNote | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Write the pending edit to ITS scope: store first, then the atomic .md file.
+  const flush = useCallback(() => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    const pending = pendingRef.current;
+    if (!pending) return;
+    pendingRef.current = null;
+    shownRef.current = pending;
+    const notes = useNotesStore.getState();
+    if (pending.scope === "") {
+      notes.setGeneral(pending.md);
+    } else {
+      notes.setSymbolNote(pending.scope, pending.md);
+    }
+    void persistNoteMd(pending.scope, pending.md);
+  }, []);
+
+  // A user edit (programmatic loads never emit one) → capture + debounce.
+  useEffect(() => {
+    if (!editor) return;
+    const handler = () => {
+      const shown = shownRef.current;
+      if (!shown) return;
+      // `getMarkdown()` is added by the Markdown extension.
+      const md = (editor as unknown as { getMarkdown: () => string }).getMarkdown();
+      pendingRef.current = { scope: shown.scope, md };
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(flush, SAVE_DEBOUNCE_MS);
+    };
+    editor.on("update", handler);
+    return () => {
+      editor.off("update", handler);
+    };
+  }, [editor, flush]);
+
+  // Scope switch, or a store change the editor did not make → reload the editor.
+  useEffect(() => {
+    if (!editor) return;
+    const shown = shownRef.current;
+    if (shown && shown.scope !== scope) {
+      flush(); // the previous scope's pending edit lands in the previous scope
+    } else if (shown && shown.md === storeNote) {
+      return; // the store already holds what the editor shows (incl. its own write)
+    }
+    // An outside write replaces the editor's unsaved edit: the store wins.
+    if (timerRef.current !== null) clearTimeout(timerRef.current);
+    timerRef.current = null;
+    pendingRef.current = null;
+    shownRef.current = { scope, md: storeNote };
+    editor.commands.setContent(storeNote, { contentType: "markdown", emitUpdate: false });
+  }, [editor, scope, storeNote, flush]);
+
+  // Closing the panel inside the debounce window still saves the last burst.
+  useEffect(() => flush, [flush]);
+
+  // --- Listen for slash-menu events ---
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<SlashMenuDetail | null>).detail;
+      setSlashMenu(detail);
+    };
+    document.addEventListener("notes:slash-menu", handler);
+    return () => document.removeEventListener("notes:slash-menu", handler);
+  }, []);
+
+  // --- Listen for wikilink-menu events ---
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<WikiLinkMenuDetail | null>).detail;
+      setWikiMenu(detail);
+    };
+    document.addEventListener("notes:wikilink-menu", handler);
+    return () => document.removeEventListener("notes:wikilink-menu", handler);
+  }, []);
+
+  // --- Scope chips ---
+  const symbolsWithNotes = notesStore.symbolsWithNotes();
+  // Show general + up to 5 symbols with notes in the chips row.
+  const chipSymbols = Array.from(new Set([...symbolsWithNotes, ...(scope ? [scope] : [])])).slice(
+    0,
+    8,
+  );
+
+  // --- Export handlers ---
+  // Every export writes a real file via the Rust atomic-write commands (the
+  // WKWebView blocks browser downloads). A transient status line confirms the
+  // saved path so the user (and verification) can see it landed.
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const flashStatus = useCallback((msg: string) => {
+    setExportStatus(msg);
+    window.setTimeout(() => setExportStatus(null), 4500);
+  }, []);
+
+  const exportBaseName = scope ? safeFilename(scope.toUpperCase()) : "general";
+
+  const handleExportMd = useCallback(async () => {
+    const md = (editor as unknown as { getMarkdown: () => string } | null)?.getMarkdown() ?? "";
+    try {
+      const r = await saveTextArtifact("notes", `${exportBaseName}.md`, md);
+      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .md");
+    } catch (e) {
+      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [editor, exportBaseName, flashStatus]);
+
+  const handleExportPng = useCallback(async () => {
+    const el = editorContainerRef.current;
+    if (!el) return;
+    try {
+      const r = await savePngArtifact("notes", `${exportBaseName}.png`, el);
+      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .png");
+    } catch (e) {
+      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [exportBaseName, flashStatus]);
+
+  const handleExportPdf = useCallback(async () => {
+    const el = editorContainerRef.current;
+    if (!el) return;
+    try {
+      const r = await savePdfArtifact("notes", `${exportBaseName}.pdf`, el);
+      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .pdf");
+    } catch (e) {
+      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [exportBaseName, flashStatus]);
+
+  // --- Render ---
+  return (
+    <>
+      <div className="notes-print-root bg-charcoal-950 flex h-full flex-col">
+        {/* Panel header — identity + exports, on the app-wide px-3 py-2 chrome. */}
+        <div className="notes-toolbar border-charcoal-800 flex items-center justify-between border-b px-3 py-2">
+          <div className="flex items-center gap-2">
+            {/* ONE icon ladder across the Notes surface (R9 §3): every icon —
+                header pencil, formatting toolbar, exports — sits at 14px. */}
+            <Pencil
+              className={cn(
+                "text-charcoal-400 size-3.5" /* tokens-ok: 14px icon — Notes' one ladder */,
+              )}
+            />
+            <span className="text-panel-title text-charcoal-200">Notes</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              title="Export .md"
+              aria-label="Export .md"
+              onClick={handleExportMd}
+              className="text-charcoal-400 hover:text-charcoal-100"
+            >
+              <FileText />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              title="Export PNG"
+              aria-label="Export PNG"
+              onClick={handleExportPng}
+              className="text-charcoal-400 hover:text-charcoal-100"
+            >
+              <FileImage />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              title="Export PDF"
+              aria-label="Export PDF"
+              onClick={handleExportPdf}
+              className="text-charcoal-400 hover:text-charcoal-100"
+            >
+              <Printer />
+            </Button>
+          </div>
+        </div>
+
+        {/* Export status — confirms the saved path so the user sees it landed. */}
+        {exportStatus && (
+          <div
+            className="text-caption text-charcoal-500 border-charcoal-800 bg-charcoal-900 truncate border-b px-3 py-1 font-mono"
+            title={exportStatus}
+          >
+            {exportStatus}
+          </div>
+        )}
+
+        {/* Scope chips — chrome rhythm (law §7): caption chips, h-6, gap-2. */}
+        <div className="notes-scope-bar border-charcoal-800 flex flex-wrap items-center gap-2 border-b px-3 py-1">
+          <ScopeChip
+            label="General"
+            active={scope === ""}
+            onClick={() => notesStore.setFocusSymbol("")}
+          />
+          {chipSymbols.map((sym) => (
+            <ScopeChip
+              key={sym}
+              label={sym}
+              active={scope === sym}
+              onClick={() => notesStore.setFocusSymbol(sym)}
+            />
+          ))}
+          {/* Add-symbol input for switching to an arbitrary symbol. */}
+          <SymbolChipInput onCommit={(sym) => notesStore.setFocusSymbol(sym)} />
+        </div>
+
+        {/* Formatting toolbar — H1/H2/H3 · inline · lists · blocks · link · [[wikilink]] */}
+        <NotesToolbar editor={editor} />
+
+        {/* Editor area */}
+        <div ref={editorContainerRef} className="notes-editor-root flex-1 overflow-y-auto">
+          <EditorContent editor={editor} />
+        </div>
+      </div>
+
+      {/* Slash command popup */}
+      {slashMenu && slashMenu.rect && slashMenu.items.length > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            top: slashMenu.rect.bottom + 4,
+            left: Math.min(slashMenu.rect.left, window.innerWidth - 280),
+            zIndex: 9999,
+            minWidth: 220,
+            maxWidth: 280,
+            maxHeight: 320,
+          }}
+          className="border-charcoal-700 bg-charcoal-900 overflow-y-auto rounded-none border"
+        >
+          {slashMenu.items.map((item, i) => (
+            <button
+              key={item.title}
+              type="button"
+              className={cn(
+                "flex min-h-8 w-full flex-col items-start justify-center px-3 py-1 text-left transition-colors",
+                i === slashMenu.activeIndex
+                  ? "bg-charcoal-800 text-charcoal-100"
+                  : "text-charcoal-300 hover:bg-charcoal-800",
+              )}
+              onMouseEnter={() => slashMenu.setActiveIndex(i)}
+              onClick={() => {
+                slashMenu.command(item);
+                setSlashMenu(null);
+              }}
+            >
+              <span className="text-caption font-medium">{item.title}</span>
+              <span className="text-caption text-charcoal-500">{item.description}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* WikiLink popup */}
+      {wikiMenu && wikiMenu.rect && wikiMenu.items.length > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            top: wikiMenu.rect.bottom + 4,
+            left: Math.min(wikiMenu.rect.left, window.innerWidth - 220),
+            zIndex: 9999,
+            minWidth: 160,
+            maxWidth: 220,
+            maxHeight: 240,
+          }}
+          className="border-charcoal-700 bg-charcoal-900 overflow-y-auto rounded-none border"
+        >
+          {wikiMenu.items.map((item, i) => (
+            <button
+              key={item.symbol}
+              type="button"
+              className={cn(
+                "flex h-8 w-full items-center gap-2 px-3 text-left transition-colors",
+                i === wikiMenu.activeIndex
+                  ? "bg-charcoal-800 text-charcoal-100"
+                  : "text-charcoal-300 hover:bg-charcoal-800",
+              )}
+              onMouseEnter={() => wikiMenu.setActiveIndex(i)}
+              onClick={() => {
+                wikiMenu.command(item);
+                setWikiMenu(null);
+              }}
+            >
+              <span className="text-caption font-medium">{item.symbol}</span>
+              {item.hasNote && <span className="text-caption text-charcoal-300">has note</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── SymbolChipInput — type a symbol to switch scope ───────────────────────────
+
+function SymbolChipInput({ onCommit }: { onCommit: (sym: string) => void }) {
+  const [value, setValue] = useState("");
+  const [editing, setEditing] = useState(false);
+
+  const commit = () => {
+    const sym = value.trim().toUpperCase();
+    if (sym) onCommit(sym);
+    setValue("");
+    setEditing(false);
+  };
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="text-caption text-charcoal-500 hover:text-charcoal-300 rounded-control flex h-6 items-center px-2"
+      >
+        [+] symbol
+      </button>
+    );
+  }
+
+  return (
+    <input
+      autoFocus
+      value={value}
+      onChange={(e) => setValue(e.target.value.toUpperCase())}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") commit();
+        if (e.key === "Escape") {
+          setValue("");
+          setEditing(false);
+        }
+      }}
+      onBlur={commit}
+      placeholder="AAPL"
+      className="text-caption border-charcoal-700 bg-charcoal-850 text-charcoal-200 placeholder:text-charcoal-500 rounded-control focus-visible:border-charcoal-500 h-6 w-16 border px-2 outline-none"
+    />
+  );
+}

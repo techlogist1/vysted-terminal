@@ -1,0 +1,11 @@
+# R15-RESEARCH-034 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:30:03+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" -c "
+from services.research.deep import reflect_says_complete
+for s in ['Price action is not covered yet','COMPLETE','no gaps']: print(repr(s),'->',reflect_says_complete(s))" 2>&1 | grep -v Warning
+--- output ---
+'Price action is not covered yet' -> False
+'COMPLETE' -> True
+'no gaps' -> True
+
+EXIT=0 (1.2s)

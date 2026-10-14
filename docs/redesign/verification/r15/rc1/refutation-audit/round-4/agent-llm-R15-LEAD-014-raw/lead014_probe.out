@@ -1,0 +1,48 @@
+HEAD 608a2d4b8cd03408319133b0da783ac7733884b0
+(A) tools with properties: 54; no-required tools: 6 ['earnings_upcoming', 'market_overview', 'news', 'save_layout', 'sec_filings_list', 'sec_insider_transactions']
+(A) full/fenced/prose/properties-only schema echo ACCEPTED: 0 []
+(B) placeholder echo (all props) ACCEPTED: 20
+     analyst_history {"symbol": "string"}
+     analyst_individual {"symbol": "string"}
+     ask_user {"question": "string"}
+     backtest_summary {"run_id": "string"}
+     close_panel {"panel": "string"}
+     corporate_actions {"symbol": "string"}
+     earnings_call_transcript {"symbol": "string", "quarter": "string"}
+     earnings_estimates {"symbol": "string"}
+     earnings_history {"symbol": "string"}
+     focus_panel {"panel": "string"}
+     fundamentals {"symbol": "string"}
+     open_company_overview {"symbol": "string", "highlight": "string"}
+     open_panel {"panel": "string", "symbol": "string", "run_id": "string"}
+     portfolio_delete_position {"position_id": "string"}
+     price_target_history {"symbol": "string"}
+     read_notes {"scope": "string"}
+     remove_from_watchlist {"symbol": "string"}
+     save_layout {"name": "string"}
+     sec_filing_content {"accession": "string", "identifier": "string", "form_type": "string"}
+     shareholding_pattern {"symbol": "string"}
+(B) placeholder echo (required props only, extra) ACCEPTED: 17
+     add_to_watchlist {"symbol": "string"}
+     corporate_announcements {"symbol": "string"}
+     earnings_call_transcript {"symbol": "string"}
+     exchange_deals {"symbol": "string"}
+     open_company_overview {"symbol": "string"}
+     open_panel {"panel": "string"}
+     option_chain {"symbol": "string"}
+     portfolio_update_position {"position_id": "string"}
+     price_data {"symbol": "string"}
+     publish_brief {"markdown": "string"}
+     research {"query": "string"}
+     resolve_symbol {"query": "string"}
+     save_screen {"name": "string"}
+     sec_filing_content {"accession": "string", "identifier": "string"}
+     set_chart_symbol {"symbol": "string"}
+     web_search {"query": "string"}
+     write_note {"scope": "string", "text": "string"}
+(C) news required: None | repair reply '{}' -> {}
+(D) legit fundamentals -> {'symbol': 'AAPL'}
+(D) legit resolve_symbol -> {'query': 'Tata Steel'}
+(D) legit price_data -> {'symbol': 'SPY'}
+(E) _resolve_tool_events(fundamentals {symbol:123}) + repair reply {symbol:'string'} -> [('fundamentals', {'symbol': 'string'})]
+(E) _resolve_tool_events(news {limit:'ten'}) + full schema echo reply -> [('news', {'__vysted_invalid_args__': "invalid arguments for news: 'ten' is not of type 'integer'; call again with valid args"})]

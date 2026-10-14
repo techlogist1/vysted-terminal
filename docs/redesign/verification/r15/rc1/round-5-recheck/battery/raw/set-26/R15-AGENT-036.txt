@@ -1,0 +1,29 @@
+=== R15-AGENT-036 (in-process fake-provider probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+CMD: launch('ORIGINAL PROMPT') -> ask_user pause -> answer('ANSWER ONE') -> ask_user pause -> answer('ANSWER TWO') -> final text; checkpoint read after.
+
+{
+  "final_status": "done",
+  "checkpoint_prompt": "ORIGINAL PROMPT",
+  "turns": [
+    {
+      "role": "assistant",
+      "content": "[ask_user \u2192 Which ticker?]"
+    },
+    {
+      "role": "user",
+      "content": "ANSWER ONE"
+    },
+    {
+      "role": "assistant",
+      "content": "[ask_user \u2192 Which timeframe?]"
+    },
+    {
+      "role": "user",
+      "content": "ANSWER TWO"
+    },
+    {
+      "role": "assistant",
+      "content": "Final."
+    }
+  ]
+}

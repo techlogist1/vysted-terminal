@@ -1,0 +1,5 @@
+CMD (live): vy.py invoke copilot 'Research NVDA briefly.' ollama llama3.1:8b; tool-call ids from events
+tool_use research id= call_9bec189a277c4822b3fa2ebb1e4f5b03
+tool_result research id= call_9bec189a277c4822b3fa2ebb1e4f5b03
+tool_use publish_brief id= call_9bec189a277c4822b3fa2ebb1e4f5b03__autobrief
+(Before the fix the ollama adapter emitted tool_call_id='' for every call.)

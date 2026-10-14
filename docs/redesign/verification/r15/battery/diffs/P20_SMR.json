@@ -1,0 +1,411 @@
+{
+  "slot": "P20",
+  "symbol": "SMR",
+  "diffed_at": "2026-09-23",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P20_SMR.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P20_SMR.json",
+  "subtle_tier_covered": true,
+  "collision_note": "Every collected call in this file queried the bare ticker 'SMR' with no region override. The harness's active session region was IN (collected.json:18,74). Because NYSE:SMR (NuScale Power Corp, this pack's target) and BSE 544774 (SMR Jewels Ltd, an unrelated Indian SME, battery slot S2) share the literal ticker string, and none of the money-relevant symbol-scoped routes (/quotes/{symbol}, /fundamentals/{symbol} and its /income /balance /cashflow /ratings children) accept a region override, almost every field below compares NuScale's true value against SMR Jewels' real (but entirely unrelated) value. The one exception is /fundamentals/{symbol}/income|balance|cashflow, which is served by a DIFFERENT provider (openbb-mcp) whose own bare-symbol default happens to favour the US listing, so those specific fields are genuinely correct here (see field #40) -- coincidentally, since the identical mechanism serves the WRONG entity for the mirror case (battery slot P9, ticker AMAL; see census/raw/data-P9_AMAL.json DAT-P9-1). See census/raw/data-P20_SMR.json DAT-P20-1 for the filed finding and code evidence.",
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "SMR Jewels Ltd (resolve endpoint) / SMR Jewels Limited (fundamentals endpoint)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "NuScale Power Corporation",
+      "outside_as_of": "2026-08-05",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "status": "mismatch",
+      "note": "Collision (pack trap P20-T1). App resolves bare 'SMR' to the unrelated BSE 544774 company in both the resolve and fundamentals calls."
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "SPRING VALLEY ACQUISITION CORP. (2020-09-02 to 2022-04-29)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://data.sec.gov/submissions/CIK0001822966.json",
+      "status": "mismatch",
+      "note": "Independent of the entity swap, the value itself is also wrong: the true target has a well-documented SPAC rename that the app shows no trace of."
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE11XK01017",
+      "app_as_of": "2026-09-19",
+      "outside_value": "US67079K1007",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000086917826000088/primary_doc.xml",
+      "status": "mismatch",
+      "note": "Pack flags this ISIN as derived (not directly sourced) from a twice-corroborated CUSIP -- flagged so a mismatch here is not read as an app bug on its own; the INE- vs US- prefix mismatch (different country's ISIN scheme entirely) is what settles this as a genuine collision, not a rounding/derivation quibble."
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "544774",
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "status": "mismatch",
+      "note": "Pack (packs/P20_SMR.json:66): 'NOT LISTED IN INDIA... Any BSE code attached to NuScale in the app is a collision bug, not a data point.' This is exactly that."
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "status": "match",
+      "note": "Both sides agree no NSE listing exists. Corroborated by /disclosures/results?symbol=SMR 502ing with 'nse_direct: 'SMR' is not a known NSE instrument' (collected.json:2396-2407)."
+    },
+    {
+      "field": "identity.board",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "NYSE main listing, Class A common stock $0.0001 par, symbol SMR",
+      "outside_as_of": "2026-08-05",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "status": "app blank",
+      "note": "No board/listing-venue field surfaces in any collected call."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Consumer Cyclical",
+      "app_as_of": "2026-09-19",
+      "outside_value": "conflicting: SIC 3443 'Fabricated Plate Work (Boiler Shops)' / 'Industrials' (stockanalysis) / 'electricity, energy, uranium' (companiesmarketcap)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://data.sec.gov/submissions/CIK0001822966.json",
+      "status": "mismatch",
+      "note": "App's sector matches none of the pack's three defensible classifications for the true target -- further confirmation this is a different company (SMR Jewels is a jewellery/luxury-goods business)."
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Luxury Goods",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Specialty Industrial Machinery",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/",
+      "status": "mismatch",
+      "note": "A nuclear reactor designer rendered as 'Luxury Goods'."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "2022-05-02 (business-combination closing date; exact first trading day is itself a pack world_gap)",
+      "outside_as_of": "2026-08-05",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "status": "app blank",
+      "note": "No listing_date field observed in any collected call."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": "95.0 INR (BSE, market_state CLOSED)",
+      "app_as_of": "2026-09-18",
+      "outside_value": "8.27 USD",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/",
+      "status": "mismatch",
+      "note": "Same calendar date, wrong currency, ~11.5x off -- the single cleanest proof point of the collision."
+    },
+    {
+      "field": "market_cap",
+      "app_value": "1,772,105,728 (INR; ~USD 21M at typical FX)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "conflicting: 3.55B USD (fully-exchanged share count) / 3.39B USD (Class A only), both as of 2026-09-18; a third figure 4.59B carried unverified from the manifest",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/",
+      "status": "mismatch",
+      "note": "Off by roughly two orders of magnitude and the wrong currency -- not comparable to any of the pack's three defensible NuScale figures."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 17.02509,
+      "app_as_of": "2026-09-19",
+      "outside_value": "loss-making (PE and forward PE both n/a)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+      "status": "mismatch",
+      "note": "App shows a plausible positive PE for a company that has never once had positive TTM earnings as NuScale (FY2022-FY2025 all losses)."
+    },
+    {
+      "field": "pb",
+      "app_value": 2.811233,
+      "app_as_of": "2026-09-19",
+      "outside_value": "1.65 (legitimate alternative basis 1.76)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+      "status": "mismatch"
+    },
+    {
+      "field": "roe",
+      "app_value": "66.65%",
+      "app_as_of": "2026-09-19",
+      "outside_value": "-55.18%",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+      "status": "mismatch",
+      "note": "Sign-flipped and >120pp off -- a company genuinely burning cash at scale is shown as strongly profitable."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack world_gap: ROCE is not published for US filers by SEC or the aggregators checked and NuScale does not disclose it (nearest proxies: ROIC -11.18%, ROA -10.60%). No outside value exists to diff against for the true target."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": 0.34527,
+      "app_as_of": "2026-09-19",
+      "outside_value": "0.0 (effectively debt-free: $6.69M total liabilities against $2.01B equity)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+      "status": "mismatch"
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": "4,323,665,920 (INR)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "10,690,000 USD",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json",
+      "status": "mismatch",
+      "note": "Three orders of magnitude apart once currency is normalized. Pack trap P20-T5 warns the true quarterly revenue is literally $75 THOUSAND -- easy to misparse as millions; here the app instead serves a much larger, unrelated, Indian-currency figure."
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": "247,484,992 (INR, positive)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "conflicting, both negative: -415,700,000 USD (attributable to Class A) / -672,900,000 USD (total incl. NCI)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/NetIncomeLoss.json",
+      "status": "mismatch",
+      "note": "Sign-flipped as well as wrong entity/currency -- shown as profitable when the true target has never reported a GAAP profit since the 2022 business combination."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "four defensible bases: -99.07% (QoQ y/y), -97.01% (H1 v H1), -81.0% (TTM), -15.02% (FY v FY)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "status": "app blank",
+      "note": "fundamentals.revenue_growth / revenue_growth_computed / growth_computed_quarters are all null even for the (wrong) resolved company, so this is a blank field independent of the collision."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 5.58,
+      "app_as_of": "2026-09-19",
+      "outside_value": "conflicting, both negative: -1.54 (aggregator TTM) / -2.92 (sum of as-filed quarters)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+      "status": "mismatch"
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": "33.793 (INR)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "5.02 USD",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+      "status": "mismatch"
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "0.0001 USD par value",
+      "outside_as_of": "2026-08-05",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "status": "app blank",
+      "note": "No face_value/par-value field is exposed at all. Pack itself cautions this concept 'carries no valuation meaning' for a US filer and that 'any per-share ratio computed against face value here is nonsense' -- the app not populating it for a US name is arguably correct behaviour, not a gap."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/",
+      "status": "match",
+      "note": "Coincidental: matches because SMR Jewels' own collected dividend fields also happen to be null in this snapshot, not because the app resolved NuScale correctly."
+    },
+    {
+      "field": "dividend.record_or_ex_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/",
+      "status": "match",
+      "note": "No dividend-date field or endpoint exists anywhere in the app for either entity; coincidental non-mismatch as above."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/",
+      "status": "mismatch",
+      "note": "Minor but real: pack derives an affirmative 0.0 ('confirmed no payout'); app leaves the trailing-12m field an undifferentiated null with no signal distinguishing 'confirmed zero' from 'unknown'."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/statistics/",
+      "status": "mismatch",
+      "note": "Same null-vs-explicit-zero gap as paid_trailing_12m_per_share."
+    },
+    {
+      "field": "week52.high",
+      "app_value": "115.0 (INR)",
+      "app_as_of": "2026-09-19T10:00:32Z (fetch time only, not the date of the actual 52w high)",
+      "outside_value": "57.42 USD",
+      "outside_as_of": "2026-09-19 (pack likewise only gives a snapshot as-of, not the calendar date the high occurred)",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/",
+      "status": "mismatch",
+      "note": "Mandatory subtle-tier field. Neither side dates the actual high/low occurrence -- both give a fetch-snapshot as-of only; that specific gap is symmetric and not itself a mismatch, but the underlying value is wrong on top of it."
+    },
+    {
+      "field": "week52.low",
+      "app_value": "75.85 (INR)",
+      "app_as_of": "2026-09-19T10:00:32Z (fetch time only)",
+      "outside_value": "7.21 USD",
+      "outside_as_of": "2026-09-19 (snapshot as-of only)",
+      "outside_source_url": "https://stockanalysis.com/stocks/smr/",
+      "status": "mismatch"
+    },
+    {
+      "field": "shareholding.promoter_pct (latest filed quarter)",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack world_gap: no SEBI-style promoter/FII/DII/pledge concept exists for a US issuer; pack explicitly states 'Any promoter/pledge value rendered for this symbol is fabricated or mis-joined from the BSE SMR Jewels record.' /disclosures/shareholding?symbol=SMR returned count:0, patterns: [] -- an honest empty result, notably the ONE collected call in this file that did NOT silently substitute the wrong entity's real numbers."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth"
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth"
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth"
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth"
+    },
+    {
+      "field": "shareholding.as_of_quarter",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "2026-03-30 (DEF 14A beneficial-ownership table -- pack itself flags this as already 27% stale by construction due to the ongoing ATM)",
+      "outside_as_of": "2026-03-30",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000042/smr-20260415.htm",
+      "status": "no source truth",
+      "note": "No SEBI-shaped quarterly field exists for the app to carry this concept in; recorded for completeness, not a finding."
+    },
+    {
+      "field": "corporate_actions_2026",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "7 dated actions incl. two ATM programmes ($1.0B + $750M), FY2025 results, AGM, proxy, Q2 ATM drawdown, and an explicit 'no split/bonus/dividend/buyback' confirmation",
+      "outside_as_of": "2026-08-11",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000019/smr-20260226.htm",
+      "status": "app blank",
+      "note": "No dedicated corporate-actions endpoint exists in the collected surface for any name (US or Indian) -- a systemic gap, not specific to this collision."
+    },
+    {
+      "field": "latest_results.quarter",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "Q2 FY2026 (three months ended 2026-06-30)",
+      "outside_as_of": "2026-08-05",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "status": "app blank",
+      "note": "/disclosures/results?symbol=SMR 502s ('SMR' is not a known NSE instrument) -- disclosures.py's results route is explicitly an NSE-only surface (routers/disclosures.py:74-78 docstring), so this 502 is the route correctly declining a non-NSE name, not a data error specific to this collision."
+    },
+    {
+      "field": "latest_results.filing_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "2026-08-05",
+      "outside_as_of": "2026-08-05",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "status": "app blank"
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "5 BSE filings for SMR Jewels Ltd (2026-08-22 to 2026-08-29): Reg 34(1) annual report, board-meeting outcome, a 'jewellery market' milestone update, IPO-proceeds utilization disclosure, board-meeting intimation",
+      "app_as_of": "2026-09-19",
+      "outside_value": "NuScale Q2 2026 results (2026-08-05), nuclear-specific AI deployment (2026-08-25), MillenniTEK safety-component advance (2026-09-01)",
+      "outside_as_of": "2026-09-01",
+      "outside_source_url": "https://www.nuscalepower.com/en/news",
+      "status": "mismatch",
+      "note": "Zero overlap in company or content. /disclosures/announcements is documented as an NSE/BSE-only surface (routers/disclosures.py:44-46: 'NSE/BSE ticker'), so it correctly serves BSE content for the ticker string 'SMR' -- but that ticker string collides with the Indian SMR Jewels Ltd, so a user asking about NuScale news sees an unrelated jewellery company's board-meeting filings with no indication they belong to a different company."
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "Not applicable in the Indian sense (US-GAAP consolidated only); functional analogue is the Up-C attributable/total split (traps.two_bottom_lines)",
+      "outside_as_of": "2026-08-05",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "status": "app blank",
+      "note": "No such concept surfaces anywhere in the collected responses for any name -- systemic, not specific to this collision."
+    },
+    {
+      "field": "income_statement.fy2022_to_fy2025_annual_revenue_and_net_income",
+      "app_value": "FY2025: rev 31,479,000 / net_income_total -664,462,000 / net_income_attributable -355,794,000; FY2024: 37,045,000 / -348,387,000 / -136,623,000; FY2023: 22,810,000 / -180,115,000 / -58,362,000; FY2022: 11,804,000 / -141,573,000 / -25,914,000 (all USD, via /fundamentals/SMR/income, provider openbb-mcp)",
+      "app_as_of": "FY-end dates as labelled; collected 2026-09-19",
+      "outside_value": "identical figures line for line",
+      "outside_as_of": "same FY-end dates",
+      "outside_source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001822966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json",
+      "status": "match",
+      "note": "Genuinely correct, byte-for-byte against SEC XBRL. This is the one part of the collection that resolved NuScale correctly for the bare ticker 'SMR', because /fundamentals/{symbol}/income|balance|cashflow route through a DIFFERENT provider (openbb-mcp) than the yfinance-backed quote/fundamentals/resolve path, and openbb-mcp's own bare-symbol default happens to favour the US listing. The identical mechanism produces the OPPOSITE (wrong) result for the mirror collision -- battery slot P9/P19, ticker AMAL -- where openbb-mcp's bare-symbol bias serves the US company's statements for an Indian target; see census/raw/data-P9_AMAL.json DAT-P9-1. The correctness here is coincidental, not a resolved design."
+    },
+    {
+      "field": "resolve.query_by_full_company_name (supplementary, not a pack field)",
+      "app_value": "querying q='NuScale Power Corp' correctly resolves symbol SMR / exchange US / region US / confidence 1.0",
+      "app_as_of": "2026-09-19",
+      "outside_value": "NuScale Power Corporation, NYSE:SMR",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1822966/000182296626000085/smr-20260630.htm",
+      "status": "match",
+      "note": "Proves the US master entry and name-matching logic are fine in isolation. The defect is specifically that none of the money-relevant symbol-scoped routes (quotes/fundamentals/income/balance/cashflow/ratings) accept or propagate a region override the way /resolve does, so a bare-ticker lookup can never reach this correctly-resolved instrument through those routes. See DAT-P20-1."
+    }
+  ]
+}

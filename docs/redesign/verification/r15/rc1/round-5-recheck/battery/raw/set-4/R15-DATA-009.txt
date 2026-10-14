@@ -1,0 +1,6 @@
+CMD: ./.venv/bin/python3 _r15data009_repro.py (in-process, seeded random walk of 200 dates, N=1,2,4)
+EXIT: 0
+N=1 curve_points=200 engine_sharpe=2.5910 expected_date_sampled_sharpe=2.5904 match=True
+N=2 curve_points=200 engine_sharpe=2.5910 expected_date_sampled_sharpe=2.5904 match=True
+N=4 curve_points=200 engine_sharpe=2.5910 expected_date_sampled_sharpe=2.5904 match=True
+EXIT: 0

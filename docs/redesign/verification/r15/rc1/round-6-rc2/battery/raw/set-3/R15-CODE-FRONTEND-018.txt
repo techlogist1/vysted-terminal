@@ -1,0 +1,4 @@
+ci_pinned: repro is a frontend store/workspace.ts scenario (vitest only); battery never runs suites. Existence check at ace7dd76:
+COMMAND: grep -nE 'saved screens survive serialize' src/lib/workspace.test.ts
+1671:  it("saved screens survive serialize, a fresh store and deserialize", () => {
+EXIT: 0

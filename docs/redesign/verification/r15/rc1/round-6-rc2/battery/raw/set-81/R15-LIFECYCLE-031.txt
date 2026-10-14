@@ -1,0 +1,5 @@
+CMD: sidecar/.venv/bin/python scratch b23_set81.py (in-process probe of services.fundamentals_warm at ace7dd76; IN region, stubs for network/loops)
+fundamentals warm: crawl cycle: 1 of 3 symbols failed (first: RuntimeError('sqlite write error'))
+031: _seed_task handle retained = True
+031: seed task cancelled/done after stop = True cancelled = True | handle cleared = True
+EXIT=0

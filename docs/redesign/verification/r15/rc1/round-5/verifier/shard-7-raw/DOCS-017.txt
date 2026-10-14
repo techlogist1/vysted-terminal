@@ -1,0 +1,27 @@
+worktree sha 633f844071d972b337f4c3526d86555c80df0568; sidecar :52607 GET /screener/universe?id=...
+sp500: 503
+nifty50: 50
+crypto-top50: 50
+nse-all: 3506
+bse-all: 5042
+india-all: 5891
+nse-all by type: 3506 Counter({'EQ': 2584, 'SM': 571, 'ETF': 351}); sp500.json snapshot_date 2026-09-24
+== doc docs/CURRENT_STATE.md:366-378
+- **`screener.py` + `screener_universes/` + `screener_universe_india.py`** —
+  fan-out filter engine. Universes: `sp500` (full S&P 500 — 503 symbols, a
+  static snapshot dated 2026-09-24), `nifty50` (50), `crypto-top50` (50,
+  reseeded from the bundled snapshot on cache expiry — a live "refresh from
+  ccxt" worker still does **not exist**), `nse-all` (every NSE master row as
+  `SYMBOL.NS` — 3,506 symbols: EQ 2,584 + ETF 351 + SM 571, SM = NSE Emerge),
+  `bse-all` (BSE master rows with STATUS == "Active" as `SYMBOL.BO` — 5,042
+  symbols), `india-all` (the union of the two, NSE listing preferred when a
+  symbol is dual-listed — 5,891 symbols), `custom`. The three India
+  universes resolve from the same bundled resolver-master JSON the symbol
+  resolver reads (offline, deterministic). Criteria support **nested AND/OR**
+  via `CriterionGroup` (`models/screener.py`, `combinator: "and"|"or"`) — OR-
+  grouping is no longer reserved/unimplemented.
+== models/screener.py CriterionGroup
+170:class CriterionGroup(BaseModel):
+171:    """A boolean combinator node — AND/OR over leaf criteria or nested groups.
+175:    everything (no filter) regardless of combinator, mirroring the "no criteria =
+181:    combinator: Literal["and", "or"] = "and"

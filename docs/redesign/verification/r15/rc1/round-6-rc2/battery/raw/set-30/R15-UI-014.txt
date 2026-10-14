@@ -1,0 +1,11 @@
+$ grep -n "not responding\|Load failed" src/lib/sidecar-client.ts
+170: *  refused, the engine gone) — never WebKit's bare "Load failed". */
+172:  "The data engine is not responding — it may have stopped. Restart Vysted.";
+212:  it("a refused connection is SidecarError(0) with the unreachable sentence, not 'Load failed'", async () => {
+330:  it("a refused load names the engine, never WebKit's 'Load failed'", async () => {
+$ grep -n Terminated src-tauri/src/lib.rs
+src/store/app.ts:83: *  `vysted://sidecar-terminated` (emitted with the reason when the engine
+src/store/app.ts:93:      listen<string>("vysted://sidecar-terminated", (event) => markReachable(false, event.payload)),
+src-tauri/src/lib.rs:430:                CommandEvent::Terminated(payload) => {
+src-tauri/src/lib.rs:434:                    let _ = events_app.emit("vysted://sidecar-terminated", reason);
+live kill of the sidecar not performed (own sidecar shared across the shard; GUI list per batch-8 verdict)

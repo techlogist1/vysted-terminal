@@ -1,0 +1,9 @@
+=== DATA-034 source ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/yahoo_batch_provider.py:479:def fundamentals_from_v7(row: dict[str, Any]) -> Fundamentals:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/yahoo_batch_provider.py:513:    return correctness_gate.validate_fundamentals(fundamentals, symbol, config.get_region())
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/correctness_gate.py:62:# Aligned with services.research.semantics._PLAUSIBLE_YIELD_FRACTION (0.25): a
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/correctness_gate.py:67:_PLAUSIBLE_YIELD_FRACTION = 0.25
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/correctness_gate.py:217:def validate_fundamentals(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/correctness_gate.py:310:    if dy is not None and dy > _PLAUSIBLE_YIELD_FRACTION:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/correctness_gate.py:313:            f"{_PLAUSIBLE_YIELD_FRACTION:.0%} — an ambiguous-unit value; withheld"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/correctness_gate.py:1023:    "validate_fundamentals",

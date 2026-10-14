@@ -1,0 +1,2 @@
+curl -s --max-time 20 'http://127.0.0.1:52352/quotes/RICHA'
+{"symbol":"RICHA","price":78.0,"change":-4.5,"change_percent":-5.454545454545454,"volume":1000.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}EXIT:0

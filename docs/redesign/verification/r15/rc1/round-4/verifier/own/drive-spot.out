@@ -1,0 +1,41 @@
+HEAD 68d5573aff9a579af084dcbb124843f2aecff6e8 date 2026-09-27T00:41:22Z sidecar :52312 (own, candidate source)
+
+### GET /screener/default-universe
+{"universe":"nifty50"}
+[HTTP 200 0.001973s]
+
+
+### POST /screener/run {"universe":"custom","custom_symbols":["RELIANCE","TCS","INFY","HDFCBANK","COCHINSHIP"],"criteria":[],"limit":200,"sort_by":"market_cap","sort_dir":"desc"}
+{"universe":"custom","evaluated_count":5,"skipped_count":0,"skip_details":[],"result_count":5,"matched_count":5,"rows":[{"symbol":"RELIANCE.NS","name":"Reliance Industries Limited","sector":"Energy","industry":"Oil, Gas & Consumable Fuels / Refineries & Marketing","market_cap":16590810644480.0,"pe_ratio":22.222223,"forward_pe":17.169327,"peg_ratio":0.82,"price_to_book":1.8352058,"dividend_yield":0.0049,"roe":0.08265986528765638,"debt_to_equity":0.36652999999999997,"price":1226.0,"change_percent_1d":0.5577427821522273,"volume":13138735.0,"matched_criteria":[],"currency":"INR","data_basis":"live","data_as_of":null},{"symbol":"HDFCBANK.NS","name":"HDFC Bank Limited","sector":"Financial Services","industry":"Financial Services / Private Sector Bank","market_cap":11341831077888.0,"pe_ratio":16.078688,"forward_pe":11.663445,"peg_ratio":0.89,"price_to_book":1.8678916,"dividend_yield":0.0177,"roe":0.13838,"debt_to_equity":0.8134343829261803,"price":735.6,"change_percent_1d":0.9191933049801133,"volume":19853034.0,"matched_criteria":[],"currency":"INR","data_basis":"live","data_as_of":null},{"symbol":"TCS.NS","name":"Tata Consultancy Services Limited","sector":"Technology","industry":"Information Technology / Computers - Software & Consulting","market_cap":7532857786368.0,"pe_ratio":15.128615,"forward_pe":12.802493,"peg_ratio":2.7306,"price_to_book":6.8709693,"dividend_yield":0.031200000000000002,"roe":0.47743,"debt_to_equity":0.10211,"price":2082.0,"change_percent_1d":-0.23957834211787254,"volume":3342195.0,"matched_criteria":[],"currency":"INR","data_basis":"live","data_as_of":null},{"symbol":"INFY.NS","name":"Infosys Limited","sector":"Technology","industry":"Information Technology / Computers - Software & Consulting","market_cap":4051153715200.0,"pe_ratio":12.902477,"forward_
+
+### POST /screener/run {"universe":"nifty50","criteria":[],"formula":"pe < 20 and roe > 15%","limit":50,"sort_by":"market_cap","sort_dir":"desc"}
+{"detail":[{"type":"value_error","loc":["body","formula"],"msg":"Value error, invalid formula: unexpected character '%' (col 21)","input":"pe < 20 and roe > 15%","ctx":{"error":{}}}]}
+[HTTP 422 0.001216s]
+
+
+### POST /screener/run {"universe":"nifty50","criteria":[{"field":"pe_ratio","operator":"gt","value":0},{"field":"pe_ratio","operator":"lt","value":0.5}],"limit":200,"sort_by":"market_cap","sort_dir":"desc"}
+{"universe":"nifty50","evaluated_count":49,"skipped_count":1,"skip_details":[{"symbol":"TATAMOTORS.NS","reason":"not_found"}],"result_count":0,"matched_count":0,"rows":[],"duration_ms":59327.308458974585,"partial":false,"coverage":"screened 49 of 50 — 1 unavailable","freshness":{"quotes_as_of":1790469716.390186,"valuation_as_of":1790469716.390176,"deep_as_of":1790469716.388185},"basis_counts":null,"throttled":true}
+[HTTP 200 59.329342s]
+
+### universe sp500
+503 ['asset_class', 'id', 'label', 'symbols']
+### universe nifty50
+50 ['asset_class', 'id', 'label', 'symbols']
+### universe crypto-top50
+50 ['asset_class', 'id', 'label', 'symbols']
+### universe nse-all
+3506 ['asset_class', 'id', 'label', 'symbols']
+### universe bse-all
+5042 ['asset_class', 'id', 'label', 'symbols']
+### universe india-all
+5891 ['asset_class', 'id', 'label', 'symbols']
+
+### GET /search/status
+{"tier":"t1_keyless","available":true,"engines":[{"id":"ddg","label":"DuckDuckGo","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":3.0,"detail":"DuckDuckGo available"},{"id":"brave","label":"Brave","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Brave available"},{"id":"mojeek","label":"Mojeek","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Mojeek available"}]}
+[HTTP 200 0.001592s]
+
+
+### GET /search/searxng/status
+{"state":"degraded","detail":"SearXNG is running but its search engines are blocked","reason":"brave: Suspended: too many requests; duckduckgo: timeout; startpage: Suspended: CAPTCHA","port":8888,"url":null,"container":"running","container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":true,"daemon_running":true,"runtime":"Docker Engine - Community"}}
+[HTTP 200 6.292663s]
+

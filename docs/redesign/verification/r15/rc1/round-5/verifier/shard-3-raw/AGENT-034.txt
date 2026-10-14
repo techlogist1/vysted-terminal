@@ -1,0 +1,39 @@
+== POST /agents/copilot/runs provider=openai (no key) budget={}
+{"runId":"54ab58aec9db415dbf885a586190ff4a","run_id":"54ab58aec9db415dbf885a586190ff4a"}
+HTTP 201
+
+== POST /agents/copilot/runs provider=openai (no key) budget={"maxSteps":0}
+{"detail":[{"type":"greater_than","loc":["body","budget","maxSteps"],"msg":"Input should be greater than 0","input":0,"ctx":{"gt":0}}]}
+HTTP 422
+
+== POST /agents/copilot/runs provider=openai (no key) budget={"maxSpendUsd":-1}
+{"detail":[{"type":"greater_than","loc":["body","budget","maxSpendUsd"],"msg":"Input should be greater than 0","input":-1,"ctx":{"gt":0.0}}]}
+HTTP 422
+
+== POST /agents/copilot/runs provider=openai (no key) budget={"maxWallSeconds":0}
+{"detail":[{"type":"greater_than","loc":["body","budget","maxWallSeconds"],"msg":"Input should be greater than 0","input":0,"ctx":{"gt":0.0}}]}
+HTTP 422
+
+== POST /agents/copilot/runs provider=openai (no key) budget={"maxTokens":5000}
+{"runId":"557384f935884c998cc9f3176506653f","run_id":"557384f935884c998cc9f3176506653f"}
+HTTP 201
+
+== POST /agents/copilot/runs provider=openai (no key) budget={"maxSpendUsd":null,"maxWallSeconds":null}
+{"runId":"bda2838023454616b13ef78575058df3","run_id":"bda2838023454616b13ef78575058df3"}
+HTTP 201
+
+54ab58aec9db415dbf885a586190ff4a status error budget {'max_tokens': 120000, 'max_spend_usd': 1.0, 'max_wall_seconds': 600.0, 'max_steps': 12, 'maxTokens': 120000, 'maxSpendUsd': 1.0, 'maxWallSeconds': 600.0, 'maxSteps': 12} provider openai model gpt-4o-mini detail No OpenAI API key is set — add it in Settings.
+557384f935884c998cc9f3176506653f status error budget {'max_tokens': 5000, 'max_spend_usd': 1.0, 'max_wall_seconds': 600.0, 'max_steps': 12, 'maxTokens': 5000, 'maxSpendUsd': 1.0, 'maxWallSeconds': 600.0, 'maxSteps': 12} provider openai model gpt-4o-mini detail No OpenAI API key is set — add it in Settings.
+bda2838023454616b13ef78575058df3 status error budget {'max_tokens': 120000, 'max_spend_usd': 1.0, 'max_wall_seconds': 600.0, 'max_steps': 12, 'maxTokens': 120000, 'maxSpendUsd': 1.0, 'maxWallSeconds': 600.0, 'maxSteps': 12} provider openai model gpt-4o-mini detail No OpenAI API key is set — add it in Settings.
+# fresh: client wire shape (snake_case keys, as src/lib/delegate-runs.ts sends)
+== budget={"max_tokens":null,"max_spend_usd":null,"max_wall_seconds":null,"max_steps":null}
+{"runId":"04737457253740c2b052b1f753588eaa","run_id":"04737457253740c2b052b1f753588eaa"}
+
+ stored budget {'max_tokens': 120000, 'max_spend_usd': 1.0, 'max_wall_seconds': 600.0, 'max_steps': 12}
+== budget={"max_steps":0}
+{"detail":[{"type":"greater_than","loc":["body","budget","max_steps"],"msg":"Input should be greater than 0","input":0,"ctx":{"gt":0}}]}
+
+== budget={"max_spend_usd":0.5}
+{"runId":"e2c7da3d324f456fac44b32b3f61b77c","run_id":"e2c7da3d324f456fac44b32b3f61b77c"}
+
+ stored budget {'max_tokens': 120000, 'max_spend_usd': 0.5, 'max_wall_seconds': 600.0, 'max_steps': 12}

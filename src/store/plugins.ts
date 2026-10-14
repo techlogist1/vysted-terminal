@@ -38,6 +38,13 @@ interface PluginsState {
   attachRuntime: (runtime: PluginRuntime) => () => void;
   /** Force a re-pull from the runtime (used internally by event subscribers). */
   refreshFromRuntime: () => void;
+  /**
+   * True once boot's `bootstrapPlugins()` has registered the enabled plugins'
+   * modules (or its fallback timer gave up waiting). PanelHost holds the
+   * layout restore until then so a saved plugin panel isn't stripped as unknown.
+   */
+  pluginsReady: boolean;
+  setPluginsReady: (pluginsReady: boolean) => void;
 }
 
 // Holds the unsubscribe for the currently-attached runtime so a re-attach
@@ -51,6 +58,8 @@ export const usePluginsStore = create<PluginsState>((set, get) => ({
   agents: [],
   nodes: [],
   runtime: null,
+  pluginsReady: false,
+  setPluginsReady: (pluginsReady) => set({ pluginsReady }),
   attachRuntime: (runtime) => {
     detachPrevious?.();
     set({ runtime });

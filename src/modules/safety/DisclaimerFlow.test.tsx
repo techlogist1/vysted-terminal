@@ -4,7 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import * as keychain from "@/lib/keychain";
 import { resetSafetyStoreForTests, useSafetyStore } from "@/store/safety";
 
-import { BrokerFirstConnectDialog, DisclaimerFlow, FirstLaunchTosDialog } from "./DisclaimerFlow";
+import { DisclaimerFlow, FirstLaunchTosDialog } from "./DisclaimerFlow";
 
 const keychainStore: Record<string, string> = {};
 
@@ -35,7 +35,7 @@ describe("FirstLaunchTosDialog", () => {
   });
 
   it("does NOT render when the keychain already has the ack (warm launch)", async () => {
-    keychainStore["broker:_meta:first-launch-tos"] = new Date().toISOString();
+    keychainStore["app-meta:first-launch-terms"] = new Date().toISOString();
     render(<FirstLaunchTosDialog />);
     await waitFor(() => {
       expect(useSafetyStore.getState().firstLaunchTosAcked).toBe(true);
@@ -52,62 +52,19 @@ describe("FirstLaunchTosDialog", () => {
     await waitFor(() => {
       expect(useSafetyStore.getState().firstLaunchTosAcked).toBe(true);
     });
-    expect(keychainStore["broker:_meta:first-launch-tos"]).toBeTruthy();
-  });
-});
-
-describe("BrokerFirstConnectDialog", () => {
-  it("does not render when open=false", () => {
-    render(
-      <BrokerFirstConnectDialog
-        broker="alpaca"
-        open={false}
-        onAccept={() => undefined}
-        onCancel={() => undefined}
-      />,
-    );
-    expect(screen.queryByTestId("broker-first-connect-dialog-alpaca")).toBeNull();
+    expect(keychainStore["app-meta:first-launch-terms"]).toBeTruthy();
   });
 
-  it("renders, accepts, persists keychain ack, and calls onAccept", async () => {
-    const onAccept = vi.fn();
-    render(
-      <BrokerFirstConnectDialog
-        broker="alpaca"
-        open
-        onAccept={onAccept}
-        onCancel={() => undefined}
-      />,
-    );
-    await waitFor(() => {
-      expect(screen.getByTestId("broker-first-connect-dialog-alpaca")).toBeInTheDocument();
-    });
-    const accept = screen.getByTestId("broker-first-connect-accept");
-    await act(async () => {
-      fireEvent.click(accept);
-    });
-    await waitFor(() => {
-      expect(onAccept).toHaveBeenCalled();
-    });
-    expect(keychainStore["broker:alpaca:_meta:first-connect-ack"]).toBeTruthy();
-  });
-
-  it("Cancel calls onCancel without writing the ack", async () => {
-    const onCancel = vi.fn();
-    render(
-      <BrokerFirstConnectDialog
-        broker="kite"
-        open
-        onAccept={() => undefined}
-        onCancel={onCancel}
-      />,
-    );
-    const cancel = await screen.findByRole("button", { name: /cancel/i });
-    await act(async () => {
-      fireEvent.click(cancel);
-    });
-    expect(onCancel).toHaveBeenCalled();
-    expect(keychainStore["broker:kite:_meta:first-connect-ack"]).toBeUndefined();
+  it("states research-only terms and promises no order routing or kill switch", async () => {
+    render(<FirstLaunchTosDialog />);
+    const dialog = await screen.findByTestId("first-launch-tos-dialog");
+    const text = dialog.textContent ?? "";
+    expect(text).toMatch(/not provide investment advice/i);
+    expect(text).toMatch(/no brokerage connection/i);
+    expect(text).toMatch(/cannot place, route or simulate orders/i);
+    expect(text).toMatch(/before you start/i);
+    expect(text).not.toMatch(/kill switch|Cmd\/Ctrl\+Shift\+K/i);
+    expect(text).not.toMatch(/connecting a broker/i);
   });
 });
 

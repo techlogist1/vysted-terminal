@@ -1,0 +1,6 @@
+COMMAND: hanging provider (sleep 3600) with heartbeat 0.01s / idle 0.05s (production IDLE_TIMEOUT_S=see base, LOCAL=)
+EXIT: 0
+OUTPUT:
+elapsed 0.06s; event counts {'LLMHeartbeatEvent:': 4, 'LLMErrorEvent:provider_idle': 1, 'LLMDoneEvent:': 1}
+last event: LLMDoneEvent {"kind": "done"}
+planner timeout lines: ['_PLANNER_TIMEOUT_SECONDS = 20.0', 'timeout=_PLANNER_TIMEOUT_SECONDS,']

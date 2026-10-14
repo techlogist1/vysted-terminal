@@ -1,0 +1,46 @@
+[
+ {
+  "key": "drive-panels-layouts:nd-1",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "",
+  "scenario": "drive:panels-layouts agent arrange_layout pattern=custom, real dockview grid (jsdom)",
+  "title": "arrange_layout custom reports success ('Arranged sec_filings_list' / 'Arranged your panels') when no panel token resolves and the layout is unchanged",
+  "area": "agent-chat",
+  "repro": "applyHostAction('arrange_layout', {pattern:'custom', panels:['sec_filings_list']}) on a grid holding chart/watchlist/news -> label 'Arranged sec_filings_list', groups unchanged; {pattern:'custom', panels:'chart, sec-filings'} (string, not array) -> parseCustomPanels yields [] -> 'Arranged your panels', groups unchanged. planCustom drops unknown tokens, applyCustomLayout early-returns on an empty plan, the custom branch returns done(...) regardless; the catalog panels schema has no enum so the model is never told the valid ids.",
+  "evidence_file": "docs/redesign/verification/r15/surface/panels-layouts/final/L-layouts-probe.json",
+  "suspected_files": [
+   "src/lib/host-actions.ts",
+   "src/lib/layout-templates.ts",
+   "sidecar/services/agent_tools/catalog.py"
+  ]
+ },
+ {
+  "key": "drive-panels-layouts:nd-2",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "scenario": "drive:panels-layouts workspace delete -> recreate -> own-file corruption",
+  "title": "delete_workspace leaves <name>.vysted-workspace.bak behind, so a later corrupt-file recovery of a same-named workspace resurrects the deleted workspace's content",
+  "area": "lifecycle",
+  "repro": "On own sidecar :52843: PUT /workspace/PLX twice (content A-old-holdings then A2) -> DELETE /workspace/PLX (204; .bak remains on disk) -> PUT /workspace/PLX content C -> truncate own PLX.vysted-workspace -> GET /workspace/PLX returns the DELETED 'A-old-holdings' blob from the stale .bak. The data dir listing after the drive also shows 'Research%3A RELIANCE.vysted-workspace.bak' left after its delete.",
+  "evidence_file": "docs/redesign/verification/r15/surface/panels-layouts/final/F-ws-delete-bak-resurrect.txt",
+  "suspected_files": [
+   "sidecar/services/workspace_store.py"
+  ]
+ },
+ {
+  "key": "drive-panels-layouts:reg-1",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-UI-094",
+  "scenario": "drive:panels-layouts equity-overview narrative, keyless local model (ollama llama3.1:8b), first drive of this path",
+  "title": "regression of R15-UI-094: a local-model narrative written with markdown-bold headers (**TAKE** / **BULL** ...) collapses to a flat summary + insights; business, storyline, bull_case, bear_case and risks come back empty",
+  "area": "ui-panels",
+  "repro": "GET /fundamentals/RELIANCE/narrative with X-LLM-Provider: ollama, X-LLM-Model: llama3.1:8b (own :52843, under the Ollama lock) -> 200 in 32.6s, verified:true; summary holds '**TAKE** ... **BUSINESS** ... **STORYLINE** ... **BULL**', insights end in '**BEAR**' / '**RISKS**', the five typed fields are null/[]. _parse_output's header regex ^([A-Za-z ]+):\\s*(.*)$ matches only a plain 'HEADER:' line, so bold or colon-less headers never switch section. One sample; model formatting varies run to run. The fix test (test_five_section_fixture_parses_all_fields) uses a plain fixture only.",
+  "evidence_file": "docs/redesign/verification/r15/surface/panels-layouts/final/F-eo-narrative-ollama-RELIANCE.txt",
+  "suspected_files": [
+   "sidecar/services/company_narrative.py"
+  ]
+ }
+]

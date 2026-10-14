@@ -1,0 +1,15 @@
+# R15-DATA-116 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:14+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in AMAL DAL NAPEROL JUMBO ELCIDIN TCS; do curl -s -m 100 -w ' @@%{http_code}' -H 'X-Vysted-Region: IN' "$H/disclosures/shareholding?symbol=$s" | python3 -c "import sys;t=sys.stdin.read();b,h=t.rsplit(' @@',1);import json
+try:
+  d=json.loads(b);p=(d.get('patterns') or [{}])[0];print('$s','HTTP',h,'count',d.get('count'),'q',p.get('quarter_end'),'promoter',p.get('promoter_percent'))
+except Exception: print('$s','HTTP',h,b[:200])"; done
+--- output ---
+AMAL HTTP 200 count 104 q 2026-06-30 promoter 71.35
+DAL HTTP 200 count 43 q 2026-06-30 promoter 70.86
+NAPEROL HTTP 200 count 103 q 2026-06-30 promoter 70.76
+JUMBO HTTP 200 count 102 q 2026-06-30 promoter 42.77
+ELCIDIN HTTP 200 count 101 q 2026-06-30 promoter 75.0
+TCS HTTP 200 count 20 q 2026-06-30 promoter 71.77
+
+EXIT=0 (4.4s)

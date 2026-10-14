@@ -1,0 +1,424 @@
+{
+  "slot": "S2",
+  "symbol": "SMR",
+  "diffed_at": "2026-09-23",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/S2_SMR.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/S2_SMR.json",
+  "subtle_tier_covered": true,
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "SMR Jewels Ltd (resolve endpoint, exact) / \"SMR Jewels Limited\" (fundamentals endpoint, yfinance)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "SMR Jewels Ltd",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid=",
+      "status": "match",
+      "note": "Pack itself records three legitimate spellings across sources (trap T12); app's two endpoints reproduce two of them for the same entity, not a data error."
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544774",
+      "status": "match",
+      "note": "Both confirm no rename found (app resolve.candidates[0].former_name=null; pack's BSE CorporateAction feed empty)."
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE11XK01017",
+      "app_as_of": "2026-09-19",
+      "outside_value": "INE11XK01017",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "544774",
+      "app_as_of": "2026-09-19",
+      "outside_value": "544774",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": "absent (resolve payload has no nse_symbol; /disclosures/results 502s with \"'SMR' is not a known NSE instrument\", consistent with no NSE listing)",
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://ipowatch.in/smr-jewels-ipo/",
+      "status": "match",
+      "note": "App correctly implies no NSE listing for this BSE SME-only scrip."
+    },
+    {
+      "field": "identity.board",
+      "app_value": "absent (no board/group field anywhere in resolve or fundamentals payloads)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "SME (BSE Group \"M\", Grp_Index \"M / BSE SME IPO\")",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid=",
+      "status": "app blank",
+      "note": "Mandatory-tier identity field; SME status is directly consequential here (2,000-share minimum lot, thin liquidity per pack's intraday_liquidity_note). Raw finding filed."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Consumer Cyclical (yfinance taxonomy)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Consumer Discretionary (BSE taxonomy)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid=",
+      "status": "definitional difference",
+      "note": "Two legitimate taxonomies (yfinance/GICS-style vs BSE's own) for the same business; same pattern documented at P7_JUMBO."
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Luxury Goods (yfinance)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Gems, Jewellery And Watches (BSE IGroup: Consumer Durables); stockanalysis.com: \"Jewelry, Precious Metal\"",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid=",
+      "status": "definitional difference",
+      "note": "Three non-mapping industry taxonomies in play (yfinance, BSE, S&P/stockanalysis) for one business; not a data error."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": "absent (no listing_date/IPO-date field anywhere in resolve or fundamentals payloads)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "2026-06-08",
+      "outside_as_of": "2026-06-08",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260601&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory=",
+      "status": "app blank",
+      "note": "The app has no way to know this scrip is 102 days old, which is exactly why it cannot caveat the fifty_two_week_high/low fields below (pack trap T8). Raw finding filed, bundled with the 52w-range framing risk."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 95.0,
+      "app_as_of": "2026-09-18",
+      "outside_value": 95.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "price.change_pct",
+      "app_value": -1.0416666666666665,
+      "app_as_of": "2026-09-18",
+      "outside_value": -1.04,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544774&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "market_cap",
+      "app_value": "1,772,105,728 INR (= 177.21 cr)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 177,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "match"
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 17.02509,
+      "app_as_of": "2026-09-19",
+      "outside_value": "CONFLICT: 7.16 (screener.in) vs 5.63 (stockanalysis.com)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544774/ | https://stockanalysis.com/quote/bom/544774/",
+      "status": "mismatch",
+      "note": "App's PE (17.03) is a THIRD figure, ~2.4x screener's and ~3x stockanalysis's -- not merely picking one side of the pack's own known 27% disagreement. 95.0/5.58 (app's own eps field) = 17.03, so the app's PE is internally consistent with its own wrong EPS (see eps_ttm row). Raw finding filed (bundled with eps_ttm)."
+    },
+    {
+      "field": "pb",
+      "app_value": 2.811233,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/544774/ | https://stockanalysis.com/quote/bom/544774/",
+      "status": "no source truth",
+      "note": "Pack records this as a genuine world gap (no post-IPO balance sheet filed yet; both screener.in and stockanalysis.com leave it blank). No outside numeric value exists to diff against, so per spec this is not filed as a finding, despite the app confidently publishing a precise-looking 2.811233 for a ratio pack shows CANNOT currently be correctly computed by anyone."
+    },
+    {
+      "field": "roe",
+      "app_value": 0.66652,
+      "app_as_of": "2026-09-19",
+      "outside_value": 67,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "match",
+      "note": "66.65% vs 67% (screener's own page also shows 66.7% in one tile) -- within source's own rounding noise."
+    },
+    {
+      "field": "roce",
+      "app_value": "absent (no \"roce\" key anywhere in the /fundamentals response schema)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 71.5,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "app blank",
+      "note": "Mandatory field, single clean source (no disagreement, unlike PE). Raw finding filed."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": 0.34527,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.34,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "match",
+      "note": "Pack's value is itself DERIVED from screener's balance sheet (no source publishes D/E directly for this scrip); app's figure agrees to 3 significant figures."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": "4,323,665,920 INR (= 432.37 cr)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 432,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "match"
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": "247,484,992 INR (= 24.75 cr)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 25,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "match",
+      "note": "App's precise figure matches stockanalysis.com's precise_value (24.749 cr) almost exactly."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 64.3,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "app blank",
+      "note": "field_meta.revenue_growth: status=\"unavailable\", reason=\"provider did not publish this field\". Single clean sourced figure exists outside (FY26 sales 432cr vs FY25 263cr). Raw finding filed."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 5.58,
+      "app_as_of": "2026-09-19",
+      "outside_value": "CONFLICT: 16.89 (screener.in AND stockanalysis.com agree, but flagged pre-IPO-share-count basis; pack's own post-IPO-adjusted estimate is ~13.3)",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "mismatch",
+      "note": "App's eps (5.58) does not match either the raw published figure (16.89) or the post-IPO-adjusted estimate (~13.3) or the app's OWN freshly-fetched ingredients: net_income_ttm (247,484,992) / shares_outstanding (18,653,743) = 13.27, which is close to the post-IPO estimate but nowhere near the app's own reported eps field. This is the same self-contradiction pattern as P7_JUMBO's DAT-P7-3 (eps/book_value fields sourced from a stale/differently-scoped yfinance info snapshot instead of the statements the app already fetches). Raw finding filed, bundled with pe_ttm."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 33.793,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/544774/ | https://stockanalysis.com/quote/bom/544774/",
+      "status": "no source truth",
+      "note": "Pack: genuine world gap, no post-IPO balance sheet filed yet. Not filed as a finding per spec (no outside numeric value), but noted: app's 33.793 lands almost exactly on the pack's own explicitly-flagged pre-IPO derived estimate (33.3, marked 'do NOT treat as outside truth'), suggesting the app is silently computing this on the stale pre-issue equity base."
+    },
+    {
+      "field": "face_value",
+      "app_value": "absent (no face_value/par-value field anywhere in resolve or fundamentals payloads)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 10.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544774&seriesid=",
+      "status": "app blank",
+      "note": "Same systemic gap as P7_JUMBO's DAT-P7-6 (yfinance does not carry face value for Indian scrips; BSE ComHeader, already used for isin/bse_code, is not consulted for it). Raw finding filed, bundled with identity.board."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544774",
+      "status": "match",
+      "note": "Both confirm no dividend ever declared."
+    },
+    {
+      "field": "dividend.record_or_ex_date",
+      "app_value": "absent (no field)",
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544774",
+      "status": "match",
+      "note": "Consistent absence -- no dividend was ever declared, so no record/ex date exists on either side."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "app blank",
+      "note": "field_meta.dividend_per_share: status=\"unavailable\". Unlike P7_JUMBO's caveated case, this one is unambiguous (-0% payout every year FY23-FY26, confirmed by BSE CorporateAction returning zero dividend records). Raw finding filed, bundled with dividend.yield."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "app blank",
+      "note": "field_meta.dividend_yield: status=\"unavailable\". Same root cause and finding as dividend.paid_trailing_12m_per_share."
+    },
+    {
+      "field": "week52.high",
+      "app_value": 115.0,
+      "app_as_of": "2026-09-19 (query timestamp only -- see note)",
+      "outside_value": 115.0,
+      "outside_as_of": "2026-06-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544774",
+      "status": "match",
+      "note": "Value matches exactly. As-of date sub-check: app's field_meta.fifty_two_week_high.as_of (2026-09-19T10:01:30) is only the provider-query timestamp, not the date the high actually occurred (2026-06-22) -- the app has no per-leg as-of date for either extreme. Not filed as its own finding (both legs' values are in fact fresh/correct, i.e. no stale-vs-fresh skew to report), but folded into the identity.listing_date finding: since the app also doesn't know this is a 14-week-old listing, it cannot caveat that a \"fifty_two_week\" field is describing 14 weeks, not 52 (pack trap T8)."
+    },
+    {
+      "field": "week52.low",
+      "app_value": 75.85,
+      "app_as_of": "2026-09-19 (query timestamp only)",
+      "outside_value": 75.85,
+      "outside_as_of": "2026-06-16",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544774",
+      "status": "match",
+      "note": "Value matches exactly; same as-of-date caveat as week52.high."
+    },
+    {
+      "field": "shareholding.quarter",
+      "app_value": "absent (/disclosures/shareholding?symbol=SMR returns {\"count\": 0, \"patterns\": []})",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Jun 2026",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "app blank",
+      "note": "Raw finding filed, covers this row and the four percentage rows below (one root cause: the endpoint returns nothing for this scrip)."
+    },
+    {
+      "field": "shareholding.promoter_pct",
+      "app_value": "absent (empty patterns array)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 65.74,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "app blank",
+      "note": "The single most gameable number in an Indian small-cap, per task brief, is entirely missing for a BSE SME listing that has exactly one filed shareholding pattern (post-IPO, Jun 2026). See shareholding.quarter."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": "absent (empty patterns array)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 9.88,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "app blank",
+      "note": "Same root cause as shareholding.quarter."
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": "absent (empty patterns array)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.84,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "app blank",
+      "note": "Same root cause as shareholding.quarter."
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": "absent (empty patterns array)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 23.55,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "app blank",
+      "note": "Same root cause as shareholding.quarter."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": "absent (empty patterns array)",
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "no source truth",
+      "note": "Pack itself could not reach this field (all BSE pledge endpoints 302 to error_Bse.html; screener renders no pledge row). Not a finding -- app and world agree on nothing being confirmed, though for different reasons."
+    },
+    {
+      "field": "shareholding.held_percent_insiders (adjacent yfinance metric, NOT the promoter_pct analog)",
+      "app_value": 0.78556,
+      "app_as_of": "2026-09-19",
+      "outside_value": 65.74,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "definitional difference",
+      "note": "yfinance 'held_percent_insiders' (78.56%) and SEBI-filed promoter_pct (65.74%) are different legal/regulatory concepts (insiders vs the SEBI promoter/promoter-group definition) and are not expected to match; recorded for context per the P17_SIFY precedent, not as a mismatch. It does not substitute for the missing shareholding pattern."
+    },
+    {
+      "field": "corporate_actions_2026",
+      "app_value": "no corporate-actions endpoint exists anywhere in the app's API surface (confirmed via GET /openapi.json against the isolated sidecar: only /disclosures/{announcements,results,shareholding} exist under that namespace)",
+      "app_as_of": "2026-09-23",
+      "outside_value": [],
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544774",
+      "status": "match",
+      "note": "Pack confirms this is genuinely empty (nil corporate actions on record), and the app -- lacking any endpoint for the concept at all -- also shows nothing, so the two sides coincidentally agree for THIS scrip. Not a finding for S2 specifically: no endpoint exists to test, so this diff cannot distinguish 'correctly empty' from 'incapable of ever showing one'; a scrip with a real corporate action (dividend/bonus/split) would be the test that matters, and is out of scope for this slot."
+    },
+    {
+      "field": "latest_results.quarter",
+      "app_value": "HTTP 502 from /disclosures/results?symbol=SMR: {\"detail\": \"nse_direct: 'SMR' is not a known NSE instrument\"}",
+      "app_as_of": "2026-09-19",
+      "outside_value": "FY2026 - year ended 2026-03-31 (half-yearly cadence, not quarterly)",
+      "outside_as_of": "2026-06-25",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=Result&strPrevDate=20260101&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory=",
+      "status": "app blank",
+      "note": "Same failure pattern as P7_JUMBO's DAT-P7-2 (results-calendar route hardwired to an NSE-only provider, no BSE fallback). Raw finding filed."
+    },
+    {
+      "field": "latest_results.filing_date",
+      "app_value": "unreachable (same 502 as latest_results.quarter)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "2026-06-25",
+      "outside_as_of": "2026-06-25",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=Result&strPrevDate=20260101&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory=",
+      "status": "app blank",
+      "note": "Same root cause and finding as latest_results.quarter."
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "5 announcements returned, top 3 dated 2026-08-29 / 2026-08-27 / 2026-08-26, headlines and BSE attachment PDFs matching the pack's set exactly",
+      "app_as_of": "2026-09-19",
+      "outside_value": "3 announcements dated 2026-08-29 / 2026-08-27 / 2026-08-26",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260601&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory=",
+      "status": "match",
+      "note": "Unlike P7_JUMBO (where this route returned an empty list despite real filings), the announcements feed works correctly for this scrip."
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": "no consolidated/standalone basis flag anywhere in the /fundamentals response; the only statement-level data the app serves for this symbol (via /income, /balance, /cashflow) is not SMR Jewels' at all -- see the financials_detail row below",
+      "app_as_of": "2026-09-19",
+      "outside_value": "STANDALONE ONLY (board intimation states \"Audited STANDALONE Financial Results\")",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260601&strScrip=544774&strSearch=P&strToDate=20260919&strType=C&subcategory=",
+      "status": "app blank",
+      "note": "Not filed as its own raw finding: this basis flag is moot while the underlying statements themselves belong to a different company entirely (financials_detail row) -- fixing that is the precondition for this field meaning anything."
+    },
+    {
+      "field": "financials_detail (income/balance/cashflow statements)",
+      "app_value": "NuScale Power Corp's (US, NYSE) financials: e.g. FY2025(12/31) total_revenue $31,479,000, operating_income -$689,571,000, net_income -$355,794,000, ordinary_shares_number 318,480,601 -- all served via GET /fundamentals/SMR/income|balance|cashflow, provider \"openbb-mcp\"",
+      "app_as_of": "2026-09-19",
+      "outside_value": "SMR Jewels Ltd (India, BSE) standalone FY2026 (year ended 2026-03-31): Sales INR 432 cr, Net Profit INR 25 cr, Total Assets INR 86 cr",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544774/",
+      "status": "mismatch",
+      "note": "CRITICAL: the app's income/balance/cashflow routes for symbol=SMR return a completely different company's audited financial statements -- NuScale Power Corp, the NYSE-listed US small-modular-reactor company that shares the bare ticker 'SMR' (manifest slot P20; pack's own trap T1 predicted exactly this collision). Scale alone makes this unmistakable: NuScale's numbers are in hundreds of millions of USD with 300M+ shares outstanding and deep operating losses; SMR Jewels is an INR 432 cr, profitable, 18.65M-share BSE SME name. Note the app's top-level /fundamentals/SMR endpoint (provider=yfinance) DOES correctly resolve to SMR Jewels -- the collision is specific to the income/balance/cashflow sub-routes, which route through a different provider (openbb-mcp) that appears to resolve the bare 'SMR' ticker independently of the BSE resolution already established elsewhere in the same payload set. Raw finding filed, critical severity."
+    }
+  ]
+}

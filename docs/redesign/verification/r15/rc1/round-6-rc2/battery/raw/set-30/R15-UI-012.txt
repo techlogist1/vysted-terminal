@@ -1,0 +1,15 @@
+$ curl -X POST /agents/nope/invoke {"prompt":"hi","provider":"ollama"}
+{"detail":"unknown agent: 'nope'"}
+HTTP 404
+$ with {}
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{}}]}
+HTTP 422
+
+client leg: extractSidecarDetail used in streaming.ts:
+14:  extractSidecarDetail,
+333:      throw new SidecarError(response.status, extractSidecarDetail(parsed, fallback));
+tests:
+src/modules/chat/streaming.test.ts
+193:  it("forwards action/detail/code on the error event; errorFrameOf reads them", async () => {
+484:  it("a non-2xx string detail reaches onError as the sentence, not the JSON body", async () => {
+492:  it("a 422 field-error array reaches onError as 'field: msg'", async () => {

@@ -1,0 +1,6 @@
+CMD: POST /llm/keys/validate openai base_url=http://127.0.0.1:9/v1 api_key=sk-dummy (fake)
+{"ok":false,"reason":"unreachable","detail":"Could not reach OpenAI — check your network. Check your internet connection and try again."}
+HTTP=200
+-- anthropic
+{"ok":false,"reason":"unreachable","detail":"Could not reach Anthropic — check your network. Check your internet connection and try again."}
+HTTP=200

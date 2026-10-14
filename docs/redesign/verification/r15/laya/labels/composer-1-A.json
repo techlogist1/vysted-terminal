@@ -1,0 +1,299 @@
+{
+ "shard": "composer-1",
+ "labels": [
+  {
+   "id": "composer-1",
+   "answer": "read",
+   "confidence": 0.85
+  },
+  {
+   "id": "composer-2",
+   "answer": "read",
+   "confidence": 0.6,
+   "note": "comparison question; could be research"
+  },
+  {
+   "id": "composer-3",
+   "answer": "edit",
+   "confidence": 0.85
+  },
+  {
+   "id": "composer-4",
+   "answer": "edit",
+   "confidence": 0.85
+  },
+  {
+   "id": "composer-5",
+   "answer": "build",
+   "confidence": 0.55,
+   "note": "screen request; could be read"
+  },
+  {
+   "id": "composer-6",
+   "answer": "build",
+   "confidence": 0.65,
+   "note": "chart manipulation; could be edit"
+  },
+  {
+   "id": "composer-7",
+   "answer": "build",
+   "confidence": 0.85
+  },
+  {
+   "id": "composer-8",
+   "answer": "research",
+   "confidence": 0.5,
+   "note": "judgement question; could be read"
+  },
+  {
+   "id": "composer-9",
+   "answer": "read",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-10",
+   "answer": "read",
+   "confidence": 0.4,
+   "note": "bare greeting; no surface signal"
+  },
+  {
+   "id": "composer-11",
+   "answer": "build",
+   "confidence": 0.65,
+   "note": "set up screener"
+  },
+  {
+   "id": "composer-12",
+   "answer": "research",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-13",
+   "answer": "research",
+   "confidence": 0.95
+  },
+  {
+   "id": "composer-14",
+   "answer": "research",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-15",
+   "answer": "research",
+   "confidence": 0.95
+  },
+  {
+   "id": "composer-16",
+   "answer": "research",
+   "confidence": 0.95
+  },
+  {
+   "id": "composer-17",
+   "answer": "read",
+   "confidence": 0.8
+  },
+  {
+   "id": "composer-18",
+   "answer": "edit",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-19",
+   "answer": "edit",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-20",
+   "answer": "edit",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-21",
+   "answer": "edit",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-22",
+   "answer": "edit",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-23",
+   "answer": "edit",
+   "confidence": 0.85
+  },
+  {
+   "id": "composer-24",
+   "answer": "edit",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-25",
+   "answer": "edit",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-26",
+   "answer": "edit",
+   "confidence": 0.85
+  },
+  {
+   "id": "composer-27",
+   "answer": "edit",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-28",
+   "answer": "edit",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-29",
+   "answer": "read",
+   "confidence": 0.85
+  },
+  {
+   "id": "composer-30",
+   "answer": "build",
+   "confidence": 0.5,
+   "note": "screen; could be read"
+  },
+  {
+   "id": "composer-31",
+   "answer": "build",
+   "confidence": 0.5,
+   "note": "screen; could be read"
+  },
+  {
+   "id": "composer-32",
+   "answer": "build",
+   "confidence": 0.45,
+   "note": "screen-like lookup; could be read"
+  },
+  {
+   "id": "composer-33",
+   "answer": "build",
+   "confidence": 0.5,
+   "note": "saving screen; could be edit"
+  },
+  {
+   "id": "composer-34",
+   "answer": "build",
+   "confidence": 0.6,
+   "note": "saving layout; could be edit"
+  },
+  {
+   "id": "composer-35",
+   "answer": "edit",
+   "confidence": 0.85
+  },
+  {
+   "id": "composer-36",
+   "answer": "edit",
+   "confidence": 0.85
+  },
+  {
+   "id": "composer-37",
+   "answer": "edit",
+   "confidence": 0.85
+  },
+  {
+   "id": "composer-38",
+   "answer": "research",
+   "confidence": 0.95
+  },
+  {
+   "id": "composer-39",
+   "answer": "research",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-40",
+   "answer": "research",
+   "confidence": 0.6,
+   "note": "could be read"
+  },
+  {
+   "id": "composer-41",
+   "answer": "build",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-42",
+   "answer": "build",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-43",
+   "answer": "build",
+   "confidence": 0.7,
+   "note": "side-by-side layout"
+  },
+  {
+   "id": "composer-44",
+   "answer": "build",
+   "confidence": 0.7,
+   "note": "chart change; could be edit"
+  },
+  {
+   "id": "composer-45",
+   "answer": "build",
+   "confidence": 0.65,
+   "note": "chart change; could be edit"
+  },
+  {
+   "id": "composer-46",
+   "answer": "edit",
+   "confidence": 0.75,
+   "note": "watchlist change; could be build"
+  },
+  {
+   "id": "composer-47",
+   "answer": "read",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-48",
+   "answer": "read",
+   "confidence": 0.85
+  },
+  {
+   "id": "composer-49",
+   "answer": "read",
+   "confidence": 0.35,
+   "note": "filler word; no surface signal"
+  },
+  {
+   "id": "composer-50",
+   "answer": "read",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-51",
+   "answer": "build",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-52",
+   "answer": "research",
+   "confidence": 0.5,
+   "note": "compound build plus research"
+  },
+  {
+   "id": "composer-53",
+   "answer": "research",
+   "confidence": 0.6,
+   "note": "vague; could be read"
+  },
+  {
+   "id": "composer-54",
+   "answer": "research",
+   "confidence": 0.9
+  },
+  {
+   "id": "composer-55",
+   "answer": "read",
+   "confidence": 0.9
+  }
+ ]
+}

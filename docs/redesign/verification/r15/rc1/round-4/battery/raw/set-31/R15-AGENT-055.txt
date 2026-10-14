@@ -1,0 +1,9 @@
+No queryable HTTP endpoint exposes the tool catalog description text (only reachable via a live
+LLM agent turn's system prompt); planLayout is a pure frontend TS function with no HTTP surface.
+Static source check of candidate src/lib/layout-templates.ts: planLayout is driven by a single
+layout_templates.json-derived table (JSON roles), matching the certified fix
+("For each template, planLayout places exactly the JSON's roles"). Confirmed
+src/lib/layout-templates.test.ts describe("planLayout") covers single-focus / research-cockpit /
+compare / macro-scan role placement exactly as certified.
+Not rerun here (vitest suites owned by the heavy lane per task rules).
+VERDICT: ci_pinned (src/lib/layout-templates.test.ts)

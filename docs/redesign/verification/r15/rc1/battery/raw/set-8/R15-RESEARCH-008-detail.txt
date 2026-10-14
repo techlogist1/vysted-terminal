@@ -1,0 +1,9 @@
+elapsed=7.5s
+{
+  "ok": true,
+  "backend": "keyless-fallback",
+  "query": "Dixon Technologies news",
+  "results": [],
+  "citations": [],
+  "reason": "searxng_degraded"
+}

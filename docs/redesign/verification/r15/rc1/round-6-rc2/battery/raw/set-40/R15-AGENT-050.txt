@@ -1,0 +1,51 @@
+RAW rc1-battery-12 @ ace7dd76 in-process (candidate venv) probe 050
+$ cd sidecar && .venv/bin/python3 probe40.py 050
+[
+ {
+  "type": "text",
+  "text": "PERSONA stable",
+  "cache_control": {
+   "type": "ephemeral"
+  }
+ },
+ {
+  "type": "text",
+  "text": "DATE 2026-10-03"
+ },
+ {
+  "type": "text",
+  "text": "TERMINAL preamble chart=SPY"
+ }
+]
+[
+ {
+  "role": "user",
+  "content": "hi"
+ },
+ {
+  "role": "assistant",
+  "content": [
+   {
+    "type": "tool_use",
+    "id": "t1",
+    "name": "news",
+    "input": {}
+   }
+  ]
+ },
+ {
+  "role": "user",
+  "content": [
+   {
+    "type": "tool_result",
+    "tool_use_id": "t1",
+    "content": "res",
+    "cache_control": {
+     "type": "ephemeral"
+    }
+   }
+  ]
+ }
+]
+PASS: persona block is the breakpoint, terminal preamble separate block after it; last tool_result has breakpoint
+exit=0

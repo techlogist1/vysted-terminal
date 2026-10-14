@@ -1,0 +1,790 @@
+{
+ "F001": {
+  "underIN": {
+   "table": "SymbolQtyAvg costPriceMkt valP&LWtINFYEODWeekend20₹1,500.00₹1,035.00₹20,700.00-₹9,300.00 (-31.00%)31.0%HALEODWeekend10₹4,000.00₹4,601.00₹46,010.00+₹6,010.00 (+15.02%)69.0%",
+   "holdings": [
+    [
+     "INFY",
+     "IN"
+    ],
+    [
+     "HAL",
+     "IN"
+    ]
+   ]
+  },
+  "afterUS": {
+   "table": "SymbolQtyAvg costPriceMkt valP&LWtINFYEODWeekend20₹1,500.00₹1,035.00₹20,700.00-₹9,300.00 (-31.00%)31.0%HALEODWeekend10₹4,000.00₹4,601.00₹46,010.00+₹6,010.00 (+15.02%)69.0%",
+   "header": "Portfolio · 2SymbolQuantityAvg cost / shareClassEquityCryptoNoteAddMarket value: ₹66,710.00·Total P&L: -₹3,290.00 (-4.70%)·Concentration: 69.0%·as of Oct 1, 2026, 5:30 AMRiskSharpe: -0.54Sortino: -0.73Max DD: -25.6%Calmar: -0.46VaR 95% (1d): 2.4%Beta: 0.88256d historyINFYHALINFY1.000.09HAL0.091.00SymbolQtyAvg costPriceMkt valP&LWtINFYEODWeekend20₹1,500.00₹1,035.00₹20,700.00-₹9,300.00 (-31.00%)31.0%HALEODWeekend10₹4,000.00₹4,601.00₹46,010.00+₹6,010.00 (+15.02%)69.0%",
+   "net": [
+    {
+     "t": 1791036308381,
+     "url": "/quotes?symbols=INFY,HAL&asset_class=equity",
+     "region": "IN",
+     "status": 200,
+     "ms": 4
+    }
+   ]
+  },
+  "sailAddedUnderUS": {
+   "holdings": [
+    [
+     "INFY",
+     "IN"
+    ],
+    [
+     "HAL",
+     "IN"
+    ],
+    [
+     "SAIL",
+     "US"
+    ]
+   ],
+   "table": "SymbolQtyAvg costPriceMkt valP&LINFYEODWeekend20₹1,500.00₹1,035.00₹20,700.00-₹9,300.00 (-31.00%)HALEODWeekend10₹4,000.00₹4,601.00₹46,010.00+₹6,010.00 (+15.02%)SAILEOD3$20.00$20.43$61.29+$1.29 (+2.15%)"
+  },
+  "csv": [
+   {
+    "name": "vysted-portfolio-portfolio.csv",
+    "content": "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note\nINFY,20,1500,equity,INR,1035,20700,-9300,-31,,\nHAL,10,4000,equity,INR,4601,46010,6010,15.024999999999999,,\nSAIL,3,20,equity,USD,20.43000030517578,61.290000915527344,1.2900009155273438,2.1500015258789062,,"
+   }
+  ],
+  "backToIN": {
+   "table": "SymbolQtyAvg costPriceMkt valP&LINFYEODWeekend20₹1,500.00₹1,035.00₹20,700.00-₹9,300.00 (-31.00%)HALEODWeekend10₹4,000.00₹4,601.00₹46,010.00+₹6,010.00 (+15.02%)SAILEOD3$20.00$20.43$61.29+$1.29 (+2.15%)",
+   "net": [
+    {
+     "t": 1791036316934,
+     "url": "/quotes?symbols=INFY,HAL&asset_class=equity",
+     "region": "IN",
+     "status": 200,
+     "ms": 2
+    },
+    {
+     "t": 1791036316934,
+     "url": "/quotes?symbols=SAIL&asset_class=equity",
+     "region": "US",
+     "status": 200,
+     "ms": 361
+    }
+   ]
+  }
+ },
+ "F017": {
+  "first": {
+   "table": "SymbolQtyAvg costPriceMkt valP&LWtRELIANCE.NSEODWeekend10₹1,200.00₹1,167.70₹11,677.00-₹323.00 (-2.69%)40.3%TCS.NSEODWeekend5₹2,500.00₹2,075.00₹10,375.00-₹2,125.00 (-17.00%)35.8%INFY.NSEODWeekend3₹1,500.00₹1,035.00₹3,105.00-₹1,395.00 (-31.00%)10.7%SBIN.NSEODWeekend4₹800.00₹954.10₹3,816.40+₹616.40 (+19.26%)13.2%ZZZZNOTREAL10₹100.00no quote———QQQQFAKE.NS2₹50.00no quote———FAKECOINX/USDT15.00 USDTno quote———",
+   "banner": false,
+   "panel": "Portfolio · 7SymbolQuantityAvg cost / shareClassEquityCryptoNoteAddMarket value: ₹28,973.40·Total P&L: -₹3,226.60 (-10.02%)·Concentration: 40.3%·3 without a live quote·as of Oct 1, 2026, 5:30 AMRiskSharpe: -1.28Sortino: -1.71Max DD: -28.3%Calmar: -0.78VaR 95% (1d): 2.0%Beta: 0.87256d historyRELIANCE.NSTCS.NSINFY.NSSBIN.NSRELIANCE.NS1.000.140.100.37TCS.NS0.141.000.760.05INFY.NS0.100.761.000.00SBIN.NS0.370.050.001.00SymbolQtyAvg costPriceMkt valP&LWtRELIANCE.NSEODWeekend10₹1,200.00₹1,167.70₹11,677.00-₹323.00 (-2.69%)40.3%TCS.NSEODWeekend5₹2,500.00₹2,075.00₹10,375.00-₹2,125.00 (-17.00%)35.8%INFY.NSEODWeekend3₹1,500.00₹1,035.00₹3,105.00-₹1,395.00 (-31.00%)10.7%SBIN.NSEODWeekend4₹800.00₹954.10₹3,"
+  },
+  "quotesRequests": [
+   {
+    "t": 1791036317576,
+    "url": "/quotes?symbols=RELIANCE.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 1383
+   },
+   {
+    "t": 1791036317599,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 1361
+   },
+   {
+    "t": 1791036317623,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS,INFY.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 1337
+   },
+   {
+    "t": 1791036317647,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS,INFY.NS,SBIN.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 1314
+   },
+   {
+    "t": 1791036317675,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS,INFY.NS,SBIN.NS,ZZZZNOTREAL&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 2327
+   },
+   {
+    "t": 1791036317712,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS,INFY.NS,SBIN.NS,ZZZZNOTREAL,QQQQFAKE.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 2392
+   },
+   {
+    "t": 1791036317751,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS,INFY.NS,SBIN.NS,ZZZZNOTREAL,QQQQFAKE.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 2355
+   },
+   {
+    "t": 1791036317752,
+    "url": "/quotes?symbols=FAKECOINX/USDT&asset_class=crypto",
+    "region": "IN",
+    "status": 200,
+    "ms": 2959
+   },
+   {
+    "t": 1791036322677,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS,INFY.NS,SBIN.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 1
+   },
+   {
+    "t": 1791036327749,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS,INFY.NS,SBIN.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 4
+   },
+   {
+    "t": 1791036332622,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS,INFY.NS,SBIN.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 2
+   },
+   {
+    "t": 1791036337700,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS,INFY.NS,SBIN.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 2
+   },
+   {
+    "t": 1791036342757,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS,INFY.NS,SBIN.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 2
+   },
+   {
+    "t": 1791036361373,
+    "url": "/quotes?symbols=RELIANCE.NS,TCS.NS,INFY.NS,SBIN.NS&asset_class=equity",
+    "region": "IN",
+    "status": 200,
+    "ms": 2
+   }
+  ],
+  "zzzzAsks": 3,
+  "qqqqAsks": 2,
+  "fakecoinAsks": 1,
+  "after": {
+   "table": "SymbolQtyAvg costPriceMkt valP&LWtRELIANCE.NSEODWeekend10₹1,200.00₹1,167.70₹11,677.00-₹323.00 (-2.69%)40.3%TCS.NSEODWeekend5₹2,500.00₹2,075.00₹10,375.00-₹2,125.00 (-17.00%)35.8%INFY.NSEODWeekend3₹1,500.00₹1,035.00₹3,105.00-₹1,395.00 (-31.00%)10.7%SBIN.NSEODWeekend4₹800.00₹954.10₹3,816.40+₹616.40 (+19.26%)13.2%ZZZZNOTREAL10₹100.00no quote———QQQQFAKE.NS2₹50.00no quote———FAKECOINX/USDT15.00 USDTno quote———",
+   "banner": false
+  }
+ },
+ "F033": {
+  "cost-spaces": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "5",
+    "c": "   "
+   },
+   "error": "Avg cost per share is required",
+   "holdings": []
+  },
+  "qty-hex": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "0x10",
+    "c": "100"
+   },
+   "error": "Quantity must be a plain number (got \"0x10\")",
+   "holdings": []
+  },
+  "qty-1e3": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "1e3",
+    "c": "100"
+   },
+   "error": "Quantity must be a plain number (got \"1e3\")",
+   "holdings": []
+  },
+  "cost-tab": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "5",
+    "c": "\t"
+   },
+   "error": "Avg cost per share is required",
+   "holdings": []
+  },
+  "qty-hexA": {
+   "input": {
+    "s": "TCS.NS",
+    "q": " 0x1A ",
+    "c": "100"
+   },
+   "error": "Quantity must be a plain number (got \" 0x1A \")",
+   "holdings": []
+  },
+  "qty-bin": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "0b11",
+    "c": "100"
+   },
+   "error": "Quantity must be a plain number (got \"0b11\")",
+   "holdings": []
+  },
+  "qty-oct": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "0o17",
+    "c": "100"
+   },
+   "error": "Quantity must be a plain number (got \"0o17\")",
+   "holdings": []
+  },
+  "cost-inf": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "5",
+    "c": "Infinity"
+   },
+   "error": "Avg cost must be a plain number (got \"Infinity\")",
+   "holdings": []
+  },
+  "qty-plus": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "+5",
+    "c": "100"
+   },
+   "error": "Quantity must be a plain number (got \"+5\")",
+   "holdings": []
+  },
+  "cost-hex": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "5",
+    "c": "0x64"
+   },
+   "error": "Avg cost must be a plain number (got \"0x64\")",
+   "holdings": []
+  },
+  "qty-dot5": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "0.5",
+    "c": "100"
+   },
+   "error": null,
+   "holdings": [
+    [
+     "TCS.NS",
+     0.5,
+     100
+    ]
+   ]
+  },
+  "cost-trail-dot": {
+   "input": {
+    "s": "TCS.NS",
+    "q": "5",
+    "c": "100."
+   },
+   "error": null,
+   "holdings": [
+    [
+     "TCS.NS",
+     5,
+     100
+    ]
+   ]
+  },
+  "ok": {
+   "input": {
+    "s": "TCS.NS",
+    "q": " 5 ",
+    "c": " 2500.5 "
+   },
+   "error": null,
+   "holdings": [
+    [
+     "TCS.NS",
+     5,
+     2500.5
+    ]
+   ]
+  }
+ },
+ "F007": {
+  "open": {
+   "positionCount": 0,
+   "totalValue": 0,
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": []
+  },
+  "closed": {
+   "positionCount": 0,
+   "totalValue": null,
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": []
+  },
+  "storeHoldings": [],
+  "panelWasOpenText": ""
+ },
+ "F016": {
+  "orig-tool-id": {
+   "input": {
+    "pattern": "custom",
+    "panels": [
+     "sec_filings_list"
+    ]
+   },
+   "result": null,
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "orig-string": {
+   "input": {
+    "pattern": "custom",
+    "panels": "chart, sec-filings"
+   },
+   "result": "Arranged chart + sec-filings",
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "sec-filings",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ],
+     [
+      "sec-filings"
+     ]
+    ]
+   }
+  },
+  "fresh-all-unknown-2": {
+   "input": {
+    "pattern": "custom",
+    "panels": [
+     "options_chain_grid",
+     "broker"
+    ]
+   },
+   "result": null,
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "fresh-partial": {
+   "input": {
+    "pattern": "custom",
+    "panels": [
+     "bogus_panel",
+     "news",
+     "chart"
+    ]
+   },
+   "result": "Arranged news + chart (no panel named \"bogus_panel\")",
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "fresh-string-unknown": {
+   "input": {
+    "pattern": "custom",
+    "panels": "dashboard, heatmapx"
+   },
+   "result": null,
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "fresh-objects-unknown": {
+   "input": {
+    "pattern": "custom",
+    "panels": [
+     {
+      "panel": "xyzzy",
+      "direction": "right"
+     }
+    ]
+   },
+   "result": null,
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "fresh-empty": {
+   "input": {
+    "pattern": "custom",
+    "panels": []
+   },
+   "result": null,
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  },
+  "fresh-string-known": {
+   "input": {
+    "pattern": "custom",
+    "panels": "watchlist,news"
+   },
+   "result": "Arranged watchlist + news",
+   "err": null,
+   "before": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   },
+   "after": {
+    "panels": [
+     "chart",
+     "news",
+     "watchlist"
+    ],
+    "groups": [
+     [
+      "chart"
+     ],
+     [
+      "watchlist"
+     ],
+     [
+      "news"
+     ]
+    ]
+   }
+  }
+ },
+ "F030": {
+  "Cochin Shipyard": {
+   "result": "Appended to the COCHINSHIP note (resolved from \"Cochin Shipyard\")",
+   "expectBucket": "COCHINSHIP",
+   "noteForExpected": "fr1v note for Cochin Shipyard",
+   "noteForLiteralUpper": "",
+   "storeDiff": 0
+  },
+  "Tata Consultancy Services": {
+   "result": "Appended to the TCS note (resolved from \"Tata Consultancy Services\")",
+   "expectBucket": "TCS",
+   "noteForExpected": "fr1v note for Tata Consultancy Services",
+   "noteForLiteralUpper": "",
+   "storeDiff": 0
+  },
+  "infosys": {
+   "result": "Appended to the INFY note (resolved from \"infosys\")",
+   "expectBucket": "INFY",
+   "noteForExpected": "fr1v note for infosys",
+   "noteForLiteralUpper": "",
+   "storeDiff": 0
+  },
+  "Zxqv Nonexistent Holdings": {
+   "result": "Appended to the ZXQV NONEXISTENT HOLDINGS note (\"Zxqv Nonexistent Holdings\" did not resolve to a listing; filed under the name)",
+   "expectBucket": null,
+   "noteForExpected": null,
+   "noteForLiteralUpper": "fr1v note for Zxqv Nonexistent Holdings",
+   "storeDiff": 0
+  },
+  "NVDA": {
+   "result": "Appended to the NVDA note",
+   "expectBucket": "NVDA",
+   "noteForExpected": "fr1v note for NVDA",
+   "noteForLiteralUpper": "fr1v note for NVDA",
+   "storeDiff": 0
+  },
+  "RELIANCE.NS": {
+   "result": "Appended to the RELIANCE.NS note",
+   "expectBucket": "RELIANCE.NS",
+   "noteForExpected": "fr1v note for RELIANCE.NS",
+   "noteForLiteralUpper": "fr1v note for RELIANCE.NS",
+   "storeDiff": 0
+  },
+  "allNotes": null
+ },
+ "LEAD-077": {
+  "MSFT": {
+   "focusedSymbol": "MSFT",
+   "bus": {
+    "identifier": "MSFT",
+    "symbol": "MSFT",
+    "formFilter": "all",
+    "tab": "filings",
+    "filingCount": 0
+   }
+  },
+  "NVDA": {
+   "focusedSymbol": "NVDA",
+   "bus": {
+    "identifier": "NVDA",
+    "symbol": "NVDA",
+    "formFilter": "all",
+    "tab": "filings",
+    "filingCount": 0
+   }
+  },
+  "0000320193": {
+   "focusedSymbol": "0000320193",
+   "bus": {
+    "identifier": "0000320193",
+    "symbol": "0000320193",
+    "formFilter": "all",
+    "tab": "filings",
+    "filingCount": 0
+   }
+  }
+ }
+}

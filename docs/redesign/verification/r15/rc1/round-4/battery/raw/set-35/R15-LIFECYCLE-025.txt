@@ -1,0 +1,21 @@
+=== GET /custom-agents (find macro-hawk-b10 tools) ===
+custom:macro-hawk-b10 ['price_data', 'macro', 'news']
+{"id":"custom:macro-hawk-b10","name":"Macro Hawk B10","philosophy":"Watches macro first","system_prompt":"Always check the macro series first.","tools":["price_data","macro_series","news"],"default_provider":"ollama","default_model":"llama3.1:8b","icon":null,"created_at":1790457684394,"updated_at":1790457695}
+HTTP_STATUS:200
+--- schemas.openai_tools check ---
+{
+    "id": "custom:macro-hawk-b10",
+    "name": "Macro Hawk B10",
+    "philosophy": "Watches macro first",
+    "system_prompt": "Always check the macro series first.",
+    "tools": [
+        "price_data",
+        "macro_series",
+        "news"
+    ],
+    "default_provider": "ollama",
+    "default_model": "llama3.1:8b",
+    "icon": null,
+    "created_at": 1790457684394,
+    "updated_at": 1790457695
+}

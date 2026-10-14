@@ -1,0 +1,573 @@
+{
+ "symbol": "INFY",
+ "count": 70,
+ "events": [
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended September 30, 2026 and dividend",
+   "date": "2026-10-23",
+   "exchange": "NSE+BSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Ltd",
+   "purpose": "Dividend",
+   "description": null,
+   "date": "2026-10-23",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended Jun 30, 2026",
+   "date": "2026-07-23",
+   "exchange": "NSE+BSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended March 31, 2026 and dividend",
+   "date": "2026-04-23",
+   "exchange": "NSE+BSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Ltd",
+   "purpose": "Dividend",
+   "description": null,
+   "date": "2026-04-23",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended December 31, 2025",
+   "date": "2026-01-14",
+   "exchange": "NSE+BSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended September 30, 2025 and dividend",
+   "date": "2025-10-16",
+   "exchange": "NSE+BSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Ltd",
+   "purpose": "Dividend",
+   "description": null,
+   "date": "2025-10-16",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Buyback",
+   "description": "Board of Directors to consider a proposal for buyback of equity shares of the Company at its meeting to be held on September 11, 2025",
+   "date": "2025-09-11",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Ltd",
+   "purpose": "Buy Back of Shares",
+   "description": null,
+   "date": "2025-09-11",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended Jun 30, 2025",
+   "date": "2025-07-23",
+   "exchange": "NSE+BSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended March 31, 2025 and dividend",
+   "date": "2025-04-17",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended December 31, 2024",
+   "date": "2025-01-16",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended September 30, 2024 and consider interim dividend, if any.",
+   "date": "2024-10-17",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Other business matters",
+   "description": "To consider and approve the financial results for the period ended June 30, 2024",
+   "date": "2024-07-18",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended March 31, 2024 and dividend",
+   "date": "2024-04-18",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended December 31, 2023",
+   "date": "2024-01-11",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended September 30, 2023 and Interim dividend",
+   "date": "2023-10-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended Jun 30, 2023",
+   "date": "2023-07-20",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended March 31, 2023 and dividend",
+   "date": "2023-04-13",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial results",
+   "description": "Infosys Limited  has informed the Exchange about Board Meeting to be held on 11-Jan-2023 and 12-Jan-2023 to consider Financial Results for the quarter ended December 31, 2022.",
+   "date": "2023-01-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial results",
+   "description": "Infosys Limited  has informed the Exchange about Board Meeting to be held on 23 and 24-Jul-2022 to consider financial statements for the period ended June 2022",
+   "date": "2022-07-24",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended December 31, 2021",
+   "date": "2022-01-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended September 30, 2021",
+   "date": "2021-10-13",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended Jun 30, 2021",
+   "date": "2021-07-14",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended March 31, 2021 and dividend",
+   "date": "2021-04-14",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended December 31, 2020",
+   "date": "2021-01-13",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended September 30, 2020 and interim dividend, if any.",
+   "date": "2020-10-14",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "Notice of Board Meeting",
+   "date": "2020-07-15",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended March 31, 2020 and dividend",
+   "date": "2020-04-20",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "This is to inform you that a meeting of the Board of Directors of the Company will be held at the Registered Office on Thursday and Friday, January 9th and 10th, 2020 to consider inter alia;1. The audited consolidated financial results of the Company and its subsidiaries as per Indian Accounting Standards (IndAS) for the quarter and nine months ending December 31, 2019;2. The audited standalone financial results of the Company as per IndAS for the quarter and nine months ending December 31, 2019;3. The audited consolidated condensed financial statements of the Company and its subsidiaries as per IFRS for the quarter and nine months ending December 31, 2019 andThe financial results will be presented to the Board of Directors on January 10, 2020 for their approval.",
+   "date": "2020-01-10",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended September 30, 2019 and consider declaration interim dividend.",
+   "date": "2019-10-11",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended Jun 30, 2019",
+   "date": "2019-07-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended March 31, 2019 and recommend final dividend",
+   "date": "2019-04-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended September 30, 2018",
+   "date": "2019-01-11",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend/Buyback",
+   "description": "The Company had informed the Exchange regarding the meeting of the Board of Directors of the Company scheduled to be held on January 11, 2019 To consider and approve the financial results for the period ended December 31, 2018 . the company has now inform the exchange that the Board of the Company will consider proposal(s), including but not to limited to, buyback of fully paid-up equity shares of the company , payment of special dividend for implementation of the Capital Allocation policy at its meeting\ufffd\ufffd to be held on January 11, 2019.",
+   "date": "2019-01-11",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the period ended September 30, 2018 and interim dividend",
+   "date": "2018-10-16",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider and approve the financial results for the period ended Jun 30, 2018",
+   "date": "2018-07-13",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results/Dividend",
+   "description": "To consider and approve the financial results for the quarter and year ended March 31, 2018 and dividend",
+   "date": "2018-04-13",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results",
+   "description": "A Meeting of the Board of Directors of the Company will be held on January 11, 2018 and January 12, 2018 To consider inter alia: 1. The audited consolidated financial results of the Company and its subsidiaries as per Indian Accounting Standards (IndAS) for the quarter and nine months ending December 31, 2017; 2. The audited standalone financial results of the Company as per IndAS for the quarter and nine months ending December 31, 2017; 3. The audited consolidated condensed financial statements of the Company and its subsidiaries as per IFRS in INR for the quarter and nine months ending December 31, 2017.",
+   "date": "2018-01-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "A meeting of the Board of Directors of the Company will be held on October 23, 2017 and October 24, 2017 to consider inter alia: (1). The audited consolidated financial results of the Company and its subsidiaries as per Indian Accounting Standards (IndAS) for the quarter and half year ending September 30, 2017; (2). The audited standalone financial results of the Company as per IndAS for the quarter and half year ending September 30, 2017; (3). The audited consolidated condensed financial statements of the Company and its subsidiaries as per IFRS in INR for the quarter and half year ending September 30, 2017. (4). To consider and recommend payment of interim dividend. The financial results would be finally approved by the Board of Directors on October 24, 2017.",
+   "date": "2017-10-24",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Buyback",
+   "description": "To consider a proposal for buyback of equity shares.",
+   "date": "2017-08-19",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results",
+   "description": "to consider inter alia: 1) The audited consolidated financial results of the Company and its subsidiaries as per Indian Accounting Standards (lndAS) for the quarter ending June 30, 2017; 2)The audited standalone financial results of the Company as per lndAS for the quarter 'ending June 30, 2017; 3) The audited consolidated condensed financial statements of the Company and its subsidiaries as per IFRS in INR for the quarter ending June 30, 2017.",
+   "date": "2017-07-14",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "to consider inter alia: 1. The audited standalone financial statements of the Company as per Indian Accounting Standards (INDAS) for the quarter and year ending March 31, 2017; 2. The audited consolidated financial statements of the Company and its subsidiaries as per INDAS for the quarter and year ending March 31, 2017; 3. The audited consolidated financial statements of the Company and its subsidiaries as per IFRS in INR for the quarter and year ending March 31, 2017; and 4. To recommend a final dividend, if any, for the financial year ending March 31, 2017.",
+   "date": "2017-04-13",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results",
+   "description": "To consider inter alia : (1) The audited standalone financial statements of the Company as per Indian Accounting Standards (INDAS) for the quarter and nine months ending December 31, 2016; (2) The audited consolidated financial statements of the Company and its subsidiaries as per INDAS for the quarter and nine months ending December 31, 2016; and (3) The audited condensed consolidated financial statements of the Company and its subsidiaries as per IFRS in INR for the quarter and nine months ending December 31, 2016.",
+   "date": "2017-01-13",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider inter alia: (1). The audited standalone financial statements of the Company as per Indian Accounting Standards (INDAS) for the quarter and half year ending September 30, 2016;(2). The audited consolidated financial statements of the Company and its subsidiaries as per INDAS for the quarter and half year ending September 30, 2016; and (3). The audited condensed consolidated financial statements of the Company and its subsidiaries as per IFRS in INR for the quarter and half year ending September 30, 2016 (4). To consider and recommend payment of interim dividend.",
+   "date": "2016-10-14",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results",
+   "description": "To consider inter alia:1. The audited financial results of the Company as per Indian Accounting Standards (INDAS) for the quarter ending June 30, 2016.2. The audited consolidated financial results of the Company and its subsidiaries as per INDAS for the quarter ending June 30, 2016.3 The audited Consolidated condensed financial statements of the Company and its subsidiaries as per IFRS in INR for the quarter ending June 30, 2016.",
+   "date": "2016-07-15",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider inter alia: 1. The audited financial results of the Company for the quarter and year ending March 31, 2016; 2. The audited and consolidated financial results of the Company and its subsidiaries for the quarter and year ending March 31, 2016;3. To recommend a final dividend, if any, for the financial year ending March 31, 2016.",
+   "date": "2016-04-15",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results",
+   "description": "To consider inter alia : (1) The audited financial results of the Company as per Indian GAAP for the quarter ending December 31, 2015; (2) The audited consolidated financial results of the Company and its subsidiaries as per IFRS for the quarter ending December 31, 2015.",
+   "date": "2016-01-14",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "to consider inter alia: 1) The Audited Financial Results of the Company as per Indian GAAP for the quarter and half year ending September 30, 2015 and2) The audited Consolidated financial results of the Company and its subsidiaries as per IFRS for the quarter and half year ending September 30, 2015. 3) To consider and recommend payment of interim dividend. if any.",
+   "date": "2015-10-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results",
+   "description": "To consider inter alia:  1. The audited financial results of the Company as per Indian GAAP for the quarter ending June 30, 2015; and  2. The audited consolidated financial results of the Company and its subsidiaries as per IFRS for the quarter ending June 30, 2015.",
+   "date": "2015-07-21",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider inter alia :    1. The audited financial results of the Company for the quarter and year ending March 31, 2015.    2. The audited and consolidated financial results of the Company and its subsidiaries for the quarter and year ending March 31, 2015.    3. To recommend a final dividend, if any, for financial year ending March 31, 2015.",
+   "date": "2015-04-24",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results",
+   "description": "To consider inter alia : (1) The audited financial results of the Company as per Indian GAAP for the third quarter and nine months ending December 31, 2014; (2) The audited consolidated financial results of the Company and its subsidiaries as per IFRS for the quarter and nine months ending December 31, 2014.",
+   "date": "2015-01-09",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider inter alia: 1) The audited financial results of the Company as per Indian GAAP for the second quarter and half year ending September 30, 2014; 2) The audited consolidated financial results of the Company and its subsidiaries as per IFRS for the second quarter and half year ending September 30, 2014; and 3) To consider payment of interim dividend.  Further, the insider trading window will be closed between September 16, 2014 through October 12, 2014.",
+   "date": "2014-10-10",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results",
+   "description": "inter alia, to consider: (1) The audited financial results of the Company for the quarter ended June 30, 2014. (2) The audited consolidated financial results of the Company and its subsidiaries for the quarter ended June 30, 2014.  The Company closed the trading window in compliance with the SEBI (Prohibition of Insider Trading) Regulations on June 16, 2014 and the trading window will open on July 14, 2014.",
+   "date": "2014-07-11",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Others",
+   "description": "To consider the recommendations of the Nominations & Governance Committee and Management Development & Compensation Committee in relation to the succession of the Chief Executive Officer and Managing Director.",
+   "date": "2014-06-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider inter alia: (1) The audited financial  results of the company for the quarter and year ending March 31, 2014. (2) The audited consolidated financial results of the company and its subsidiaries for the quarter and year ending March 31, 2014. (3) To recommend a final dividend, if any, for the financial year ending March 31, 2014.",
+   "date": "2014-04-15",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results",
+   "description": "To consider inter alia : (1) The audited financial results of the Company as per Indian GAAP for the quarter and nine months December 31, 2013; (2) The audited consolidated financial results of the Company and its subsidiaries as per IFRS for the quarter and nine months ending December 31, 2013.",
+   "date": "2014-01-10",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider inter alia: (1) The audited financial results of the Company as per Indian GAAP for the second quarter and half-year ending September 30, 2013; (2) The audited consolidated financial results of the Company and its subsidiaries as per IFRS for the second quarter and half year ending September 30, 2013; (3) To consider payment of interim dividend, if any.",
+   "date": "2013-10-11",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results",
+   "description": "To consider inter alia: 1) The audited financial results of the Company as per Indian GAAP for the quarter ending June 30, 2013; 2) The audited consolidated financial results of the Company and its subsidiaries for the quarter ending June 30, 2013 as per IFRS.",
+   "date": "2013-07-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "Inter alia, to consider the following: (1) The audited financial results of Infosys Limited as per Indian GAAP for the quarter and year ended March 31, 2013. (2) The audited consolidated financial results of Infosys Limited and its subsidiaries, as per Indian GAAP for the year ended March 31, 2013. (3) The consolidated financial results of the Company and its subsidiaries as per IFRS for the quarter and year ended March 31, 2013. (4) To recommend a final dividend, if any, for the financial year ending March 31, 2013.",
+   "date": "2013-04-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider inter alia, the : (1) The audited financial results of the Company as per Indian GAAP for the quarter and half-year ending September 30, 2012; (2) The audited consolidated financial results of the Company and its subsidiaries for the quarter and half-year ending September 30, 2012 as per IFRS; (3) The declaration of interim dividend, if any.",
+   "date": "2012-10-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider inter alia: (1) The audited financial results of the Company for the quarter and year ending March 31, 2012; (2) The audited consolidated financial results of the Company and its subsidiaries for the quarter and year ending March 31, 2012; (3) To recommend a final dividend, if any, for the financial year ending March 31, 2012.",
+   "date": "2012-04-13",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider inter alia: (1) The audited financial results of the Company as per Indian GAAP for the second quarter and half year ending September 30, 2011. (2) The audited consolidated financial results of the Company and its subsidiaries as per IFRS for the second quarter and half year ending September 30, 2011. (3) To consider payment of interim dividend, if any.",
+   "date": "2011-10-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider inter alia: (1) The audited financial results of the company for the quarter and year ending March 31, 2011; (2) The audited consolidated financial results of the company and its subsidiaries for the quarter and year ending March 31, 2011; (3) To recommend a final dividend, if any, for the financial year ending March 31, 2011.",
+   "date": "2011-04-15",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider inter alia: (1) The audited financial results of the Company as per Indian GAAP for the second quarter and half year ending September 30, 2010. (2) The audited consolidated financial results of the Company and its subsidiaries as per IFRS for the second quarter and half year ending September 30, 2010. (3) To consider payment of interim dividend, if any.",
+   "date": "2010-10-15",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider inter alia: (1) The audited financial results of the company as per Indian GAAP for the third quarter and nine months ending December 31, 2008. (2) The audited consolidated financial results of the company and its subsidiaries as per Indian GAAP for the third quarter and nine months ending December 31, 2008. (3) The un-audited financial results of the company as per IFRS / US GAAP for the third quarter and nine months ending December 31, 2008.",
+   "date": "2009-01-13",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider inter alia: (1) The audited financial results of the Company as per Indian GAAP for the third quarter and nine months ending December 31, 2007. (2) The audited consolidated financial results of the Company and its subsidiaries as per Indian GAAP for the third quarter and nine months ending December 31, 2007. (3) The un-audited financial results of the Company as per US GAAP for the third quarter and nine months ending December 31, 2007.",
+   "date": "2008-01-11",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Financial Results",
+   "description": "To consider inter alia :- 1) The audited financial results of the company as per Indian GAAP for the first quarter ending June 30, 2006. 2) The audited consolidated financial results of the Company and its subsidiaries as per Indian GAAP for the first quarter ending June 30, 2006. 3) The un-audited financial results of the company as per US GAAP for the first quarter ending June 30, 2006.",
+   "date": "2006-07-12",
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "INFY",
+   "company": "Infosys Limited",
+   "purpose": "Results/Dividend",
+   "description": "To consider Inter alia: 1. The audited financial results of the company as per Indian GAAP for the quarter, half year and year ended March 31, 2006. 2. The audited consolidated financial results of the company and its subsidiaries as per Indian GAAP for the quarter, half year and year ended March 31, 2006. 3. The consolidated financial results of the company and its subsidiaries as per US GAAP for the year ended March 31, 2006. 4. To recommend a final dividend, if any, for the financial year ended March 31, 2006.",
+   "date": "2006-04-14",
+   "exchange": "NSE"
+  }
+ ],
+ "sources": [
+  "NSE",
+  "BSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": null
+}

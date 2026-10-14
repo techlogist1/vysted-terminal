@@ -1,0 +1,10 @@
+candidate ace7dd76 live probes on :52353
+$ curl /resolve?q=Mazagon%20Dock
+{'ok': True, 'message': None, 'needs_disambiguation': False} MAZDOCK
+$ curl /resolve?q=MAZAGONDOCK
+{'ok': False, 'message': "No instrument matched 'MAZAGONDOCK'.", 'needs_disambiguation': False} None
+$ curl /resolve?q=Cochin%20Shipyard
+{'ok': True, 'message': None, 'needs_disambiguation': False} COCHINSHIP
+test pin:
+212:    // An equity add now resolves through GET /resolve first (R15-AGENT-044).
+224:  it("add_to_watchlist resolves a company name or fails with candidates, never a blank row (R15-AGENT-044)", async () => {

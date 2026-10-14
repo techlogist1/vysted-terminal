@@ -1,0 +1,21 @@
+# R15-UI-085 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:34+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; python3 "$B/sc/p22_085.py"; grep -n -- '--color-charcoal-600' styles/tokens.css; echo '$ text-charcoal-600 as a resting fg (non-disabled) in src tsx'; grep -rn 'text-charcoal-600' src --include=*.tsx | grep -v '\.test\.' | grep -v 'disabled:text-charcoal-600' | cut -c1-200; echo "(end)"; grep -rn 'text-charcoal-600' src --include=*.tsx | grep -v '\.test\.' | cut -c1-200
+--- output ---
+charcoal-900 #161616 charcoal-950 #0a0a0a
+charcoal-600 #484848 1.98:1 on 900
+charcoal-500 #8a8a8a 5.24:1 on 900
+charcoal-400 #a8a8a8 7.61:1 on 900
+sage-500 #767676 3.98:1 on 900
+sage-400 #a0a0a0 6.92:1 on 900
+brass-500 #363636 1.50:1 on 900
+lume #f7f7f7 16.89:1 on 900
+sage-300 #cfcfcf 11.62:1 on 900
+40:  --color-charcoal-600: #484848; /* strong border / disabled fg */
+$ text-charcoal-600 as a resting fg (non-disabled) in src tsx
+(end)
+src/components/SettingsPanel.tsx:531:                        className="text-charcoal-400 hover:text-charcoal-100 disabled:text-charcoal-600 rounded-control p-1"
+src/components/SettingsPanel.tsx:540:                        className="text-charcoal-400 hover:text-charcoal-100 disabled:text-charcoal-600 rounded-control p-1"
+src/modules/chat/ChatSidebar.tsx:2195:              : "disabled:text-charcoal-600",
+
+EXIT=0 (0.1s)

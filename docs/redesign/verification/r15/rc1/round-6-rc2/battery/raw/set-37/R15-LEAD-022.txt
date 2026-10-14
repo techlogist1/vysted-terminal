@@ -1,0 +1,19 @@
+# R15-LEAD-022
+$ curl http://127.0.0.1:52351/quotes/BHP.AX
+{"symbol":"BHP.AX","price":61.209999084472656,"change":0.9500007629394531,"change_percent":1.5765031354140968,"volume":7394485.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"AUD","market_state":null,"timestamp":"2026-10-02T06:18:01Z","provider":"yfinance","freshness":"eod"} HTTP 200
+
+$ curl http://127.0.0.1:52351/quotes/0700.HK
+{"symbol":"0700.HK","price":421.20001220703125,"change":-9.79998779296875,"change_percent":-2.2737790702943736,"volume":19108045.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"HKD","market_state":null,"timestamp":"2026-10-02T08:08:07Z","provider":"yfinance","freshness":"eod"} HTTP 200
+
+$ curl http://127.0.0.1:52351/quotes/7203.T
+{"symbol":"7203.T","price":2856.5,"change":-74.5,"change_percent":-2.5417946093483454,"volume":30938400.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"JPY","market_state":null,"timestamp":"2026-10-02T06:30:00Z","provider":"yfinance","freshness":"eod"} HTTP 200
+
+$ curl http://127.0.0.1:52351/quotes/VOD.L
+{"symbol":"VOD.L","price":126.8,"change":2.700000000000003,"change_percent":2.1756647864625327,"volume":52583695.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"GBp","market_state":null,"timestamp":"2026-10-02T15:36:52Z","provider":"yfinance","freshness":"eod"} HTTP 200
+
+$ curl http://127.0.0.1:52351/quotes/SAP.DE
+{"symbol":"SAP.DE","price":183.92,"change":-2.8200000000000216,"change_percent":-1.510121023883486,"volume":1466813.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"EUR","market_state":null,"timestamp":"2026-10-02T15:39:53Z","provider":"yfinance","freshness":"eod"} HTTP 200
+
+$ curl http://127.0.0.1:52351/quotes/BRK.B
+{"symbol":"BRK-B","price":502.65,"change":1.9899999999999523,"change_percent":0.39747533256100986,"volume":4141418.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-10-02T20:00:03Z","provider":"yfinance","freshness":"eod"} HTTP 200
+

@@ -1,0 +1,285 @@
+{
+  "slot": "S1",
+  "symbol": "DHOOTTRANS",
+  "diffed_at": "2026-09-23",
+  "pack_source": "docs/redesign/verification/r15/battery/packs/S1_DHOOTTRANS.json",
+  "collected_source": "docs/redesign/verification/r15/battery/collected/S1_DHOOTTRANS.json",
+  "subtle_tier_covered": true,
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Dhoot Transmission Limited",
+      "app_as_of": "2026-09-19T10:01:01Z (fetch timestamp only)",
+      "outside_value": "Dhoot Transmission Limited",
+      "outside_as_of": "2026-09-04",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "status": "match"
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Consumer Cyclical",
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": "Consumer Discretionary",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid=",
+      "status": "definitional difference",
+      "note": "yfinance's GICS-style 'Consumer Cyclical' label vs BSE's 'Consumer Discretionary' - same bucket, different vendor string, per pack's own note that Trendlyne shows an equivalent string mismatch."
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Auto Parts",
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": "Auto Components & Equipments",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid=",
+      "status": "definitional difference"
+    },
+    {
+      "field": "identity.isin / bse_code / cin / nse_symbol / listing_date / face_value / board",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "INE01NH01023 / 544867 / U31300PN1998PLC131629 / DHOOTTRANS / 2026-08-17 / INR 2 / Mainboard",
+      "outside_as_of": "2026-09-04 to 2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid=",
+      "status": "app blank",
+      "note": "None of the identity/collected calls in this battery (resolve/quote/fundamentals/income/balance/cashflow/ratings/disclosures) returns these identifiers; not filed as a raw finding on its own since no queried endpoint in this collection is meant to carry them and resolve.candidates shows isin/bse_code as null placeholders rather than a silent product failure."
+    },
+    {
+      "field": "price.last_close (NSE)",
+      "app_value": 1590.699951171875,
+      "app_as_of": "2026-09-19T10:00:57Z (fetch ts, freshness=eod)",
+      "outside_value": 1590.7,
+      "outside_as_of": "2026-09-18T15:31:00+05:30",
+      "outside_source_url": "https://trendlyne.com/equity/3612273/DHOOTTRANS/dhoot-transmission-ltd/",
+      "status": "match"
+    },
+    {
+      "field": "price.change / change_percent (implied previous_close)",
+      "app_value": "change=24.7, change_percent=1.577% -> implies previous_close=1566.00",
+      "app_as_of": "2026-09-19T10:00:57Z",
+      "outside_value": "previous_close BSE=1575.65 (2026-09-17) / NSE=1579.80 per Trendlyne+Groww corroboration (2026-09-18)",
+      "outside_as_of": "2026-09-17 / 2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544867&seriesid=",
+      "status": "mismatch",
+      "note": "App's own change/change_percent imply a previous close of INR 1,566.00, which matches neither the BSE previous close (1,575.65, delta 9.65) nor the NSE previous close corroborated by two independent aggregators (1,579.80, delta 13.80)."
+    },
+    {
+      "field": "market_cap",
+      "app_value": 32537.460736,
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": 32535.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/DHOOTTRANS/",
+      "status": "match",
+      "note": "0.0076% delta, fully explained by NSE-vs-BSE close price choice; app's figure reconstructs exactly from its own price x shares_outstanding."
+    },
+    {
+      "field": "shares_outstanding",
+      "app_value": 204548057.0,
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": 204550445,
+      "outside_as_of": "2026-06-30 balance sheet + 2026-08-13 allotment",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "status": "match",
+      "note": "0.0012% delta (2,388 shares), within rounding of two independently derived counts."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 81.9526,
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": 75.1,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "status": "mismatch",
+      "note": "Does not correspond to any of the pack's four documented legitimate PE bases (166 standalone, 72.6 screener-consolidated, 81.22 Groww-stale, 75.1 filing-derived-consolidated); it is price/eps using the app's own stale eps field (see eps_ttm row) and is closest to Groww's already-confirmed-wrong 81.22, not a defensible definitional variant."
+    },
+    {
+      "field": "pb / book_value_per_share",
+      "app_value": "pb=12.3145, book_value=129.173",
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": "pb=8.4, book_value_per_share=187.48 (medium confidence, aggregator estimate)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/dhoot-transmission-ltd",
+      "status": "mismatch",
+      "note": "App's book_value (129.17) is ~31% below Groww's estimate (187.48) and does not even reconcile with the app's own collected balance-sheet equity (Common Stock Equity FY2026 24,343.42mn / shares_outstanding 204,548,057 = 119.01/share, still not 129.17). Pack's own sanity check independently lands near INR 191/share post-money."
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 24.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/DHOOTTRANS/consolidated/",
+      "status": "app blank",
+      "note": "field_meta marks roe 'unavailable - provider did not publish this field'; world has three published values (24.0/26.2/16.29), all traceable."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 24.4,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/DHOOTTRANS/consolidated/",
+      "status": "app blank",
+      "note": "roce is not present as a key anywhere in the collected fundamentals response at all (not even labeled unavailable)."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": 0.37713,
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": 0.38,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/dhoot-transmission-ltd",
+      "status": "match"
+    },
+    {
+      "field": "revenue_ttm (consolidated)",
+      "app_value": 50050420736.0,
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": "INR 5005.04 crore = 50050400000",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "status": "match",
+      "note": "Matches to the rupee-crore on the consolidated basis; confirms the app is using consolidated (not standalone) scope for this field, correctly."
+    },
+    {
+      "field": "net_profit_ttm (consolidated, attributable to owners)",
+      "app_value": 4330310144.0,
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": "INR 433.03 crore = 4330310000",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "status": "match"
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": 0.497,
+      "app_as_of": "2026-09-19T10:01:01Z (growth_basis='mrq_yoy')",
+      "outside_value": 49.7,
+      "outside_as_of": "2026-06-30 (Q1 FY27 vs Q1 FY26)",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf",
+      "status": "match",
+      "note": "Exact match to the company's own quoted press-release figure."
+    },
+    {
+      "field": "earnings_growth (same growth_basis='mrq_yoy')",
+      "app_value": 0.179,
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": "37.8 (consolidated PAT, Q1 FY27 vs Q1 FY26)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf",
+      "status": "mismatch",
+      "note": "Under the app's own declared mrq_yoy basis, revenue_growth is exact (above) but earnings_growth (17.9%) is less than half the filed PAT growth (37.8%); does not reconcile with PAT, PBT, EBITDA or total-income YoY growth computed from the app's own collected figures either."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 19.41,
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": 21.17,
+      "outside_as_of": "2026-06-30 (current post-IPO share count basis)",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "status": "mismatch",
+      "note": "App's eps (19.41) nearly exactly reproduces Groww's already-confirmed-wrong stale-quarter EPS (19.40, pack traps.groww_stale_quarter), not either legitimate filed basis (21.17 current-count or 22.98 pre-listing-count). App's own net_income_ttm/shares_outstanding = 4,330,310,144/204,548,057 = 21.17 exactly - the app's eps field contradicts its own other two fields."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/DHOOTTRANS/",
+      "status": "app blank",
+      "note": "Pack positively confirms 0.00% (BSE corporate-action API returns three empty tables, screener+Groww agree) - a determined fact, not an unreachable one; app shows 'unavailable / provider did not publish' rather than the confirmed zero."
+    },
+    {
+      "field": "dividend.last_declared_per_share / paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack itself records these as genuine world gaps (world_gaps.no_dividend_since_listing / prelisting_dividend_history_unreached) - both sides agree there is nothing to show."
+    },
+    {
+      "field": "week52.high (value)",
+      "app_value": 1735.3,
+      "app_as_of": null,
+      "outside_value": 1739.0,
+      "outside_as_of": "2026-09-15",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544867",
+      "status": "definitional difference",
+      "note": "App's value matches Groww's NSE-scoped 1,735.30 exactly (pack's own disagreement note says BSE vs NSE 52w ranges legitimately differ); not wrong, just a different exchange's range."
+    },
+    {
+      "field": "week52.low (value)",
+      "app_value": 1131.0,
+      "app_as_of": null,
+      "outside_value": 1130.5,
+      "outside_as_of": "2026-08-17",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544867",
+      "status": "definitional difference",
+      "note": "Matches Groww's NSE-scoped 1,131.00 exactly; same exchange-scope explanation as the high."
+    },
+    {
+      "field": "week52.high.as_of / week52.low.as_of",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "high: 2026-09-15, low: 2026-08-17 (= the listing date)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544867",
+      "status": "app blank",
+      "note": "The collected fundamentals response gives fifty_two_week_high/low as bare numbers with no per-value date; only a single uniform fetch-time field_meta.as_of (2026-09-19T10:01:01Z) covers every field including these. The low's true date is the listing day itself (pack critical_caveat: the '52-week' window is 33 calendar days) and nothing in the app's response surfaces that."
+    },
+    {
+      "field": "every fundamentals field's as_of (systemic)",
+      "app_value": "field_meta.as_of = 2026-09-19T10:01:01.780949+00:00 for every single field",
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": "per-field as_of ranges from 2026-06-30 (eps/revenue) to 2026-08-17 (week52 low) to 2026-09-18 (price)",
+      "outside_as_of": "various",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "status": "mismatch",
+      "note": "field_meta.as_of is a fetch timestamp, identical across every field, not the value's true reporting period; a Q1 FY27 EPS (period ended 2026-06-30) and a listing-day 52-week low (2026-08-17) both carry the same 2026-09-19 stamp, misrepresenting data currency uniformly rather than per-field."
+    },
+    {
+      "field": "shareholding.promoter_pct / fii_pct / dii_pct / public_pct / pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "promoter=82.78%, fii=2.3%, dii=5.84%, public=9.08%, pledged=51.75% of promoter holding (contested vs a same-day nil filing)",
+      "outside_as_of": "2026-08-14 to 2026-08-19",
+      "outside_source_url": "https://www.screener.in/company/DHOOTTRANS/",
+      "status": "app blank",
+      "note": "/disclosures/shareholding?symbol=DHOOTTRANS returns HTTP 502 'DHOOTTRANS is not a known NSE/BSE instrument', despite /quotes and /fundamentals for the identical symbol resolving correctly via yfinance in the same collection run."
+    },
+    {
+      "field": "shareholding (fallback: fundamentals.held_percent_insiders / held_percent_institutions)",
+      "app_value": "held_percent_insiders=39.935%, held_percent_institutions=53.816%",
+      "app_as_of": "2026-09-19T10:01:01Z",
+      "outside_value": "SEBI promoter group total=82.78% (Dhoot family ~39.94% + BC Asia PE entities 42.842%), FII=2.3%, DII=5.84%, public=9.08%",
+      "outside_as_of": "2026-08-14 to 2026-08-19",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/436B7797_E272_4D4E_873E_8A1E1D2000C9_153535.pdf",
+      "status": "mismatch",
+      "note": "held_percent_insiders (39.935%) matches the pack's derived Dhoot-family-only remainder (39.94%) almost to the decimal, meaning the app's Yahoo-style insider bucket silently excludes the BC Asia Investments XV/XVI promoter-group stake (42.842% of total capital, filed as promoter/SAST-regulated) by classifying it as institutional instead. Read as promoter holding, 39.94% understates the true SEBI promoter group by 42.84 percentage points."
+    },
+    {
+      "field": "corporate_actions_2026 / last_3_announcements / results calendar",
+      "app_value": "502 error: \"'DHOOTTRANS' is not a known NSE/BSE instrument\"",
+      "app_as_of": null,
+      "outside_value": "19 announcements since listing incl. CIN/listing-status change, SAST encumbrance disclosures, Multilink acquisition, credit rating; latest results Q1 FY27 filed 2026-09-04",
+      "outside_as_of": "2026-08-17 to 2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260801&strScrip=544867&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "status": "app blank",
+      "note": "Same root failure as the shareholding disclosures call - the /disclosures/announcements and /disclosures/results routes both 502 on the identical symbol string that /quotes and /fundamentals resolve without issue."
+    },
+    {
+      "field": "consolidated_vs_standalone basis disclosure",
+      "app_value": "no explicit basis/consolidation field anywhere in the response",
+      "app_as_of": null,
+      "outside_value": "company files both; consolidated PAT is ~2.3x standalone PAT for this name (pack's single most important scope decision)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "status": "no source truth",
+      "note": "Not filed as a mismatch: the app's revenue_ttm/net_profit_ttm VALUES independently verify as consolidated (see rows above), so the correct scope is in fact being used even though it is not labeled - informational only."
+    }
+  ]
+}

@@ -5,27 +5,198 @@ Mirrored by hand in ``types/data.ts`` — keep in sync (see CLAUDE.md Gotchas).
 
 from __future__ import annotations
 
+from datetime import datetime
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
+class GrowthQuarters(BaseModel):
+    """The quarter-end pair (ISO dates) behind the computed growth cross-check
+    (R12 / D66) — MRQ vs the same quarter a year earlier."""
+
+    mrq: str
+    prior: str
+
+
+class FieldMeta(BaseModel):
+    """Per-field provenance / coverage metadata riding a :class:`Fundamentals`
+    payload (R13 data-bedrock).
+
+    One entry per data field the payload speaks to. ``status`` is one of:
+
+      * ``"ok"`` — the field carries a real value the named provider served
+        (``provider`` + ``as_of`` record who and when).
+      * ``"flagged"`` — the value is KEPT but a cross-check disagrees with it;
+        ``reason`` names the disagreement and the witness figure (e.g. the
+        exchange shareholding, the payload-implied share count). Never a
+        substitution — the served value stays the provider's own.
+      * ``"withheld"`` — a value existed but the correctness gate NULLED it as
+        implausible; ``reason`` says exactly why (e.g. an ownership fraction above
+        1, an ambiguous-unit dividend yield). The field on the payload is ``None``.
+      * ``"unavailable"`` — the source carried no value for the field.
+
+    ``as_of`` is an ISO-8601 string (the provider's ``info`` fetch time for
+    yfinance). All fields beyond ``status`` are optional. The whole ``field_meta``
+    map is ADDITIVE — an absent map must never break an existing consumer.
+    """
+
+    status: Literal["ok", "flagged", "withheld", "unavailable"]
+    provider: str | None = None
+    as_of: str | None = None
+    reason: str | None = None
+    label: str | None = None
+    #: Set alongside ``provider == "derived"`` (R15-DATA-048/054/055, D-B9-6):
+    #: the formula the value was computed with, e.g. "EBIT / (total assets -
+    #: current liabilities)" — so a derived figure never reads as if the
+    #: provider itself served it.
+    basis_note: str | None = None
+
+
 class Fundamentals(BaseModel):
-    """Snapshot of valuation ratios and company profile for one symbol."""
+    """Snapshot of valuation ratios, profitability, health, and profile for one
+    symbol. All new screener-grade fields are optional (``None`` when the source
+    does not carry them) so the panel renders a reason, never a fabricated value.
+
+    Units are documented per field: ``*_margin``/``roe``/``roa``/``*_growth``/
+    ``held_percent_*``/``fifty_two_week_change`` are FRACTIONS (0.21 = 21%);
+    ``dividend_yield`` is a fraction; ``debt_to_equity`` is a RATIO (yfinance's
+    percent form divided by 100, so 1.5 = 150%). ``currency`` is the TRADING
+    currency (prices, ``market_cap``, ``book_value``, ``eps``,
+    ``dividend_per_share``); the statement-denominated sizes
+    (``revenue_ttm``/``net_income_ttm``/``free_cash_flow``) are in
+    ``financial_currency`` when it is set (a foreign reporter such as an ADR),
+    else in ``currency``.
+    """
 
     symbol: str
     name: str | None = None
     sector: str | None = None
     industry: str | None = None
+    #: Which source served ``sector``/``industry`` (R15-DATA-052): ``"resolver"``
+    #: when the bundled India sector map overrode an absent/empty Yahoo value
+    #: (a bare Yahoo ``""`` never counts as served), ``"yfinance"`` when
+    #: Yahoo's own value was used, ``None`` when neither had one.
+    sector_source: str | None = None
+    currency: str | None = None
+    #: The currency of the statement-denominated sizes (``revenue_ttm``,
+    #: ``net_income_ttm``, ``free_cash_flow``) when the provider's reporting
+    #: currency differs from the trading ``currency`` (Yahoo ``financialCurrency``
+    #: — SIFY reports in INR, trades in USD). ``None`` when the two are equal.
+    #: No FX conversion is applied; a ratio that mixes the two bases is withheld.
+    financial_currency: str | None = None
+    #: The price the provider's valuation ratios and ``market_cap`` were computed
+    #: at (Yahoo ``currentPrice``/``regularMarketPrice`` from the same snapshot).
+    #: Its ``field_meta`` ``as_of`` is that price's trade time. The correctness
+    #: gate's cross-field pass prices through it (implied shares = market cap /
+    #: price) so a loss-maker with no trailing P/E is still reconciled.
+    ratio_price: float | None = None
+    # --- Valuation ---
     market_cap: float | None = None
     pe_ratio: float | None = None
     forward_pe: float | None = None
     peg_ratio: float | None = None
     price_to_book: float | None = None
+    price_to_sales: float | None = None
+    ev_to_ebitda: float | None = None
+    book_value: float | None = None
     dividend_yield: float | None = None
+    dividend_per_share: float | None = None
     eps: float | None = None
     beta: float | None = None
     fifty_two_week_high: float | None = None
     fifty_two_week_low: float | None = None
+    fifty_two_week_change: float | None = None
+    #: ISO date the 52-week high/low each actually traded at (R15-DATA-055),
+    #: from the 1-year daily history's argmax(High)/argmin(Low) — Yahoo's
+    #: scalar ``fiftyTwoWeekHigh``/``Low`` carry no date of their own.
+    fifty_two_week_high_date: str | None = None
+    fifty_two_week_low_date: str | None = None
+    #: ISO exchange listing date (R15-DATA-055, D-B10-7): the NSE master's DATE
+    #: OF LISTING for an NSE listing, else ``None``. A listing younger than 52
+    #: weeks still reports a ``fifty_two_week_*`` pair (Yahoo backfills it from
+    #: the shorter history it has); this field lets the panel relabel that
+    #: range "since listing" instead of "52w".
+    listing_date: str | None = None
+    #: ISO date of the first bar Yahoo holds (``firstTradeDateMilliseconds``) —
+    #: the start of its data, not the listing (NAPEROL: 2002-07-01).
+    first_trade_date: str | None = None
+    #: ISO date of the fiscal year end the ``forward_pe`` estimate targets
+    #: (Yahoo ``nextFiscalYearEnd``), when Yahoo names one alongside a
+    #: forward P/E. ``None`` when Yahoo supplies no forward estimate or no
+    #: fiscal-year-end date for it.
+    forward_pe_fiscal_year: str | None = None
+    # --- Profitability (fractions) ---
+    roe: float | None = None
+    roa: float | None = None
+    gross_margin: float | None = None
+    operating_margin: float | None = None
+    profit_margin: float | None = None
+    # --- Financial health ---
+    debt_to_equity: float | None = None
+    current_ratio: float | None = None
+    quick_ratio: float | None = None
+    #: Return on capital employed — EBIT / (total assets - current liabilities),
+    #: a fraction (0.233 = 23.3%). Yahoo's ``info`` carries no ROCE field at all,
+    #: so this is ALWAYS derived from the statements when they carry the
+    #: ingredients (R15-DATA-048); ``None`` when they don't.
+    roce: float | None = None
+    #: The accounting basis the company files its results on (R15-DATA-054),
+    #: derived from the exchange filings (:func:`services.exchange_financials.
+    #: filed_basis`): ``"consolidated"`` when it files a consolidated result,
+    #: else ``"standalone"``. ``None`` for a non-Indian listing or when no
+    #: filing could be read — never a default.
+    basis: Literal["consolidated", "standalone"] | None = None
+    # --- Size & growth ---
+    revenue_ttm: float | None = None
+    net_income_ttm: float | None = None
+    free_cash_flow: float | None = None
+    shares_outstanding: float | None = None
+    revenue_growth: float | None = None
+    earnings_growth: float | None = None
+    #: Basis of the growth fields above (R11 / D55): ``"mrq_yoy"`` (most recent
+    #: quarter vs the same quarter a year ago — yfinance's ``revenueGrowth``/
+    #: ``earningsGrowth``, the exchange-filed overlay) or ``"annual_yoy"``. The
+    #: PRODUCER of a growth value states it; ``None`` means no basis was stated
+    #: (no growth served, or a store row whose pack recorded none) — never an
+    #: inherited default claim (R15-DATA-102). Every surface rendering the
+    #: growth fields must disclose this basis.
+    growth_basis: str | None = None
+    # --- Ownership (fractions) — promoter / institutional proxies (esp. IN) ---
+    held_percent_insiders: float | None = None
+    held_percent_institutions: float | None = None
+    #: Trailing-12-month dividends ACTUALLY PAID per share (summed from the
+    #: corporate-action history, in ``currency``) — the deterministic
+    #: cross-check for ``dividend_per_share`` (R11 / D56): Yahoo's
+    #: ``dividendRate`` can omit a special dividend; the paid history cannot.
+    #: ``None`` when the history was unavailable.
+    dividend_per_share_ttm: float | None = None
+    #: MRQ-YoY growth deterministically COMPUTED from the provider's own
+    #: QUARTERLY income statements (R12 / D66) — the cross-check for the opaque
+    #: ``revenue_growth``/``earnings_growth`` scalars, which can be materially
+    #: wrong on their claimed ``mrq_yoy`` basis. Populated only on the research
+    #: snapshot path; ``None`` when quarterly statements were unavailable
+    #: (absence is honest). These NEVER replace the provider values — a
+    #: divergence surfaces as a conflict, not a substitution.
+    revenue_growth_computed: float | None = None
+    earnings_growth_computed: float | None = None
+    #: The quarter-end pair the computed growth compared, for disclosure.
+    growth_computed_quarters: GrowthQuarters | None = None
+    #: Per-field provenance / coverage metadata (R13). Keyed by the data-field
+    #: name; each entry records whether the field is ``ok``/``flagged``/
+    #: ``withheld``/``unavailable`` plus the serving provider, its ``as_of``, and any
+    #: withhold/flag reason. Additive — ``None`` on providers that do not populate
+    #: it, and an absent map never changes how the value fields are read.
+    field_meta: dict[str, FieldMeta] | None = None
     provider: str
+    #: R13 ledger #8 (bounded, additive): a plain-language note when the
+    #: resolver's canonical master name and THIS provider's company name
+    #: disagree past the identity cross-check threshold
+    #: (:mod:`services.identity_crosscheck`) — e.g. an exchange rename the
+    #: bundled provider has not caught up with yet. ``None`` when the names
+    #: agree or the symbol did not resolve. Never a swap — ``name`` above
+    #: always stays the PROVIDER's own value; this is a disclosure only.
+    identity_note: str | None = None
 
 
 class StatementLine(BaseModel):
@@ -39,9 +210,16 @@ class FinancialStatement(BaseModel):
     """Shared shape for the three financial statements."""
 
     symbol: str
+    #: ISO period-end dates, newest first (annual and quarterly alike).
     periods: list[str]
     lines: list[StatementLine]
     provider: str
+    #: Expected periods the provider did not serve (R15-LEAD-015): each is
+    #: listed in ``periods`` with a null value in every line.
+    gaps: list[str] = []
+    #: Why the statement is empty (R15-FINAL-005), e.g. no provider covers
+    #: NSE Emerge (SME) statements. ``None`` whenever ``periods`` is non-empty.
+    reason: str | None = None
 
 
 class IncomeStatement(FinancialStatement):
@@ -70,3 +248,72 @@ class AnalystRating(BaseModel):
     sell: int = Field(default=0, ge=0)
     strong_sell: int = Field(default=0, ge=0)
     provider: str
+    # When this envelope was fetched upstream (a cache hit keeps the fetch
+    # time, not the read time) — R15-DATA-068.
+    as_of: datetime | None = None
+
+
+class UnverifiedClaim(BaseModel):
+    """One numeric figure in the LLM narrative that did NOT match the source data.
+
+    The narrative service extracts every numeric claim from the model's output
+    and matches each against the real fundamentals/quote it was given. A claim
+    that matches no source value (a likely hallucination) is recorded here and
+    REDACTED from the prose before it reaches the UI — a fabricated figure must
+    never render as fact.
+    """
+
+    text: str
+    """The literal numeric token as the model wrote it (e.g. ``"$4.2T"``, ``"31.5"``)."""
+    reason: str
+    """Why it failed verification (no source field matched within tolerance)."""
+
+
+class CompanyNarrative(BaseModel):
+    """An LLM-written, numerically-verified company overview for one symbol.
+
+    Every number that survives into ``summary`` / ``insights`` has been matched
+    against the real :class:`Fundamentals` + :class:`~models.market.Quote` the
+    service fetched (the same source the panel renders). Unverified figures are
+    redacted from the prose and listed in ``unverified_claims`` for transparency.
+
+    When no model/key is available the route still returns ``200`` with
+    ``summary=None`` + ``insights=[]`` + a ``reason`` — the UI renders a quiet
+    "AI narrative unavailable" state, never an error.
+    """
+
+    symbol: str
+    summary: str | None = None
+    """FR-124 "The Take": the 2–4 sentence headline, with any unverified number redacted. ``None``
+    when no narrative was produced (no key, empty model output, or all prose
+    redacted)."""
+    insights: list[str] = Field(default_factory=list)
+    """Legacy key-insight bullets (an older ``INSIGHTS:`` completion), each
+    verified the same way as ``summary``."""
+    business: str | None = None
+    """FR-124 "business": what the company does and how it earns, verified."""
+    storyline: str | None = None
+    """FR-124 "storyline": what the served numbers say about its trajectory."""
+    bull_case: list[str] = Field(default_factory=list)
+    """FR-124 balanced bull points, each verified the same way as ``summary``."""
+    bear_case: list[str] = Field(default_factory=list)
+    """FR-124 balanced bear points, each verified the same way as ``summary``."""
+    risks: list[str] = Field(default_factory=list)
+    """FR-124 key risks, each verified the same way as ``summary``."""
+    verified: bool = False
+    """``True`` when a narrative was produced AND every numeric claim in it
+    matched a source value. ``False`` when nothing was produced or at least one
+    claim was redacted."""
+    unverified_claims: list[UnverifiedClaim] = Field(default_factory=list)
+    """Numeric claims that failed verification and were redacted from the prose."""
+    source_provider: str | None = None
+    """The data provider that served the fundamentals/quote the narrative is
+    grounded in (e.g. ``"yfinance"``) — the UI's "verified against {provider}"
+    label."""
+    model: str | None = None
+    """The LLM model id that wrote the narrative, when one ran."""
+    generated_at: str | None = None
+    """ISO-8601 UTC timestamp of generation, or ``None`` when no narrative ran."""
+    reason: str | None = None
+    """Human-readable explanation when ``summary`` is ``None`` (no key, no model
+    output, no fundamentals) — surfaced verbatim in the quiet empty state."""

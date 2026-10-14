@@ -1,0 +1,29 @@
+# R15-AGENT-066 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:31:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p_lows.py a66 2>&1 | grep -v Warning
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio
+from fastmcp import Client
+async def go():
+    async with Client("http://127.0.0.1:52863/mcp/") as cl:
+        tools=await cl.list_tools(); names=[t.name for t in tools]
+        print('live MCP tools', len(tools)); print('run_custom_backtest listed:', 'run_custom_backtest' in names, '| backtest_summary listed:', 'backtest_summary' in names)
+        print('readOnlyHint values:', sorted({str(t.annotations.readOnlyHint if t.annotations else None) for t in tools}))
+asyncio.run(go())
+PY
+grep -n 'def test_run_custom_backtest_not_read_only_on_mcp' "$C"/sidecar/tests/*.py
+--- output ---
+mcp tool count 31
+run_custom_backtest on MCP surface: False
+backtest_summary on MCP surface: False
+broker_portfolio on MCP surface: False
+all MCP-projected read_only: True
+run_custom_backtest.read_only = True
+ToolKind members: ('read_handler', 'per_invocation', 'host_action')
+mcp-projected non-read_handler kinds: {'read_handler'}
+live MCP tools 39
+run_custom_backtest listed: False | backtest_summary listed: False
+readOnlyHint values: ['None', 'True']
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/tests/test_mcp_catalog_parity.py:124:def test_run_custom_backtest_not_read_only_on_mcp() -> None:
+
+EXIT=0 (1.2s)

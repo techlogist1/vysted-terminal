@@ -1,0 +1,19 @@
+== A0 real historicalOR rows: 10
+== A0 real row keys (sample): ['CH_52WEEK_HIGH_PRICE', 'CH_52WEEK_LOW_PRICE', 'CH_CLOSING_PRICE', 'CH_LAST_TRADED_PRICE', 'CH_OPENING_PRICE', 'CH_PREVIOUS_CLS_PRICE', 'CH_SERIES', 'CH_SYMBOL', 'CH_TIMESTAMP', 'CH_TOTAL_TRADES', 'CH_TOT_TRADED_QTY', 'CH_TOT_TRADED_VAL', 'CH_TRADE_HIGH_PRICE', 'CH_TRADE_LOW_PRICE']
+== A1 _rows_to_bars on OHLV-renamed rows (last 2): [{'timestamp': '2026-09-09T00:00:00Z', 'open': 1279.0, 'high': 1279.0, 'low': 1279.0, 'close': 1279.0, 'volume': 0.0}, {'timestamp': '2026-09-08T00:00:00Z', 'open': 1294.9, 'high': 1294.9, 'low': 1294.9, 'close': 1294.9, 'volume': 0.0}]
+== A2 registry.get_history served: {'provider': 'nse_direct', 'n': 10, 'last': {'timestamp': '2026-09-22T00:00:00Z', 'open': 1240.4, 'high': 1240.4, 'low': 1240.4, 'close': 1240.4, 'volume': 0.0}, 'flat_bars': 10, 'zero_volume_bars': 10}
+== A3 _quote_from_history on drifted rows: {'symbol': 'RELIANCE', 'price': 1240.4, 'change': -7.0, 'change_percent': -0.5611672278338945, 'volume': None, 'currency': 'INR', 'market_state': 'REGULAR', 'timestamp': '2026-09-22T00:00:00Z', 'provider': 'nse_direct', 'freshness': None}
+== A4 close renamed -> nse_direct raises: ProviderError: nse_direct: no EOD data for 'RELIANCE'
+== B0 parse_bhavcopy UDiFF (today's header): {'RELIANCE': 1240.4}
+== B1 parse_bhavcopy with TckrSymb->TckrSym (1 column renamed): {}
+== B2 parse_bhavcopy with ClsPric->ClsgPric: {}
+LOG WARNING services.nse_bhavcopy: nse_bhavcopy: no bhavcopy found within 7 days of 2026-09-23
+== C1 fetch_latest with MOVED url: {'result': None, 'requests': [('BhavCopy_NSE_CM_0_0_0_20260923_F_0000.csv.zip', 404), ('BhavCopy_NSE_CM_0_0_0_20260922_F_0000.csv.zip', 404), ('BhavCopy_NSE_CM_0_0_0_20260921_F_0000.csv.zip', 404), ('BhavCopy_NSE_CM_0_0_0_20260918_F_0000.csv.zip', 404), ('BhavCopy_NSE_CM_0_0_0_20260917_F_0000.csv.zip', 404), ('BhavCopy_NSE_CM_0_0_0_20260916_F_0000.csv.zip', 404)]}
+== C1 cache after (value per key): [('nse_bhavcopy:20260916', '{"empty": true}'), ('nse_bhavcopy:20260917', '{"empty": true}'), ('nse_bhavcopy:20260918', '{"empty": true}'), ('nse_bhavcopy:20260921', '{"empty": true}'), ('nse_bhavcopy:20260922', '{"empty": true}')]
+LOG WARNING services.nse_bhavcopy: nse_bhavcopy: no bhavcopy found within 7 days of 2026-09-23
+== C2 fetch_latest after URL FIXED (same cache): {'result': None, 'requests': [('BhavCopy_NSE_CM_0_0_0_20260923_F_0000.csv.zip', 404)]}
+== C3 control: fixed URL, clean cache: {'result': '2026-09-22', 'rows': 2921, 'requests': [('BhavCopy_NSE_CM_0_0_0_20260923_F_0000.csv.zip', 404), ('BhavCopy_NSE_CM_0_0_0_20260922_F_0000.csv.zip', 200)]}
+LOG WARNING services.nse_symbol_change: nse_symbol_change: HTTP 404 from https://nsearchives.nseindia.com/content/equities/symbolchange-v0-retired.csv
+LOG WARNING services.nse_symbol_change: nse_symbol_change: no file and no recent cache — rename lane is a no-op
+== D1 symbolchange MOVED, no cache: None
+== D1 lookup_current('ZOMATO'): None

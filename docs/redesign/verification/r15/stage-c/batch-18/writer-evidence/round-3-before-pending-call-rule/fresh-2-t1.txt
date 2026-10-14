@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_66da536d4d704ea395ff4c49c5d95fd3", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+[  26.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_66da536d4d704ea395ff4c49c5d95fd3", "name": "fundamentals", "ok": true, "error": null}
+[  36.1s] heartbeat: {"kind": "heartbeat"}
+[  46.1s] heartbeat: {"kind": "heartbeat"}
+[  49.1s] done: {"kind": "done", "usage": {"input_tokens": 5894, "output_tokens": 13, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+AAPL's market cap is $4.90T.
+
+=== ok · 49.1s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 12, 'done': 1} · usage in=5894 out=13 · est $0.00000 · llama3.1:8b

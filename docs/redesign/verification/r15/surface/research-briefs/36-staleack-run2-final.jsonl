@@ -1,0 +1,373 @@
+{"_meta": {"t0": 1790131170.816166, "status": 200, "request": {"prompt": "research Mazagon Dock Shipbuilders", "context_snapshot": {"focused_source": "chart-1", "by_source": {"__terminal__": {"focusedPanel": "chart-1", "capturedAt": 0, "charts": [{"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}], "focusedChart": {"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}, "watchlist": {"symbols": ["KPITTECH", "BDL", "CAMS"], "selected": "KPITTECH"}, "portfolio": {"positionCount": 1, "totalValue": null, "activePortfolioName": "Main", "holdings": [{"id": "h1", "symbol": "BDL", "quantity": 10, "costBasis": 1450, "assetClass": "equity", "marketValue": null, "pnl": null}]}, "openPanels": ["chart", "watchlist", "brief"], "brief": {"phase": "empty"}, "viewport": {"width": 1920, "height": 1080}}}, "captured_at": 1790131170816}, "provider": "ollama", "model": "llama3.1:8b", "mode": "agent", "autonomy": "auto", "options": {"history": "<0 turns>", "deepResearchBackend": "auto", "research_depth": "normal"}}}}
+{"kind": "tool_use", "tool_call_id": "", "name": "research", "input": {"query": "Mazagon Dock Shipbuilders \u2014 latest quarterly results", "depth": "quick"}, "_t": 75.69}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin 8d66eac6680540a1afac9998505fcd5b depth=normal query=Mazagon Dock Shipbuilders \u2014 latest quarterly results", "latency_ms": null, "status": "ok", "index": 1, "_t": 76.67}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolving \"Mazagon Dock Shipbuilders \u2014 latest quarterly results\"", "latency_ms": null, "status": "ok", "index": 2, "_t": 76.67}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 MAZDOCK", "latency_ms": 906, "status": "ok", "index": 3, "_t": 76.67}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulling market data for MAZDOCK", "latency_ms": null, "status": "ok", "index": 4, "_t": 76.67}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulled 4/4 data sources", "latency_ms": 23974, "status": "ok", "index": 5, "_t": 100.64}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "searching the web for Mazagon Dock Shipbuilders Limited", "latency_ms": null, "status": "ok", "index": 6, "_t": 100.64}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "0 web source(s)", "latency_ms": 50998, "status": "ok", "index": 7, "_t": 151.65}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 8, "_t": 151.65}
+{"kind": "tool_use", "tool_call_id": "__autobrief", "name": "publish_brief", "input": {"query": "Mazagon Dock Shipbuilders \u2014 latest quarterly results", "symbol": "MAZDOCK", "mode": "fast", "depth": "quick", "execution": {"run_id": "8d66eac6680540a1afac9998505fcd5b", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790131246.570955, "finished_at": 1790131322.4514492, "degraded_reason": null}, "markdown": "", "sources": [], "structured": {"price": {"ok": true, "provider": "nse_direct", "data": {"symbol": "MAZDOCK", "price": 2204.0, "change": -28.0, "change_percent": -1.2544802867383513, "volume": 611823.0, "currency": "INR", "market_state": "CLOSED", "timestamp": "2026-09-22T00:00:00Z", "provider": "nse_direct", "freshness": null}}, "fundamentals": {"ok": true, "provider": "yfinance", "data": {"symbol": "MAZDOCK.NS", "name": "Mazagon Dock Shipbuilders Limited", "sector": "Industrials", "industry": "Aerospace & Defense", "currency": "INR", "market_cap": 889049513984.0, "pe_ratio": 33.556637, "forward_pe": 28.454433, "peg_ratio": null, "price_to_book": 9.113878, "price_to_sales": 6.672833, "ev_to_ebitda": 31.789, "book_value": 241.829, "dividend_yield": 0.009300000000000001, "dividend_per_share": 20.83, "eps": 65.68, "beta": 0.617, "fifty_two_week_high": 2995.0, "fifty_two_week_low": 2057.4, "fifty_two_week_change": -0.2502126, "roe": null, "roa": null, "gross_margin": 0.32578, "operating_margin": 0.14191, "profit_margin": 0.20120001, "debt_to_equity": 0.044809999999999996, "current_ratio": null, "quick_ratio": null, "revenue_ttm": 133234196480.0, "net_income_ttm": 26806398976.0, "free_cash_flow": null, "shares_outstanding": 403380000.0, "revenue_growth": 0.121, "earnings_growth": 0.215, "growth_basis": "mrq_yoy", "held_percent_insiders": 0.81218004, "held_percent_institutions": 0.06278, "dividend_per_share_ttm": 18.12, "revenue_growth_computed": 0.12077666353086354, "earnings_growth_computed": 0.21510560654650004, "growth_computed_quarters": {"mrq": "2026-06-30", "prior": "2025-06-30"}, "field_meta": {"name": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "sector": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "industry": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "currency": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "market_cap": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "pe_ratio": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "forward_pe": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "peg_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": "provider did not publish this field", "label": null}, "price_to_book": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "price_to_sales": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "ev_to_ebitda": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "book_value": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "dividend_yield": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "dividend_per_share": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "eps": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "beta": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "fifty_two_week_high": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "fifty_two_week_low": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "fifty_two_week_change": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "roe": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": "provider did not publish this field", "label": null}, "roa": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": "provider did not publish this field", "label": null}, "gross_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "operating_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "profit_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "debt_to_equity": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "current_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": "provider did not publish this field", "label": null}, "quick_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": "provider did not publish this field", "label": null}, "revenue_ttm": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "net_income_ttm": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "free_cash_flow": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": "provider did not publish this field", "label": null}, "shares_outstanding": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "revenue_growth": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "earnings_growth": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "held_percent_insiders": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "held_percent_institutions": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": null, "label": null}, "identity_note": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T02:40:49.417139+00:00", "reason": "provider did not publish this field", "label": null}, "dividend_per_share_ttm": {"status": "ok", "provider": "yfinance"}}, "provider": "yfinance", "identity_note": null, "ownership_exchange": {"promoter_percent": 81.22, "institutions_percent": 6.73, "public_percent": 18.78, "as_of_quarter": "2026-06-30", "source": "NSE"}, "earnings_quality": {"reported_net_income": 25832700000.0, "normalized_income": 29844661966.021893, "unusual_items": -5361900000.0, "tax_effect": -1349938033.978108, "one_off_net": -4011961966.0218925, "distortion_fraction": 0.15530556101460136, "period": "2026-03-31"}, "range_52w_exchange": {"high": 3061.4, "low": 2057.4, "coverage_days": 365, "bars": 248, "source": "nse_direct"}, "market_cap_witness": {"shares_outstanding": 403380012.0, "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)", "scrip_code": "543237", "as_of": "2026-06-11"}}}, "derived": {"ok": true, "provider": "derived", "data": {"drawdown_from_high": {"value": 0.2641068447412354, "label": "Below 52-week high", "basis": "vs 52w high", "formula": "(52w high - price) / 52w high", "unit": "percent"}, "fifty_two_week_change": {"value": -0.2502126, "label": "52-week price change (Yahoo)", "basis": "trailing 52 weeks", "unit": "percent"}, "dividend_yield": {"value": 0.009450998185117966, "label": "Dividend yield", "basis": "fraction of price", "formula": "dividend per share / price", "unit": "percent"}, "dividend_per_share": {"value": 20.83, "label": "Dividend per share", "basis": "per share, INR", "unit": "currency"}, "dividend_per_share_ttm": {"value": 18.12, "label": "Dividend/share (trailing 12m paid)", "basis": "corporate-action history", "formula": "sum of dividends paid in the trailing 12 months", "unit": "currency"}, "revenue_growth": {"value": 0.121, "label": "Revenue growth", "basis": "quarterly YoY (MRQ)", "unit": "percent"}, "earnings_growth": {"value": 0.215, "label": "Earnings growth", "basis": "quarterly YoY (MRQ)", "unit": "percent"}, "promoter_percent_exchange": {"value": 0.8122, "label": "Promoter group (exchange filing)", "basis": "NSE shareholding filing, 2026-06-30", "unit": "percent"}, "institutions_percent_exchange": {"value": 0.0673, "label": "Institutional holding (exchange filing)", "basis": "NSE shareholding filing, 2026-06-30", "unit": "percent"}, "conflicts": [{"field": "dividend_per_share", "kind": "dividend_conflict", "conflict_kind": "data_conflict", "sources": [{"provider": "yfinance (dividendRate)", "value": 20.83}, {"provider": "derived (trailing-12m paid history)", "value": 18.12}], "note": "The provider's dividend per share (Yahoo dividendRate, 20.83) EXCEEDS the trailing-12-month dividends actually PAID (18.12) by more than 10% \u2014 the scalar may anticipate a declared-but-unpaid dividend or ride a forward/inflated basis; the paid history is the settled figure."}]}}, "news": {"ok": true, "provider": "rss", "data": [], "note": "No on-entity news found for MAZDOCK \u2014 127 item(s) returned by the news feed were off-entity/off-topic and dropped."}, "filings": {"ok": true, "provider": "nse+bse", "data": {"symbol": "MAZDOCK", "exchange": null, "sources": ["NSE", "BSE"], "errors": {}, "count": 20, "announcements": [{"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/ac9df5fe-9a8b-46c9-815e-bd178d9c22b3.pdf", "ts": "2026-09-21T16:57:08.993000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange about Schedule of Investors meet", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_21092026164724_Investor_Meet_Intimation.PDF", "ts": "2026-09-21T16:47:57+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Memorandum of Understanding /Agreements", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/df4eb4aa-dc5f-46a9-bdb4-7e8fb42ed232.pdf", "ts": "2026-09-18T16:45:04.747000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding 'Signing of MoU with National Shipbuilding & Heavy Industries Park Andhra Pradesh (NSHIPAP)'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_18092026163914_SE_Discl_Durgarajapatnam_MOU.pdf", "ts": "2026-09-18T16:39:58+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Memorandum of Understanding /Agreements", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/7431ddcf-23ea-4b18-acbe-13a03becb4df.pdf", "ts": "2026-09-16T18:57:39.990000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding 'Signing of MoU with National Shipbuilding & Heavy Industries Park Maharashtra Limited (NSHIPML) '.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_16092026184919_SE_Disclosure_Reg_30_Update.PDF", "ts": "2026-09-16T18:50:21+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Appointment of Statutory Auditor/s", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/20f73300-7177-4c39-acdb-63f717490b7a.pdf", "ts": "2026-09-08T14:20:59.273000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding Change in Auditors of the company.", "category": "Change in Auditors", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_08092026141917_SE_Discl_Appointment_of_Stat_Auditor.pdf", "ts": "2026-09-08T14:19:24+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Change in Management", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/19ee5474-f91b-409b-b934-0adf75eca5da.pdf", "ts": "2026-09-07T18:26:22.950000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding Appointment of Mr K M Ravikumar as Non- Executive Independent Director of the company w.e.f. September 07, 2026.", "category": "Appointment", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_07092026182441_SE_Discl_Assumption_of_Charge_K_M_Ravikumar.pdf", "ts": "2026-09-07T18:25:07+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Award_of_Order_Receipt_of_Order", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/f9f009d4-dd09-4f99-8cf6-a2038854e276.pdf", "ts": "2026-09-04T19:40:58.727000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange about receipt of an Order from MSETCL for Al based comprehensive Infrasecure Project", "category": "Bagging/Receiving of orders/contracts", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_04092026193821_Purchase_Order_from_MSETCL.PDF", "ts": "2026-09-04T19:38:40+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report", "category": "AGM/EGM", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5bb72a50-5090-41f7-a30f-2ec8d1759d44.pdf", "ts": "2026-08-28T17:52:43.610000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has submitted the Exchange a copy of Srutinizers report of  93rd Annual General Meeting held on August 27, 2026. Further, the company has informed the Exchange regarding voting results.", "category": "Shareholders meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_28082026174729_SE_Discl_Voting_Results_and_Scrutinisers_Report.pdf", "ts": "2026-08-28T17:48:22+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM", "category": "AGM/EGM", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0159f16a-9020-4276-a49b-766150f4bd5b.pdf", "ts": "2026-08-27T16:18:22.273000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding Proceedings of Annual General Meeting held on August 27, 2026", "category": "Shareholders meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_27082026160446_SE_Discl_93RD_AGM_Proceedings.pdf", "ts": "2026-08-27T16:08:00+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange about Appointment of Part-time Non-official (Independent) Director.", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_24082026161722_SE_Disclosure_Appointment_of_K_M_Ravikumar_ID.PDF", "ts": "2026-08-24T16:25:36+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Appointment Of Part-Time Non-Official (Independent) Director.", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/f45d3e7c-d66f-40c2-8d26-4836af7bc202.pdf", "ts": "2026-08-24T16:14:06.310000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding 'Board comments on fine levied by the Exchange'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_12082026124441_NSE_board_comments.PDF", "ts": "2026-08-12T12:46:31+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange that Record date for the purpose of Dividend  is 20-Aug-2026.", "category": "Record Date", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_11082026163407_SEDisclRecorddate.PDF", "ts": "2026-08-11T16:38:47+05:30"}]}}}, "cost": null, "web_available": true, "note": null, "web_reason": null, "backend": "searxng"}, "_t": 151.65}
+{"kind": "delta", "text": "Here", "_t": 201.03}
+{"kind": "delta", "text": " is", "_t": 201.1}
+{"kind": "delta", "text": " a", "_t": 201.17}
+{"kind": "delta", "text": " summary", "_t": 201.25}
+{"kind": "delta", "text": " of", "_t": 201.32}
+{"kind": "delta", "text": " the", "_t": 201.39}
+{"kind": "delta", "text": " research", "_t": 201.46}
+{"kind": "delta", "text": " results", "_t": 201.54}
+{"kind": "delta", "text": " for", "_t": 201.61}
+{"kind": "delta", "text": " Maz", "_t": 201.68}
+{"kind": "delta", "text": "agon", "_t": 201.75}
+{"kind": "delta", "text": " Dock", "_t": 201.83}
+{"kind": "delta", "text": " Ship", "_t": 201.9}
+{"kind": "delta", "text": "builders", "_t": 201.97}
+{"kind": "delta", "text": ":\n\n", "_t": 202.04}
+{"kind": "delta", "text": "**", "_t": 202.12}
+{"kind": "delta", "text": "Symbol", "_t": 202.19}
+{"kind": "delta", "text": ":**", "_t": 202.26}
+{"kind": "delta", "text": " MA", "_t": 202.33}
+{"kind": "delta", "text": "Z", "_t": 202.41}
+{"kind": "delta", "text": "DO", "_t": 202.48}
+{"kind": "delta", "text": "CK", "_t": 202.56}
+{"kind": "delta", "text": "\n", "_t": 202.63}
+{"kind": "delta", "text": "**", "_t": 202.7}
+{"kind": "delta", "text": "Name", "_t": 202.77}
+{"kind": "delta", "text": ":**", "_t": 202.85}
+{"kind": "delta", "text": " Maz", "_t": 202.92}
+{"kind": "delta", "text": "agon", "_t": 202.99}
+{"kind": "delta", "text": " Dock", "_t": 203.06}
+{"kind": "delta", "text": " Ship", "_t": 203.14}
+{"kind": "delta", "text": "builders", "_t": 203.21}
+{"kind": "delta", "text": " Limited", "_t": 203.28}
+{"kind": "delta", "text": "\n", "_t": 203.35}
+{"kind": "delta", "text": "**", "_t": 203.43}
+{"kind": "delta", "text": "Exchange", "_t": 203.5}
+{"kind": "delta", "text": ":**", "_t": 203.57}
+{"kind": "delta", "text": " N", "_t": 203.65}
+{"kind": "delta", "text": "SE", "_t": 203.72}
+{"kind": "delta", "text": " (", "_t": 203.79}
+{"kind": "delta", "text": "National", "_t": 203.87}
+{"kind": "delta", "text": " Stock", "_t": 203.94}
+{"kind": "delta", "text": " Exchange", "_t": 204.01}
+{"kind": "delta", "text": ")\n", "_t": 204.08}
+{"kind": "delta", "text": "**", "_t": 204.16}
+{"kind": "delta", "text": "Region", "_t": 204.23}
+{"kind": "delta", "text": ":**", "_t": 204.3}
+{"kind": "delta", "text": " India", "_t": 204.37}
+{"kind": "delta", "text": "\n", "_t": 204.45}
+{"kind": "delta", "text": "**", "_t": 204.52}
+{"kind": "delta", "text": "Asset", "_t": 204.59}
+{"kind": "delta", "text": " Class", "_t": 204.67}
+{"kind": "delta", "text": ":**", "_t": 204.74}
+{"kind": "delta", "text": " Equity", "_t": 204.81}
+{"kind": "delta", "text": "\n\n", "_t": 204.88}
+{"kind": "delta", "text": "**", "_t": 204.96}
+{"kind": "delta", "text": "Price", "_t": 205.04}
+{"kind": "delta", "text": ":**", "_t": 205.11}
+{"kind": "delta", "text": " \u20b9", "_t": 205.18}
+{"kind": "delta", "text": "220", "_t": 205.26}
+{"kind": "delta", "text": "4", "_t": 205.33}
+{"kind": "delta", "text": ".", "_t": 205.4}
+{"kind": "delta", "text": "0", "_t": 205.47}
+{"kind": "delta", "text": " (", "_t": 205.55}
+{"kind": "delta", "text": "as", "_t": 205.62}
+{"kind": "delta", "text": " of", "_t": 205.69}
+{"kind": "delta", "text": " September", "_t": 205.76}
+{"kind": "delta", "text": " ", "_t": 205.84}
+{"kind": "delta", "text": "22", "_t": 205.91}
+{"kind": "delta", "text": ",", "_t": 205.98}
+{"kind": "delta", "text": " ", "_t": 206.05}
+{"kind": "delta", "text": "202", "_t": 206.13}
+{"kind": "delta", "text": "6", "_t": 206.2}
+{"kind": "delta", "text": ")\n\n", "_t": 206.27}
+{"kind": "delta", "text": "**", "_t": 206.34}
+{"kind": "delta", "text": "Fund", "_t": 206.42}
+{"kind": "delta", "text": "amentals", "_t": 206.49}
+{"kind": "delta", "text": ":", "_t": 206.56}
+{"kind": "delta", "text": "**\n\n", "_t": 206.64}
+{"kind": "delta", "text": "*", "_t": 206.71}
+{"kind": "delta", "text": " Market", "_t": 206.78}
+{"kind": "delta", "text": " Capital", "_t": 206.86}
+{"kind": "delta", "text": "ization", "_t": 206.93}
+{"kind": "delta", "text": ":", "_t": 207.0}
+{"kind": "delta", "text": " \u20b9", "_t": 207.07}
+{"kind": "delta", "text": "8", "_t": 207.15}
+{"kind": "delta", "text": ",", "_t": 207.22}
+{"kind": "delta", "text": "89", "_t": 207.29}
+{"kind": "delta", "text": ",", "_t": 207.36}
+{"kind": "delta", "text": "049", "_t": 207.44}
+{"kind": "delta", "text": ",", "_t": 207.51}
+{"kind": "delta", "text": "513", "_t": 207.58}
+{"kind": "delta", "text": ",", "_t": 207.66}
+{"kind": "delta", "text": "984", "_t": 207.73}
+{"kind": "delta", "text": "\n", "_t": 207.81}
+{"kind": "delta", "text": "*", "_t": 207.88}
+{"kind": "delta", "text": " P", "_t": 207.95}
+{"kind": "delta", "text": "/E", "_t": 208.02}
+{"kind": "delta", "text": " Ratio", "_t": 208.1}
+{"kind": "delta", "text": ":", "_t": 208.17}
+{"kind": "delta", "text": " ", "_t": 208.24}
+{"kind": "delta", "text": "33", "_t": 208.31}
+{"kind": "delta", "text": ".", "_t": 208.39}
+{"kind": "delta", "text": "56", "_t": 208.46}
+{"kind": "delta", "text": "\n", "_t": 208.53}
+{"kind": "delta", "text": "*", "_t": 208.61}
+{"kind": "delta", "text": " Forward", "_t": 208.68}
+{"kind": "delta", "text": " P", "_t": 208.75}
+{"kind": "delta", "text": "/E", "_t": 208.82}
+{"kind": "delta", "text": ":", "_t": 208.9}
+{"kind": "delta", "text": " ", "_t": 208.97}
+{"kind": "delta", "text": "28", "_t": 209.04}
+{"kind": "delta", "text": ".", "_t": 209.12}
+{"kind": "delta", "text": "45", "_t": 209.19}
+{"kind": "delta", "text": "\n", "_t": 209.27}
+{"kind": "delta", "text": "*", "_t": 209.34}
+{"kind": "delta", "text": " Price", "_t": 209.41}
+{"kind": "delta", "text": " to", "_t": 209.49}
+{"kind": "delta", "text": " Book", "_t": 209.56}
+{"kind": "delta", "text": ":", "_t": 209.63}
+{"kind": "delta", "text": " ", "_t": 209.71}
+{"kind": "delta", "text": "9", "_t": 209.78}
+{"kind": "delta", "text": ".", "_t": 209.85}
+{"kind": "delta", "text": "11", "_t": 209.93}
+{"kind": "delta", "text": "\n", "_t": 210.03}
+{"kind": "delta", "text": "*", "_t": 210.1}
+{"kind": "delta", "text": " Div", "_t": 210.17}
+{"kind": "delta", "text": "idend", "_t": 210.24}
+{"kind": "delta", "text": " Yield", "_t": 210.32}
+{"kind": "delta", "text": ":", "_t": 210.39}
+{"kind": "delta", "text": " ", "_t": 210.46}
+{"kind": "delta", "text": "0", "_t": 210.54}
+{"kind": "delta", "text": ".", "_t": 210.61}
+{"kind": "delta", "text": "09", "_t": 210.68}
+{"kind": "delta", "text": "%\n", "_t": 210.76}
+{"kind": "delta", "text": "*", "_t": 210.83}
+{"kind": "delta", "text": " E", "_t": 210.91}
+{"kind": "delta", "text": "arnings", "_t": 210.98}
+{"kind": "delta", "text": " Per", "_t": 211.05}
+{"kind": "delta", "text": " Share", "_t": 211.13}
+{"kind": "delta", "text": " (", "_t": 211.2}
+{"kind": "delta", "text": "EPS", "_t": 211.27}
+{"kind": "delta", "text": "):", "_t": 211.35}
+{"kind": "delta", "text": " \u20b9", "_t": 211.42}
+{"kind": "delta", "text": "65", "_t": 211.5}
+{"kind": "delta", "text": ".", "_t": 211.57}
+{"kind": "delta", "text": "68", "_t": 211.64}
+{"kind": "delta", "text": "\n\n", "_t": 211.72}
+{"kind": "delta", "text": "**", "_t": 211.79}
+{"kind": "delta", "text": "Revenue", "_t": 211.86}
+{"kind": "delta", "text": " and", "_t": 211.94}
+{"kind": "delta", "text": " Growth", "_t": 212.01}
+{"kind": "delta", "text": ":", "_t": 212.08}
+{"kind": "delta", "text": "**\n\n", "_t": 212.16}
+{"kind": "delta", "text": "*", "_t": 212.23}
+{"kind": "delta", "text": " Revenue", "_t": 212.3}
+{"kind": "delta", "text": " T", "_t": 212.38}
+{"kind": "delta", "text": "TM", "_t": 212.45}
+{"kind": "delta", "text": ":", "_t": 212.53}
+{"kind": "delta", "text": " \u20b9", "_t": 212.6}
+{"kind": "delta", "text": "13", "_t": 212.67}
+{"kind": "delta", "text": ",", "_t": 212.75}
+{"kind": "delta", "text": "32", "_t": 212.82}
+{"kind": "delta", "text": ",", "_t": 212.9}
+{"kind": "delta", "text": "34", "_t": 212.97}
+{"kind": "delta", "text": ",", "_t": 213.04}
+{"kind": "delta", "text": "196", "_t": 213.12}
+{"kind": "delta", "text": ",", "_t": 213.19}
+{"kind": "delta", "text": "480", "_t": 213.26}
+{"kind": "delta", "text": "\n", "_t": 213.34}
+{"kind": "delta", "text": "*", "_t": 213.41}
+{"kind": "delta", "text": " Net", "_t": 213.48}
+{"kind": "delta", "text": " Income", "_t": 213.56}
+{"kind": "delta", "text": " T", "_t": 213.63}
+{"kind": "delta", "text": "TM", "_t": 213.71}
+{"kind": "delta", "text": ":", "_t": 213.78}
+{"kind": "delta", "text": " \u20b9", "_t": 213.86}
+{"kind": "delta", "text": "26", "_t": 213.93}
+{"kind": "delta", "text": ",", "_t": 214.0}
+{"kind": "delta", "text": "81", "_t": 214.08}
+{"kind": "delta", "text": ",", "_t": 214.15}
+{"kind": "delta", "text": "03", "_t": 214.22}
+{"kind": "delta", "text": ",", "_t": 214.3}
+{"kind": "delta", "text": "998", "_t": 214.37}
+{"kind": "delta", "text": ",", "_t": 214.45}
+{"kind": "delta", "text": "976", "_t": 214.52}
+{"kind": "delta", "text": "\n", "_t": 214.59}
+{"kind": "delta", "text": "*", "_t": 214.67}
+{"kind": "delta", "text": " Revenue", "_t": 214.74}
+{"kind": "delta", "text": " Growth", "_t": 214.82}
+{"kind": "delta", "text": ":", "_t": 214.89}
+{"kind": "delta", "text": " ", "_t": 214.98}
+{"kind": "delta", "text": "12", "_t": 215.05}
+{"kind": "delta", "text": ".", "_t": 215.12}
+{"kind": "delta", "text": "1", "_t": 215.19}
+{"kind": "delta", "text": "%\n", "_t": 215.27}
+{"kind": "delta", "text": "*", "_t": 215.34}
+{"kind": "delta", "text": " E", "_t": 215.42}
+{"kind": "delta", "text": "arnings", "_t": 215.49}
+{"kind": "delta", "text": " Growth", "_t": 215.56}
+{"kind": "delta", "text": ":", "_t": 215.64}
+{"kind": "delta", "text": " ", "_t": 215.71}
+{"kind": "delta", "text": "21", "_t": 215.78}
+{"kind": "delta", "text": ".", "_t": 215.86}
+{"kind": "delta", "text": "5", "_t": 215.93}
+{"kind": "delta", "text": "%\n\n", "_t": 216.0}
+{"kind": "delta", "text": "**", "_t": 216.08}
+{"kind": "delta", "text": "Ownership", "_t": 216.15}
+{"kind": "delta", "text": ":", "_t": 216.23}
+{"kind": "delta", "text": "**\n\n", "_t": 216.3}
+{"kind": "delta", "text": "*", "_t": 216.37}
+{"kind": "delta", "text": " Prom", "_t": 216.45}
+{"kind": "delta", "text": "oter", "_t": 216.52}
+{"kind": "delta", "text": " Holdings", "_t": 216.59}
+{"kind": "delta", "text": ":", "_t": 216.67}
+{"kind": "delta", "text": " ", "_t": 216.74}
+{"kind": "delta", "text": "81", "_t": 216.82}
+{"kind": "delta", "text": ".", "_t": 216.89}
+{"kind": "delta", "text": "22", "_t": 216.96}
+{"kind": "delta", "text": "%\n", "_t": 217.04}
+{"kind": "delta", "text": "*", "_t": 217.11}
+{"kind": "delta", "text": " Institutional", "_t": 217.18}
+{"kind": "delta", "text": " Holdings", "_t": 217.26}
+{"kind": "delta", "text": ":", "_t": 217.33}
+{"kind": "delta", "text": " ", "_t": 217.41}
+{"kind": "delta", "text": "6", "_t": 217.48}
+{"kind": "delta", "text": ".", "_t": 217.55}
+{"kind": "delta", "text": "73", "_t": 217.63}
+{"kind": "delta", "text": "%\n", "_t": 217.7}
+{"kind": "delta", "text": "*", "_t": 217.77}
+{"kind": "delta", "text": " Public", "_t": 217.85}
+{"kind": "delta", "text": " Holdings", "_t": 217.92}
+{"kind": "delta", "text": ":", "_t": 217.99}
+{"kind": "delta", "text": " ", "_t": 218.07}
+{"kind": "delta", "text": "18", "_t": 218.14}
+{"kind": "delta", "text": ".", "_t": 218.21}
+{"kind": "delta", "text": "78", "_t": 218.29}
+{"kind": "delta", "text": "%\n\n", "_t": 218.36}
+{"kind": "delta", "text": "**", "_t": 218.43}
+{"kind": "delta", "text": "News", "_t": 218.51}
+{"kind": "delta", "text": " and", "_t": 218.58}
+{"kind": "delta", "text": " Fil", "_t": 218.66}
+{"kind": "delta", "text": "ings", "_t": 218.73}
+{"kind": "delta", "text": ":", "_t": 218.8}
+{"kind": "delta", "text": "**\n\n", "_t": 218.87}
+{"kind": "delta", "text": "The", "_t": 218.95}
+{"kind": "delta", "text": " company", "_t": 219.02}
+{"kind": "delta", "text": " has", "_t": 219.09}
+{"kind": "delta", "text": " submitted", "_t": 219.17}
+{"kind": "delta", "text": " several", "_t": 219.24}
+{"kind": "delta", "text": " announcements", "_t": 219.31}
+{"kind": "delta", "text": " to", "_t": 219.39}
+{"kind": "delta", "text": " the", "_t": 219.46}
+{"kind": "delta", "text": " exchange", "_t": 219.53}
+{"kind": "delta", "text": ",", "_t": 219.61}
+{"kind": "delta", "text": " including", "_t": 219.68}
+{"kind": "delta", "text": ":\n\n", "_t": 219.75}
+{"kind": "delta", "text": "*", "_t": 219.82}
+{"kind": "delta", "text": " Receipt", "_t": 219.9}
+{"kind": "delta", "text": " of", "_t": 219.98}
+{"kind": "delta", "text": " an", "_t": 220.06}
+{"kind": "delta", "text": " Order", "_t": 220.13}
+{"kind": "delta", "text": " from", "_t": 220.2}
+{"kind": "delta", "text": " M", "_t": 220.28}
+{"kind": "delta", "text": "SET", "_t": 220.35}
+{"kind": "delta", "text": "CL", "_t": 220.42}
+{"kind": "delta", "text": " for", "_t": 220.5}
+{"kind": "delta", "text": " Al", "_t": 220.57}
+{"kind": "delta", "text": "-based", "_t": 220.64}
+{"kind": "delta", "text": " comprehensive", "_t": 220.72}
+{"kind": "delta", "text": " In", "_t": 220.79}
+{"kind": "delta", "text": "fr", "_t": 220.86}
+{"kind": "delta", "text": "ase", "_t": 220.94}
+{"kind": "delta", "text": "c", "_t": 221.01}
+{"kind": "delta", "text": "ure", "_t": 221.08}
+{"kind": "delta", "text": " Project", "_t": 221.16}
+{"kind": "delta", "text": "\n", "_t": 221.23}
+{"kind": "delta", "text": "*", "_t": 221.3}
+{"kind": "delta", "text": " Signing", "_t": 221.37}
+{"kind": "delta", "text": " of", "_t": 221.45}
+{"kind": "delta", "text": " Mo", "_t": 221.52}
+{"kind": "delta", "text": "U", "_t": 221.6}
+{"kind": "delta", "text": " with", "_t": 221.67}
+{"kind": "delta", "text": " National", "_t": 221.74}
+{"kind": "delta", "text": " Ship", "_t": 221.82}
+{"kind": "delta", "text": "building", "_t": 221.89}
+{"kind": "delta", "text": " &", "_t": 221.96}
+{"kind": "delta", "text": " Heavy", "_t": 222.03}
+{"kind": "delta", "text": " Industries", "_t": 222.11}
+{"kind": "delta", "text": " Park", "_t": 222.18}
+{"kind": "delta", "text": " And", "_t": 222.25}
+{"kind": "delta", "text": "hra", "_t": 222.33}
+{"kind": "delta", "text": " Pradesh", "_t": 222.4}
+{"kind": "delta", "text": " (", "_t": 222.48}
+{"kind": "delta", "text": "NS", "_t": 222.55}
+{"kind": "delta", "text": "HIP", "_t": 222.62}
+{"kind": "delta", "text": "AP", "_t": 222.7}
+{"kind": "delta", "text": ")\n", "_t": 222.77}
+{"kind": "delta", "text": "*", "_t": 222.84}
+{"kind": "delta", "text": " Appointment", "_t": 222.92}
+{"kind": "delta", "text": " of", "_t": 222.99}
+{"kind": "delta", "text": " Part", "_t": 223.06}
+{"kind": "delta", "text": "-time", "_t": 223.14}
+{"kind": "delta", "text": " Non", "_t": 223.21}
+{"kind": "delta", "text": "-off", "_t": 223.29}
+{"kind": "delta", "text": "icial", "_t": 223.36}
+{"kind": "delta", "text": " (", "_t": 223.43}
+{"kind": "delta", "text": "Independent", "_t": 223.51}
+{"kind": "delta", "text": ")", "_t": 223.58}
+{"kind": "delta", "text": " Director", "_t": 223.65}
+{"kind": "delta", "text": "\n\n", "_t": 223.73}
+{"kind": "delta", "text": "**", "_t": 223.8}
+{"kind": "delta", "text": "Web", "_t": 223.87}
+{"kind": "delta", "text": " Search", "_t": 223.95}
+{"kind": "delta", "text": ":", "_t": 224.02}
+{"kind": "delta", "text": "**\n\n", "_t": 224.09}
+{"kind": "delta", "text": "No", "_t": 224.17}
+{"kind": "delta", "text": " on", "_t": 224.24}
+{"kind": "delta", "text": "-entity", "_t": 224.31}
+{"kind": "delta", "text": " news", "_t": 224.39}
+{"kind": "delta", "text": " found", "_t": 224.46}
+{"kind": "delta", "text": ".\n\n", "_t": 224.53}
+{"kind": "delta", "text": "**", "_t": 224.6}
+{"kind": "delta", "text": "Brief", "_t": 224.68}
+{"kind": "delta", "text": ":", "_t": 224.75}
+{"kind": "delta", "text": "**\n\n", "_t": 224.82}
+{"kind": "delta", "text": "Built", "_t": 224.9}
+{"kind": "delta", "text": " a", "_t": 224.98}
+{"kind": "delta", "text": " brief", "_t": 225.05}
+{"kind": "delta", "text": " on", "_t": 225.13}
+{"kind": "delta", "text": " Maz", "_t": 225.2}
+{"kind": "delta", "text": "agon", "_t": 225.27}
+{"kind": "delta", "text": " Dock", "_t": 225.34}
+{"kind": "delta", "text": " Ship", "_t": 225.42}
+{"kind": "delta", "text": "builders", "_t": 225.49}
+{"kind": "delta", "text": ".", "_t": 225.56}
+{"kind": "delta", "text": " Click", "_t": 225.64}
+{"kind": "delta", "text": " any", "_t": 225.71}
+{"kind": "delta", "text": " ticker", "_t": 225.78}
+{"kind": "delta", "text": " to", "_t": 225.86}
+{"kind": "delta", "text": " dig", "_t": 225.93}
+{"kind": "delta", "text": " in", "_t": 226.0}
+{"kind": "delta", "text": ".\n\n", "_t": 226.08}
+{"kind": "delta", "text": "Please", "_t": 226.15}
+{"kind": "delta", "text": " let", "_t": 226.22}
+{"kind": "delta", "text": " me", "_t": 226.3}
+{"kind": "delta", "text": " know", "_t": 226.37}
+{"kind": "delta", "text": " if", "_t": 226.44}
+{"kind": "delta", "text": " you", "_t": 226.52}
+{"kind": "delta", "text": "'d", "_t": 226.59}
+{"kind": "delta", "text": " like", "_t": 226.66}
+{"kind": "delta", "text": " me", "_t": 226.74}
+{"kind": "delta", "text": " to", "_t": 226.81}
+{"kind": "delta", "text": " adjust", "_t": 226.88}
+{"kind": "delta", "text": " the", "_t": 226.96}
+{"kind": "delta", "text": " range", "_t": 227.03}
+{"kind": "delta", "text": " or", "_t": 227.1}
+{"kind": "delta", "text": " provide", "_t": 227.17}
+{"kind": "delta", "text": " further", "_t": 227.25}
+{"kind": "delta", "text": " analysis", "_t": 227.32}
+{"kind": "delta", "text": "!", "_t": 227.39}
+{"kind": "done", "usage": {"input_tokens": 9106, "output_tokens": 361, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop", "_t": 227.48}
+{"_summary": {"status": "ok", "secs": 232.5, "kinds": {"tool_use": 2, "research_step": 8, "delta": 360, "done": 1}, "usage": {"input_tokens": 9106, "output_tokens": 361, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}}}

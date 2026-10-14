@@ -1,0 +1,10 @@
+CMD: live: launch ollama llama3.1:8b max_tokens=1000 (run C) -> error; then POST /runs/{id}/resume (lock held)
+# launch {"prompt":"Use the price_data tool for AAPL, then summarize.","provider":"ollama","model":"llama3.1:8b","budget":{"max_tokens":1000}}
+launch resp: {"run_id":"756f9f88acb34971af1aa4953fd6bb9d"}
+final status poll: error (9 polls)
+{"id":"756f9f88acb34971af1aa4953fd6bb9d","agent_id":"copilot","agent_name":"Vysted Copilot","mode":"delegate","status":"error","cost":{"tokens":6453,"spend_usd":0.0,"steps":1},"budget":{"max_tokens":1000,"max_spend_usd":1.0,"max_wall_seconds":600.0,"max_steps":12},"provider":"ollama","model":"llama3.1:8b","plan":null,"activity":[],"detail":"token ceiling 1000 reached (6453 used)","question":null,"created_at":1790985857,"updated_at":1790985893,"transcript":[{"role":"user","content":"Use the price_data tool for AAPL, then summarize."}],"checkpoint_messages":1,"answer":null,"brief":null,"host_actions":[]}
+# resume of breached run 756f9f88acb34971af1aa4953fd6bb9d (provider ollama, model llama3.1:8b, token ceiling)
+{"resumed":true}
+resume HTTP 200
+status after resume: error
+{'status': 'error', 'provider': 'ollama', 'model': 'llama3.1:8b', 'cost': {'tokens': 12906, 'spend_usd': 0.0, 'steps': 2}, 'detail': 'token ceiling 1000 reached (6453 used)'}

@@ -1,0 +1,6 @@
+NO GUI in this run. Source inspection of src/lib/host-actions.ts:
+
+Both describeIntent (diff, ~line 1387 `portfolioById(intent.portfolioId)`) and applyIntent (~line 1897, 1927 `portfolioById(intent.portfolioId)`) resolve against `intent.portfolioId` -- a portfolio id bound onto the intent when the action was PARSED (proposal/enqueue time), not `usePortfoliosStore.getState().activeId` (the currently-active portfolio at accept time). undoPreImage (~1965-1990) also uses `preImage.portfolioId`, the same bound id.
+
+OBSERVED: switching the active portfolio between diff-render and Accept can no longer redirect the mutation to a different portfolio's same-symbol lot -- apply targets exactly the portfolio (and lot id) the diff showed, or fails honestly if that portfolio/lot is gone.
+VERDICT: holds

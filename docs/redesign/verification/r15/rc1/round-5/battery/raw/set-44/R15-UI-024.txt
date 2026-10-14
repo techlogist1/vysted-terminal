@@ -1,0 +1,85 @@
+R15-UI-024 -- notes editor extensions (5 sub-repros)
+(a) Task List: NotesToolbar.test.tsx:84 'the Task list button toggles a task list (extension is registered)'
+  it("the Task list button toggles a task list (extension is registered)", async () => {
+    await renderPanel();
+    act(() => {
+      editorOf().commands.insertContent("Buy milk");
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Task list" }));
+
+    expect(editorOf().isActive("taskList")).toBe(true);
+  });
+
+
+(b) slash/wikilink keyboard nav: notes.test.ts:335 'ArrowDown then Enter picks the SECOND slash-command item' + :353 wikilink
+  it("ArrowDown then Enter picks the SECOND slash-command item", async () => {
+    const editor = await makeFullEditor();
+    // Opens the slash suggestion the same way real typing does (Suggestion
+    // matches on document state, not on how the "/" character arrived).
+    editor.commands.insertContent("/");
+    await flush();
+    const plugin = findPlugin(editor, "notesSlashCommand");
+
+    const downHandled = plugin.props.handleKeyDown!(editor.view, keyEvent("ArrowDown"));
+    expect(downHandled).toBe(true);
+    const enterHandled = plugin.props.handleKeyDown!(editor.view, keyEvent("Enter"));
+    expect(enterHandled).toBe(true);
+
+    // SLASH_COMMANDS[1] is "Heading 2".
+    expect(editor.isActive("heading", { level: 2 })).toBe(true);
+    editor.destroy();
+  });
+
+
+(c) wikilink markdown round-trip: notes.test.ts:390 '[[SYMBOL]] round-trips through getMarkdown()/setContent() unchanged'
+  it("[[SYMBOL]] round-trips through getMarkdown()/setContent() unchanged", async () => {
+    const editor = await makeFullEditor();
+    const input = "See [[RELIANCE.NS]] for more.\n";
+    editor.commands.setContent(input, { contentType: "markdown" });
+    const output = md(editor);
+    expect(output).toContain("[[RELIANCE.NS]]");
+    editor.commands.setContent(output, { contentType: "markdown" });
+    expect(md(editor)).toBe(output);
+    editor.destroy();
+  });
+});
+
+
+(d) picker offers a symbol added after mount: NotesPanel.test.tsx:117
+  it("R15-UI-024: the [[ picker offers a symbol added to the watchlist AFTER mount", async () => {
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+    await renderPanel();
+
+    act(() => {
+      useSymbolsStore.getState().addSymbol("TCS.NS", "equity");
+    });
+
+    act(() => {
+      editorOf().commands.insertContent("[[");
+    });
+    // @tiptap/suggestion's plugin view `update()` hook is async (it awaits
+    // `items()`), so the popup-opening `onStart` callback lands on a
+    // microtask after this transaction, not inside it.
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+
+(e) toolbar button wraps selection: NotesToolbar.test.tsx:95
+  it("Insert [[wikilink]] WRAPS a selection instead of deleting it (repro e)", async () => {
+    await renderPanel();
+    act(() => {
+      editorOf().commands.insertContent("alpha beta gamma");
+      editorOf().commands.setTextSelection({ from: 1, to: 6 }); // "alpha"
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Insert [[wikilink]]" }));
+
+    const md = (editorOf() as unknown as { getMarkdown: () => string }).getMarkdown();
+    expect(md).toContain("[[ALPHA]]");
+    expect(md).toContain("beta gamma");
+  });
+

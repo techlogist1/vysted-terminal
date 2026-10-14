@@ -1,0 +1,4 @@
+CMD: pytest -v test_b3_runtime_capped_round.py::test_yielded_tool_calls_equal_dispatched_and_turn_ends_in_text (candidate sha 1006c6da694ede5776c3dabbd27b305aeb56b5ad, sidecar/tests)
+---MATCHED LINES---
+tests/test_b3_runtime_capped_round.py::test_yielded_tool_calls_equal_dispatched_and_turn_ends_in_text PASSED [  2%]
+tests/test_b3_runtime_capped_round.py::test_capped_round_host_action_is_never_yielded_under_auto PASSED [  3%]

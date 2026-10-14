@@ -1,0 +1,5 @@
+HTML-200 download result None marker file exists? False
+404 download result None marker written? True
+_bhavcopy_for with same-day marker -> None (None = not honoured, correctly re-fetch)
+live real fetch len 866264
+rows (line count) 5060

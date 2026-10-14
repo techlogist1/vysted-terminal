@@ -1,0 +1,4 @@
+$ grep pinned test
+55:  it("R15-UI-066: variant 'error' renders role=alert and a distinct icon", () => {
+42:  /** 'error' is a failure, not an empty result: `role="alert"`, a distinct
+56:      role={isError ? "alert" : undefined}

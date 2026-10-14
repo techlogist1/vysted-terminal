@@ -1,0 +1,27 @@
+2026-10-04 01:17:52,667 INFO services.backtest_strategies: backtest_strategies: registered mean_reversion, trend_following, regime_aware, custom
+2026-10-04 01:17:52,667 INFO services.agent_tools: agent_tools: registered v0.5.0 tools (price_data, fundamentals)
+2026-10-04 01:17:52,667 INFO services.agent_tools: agent_tools: registered v0.6.0 domains: macro, sec, quant, earnings+analyst, screener, news, market_overview, resolve_symbol, compare_symbols, web_search, research, disclosures, backtest-custom
+2026-10-04 01:17:54,344 INFO uvicorn.error: Started server process [51139]
+2026-10-04 01:17:54,344 INFO uvicorn.error: Waiting for application startup.
+2026-10-04 01:17:54,349 INFO services.data_cache: data_cache: data dir backed up to <scratchpad>/upgrade-080/data-plugins/backups/unversioned-2026-10-04 before the upgrade
+2026-10-04 01:17:54,350 INFO services.data_cache: data_cache: build 0.9.0 (cache written by an unversioned build) - cleared
+2026-10-04 01:17:54,353 INFO mcp.server.streamable_http_manager: StreamableHTTP session manager started
+2026-10-04 01:17:54,409 INFO uvicorn.error: Application startup complete.
+2026-10-04 01:17:54,415 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:52154 (Press CTRL+C to quit)
+2026-10-04 01:17:54,449 INFO services.fundamentals_warm: fundamentals warm: seeded 5891 india rows
+2026-10-04 01:17:54,645 INFO services.fundamentals_warm: fundamentals warm: seed pack applied to 5050 rows (2026-07-08)
+2026-10-04 01:17:55,330 INFO uvicorn.access: 127.0.0.1:50033 - "GET /health HTTP/1.1" 200
+2026-10-04 01:17:55,346 INFO uvicorn.access: 127.0.0.1:50034 - "GET /health HTTP/1.1" 200
+2026-10-04 01:17:55,360 INFO uvicorn.access: 127.0.0.1:50035 - "GET /plugins HTTP/1.1" 200
+2026-10-04 01:17:55,405 INFO uvicorn.access: 127.0.0.1:50036 - "GET /plugins/yfinance/config HTTP/1.1" 200
+2026-10-04 01:17:55,445 INFO uvicorn.access: 127.0.0.1:50037 - "GET /plugins/vysted-news/config HTTP/1.1" 200
+2026-10-04 01:17:55,531 INFO httpx: HTTP Request: GET https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20261002_F_0000.csv.zip "HTTP/1.1 404 Not Found"
+2026-10-04 01:17:55,977 INFO httpx: HTTP Request: GET https://nsearchives.nseindia.com/content/equities/symbolchange.csv "HTTP/1.1 200 OK"
+2026-10-04 01:17:56,276 INFO httpx: HTTP Request: GET http://127.0.0.1:8888/search?q=test&format=json "HTTP/1.1 200 OK"
+2026-10-04 01:17:56,831 INFO httpx: HTTP Request: GET http://127.0.0.1:8888/search?q=test&format=json "HTTP/1.1 200 OK"
+2026-10-04 01:17:58,253 INFO httpx: HTTP Request: GET https://archives.nseindia.com/products/content/sec_bhavdata_full_02102026.csv "HTTP/1.1 200 OK"
+2026-10-04 01:17:58,368 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ABB.BO"}}}
+2026-10-04 01:17:59,108 INFO services.fundamentals_warm: fundamentals warm: bhavcopy EOD applied to 2923 NSE rows (trade date 2026-10-02)
+2026-10-04 01:17:59,284 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08ABB.BO'
+2026-10-04 01:18:04,206 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+2026-10-04 01:18:06,260 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08ADD.BO'

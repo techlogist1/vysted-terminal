@@ -1,0 +1,406 @@
+{
+ "T1_before_ack": {
+  "tosDialog": true,
+  "onboarding": false,
+  "banner": "Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant, agents, and research tools. Keys stay in your OS keychain; nothing leaves this machine.Set up a provider →",
+  "tosText": "Welcome to VystedPlease review the operating terms before connecting a broker.Vysted Terminal connects to live trading venues using credentials you supply. Vysted does not custody funds, does not provide investment advice, and is not a registered broker-dealer. By continuing you acknowledge: - All orders sent to your broker are your own. The terminal will surface a confirmation dialog before any order is placed. - AI-generated proposals are AI-generated; you remain solely responsible for any order you confirm. - Live trading mode requires per-broker disclaimer acknowledgment. - Vysted Terminal is source-available under PolyForm Strict 1.0.0 (noncommercial use) plus a commercial license — see LICENSING.md. - A kill switch (Cmd/Ctrl+Shift+K) halts all order routing globally; use it in any emergency.I understand — continue",
+  "state": {
+   "tosAcked": false,
+   "onboardingSeen": false,
+   "defaultProvider": "ollama",
+   "model": "qwen2.5:7b",
+   "keychainAccounts": [],
+   "keyStatus": {
+    "anthropic": "missing",
+    "openai": "missing",
+    "gemini": "missing",
+    "groq": "missing",
+    "ollama": "missing",
+    "deepseek": "missing",
+    "xai": "missing",
+    "openrouter": "missing"
+   }
+  }
+ },
+ "T1_after_ack": {
+  "tosDialog": false,
+  "onboarding": true,
+  "onboardingTextAfterEscape": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.WelcomeAn agent-native finance terminalLocal-first, bring-your-own-keys, your machine. Nothing leaves this computer except the model calls you authorize.It already works — no key, no account. Live quotes, charts, news, screeners and web research run right now. Pick a path below to turn on the AI agent, or explore first.Connect a modelmost powerPaste one OpenRouter key to unlock every top model (Claude, GPT, Gemini, DeepSeek, Kimi…) for the agent and deep research. Pay-as-you-go — a research run costs cents.Add a key →Run it locallyprivate & freeNo key, no cost, fully private — set up a model that runs entirely on your machine. Slower and less powerful than the cloud, but it's yours and offline.Set up local AI →Skip — I'll explore first →You can change this anytime in Settings",
+  "state": {
+   "tosAcked": true,
+   "onboardingSeen": false,
+   "defaultProvider": "ollama",
+   "model": "qwen2.5:7b",
+   "keychainAccounts": [
+    "broker:_meta:first-launch-tos"
+   ],
+   "keyStatus": {
+    "anthropic": "missing",
+    "openai": "missing",
+    "gemini": "missing",
+    "groq": "missing",
+    "ollama": "missing",
+    "deepseek": "missing",
+    "xai": "missing",
+    "openrouter": "missing"
+   }
+  },
+  "invokes": [
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:anthropic"
+    },
+    "ok": true
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:openai"
+    },
+    "ok": true
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:gemini"
+    },
+    "ok": true
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:groq"
+    },
+    "ok": true
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:ollama"
+    },
+    "ok": true
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:deepseek"
+    },
+    "ok": true
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:xai"
+    },
+    "ok": true
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:openrouter"
+    },
+    "ok": true
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "broker:_meta:first-launch-tos"
+    },
+    "ok": true
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "app-meta:onboarding-complete"
+    },
+    "ok": true
+   },
+   {
+    "cmd": "keychain_set",
+    "args": {
+     "account": "broker:_meta:first-launch-tos"
+    },
+    "ok": true
+   }
+  ],
+  "fetches": []
+ },
+ "T2": {
+  "cloudStepText": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Connect OpenRouterOpenRouter is one key for every model — Claude, GPT, Gemini, DeepSeek, Kimi and more. Create a key, add a few dollars of credit, and the agent + deep research light up. A typical research run costs only a few cents.Get a key — openrouter.ai/keysStored in your OS keychain — never written to disk by Vysted.Save & continue →",
+  "saveDisabledEmpty": true,
+  "saveDisabledWhitespace": true,
+  "opened": [
+   "https://openrouter.ai/keys"
+  ],
+  "validateCalls": [
+   {
+    "req": "GET /health",
+    "status": 200,
+    "resp": "{\"status\":\"ok\",\"service\":\"vysted-sidecar\",\"version\":\"0.8.0\",\"providers\":{\"analyst_rating\":\"openbb-mcp (yfinance fallback)\",\"balance_sheet\":\"openbb-mcp (yfinance fallback)\",\"cash_flow\":\"openbb-mcp (yfinance fallback)\",\"fundamentals\":\"openbb-mcp (yfinance fallback)\",\"income_statement\":\"openbb-mcp (yfi"
+   },
+   {
+    "req": "POST /llm/keys/validate",
+    "body": {
+     "provider": "openrouter",
+     "api_key": "<redacted-nonempty>"
+    },
+    "status": 200,
+    "resp": "{\"ok\":true,\"detail\":null}"
+   }
+  ],
+  "afterSubmitText": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.You're setOpenRouter is connected — the agent and deep research are live. Ask the agent to “research NVDA” to see a visual brief land in the cockpit. Start exploring",
+  "state": {
+   "tosAcked": true,
+   "onboardingSeen": true,
+   "defaultProvider": "openrouter",
+   "model": "deepseek/deepseek-v4-flash",
+   "keychainAccounts": [
+    "broker:_meta:first-launch-tos",
+    "llm-provider:openrouter",
+    "app-meta:onboarding-complete"
+   ],
+   "keyStatus": {
+    "anthropic": "missing",
+    "openai": "missing",
+    "gemini": "missing",
+    "groq": "missing",
+    "ollama": "missing",
+    "deepseek": "missing",
+    "xai": "missing",
+    "openrouter": "configured"
+   }
+  }
+ },
+ "T2_after_close": {
+  "onboarding": false,
+  "banner": "",
+  "state": {
+   "tosAcked": true,
+   "onboardingSeen": true,
+   "defaultProvider": "openrouter",
+   "model": "deepseek/deepseek-v4-flash",
+   "keychainAccounts": [
+    "broker:_meta:first-launch-tos",
+    "llm-provider:openrouter",
+    "app-meta:onboarding-complete"
+   ],
+   "keyStatus": {
+    "anthropic": "missing",
+    "openai": "missing",
+    "gemini": "missing",
+    "groq": "missing",
+    "ollama": "missing",
+    "deepseek": "missing",
+    "xai": "missing",
+    "openrouter": "configured"
+   }
+  }
+ },
+ "T3": {
+  "loadingText": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Run a local model Detecting your hardware…",
+  "localText": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Run a local modelApple M1 Pro · 16 GB RAM · Apple Siliconqwen3:8bruns locally · ~7.8 GBfits with headroom (7.8 GiB of 10.6 GiB GPU budget) — enable locally. Use qwen3:8b",
+  "useButton": "Use qwen3:8b",
+  "afterUseText": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.You're setYour local model is set — the agent runs privately on your machine. Ask it to “research NVDA” to see a visual brief land in the cockpit. Start exploring",
+  "state": {
+   "tosAcked": true,
+   "onboardingSeen": true,
+   "defaultProvider": "ollama",
+   "model": "qwen3:8b",
+   "keychainAccounts": [
+    "broker:_meta:first-launch-tos",
+    "app-meta:onboarding-complete"
+   ],
+   "keyStatus": {
+    "anthropic": "missing",
+    "openai": "missing",
+    "gemini": "missing",
+    "groq": "missing",
+    "ollama": "missing",
+    "deepseek": "missing",
+    "xai": "missing",
+    "openrouter": "missing"
+   }
+  },
+  "fetches": [
+   "GET /system/local-model-recommendation -> 200",
+   "GET /system/ollama/status -> 200"
+  ]
+ },
+ "T3_banner_after_local_setup": {
+  "banner": "Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant, agents, and research tools. Keys stay in your OS keychain; nothing leaves this machine.Set up a provider →",
+  "state": {
+   "tosAcked": true,
+   "onboardingSeen": true,
+   "defaultProvider": "ollama",
+   "model": "qwen3:8b",
+   "keychainAccounts": [
+    "broker:_meta:first-launch-tos",
+    "app-meta:onboarding-complete"
+   ],
+   "keyStatus": {
+    "anthropic": "missing",
+    "openai": "missing",
+    "gemini": "missing",
+    "groq": "missing",
+    "ollama": "missing",
+    "deepseek": "missing",
+    "xai": "missing",
+    "openrouter": "missing"
+   }
+  }
+ },
+ "T4": {
+  "afterSkip": {
+   "onboarding": false,
+   "keychain": {
+    "broker:_meta:first-launch-tos": "2026-09-23T00:00:00Z",
+    "app-meta:onboarding-complete": "skip"
+   },
+   "state": {
+    "tosAcked": true,
+    "onboardingSeen": true,
+    "defaultProvider": "ollama",
+    "model": "qwen3:8b",
+    "keychainAccounts": [
+     "broker:_meta:first-launch-tos",
+     "app-meta:onboarding-complete"
+    ],
+    "keyStatus": {
+     "anthropic": "missing",
+     "openai": "missing",
+     "gemini": "missing",
+     "groq": "missing",
+     "ollama": "missing",
+     "deepseek": "missing",
+     "xai": "missing",
+     "openrouter": "missing"
+    }
+   }
+  },
+  "relaunch": {
+   "tosDialog": false,
+   "onboarding": false,
+   "banner": "Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant, agents, and research tools. Keys stay in your OS keychain; nothing leaves this machine.Set up a provider →",
+   "state": {
+    "tosAcked": true,
+    "onboardingSeen": true,
+    "defaultProvider": "ollama",
+    "model": "qwen3:8b",
+    "keychainAccounts": [
+     "broker:_meta:first-launch-tos",
+     "app-meta:onboarding-complete"
+    ],
+    "keyStatus": {
+     "anthropic": "missing",
+     "openai": "missing",
+     "gemini": "missing",
+     "groq": "missing",
+     "ollama": "missing",
+     "deepseek": "missing",
+     "xai": "missing",
+     "openrouter": "missing"
+    }
+   }
+  },
+  "note": "relaunch = fresh stores, same in-memory keychain (TOS ack + onboarding marker persisted there)"
+ },
+ "T5": {
+  "tosDialog": false,
+  "onboarding": false,
+  "banner": "Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant, agents, and research tools. Keys stay in your OS keychain; nothing leaves this machine.Set up a provider →",
+  "visibleText": "Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant, agents, and research tools. Keys stay in your OS keychain; nothing leaves this machine.Set up a provider →",
+  "state": {
+   "tosAcked": false,
+   "onboardingSeen": false,
+   "defaultProvider": "ollama",
+   "model": "qwen3:8b",
+   "keychainAccounts": [],
+   "keyStatus": {
+    "anthropic": "unknown",
+    "openai": "unknown",
+    "gemini": "unknown",
+    "groq": "unknown",
+    "ollama": "unknown",
+    "deepseek": "unknown",
+    "xai": "unknown",
+    "openrouter": "unknown"
+   }
+  },
+  "invokes": [
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:anthropic"
+    },
+    "ok": false
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:openai"
+    },
+    "ok": false
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:gemini"
+    },
+    "ok": false
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:groq"
+    },
+    "ok": false
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:ollama"
+    },
+    "ok": false
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:deepseek"
+    },
+    "ok": false
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:xai"
+    },
+    "ok": false
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "llm-provider:openrouter"
+    },
+    "ok": false
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "broker:_meta:first-launch-tos"
+    },
+    "ok": false
+   },
+   {
+    "cmd": "keychain_get",
+    "args": {
+     "account": "app-meta:onboarding-complete"
+    },
+    "ok": false
+   }
+  ],
+  "unhandled": [
+   "User interaction is not allowed. (keychain denied)"
+  ]
+ }
+}

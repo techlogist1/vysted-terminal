@@ -1,0 +1,122 @@
+[
+  {
+    "raw_id": "COD-research-extraction-synthesis-1",
+    "title": "SSRF guard validates the input URL but the transport follows redirects, so a research visit can fetch loopback/link-local/LAN targets",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "A search result URL on a public host answers 302 -> http://169.254.169.254/latest/meta-data/ (or http://127.0.0.1:<sidecar port>/agents, or a LAN host). fetch_page calls is_public_http_url ONCE on the input URL (extract.py:593), which passes; httpx_fetch opens its client with follow_redirects=True (transport.py:108); the redirected body is main-content-extracted and returned as `content`, then wrapped into the synthesis prompt and the published brief. The post-redirect URL is available as fetched.url and is stored as `final_url` (extract.py:635) but never re-validated. Same hole on the PDF lane: extract.py:307 follow_redirects=True and the curl_cffi lane at extract.py:293-294 (follows redirects by default).",
+    "evidence": "sidecar/services/search/extract.py:593, sidecar/services/search/extract.py:635, sidecar/services/search/extract.py:307, sidecar/services/search/extract.py:293, sidecar/services/search/transport.py:108, sidecar/services/search/extract.py:12",
+    "notes": "Violates information hiding: the security decision leaks out of the guard because the guard sits at the call site instead of below the fetch. The module docstring (extract.py:12-14) explicitly promises 'a research visit must never become a port-scan of localhost' - the invariant is asserted in prose and not held by the structure. Attacker controls the redirect target AFTER the check has passed, so every knob is on their side; there is also a plain DNS-rebinding TOCTOU (is_public_http_url resolves, then httpx resolves again). Consequence: arbitrary internal HTTP GET with the response body exfiltrated into a user-visible brief. Smallest fix: set follow_redirects=False in httpx_fetch and walk redirects through is_public_http_url inside the transport (or attach an httpx event hook that rejects a non-public response.url), so fetch_page, _default_pdf_fetch, the impersonation lane and every future lane inherit the guard."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-2",
+    "title": "Research LLM calls are structurally unmeterable: token and spend ceilings can never fire and brief cost always reports zero",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "Run any native research brief. LLMCall is typed Callable[[list[dict]], Awaitable[str]] (deep.py:54) - there is no channel for usage - so every budget call site passes None: citecheck.py:266, deep.py:1214, iter.py:585, iter.py:962, iter.py:1023, verify.py:319. BudgetGuard.record returns immediately after ticking _steps when usage is None (budget_guard.py:126-127), so _tokens and _spend_usd stay 0 for the whole run. breach() checks tokens then spend first (budget_guard.py:152-158) and neither can ever trip. BudgetGuard.cost() therefore returns {'tokens': 0, 'spend_usd': 0.0, 'steps': n} -> ResearchBrief.cost (models.py:168) -> formatBriefTokens(0) and formatBriefSpend(0) both return null (brief-ingest.ts:445, brief-ingest.ts:459) -> the cockpit shows NO cost for a native deep run while the Sonar lane shows '~$0.25 (estimate)' (sonar.py:224-238).",
+    "evidence": "sidecar/services/research/deep.py:54, sidecar/services/budget_guard.py:126, sidecar/services/budget_guard.py:152, sidecar/services/research/citecheck.py:266, sidecar/services/research/iter.py:1023, sidecar/services/agent_tools/deep_research.py:232, sidecar/services/research/models.py:168, src/lib/brief-ingest.ts:445",
+    "notes": "A ceiling with no meter. Two of the four SC-008 ceilings named in CLAUDE.md are dead code on the research path - only steps and wall-clock bound a run, so an expensive model cannot be stopped by cost. Second consequence is a data-trust one: a zero that means UNMEASURED renders as ABSENCE, so a user comparing the native lane against the paid Sonar lane concludes the native lane is free. models.py:155 documents cost as 'the BudgetGuard.cost snapshot' without saying it is always zero. Smallest fix: widen LLMCall to return (str, LLMUsage | None) and thread the real usage into the six existing record() call sites - the receiving plumbing already exists. Interim: state 'not metered' in the contract and the cockpit rather than rendering nothing."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-3",
+    "title": "Any URL with '/investor' in its path is ranked as primary-record, so a blog post outranks Reuters and is labelled authoritative to the synthesis model",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "Executed with sidecar/.venv/bin/python: domain_tier('https://medium.com/investor-diary/why-i-bought-xyz') -> 1 (TIER_PRIMARY); domain_tier('https://someblog.wordpress.com/ir/2024/hot-tip') -> 1; domain_tier('https://ir.randomshell.com/') -> 1; domain_tier('https://reuters.com/markets/x') -> 2. rank_sources([Reuters, Medium blog]) returns ['Blog', 'Reuters'] so the blog owns marker [1], and priority_note(ranked) emits: \"Citation preference - when several sources support a claim, cite the most authoritative: primary record (exchange/regulator/filings/IR): [1]; tier-1 press: [2].\"",
+    "evidence": "sidecar/services/research/finance.py:72, sidecar/services/research/finance.py:127, sidecar/services/research/finance.py:140, sidecar/services/research/finance.py:173, sidecar/services/research/deep.py:368, sidecar/services/research/iter.py:845",
+    "notes": "Violates general-purpose-over-special-purpose in the wrong direction: _looks_like_ir is a substring/prefix heuristic guarding a table that decides SOURCE AUTHORITY. rank_sources controls which source owns the low [n] markers (deep.py:368, iter.py:845) and priority_note then states in prose to the synthesis model that [1] is the primary record - so the model is actively steered to cite a blog as exchange/regulator/filings-grade. This is a direct hit on the stated data-trust moat. It is also the classic accretion seed: every future 'this filing site did not rank' ticket adds another marker until the primary tier means nothing. Smallest fix: require corroboration (ir./investors. host prefix AND a host not on a publishing-platform denylist: medium.com, *.wordpress.com, substack.com, seekingalpha.com, reddit.com), or give IR its own tier between PRIMARY and PRESS so a false positive costs one rank instead of four."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-4",
+    "title": "ResearchSource.domain is overloaded as host-plus-provenance, so every Perplexity/Sonar citation mis-badges as plain 'web' in the sources rail",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "A Sonar run cites https://www.sec.gov/... . sonar.py:198 builds domain = f\"{host} ({PROVENANCE_NOTE})\" = 'sec.gov (via Perplexity Sonar)'; neither lane ever sets source_type (sonar.py:199-206, perplexity.py:180-187). On the frontend deriveSourceType finds no explicit sourceType, calls hostOf (brief-ingest.ts:250-258) which PREFERS source.domain over the URL and returns 'sec.gov (via perplexity sonar)'; hostMatches (brief-ingest.ts:314-316) tests host === 'sec.gov' and host.endsWith('.sec.gov'), both false; FILING -> RESEARCH -> NEWS all miss; url does not start with vysted:// -> returns 'web'. Same chain strips the news badge from every Reuters/Bloomberg citation on these two lanes. Verified on the Python side too: domain_of('nseindia.com (via Perplexity Sonar)') returns the whole string and domain_tier gives 3 (general) instead of 1.",
+    "evidence": "sidecar/services/research/sonar.py:198, sidecar/services/research/perplexity.py:179, sidecar/services/research/models.py:65, src/lib/brief-ingest.ts:251, src/lib/brief-ingest.ts:314, src/lib/brief-ingest.ts:326, sidecar/services/research/finance.py:147",
+    "notes": "Information leakage across a language boundary via a name: 'domain' is a display label in the hosted lanes and a machine hostname in finance.py and brief-ingest.ts. The category badge is a trust signal and it is uniformly wrong on exactly the paid lanes a user is most likely to trust - an SEC filing and a random blog both render 'web'. finance.source_tier's domain fallback (finance.py:147-152) has the identical blind spot. Smallest fix, no contract change: make hostOf prefer the URL and fall back to domain only when the URL will not parse. Better fix: keep domain a bare host in both lanes and carry provenance in its own field."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-5",
+    "title": "News sentiment scoring and symbol tagging live in the HTTP route, so the agent and MCP surface receive unscored, untagged news while the docstring claims parity",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "Call the `news` agent tool. news_tool.py:46 calls news_provider.fetch_news directly and returns item.model_dump() at news_tool.py:55 with no enrichment; every NewsItem therefore carries sentiment=None, sentiment_label=None, symbols=[] (defaults at models/news.py:24-26). The GET /news route does the enrichment itself at news.py:115-130 (sentiment.score_text + _tag_symbols). Second half: _tag_symbols' regex (news.py:72) is \\b-anchored and needs the literal symbol string, so a raw watchlist symbol like 'BTC/USDT' never matches a headline saying 'Bitcoin'/'BTC'; because `requested` is non-empty the route then drops every untagged item (news.py:120-121) and returns an empty list. The frontend defends this by projecting through toNewsSymbol (NewsFeedPanel.tsx:170, BTC/USDT -> BTC); the agent path has no such projection.",
+    "evidence": "sidecar/routers/news.py:115, sidecar/routers/news.py:72, sidecar/routers/news.py:120, sidecar/services/agent_tools/news_tool.py:4, sidecar/services/agent_tools/news_tool.py:46, sidecar/models/news.py:24, src/modules/news/NewsFeedPanel.tsx:170",
+    "notes": "Different-layer-different-abstraction violation plus a failure to pull complexity downward: the route owns enrichment that belongs to the service, so the second consumer of the same data silently degrades. news_tool.py:4-5 states 'Mirrors what GET /news serves' - it does not, and the finance-tuned agent (the product) is structurally blind to the sentiment the panel displays. The blindness is quiet: sentiment exists and is null, which reads as neutral/unknown rather than never-computed. The symbol invariant likewise lives in one frontend helper instead of at the boundary. Smallest fix: move scoring + tagging + symbol normalisation into news_provider.fetch_news (or a shared news_provider.enrich()); the route becomes a thin projection and the agent-tool docstring becomes true."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-6",
+    "title": "types/brief.ts BriefDerivedMetrics under-declares four metrics the sidecar actually emits",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "derive_semantics emits dividend_per_share_ttm (semantics.py:327), dividend_declared (semantics.py:340), promoter_percent_exchange (semantics.py:565) and institutions_percent_exchange (semantics.py:580); all four are listed in _PROMPT_KEYS (semantics.py:1175-1176, 1184-1185) so they render into synthesis prompts. types/brief.ts BriefDerivedMetrics (:129-177) declares none of them, and the interface has no index signature. brief-blocks.tsx:250-252 acknowledges all four in a comment while the type does not.",
+    "evidence": "sidecar/services/research/semantics.py:327, sidecar/services/research/semantics.py:340, sidecar/services/research/semantics.py:565, sidecar/services/research/semantics.py:580, types/brief.ts:129, types/brief.ts:177, src/modules/research/brief-blocks.tsx:250",
+    "notes": "Duplicated truth across the wire with no guard - the same failure class CLAUDE.md already names for types/data.ts vs sidecar/models. The drift is invisible: nothing fails, brief-claims.ts happens to survive because it iterates Object.entries on an untyped path (brief-claims.ts:78), but any new typed consumer of the declared-dividend or promoter cards needs a cast or a type widening. Smallest fix: add the four optional fields to BriefDerivedMetrics in the same commit shape the semantics legs landed in, and add the emitted-keys assertion from finding -7 so the two lists cannot drift again."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-7",
+    "title": "_PROMPT_KEYS hand-re-lists every emitted derived metric with no drift guard, while the file's sibling literals do have one",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "design. Adding an eighth cross-check leg to derive_semantics is a three-site edit: the _x_leg function, the update/extend pair in derive_semantics (semantics.py:1086-1146), and _PROMPT_KEYS (semantics.py:1168-1186). Forget the third and the metric card still renders while the synthesis prompt never states the figure - a silent omission with no test. All 17 keys currently match; nothing keeps them matching.",
+    "evidence": "sidecar/services/research/semantics.py:1168, sidecar/services/research/semantics.py:1086, sidecar/services/research/semantics.py:1251, sidecar/tests/test_research_semantics.py:776",
+    "notes": "Change amplification with a silent failure mode, made sharper by an inconsistency inside one file: the _EARNINGS_KEY / _RANGE_KEY / _MCAP_WITNESS_KEY literals ARE pinned against their owning module constants (test_research_semantics.py:776-778), so the author clearly knew this hazard and did not apply the same guard to the prompt list. Related structural cause: derive_semantics is six hand-written 'facts, conflicts = _x_leg(); data.update(); conflicts.extend()' pairs - temporal decomposition that invites a seventh copy. Smallest fix: one assertion, set(derive_semantics(rich_fixture)['data']) - {'conflicts'} <= set(_PROMPT_KEYS), in the test file that already pins the siblings. Optional follow-on: replace the six pipeline steps with a _LEGS tuple of callables so the guard becomes trivial and the leg count lives in one place."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-8",
+    "title": "perplexity.py and sonar.py are one hosted-research lane written twice, and have already drifted on HTTP 402 handling",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "diff of the mapping/error/estimate blocks (perplexity.py:100-220 vs sonar.py:126-240) is 143 lines. _domain_of, _extract_markdown, _cost_snapshot, is_configured and the entire research() body are near-identical; the cost constants are duplicated under different names with identical values (_ESTIMATE_BASE_USD/_ESTIMATE_PER_CHAR_USD/_ESTIMATE_CEILING_USD at perplexity.py:70-72 == _DEEP_BASE_USD/_DEEP_PER_CHAR_USD/_DEEP_CEILING_USD at sonar.py:75-77). Drift already present: sonar.py:136-138 maps HTTP 402 to 'insufficient credits - top up your account'; perplexity.py:100-114 has no 402 branch, so the same condition falls through to the generic 'Perplexity deep research failed with HTTP 402.'",
+    "evidence": "sidecar/services/research/perplexity.py:70, sidecar/services/research/perplexity.py:100, sidecar/services/research/perplexity.py:241, sidecar/services/research/sonar.py:75, sidecar/services/research/sonar.py:136, sidecar/services/research/sonar.py:270",
+    "notes": "Repetition of nontrivial code: two backends that are one backend with two base URLs, two model tables and two provenance strings. The consequence is not aesthetic - it is that every vendor-quirk fix lands in whichever file the ticket named, which is exactly how the 402 gap appeared. Smallest fix: collapse into one SonarLane(base_url, model_table, provenance_note, error_map) with two thin constructors; the 402 divergence disappears by construction and the next quirk is fixed once."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-9",
+    "title": "priority_note produces confidently wrong citation indices if handed an unranked source list, and nothing enforces the precondition",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "design. priority_note enumerates the list it is given and reports i+1 as the [n] marker (finance.py:173-174). Its docstring states the precondition - 'Rendered against the ALREADY-RANKED numbered list the synthesis prompt carries' (finance.py:169-170) - but the function neither ranks nor checks. All four call sites currently comply (deep.py:930 via _Findings.all_sources which ranks at deep.py:368; iter.py:219 and iter.py:1019 via _merge_sources which ranks at iter.py:845). A fifth caller that numbers its prompt list differently emits a prompt line pointing the synthesis model at the wrong markers, with no error and no test failure.",
+    "evidence": "sidecar/services/research/finance.py:166, sidecar/services/research/finance.py:173, sidecar/services/research/deep.py:368, sidecar/services/research/deep.py:930, sidecar/services/research/iter.py:845, sidecar/services/research/iter.py:1019",
+    "notes": "An invariant held by a comment where the structure could hold it. The blast radius is the citation-preference prompt line - the model is told to prefer a specific [n] as the primary record, so a wrong index silently redirects citation preference to an arbitrary source. Not currently broken; a trap for the next caller. Smallest fix: have priority_note call rank_sources itself (idempotent - rank_sources is a stable sort, so ranking an already-ranked list is a no-op), or change the signature to take the numbered prompt string it must agree with."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-10",
+    "title": "visit_for_research discards fetch_page's typed error, so an SSRF block, a 403 wall, an unsupported content type and a genuinely empty page are indistinguishable to the research loop",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "design. fetch_page returns honest, distinct errors: 'blocked non-public or non-http(s) URL' (extract.py:594), 'fetch failed: ...' (extract.py:604), 'HTTP 403' (extract.py:613), 'unsupported content type: ...' (extract.py:621), 'no readable content extracted' (extract.py:631). visit_for_research reads only page.get('ok') and returns None for all of them (extract.py:674-679), and additionally wraps the call in a blanket 'except Exception: return None' (extract.py:670-671). The only error state that survives is the scanned-PDF note.",
+    "evidence": "sidecar/services/search/extract.py:594, sidecar/services/search/extract.py:613, sidecar/services/search/extract.py:621, sidecar/services/search/extract.py:670, sidecar/services/search/extract.py:674",
+    "notes": "A swallowed distinction that turns several different failures into one silent empty - the exact pattern the scanned-pages note (extract.py:398-406) was built to avoid for PDFs, not applied to the HTML lane. Consequence: the run cannot tell the user 'this primary filing was behind an anti-bot wall' or 'this source was blocked', only produce a brief with a quietly missing source; the researcher prompt then has no way to distinguish 'unreachable' from 'nothing there'. The blanket except at :670 also masks a real regression in fetch_page. Smallest fix: return the error reason alongside the text (str | None -> a small VisitResult with text + reason) and let the loop record a one-line ResearchStep with status='error' - the ResearchStep contract (models.py:81-103) already supports exactly this and the docstring at models.py:88-90 says non-fatal sub-failures must be recorded rather than swallowed."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-11",
+    "title": "_dividend_leg returns a positional 4-tuple and carries a parameter used only 'for symmetry'",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "design. _dividend_leg (semantics.py:863-989) returns (yield_value, dps_value, dividend_facts, conflicts), unpacked positionally at semantics.py:1048 - its six sibling legs all return the uniform (facts, conflicts) pair. Inside _dividend_ttm_leg, semantics.py:349 reads '_ = currency  # currency rides the dps fact's basis; noted here for symmetry' - a parameter threaded through the call only to be discarded.",
+    "evidence": "sidecar/services/research/semantics.py:292, sidecar/services/research/semantics.py:349, sidecar/services/research/semantics.py:863, sidecar/services/research/semantics.py:1048",
+    "notes": "Pass-through variable plus a break in an otherwise strong consistency: this one leg has a different shape from the six around it, so a reader who learned the (facts, conflicts) convention must re-learn it here, and a caller must get four positional values right with no type protection. Smallest fix: drop the unused currency parameter from _dividend_ttm_leg's signature, and fold _dividend_leg's yield/dps into the same facts dict its siblings use so the whole family returns one shape."
+  },
+  {
+    "raw_id": "COD-research-extraction-synthesis-12",
+    "title": "Citation softening is matched by sentence text rather than position, so a duplicated sentence can soften the wrong occurrence",
+    "severity": "low",
+    "area": "research",
+    "subsystem": "research-extraction-synthesis",
+    "repro": "A brief states the same numeric sentence twice (e.g. once in a summary bullet and once in the body) citing different sources, so both enter the audit as separate claims. _claim_sentences returns (sentence, markers) with no position (citecheck.py:92-135); the edit loop does cleaned.replace(sentence, soften_sentence(sentence), 1) (citecheck.py:273). If the FIRST occurrence is judged SUPPORTED and the later duplicate UNSUPPORTED, the replace lands on the first occurrence - the supported claim is softened with '(not confirmed in this run)' and the unsupported one is left standing.",
+    "evidence": "sidecar/services/research/citecheck.py:92, sidecar/services/research/citecheck.py:122, sidecar/services/research/citecheck.py:262, sidecar/services/research/citecheck.py:273",
+    "notes": "The audit is designed to only ever REMOVE confidence (citecheck.py:19-21), so the failure is bounded - it cannot add a false claim - but it can mislabel a supported figure as unconfirmed while leaving an unsupported one un-softened, which inverts the honesty signal on that sentence. The root cause is that the claim record drops the position the splitter already knew. Smallest fix: carry the (line index, char offset) from the split in the claim tuple and splice at that offset instead of string-replacing."
+  }
+]

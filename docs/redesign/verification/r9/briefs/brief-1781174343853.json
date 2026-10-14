@@ -1,0 +1,435 @@
+{
+ "query": "Mahindra and Mahindra",
+ "symbol": "M&M",
+ "mode": "DEEP",
+ "depth": "heavy",
+ "markdown": "**Mahindra & Mahindra Ltd. (M&M) Brief**  \n*Data as of 10\u201311 Jun 2026*\n\n### Operating Performance\nMay 2026 volumes reached 99,636 autos (+20% YoY), including 58,021 domestic SUVs, and 49,695 tractors (+22% YoY). Farm Equipment tractor sales alone rose 23% YoY to 47,845 units, supporting resilient rural demand. [10][41]\n\n### Financial Performance\nFY25 PAT was \u20b912,929 cr (+20% YoY), with Q4 FY25 PAT at \u20b93,295 cr (+20% YoY). FY26 PAT grew 35%. TTM figures show revenue \u20b92.0208 T, net income \u20b9171 B and FCF \u20b9156.6 B. TTM margins were gross 39.173%, operating 16.398% and net 8.461%, with ROE at 18.754%. [15][16][12]\n\n### Balance Sheet & Capital Structure (TTM)\nDebt/equity stood at 1.25066 and current ratio at 1.27. Shares outstanding are reported as 1.2435 B or ~1.11 B; the difference is unresolved in available filings. [12][20][21]\n\n### Valuation (close 10 Jun 2026)\nPrice was \u20b92,952.5, market cap \u20b93.603 T. TTM P/E 19.74, forward P/E 18.76, PEG 1.26; P/B 3.60, P/S 1.78, EV/EBITDA 10.50. EPS (TTM) \u20b9152.05 and dividend yield 1.12% (\u20b933/share). 52-week range \u20b92,896\u20133,839.9. [11][12]\n\n### Competitive Position\nM&M held 43.6% share of the Indian tractor market in FY26 (+30 bps YoY), with YTD FY26 share at 44.1% (May 2026). SUV revenue share strengthened +90 bps YoY through June 2026. [4][5][20]\n\n### Outlook & Catalysts\nNomura forecasts FY27 UV volume growth of 14% (753\u2013851k units) and tractor volume growth of 5% (526\u2013552k units). Rural demand, premiumisation and exports remain the three primary FY27 growth pillars for the Indian auto sector. [4][9][20]\n\n### Risks & Macro Factors\nA sub-par 2026 monsoon is flagged as a potential headwind to rural incomes and volumes. No quantified exposures to FAME-III, PLI-auto, BS-VII or EV-mandate risks appear in June 2026 filings or presentations. FY27 India GDP growth is projected at 6.6% (BMI, as-of 11 Jun 2026); M&M-specific volume elasticity figures are not available. [4][7][new findings]\n\n**Data Gaps**  \nFull P&L splits (Auto vs Farm), net debt, capex, working-capital trends and FY26\u201328 consensus EPS not located in exchange filings or contemporaneous sources. No FY26 SUV/LCV market-share figures or peer comparisons (e.g., John Deere) are reported. [12][13][15][16][18]",
+ "sources": [
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/99e97cd9-6252-44f7-9007-ad00bd0cd621.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-06-01T09:41:24.253000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/Pooja_20052026102828_SMP.pdf",
+   "title": "Mahindra & Mahindra Limited has informed the Exchange regarding a press release dated May 20, 2026, titled \"Press Release on the appointment of Senior Management Personnel\".",
+   "excerpt": "NSE \u00b7 Press Release \u00b7 2026-05-20T10:28:42+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/2029dc0f-0042-4a41-8148-e35fd1c47691.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-05-20T10:27:05.200000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/AmitDodani_05052026131231_PresentationtobemadetAnalystMeet05052026.pdf",
+   "title": "Mahindra & Mahindra Limited has informed the Exchange about Investor Presentation",
+   "excerpt": "NSE \u00b7 Investor Presentation \u00b7 2026-05-05T13:12:52+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/AmitDodani_05052026125330_PresentationtobemadetoPressAnalyst.pdf",
+   "title": "Mahindra & Mahindra Limited has informed the Exchange about Press/Analyst Presentation being made today",
+   "excerpt": "NSE \u00b7 General Updates \u00b7 2026-05-05T12:54:32+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/NishaMandhana_10062026222806_ConclusionofAnalystMeet10062026.pdf",
+   "title": "Mahindra & Mahindra Limited has informed the Exchange about Participation in the Analyst/Investor Meeting",
+   "excerpt": "NSE \u00b7 Analysts/Institutional Investor Meet/Con. Call Updates \u00b7 2026-06-10T22:31:43+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a427cb9b-683a-4bda-9377-6de2853fb31f.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-06-10T22:29:57.160000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/NishaMandhana_09062026210126_ConclusionofAnalystMeet09062026.pdf",
+   "title": "Mahindra & Mahindra Limited has informed the Exchange about Participation in the Analyst/Investor Meeting",
+   "excerpt": "NSE \u00b7 Analysts/Institutional Investor Meet/Con. Call Updates \u00b7 2026-06-09T21:02:47+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/4d8a3810-414c-470b-9b68-f2bf0fc49870.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-06-09T20:59:09.050000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/NishaMandhana_09062026143501_MonthlyReportMay2026.pdf",
+   "title": "M&M: Mahindra & Mahindra Limited has informed the Exchange about Production, Sales and Export figures for the month of May 2026",
+   "excerpt": "NSE \u00b7 General Updates \u00b7 2026-06-09T14:35:53+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.moneycontrol.com/india/stockpricequote/auto-carsjeeps/mahindramahindra/MM",
+   "title": "M&M Share Price, M&M Stock Price, Mahindra and Mahindra Ltd. Stock Price, Share Price, Live BSE/NSE, Mahindra and Mahindra Ltd. Bids Offers. Buy/Sell Mahindra and Mahindra Ltd. news & tips, & F&O Quotes, NSE/BSE Forecast News and Live Quotes - Moneycontrol.com",
+   "excerpt": "M&M Share Price: Find the latest news on M&M Stock Price. Get all the information on M&M with historic price charts for NSE / BSE. Experts & Broker view also get the M&M Ltd. buy/sell tips detailed news, announcements, Forecasts, Analysts, Valuation, Earning forecasts, Estimates, Recommendations, Analysts Ratings, financial report, company information, annual report, balance sheet, profit & loss account, results and more.",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/M&M.NS/financials/",
+   "title": "Mahindra & Mahindra Limited (M&M.NS) Income Statement - Yahoo Finance",
+   "excerpt": "Get the detailed quarterly/annual income statement for Mahindra & Mahindra Limited (M&M.NS). Find out the revenue, expenses and profit or loss over the last fiscal year.",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/M&M.NS/balance-sheet/",
+   "title": "Mahindra & Mahindra Limited (M&M.NS) Balance Sheet - Yahoo Finance",
+   "excerpt": "Get the annual and quarterly balance sheet of Mahindra & Mahindra Limited (M&M.NS) including details of assets, liabilities and shareholders' equity.",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/M&M.BO/key-statistics/",
+   "title": "Mahindra & Mahindra Limited (M&M.BO) Valuation Measures & Financial Statistics",
+   "excerpt": "Find out all the key statistics for Mahindra & Mahindra Limited (M&M.BO), including valuation measures, fiscal year financial statistics, trading record, share statistics and more.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.mahindra.com/news-room/press-release/en/mm-results-q4-fy25-and-fy25",
+   "title": "M&M Results Q4 FY25 and FY25",
+   "excerpt": "Record Profits: FY25 Consolidated PAT at Rs 12,929 cr., up 20%* Q4 Consolidated PAT at Rs 3,295 cr., up 20% Dividend of Rs 25.3 per share, up 20% ... F25 ROE at 18.1%, EPS at Rs 115.1 \u2026 in line with commitments * Excluding impact of KG Mobility ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.autoguideindia.com/reports/mahindra-and-mahindra-fy26-results-profit-growth-dividend/",
+   "title": "M&M delivers blockbuster FY26: Profit surges 35%, strengthens leadership across segments | Autoguideindia",
+   "excerpt": "Return on equity stood at 20.1%, while earnings per share (EPS) came in at \u20b9152.2. This performance was driven by strong execution, disciplined capital allocation, and sustained demand across its core businesses.",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/M&M.BO/financials/",
+   "title": "Mahindra & Mahindra Limited (M&M.BO) Income Statement - Yahoo Finance",
+   "excerpt": "Get the detailed quarterly/annual income statement for Mahindra & Mahindra Limited (M&M.BO). Find out the revenue, expenses and profit or loss over the last fiscal year.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.marketscreener.com/quote/stock/MAHINDRA-MAHINDRA-LIMITED-9058830/finances/",
+   "title": "Mahindra & Mahindra Limited: Financial Data Forecasts Estimates and Expectations | M&amp;M | INE101A01026 | MarketScreener",
+   "excerpt": "Mahindra & Mahindra Limited: Forcasts, revenue, earnings, analysts expectations, ratios for Mahindra & Mahindra Limited Stock | M&amp;M | INE101A01026",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/M&M.NS/key-statistics/",
+   "title": "Mahindra & Mahindra Limited (M&M.NS) Valuation Measures & Financial Statistics",
+   "excerpt": "5 Shares outstanding is taken from the most recently filed quarterly or annual report and Market Cap is calculated using shares outstanding.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.tipranks.com/stocks/in:m&m",
+   "title": "M&M Stock | Mahindra & Mahindra Ltd. Price, Quote, News & Analysis - TipRanks.com",
+   "excerpt": "Mahindra &amp; Mahindra Ltd. has 1,243,528,800 shares outstanding.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.share.market/stocks/mahindra-mahindra-ltd-share",
+   "title": "Mahindra & Mahindra Ltd. Share Price Today - Mahindra & Mahindra Ltd. Stock Price Live NSE/BSE | Share.Market",
+   "excerpt": "The fair value of Mahindra & Mahindra Ltd. depends on factors such as earnings growth, financial performance, and overall market conditions. Investors should assess fundamentals before making investment decisions. Earnings per share (EPS) measures the profit earned by a company for each of its outstanding shares.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bajajbroking.in/stock/mahindra-mahindra-ltd-share-price",
+   "title": "Mahindra & Mahindra Ltd Share Price Update - Stock",
+   "excerpt": "M&M Share Price,charts,P/E ratio & key financials on Bajaj Broking.Track today stock price,fundamentals,shareholding pattern & corporate actions.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.londonstockexchange.com/stock/MHID/mahindra-mahindra-limited/company-page",
+   "title": "MAHINDRA & MAHINDRA LIMITED MHID Stock",
+   "excerpt": "Welcome to the official website of London Stock Exchange where you will find the latest stock market news, stock information, data analysis reports, as well as information about listing and trading.",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/M&M.NS/",
+   "title": "Mahindra & Mahindra Limited (M&M.NS) Stock Price, News, Quote & History - Yahoo Finance",
+   "excerpt": "Further, it engages in the sale of timeshare and vacation ownership through its resorts; develops and sells residential properties, and engages in the development, management, and operation of commercial complexes; and processing and trading of steel for automotive, non-automotive, and power industries. The company has a strategic partnership with Embraer S.A. for the development of C-390 Millennium multi-mission military transport aircraft in India. The company was incorporated in 1945 and is headquartered in Mumbai, India. www.mahindra.com",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.mahindra.com/sites/default/files/2025-04/Shareholding%20pattern%20Reg.%2031%20March%202025.pdf",
+   "title": "1. Name of Listed Entity: MAHINDRA & MAHINDRA LIMITED 2.",
+   "excerpt": "Details of the shareholders acting as persons in concert including their shareholding(No. and %) - NA \u00b7 Details of shares which remain unclaimed may be given here along with details such as number of shareholders, outstanding shares held in demat/uncliamed suspense account,voting rights which are frozen etc.",
+   "domain": "web"
+  },
+  {
+   "url": "vysted://price/M&M",
+   "title": "Price for M&M",
+   "excerpt": "Structured price snapshot via nse_direct gathered this run.",
+   "domain": "nse_direct"
+  },
+  {
+   "url": "vysted://fundamentals/M&M",
+   "title": "Fundamentals for M&M",
+   "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+   "domain": "yfinance"
+  },
+  {
+   "url": "vysted://news/M&M",
+   "title": "News for M&M",
+   "excerpt": "Structured news pull.",
+   "domain": "vysted"
+  },
+  {
+   "url": "https://www.bajajfinserv.in/investments/m-m-share-price",
+   "title": "Mahindra & Mahindra Ltd Share Price Today Live NSE/BSE",
+   "excerpt": "In FY19, the company launched three next generation products in the UV segment; the Marazzo, Alturas G4 and XUV300. During the fiscal 2019, the company maintained the leadership position in the domestic tractor market for the 36th consecutive year, with a market share of 40.2%. During the FY2019, Mahindra Susten Bangladesh Private Limited, Mahindra Knowledge Park Mohali Limited, Blitz 18-371 GmbH, Ssangyong Australia Pty Limited, Mahindra Summit Agriscience Limited, Mahindra Automotive Mauritius Limited, Mahindra Top Greenhouses Private Limited, Passeport Sante SL, PT Mahindra Accelo Steel Indonesia, Harkey Acquisition, L.L.C., USA, MSPE Urja S.R.L.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.kotakneo.com/stocks/mahindra-mahindra-share-price/",
+   "title": "M&M Share Price Today - Live NSE: M&M Stock Price & Chart",
+   "excerpt": "In FY2018-19 (FY19), MM achieved strong sales growth with 607,548 vehicles (+10.8%) and 330,436 tractors (+3.4%), retaining a 40.2% market share in the domestic tractor industry for the 36th year running.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.kotaksecurities.com/stocks/mahindra-mahindra-ltd/",
+   "title": "M&M Share Price Today Live NSE/BSE Graph & Chart",
+   "excerpt": "In FY2018-19 (FY19), MM achieved strong sales growth with 607,548 vehicles (+10.8%) and 330,436 tractors (+3.4%), retaining a 40.2% market share in the domestic tractor industry for the 36th year running.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.mahindra.com/",
+   "title": "The Mahindra Group Official Website | Together We Rise",
+   "excerpt": "Our Auto sector includes SUVs, LCVs, electric 3-wheelers, trucks & buses and motorcycles. We are world's largest tractor company by volume. In services we have Mahindra Finance and Tech Mahindra. We are also present in hospitality, real estate, renewables, logistics, steel manufacturing, auto recycling, defence and aerospace. The Mahindra Group has 8 public companies and many private companies under its umbrella. The parent company, Mahindra & Mahindra Limited is publicly listed.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.indmoney.com/stocks/category/mahindra-and-mahindra-group-shares",
+   "title": "M&M Shares - List of Mahindra & Mahindra Stocks to Invest in 2025",
+   "excerpt": "Whether you're a seasoned investor or just starting out, understanding Mahindra & Mahindra (M&M) shares can be a valuable step. This guide provides a clear overview of M&M shares, specifically designed for Indian investors. ... M&M shares represent ownership in Mahindra & Mahindra Limited.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.mahindra.com/news-room/press-release/en/m-and-m-results-q3-f26",
+   "title": "M&M Results Q3 F26",
+   "excerpt": "Rajesh Jejurikar, Executive Director & CEO (Auto and Farm Sector), said, \u201cAuto and Farm businesses delivered strong performance in Q3\u2019FY26. We have achieved a 90 bps YoY increase in SUV revenue share and 10 bps YoY increase in LCV (< 3.5T) market share in Q3. Our tractor business gained 20 bps YoY to reach an impressive 44.1% share for YTD FY26.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.etnownews.com/markets/mahindra-and-mahindra-share-price-in-focus-nomura-bullish-on-auto-stock-keeps-target-price-unchanged-12-reasons-why-article-154463239/amp",
+   "title": "Mahindra and Mahindra share price in focus: Nomura bullish on auto stock; keeps target price unchanged - 12 reasons why - Markets | ET Now",
+   "excerpt": "Nomura estimates that utility vehicle (UV) volumes will reach 753,000-851,000 units, reflecting a year-on-year growth of 14%, while tractor volumes are projected at 526,000-552,000 units, indicating a 5% year-on-year increase. The brokerage expects revenue CAGR of 13% over FY26-28F. Mahindra & Mahindra Ltd reported a 48.5 per cent jump in consolidated profit after tax at Rs 5,259.91 crore for the fourth quarter ended March 31, 2026, primarily driven by its auto and farm sectors.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.statista.com/statistics/1041475/india-mahindra-tractor-sales-volume/",
+   "title": "Mahindra and Mahindra: tractor sales volume 2023 | Statista",
+   "excerpt": "TractorGyan. \"Sales volume of tractors for Mahindra and Mahindra (M&M) Limited from financial year 2012 to 2023 (in 1,000 units).\" Chart. April 6, 2023. Statista. Accessed August 14, 2024.",
+   "domain": "web"
+  },
+  {
+   "url": "https://simplywall.st/stocks/in/automobiles/nse-m-m/mahindra-mahindra-shares/future",
+   "title": "Mahindra & Mahindra (NSEI:M&M) Stock Forecast & Analyst Predictions - Simply Wall St",
+   "excerpt": "Mahindra & Mahindra is forecast to grow earnings and revenue by 12% and 2.3% per annum respectively. EPS is expected to grow by 9.8% per annum.",
+   "domain": "web"
+  },
+  {
+   "url": "https://stockinvest.us/stock/M&M.NS",
+   "title": "Mahindra & Mahindra Stock Price Forecast. Should You Buy M&M.NS?",
+   "excerpt": "At the current level, it should be considered as a hold candidate (hold or accumulate) in this position whilst awaiting further development. ... Predicted fair opening price on May 12, 2026 - \u20b93,254.03 ( 0.251%).",
+   "domain": "web"
+  },
+  {
+   "url": "https://stockanalysis.com/quote/nse/M&M/",
+   "title": "Mahindra & Mahindra (NSE:M&M) Stock Price & Overview",
+   "excerpt": "... Fueled by tax cuts and a strong monsoon, India's passenger vehicle market achieved record sales in 2025. Maruti Suzuki led with robust growth and exports, while Tata Motors surpassed Hyundai to become...",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.investing.com/news/company-news/mahindra-q3-f26-slides-revenue-jumps-26-pat-surges-47-despite-market-headwinds-93CH-4499370",
+   "title": "Mahindra Q3 F26 slides: Revenue jumps 26%, PAT surges 47% despite market headwinds By Investing.com",
+   "excerpt": "In the less-than-3.5-ton LCV segment, Mahindra maintained its #1 position with a market share of 51.9% (up 10 bps YoY), with volumes increasing by 20% to 81,000 units. Auto standalone margins (excluding BEV) improved by 90 bps, reaching 10.4% in Q3 F26. The company\u2019s product portfolio expanded with several key launches, including the XUV 7XO (launched January 5, 2026) and the XEV 9S (launched November 27, 2025).",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.marketscreener.com/news/mahindra-mahindra-farm-equipment-business-sells-47-845-tractors-in-may-2026-registering-a-growth-ce7f5dd8df8ef720",
+   "title": "Mahindra & Mahindra : Farm Equipment Business sells 47,845 Tractors in May 2026 registering a growth of 23% | MarketScreener",
+   "excerpt": "Distributed via Public Technologies (PUBT), unedited and unaltered, on June 01, 2026 at 05:31 UTC. ... Mahindra and Mahindra Ltd is one of the Indian leaders in automotive construction. Net sales break down by activity as follows: - sale of personal and commercial vehicles (61.9%): brands Scorpio, Bolero, Xylo, Logan, etc.; - sale of agricultural tractors (34.1%); - other (4%): primarily financial services, sale of two-wheelers and automotive parts, IT services and real estate development.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.annualreports.com/Company/mahindra-mahindra",
+   "title": "Mahindra & Mahindra - AnnualReports.com",
+   "excerpt": "Mahindra & Mahindra reports have an aggregate usefulness score of 4.2 based on 128 reviews \u00b7 This company has a Sustainability Report available to view on our partner site, ResponsibilityReports.com",
+   "domain": "web"
+  },
+  {
+   "url": "https://auto.mahindra.com/terms-of-use.html",
+   "title": "Mahindra Auto",
+   "excerpt": "YOU MAY NOT USE THIS WEBSITE OR ORDER OR OBTAIN PRODUCTS OR SERVICES FROM THIS WEBSITE IF YOU (A) DO NOT AGREE TO THESE TERMS, (B) ARE NOT THE OLDER OF (i) AT LEAST 18 YEARS OF AGE OR (ii) LEGAL AGE TO FORM A BINDING CONTRACT WITH MAHINDRA & MAHINDRA LIMITED, OR (C) ARE PROHIBITED FROM ACCESSING OR USING THIS WEBSITE OR ANY OF THIS WEBSITE\u2019S CONTENTS, GOODS OR SERVICES BY APPLICABLE LAW.",
+   "domain": "web"
+  },
+  {
+   "url": "https://simplywall.st/stocks/in/automobiles/nse-m-m/mahindra-mahindra-shares",
+   "title": "Mahindra & Mahindra (NSEI:M&M) - Stock Analysis - Simply Wall St",
+   "excerpt": "Research Mahindra & Mahindra's (NSEI:M&M) fundamentals, past performance, valuation, dividends and more.",
+   "domain": "web"
+  },
+  {
+   "url": "https://automobile.fandom.com/wiki/Mahindra_&_Mahindra_Limited",
+   "title": "Mahindra & Mahindra Limited | Autopedia | Fandom",
+   "excerpt": "At the 2008 Delhi Auto Show, Mahindra executives said the company is pursuing an aggressive product expansion program that would see the launch of several new platforms and vehicles over the next three years, including an entry-level SUV designed to seat five passengers and powered by a small turbodiesel engine.[18] True to their word, Mahindra & Mahindra launched the Mahindra Xylo in January 2009, and as of June 2009, the Xylo has sold over 15000 units.[19]",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/M&M.NS/history/",
+   "title": "Mahindra & Mahindra Limited (M&M.NS) Stock Historical Prices & Data - Yahoo Finance",
+   "excerpt": "Discover historical prices for M&M.NS stock on Yahoo Finance. View daily, weekly or monthly format back to when Mahindra & Mahindra Limited stock was issued.",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/M&M.BO/history/",
+   "title": "Mahindra & Mahindra Limited (M&M.BO) Stock Historical Prices & Data - Yahoo Finance",
+   "excerpt": "Discover historical prices for M&M.BO stock on Yahoo Finance. View daily, weekly or monthly format back to when Mahindra & Mahindra Limited stock was issued.",
+   "domain": "web"
+  },
+  {
+   "url": "https://simplywall.st/stocks/in/automobiles/nse-m-m/mahindra-mahindra-shares/past",
+   "title": "Mahindra & Mahindra (NSEI:M&M) - Earnings & Revenue Performance - Simply Wall St",
+   "excerpt": "Discover the latest data for Mahindra & Mahindra financials. From earnings and revenue to ROE, net margins, growth rates and more. Subscribe for free today!",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bitget.com/wiki/mahindra-stock",
+   "title": "Mahindra Stock: Analysis of M&M Financials and Market Outlook",
+   "excerpt": "As of early 2026, M&M remains one of the largest companies in India by market capitalization, often categorized as a \"Large Cap\" blue-chip stock. Its performance is closely tied to domestic consumption patterns, rural income levels, and the global shift toward sustainable transportation. The valuation of Mahindra Stock is driven by its diverse operational wings: Automotive Division: M&M is a leader in the Utility Vehicle (UV) segment.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.mahindra.com/news-room/press-release/en/m-and-m-results-q4-f26-and-fy26",
+   "title": "M&M Results Q4 F26 and FY26",
+   "excerpt": "Tractors achieved highest ever billing of 5 lakh+ in FY26. The market gains have been achieved by delivering strong margin performance.\u201d \u00b7 Mr. Amarjyoti Barua, Group Chief Financial Officer, said, \u201cDespite a challenging macro environment, the Group delivered strong performance in FY26, with PAT growth of over 30%, reflecting the underlying strength of our portfolio.",
+   "domain": "web"
+  }
+ ],
+ "sourceCount": 50,
+ "cost": {
+  "tokens": 0,
+  "spendUsd": 0
+ },
+ "webAvailable": true,
+ "structured": {
+  "resolved": {
+   "ok": true,
+   "query": "Mahindra and Mahindra",
+   "region": "IN",
+   "resolved": {
+    "symbol": "M&M",
+    "name": "Mahindra & Mahindra Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "M&M.NS",
+    "confidence": 0.83
+   },
+   "needs_disambiguation": false,
+   "candidates": [
+    {
+     "symbol": "M&M",
+     "name": "Mahindra & Mahindra Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "M&M.NS",
+     "confidence": 0.83
+    }
+   ]
+  },
+  "price": {
+   "ok": true,
+   "provider": "nse_direct",
+   "data": {
+    "symbol": "M&M",
+    "price": 2952.5,
+    "change": -37.59999999999991,
+    "change_percent": -1.2574830273234978,
+    "volume": 2281551,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-06-10T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "M&M.NS",
+    "name": "Mahindra & Mahindra Limited",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers",
+    "currency": "INR",
+    "market_cap": 3603367198720,
+    "pe_ratio": 19.736269,
+    "forward_pe": 18.760239,
+    "peg_ratio": 1.26,
+    "price_to_book": 3.6020107,
+    "price_to_sales": 1.7831006,
+    "ev_to_ebitda": 10.497,
+    "book_value": 833.118,
+    "dividend_yield": 0.011200000000000002,
+    "dividend_per_share": 33,
+    "eps": 152.05,
+    "beta": 0.338,
+    "fifty_two_week_high": 3839.9,
+    "fifty_two_week_low": 2896,
+    "fifty_two_week_change": -0.022091925,
+    "roe": 0.18754,
+    "roa": 0.07074,
+    "gross_margin": 0.39173,
+    "operating_margin": 0.16398,
+    "profit_margin": 0.08461001,
+    "debt_to_equity": 1.25066,
+    "current_ratio": 1.267,
+    "quick_ratio": 0.533,
+    "revenue_ttm": 2020843454464,
+    "net_income_ttm": 170988503040,
+    "free_cash_flow": 156552364032,
+    "shares_outstanding": 1200762264,
+    "revenue_growth": 0.309,
+    "earnings_growth": 0.448,
+    "held_percent_insiders": 0.25305998,
+    "held_percent_institutions": 0.52956,
+    "provider": "yfinance"
+   }
+  },
+  "panel": [
+   {
+    "angle": 1,
+    "note": null,
+    "symbol": "M&M"
+   },
+   {
+    "angle": 2,
+    "note": null,
+    "symbol": "M&M"
+   },
+   {
+    "angle": 3,
+    "note": null,
+    "symbol": "M&M"
+   }
+  ],
+  "cross_check": {
+   "skipped": true,
+   "reason": "Skipped to stay within the run's time budget."
+  }
+ },
+ "backend": "native",
+ "createdAt": 1781174343853
+}

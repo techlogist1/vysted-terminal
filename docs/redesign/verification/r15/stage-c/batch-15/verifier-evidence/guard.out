@@ -1,0 +1,61 @@
+ok  R replaced | American Depositary Shares each represent six underlying equity shares.
+ok  R replaced | Each ADR is equivalent to 2 shares of common stock.
+ok  R replaced | The ADR-to-share ratio is 1 ADR : 6 shares.
+ok  R replaced | 1 ADR = 6 shares.
+ok  R replaced | One ADR is worth 10 shares of Sify.
+ok  R replaced | A single SIFY ADR gives you 2 shares.
+ok  K kept    | Each ADR closed at 5.20 USD on Friday.
+ok  K kept    | Each ADS's 52-week high was 12.4.
+ok  K kept    | SIFY's ADSs each gained 3 points in 2024.
+ok  K kept    | the ADR traded between 10 and 12 dollars.
+ok  K kept    | Each ADR closed at $12.50 on volume of 40,000 shares.
+ok  K kept    | The PE ratio is 22.4.
+ok  K kept    | Revenue represents 12% of the segment.
+ok  K kept    | SIFY filed its 2024 20-F in July.
+ok  R replaced | Each American depositary receipt is worth four ordinary shares.
+ok  R replaced | The depositary ratio stands at 1-for-6.
+ok  K kept    | SIFY ADR volume was 120,000 shares today.
+ok  R replaced | One SIFY ADS is backed by ten equity shares.
+ok  R replaced | Holders receive 3 ordinary shares per ADS.
+ok  R replaced | According to fundamentals data, the ADR ratio is 1:1.
+ok  R replaced | Each ADS represents two ordinary shares (per fundamentals data).
+ok  R replaced | SIFY ADRs trade at a 1:2 ratio to ordinary shares.
+ok  R replaced | The ADS-to-ordinary ratio is 1 to 10.
+ok  K kept    | SIFY files a 20-F each year for its ADSs.
+ok  K kept    | TTM revenue was ₹4,651 cr, about USD 556 million; each ADR is listed on Nasdaq.
+ok  R replaced | SIFY American Depositary Shares each represent six underlying equity shares.
+ok  R replaced | For SIFY, one ADR is approximately 144869230 ordinary shares.
+ok  R replaced | Every SIFY depositary receipt stands for 3 underlying shares.
+ok  R replaced | Owning a Sify ADS means you hold eight Sify shares.
+ok  R replaced | SIFY: 4 shares per ADS.
+ok  R replaced | The ADR converts into twelve equity shares at the depositary.
+BAD R kept    | Each ADS represents 6 class A shares.
+ok  R replaced | Each ADS represents 5 Class A ordinary shares.
+ok  R replaced | The depositary ratio is six-to-one.
+ok  R replaced | You need 2 ADRs to get one ordinary share.
+ok  R replaced | Each ADS represents 6 ordinary shares of Rs 10 each.
+ok  R replaced | Per the fundamentals data, SIFY's ADS ratio is 1 ADS to 3 shares.
+ok  R replaced | SIFY ADR ratio: 1:4
+ok  K kept    | SIFY's ADR fell 4 percent after the results.
+ok  K kept    | The ADR has traded on Nasdaq since 2000.
+ok  K kept    | SIFY's ADR market capitalisation is about USD 200 million.
+ok  K kept    | SIFY ADRs rose 7% over 5 sessions.
+ok  K kept    | The ADS ranks 3rd among Indian IT ADRs by volume.
+ok  K kept    | Three analysts cover the ADR.
+ok  K kept    | The ADR's 50-day moving average is 5.8.
+ok  K kept    | SIFY's ADSs have 144,869,230 shares outstanding behind them.
+ok  K kept    | SIFY's ADR is one of the few Indian data-centre listings in the US.
+BAD K replaced | Two of the three analysts covering the ADR rate it a buy.
+-- traced
+web kept | The ADR-to-share ratio is 1 ADR : 6 shares.
+web kept | Each ADS represents six ordinary shares.
+cover kept | 1 ADR : 6 shares
+cover kept | Each ADS represents six ordinary shares.
+cover-fresh kept | Per the SEC 20-F, one SIFY ADS equals 6 equity shares.
+cover-WRONG REPLACED | Each ADS represents 10 ordinary shares.
+cover-WRONG-shares-out REPLACED | Each ADS represents 144869230 ordinary shares.
+-- split sentence
+"SIFY trades as an ADR on Nasdaq. The ADR-to-ordinary-share ratio is not available from this session's sources."
+"SIFY is listed as an ADS in New York. The ADR-to-ordinary-share ratio is not available from this session's sources."
+'SIFY trades as an ADR. Its revenue was 46,510 million rupees. Each carries 6 shares.'
+bad 2

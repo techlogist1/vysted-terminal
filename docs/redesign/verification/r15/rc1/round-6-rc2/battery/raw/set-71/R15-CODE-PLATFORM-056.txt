@@ -1,0 +1,8 @@
+# probe at ace7dd76 (candidate worktree /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand)
+$ grep -n 'unwrap_or(None)\|migrated = \|fn migrate_with_erroring_reader_leaves_unmigrated_and_retries\|mod dev' src-tauri/src/keychain.rs
+110:mod dev_keystore {
+201:        let mut migrated = 0u32;
+216:        store.migrated = failed.is_empty();
+428:    mod dev {
+487:        fn migrate_with_erroring_reader_leaves_unmigrated_and_retries() {
+EXIT=0

@@ -1,0 +1,11 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-225-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Holds: the app is a Vite + React 19 CSR SPA (package.json scripts dev='vite'/build='vite build', no 'next' dependency; index.html mounts /src/main.tsx; main.tsx renders ./app/page via ReactDOM.createRoot; migration commit 8c2f9ab is an ancestor of HEAD) yet CURRENT_STATE.md sec3.8 still describes a Next.js 16 App Router static export with an SSR-prerender invariant, and PanelHost.tsx:117-118 keeps the stale SSR rationale. Corrected in scope and detail: the stale framing is not confined to sec3.8 (also CURRENT_STATE.md:105, :147, :165-166 architecture diagram, :927) and the project CLAUDE.md itself (:5, :28, :38, :222) repeats it; the '3 vite hits' in CURRENT_STATE.md are all 'vitest', so the zero-Vite claim holds in substance; cited lines are 546-549 not 544-546. Severity stays medium (doc accuracy, no functional regression).",
+    "evidence": "docs/CURRENT_STATE.md:105, :147, :165-166, :546-549, :927; package.json:7-9 (no 'next' dep); index.html:1-13; src/main.tsx:1-21; src/components/PanelHost.tsx:117-118; CLAUDE.md:5, :28, :38, :222; git merge-base --is-ancestor 8c2f9ab HEAD (true)",
+    "evidence_checked": "Opened CURRENT_STATE.md sec3.8 and grepped it for vite/Next.js/SSR/static export; read package.json scripts+deps, index.html, src/main.tsx, PanelHost.tsx docstring; confirmed no next.config.*, vite.config.ts present; verified commit ancestry at HEAD 38919fd. No stack repro needed (doc-accuracy claim).",
+    "repro_check": "grep -ni 'vite\\|next.js\\|static export\\|SSR' docs/CURRENT_STATE.md -> only 'vitest' matches for vite, Next.js/static-export claims at 105,147,165,546; grep '\"next\"' package.json -> no match; /bin/ls next.config.* -> absent"
+  }
+]

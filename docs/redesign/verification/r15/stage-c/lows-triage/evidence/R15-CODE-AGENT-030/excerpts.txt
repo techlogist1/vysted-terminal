@@ -1,0 +1,38 @@
+openai.py:788-797
+        except openai.AuthenticationError:
+            return False
+        except openai.PermissionDeniedError:
+            return False
+        except openai.BadRequestError as exc:
+            if says_invalid_key(str(exc)):
+                return False
+            raise
+        except openai.OpenAIError:
+            raise
+groq.py:216-221
+        except groq.AuthenticationError:
+            return False
+        except groq.PermissionDeniedError:
+            return False
+        except groq.GroqError:
+            raise
+gemini.py:215-224
+        except genai_errors.ClientError as exc:
+            status = getattr(exc, "status_code", None) or getattr(exc, "code", None)
+            if status in {401, 403}:
+                return False
+            # Gemini answers a bad key with 400 INVALID_ARGUMENT / API_KEY_INVALID.
+            if status == 400 and says_invalid_key(str(exc)):
+                return False
+            raise
+        except genai_errors.APIError:
+            raise
+anthropic.py:193-200
+        except anthropic.AuthenticationError:
+            return False
+        except anthropic.PermissionDeniedError:
+            return False
+        except anthropic.AnthropicError:
+            # Any other API-level error is a real transport issue — propagate
+            # so the router can surface "provider unreachable".
+            raise

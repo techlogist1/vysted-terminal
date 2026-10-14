@@ -1,0 +1,1 @@
+CMD: grep -n 'AI Assistant\|copilot.*panels' src/components/SettingsPanel.tsx

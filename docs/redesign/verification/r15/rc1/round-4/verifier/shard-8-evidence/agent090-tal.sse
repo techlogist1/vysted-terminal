@@ -1,0 +1,192 @@
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "tool_use", "tool_call_id": "call_9e657664a11042cda9db238038753f09", "name": "fundamentals", "input": {"symbol": "TAL"}}
+
+data: {"kind": "tool_result", "tool_call_id": "call_9e657664a11042cda9db238038753f09", "name": "fundamentals", "ok": true, "error": null}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "delta", "text": "Based"}
+
+data: {"kind": "delta", "text": " on"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " provided"}
+
+data: {"kind": "delta", "text": " data"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " I"}
+
+data: {"kind": "delta", "text": " am"}
+
+data: {"kind": "delta", "text": " unable"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " find"}
+
+data: {"kind": "delta", "text": " information"}
+
+data: {"kind": "delta", "text": " about"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " ratio"}
+
+data: {"kind": "delta", "text": " of"}
+
+data: {"kind": "delta", "text": " T"}
+
+data: {"kind": "delta", "text": "AL"}
+
+data: {"kind": "delta", "text": " Education"}
+
+data: {"kind": "delta", "text": " Class"}
+
+data: {"kind": "delta", "text": " A"}
+
+data: {"kind": "delta", "text": " ordinary"}
+
+data: {"kind": "delta", "text": " shares"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " ADS"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "The"}
+
+data: {"kind": "delta", "text": " output"}
+
+data: {"kind": "delta", "text": " shows"}
+
+data: {"kind": "delta", "text": " various"}
+
+data: {"kind": "delta", "text": " financial"}
+
+data: {"kind": "delta", "text": " metrics"}
+
+data: {"kind": "delta", "text": " and"}
+
+data: {"kind": "delta", "text": " ratios"}
+
+data: {"kind": "delta", "text": " for"}
+
+data: {"kind": "delta", "text": " T"}
+
+data: {"kind": "delta", "text": "AL"}
+
+data: {"kind": "delta", "text": " Education"}
+
+data: {"kind": "delta", "text": " Group"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " but"}
+
+data: {"kind": "delta", "text": " it"}
+
+data: {"kind": "delta", "text": " does"}
+
+data: {"kind": "delta", "text": " not"}
+
+data: {"kind": "delta", "text": " contain"}
+
+data: {"kind": "delta", "text": " any"}
+
+data: {"kind": "delta", "text": " information"}
+
+data: {"kind": "delta", "text": " specifically"}
+
+data: {"kind": "delta", "text": " related"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " conversion"}
+
+data: {"kind": "delta", "text": " rate"}
+
+data: {"kind": "delta", "text": " between"}
+
+data: {"kind": "delta", "text": " Class"}
+
+data: {"kind": "delta", "text": " A"}
+
+data: {"kind": "delta", "text": " ordinary"}
+
+data: {"kind": "delta", "text": " shares"}
+
+data: {"kind": "delta", "text": " and"}
+
+data: {"kind": "delta", "text": " ADS"}
+
+data: {"kind": "delta", "text": ".\n\n"}
+
+data: {"kind": "delta", "text": "To"}
+
+data: {"kind": "delta", "text": " provide"}
+
+data: {"kind": "delta", "text": " an"}
+
+data: {"kind": "delta", "text": " accurate"}
+
+data: {"kind": "delta", "text": " answer"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " I"}
+
+data: {"kind": "delta", "text": " would"}
+
+data: {"kind": "delta", "text": " need"}
+
+data: {"kind": "delta", "text": " more"}
+
+data: {"kind": "delta", "text": " specific"}
+
+data: {"kind": "delta", "text": " or"}
+
+data: {"kind": "delta", "text": " relevant"}
+
+data: {"kind": "delta", "text": " data"}
+
+data: {"kind": "delta", "text": " from"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " tools"}
+
+data: {"kind": "delta", "text": "'"}
+
+data: {"kind": "delta", "text": " results"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "done", "usage": {"input_tokens": 5821, "output_tokens": 82, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

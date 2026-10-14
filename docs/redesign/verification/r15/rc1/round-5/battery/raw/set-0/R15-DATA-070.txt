@@ -1,0 +1,9 @@
+$ in-process: services.news_provider._parse_struct_time / _parse_iso, sort key, NewsFeedPanel.tsx grep
+parse_struct_time(None): None
+parse_struct_time(malformed): None
+parse_iso(None): None
+parse_iso("not-a-date"): None
+--- sort key source ---
+470:    dated.sort(key=lambda item: item.published_at, reverse=True)
+--- NewsFeedPanel.tsx date unknown ---
+28:    return "date unknown";

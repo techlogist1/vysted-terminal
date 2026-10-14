@@ -1,0 +1,71 @@
+{
+ "tag": "intent-R1",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. A previous attempt at your chunk was killed by a usage wall: your two output files may already exist, partial or complete - verify every promise index in your range is covered and continue, never restart.",
+ "stages": [
+  {
+   "label": "verify",
+   "model": "opus",
+   "prompt": "Your task spec is the INTENT section of docs/redesign/verification/r15/tooling/PROMPT_census.md, with <source> = \"{{source}}\", <start> = {{start}}, <end> = {{end}}."
+  }
+ ],
+ "items": [
+  {
+   "id": "blueprint-0",
+   "source": "blueprint",
+   "start": 0,
+   "end": 48,
+   "model": "fable"
+  },
+  {
+   "id": "blueprint-48",
+   "source": "blueprint",
+   "start": 48,
+   "end": 96
+  },
+  {
+   "id": "blueprint-96",
+   "source": "blueprint",
+   "start": 96,
+   "end": 144,
+   "model": "fable"
+  },
+  {
+   "id": "blueprint-144",
+   "source": "blueprint",
+   "start": 144,
+   "end": 192
+  },
+  {
+   "id": "blueprint-240",
+   "source": "blueprint",
+   "start": 240,
+   "end": 288,
+   "model": "fable"
+  },
+  {
+   "id": "blueprint-288",
+   "source": "blueprint",
+   "start": 288,
+   "end": 333
+  },
+  {
+   "id": "deferred-0",
+   "source": "deferred",
+   "start": 0,
+   "end": 42
+  },
+  {
+   "id": "deferred-42",
+   "source": "deferred",
+   "start": 42,
+   "end": 84,
+   "model": "fable"
+  },
+  {
+   "id": "deferred-84",
+   "source": "deferred",
+   "start": 84,
+   "end": 124
+  }
+ ]
+}

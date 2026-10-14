@@ -1,0 +1,16 @@
+CMD: curl -s 'http://127.0.0.1:52361/history/BTC%2FUSDT?range=1mo' | jq '.bars|length'
+1mo bars: 0 first: None
+---
+CMD: curl -s 'http://127.0.0.1:52361/history/BTC%2FUSDT?range=1y'
+1y bars: 0 first: None
+---
+CMD: curl -s 'http://127.0.0.1:52361/history/BTC%2FUSDT?range=5y'
+5y bars: 0 first: None
+CMD: curl -s 'http://127.0.0.1:52361/history/BTC%2FUSDT?range=1mo&asset_class=crypto'
+1mo bars: 30 first: 2026-08-29T00:00:00Z last: 2026-09-27T00:00:00Z
+---
+CMD: curl -s 'http://127.0.0.1:52361/history/BTC%2FUSDT?range=1y&asset_class=crypto'
+1y bars: 365 first: 2025-09-28T00:00:00Z last: 2026-09-27T00:00:00Z
+---
+CMD: curl -s 'http://127.0.0.1:52361/history/BTC%2FUSDT?range=5y&asset_class=crypto'
+5y bars: 1826 first: 2021-09-28T00:00:00Z last: 2026-09-27T00:00:00Z

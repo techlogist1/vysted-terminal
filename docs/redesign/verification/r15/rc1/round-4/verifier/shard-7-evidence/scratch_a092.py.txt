@@ -1,0 +1,44 @@
+import sys
+sys.path.insert(0, "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-1006c6d-fix-int/sidecar/tests")
+from test_run_manager import _isolated, _patch, _await_terminal  # noqa
+from typing import Any
+import pytest
+from models.llm import LLMDoneEvent, LLMToolUseEvent, LLMUsage
+from models.run import RunBudget
+from services import agent_runtime, run_manager
+
+class TwoRounds:
+    """round 1: note A, small usage (dispatched). round 2: note B + over budget."""
+    def __init__(self, second=("write_note", {"scope": "MSFT", "text": "B"})):
+        self.n = 0; self.second = second
+    async def stream_chat(self, messages, model, api_key=None, **kw):
+        self.n += 1
+        if self.n == 1:
+            yield LLMToolUseEvent(tool_call_id="c1", name="write_note", input={"scope": "NVDA", "text": "A"})
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=10, output_tokens=0))
+        else:
+            yield LLMToolUseEvent(tool_call_id="c2", name=self.second[0], input=self.second[1])
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=100_000, output_tokens=0))
+
+async def _run(monkeypatch, prov, budget):
+    _patch(monkeypatch, prov)
+    dispatched = []
+    async def rec(tc, *_a, **_k):
+        dispatched.append(tc.name); return "{}"
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", rec)
+    rid = run_manager.launch_run(agent_id="copilot", prompt="x", api_key="sk", budget=budget)
+    return await _await_terminal(rid), dispatched
+
+@pytest.mark.asyncio
+async def test_second_round_halt_keeps_only_dispatched(monkeypatch):
+    row, d = await _run(monkeypatch, TwoRounds(), RunBudget(max_tokens=1000))
+    print("\nSTATUS", row.status, row.detail, "DISPATCHED", d, "HOST_ACTIONS", [a["input"] for a in row.host_actions], "BRIEF", row.brief if hasattr(row,'brief') else None)
+    assert row.status == "error"
+    assert [a["input"]["text"] for a in row.host_actions] == ["A"]
+
+@pytest.mark.asyncio
+async def test_halted_round_publish_brief_not_delivered(monkeypatch):
+    prov = TwoRounds(second=("publish_brief", {"symbol": "MSFT", "title": "halted brief", "markdown": "x"}))
+    row, d = await _run(monkeypatch, prov, RunBudget(max_tokens=1000))
+    out = getattr(row, "output", None)
+    print("\nSTATUS", row.status, "DISPATCHED", d, "ROW FIELDS", {k: v for k, v in row.model_dump().items() if k in ("brief", "output", "host_actions")})

@@ -1,0 +1,7 @@
+CMD: sed -n '10,15p' src/lib/csv.ts (R15-UI-079: still no leading-quote guard against =/+/-/@ cells)
+/** Escape a single CSV cell value per RFC-4180. */
+export function escapeCsvCell(value: unknown): string {
+  const s = value === null || value === undefined ? "" : String(value);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+

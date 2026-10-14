@@ -1,0 +1,20 @@
+=== theta test (binomial vs black-scholes) ===
+CMD: curl -sS POST /quant/option/price method=binomial theta
+{"price":9.207288976593283,"greeks":{"delta":0.5416604279820971,"gamma":0.018400424035197448,"vega":30.58868827193173,"theta":-39.81283030161026,"rho":13.556118357033498},"method":"binomial","monte_carlo_std_error":null,"duration_ms":9.166000003460795}
+CMD: curl -sS POST /quant/option/price method=black-scholes theta
+{"price":9.218050578290278,"greeks":{"delta":0.54171127689196,"gamma":0.018330777419155803,"vega":30.626962469309518,"theta":-39.680656494131796,"rho":13.556518808787224},"method":"black-scholes","monte_carlo_std_error":null,"duration_ms":1.68283301172778}
+=== gamma test across step counts, S=K=100 r=0.05 q=0 vol=0.2 1y ===
+steps=50:
+{"price":10.409441140459666,"greeks":{"delta":0.636145065453213,"gamma":0.019085937465474736,"vega":37.338583366550715,"theta":-6.477440763344924,"rho":53.148031673601714},"method":"binomial","monte_carlo_std_error":null,"duration_ms":0.3499999875202775}
+steps=100:
+{"price":10.429985954348728,"greeks":{"delta":0.6364873579700384,"gamma":0.018922315820500468,"vega":37.43080774267522,"theta":-6.4454006562397455,"rho":53.189248233566566},"method":"binomial","monte_carlo_std_error":null,"duration_ms":0.36466598976403475}
+steps=200:
+{"price":10.440278278758278,"greeks":{"delta":0.6366588814540495,"gamma":0.018841757737137643,"vega":37.477010828635215,"theta":-6.4296320407667595,"rho":53.20988991810918},"method":"binomial","monte_carlo_std_error":null,"duration_ms":0.43508398812264204}
+steps=201:
+{"price":10.458996572694451,"greeks":{"delta":0.6365191038517825,"gamma":0.018796769258958346,"vega":37.57549188046099,"theta":-6.418999542422752,"rho":53.177275278921066},"method":"binomial","monte_carlo_std_error":null,"duration_ms":0.42500003473833203}
+steps=500:
+{"price":10.44645991346572,"greeks":{"delta":0.6367619139918506,"gamma":0.01879381620275681,"vega":37.50476114066572,"theta":-6.420249814844227,"rho":53.22228553661699},"method":"binomial","monte_carlo_std_error":null,"duration_ms":0.7816670113243163}
+black-scholes gamma control:
+{"price":10.450583572185575,"greeks":{"delta":0.6368306511756195,"gamma":0.018762017345846885,"vega":37.52403469169378,"theta":-6.4140275464382,"rho":53.23248154537636},"method":"black-scholes","monte_carlo_std_error":null,"duration_ms":0.09187503019347787}
+=== american put theta ===
+{"price":6.0865145861658005,"greeks":{"delta":-0.4113376613302376,"gamma":0.023058929246604003,"vega":37.456483084183745,"theta":-2.250771813355206,"rho":-30.198140681744245},"method":"binomial","monte_carlo_std_error":null,"duration_ms":1.0796249844133854}

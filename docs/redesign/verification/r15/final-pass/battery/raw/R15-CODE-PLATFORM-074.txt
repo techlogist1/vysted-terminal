@@ -1,0 +1,19 @@
+# R15-CODE-PLATFORM-074 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:23+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- tests::clear_mcp_endpoint_file_removes_existing src-tauri/src/lib.rs | head -3; test -f src-tauri/src/lib.rs || echo 'MISSING src-tauri/src/lib.rs'
+[exit 0] [0.01s]
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-PLATFORM-074\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+
+
+$ (follow-up) grep -rn 'fn write_atomic_round_trip_leaves_no_tmp\|fn clear_mcp_endpoint_file_removes_existing\|fn smoke_bind_budget_matches_supervisor' src-tauri/src
+src-tauri/src/lib.rs:891:    fn write_atomic_round_trip_leaves_no_tmp() {
+src-tauri/src/lib.rs:941:    fn clear_mcp_endpoint_file_removes_existing() {
+src-tauri/src/lib.rs:1119:    fn smoke_bind_budget_matches_supervisor() {

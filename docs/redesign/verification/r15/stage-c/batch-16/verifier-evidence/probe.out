@@ -1,0 +1,48 @@
+== AGENT-090 fresh guarded (expect REPLACED)
+REPLACED 'One ADS equals 3 series B preferred shares. '
+REPLACED 'Each ADS represents 6 underlying class A shares. '
+REPLACED 'Each ADR represents 8 restricted voting shares. '
+REPLACED 'Each ADS is equivalent to 2 class A common shares. '
+REPLACED 'Each ADR represents 4 new equity shares. '
+REPLACED 'Each ADS represents 6 fully paid class A shares. '
+REPLACED 'Each ADS represents 5 Series A shares. '
+REPLACED 'Each ADS represents 2 A shares. '
+REPLACED 'Each ADS represents 10 non-voting shares. '
+REPLACED 'Each ADR corresponds to 6 class A ordinary shares. '
+REPLACED 'One SIFY ADS = 6 class A shares. '
+REPLACED 'Each ADS represents 12 ordinary shares of class A. '
+== AGENT-090 kept (expect KEPT)
+KEPT     "SIFY's ADSs each gained 3 points in 2024. "
+KEPT     'There are 3 analyst ratings on the ADS. '
+KEPT     'The ADS fell 4 percent over 2 sessions. '
+KEPT     'Revenue was ₹4,651 cr. '
+KEPT     'Each ADR closed at 5.20 USD on Friday. '
+== AGENT-090 traced lower-case source (expect KEPT)
+KEPT 'Each ADS represents 10 class A ordinary shares. '
+REPLACED(good) 'Each ADS represents 8 class A ordinary shares. '
+== LEAD-030 citation guard; ok_tools={'fundamentals'}
+REPLACED ['fundamentals'] '- price_data returned: [{"close": 12.3}]\nNext line. ' -> 'The price_data tool returned no data for this in this session.\nNext line. '
+REPLACED [] '- price_data returned: [{"close": 12.3}]\nNext line. ' -> 'The price_data tool returned no data for this in this session.\nNext line. '
+REPLACED ['fundamentals'] 'According to `news`, revenue was $5 bn. ' -> 'The news tool returned no data for this in this session. '
+REPLACED [] 'According to `news`, revenue was $5 bn. ' -> 'The news tool returned no data for this in this session. '
+REPLACED ['fundamentals'] 'The financial_statements output shows revenue of ₹4,411 cr. ' -> 'The financial_statements tool returned no data for this in this session. '
+REPLACED [] 'The financial_statements output shows revenue of ₹4,411 cr. ' -> 'The financial_statements tool returned no data for this in this session. '
+KEPT     ['fundamentals'] 'fundamentals returned revenue of $1.3 bn. ' -> 'fundamentals returned revenue of $1.3 bn. '
+REPLACED [] 'fundamentals returned revenue of $1.3 bn. ' -> 'The fundamentals tool returned no data for this in this session. '
+KEPT     ['fundamentals'] 'The quote tool shows the price at $12.30. ' -> 'The quote tool shows the price at $12.30. '
+KEPT     [] 'The quote tool shows the price at $12.30. ' -> 'The quote tool shows the price at $12.30. '
+KEPT     ['fundamentals'] 'Per the tool output, revenue was $1.3 bn. ' -> 'Per the tool output, revenue was $1.3 bn. '
+REPLACED [] 'Per the tool output, revenue was $1.3 bn. ' -> 'No tool returned data for this in this session. '
+KEPT     ['fundamentals'] "I'll call `price_data` next. " -> "I'll call `price_data` next. "
+KEPT     [] "I'll call `price_data` next. " -> "I'll call `price_data` next. "
+KEPT     ['fundamentals'] 'Let me look up the fundamentals data for SIFY. ' -> 'Let me look up the fundamentals data for SIFY. '
+REPLACED [] 'Let me look up the fundamentals data for SIFY. ' -> 'The fundamentals tool returned no data for this in this session. '
+REPLACED ['fundamentals'] 'Let me fetch the `financial_statements` data for SIFY. ' -> 'The financial_statements tool returned no data for this in this session. '
+REPLACED [] 'Let me fetch the `financial_statements` data for SIFY. ' -> 'The financial_statements tool returned no data for this in this session. '
+KEPT     ['fundamentals'] 'I will use the price_data tool to get the latest price. ' -> 'I will use the price_data tool to get the latest price. '
+KEPT     [] 'I will use the price_data tool to get the latest price. ' -> 'I will use the price_data tool to get the latest price. '
+REPLACED ['fundamentals'] "Next I'll check the news data for any sentiment. " -> 'The news tool returned no data for this in this session. '
+REPLACED [] "Next I'll check the news data for any sentiment. " -> 'The news tool returned no data for this in this session. '
+KEPT     ['fundamentals'] 'The fundamentals tool shows revenue of $1320 m. ' -> 'The fundamentals tool shows revenue of $1320 m. '
+REPLACED [] 'The fundamentals tool shows revenue of $1320 m. ' -> 'The fundamentals tool returned no data for this in this session. '
+1

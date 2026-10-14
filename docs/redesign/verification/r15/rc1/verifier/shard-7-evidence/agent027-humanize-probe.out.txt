@@ -1,0 +1,24 @@
+openai     429 | insufficient_credit | Your OpenAI account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings. 
+openai     429 | insufficient_credit | Your OpenAI account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings. 
+openai     400 | context_overflow | The conversation is too long for this OpenAI model. | Start a new chat or pick a model with a larger context window. 
+groq       413 | context_overflow | The conversation is too long for this Groq model. | Start a new chat or pick a model with a larger context window. 
+ollama     ConnectError | ollama_not_running | Ollama is not running. | Start Ollama (open the app or run `ollama serve`), then try again. 
+ollama     ReadTimeout | ollama_not_running | Ollama is not responding. | Make sure Ollama is running (`ollama serve`), then try again. 
+gemini     400 | auth | The Google Gemini API key was rejected — check it in Settings. | Re-enter the API key in Settings. 
+xai        400 | auth | The xAI API key was rejected — check it in Settings. | Re-enter the API key in Settings. 
+openrouter 400 | model_not_found | The requested model is not available on OpenRouter — pick another model. | Choose a different model in Settings. 
+openrouter 429 | free_pool_busy | OpenRouter's free-model pool is busy right now. | Try again shortly, or pick a paid model in Settings. 
+gemini     400 | context_overflow | The conversation is too long for this Google Gemini model. | Start a new chat or pick a model with a larger context window. 
+groq       400 | model_not_found | The requested model is not available on Groq — pick another model. | Choose a different model in Settings. 
+xai        403 | insufficient_credit | Your xAI account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings. 
+anthropic  400 | insufficient_credit | Your Anthropic account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings. 
+mistral    401 | auth | The mistral API key was rejected — check it in Settings. | Re-enter the API key in Settings. 
+deepseek   402 | provider_402 | Your DeepSeek balance is empty — top up or switch provider in Settings. | Top up at platform.deepseek.com or pick a different provider in Settings. 
+openai     404 | model_not_found | The requested model is not available on OpenAI — pick another model. | Choose a different model in Settings. 
+groq       429 | insufficient_credit | Your Groq account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings. 
+gemini     429 | insufficient_credit | Your Google Gemini account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings. 
+anthropic  400 | context_overflow | The conversation is too long for this Anthropic model. | Start a new chat or pick a model with a larger context window. 
+mistral    400 | context_overflow | The conversation is too long for this mistral model. | Start a new chat or pick a model with a larger context window. 
+deepseek   400 | context_overflow | The conversation is too long for this DeepSeek model. | Start a new chat or pick a model with a larger context window. 
+ollama     ConnectTimeout | ollama_not_running | Ollama is not responding. | Make sure Ollama is running (`ollama serve`), then try again. 
+openrouter 400 | context_overflow | The conversation is too long for this OpenRouter model. | Start a new chat or pick a model with a larger context window. 

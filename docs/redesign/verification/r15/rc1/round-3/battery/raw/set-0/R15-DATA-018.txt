@@ -1,0 +1,140 @@
+=== R15-DATA-018 GET /resolve?q=zomato&region=IN ===
+{
+    "ok": true,
+    "query": "zomato",
+    "region": "IN",
+    "resolved": {
+        "symbol": "ETERNAL",
+        "name": "ETERNAL LIMITED",
+        "exchange": "NSE",
+        "region": "IN",
+        "asset_class": "equity",
+        "yahoo_symbol": "ETERNAL.NS",
+        "confidence": 1.0,
+        "isin": "INE758T01015",
+        "bse_code": "543320",
+        "industry": "Consumer Services / E-Retail/ E-Commerce",
+        "former_name": "ZOMATO",
+        "board": "mainboard",
+        "exchange_group": "A",
+        "face_value": 1.0,
+        "rename": {
+            "renamed_from": "ZOMATO",
+            "renamed_to": "ETERNAL",
+            "effective_date": "2025-04-09",
+            "note": "ZOMATO was renamed to ETERNAL on NSE (effective 2025-04-09); the resolver answers the current symbol."
+        }
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+        {
+            "symbol": "ETERNAL",
+            "name": "ETERNAL LIMITED",
+            "exchange": "NSE",
+            "region": "IN",
+            "asset_class": "equity",
+            "yahoo_symbol": "ETERNAL.NS",
+            "confidence": 1.0,
+            "isin": "INE758T01015",
+            "bse_code": "543320",
+            "industry": "Consumer Services / E-Retail/ E-Commerce",
+            "former_name": "ZOMATO",
+            "board": "mainboard",
+            "exchange_group": "A",
+            "face_value": 1.0,
+            "rename": {
+                "renamed_from": "ZOMATO",
+                "renamed_to": "ETERNAL",
+                "effective_date": "2025-04-09",
+                "note": "ZOMATO was renamed to ETERNAL on NSE (effective 2025-04-09); the resolver answers the current symbol."
+            }
+        }
+    ],
+    "rename_lane": "available"
+}
+=== GET /resolve?q=ZOMATO ===
+{
+    "ok": true,
+    "query": "ZOMATO",
+    "region": "IN",
+    "resolved": {
+        "symbol": "ETERNAL",
+        "name": "ETERNAL LIMITED",
+        "exchange": "NSE",
+        "region": "IN",
+        "asset_class": "equity",
+        "yahoo_symbol": "ETERNAL.NS",
+        "confidence": 1.0,
+        "isin": "INE758T01015",
+        "bse_code": "543320",
+        "industry": "Consumer Services / E-Retail/ E-Commerce",
+        "former_name": "ZOMATO",
+        "board": "mainboard",
+        "exchange_group": "A",
+        "face_value": 1.0,
+        "rename": {
+            "renamed_from": "ZOMATO",
+            "renamed_to": "ETERNAL",
+            "effective_date": "2025-04-09",
+            "note": "ZOMATO was renamed to ETERNAL on NSE (effective 2025-04-09); the resolver answers the current symbol."
+        }
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+        {
+            "symbol": "ETERNAL",
+            "name": "ETERNAL LIMITED",
+            "exchange": "NSE",
+            "region": "IN",
+            "asset_class": "equity",
+            "yahoo_symbol": "ETERNAL.NS",
+            "confidence": 1.0,
+            "isin": "INE758T01015",
+            "bse_code": "543320",
+            "industry": "Consumer Services / E-Retail/ E-Commerce",
+            "former_name": "ZOMATO",
+            "board": "mainboard",
+            "exchange_group": "A",
+            "face_value": 1.0,
+            "rename": {
+                "renamed_from": "ZOMATO",
+                "renamed_to": "ETERNAL",
+                "effective_date": "2025-04-09",
+                "note": "ZOMATO was renamed to ETERNAL on NSE (effective 2025-04-09); the resolver answers the current symbol."
+            }
+        }
+    ],
+    "rename_lane": "available"
+}
+=== GET /resolve/autocomplete?q=ZOMATO ===
+{
+    "query": "ZOMATO",
+    "region": "IN",
+    "candidates": [
+        {
+            "symbol": "ETERNAL",
+            "name": "ETERNAL LIMITED",
+            "exchange": "NSE",
+            "region": "IN",
+            "asset_class": "equity",
+            "yahoo_symbol": "ETERNAL.NS",
+            "confidence": 1.0,
+            "isin": "INE758T01015",
+            "bse_code": "543320",
+            "industry": "Consumer Services / E-Retail/ E-Commerce",
+            "former_name": "ZOMATO",
+            "board": "mainboard",
+            "exchange_group": "A",
+            "face_value": 1.0,
+            "rename": {
+                "renamed_from": "ZOMATO",
+                "renamed_to": "ETERNAL",
+                "effective_date": "2025-04-09",
+                "note": "ZOMATO was renamed to ETERNAL on NSE (effective 2025-04-09); the resolver answers the current symbol."
+            }
+        }
+    ]
+}
+=== GET /quotes/ZOMATO.NS ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP:404

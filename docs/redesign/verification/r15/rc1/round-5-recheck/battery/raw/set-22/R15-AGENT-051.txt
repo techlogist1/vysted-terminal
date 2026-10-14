@@ -1,0 +1,7 @@
+command: .venv/bin/python3 -c "from services.agent_runtime import _render_terminal_preamble; ..." with a synthetic TerminalState: two chart panels ('chart-a' TSLA, 'chart-b' INFY), focusedPanel='chart-b', focusedSymbol='INFY'
+## What the user is looking at
+Focused chart: INFY (1d, no indicators).
+When the user says "this" or "it", they mean INFY unless they name another symbol. Never invent figures — call a tool to fetch them.
+---
+PASS: preamble names INFY as Focused chart, matching focusedSymbol
+exit: 0

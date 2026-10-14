@@ -1,0 +1,5 @@
+# 2026-10-04T14:49:58Z GET http://127.0.0.1:51019/portfolio/positions (my app's sidecar; cross-check only)
+rows 84
+flagged 2 AAPL 1000000000000000.0 1e-08
+flagged 3 AAPL -50.0 -10.0
+flagged 4 AAPL 1000000000000000.0 1e-08

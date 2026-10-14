@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<string>", line 20, in <module>
+    print('yield_input', yld, '-> dividend_yield', f.dividend_yield, 'meta', f.field_meta.get('dividend_yield'))
+                                                                             ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'
+yield_input 1.5 -> dividend_yield None meta status='withheld' provider='yahoo-v7-batch' as_of=None reason='a dividend yield of 150.00% exceeds the plausible fraction bound of 25% — an ambiguous-unit value; withheld' label=None basis_note=None
+yield_input 0.9 -> dividend_yield None meta status='withheld' provider='yahoo-v7-batch' as_of=None reason='a dividend yield of 90.00% exceeds the plausible fraction bound of 25% — an ambiguous-unit value; withheld' label=None basis_note=None
+yield_input 0.03 -> dividend_yield 0.03 field_meta type <class 'NoneType'>
+field_meta repr None

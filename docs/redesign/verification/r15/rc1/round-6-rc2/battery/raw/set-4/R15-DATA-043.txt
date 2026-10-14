@@ -1,0 +1,7 @@
+CMD: POST /screener/run universe=custom [AAPL,RELIANCE.NS,MSFT,TCS.NS]
+{'universe': 'custom', 'evaluated_count': 4, 'skipped_count': 0, 'skip_details': [], 'result_count': 4, 'matched_count': 4, 'duration_ms': 18711.433749995194, 'partial': False, 'coverage': 'screened 4 of 4 — 0 unavailable · spans INR, USD — ranked within each currency', 'freshness': {'quotes_as_of': 1790986865.718656, 'valuation_as_of': 1790986865.718647, 'deep_as_of': 1790986865.717338}, 'basis_counts': {'live': 4}, 'throttled': False}
+{'symbol': 'RELIANCE.NS', 'market_cap': 15801867304960.0, 'price': 1167.7, 'currency': 'INR'}
+{'symbol': 'TCS.NS', 'market_cap': 7507531530240.0, 'price': 2075.0, 'currency': 'INR'}
+{'symbol': 'AAPL', 'market_cap': 4869931925504.0, 'price': 333.69, 'currency': 'USD'}
+{'symbol': 'MSFT', 'market_cap': 3842942959616.0, 'price': 517.53, 'currency': 'USD'}
+EXIT=0

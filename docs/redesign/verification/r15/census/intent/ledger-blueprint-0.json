@@ -1,0 +1,482 @@
+[
+ {
+  "pid": "INT-BP-1",
+  "promise": "Vysted Terminal is an open-source AI-native finance terminal.",
+  "source": "TL;DR (L14)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "README.md:1-4 (\"Source-available, AI-native desktop finance terminal\"), LICENSING.md:1-3, package.json:4 (license: SEE LICENSE IN LICENSE), BLUEPRINT.md:14 (TL;DR already reads \"source-available\")",
+  "gap": "Substance holds; the literal word \"open-source\" in this promise's source text predates D83 and is corrected to \"source-available\" everywhere checked (D83's own note: 'open-source -> source-available everywhere it is a current-fact claim').",
+  "decision_ref": "docs/redesign/DECISIONS.md:143 (D83 \u2014 core relicensed AGPL-3.0 -> PolyForm Strict 1.0.0 in commit 0c63d46, operator Tier-4 sign-off 23 Sep)"
+ },
+ {
+  "pid": "INT-BP-2",
+  "promise": "Vysted Terminal offers Bloomberg-level data coverage.",
+  "source": "TL;DR (L14)",
+  "kind": "quality-bar",
+  "status": "partial",
+  "evidence": "sidecar/openbb_mcp_subprocess/, sidecar/services/openbb_mcp_provider.py, src/modules/equity-overview, src/modules/sec, src/modules/screener give real multi-provider breadth",
+  "gap": "\"Bloomberg-level\" is a quality bar, not a binary capability; per-provider/per-symbol depth and reliability is the dedicated subject of the parallel data-quality census sweep (census/raw/data-*.json) and is not re-litigated in this chunk to avoid duplicate findings.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-3",
+  "promise": "Vysted Terminal offers TradingView-killer charting.",
+  "source": "TL;DR (L14)",
+  "kind": "quality-bar",
+  "status": "partial",
+  "evidence": "package.json: lightweight-charts 5.2.0; src/modules/chart; CURRENT_STATE.md:110 (\"50 server-computed indicators + 10 drawing tools\")",
+  "gap": "\"TradingView-killer\" is a comparative quality bar owned by the dedicated UI/chart census surface, not re-graded here to avoid duplicate findings.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-4",
+  "promise": "Vysted Terminal offers JARVIS-style AI sandboxability.",
+  "source": "TL;DR (L14)",
+  "kind": "quality-bar",
+  "status": "delivered",
+  "evidence": "sidecar/agents/*.json (13 first-party agents), sidecar/services/agent_runtime.py, src/modules/agent-builder/AgentBuilderPanel.tsx (Custom Agent Builder), sidecar/services/mcp_server.py (external tool exposure)",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-5",
+  "promise": "Vysted Terminal is a desktop app that runs locally.",
+  "source": "TL;DR (L14)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "Tauri desktop shell (src-tauri/), sidecar bound to 127.0.0.1 only (COMMON.md, sidecar/app.py)",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-6",
+  "promise": "Vysted Terminal is bring-your-own-keys (BYOK) for AI providers.",
+  "source": "TL;DR (L14)",
+  "kind": "guarantee",
+  "status": "delivered",
+  "evidence": "sidecar/services/llm/{anthropic,gemini,groq,ollama,openai}.py + openrouter_catalog.py; src-tauri/src/keychain.rs (OS keychain BYOK secret storage)",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-7",
+  "promise": "Tradesa V2 is the first plugin, proving the platform architecture.",
+  "source": "TL;DR (L14)",
+  "kind": "use-case",
+  "status": "dropped",
+  "evidence": "plugins/ now contains only brokers, example, openbb-mcp, vysted-lenses, vysted-news, yfinance \u2014 no tradesa-v2 dir; git log shows 9aaa64f \"remove Tradesa V2 plugin and all references\" and 183c52f \"complete Tradesa V2 removal\"",
+  "gap": "",
+  "decision_ref": "docs/redesign/DECISIONS.md:84 (D44 \u2014 Tradesa V2 removed completely; plugin SYSTEM survives and is re-proven post-strip)"
+ },
+ {
+  "pid": "INT-BP-8",
+  "promise": "Product identity is a 'finance sandbox' \u2014 modular, plug-and-play, infinitely extensible by users and plugins.",
+  "source": "TL;DR (L16)",
+  "kind": "quality-bar",
+  "status": "delivered",
+  "evidence": "types/plugin.ts (VystedPlugin contract), src/modules/plugin-manager, src/modules/marketplace, src/lib/workspace.ts (module toggles + workspace export/share)",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-9",
+  "promise": "Positioning: an open, extensible alternative to closed financial terminals, combining Bloomberg-level coverage and AI-native research with a plugin architecture as the core differentiator.",
+  "source": "TL;DR (L18)",
+  "kind": "quality-bar",
+  "status": "delivered",
+  "evidence": "README.md:1-11 positioning language matches; plugin architecture intact (types/plugin.ts, plugins/) modulo the Tradesa-specific example",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-10",
+  "promise": "v1.0 scope includes ~38 modules.",
+  "source": "TL;DR (L20)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "src/modules/index.ts:3-27 registers 22 first-party modules (agent-builder, backtest, broker-connect, chart, chat, equity-overview, marketplace, news, node-editor, platform, plugin-manager, portfolio, research, safety, watchlist, macro, sec, earnings, analyst-ratings, quant, screener, notes); docs/CURRENT_STATE.md:561 separately (and itself possibly stale) counts 18",
+  "gap": "~38 modules promised at TL;DR (L20); 22 are actually registered \u2014 a real ~42% shortfall against the stated v1.0 module-count scope, not explained by any recorded decision.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-11",
+  "promise": "v1.0 scope includes 12 AI agents.",
+  "source": "TL;DR (L20)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/agents/*.json = 13 first-party agent specs (munger, marks, strategy_critic, dalio, buffett, graham, soros, klarman, copilot, lynch, portfolio_advisor, researcher, druckenmiller); sidecar/tests/test_agent_runtime.py:95,212 and test_agents_router.py:41 and test_mcp_server.py:132 all assert len==13",
+  "gap": "13 delivered >= 12 promised.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-12",
+  "promise": "v1.0 scope includes a full plugin architecture.",
+  "source": "TL;DR (L20)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "types/plugin.ts (258 lines, VystedPlugin contract), plugins/{brokers,example,openbb-mcp,vysted-lenses,vysted-news,yfinance}, src/modules/plugin-manager, src/modules/marketplace",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-13",
+  "promise": "v1.0 scope includes an MCP server.",
+  "source": "TL;DR (L20)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/services/mcp_server.py, sidecar/routers/mcp.py:21-25 (APIRouter), sidecar/tests/test_mcp_server.py, test_mcp_catalog_parity.py",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-14",
+  "promise": "v1.0 scope includes a node editor for workflow automation.",
+  "source": "TL;DR (L20)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/modules/node-editor, package.json:@xyflow/react 12.10.2",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-15",
+  "promise": "v1.0 scope includes a backtest engine.",
+  "source": "TL;DR (L20)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/modules/backtest, sidecar/services/backtest_engine.py:1-10 (custom event-driven engine), sidecar/services/backtest_strategies.py, sidecar/routers/backtest.py",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-16",
+  "promise": "v1.0 scope includes the Tradesa V2 plugin shipped.",
+  "source": "TL;DR (L20)",
+  "kind": "capability",
+  "status": "dropped",
+  "evidence": "same as INT-BP-7 \u2014 plugins/ has no tradesa-v2 dir, git log 9aaa64f/183c52f",
+  "gap": "",
+  "decision_ref": "docs/redesign/DECISIONS.md:84 (D44 \u2014 Tradesa V2 removed completely; plugin SYSTEM survives and is re-proven post-strip)"
+ },
+ {
+  "pid": "INT-BP-17",
+  "promise": "Launch budget is $0.",
+  "source": "TL;DR (L22)",
+  "kind": "guarantee",
+  "status": "delivered",
+  "evidence": "README.md:3-4 (\"No account, no hosted backend, no telemetry\"); fully local sidecar + BYOK architecture implies zero recurring infra cost",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-18",
+  "promise": "An upgrade path is defined for when revenue/business interest justifies it.",
+  "source": "TL;DR (L22)",
+  "kind": "deferred-item",
+  "status": "delivered",
+  "evidence": "docs/BLUEPRINT.md:386-389 (\"When revenue/business interest arrives\": Apple Developer Program, Store submissions) and :725-728 (hosted SaaS option, decided when revenue justifies it)",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-19",
+  "promise": "Org name is Vysted.",
+  "source": "\u00a71 (L28)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "package.json:1-2 (name vysted-terminal), README.md:1, docs/BLUEPRINT.md:5",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-20",
+  "promise": "Product name is Vysted Terminal (the flagship; future products plug under the org).",
+  "source": "\u00a71 (L29)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "README.md:1 (\"# Vysted Terminal\"), package.json name",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-21",
+  "promise": "vysted.com is the org/lab landing page.",
+  "source": "\u00a71 (L31)",
+  "kind": "capability",
+  "status": "missing",
+  "evidence": "curl https://vysted.com -> could not resolve host (exit 6, no DNS record); no reference in package.json/README/tauri.conf.json",
+  "gap": "Domain is described in BLUEPRINT.md:31 as the org/lab landing page but is not registered/live \u2014 pre-launch state, no product code or docs claim otherwise elsewhere.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-22",
+  "promise": "terminal.vysted.com is the Vysted Terminal product page + download.",
+  "source": "\u00a71 (L32)",
+  "kind": "capability",
+  "status": "missing",
+  "evidence": "curl https://terminal.vysted.com -> could not resolve host (exit 6, no DNS record)",
+  "gap": "Same as INT-BP-21 \u2014 product page + download domain is not live yet.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-23",
+  "promise": "Voice is research-lab style (Tauric Research, OpenBB, Anthropic) \u2014 serious, technical credibility.",
+  "source": "\u00a71 (L34)",
+  "kind": "quality-bar",
+  "status": "delivered",
+  "evidence": "README.md:1-11 tone (plain declarative, no marketing superlatives); BLUEPRINT.md:34 voice directive matches",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-24",
+  "promise": "Voice is explicitly not startup-pitch energy and not retail-app energy.",
+  "source": "\u00a71 (L34)",
+  "kind": "quality-bar",
+  "status": "delivered",
+  "evidence": "Same README/BLUEPRINT evidence as INT-BP-23 \u2014 no startup-pitch or retail-app copy found in top-level docs",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-25",
+  "promise": "Positioning: professional-grade market tooling has long been gated behind closed terminals and five-figure subscriptions; Vysted Terminal opens that ground with Bloomberg-level data coverage, AI-native research and workflow automation, and a plugin architecture that lets users and third parties extend the platform, for everyone who doesn't need exclusive institutional feeds.",
+  "source": "\u00a71 (L41)",
+  "kind": "quality-bar",
+  "status": "delivered",
+  "evidence": "README.md:1-4, BLUEPRINT.md:41 \u2014 positioning language matches current docs verbatim",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-26",
+  "promise": "Locked stack (UI): Tauri 2.x + Next.js 16 + TypeScript + Tailwind 4 + shadcn/ui.",
+  "source": "\u00a72 (L52)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "package.json:8 (\"dev\": \"vite\"), :82 (vite ^8.0.16); no \"next\" dependency anywhere in package.json; docs/redesign/DECISIONS.md:28 (D6) records a deliberate Vite migration",
+  "gap": "BLUEPRINT.md:52 (Locked Decisions table, \u00a72) and TL;DR framing still name \"Next.js 16\" as the locked UI stack; the actual shipped bundler is Vite per D6, and BLUEPRINT.md's own locked-stack line was never updated to reflect it (unlike the license line at :8/:58, which was corrected in place for D83). TypeScript, Tailwind 4 and shadcn/ui (components.json) all still hold.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-27",
+  "promise": "Locked stack (charts): lightweight-charts + react-flow + Framer Motion + Zustand.",
+  "source": "\u00a72 (L53)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "package.json: lightweight-charts 5.2.0, @xyflow/react 12.10.2, framer-motion 12.38.0, zustand 5.0.13",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-28",
+  "promise": "Locked backend: local Python sidecar (FastAPI on localhost).",
+  "source": "\u00a72 (L54)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/app.py:19,104,287 (FastAPI app factory, create_app())",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-29",
+  "promise": "Locked data layer: OpenBB ODP wrapped as a runtime sidecar (~100 providers).",
+  "source": "\u00a72 (L55)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "sidecar/requirements.txt:32-36 (\"openbb-mcp-server, packaged as a separate-process binary... The retired Phase-2 OpenBB Tier-2 plugin is gone in v0.4.0; its data surface is preserved through openbb-mcp\"); sidecar/services/openbb_mcp_provider.py, sidecar/openbb_mcp_subprocess/",
+  "gap": "BLUEPRINT.md:55 and :84 still describe OpenBB ODP as \"wrapped as a runtime sidecar\" (one in-process wrap). The delivered architecture is a separate openbb-mcp subprocess spawned over its own protocol boundary (per the CLAUDE.md sidecar gotcha on spawning port-owning subprocesses) \u2014 data breadth is preserved but the specific locked architecture description is stale.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-30",
+  "promise": "Locked AI: BYOK for all major LLM providers + local Ollama + 12 pre-built agents + Custom Agent Builder.",
+  "source": "\u00a72 (L56)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/services/llm/{anthropic,gemini,groq,ollama,openai}.py + openrouter_catalog.py (BYOK + local Ollama); sidecar/agents/*.json (13 agents); src/modules/agent-builder/AgentBuilderPanel.tsx (Custom Agent Builder)",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-31",
+  "promise": "Locked plugin architecture: full VystedPlugin contract; Tradesa V2 is plugin #1.",
+  "source": "\u00a72 (L57)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "types/plugin.ts (full VystedPlugin contract) delivered",
+  "gap": "The \"Tradesa V2 = plugin #1\" clause is dropped \u2014 see INT-BP-7/INT-BP-16.",
+  "decision_ref": "docs/redesign/DECISIONS.md:84 (D44 \u2014 Tradesa V2 removed completely; plugin SYSTEM survives and is re-proven post-strip)"
+ },
+ {
+  "pid": "INT-BP-32",
+  "promise": "Locked license: AGPL-3.0 + Commercial Dual License.",
+  "source": "\u00a72 (L58)",
+  "kind": "guarantee",
+  "status": "delivered",
+  "evidence": "LICENSE (PolyForm Strict 1.0.0), COMMERCIAL_LICENSE.md, LICENSING.md, package.json:4 (\"SEE LICENSE IN LICENSE\"), BLUEPRINT.md:8,58 (already updated in place to match)",
+  "gap": "Promise text (\"AGPL-3.0 + Commercial Dual License\") is the pre-relicense wording; current BLUEPRINT.md and the actual LICENSE agree with each other post-D83 \u2014 no drift between doc and code, only between this frozen promise snapshot and the edited doc.",
+  "decision_ref": "docs/redesign/DECISIONS.md:143 (D83 \u2014 core relicensed AGPL-3.0 -> PolyForm Strict 1.0.0 in commit 0c63d46, operator Tier-4 sign-off 23 Sep)"
+ },
+ {
+  "pid": "INT-BP-33",
+  "promise": "Locked OS targets: Windows + macOS + Linux at v1.0.",
+  "source": "\u00a72 (L59)",
+  "kind": "quality-bar",
+  "status": "delivered",
+  "evidence": ".github/workflows/build.yml matrix includes windows-latest/macos-latest/ubuntu-latest; src-tauri/tauri.conf.json:32 bundle targets [deb, appimage, nsis, app, dmg] cover all three OSes",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-34",
+  "promise": "Locked distribution: GitHub Releases + Tauri auto-updater + SignPath.io (Win, free OSS) + ad-hoc + bypass docs (Mac at $0 launch) + AppImage (Linux) + Homebrew cask.",
+  "source": "\u00a72 (L60)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "src-tauri/tauri.conf.json:32 (appimage target present); package.json :29 @tauri-apps/plugin-updater; src-tauri/Cargo.toml:30 tauri-plugin-updater",
+  "gap": "No release.yml workflow exists (only build.yml/lint.yml/test.yml) and no GitHub Releases have been published (gh release list: empty); build.yml:76 explicitly builds \"Tauri bundle (unsigned)\" \u2014 SignPath is named only in BLUEPRINT.md prose, zero hits in .github/workflows or scripts/ for \"signpath\"; no Homebrew cask formula exists anywhere in the repo. AppImage bundling and the updater plugin are the only pieces actually wired up.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-35",
+  "promise": "Locked customization: sandbox model \u2014 default layout + drag-drop + module toggles + workspace export/share, with NO role-based presets.",
+  "source": "\u00a72 (L61)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/lib/workspace.ts (serializeWorkspace/deserializeWorkspace, autosaveLayout), src/modules/index.ts module registry + enabledModules, PanelHost.tsx dockview drag-drop (CLAUDE.md dragDropEnabled:false gotcha)",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-36",
+  "promise": "Locked: MCP server is in v1.0.",
+  "source": "\u00a72 (L62)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "same as INT-BP-13",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-37",
+  "promise": "Locked: backtest engine is in v1.0 (Python sidecar).",
+  "source": "\u00a72 (L63)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "same as INT-BP-15",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-38",
+  "promise": "Locked: node editor is in v1.0 (react-flow).",
+  "source": "\u00a72 (L64)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "same as INT-BP-14",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-39",
+  "promise": "Locked broker execution: global broker support + execution in v1.0 \u2014 six brokers + ccxt crypto wrap, paper-mode default, shared safety layer (\u00a76.5).",
+  "source": "\u00a72 (L65)",
+  "kind": "capability",
+  "status": "dropped",
+  "evidence": "COMMON.md out-of-scope list: \"live broker order execution (1.0 roadmap; the agent never places, confirms or auto-applies an order)\"; CLAUDE.md Tier-1 note: \"broker order execution moves to deferred/out-of-scope\"",
+  "gap": "",
+  "decision_ref": "operator decision 23 Sep \u2014 trading removed from product"
+ },
+ {
+  "pid": "INT-BP-40",
+  "promise": "Web companion is deferred to v2.0+.",
+  "source": "\u00a72 (L66)",
+  "kind": "deferred-item",
+  "status": "delivered",
+  "evidence": "No web-companion code anywhere in src/ (Tauri-only desktop app); BLUEPRINT.md:66 documents the v2.0+ deferral explicitly",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-41",
+  "promise": "Hosted backend: none \u2014 fully local, BYOK.",
+  "source": "\u00a72 (L67)",
+  "kind": "guarantee",
+  "status": "delivered",
+  "evidence": "README.md:3-4 \"No account, no hosted backend, no telemetry\"; sidecar bound to 127.0.0.1 only",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-42",
+  "promise": "Rust layer provides the desktop shell (windowing, system tray, OS integration).",
+  "source": "\u00a73.1 (L77)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "src-tauri/src/lib.rs (window lifecycle, sidecar/MCP process spawn, keychain, kill-switch \u2014 OS integration and windowing are real and load-bearing)",
+  "gap": "No system tray: zero hits for \"tray\"/\"Tray\" in src-tauri/src/*.rs or tauri.conf.json, no trayIcon config. Windowing + OS integration hold; the named \"system tray\" sub-feature was never built.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-43",
+  "promise": "Rust layer provides file system access.",
+  "source": "\u00a73.1 (L78)",
+  "kind": "capability",
+  "status": "missing",
+  "evidence": "src-tauri/capabilities/default.json permissions = [core:default, global-shortcut:allow-is-registered, notification:default, shell:allow-open] \u2014 no fs:* permission; no tauri-plugin-fs / @tauri-apps/plugin-fs in Cargo.toml or package.json; src/modules/portfolio/PortfolioPanel.tsx:9,504 exports CSV via src/lib/csv.ts's downloadCsv (a webview Blob/anchor download), not a native Rust fs write",
+  "gap": "The one concrete file-writing feature in the product (CSV export) bypasses native fs entirely and goes through the browser download mechanism instead, because there is no Tauri fs capability granted to the main window.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-44",
+  "promise": "Rust layer provides secure key storage via OS keychain integration on each platform.",
+  "source": "\u00a73.1 (L79)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src-tauri/Cargo.toml:35 keyring 3 with [apple-native, windows-native, sync-secret-service, crypto-rust]; src-tauri/src/keychain.rs:1-15 (release-mode OS keychain path, dev-mode local keystore fallback documented and intentional)",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-45",
+  "promise": "Rust layer provides an auto-updater built into Tauri 2.x.",
+  "source": "\u00a73.1 (L80)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "package.json:29 @tauri-apps/plugin-updater 2.10.1; src-tauri/Cargo.toml:30 tauri-plugin-updater = \"2\"",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-46",
+  "promise": "Rust layer provides code signing pipeline integration (SignPath for Windows, ad-hoc for Mac).",
+  "source": "\u00a73.1 (L81)",
+  "kind": "capability",
+  "status": "missing",
+  "evidence": "grep -rli signpath .github/workflows scripts -> 0 hits; build.yml:76 builds an explicitly \"unsigned\" bundle; SignPath is mentioned only in docs/BLUEPRINT.md prose",
+  "gap": "No code-signing pipeline integration exists yet, for either Windows (SignPath) or Mac (ad-hoc release signing) \u2014 CI currently ships unsigned bundles. (Distinct from the macOS *dev*-signing setup in CLAUDE.md's keychain gotcha, which is a local dev-loop workaround, not a release pipeline.)",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-47",
+  "promise": "Python sidecar wraps OpenBB ODP, giving 100+ data providers (Polygon, FMP, FRED, Intrinio, Tiingo, ECB, FINRA, SEC, etc.).",
+  "source": "\u00a73.1 (L84)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "same architecture evidence as INT-BP-29: sidecar/requirements.txt:32-36, sidecar/openbb_mcp_subprocess/, sidecar/services/openbb_mcp_provider.py",
+  "gap": "Same drift as INT-BP-29 \u2014 data-provider breadth is preserved but delivered via a separate openbb-mcp subprocess, not an in-process ODP wrap as BLUEPRINT.md:84 still states.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-48",
+  "promise": "Python sidecar provides QuantLib via Python bindings (Black-Scholes, Binomial, Monte Carlo, VaR, Greeks, yield curves, duration/convexity, bond optimization).",
+  "source": "\u00a73.1 (L85)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/requirements.txt:75 QuantLib==1.42.1 (SWIG-wrapped C++ bindings, bundled in-process per :68-72 comment)",
+  "gap": "",
+  "decision_ref": ""
+ }
+]

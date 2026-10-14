@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_dd8c8ded0ae3421eb832d7df4956e472", "name": "news", "input": {"limit": 10, "symbols": ["AAPL"]}}
+[  38.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_dd8c8ded0ae3421eb832d7df4956e472", "name": "news", "ok": true, "error": null}
+[  48.7s] heartbeat: {"kind": "heartbeat"}
+[  69.0s] done: {"kind": "done", "usage": {"input_tokens": 5343, "output_tokens": 199, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+According to Yahoo! Finance, Apple stock was trading just below a buy point as it aimed to stretch a string of weekly wins. 
+According to Yahoo! Finance: AAPL News, Apple this month began selling its iPhone 18 Pro and Pro Max smartphones, prompting an optimistic price-target hike from Evercore ISI analyst Amit Daryanani, who reiterated his outperform rating on Apple stock and raised his price target to 380 from 365.
+According to Yahoo! Finance: AAPL News, Meta Platforms Inc. (NASDAQ:META) has overtaken Space Exploration Technologies Corp. (NASDAQ:SPCX) to become the world’s seventh-largest public company by market capitalization, as excitement builds around its new AI agent, Muse.
+According to Yahoo! Finance: AAPL News, Apple's Tim Cook, Nvidia's Jensen Huang, Tesla and SpaceX's Elon Musk, OpenAI's Sam Altman and other corporate leaders joined Donald Trump and Xi Jinping for a White House state dinner.
+
+=== ok · 69.0s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 204, 'done': 1} · usage in=5343 out=199 · est $0.00000 · llama3.1:8b

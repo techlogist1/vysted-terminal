@@ -1,0 +1,7 @@
+CMD: in-process construct GenerateContentConfig(tools=gemini_tools(all)) with real schemas, check for validation errors (full v2)
+tool_wrappers: 1 type of first elem: <class 'dict'>
+CONSTRUCT_OK: no validation errors
+total functions: 55
+has coupons_per_year tool: False
+has panels/arrange tool: True
+EXIT: 0

@@ -1,0 +1,49 @@
+R15-DOCS-005 -- BLUEPRINT module count vs src/modules/index.ts
+20:**v1.0 scope:** 20 modules shipped in 0.9 (see §4 for the full ~37-module v1.0 roadmap), 12 AI agents, full plugin architecture, MCP server, node editor for workflow automation, backtest engine. Trading (broker connectivity, order placement, simulated accounts) was removed permanently (D81, 23 Sep 2026).
+238:## 4. Module Catalog (20 shipped in 0.9.0; the full list below is the v1.0 roadmap, ~37 modules)
+249:5. Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred — R15-CODE-PLATFORM-025)
+322:- Drag-drop panel layout (resize, hide; pop-out to a second window is v1.0 roadmap — R15-CODE-PLATFORM-025)
+
+actual registered modules:
+2
+import type { VystedModule } from "@/lib/module-registry";
+
+import { agentBuilderModule } from "./agent-builder";
+import { backtestModule } from "./backtest";
+import { chartModule } from "./chart";
+import { chatModule } from "./chat";
+import { equityOverviewModule } from "./equity-overview";
+import { marketplaceModule } from "./marketplace";
+import { newsModule } from "./news";
+import { nodeEditorModule } from "./node-editor";
+import { platformModule } from "./platform";
+import { pluginManagerModule } from "./plugin-manager";
+import { portfolioModule } from "./portfolio";
+import { researchModule } from "./research";
+import { watchlistModule } from "./watchlist";
+// Phase 6 — uncomment per teammate at integration time. Each teammate owns
+// exactly one (or two) of the six entries below; the commented stubs land in
+// foundation so the per-teammate merge sees an additive-only diff.
+import { macroModule } from "./macro"; // Teammate M
+import { secFilingsModule } from "./sec"; // Teammate F
+import { earningsModule } from "./earnings"; // Teammate E
+import { analystRatingsModule } from "./analyst-ratings"; // Teammate E
+import { quantModule } from "./quant"; // Teammate Q
+import { screenerModule } from "./screener"; // Teammate Sc (lead-completed v0.6.1)
+import { notesModule } from "./notes"; // 003 rebuild — OS-for-finance research notes
+
+/**
+ * The complete first-party module registry. This file is intentionally complete
+ * — Phase 1.B teammates fill in their own module file under `src/modules/<id>/`
+ * and never edit this one, so parallel work never contends on it.
+ *
+ * Phase 2 adds `pluginManagerModule` (Teammate B) — it is a first-party
+ * module by virtue of being how the user sees the plugin runtime, even though
+ * what it surfaces is plugin-contributed.
+ *
+ * Phase 3 adds `agentBuilderModule` (Teammate C) — BLUEPRINT Module 36, the
+ * Custom Agent Builder. It is separate from the 12 first-party AI agents and
+ * lives here because it is a host-side authoring surface, not an agent itself.
+ *
+ * Phase 4 adds `nodeEditorModule` (Teammate N) — the visual workflow
+20 module imports confirmed above

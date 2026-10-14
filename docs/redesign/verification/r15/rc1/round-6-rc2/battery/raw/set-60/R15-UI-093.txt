@@ -1,0 +1,4 @@
+CMD: grep R15-UI-093 pinned test + implementation (candidate ace7dd76)
+225:  it("R15-UI-093: a quoted candidate renders description '[NMS: 227.1 +0.8%]'", async () => {
+src/modules/chat/mentions.test.ts
+EXIT=0

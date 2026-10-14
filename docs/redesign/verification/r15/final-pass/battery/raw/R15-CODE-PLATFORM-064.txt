@@ -1,0 +1,10 @@
+# R15-CODE-PLATFORM-064 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; ls scripts/render_phase_6_e_screenshots.py 2>&1; git ls-files | grep -c render_phase_6; grep -n -i 'render_phase_6\|deleted' docs/mockups/README* | head -3
+--- output ---
+ls: scripts/render_phase_6_e_screenshots.py: No such file or directory
+0
+26:Their generator scripts (`scripts/render_phase_6_e_screenshots.py`,
+27:`scripts/render_phase_6_sc_screenshots.py`) are deleted (R15-CODE-PLATFORM-064):
+
+EXIT=0 (0.0s)

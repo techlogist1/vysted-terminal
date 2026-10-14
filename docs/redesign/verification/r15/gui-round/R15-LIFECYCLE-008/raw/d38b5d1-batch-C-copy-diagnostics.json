@@ -1,0 +1,11 @@
+[
+{"cmd":"click","x":582,"y":467},
+{"cmd":"wait","seconds":4},
+{"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-008/d38b5d1-06-diagnostics-preview.png"},
+{"cmd":"click","x":570,"y":508},
+{"cmd":"wait","seconds":2},
+{"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-008/d38b5d1-07-after-copy-click.png"},
+{"cmd":"click","x":676,"y":467},
+{"cmd":"wait","seconds":2},
+{"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-008/d38b5d1-08-after-copy-fallback.png"}
+]

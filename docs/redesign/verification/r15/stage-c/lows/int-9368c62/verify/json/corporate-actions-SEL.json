@@ -1,0 +1,11 @@
+{
+ "symbol": "SEL",
+ "count": 0,
+ "actions": [],
+ "sources": [
+  "NSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": "BSE SEL is a different company; only the NSE feed is served"
+}

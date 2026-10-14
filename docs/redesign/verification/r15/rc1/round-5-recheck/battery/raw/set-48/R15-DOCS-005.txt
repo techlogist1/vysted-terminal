@@ -1,0 +1,6 @@
+COMMAND: cat src/modules/index.ts (count vystedModules[] entries); grep BLUEPRINT.md module-count lines
+EXIT: 0
+OUTPUT:
+vystedModules[] = 20 entries (chart, watchlist, news, portfolio, equityOverview, chat, research, platform, pluginManager, marketplace, agentBuilder, nodeEditor, backtest, macro, secFilings, quant, earnings, analystRatings, screener, notes)
+20:**v1.0 scope:** 20 modules shipped in 0.9 (see §4 for the full ~37-module v1.0 roadmap), 12 AI agents, full plugin architecture, MCP server, node editor for workflow automation, backtest engine. Trading (broker connectivity, order placement, simulated accounts) was removed permanently (D81, 23 Sep 2026).
+238:## 4. Module Catalog (20 shipped in 0.9.0; the full list below is the v1.0 roadmap, ~37 modules)

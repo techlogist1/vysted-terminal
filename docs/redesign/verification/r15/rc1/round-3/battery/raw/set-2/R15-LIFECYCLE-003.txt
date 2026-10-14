@@ -1,0 +1,80 @@
+=== R15-LIFECYCLE-003: autosaveLayout debounce/gate/single-flight ===
+958:      restoreSettled = true;
+1030:let restoreSettled = false;
+1031:let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
+1032:let autosaveInFlight = false;
+1033:let autosaveQueued = false;
+1046:export function autosaveLayout(): void {
+1047:  if (!restoreSettled) {
+1050:  if (autosaveTimer !== null) {
+1051:    clearTimeout(autosaveTimer);
+1053:  autosaveTimer = setTimeout(() => {
+1054:    autosaveTimer = null;
+1060:  if (autosaveInFlight) {
+1061:    autosaveQueued = true;
+1067:  autosaveInFlight = true;
+1090:    autosaveInFlight = false;
+1091:    if (autosaveQueued) {
+1092:      autosaveQueued = false;
+1109:  if (autosaveTimer !== null) {
+1110:    clearTimeout(autosaveTimer);
+1112:  autosaveTimer = null;
+1113:  restoreSettled = false;
+1114:  autosaveInFlight = false;
+1115:  autosaveQueued = false;
+ * no-op until the launch restore settles; debounced (trailing edge) so a burst
+ * of changes coalesces into one write, and single-flight so two saves never
+ * race each other to the sidecar — a change during a save queues one more.
+ * Best-effort: a transient sidecar failure is swallowed (the next change
+ * retries) and the active workspace name is left unchanged.
+ */
+export function autosaveLayout(): void {
+  if (!restoreSettled) {
+    return;
+  }
+  if (autosaveTimer !== null) {
+    clearTimeout(autosaveTimer);
+  }
+  autosaveTimer = setTimeout(() => {
+    autosaveTimer = null;
+    void flushAutosave();
+  }, AUTOSAVE_DEBOUNCE_MS);
+}
+
+async function flushAutosave(): Promise<void> {
+  if (autosaveInFlight) {
+    autosaveQueued = true;
+    return;
+  }
+  if (!useWorkspaceStore.getState().dockviewApi) {
+    return;
+  }
+  autosaveInFlight = true;
+  try {
+    const payload = buildWorkspacePayload(AUTOSAVE_LAYOUT_NAME);
+    const response = await fetch(await workspaceUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: AUTOSAVE_LAYOUT_NAME, workspace: payload }),
+    });
+    if (!response.ok) {
+      throw await sidecarFailure("Autosave failed", response);
+    }
+    autosaveFailures = 0;
+    useWorkspaceStore.getState().setLastAutosaveError(null);
+  } catch (error: unknown) {
+    // A transient failure retries on the next change; a run of them is shown
+    // (R15-CODE-FRONTEND-019) so the session never fails to save silently.
+    autosaveFailures += 1;
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[workspace] autosave failed (${autosaveFailures} in a row): ${message}`);
+    if (autosaveFailures >= AUTOSAVE_FAILURES_BEFORE_BADGE) {
+      useWorkspaceStore.getState().setLastAutosaveError(message);
+    }
+  } finally {
+    autosaveInFlight = false;
+    if (autosaveQueued) {
+      autosaveQueued = false;
+      void flushAutosave();
+    }
+  }

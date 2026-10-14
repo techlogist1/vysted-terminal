@@ -1,0 +1,8 @@
+=== openai with trailing space ===
+{"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+=== anthropic with trailing space ===
+{"ok":false,"reason":"invalid","detail":"Anthropic rejected this key."}
+=== groq with trailing space ===
+{"ok":false,"reason":"invalid","detail":"Groq rejected this key."}
+=== deepseek with trailing space ===
+{"ok":false,"reason":"invalid","detail":"DeepSeek rejected this key."}

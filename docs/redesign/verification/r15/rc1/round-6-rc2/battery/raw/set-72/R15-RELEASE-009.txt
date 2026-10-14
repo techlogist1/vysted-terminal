@@ -1,0 +1,20 @@
+COMMAND: grep smoke-test-sidecars.mjs MCP bind budget derivation + lib.rs MCP_PORT_WAIT_SECS/ATTEMPTS + pinned rust test tests::smoke_bind_budget_matches_supervisor
+EXIT: 0
+OUTPUT:
+53://        MCP_BIND_TIMEOUT_MS) — process-alive is not enough, the UC1
+115:// MCP bind budget — aligned with the Rust supervisor's MCP_PORT_WAIT_SECS(45) x
+116:// MCP_PORT_WAIT_ATTEMPTS(2) = 90s. A cold `_MEI*` extraction binds at ~34s
+118:const MCP_BIND_TIMEOUT_MS = 90_000;
+857: * its port within MCP_BIND_TIMEOUT_MS. The prior gate only checked "process
+880:  const { bound } = await _waitForBind(port, MCP_BIND_TIMEOUT_MS, () => exited);
+900:      `[smoke] ${name} did NOT bind 127.0.0.1:${port} within ${MCP_BIND_TIMEOUT_MS}ms ` +
+180:pub(crate) const MCP_PORT_WAIT_SECS: u64 = 45;
+184:/// unbounding startup — total worst case ~`MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS`.
+185:pub(crate) const MCP_PORT_WAIT_ATTEMPTS: u32 = 2;
+188:/// `MCP_PORT_WAIT_SECS`. Returns `true` on the first successful TCP connect.
+190:/// The total budget is `MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS`; the
+451:            MCP_PORT_WAIT_SECS,
+452:            MCP_PORT_WAIT_ATTEMPTS,
+456:                     {attempt}/{attempts} ({MCP_PORT_WAIT_SECS}s); cold PyInstaller \
+793:        SidecarStatus, MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS,
+1112:    fn smoke_bind_budget_matches_supervisor() {

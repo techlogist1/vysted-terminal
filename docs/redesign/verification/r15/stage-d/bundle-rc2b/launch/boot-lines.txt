@@ -1,0 +1,187 @@
+[openbb-mcp] not bound on 127.0.0.1:63296 after attempt 1/2 (45s); cold PyInstaller extraction may be slow — retrying.
+[sec-edgar-mcp] not bound on 127.0.0.1:63297 after attempt 1/2 (45s); cold PyInstaller extraction may be slow — retrying.
+[vysted] Python sidecar not up yet on port 63295 after attempt 1/6 (45s); cold PyInstaller extraction may be slow — retrying.
+[openbb-mcp] 
+[openbb-mcp] 
+[openbb-mcp] ╭──────────────────────────────────────────────────────────────────────────────╮
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+[openbb-mcp] │                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                                FastMCP 3.3.1                                 │
+[openbb-mcp] │                            https://gofastmcp.com                             │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] │                  🖥  Server:      OpenBB MCP, 3.3.1                           │
+[openbb-mcp] │                  🚀 Deploy free: https://horizon.prefect.io                  │
+[openbb-mcp] │                                                                              │
+[openbb-mcp] ╰──────────────────────────────────────────────────────────────────────────────╯
+[openbb-mcp] ╭──────────────────────────────────────────────────────────────────────────────╮
+[openbb-mcp] │                         🎉 Update available: 4.0.10                          │
+[openbb-mcp] │                      Run: pip install --upgrade fastmcp                      │
+[openbb-mcp] ╰──────────────────────────────────────────────────────────────────────────────╯
+[openbb-mcp] 
+[openbb-mcp] 
+[openbb-mcp] [10/03/26 23:48:18] INFO     Starting MCP server 'OpenBB MCP'   transport.py:301
+[openbb-mcp]                              with transport 'streamable-http'                   
+[openbb-mcp]                              on http://127.0.0.1:63296/mcp                      
+[openbb-mcp] INFO:     Started server process [27040]
+[openbb-mcp] INFO:     Waiting for application startup.
+[openbb-mcp] INFO:     Application startup complete.
+[openbb-mcp] INFO:     Uvicorn running on http://127.0.0.1:63296 (Press CTRL+C to quit)
+[openbb-mcp] subprocess healthy on 127.0.0.1:63296
+[sec-edgar-mcp] subprocess did not bind to 127.0.0.1:63297 within 45s x 2 attempts; treating as unavailable. /sec routes will 501. Check the bundled binary for a startup deadlock (Phase 8 finding UC1-sec-edgar-mcp-not-listening; Phase 9 residual: cold-boot bind latency — see BLOCKERS.md).
+[vysted] Python sidecar not up yet on port 63295 after attempt 2/6 (45s); cold PyInstaller extraction may be slow — retrying.
+[openbb-mcp] INFO:     127.0.0.1:64676 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64677 - "POST /mcp HTTP/1.1" 202 Accepted
+[openbb-mcp] INFO:     127.0.0.1:64678 - "GET /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64679 - "POST /mcp HTTP/1.1" 200 OK
+[vysted] Python sidecar healthy on 127.0.0.1:63295
+[vysted] wrote MCP endpoint discovery file "<scratch>/launch-rc2b-data/mcp-endpoint.json"
+[openbb-mcp] INFO:     127.0.0.1:64736 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ABB.BO"}}}
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64739 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64740 - "GET /health HTTP/1.1" 404 Not Found
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64744 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64745 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64746 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64747 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64748 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64752 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64753 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64754 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64755 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64756 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64757 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64758 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64759 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64760 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08BPB.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64761 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08BPB.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64762 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64763 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64765 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08DPR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64766 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08DPR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64767 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64768 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64770 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64771 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64772 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08MPR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64773 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08MPR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64774 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08QPD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64775 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08QPD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64776 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64777 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64778 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64779 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64780 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64781 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:64782 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64783 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64784 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64785 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64787 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64788 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64791 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64792 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64794 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64795 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64796 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64797 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64798 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64799 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64803 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64804 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64806 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64807 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64811 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64812 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64814 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64815 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64816 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64817 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64818 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64819 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64820 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64821 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64822 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64823 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64824 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64825 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64827 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64828 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64829 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64830 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64832 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64833 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64834 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64835 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64836 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64837 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64840 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64841 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64842 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64843 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64847 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64848 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64849 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64850 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64851 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64852 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64853 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64854 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64855 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64856 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64857 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64858 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64859 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64860 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64861 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64864 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64865 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64866 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64868 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64869 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64870 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64871 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64872 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64873 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64876 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64877 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64878 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64879 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64880 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64881 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64883 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64884 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64885 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64886 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64887 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64888 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64889 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:64890 - "POST /mcp HTTP/1.1" 200 OK

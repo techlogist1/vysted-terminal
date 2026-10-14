@@ -1,0 +1,13 @@
+# R15-CODE-FRONTEND-001 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:11+0530
+
+$ git merge-base --is-ancestor 806a90c HEAD && echo 'closure 806a90c is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 806a90c NOT an ancestor'
+[exit 0] [0.02s]
+closure 806a90c is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-FRONTEND-001\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/lib/workspace.ts:243:   * a named workspace (R15-CODE-FRONTEND-001).
+src/lib/workspace.ts:802: * (R15-CODE-FRONTEND-001). A layout with no restorable panel falls back to the
+src/lib/workspace.test.ts:664:  it("loading a named workspace never rolls back portfolios or notes (R15-CODE-FRONTEND-001)", async () => {
+

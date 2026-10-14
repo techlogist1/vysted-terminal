@@ -1,0 +1,4 @@
+SIFY ok= True keys= ['ok', 'ads_ratio', 'fundamentals'] finCcy= INR
+   ads_ratio= {"ordinary_shares_per_ads": 6, "statement": "American Depositary Shares, each represented by Six Equity Shares", "provenance": {"source": "SEC 20-F cover page", "filed": "2026-06-26", "url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm"}}
+AAPL ok= True keys= ['ok', 'fundamentals'] finCcy= None
+   ads_ratio= null

@@ -1,0 +1,20 @@
+COMMAND: grep -n "R15-CODE-FRONTEND-012" src/lib/host-actions.test.ts
+CONTEXT: pinned test names the id directly and asserts globalThis.fetch was
+never called across add/update/delete. Not executed (no-vitest-suite rule).
+1127:  it("add/update/delete write only the store — no sidecar ledger call (R15-CODE-FRONTEND-012)", async () => {
+
+  it("add/update/delete write only the store — no sidecar ledger call (R15-CODE-FRONTEND-012)", async () => {
+    await applyHostActionAsync("portfolio_add_position", {
+      symbol: "TCS",
+      quantity: 5,
+      cost_basis: 2500,
+    });
+    const id = activeHoldings()[0].id;
+    await applyHostActionAsync("portfolio_update_position", { position_id: id, quantity: 7 });
+    expect(activeHoldings()[0].quantity).toBe(7);
+    await applyHostActionAsync("portfolio_delete_position", { position_id: id });
+    expect(activeHoldings()).toHaveLength(0);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+
+EXIT: 0
+VERDICT: ci_pinned -- src/lib/host-actions.test.ts:1127 it("add/update/delete write only the store — no sidecar ledger call (R15-CODE-FRONTEND-012)")

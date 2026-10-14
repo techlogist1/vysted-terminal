@@ -1,0 +1,482 @@
+[
+ {
+  "pid": "INT-BP-97",
+  "promise": "Each agent is defined by a config (JSON) with id, name, philosophy, systemPrompt, tools, defaultProvider, icon.",
+  "source": "\u00a73.4 (L212-221)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/agents/buffett.json keys = id,name,philosophy,systemPrompt,tools,defaultProvider,icon \u2014 exact match to the promised shape; sidecar/agents/_schema.json enforces it",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-98",
+  "promise": "Adding agents equals adding JSON configs.",
+  "source": "\u00a73.4 (L224)",
+  "kind": "behaviour",
+  "status": "delivered",
+  "evidence": "sidecar/services/agent_runtime.py:_discover_specs() loads every sidecar/agents/*.json at import time into _specs; list_agents()/get_agent() read from that dict \u2014 adding a JSON file is the whole mechanism",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-99",
+  "promise": "Plugins can contribute agents.",
+  "source": "\u00a73.4 (L224)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "types/plugin.ts:139-160 AgentSpec + capabilities.contributesAgents; src/lib/plugin-agents.ts:32 and plugin-runtime.ts:449 wire getAgents() into the runtime when the flag is set; plugin-runtime.test.ts:286 exercises it with a mock plugin",
+  "gap": "Real, tested plumbing exists, but every one of the 13 bundled plugins (all brokers, yfinance, vysted-news, openbb-mcp, example) declares contributesAgents: false \u2014 the capability has never been exercised by a shipping plugin, only by a unit-test mock. Not filed as a raw finding: the mechanism itself is sound and any plugin author can flip the flag today.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-100",
+  "promise": "Custom Agent Builder UI lets users define their own agents without code.",
+  "source": "\u00a73.4 (L224)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/modules/agent-builder/ (AgentBuilderPanel + form.tsx); sidecar/services/agents_store.py (custom-agent SQLite persistence); agent_runtime.get_agent() falls back to it",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-101",
+  "promise": "Module: Tauri 2.x desktop shell (Win/Mac/Linux).",
+  "source": "\u00a74 Foundation (L231)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src-tauri/Cargo.toml: tauri = \"2\"; .github/workflows/build.yml matrix builds on ubuntu/windows/macos runners",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-102",
+  "promise": "Module: Next.js 16 frontend skeleton.",
+  "source": "\u00a74 Foundation (L232)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "package.json scripts: dev/build = vite; vite ^8.0.16; no \"next\" dependency anywhere",
+  "gap": "Same underlying drift as INT-blueprint-0-3 (BLUEPRINT.md TL;DR/Locked Decisions still say Next.js 16) and code-frontend-panels-shell-chrome-13 (CLAUDE.md Stack line + stale SSR comments) \u2014 not re-filed here to avoid a third duplicate of the same D6-Vite-migration doc drift; this chunk's citation is BLUEPRINT.md \u00a74 Module Catalog item 2, one more location carrying the stale claim.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-103",
+  "promise": "Module: Tailwind + shadcn/ui design system with a Vysted aesthetic (charcoal + warm amber + sage + serif-meets-monospace typography).",
+  "source": "\u00a74 Foundation (L233)",
+  "kind": "quality-bar",
+  "status": "partial",
+  "evidence": "Tailwind 4 + shadcn/ui genuinely in use (package.json, src/components/ui/); styles/tokens.css is a real, coherent design-token system",
+  "gap": "Design system itself is real and shipped; only its description is stale \u2014 see raw finding INT-blueprint-96-6 (BLUEPRINT.md:233 still names the retired charcoal/warm-amber/sage palette; CLAUDE.md documents the 003 rebuild's zinc + cool-indigo replacement).",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-104",
+  "promise": "Module: command bar with slash commands (cmd+K).",
+  "source": "\u00a74 Foundation (L234)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/components/CommandPalette.tsx; src/store/command-palette.ts",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-105",
+  "promise": "Module: multi-window / multi-tab layout.",
+  "source": "\u00a74 Foundation (L235)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "src/components/PanelHost.tsx (dockview) gives real multi-tab/multi-panel layout within one window",
+  "gap": "See raw finding INT-blueprint-96-4 \u2014 src-tauri/tauri.conf.json declares exactly one window and no pop-out/second-window code exists anywhere; the multi-window half of this promise is unbuilt.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-106",
+  "promise": "Module: Zustand state management.",
+  "source": "\u00a74 Foundation (L236)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "package.json: \"zustand\": \"5.0.13\"; src/store/*.ts",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-107",
+  "promise": "Module: theming engine (dark default + light option + future custom themes).",
+  "source": "\u00a74 Foundation (L237)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "tauri.conf.json app.windows[0].theme = \"Dark\" \u2014 a real, shipped dark theme",
+  "gap": "See raw finding INT-blueprint-96-5 \u2014 no light theme (already tracked as BLOCKERS S2 #10, deferred to v1.1) and no custom-theme mechanism; the themeKnobs field that would have supported it was explicitly killed (src/store/settings.ts:1-14).",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-108",
+  "promise": "Module: Python sidecar bootstrap (FastAPI on localhost, auto-managed by Tauri).",
+  "source": "\u00a74 Foundation (L238)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/app.py (FastAPI on 127.0.0.1); src-tauri/src/lib.rs spawns it via app.shell().sidecar(...) at launch per CLAUDE.md's own documented pattern",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-109",
+  "promise": "Module: VystedPlugin TypeScript interface.",
+  "source": "\u00a74 Plugin Architecture (L241)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "types/plugin.ts \u2014 the full VystedPlugin interface, Tier-1 locked per CLAUDE.md",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-110",
+  "promise": "Module: plugin registry + manifest format.",
+  "source": "\u00a74 Plugin Architecture (L242)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/lib/marketplace.ts (CATALOG_ROWS/CATALOG_BY_ID registry); src/lib/plugin-bootstrap.ts (discovery + install/enable persisted via sidecar /plugins)",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-111",
+  "promise": "Module: plugin lifecycle management (init / shutdown / health).",
+  "source": "\u00a74 Plugin Architecture (L243)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "types/plugin.ts:231-233 initialize()/shutdown()/healthCheck(); plugin-bootstrap.ts HEALTH_POLL_INTERVAL_MS=30_000 polls every active plugin's healthCheck()",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-112",
+  "promise": "Module: panel-slot contribution system.",
+  "source": "\u00a74 Plugin Architecture (L244)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "types/plugin.ts:64,96-101,242 contributesPanels + PanelSpec + getPanels()",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-113",
+  "promise": "Module: command-bar contribution system.",
+  "source": "\u00a74 Plugin Architecture (L245)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "types/plugin.ts:65,120-125,245 contributesCommands + CommandSpec + getCommands(), feeding the cmd+K CommandPalette",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-114",
+  "promise": "Module: agent-capability contribution system.",
+  "source": "\u00a74 Plugin Architecture (L246)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "types/plugin.ts:67,139-160,251 \u2014 the exact same AgentSpec/contributesAgents mechanism as INT-BP-99",
+  "gap": "Same gap as INT-BP-99: implemented and unit-tested, zero bundled plugins exercise it (all declare contributesAgents: false). Not re-filed as a second raw finding \u2014 same underlying fact as INT-BP-99.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-115",
+  "promise": "Module: node-spec contribution system.",
+  "source": "\u00a74 Plugin Architecture (L247)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "types/plugin.ts:177-182,251 contributesNodes + NodeSpec + getNodes()",
+  "gap": "Same pattern again: mechanism real, but every one of the 12 plugins that declare the field (all brokers, yfinance, vysted-lenses, vysted-news, openbb-mcp, example) sets contributesNodes: false. The node editor itself (INT-BP-137) works via first-party built-in nodes (sidecar/services/workflow_nodes/builtin.py), not plugin-contributed ones. Not filed as a raw finding for the same reason as INT-BP-99/114.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-116",
+  "promise": "Module: OpenBB ODP wrap (bundled Python sidecar) \u2014 100+ providers.",
+  "source": "\u00a74 Data Layer (L250)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "sidecar/services/openbb_mcp_provider.py wraps the stock openbb-mcp-server (1.4.0) over the full OpenBB Platform router tree \u2014 provider breadth is real and is the dedicated subject of the parallel data-quality census (census/raw/data-*.json), not re-graded here",
+  "gap": "Same architecture-description drift already filed as INT-blueprint-0-4: BLUEPRINT.md:250 says \"bundled Python sidecar\" but the real Phase-3 architecture is a separate openbb-mcp subprocess spawned by the Tauri Rust core, not an in-process wrap. Not re-filed.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-117",
+  "promise": "Module: ccxt unified crypto WebSocket (Bybit, Binance, Kraken, Coinbase).",
+  "source": "\u00a74 Data Layer (L251)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/services/ccxt_provider.py:1-8 \u2014 \"Phase 1 supports four exchanges: Bybit, Binance, Kraken, Coinbase\", REST via ccxt + streaming via ccxt.pro, consumed by /crypto/stream \u2014 matches the promise text almost verbatim",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-118",
+  "promise": "Module: yfinance + alpha_vantage fallbacks (no API key needed for basic use).",
+  "source": "\u00a74 Data Layer (L252)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "sidecar/requirements.txt: yfinance==1.3.0 is real and wired into provider_registry.py",
+  "gap": "See raw finding INT-blueprint-96-1 \u2014 alpha_vantage does not exist anywhere in the codebase (no dependency, no provider module).",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-119",
+  "promise": "Module: news intelligence (RSS + NewsAPI + AI sentiment scoring).",
+  "source": "\u00a74 Data Layer (L253)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/services/news_provider.py + sidecar/services/sentiment.py + sidecar/routers/news.py + plugins/vysted-news/ \u2014 RSS ingestion, sentiment scoring and the news panel all present",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-120",
+  "promise": "Module: macro / economic data (FRED + ECB + IMF + World Bank via ODP).",
+  "source": "\u00a74 Data Layer (L254)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/services/macro/{fred_provider,ecb_provider,imf_provider,world_bank_provider}.py \u2014 all four named sources exist as real provider modules",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-121",
+  "promise": "Module: lightweight-charts integration (multi-pane sync).",
+  "source": "\u00a74 Charting & Analysis (L257)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "package.json lightweight-charts 5.2.0; src/modules/chart/ChartPanel.tsx; toolbar.tsx Compare/Sync menus for cross-pane linking",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-122",
+  "promise": "Module: 50+ technical indicators (RSI, MACD, MA/EMA/SMA, Bollinger, Volume Profile, ADX, Stochastic, ATR, OBV, MFI, Ichimoku, Keltner, etc.).",
+  "source": "\u00a74 Charting & Analysis (L258)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/services/indicators.py \u2014 40+ compute_* functions (rsi, macd, bollinger, adx, stochastic, atr, obv, mfi, ichimoku, keltner, ppo, bollinger-bandwidth, vortex, supertrend, williams-%r, ...); docs/CURRENT_STATE.md independently states \"50 server-computed indicators\"",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-123",
+  "promise": "Module: 10+ drawing tools (trendlines, channels, Fib retracements, harmonic patterns, support/resistance).",
+  "source": "\u00a74 Charting & Analysis (L259)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/modules/chart/drawings/ \u2014 drawing-tool implementations + drawings.test.ts; docs/CURRENT_STATE.md states \"10 drawing tools\"",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-124",
+  "promise": "Module: multi-chart sync (linked timeframes across symbols).",
+  "source": "\u00a74 Charting & Analysis (L260)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/modules/chart/toolbar.tsx \"sync\" menu + src/store/chart-command.ts \u2014 cross-panel symbol/comparison linking",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-125",
+  "promise": "Module: comparison overlays (peer comparison on same chart).",
+  "source": "\u00a74 Charting & Analysis (L261)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/modules/chart/toolbar.tsx CompareMenu (lines 326-360) + ChartPanel.tsx compareSymbol/compareNormalize state \u2014 a real second-symbol overlay feature",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-126",
+  "promise": "Module: volume profile + market profile.",
+  "source": "\u00a74 Charting & Analysis (L262)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "src/modules/chart/volume-profile-primitive.ts \u2014 volume profile is real and wired into ChartPanel.tsx",
+  "gap": "\"Market profile\" (the TPO-letter variant, distinct from a volume histogram) has no matching implementation anywhere under that name or an obvious synonym; grep for market.profile/MarketProfile across the chart module and sidecar returns nothing. Minor \u2014 volume profile covers most of the same analytical need \u2014 not raw-filed given the six findings already covering more central gaps in this chunk.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-127",
+  "promise": "Module: position tracking + P&L attribution (local SQLite).",
+  "source": "\u00a74 Portfolio & Risk (L265)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "sidecar/services/portfolio_db.py (SQLite-backed positions) + src/modules/portfolio/PortfolioPanel.tsx \u2014 position tracking and cost-basis-driven P&L are real",
+  "gap": "The mechanism exists but has substantial correctness/sync defects, already exhaustively covered by the code census track: census/raw/code-portfolio.json (15 findings, e.g. COD-portfolio-2 sidecar/frontend position sync is dead by construction, COD-portfolio-3 portfolio truth is forked between SQLite and the frontend store). Not re-litigated here to avoid duplicating that file.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-128",
+  "promise": "Module: risk analytics (Sharpe, Sortino, Calmar, VaR, Beta, max drawdown, correlation matrix).",
+  "source": "\u00a74 Portfolio & Risk (L266)",
+  "kind": "capability",
+  "status": "partial",
+  "evidence": "sidecar/services/backtest_engine.py:236-282 computes sharpe/sortino/calmar/max-drawdown, but only for a simulated backtest run",
+  "gap": "See raw finding INT-blueprint-96-2 \u2014 VaR, Beta and a correlation matrix are entirely unbuilt, and none of the four metrics that do exist are computed against the user's live tracked portfolio.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-129",
+  "promise": "Module: paper trading sandbox engine (event-driven simulation).",
+  "source": "\u00a74 Portfolio & Risk (L267)",
+  "kind": "capability",
+  "status": "dropped",
+  "evidence": "No paper-trading sandbox/simulation engine exists outside the broker-execution surface (sidecar/services/brokers/ccxt_exec.py's paper-mode order fill, which is itself the removed surface)",
+  "gap": "",
+  "decision_ref": "docs/redesign/DECISIONS.md:141 (D81 \u2014 trading removed from the product entirely, operator Tier-4 sign-off 23 Sep 2026)"
+ },
+ {
+  "pid": "INT-BP-130",
+  "promise": "Module: equity overview panel (price + ratios + statements + analyst ratings in one view).",
+  "source": "\u00a74 Research (L270)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/modules/equity-overview/ \u2014 price + ratios + statements + analyst ratings in one panel, per module list in src/modules/index.ts",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-131",
+  "promise": "Module: SEC filings reader (10-K, 10-Q, 8-K, Form 4, via OpenBB SEC provider).",
+  "source": "\u00a74 Research (L271)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/modules/sec/ + sidecar SEC EDGAR MCP subprocess (sidecar/sec_edgar_mcp_subprocess/) \u2014 10-K/10-Q/8-K/Form-4 coverage",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-132",
+  "promise": "Module: earnings calendar.",
+  "source": "\u00a74 Research (L272)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/modules/earnings/ module registered in src/modules/index.ts",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-133",
+  "promise": "Module: analyst ratings aggregator.",
+  "source": "\u00a74 Research (L273)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/modules/analyst-ratings/ module registered in src/modules/index.ts",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-134",
+  "promise": "Module: multi-LLM chat sidebar (OpenAI / Anthropic / DeepSeek / Groq / Gemini / xAI / Ollama).",
+  "source": "\u00a74 AI/Automation (L276)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/models/llm.py:28 PROVIDERS = anthropic, openai, gemini, groq, ollama, deepseek, xai, openrouter \u2014 all 7 named providers present (deepseek/xai ride the OpenAI-compatible adapter via a base-url override per llm.py:26, not separate files, but are real, selectable, first-class provider ids)",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-135",
+  "promise": "Module: 12 pre-built agents, config-driven.",
+  "source": "\u00a74 AI/Automation (L277)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "ls sidecar/agents/*.json (excluding _schema.json/README) = 13 first-party agent configs; docs/CURRENT_STATE.md:644,737 independently confirms 13 \u2014 the promise's \"12\" is under-counted, not over-claimed, so this is delivered with room to spare, not a gap",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-136",
+  "promise": "Module: Custom Agent Builder UI (define agent without code).",
+  "source": "\u00a74 AI/Automation (L278)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "same as INT-BP-100 \u2014 src/modules/agent-builder/",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-137",
+  "promise": "Module: node editor for workflow automation (react-flow based).",
+  "source": "\u00a74 AI/Automation (L279)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "package.json \"@xyflow/react\": \"12.10.2\"; src/modules/node-editor/; sidecar/services/workflow_nodes/builtin.py",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-138",
+  "promise": "Module: backtest engine (Python sidecar, event-driven, walk-forward support, AI Strategy Critic integration).",
+  "source": "\u00a74 AI/Automation (L280)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "sidecar/services/backtest_engine.py (event-driven, walk-forward slices per :480); sidecar/agents/strategy_critic.json \u2014 a full 9-point critique framework wired as a first-party agent",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-139",
+  "promise": "Module: license gate UI (AGPL/commercial choice on first launch).",
+  "source": "\u00a74 Customization Layer (L283)",
+  "kind": "capability",
+  "status": "missing",
+  "evidence": "No LicenseGate/LicenseModal/LicenseDialog component exists anywhere in src/",
+  "gap": "See raw finding INT-blueprint-96-3 \u2014 the only licensing text in the UI is one passive bullet inside DisclaimerFlow.tsx's first-launch TOS modal, which is not an interactive AGPL/commercial (now PolyForm/commercial per D83) choice and whose own copy is otherwise about now-removed live trading.",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-140",
+  "promise": "Module: module toggle UI in settings (every module enable/disable).",
+  "source": "\u00a74 Customization Layer (L284)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/components/SettingsPanel.tsx + src/lib/module-registry.ts + src/modules/platform/index.ts \u2014 per-module enable/disable UI",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-141",
+  "promise": "Module: workspace save/load/export/import (.vysted-workspace JSON files).",
+  "source": "\u00a74 Customization Layer (L285)",
+  "kind": "capability",
+  "status": "delivered",
+  "evidence": "src/lib/workspace.ts \u2014 serializeWorkspace/deserializeWorkspace/listWorkspaces/saveWorkspace/loadWorkspace/deleteWorkspace, .vysted-workspace JSON export/import",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-BP-142",
+  "promise": "Execution is a v1.0 capability, not a deferral.",
+  "source": "\u00a74 Broker Plugins (L289)",
+  "kind": "guarantee",
+  "status": "dropped",
+  "evidence": "D81 removes order placement/proposal/review and the broker plugin surface outright; no execution capability of any kind ships in v1.0",
+  "gap": "",
+  "decision_ref": "docs/redesign/DECISIONS.md:141 (D81 \u2014 trading removed from the product entirely, operator Tier-4 sign-off 23 Sep 2026)"
+ },
+ {
+  "pid": "INT-BP-143",
+  "promise": "Each broker is a separate plugin implementing the existing VystedPlugin contract, with no contract changes (data via getDataSources, panels via getPanels, order actions via executeCommand).",
+  "source": "\u00a74 Broker Plugins (L289)",
+  "kind": "guarantee",
+  "status": "dropped",
+  "evidence": "Broker plugins now exist only as GET-only read adapters (CLAUDE.md: 'New broker read routes are GET-only'); no executeCommand order-routing contract is exercised by any bundled broker plugin",
+  "gap": "",
+  "decision_ref": "docs/redesign/DECISIONS.md:141 (D81 \u2014 trading removed from the product entirely, operator Tier-4 sign-off 23 Sep 2026)"
+ },
+ {
+  "pid": "INT-BP-144",
+  "promise": "Every broker plugin routes execution through the shared safety layer in \u00a76.5.",
+  "source": "\u00a74 Broker Plugins (L289)",
+  "kind": "guarantee",
+  "status": "dropped",
+  "evidence": "No broker plugin routes execution through \u00a76.5 because no broker plugin executes anything \u2014 the safety layer's order-side machinery (kill switch, audit log) is retained per D81 but has nothing left to gate",
+  "gap": "",
+  "decision_ref": "docs/redesign/DECISIONS.md:141 (D81 \u2014 trading removed from the product entirely, operator Tier-4 sign-off 23 Sep 2026)"
+ }
+]

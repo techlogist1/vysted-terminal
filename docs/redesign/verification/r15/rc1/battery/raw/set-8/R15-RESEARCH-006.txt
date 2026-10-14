@@ -1,0 +1,46 @@
+=== sidecar/tests/test_research_verify.py:473-511 (committed, not executed) ===
+# --- R15-RESEARCH-006: the claim loop is bounded by the round's own wall -------
+
+_FIVE_CLAIMS = "\n".join(f"NVDA metric {i} was {i}0%" for i in range(1, 6))
+_OUT_OF_BUDGET = "ran out of its time budget"
+
+
+class _SlowVerdictLLM:
+    """Claim extraction answers at once; verdict turns sleep per ``delays``."""
+
+    def __init__(self, delays: list[float], budget: BudgetGuard | None = None) -> None:
+        self.delays = delays
+        self.budget = budget
+        self.verdict_calls = 0
+
+    async def __call__(self, messages: list[dict[str, Any]]) -> str:
+        system = messages[0]["content"].lower()
+        if "numeric claims" in system:
+            return _FIVE_CLAIMS
+        delay = self.delays[min(self.verdict_calls, len(self.delays) - 1)]
+        self.verdict_calls += 1
+        await asyncio.sleep(delay)
+        if self.budget is not None:
+            # A metered verdict turn (usage folded into the round's guard).
+            self.budget.add_usage(LLMUsage(input_tokens=600, output_tokens=0), "m")
+        return "AGREE — matches"
+
+
+def test_slow_verdicts_cannot_carry_the_round_past_its_wall() -> None:
+    budget = BudgetGuard(max_steps=10, max_wall_seconds=0.3)
+    t0 = time.monotonic()
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=_SlowVerdictLLM([5.0]),
+            budget=budget,
+        )
+    )
+    assert time.monotonic() - t0 < 1.0  # the 0.3 s wall plus epsilon, not 5 x 5 s
+    claims = brief.structured["cross_check"]["claims"]
+    assert len(claims) == 5
+    assert all(c["verdict"] == "unverified" for c in claims)
+    assert all(_OUT_OF_BUDGET in c["detail"] for c in claims)
+
+

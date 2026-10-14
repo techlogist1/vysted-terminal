@@ -1,0 +1,11 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_e06e9a1c9655445f92a8dc83e3fa2068", "name": "price_data", "input": {"range": "1mo", "symbol": "MSFT", "timeframe": "1d", "asset_class": "equity"}}
+[  25.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_e06e9a1c9655445f92a8dc83e3fa2068", "name": "price_data", "ok": true, "error": null}
+[  35.5s] heartbeat: {"kind": "heartbeat"}
+[  39.1s] done: {"kind": "done", "usage": {"input_tokens": 4716, "output_tokens": 13, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of MSFT is $497.93.
+
+=== ok · 39.1s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 12, 'done': 1} · usage in=4716 out=13 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,8 @@
+# R15-AGENT-077 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:23+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b2_077.py 2>&1 | grep -v Warning
+--- output ---
+oneshot result: ('', None)
+requests that reached the configured base_url proxy: [('/v1/chat/completions', 'Bearer proxy-k...')]
+
+EXIT=0 (1.3s)

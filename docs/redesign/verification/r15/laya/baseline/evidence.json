@@ -1,0 +1,152 @@
+{
+  "sessions_basis": "No fixed-length 'session' unit exists in these evidence sources. Two units are used per source: (a) one research-brief invoke (one FAST/NORMAL/DEEP/ULTRA `/agents/{id}/invoke` call that runs the research tool to completion) for entity_match, since entity_match fires once per retrieved web/search result inside that single research run; (b) one composer chat turn (one user message sent to the copilot agent) for composer_intent, since classify_intent runs exactly once per turn before tool-list construction. holding_relevance and thesis_contradiction have no live call site in this codebase (see notes) so no session unit could be derived for them from real transcripts.",
+  "observations": [
+    {
+      "type": "entity_match",
+      "metric": "path_today",
+      "value": null,
+      "unit": "category",
+      "source": "docs/redesign/verification/r15/census/code/research-retrieval-relevance.md (Finding P1; relevance.py:12, :407-418, :515) — pure heuristic scoring function (`entity_match`/`_symbol_only_in_index_form`), no network call and no LLM call; runs locally, keyless, in-process."
+    },
+    {
+      "type": "entity_match",
+      "metric": "per_session_count",
+      "value": null,
+      "unit": "count (bounded by result set, e.g. 13-21 observed)",
+      "source": "docs/redesign/verification/r15/surface/research-briefs/EVIDENCE.md ('Runs' table + Finding 1: r4-deep-bluestar-4omini '13 sources', r2-deep-cgpower '21 sources' rail) — entity_match runs once per retrieved web/search result before it becomes a citable source; the evidence shows session-level source counts (13, 21) but does not log a raw pre-filter candidate count, so the exact per-call tally is unknown."
+    },
+    {
+      "type": "entity_match",
+      "metric": "latency_ms",
+      "value": null,
+      "unit": "ms",
+      "source": "docs/redesign/verification/r15/census/code/research-retrieval-relevance.md — no timing instrumentation around `entity_match`/`relevance.py` is shown in the evidence; the function is pure/local so its cost is not separately metered anywhere in r15/."
+    },
+    {
+      "type": "entity_match",
+      "metric": "cost_usd_per_call",
+      "value": 0.0,
+      "unit": "usd",
+      "source": "docs/redesign/verification/r15/census/code/research-retrieval-relevance.md (relevance.py:12: 'takes no network and no LLM') — zero marginal cost today because it is a local heuristic, not an LLM call."
+    },
+    {
+      "type": "entity_match",
+      "metric": "false_negative_evidence",
+      "value": null,
+      "unit": "proof",
+      "source": "docs/redesign/verification/r15/census/code/research-retrieval-relevance.md, Finding P1 — proven: 'BAJFINANCE 200 DMA breakout as stock nears record' scores 0.0 and is dropped; 'INFY 1500 target: brokerages raise view' scores 0.0 and is dropped (direct python repro against relevance.py, not a session transcript)."
+    },
+    {
+      "type": "composer_intent",
+      "metric": "path_today",
+      "value": null,
+      "unit": "category",
+      "source": "docs/redesign/verification/r15/surface/composer-chat/EVIDENCE.md (section 2, turn 4: 'root cause: classify_intent = read (no cue) so the runtime stripped write_note from the 50 tools before the call'); docs/redesign/verification/r15/surface/composer-chat/52-intent-gate-probe.txt — regex-signal heuristic classifier (`IntentResult(intent=..., confidence=..., signals=[...])`), not an LLM call; keyless, local, in-process."
+    },
+    {
+      "type": "composer_intent",
+      "metric": "per_session_count",
+      "value": 1,
+      "unit": "count per composer turn",
+      "source": "docs/redesign/verification/r15/surface/composer-chat/52-intent-gate-probe.txt (11 distinct user messages, each with exactly one `signals=[...] tools_sent=N` line = one classify_intent call per message) and docs/redesign/verification/r15/surface/portfolio-notes/30-intent-gate-portfolio-notes.txt (15 messages, each one `IntentResult(...)` row)."
+    },
+    {
+      "type": "composer_intent",
+      "metric": "latency_ms",
+      "value": null,
+      "unit": "ms",
+      "source": "docs/redesign/verification/r15/surface/composer-chat/52-intent-gate-probe.txt and 30-intent-gate-portfolio-notes.txt — no per-call timing recorded; the surrounding chat-turn wall time (secs) in spend-ledger.jsonl rows tagged surf-composer-chat (e.g. row 26: 129.8s, row 32: 327.0s) covers the whole model turn, not classify_intent in isolation."
+    },
+    {
+      "type": "composer_intent",
+      "metric": "cost_usd_per_call",
+      "value": 0.0,
+      "unit": "usd",
+      "source": "docs/redesign/verification/r15/surface/composer-chat/52-intent-gate-probe.txt / 30-intent-gate-portfolio-notes.txt — regex/keyword heuristic, no model round-trip, zero cost; distinct from the composer turn's own LLM cost recorded in spend-ledger.jsonl (e.g. row 43 'surf-research-briefs' openai gpt-4o-mini $0.003777 per whole-turn call, tag s2a-cc-* '18-plan-compound-4omini' $0.0014 per EVIDENCE.md section 4)."
+    },
+    {
+      "type": "composer_intent",
+      "metric": "measured_error_evidence",
+      "value": null,
+      "unit": "proof",
+      "source": "docs/redesign/verification/r15/surface/composer-chat/EVIDENCE.md turn 4 and turn 5 (rows 13-*, 13b-*, 14-*) — classify_intent scored 'read' with confidence 0.35 for 'Write a note on Cochin Shipyard...' (per 52-intent-gate-probe.txt line 1) causing write_note to be stripped from the tool list, model leaked the call as prose instead."
+    },
+    {
+      "type": "holding_relevance",
+      "metric": "path_today",
+      "value": null,
+      "unit": "category",
+      "source": "No live call site found. Searched docs/redesign/verification/r15/surface/portfolio-notes/, /battery/ (packs/*.json = entity-resolution/identity data, not news-to-holding matching), /census/ for 'holding' + 'relevance' — no code site, transcript, or captured decision for a news-item-is-about-a-held-symbol classifier exists in r15/; only referenced as a task family definition in tooling/LAYA_GROUNDWORK_PLAN.md and tooling/laya-groundwork.js (the groundwork-harness spec itself, not evidence of the decision being made in the product)."
+    },
+    {
+      "type": "holding_relevance",
+      "metric": "per_session_count",
+      "value": null,
+      "unit": "count",
+      "source": "No evidence found in r15/battery/, r15/surface/portfolio-notes/, or r15/census/ (see path_today note above)."
+    },
+    {
+      "type": "holding_relevance",
+      "metric": "latency_ms",
+      "value": null,
+      "unit": "ms",
+      "source": "No evidence found (see path_today note above)."
+    },
+    {
+      "type": "holding_relevance",
+      "metric": "cost_usd_per_call",
+      "value": null,
+      "unit": "usd",
+      "source": "No evidence found (see path_today note above)."
+    },
+    {
+      "type": "thesis_contradiction",
+      "metric": "path_today",
+      "value": null,
+      "unit": "category",
+      "source": "docs/redesign/verification/r15/invent/ideas/quant.json (idea quant-9, 'Thesis CI — a thesis compiles into tests') and docs/redesign/verification/r15/invent/BACKLOG.md (BL-09 'Tripwires: kill criteria compiled once, watched for free', lines ~313-323) — this decision does not exist in the shipped product; it is an unbuilt backlog idea ('one LLM call selects and parameterises rules... accepted tripwires are evaluated deterministically... at zero tokens'). No transcript, capture, or spend-ledger row in r15/ shows it happening."
+    },
+    {
+      "type": "thesis_contradiction",
+      "metric": "per_session_count",
+      "value": null,
+      "unit": "count",
+      "source": "Not implemented; no sessions exist to count. See path_today note."
+    },
+    {
+      "type": "thesis_contradiction",
+      "metric": "latency_ms",
+      "value": null,
+      "unit": "ms",
+      "source": "Not implemented. See path_today note."
+    },
+    {
+      "type": "thesis_contradiction",
+      "metric": "cost_usd_per_call",
+      "value": null,
+      "unit": "usd",
+      "source": "Not implemented. See path_today note."
+    },
+    {
+      "type": "research_synthesis_llm_call",
+      "metric": "latency_ms",
+      "value": 60014,
+      "unit": "ms",
+      "source": "docs/redesign/verification/r15/surface/research-briefs/EVIDENCE.md, Finding 2 (r2-deep-cgpower: 'synthesize | wrote brief from evolving report | 60014 ms', capped by `_LLM_CALL_TIMEOUT_SECS`=60; 11-deep-bdl-llama: 60007 ms; r3-ultra-kaynes: three angle syntheses 60001-60012 ms, merge 53s) — the closest real per-call latency numbers in r15/ evidence, though this is the research synthesis call, not entity_match itself, since entity_match is unmetered/local."
+    },
+    {
+      "type": "research_whole_turn_llm_call",
+      "metric": "cost_usd_per_call",
+      "value": 0.003777,
+      "unit": "usd",
+      "source": "docs/redesign/verification/r15/spend-ledger.jsonl line 43 (tag surf-research-briefs, provider openai, model gpt-4o-mini, in=23526 out=413, est_usd=0.003777) — corresponds to r4-deep-bluestar-4omini in surface/research-briefs/EVIDENCE.md; this meters the whole DEEP research turn, not the entity_match decisions inside it (per EVIDENCE.md 'Spend': 'the research loop's own ~15 internal LLM calls are not metered by the ledger')."
+    }
+  ],
+  "notes": [
+    "entity_match (sidecar/services/research/relevance.py) and composer_intent (composer intent gate) are both real, live, keyless heuristics today, not LLM calls — cost is genuinely $0 and latency is not separately instrumented anywhere in r15/.",
+    "holding_relevance and thesis_contradiction have no implemented call site anywhere searched in r15/ (battery, surface, research, census, lifecycle, stage-c, spend-ledger.jsonl); both appear only as backlog/idea concepts (invent/BACKLOG.md, invent/ideas/quant.json) or as the groundwork harness's own task-family definitions (tooling/LAYA_GROUNDWORK_PLAN.md, tooling/laya-groundwork.js).",
+    "spend-ledger.jsonl rows are tagged by test/surface name (e.g. surf-research-briefs, surf-composer-chat), not by decision type, and meter one whole agent turn each; they cannot be attributed to a specific entity_match/composer_intent call.",
+    "docs/redesign/verification/r15/local/ and R15_BRIEF*.md were not read, per instructions."
+  ],
+  "summary": "entity_match and composer_intent are live keyless heuristics (zero cost, no LLM), evidenced in surface/research-briefs and surface/composer-chat/portfolio-notes transcripts; per-session counts are session-count-bound (~13-21 sources; 1/turn) not exactly logged. holding_relevance and thesis_contradiction have zero implementation evidence anywhere in r15/ — both are backlog ideas only."
+}

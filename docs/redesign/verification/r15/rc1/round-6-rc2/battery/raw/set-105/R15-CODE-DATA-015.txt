@@ -1,0 +1,30 @@
+# rc1-battery-22 raw R15-CODE-DATA-015 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ sed -n 30,45p src/modules/earnings/EarningsCalendarPanel.tsx; grep -n 'colgroup\|COL_WIDTHS\|<col' src/modules/earnings/EarningsCalendarPanel.tsx | head -20; grep -n 'R15-CODE-DATA-015' src/modules/earnings/EarningsCalendarPanel.test.tsx | cut -c1-200
+
+const TIME_OF_DAY_LABEL: Record<string, string> = {
+  "before-open": "Pre-open",
+  "during-market": "Intraday",
+  "after-close": "After close",
+  unknown: "—",
+};
+
+/** An EPS / dispersion figure in its row's currency — the event's own
+ *  ISO-4217 code (R15-DATA-031: EPS and revenue render unlabelled, and a
+ *  mixed-currency watchlist sorts USD against INR by raw magnitude).
+ *  `currency === null` means the provider could not determine it
+ *  (R15-DATA-113) — render the bare number, never a guessed code. */
+function fmt(value: number | null, currency: string | null, digits = 2): string {
+  if (value === null) return "—";
+  if (currency === null) return formatPrice(value, digits);
+27:/** Shared by the skeleton and loaded tables' <colgroup> so they never drift
+29:const COL_WIDTHS = ["5%", "16%", "14%", "23%", "16%", "14%", "12%"] as const;
+271:            <colgroup>
+272:              {COL_WIDTHS.map((width, i) => (
+273:                <col key={i} style={{ width }} />
+275:            </colgroup>
+329:            <colgroup>
+330:              {COL_WIDTHS.map((width, i) => (
+331:                <col key={i} style={{ width }} />
+333:            </colgroup>
+154:  it("R15-CODE-DATA-015: skeleton and loaded colgroups share widths", async () => {
+EXIT=0

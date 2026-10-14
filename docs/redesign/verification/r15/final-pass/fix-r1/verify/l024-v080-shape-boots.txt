@@ -1,0 +1,21 @@
+== first dir=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm1r port=52890 sleep_pid=56804
+health after 3s: {"status":"ok","service":"vysted-sidecar
+backups: unversioned-2026-10-03 
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm1r/backups/unversioned-2026-10-03: custom_agents.db data_cache.db data_cache.db-shm data_cache.db-wal delegate_runs.db dev-keystore.json fundamentals_cache.db notes plugins.db portfolio.db resolver_masters searxng workflows.db workspaces 
+meta: build|0.9.0
+2026-10-03 19:43:18,925 INFO services.data_cache: data_cache: data dir backed up to /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm1r/backups/unversioned-2026-10-0
+stopped; port answers: 000
+== second dir=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm1r port=52890 sleep_pid=56861
+health after 3s: {"status":"ok","service":"vysted-sidecar
+backups: unversioned-2026-10-03 
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm1r/backups/unversioned-2026-10-03: custom_agents.db data_cache.db data_cache.db-shm data_cache.db-wal delegate_runs.db dev-keystore.json fundamentals_cache.db notes plugins.db portfolio.db resolver_masters searxng workflows.db workspaces 
+meta: build|0.9.0
+stopped; port answers: 000
+== caseb dir=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm1r port=52890 sleep_pid=57185
+health after 3s: {"status":"ok","service":"vysted-sidecar
+backups: 0.8.9-prior unversioned-2026-10-03 
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm1r/backups/0.8.9-prior: custom_agents.db data_cache.db data_cache.db-shm data_cache.db-wal delegate_runs.db dev-keystore.json fundamentals_cache.db notes plugins.db portfolio.db resolver_masters searxng workflows.db workspaces 
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm1r/backups/unversioned-2026-10-03: custom_agents.db data_cache.db data_cache.db-shm data_cache.db-wal delegate_runs.db dev-keystore.json fundamentals_cache.db notes plugins.db portfolio.db resolver_masters searxng workflows.db workspaces 
+meta: build|0.9.0
+2026-10-03 19:44:39,103 INFO services.data_cache: data_cache: data dir backed up to /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fr1v/life/pm1r/backups/0.8.9-prior before th
+stopped; port answers: 000

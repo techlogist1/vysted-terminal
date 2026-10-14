@@ -1,0 +1,9 @@
+# R15-LEAD-005 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:06:58+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+echo -n "own /quotes/AAPL: "; curl -s -m 60 "$H/quotes/AAPL" | python3 -c "import sys,json;d=json.load(sys.stdin);print('timestamp',d.get('timestamp'),'price',d.get('price'))"; echo -n "Yahoo chart regularMarketTime: "; curl -s -m 30 -A 'Mozilla/5.0' "https://query1.finance.yahoo.com/v8/finance/chart/AAPL?range=1d&interval=1d" | python3 -c "import sys,json,datetime;m=json.load(sys.stdin)['chart']['result'][0]['meta'];print(datetime.datetime.fromtimestamp(m['regularMarketTime'],datetime.timezone.utc).isoformat(), m.get('regularMarketPrice'))"; date -u
+--- output ---
+own /quotes/AAPL: timestamp 2026-10-02T20:00:01Z price 333.69000244140625
+Yahoo chart regularMarketTime: 2026-10-02T20:00:01+00:00 333.69
+Sat Oct  3 12:06:58 UTC 2026
+
+EXIT=0 (0.7s)

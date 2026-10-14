@@ -1,0 +1,63 @@
+=== R15-UI-045: pinned vitest (operator-change carries threshold) ===
+CMD: grep -n "R15-UI-045" -A 15 src/modules/screener/ScreenerCriteriaBuilder.test.tsx
+71:  it("R15-UI-045: an operator change carries the typed threshold through", () => {
+72-    useScreenerStore.getState().setCriteria([{ field: "pe_ratio", operator: "lt", value: 8 }]);
+73-    render(<ScreenerCriteriaBuilder />);
+74-    const opSelect = screen
+75-      .getByTestId("criterion-row-0")
+76-      .querySelector('select[aria-label="numeric operator"]')!;
+77-
+78-    fireEvent.change(opSelect, { target: { value: "between" } });
+79-    expect(useScreenerStore.getState().criteria[0]).toEqual({
+80-      field: "pe_ratio",
+81-      operator: "between",
+82-      value: { min: 8, max: 8 },
+83-    });
+84-
+85-    fireEvent.change(opSelect, { target: { value: "lt" } });
+86-    expect(useScreenerStore.getState().criteria[0]).toEqual({
+--
+93:  it("R15-UI-045: the nested-group editor keeps the value across an operator change too", () => {
+94-    const tree: CriterionGroup = {
+95-      combinator: "and",
+96-      criteria: [
+97-        { combinator: "or", criteria: [{ field: "market_cap", operator: "gt", value: 1e11 }] },
+98-      ],
+99-    };
+100-    const onChange = vi.fn();
+101-    const { rerender } = render(<CriterionGroupEditor group={tree} onChange={onChange} />);
+102-    const opSelect = () => document.querySelector('select[aria-label="numeric operator"]')!;
+103-
+104-    fireEvent.change(opSelect(), { target: { value: "between" } });
+105-    const between = onChange.mock.lastCall![0] as CriterionGroup;
+106-    expect((between.criteria[0] as CriterionGroup).criteria[0]).toEqual({
+107-      field: "market_cap",
+108-      operator: "between",
+
+CMD: sed -n '155,180p' src/modules/screener/ScreenerCriteriaBuilder.tsx
+      </select>
+
+      {isNumericCriterion(criterion) ? (
+        <>
+          <select
+            aria-label="numeric field"
+            className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
+            value={criterion.field}
+            onChange={(e) =>
+              update(index, { ...criterion, field: e.target.value as ScreenerNumericField })
+            }
+          >
+            {numericFields(moneyUnit).map((f) => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="numeric operator"
+            className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
+            value={criterion.operator}
+            onChange={(e) =>
+              update(
+                index,
+                withNumericOperator(

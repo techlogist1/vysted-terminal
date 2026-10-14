@@ -1,0 +1,551 @@
+{
+  "collected_at": "2026-09-19",
+  "slot": "P10",
+  "symbol": "VIYASH",
+  "status": "complete-with-recorded-gaps",
+  "collector_notes": "Assigned hostile trait is the 2026 RENAME (Sequent Scientific Ltd / SEQUENT -> Viyash Scientific Ltd / VIYASH, effective 2026-01-23). Confirmed from the primary source (NSE circular NSE/CML/72374) and from the company's own exchange filings, every one of which still carries the line 'Formerly known as Sequent Scientific Limited'. Two further traps surfaced that the manifest did not anticipate and that matter more for a data-trust diff than the rename itself: (a) a CONSOLIDATED-vs-STANDALONE gulf so wide the two screener.in pages for the same ISIN disagree on P/E by 2.6x (49.6 vs 129) and on revenue by 2.5x; (b) the FY25 merger of Viyash Life Sciences into the listed entity, which puts a step discontinuity in the middle of every annual and TTM series, so 'revenue growth' is +13.7% or +53.0% purely as a function of the window chosen. Five reachable sources quote five different TTM EPS (5.76 / 4.90 / 4.18 / 2.21 / 1.75) and four different P/E for the same security on the same date. bseindia.com returns HTTP 403 to automated fetch, but its announcement PDFs are reachable with a browser UA and redirect-following, which is how the primary filings below were obtained. WebSearch budget for the session was exhausted before this task began; all discovery was done with direct URL fetches plus a Bing results page.",
+
+  "identity": {
+    "legal_name": {
+      "value": "Viyash Scientific Limited",
+      "unit": "name",
+      "as_of": "2026-01-23",
+      "source_url": "https://nsearchives.nseindia.com/content/circulars/CML72374.pdf"
+    },
+    "former_names": {
+      "value": [
+        {
+          "name": "Sequent Scientific Limited",
+          "symbol": "SEQUENT",
+          "used_until": "2026-01-22",
+          "rename_effective": "2026-01-23"
+        }
+      ],
+      "unit": "list",
+      "as_of": "2026-01-23",
+      "source_url": "https://nsearchives.nseindia.com/content/circulars/CML72374.pdf",
+      "quote": "Members of the Exchange are hereby informed that name and symbol of Sequent Scientific Limited will be changed w.e.f. January 23, 2026. ... 1 SEQUENT VIYASH Sequent Scientific Limited Viyash Scientific Limited",
+      "corroboration": "Every company filing since the rename is headed 'Viyash Scientific Limited (Formerly known as Sequent Scientific Limited)' - see the 2026-09-08 and 2026-08-16 BSE filings under last_3_announcements."
+    },
+    "isin": {
+      "value": "INE807F01027",
+      "unit": "isin",
+      "as_of": "2026-09-19",
+      "source_url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+      "quote": "VIYASH,Viyash Scientific Limited,EQ,10-MAR-2016,2,1,INE807F01027,2",
+      "note": "ISIN did NOT change at the rename - the NSE circular changes name and symbol only and never mentions an ISIN. Matches the bundled BSE master row in the repo."
+    },
+    "bse_code": {
+      "value": "512529",
+      "unit": "scrip code",
+      "as_of": "2026-09-08",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c33c6752-e581-4dc7-91b9-13a44fe2675b.pdf",
+      "quote": "Scrip code: 512529                                                              Symbol: VIYASH",
+      "note": "Taken from the company's own Reg-30 filing, not from a scraped quote page (bseindia.com HTML is 403 to automated fetch). screener.in/company/512529/ also resolves to this company."
+    },
+    "nse_symbol": {
+      "value": "VIYASH",
+      "unit": "symbol",
+      "as_of": "2026-09-19",
+      "source_url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
+    },
+    "nse_series": {
+      "value": "EQ",
+      "unit": "series",
+      "as_of": "2026-09-19",
+      "source_url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
+    },
+    "board": {
+      "value": "mainboard",
+      "unit": "board",
+      "as_of": "2026-09-19",
+      "source_url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+      "note": "NSE series EQ (not SME/Emerge). BSE group B per the repo's bundled bse_instruments.json row; the live BSE group could not be re-verified outside the repo because bseindia.com blocks automated fetch."
+    },
+    "sector": {
+      "value": "Healthcare",
+      "unit": "sector",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "disagreement": "screener.in: 'Healthcare > Pharmaceuticals & Biotechnology > Pharmaceuticals'. stockscans.in: 'Pharma - Animal Health'. TradingView: 'Health Technology / Pharmaceuticals: Major'. Upstox: 'Pharmaceuticals'. The company's own site calls it an 'Integrated Pharmaceutical Enterprise - API, Human Health, Animal Health & CDMO'."
+    },
+    "industry": {
+      "value": "Pharmaceuticals - integrated API + human health + animal health + CDMO",
+      "unit": "industry",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.viyash.com/about",
+      "quote": "Viyash Scientific Ltd. | Integrated Pharmaceutical Enterprise - API, Human Health, Animal Health & CDMO",
+      "note": "CLASSIFICATION TRAP: screener.in's About text is still the pre-merger animal-health description ('Sequent Scientific is India's leading animal health company'), and TradingView still calls it 'veterinary pharmaceuticals and specialty chemicals'. Post the Viyash Life Sciences merger the animal-health business is one of several engines, not the whole company."
+    },
+    "business_description": {
+      "value": "Integrated pharmaceutical enterprise spanning APIs, human health, animal health and CDMO. screener.in still reports two segments, Formulation and API.",
+      "unit": "text",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/"
+    },
+    "cin": {
+      "value": "L99999TS1985PLC196357",
+      "unit": "cin",
+      "as_of": "2026-09-08",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c33c6752-e581-4dc7-91b9-13a44fe2675b.pdf",
+      "note": "IDENTITY TRAP: the 'TS' state code means the registered office is now Telangana (Jubilee Hills, Hyderabad). SeQuent Scientific was a Mumbai/Maharashtra company; TradingView still reports 'headquartered in Mumbai, India'. The '1985' block confirms incorporation year 1985 despite the 2026 name."
+    },
+    "registered_office": {
+      "value": "3rd Floor, Srivalli's Corporate, Plot No.290, Road No.6, Sy.No.33, 34P to 39, Guttala Begumpet, Jubilee Hills, Hyderabad, Shaikpet, Telangana, India-500033",
+      "unit": "address",
+      "as_of": "2026-09-08",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c33c6752-e581-4dc7-91b9-13a44fe2675b.pdf"
+    },
+    "incorporated": {
+      "value": "1985",
+      "unit": "year",
+      "as_of": "2026-09-08",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c33c6752-e581-4dc7-91b9-13a44fe2675b.pdf",
+      "corroboration": "TradingView gives a precise founding date of June 28, 1985, consistent with the CIN's 1985 block."
+    },
+    "listing_date": {
+      "value": "2016-03-10",
+      "unit": "date",
+      "as_of": "2026-09-19",
+      "source_url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+      "note": "This is the NSE listing date only. The BSE line (scrip 512529) is far older - the scrip-code range and the 1985 CIN put the BSE listing decades earlier; the exact BSE listing date was not reachable (bseindia.com 403)."
+    },
+    "management": {
+      "value": [
+        "Dr. Haribabu Bodepudi - Managing Director and Group Chief Executive Officer",
+        "Mr. Rajaram Narayanan - Executive Director and Chief Executive Officer, Animal Health",
+        "Mr. Ramakant Singani - Chief Financial Officer",
+        "Ms. Yoshita Vora - Company Secretary & Compliance Officer"
+      ],
+      "unit": "list",
+      "as_of": "2026-08-12",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=63a27d61-a483-4b08-a88e-aa964364a0c8.pdf"
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 249.65,
+      "unit": "INR",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.stockscans.in/company/NSE:VIYASH",
+      "corroboration": "Upstox gives the identical 249.65 for 18 Sep 2026.",
+      "disagreement": "screener.in prints a rounded 250 in its ratio box."
+    },
+    "change_pct": {
+      "value": 2.11,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.stockscans.in/company/NSE:VIYASH"
+    }
+  },
+
+  "market_cap": {
+    "value": 10998,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "disagreements": [
+      { "value": 11008.6, "unit": "INR crore", "source": "Upstox", "source_url": "https://upstox.com/stocks/viyash-scientific-ltd-share-price/INE807F01027/" },
+      { "value": 10984, "unit": "INR crore", "source": "screener.in search-index snippet (same day, different cache)", "source_url": "https://www.screener.in/company/VIYASH/consolidated/" },
+      { "value": 10759, "unit": "INR crore (107.59 B INR as printed)", "source": "TradingView", "source_url": "https://in.tradingview.com/symbols/NSE-VIYASH/" }
+    ],
+    "derived_shares_outstanding": {
+      "value": "approximately 43.5 to 44.1 crore shares (435-441 million)",
+      "unit": "shares",
+      "basis": "DERIVED, not sourced: equity capital 87 INR crore / face value 2 INR = 43.5 crore; market cap 10,998 crore / price 249.65 = 44.05 crore.",
+      "conflict": "TradingView prints shares outstanding of 194.30 M, which is irreconcilable with its own market cap (107.59 B / 194.30 M = 553.7 INR per share against a 249.65 quote). TradingView's share count is stale, almost certainly pre-merger."
+    }
+  },
+
+  "pe_ttm": {
+    "value": 49.6,
+    "unit": "ratio (consolidated, as printed)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "disagreements": [
+      { "value": 129, "basis": "screener.in STANDALONE page, same ISIN, same day", "source_url": "https://www.screener.in/company/512529/" },
+      { "value": 51.16, "basis": "stockscans.in", "source_url": "https://www.stockscans.in/company/NSE:VIYASH" },
+      { "value": 41.24, "basis": "Upstox", "source_url": "https://upstox.com/stocks/viyash-scientific-ltd-share-price/INE807F01027/" },
+      { "value": 59.78, "basis": "TradingView (TTM)", "source_url": "https://in.tradingview.com/symbols/NSE-VIYASH/" }
+    ],
+    "derived_cross_check": "250 / 5.76 (screener's own consolidated TTM EPS) = 43.4, which does not reproduce screener's printed 49.6. The printed P/E is NOT simply price divided by the TTM EPS shown on the same page. Recorded as printed; the arithmetic mismatch is itself a finding.",
+    "note": "Four public sources give four P/E values spanning 41.2 to 129 for the same security on the same date. Any terminal that shows a single unlabelled P/E here is asserting a choice it has not disclosed."
+  },
+
+  "pb": {
+    "value": 3.75,
+    "unit": "ratio (consolidated)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "quote": "Stock is trading at 3.75 times its book value",
+    "disagreement": "stockscans.in and Upstox both print 3.90. Derived from the standalone book value (250 / 73.0) it would be 3.42.",
+    "derived_cross_check": "250 / 66.6 (consolidated book value) = 3.75 - internally consistent on the consolidated page."
+  },
+
+  "roe": {
+    "value": 7.39,
+    "unit": "percent (consolidated, last year)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "disagreements": [
+      { "value": 3.8, "basis": "screener.in consolidated, 3-year average", "source_url": "https://www.screener.in/company/VIYASH/consolidated/" },
+      { "value": 3.43, "basis": "screener.in STANDALONE", "source_url": "https://www.screener.in/company/512529/" },
+      { "value": 8.0, "basis": "stockscans.in", "source_url": "https://www.stockscans.in/company/NSE:VIYASH" },
+      { "value": 7.07, "basis": "Upstox", "source_url": "https://upstox.com/stocks/viyash-scientific-ltd-share-price/INE807F01027/" }
+    ]
+  },
+
+  "roce": {
+    "value": 13.4,
+    "unit": "percent (consolidated)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "disagreements": [
+      { "value": 5.57, "basis": "screener.in STANDALONE", "source_url": "https://www.screener.in/company/512529/" },
+      { "value": 12.6, "basis": "stockscans.in", "source_url": "https://www.stockscans.in/company/NSE:VIYASH" },
+      { "value": 13.01, "basis": "Upstox", "source_url": "https://upstox.com/stocks/viyash-scientific-ltd-share-price/INE807F01027/" },
+      { "value": 13, "basis": "screener.in ratios table, Mar 2026 row", "source_url": "https://www.screener.in/company/VIYASH/consolidated/" }
+    ]
+  },
+
+  "debt_to_equity": {
+    "value": 0.17,
+    "unit": "ratio",
+    "as_of": "2026-03-31",
+    "basis": "DERIVED from screener.in's consolidated Mar-2026 balance sheet: borrowings 490 INR crore / (equity capital 87 + reserves 2,824 = 2,911 INR crore) = 0.168.",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "disagreement": "Upstox prints a debt-to-equity of 0.01, which is irreconcilable with 490 crore of borrowings against 2,911 crore of net worth. Both recorded; NOT averaged. screener.in separately lists 'Company has reduced debt' as a pro.",
+    "confidence": "derived, not directly published by any source read"
+  },
+
+  "revenue_ttm": {
+    "value": 3575,
+    "unit": "INR crore",
+    "basis": "consolidated, trailing twelve months to 30-Jun-2026",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "corroboration": "stockscans.in gives the identical 3,575 Cr TTM revenue.",
+    "disagreement": "screener.in STANDALONE TTM sales are 1,408 INR crore for the same company and date - a 2.54x gap between the two bases."
+  },
+
+  "net_profit_ttm": {
+    "value": 267,
+    "unit": "INR crore",
+    "basis": "consolidated, trailing twelve months to 30-Jun-2026",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "disagreement": "screener.in STANDALONE TTM net profit is 79 INR crore - and 79 crore is also, coincidentally, the CONSOLIDATED Jun-2026 quarter net profit, an exact collision that will fool any scraper that does not track which page it is on."
+  },
+
+  "revenue_growth_yoy": {
+    "value": 13.7,
+    "unit": "percent",
+    "basis": "DERIVED, consolidated annual: FY2026 sales 3,420 / FY2025 sales 3,007 - 1.",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "disagreement": "stockscans.in prints 'Revenue Growth (TTM): 53.04%'. Both are defensible and neither is wrong - the TTM window still straddles the Viyash Life Sciences merger consolidation while the FY26-vs-FY25 comparison does not. Choosing one without stating the window is the trap.",
+    "annual_series_consolidated": {
+      "unit": "INR crore",
+      "sales": { "Mar 2022": 1413, "Mar 2023": 1421, "Mar 2024": 1370, "Mar 2025": 3007, "Mar 2026": 3420 },
+      "net_profit": { "Mar 2022": 45, "Mar 2023": -122, "Mar 2024": -30, "Mar 2025": 16, "Mar 2026": 225 },
+      "discontinuity_warning": "Sales more than double between FY2024 (1,370) and FY2025 (3,007). This is a scope change from the merger, NOT organic growth. Any YoY or CAGR computed across that boundary is meaningless. The company was also loss-making in FY2023 and FY2024, so trailing PE/ROE series flip sign across the same boundary."
+    },
+    "quarterly_series_consolidated": {
+      "unit": "INR crore",
+      "note": "Transcribed from screener.in's consolidated quarterly table. The Sep-2024 -> Dec-2024 jump (369 -> 774) is the merger landing mid-year.",
+      "sales": { "Mar 2024": 361, "Jun 2024": 390, "Sep 2024": 369, "Dec 2024": 774, "Mar 2025": 402, "Jun 2025": 792, "Sep 2025": 850, "Dec 2025": 858, "Mar 2026": 920, "Jun 2026": 946 },
+      "operating_profit": { "Mar 2024": 32, "Jun 2024": 42, "Sep 2024": 39, "Dec 2024": 100, "Mar 2025": 46, "Jun 2025": 119, "Sep 2025": 173, "Dec 2025": 176, "Mar 2026": 184, "Jun 2026": 178 },
+      "opm_pct": { "Mar 2024": 9, "Jun 2024": 11, "Sep 2024": 11, "Dec 2024": 13, "Mar 2025": 12, "Jun 2025": 15, "Sep 2025": 20, "Dec 2025": 20, "Mar 2026": 20, "Jun 2026": 19 },
+      "net_profit": { "Mar 2024": 1, "Jun 2024": 9, "Sep 2024": 6, "Dec 2024": 42, "Mar 2025": 10, "Jun 2025": 37, "Sep 2025": 73, "Dec 2025": 49, "Mar 2026": 66, "Jun 2026": 79 },
+      "eps": { "Mar 2024": -0.04, "Jun 2024": 0.26, "Sep 2024": 0.1, "Dec 2024": 1.78, "Mar 2025": 0.37, "Jun 2025": 1.27, "Sep 2025": 2.18, "Dec 2025": 0.88, "Mar 2026": 1.19, "Jun 2026": 1.51 },
+      "sign_trap": "Mar-2024 shows net profit +1 crore but EPS -0.04. Profit attributable to owners is negative while total profit is positive (minority interest). A pipeline that derives EPS from net profit / shares will get the SIGN wrong for that quarter."
+    }
+  },
+
+  "eps_ttm": {
+    "value": 5.76,
+    "unit": "INR per share",
+    "basis": "consolidated TTM, as printed by screener.in",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "disagreements": [
+      { "value": 2.21, "basis": "screener.in STANDALONE TTM", "source_url": "https://www.screener.in/company/512529/" },
+      { "value": 4.9, "basis": "stockscans.in (FY2026)", "source_url": "https://www.stockscans.in/company/NSE:VIYASH" },
+      { "value": 4.18, "basis": "TradingView TTM", "source_url": "https://in.tradingview.com/symbols/NSE-VIYASH/" },
+      { "value": 1.75, "basis": "Upstox TTM", "source_url": "https://upstox.com/stocks/viyash-scientific-ltd-share-price/INE807F01027/" }
+    ],
+    "warning": "FIVE reachable sources, five different TTM EPS, spanning 1.75 to 5.76 - a 3.3x spread on the same ISIN on the same date. Upstox additionally prints a Jun-2026 QUARTERLY EPS of 4.09 where screener's consolidated quarterly EPS for the same quarter is 1.51. Face value is 2 INR, not 10, so any source that silently normalises to a 10-rupee face value will be off by 5x on every per-share figure."
+  },
+
+  "book_value_per_share": {
+    "value": 66.6,
+    "unit": "INR per share",
+    "basis": "consolidated",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "disagreement": "screener.in STANDALONE prints 73.0 - the standalone book value is HIGHER than the consolidated one, which is counter-intuitive and will look like a data error to a naive validator.",
+    "derived_cross_check": "(equity capital 87 + reserves 2,824) / ~43.5 crore shares = 66.9 INR, consistent with the printed 66.6."
+  },
+
+  "face_value": {
+    "value": 2,
+    "unit": "INR",
+    "as_of": "2026-09-19",
+    "source_url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+    "quote": "VIYASH,Viyash Scientific Limited,EQ,10-MAR-2016,2,1,INE807F01027,2",
+    "corroboration": "screener.in prints Face Value 2.00 on both the consolidated and standalone pages. Paid-up value is also 2."
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": null,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "note": "No dividend. Dividend payout ratio is 0% for each of Mar 2022, Mar 2023, Mar 2024, Mar 2025 and Mar 2026. screener.in lists as a con: 'Though the company is reporting repeated profits, it is not paying out dividend'. No declared dividend was found in 2026."
+    },
+    "record_date": null,
+    "ex_date": null,
+    "paid_trailing_12m_per_share": {
+      "value": 0,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/"
+    },
+    "yield": {
+      "value": 0.0,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "corroboration": "Upstox also prints 0.00%."
+    }
+  },
+
+  "week52": {
+    "high": {
+      "value": 298,
+      "unit": "INR",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "corroboration": "Upstox gives 298.00."
+    },
+    "low": {
+      "value": 178,
+      "unit": "INR",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "disagreement": "Upstox gives 178.13; screener.in rounds to 178."
+    },
+    "dates": null,
+    "critical_caveat": "TradingView does NOT print a 52-week range on the fetched page - it prints an ALL-TIME high of 336.50 (Jun 29, 2021) and an ALL-TIME low of 42.65 (Oct 9, 2018). Those are pre-rename, pre-merger SEQUENT prices. A scraper that reads TradingView's 'range' field as a 52-week range will report a 52-week low of 42.65 against a 249.65 quote - a 4x error, and the single most dangerous value on this page."
+  },
+
+  "shareholding": {
+    "quarter": {
+      "value": "Jun 2026",
+      "unit": "quarter",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "note": "Latest filed quarter available at collection time."
+    },
+    "promoter_pct": { "value": 61.31, "unit": "percent", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/VIYASH/consolidated/", "corroboration": "Upstox gives the identical 61.31%." },
+    "fii_pct": { "value": 4.5, "unit": "percent", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/VIYASH/consolidated/", "corroboration": "Upstox gives 4.50%." },
+    "dii_pct": {
+      "value": 3.76,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "disagreement": "Upstox splits the same holding into 'Mutual Funds 2.93%' + 'DII (Other) 0.83%' = 3.76%, which reconciles exactly. A differ comparing a single 'DII' field against Upstox's 'DII' field would see 3.76 vs 0.83 and call it a mismatch."
+    },
+    "public_pct": {
+      "value": 30.34,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "disagreement": "Upstox prints 'Retail & Other 30.44%' - it folds the 0.09% 'Others' bucket in and rounds differently."
+    },
+    "others_pct": { "value": 0.09, "unit": "percent", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/VIYASH/consolidated/" },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "unit": "percent",
+      "as_of": null,
+      "source_url": null,
+      "note": "RECORDED GAP, not zero. screener.in shows no pledge row at all for this company; Upstox explicitly prints 'Pledged %: Not disclosed'. The authoritative source is the exchange shareholding-pattern filing, and bseindia.com returns 403 to automated fetch. Absence of a pledge row must NOT be rendered as 0%."
+    },
+    "no_of_shareholders": { "value": 128367, "unit": "count", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/VIYASH/consolidated/" },
+    "sums_to": "61.31 + 4.50 + 3.76 + 30.34 + 0.09 = 100.00",
+    "history_and_churn": {
+      "promoter_pct": { "Sep 2023": 52.79, "Dec 2023": 52.79, "Mar 2024": 52.79, "Jun 2024": 52.78, "Sep 2024": 52.76, "Dec 2024": 52.61, "Mar 2025": 52.61, "Jun 2025": 52.61, "Sep 2025": 52.33, "Dec 2025": 61.41, "Mar 2026": 61.31, "Jun 2026": 61.31 },
+      "fii_pct": { "Sep 2025": 5.9, "Dec 2025": 3.16, "Mar 2026": 2.94, "Jun 2026": 4.5 },
+      "dii_pct": { "Sep 2025": 12.91, "Dec 2025": 7.36, "Mar 2026": 7.98, "Jun 2026": 3.76 },
+      "public_pct": { "Sep 2025": 28.69, "Dec 2025": 27.97, "Mar 2026": 27.67, "Jun 2026": 30.34 },
+      "note": "Promoter holding steps 52.33% -> 61.41% in Dec 2025, one quarter before the rename took effect, while FII (5.90 -> 3.16) and DII (12.91 -> 7.36) both roughly halve. Institutional holding churns again in Jun 2026 (DII 7.98 -> 3.76, public 27.67 -> 30.34). Any source snapshotting a different quarter will disagree by 9 percentage points on promoter holding alone."
+    }
+  },
+
+  "corporate_actions_2026": {
+    "value": [
+      {
+        "action": "Change of name and trading symbol",
+        "detail": "Sequent Scientific Limited -> Viyash Scientific Limited; symbol SEQUENT -> VIYASH. ISIN unchanged (INE807F01027).",
+        "effective_date": "2026-01-23",
+        "announced_date": "2026-01-19",
+        "reference": "NSE circular Download Ref No: NSE/CML/72374, Circular Ref. No: 0091/2026",
+        "source_url": "https://nsearchives.nseindia.com/content/circulars/CML72374.pdf",
+        "authority": "primary (exchange circular)"
+      },
+      {
+        "action": "Acquisition (pending completion)",
+        "detail": "Acquisition of 100% of the shareholding of BioForLife Italia S.r.l., Milan, Italy by Alivira Animal Health Limited, Ireland, a step-down wholly owned subsidiary. Initially disclosed 2026-06-08 and 2026-07-21. Italian FDI / Golden Power approval received and disclosed 2026-09-08; completion then expected 'within two months from the date of this intimation' i.e. by approximately 2026-11-08.",
+        "announced_date": "2026-09-08",
+        "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c33c6752-e581-4dc7-91b9-13a44fe2675b.pdf",
+        "authority": "primary (company Reg-30 filing)",
+        "note": "OPEN corporate action as of collection. Share count and consolidated scope will change again on completion."
+      },
+      {
+        "action": "Allotment of ESOP / ESPS",
+        "detail": "Two Reg-30 ESOP/ESPS allotments in September 2026 (2026-09-04 and 2026-09-18). Each dilutes the share count slightly, so per-share figures drift between filings.",
+        "announced_date": "2026-09-18",
+        "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c20fdd19-b611-49f2-bce1-f261f243dfca.pdf",
+        "authority": "primary (company Reg-30 filing)"
+      },
+      {
+        "action": "SAST disclosure",
+        "detail": "Disclosures under Reg. 29(2) of SEBI (SAST) Regulations, 2011 - a substantial-acquisition/disposal disclosure consistent with the institutional churn visible in the Jun-2026 shareholding pattern.",
+        "announced_date": "2026-08-27",
+        "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=F7218042_3FA1_4701_861D_0CAA7CA0DA6D_142501.pdf",
+        "authority": "primary (company filing)"
+      }
+    ],
+    "dividend_split_bonus_2026": "NONE found. Dividend payout is 0% across FY22-FY26 and no split or bonus was found in any source read. Recorded as 'none found', not as 'none exists' - BSE's corporate-actions page was unreachable (403).",
+    "as_of": "2026-09-19"
+  },
+
+  "latest_results": {
+    "quarter": {
+      "value": "Q1 FY2027, quarter ended 30-Jun-2026",
+      "unit": "quarter",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=63a27d61-a483-4b08-a88e-aa964364a0c8.pdf",
+      "quote": "Earnings Call Transcript for the quarter ended June 30, 2026 ... pertaining to the Unaudited Financial Results of the Company for the quarter ended June 30, 2026."
+    },
+    "filing_date": {
+      "value": null,
+      "unit": "date",
+      "as_of": null,
+      "source_url": null,
+      "note": "RECORDED GAP. The exact board-meeting / results-filing date was not reachable (BSE announcement listing is 403 and screener.in's visible document list starts at 16 Aug). It is bracketed by two primary facts: the Q1 FY27 earnings conference call was held on 2026-08-12, and the transcript was filed with both exchanges on 2026-08-16. The results were therefore approved and filed on or before 2026-08-12.",
+      "bracket": { "earnings_call_held": "2026-08-12", "transcript_filed": "2026-08-16" }
+    },
+    "reported_consolidated": {
+      "sales": { "value": 946, "unit": "INR crore", "source_url": "https://www.screener.in/company/VIYASH/consolidated/", "disagreement": "Upstox reports 954.67 INR crore for the same quarter." },
+      "operating_profit": { "value": 178, "unit": "INR crore", "source_url": "https://www.screener.in/company/VIYASH/consolidated/" },
+      "net_profit": { "value": 79, "unit": "INR crore", "source_url": "https://www.screener.in/company/VIYASH/consolidated/", "corroboration": "Upstox gives 79.29 INR crore." },
+      "eps": { "value": 1.51, "unit": "INR", "source_url": "https://www.screener.in/company/VIYASH/consolidated/", "disagreement": "Upstox prints 4.09 INR for the same quarter - a 2.7x discrepancy." }
+    },
+    "reported_standalone": {
+      "sales": { "value": 354, "unit": "INR crore", "source_url": "https://www.screener.in/company/512529/" },
+      "operating_profit": { "value": 47, "unit": "INR crore", "source_url": "https://www.screener.in/company/512529/" },
+      "net_profit": { "value": 21, "unit": "INR crore", "source_url": "https://www.screener.in/company/512529/" },
+      "eps": { "value": 0.48, "unit": "INR", "source_url": "https://www.screener.in/company/512529/" }
+    }
+  },
+
+  "last_3_announcements": [
+    {
+      "date": "2026-09-18",
+      "headline": "Announcement under Regulation 30 (LODR) - Allotment of ESOP / ESPS",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c20fdd19-b611-49f2-bce1-f261f243dfca.pdf",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/"
+    },
+    {
+      "date": "2026-09-08",
+      "headline": "Update on proposed acquisition of BioForLife Italia S.r.l - Italian FDI / Golden Power approval received; completion expected within two months",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c33c6752-e581-4dc7-91b9-13a44fe2675b.pdf",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c33c6752-e581-4dc7-91b9-13a44fe2675b.pdf",
+      "verified": "PDF fetched and read in full"
+    },
+    {
+      "date": "2026-09-04",
+      "headline": "Announcement under Regulation 30 (LODR) - Allotment of ESOP / ESPS",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=bb16aa46-4a31-4d00-8e18-cb874f43a6d2.pdf",
+      "source_url": "https://www.screener.in/company/VIYASH/consolidated/"
+    }
+  ],
+
+  "earlier_announcements_for_context": [
+    {
+      "date": "2026-08-27",
+      "headline": "Disclosures under Reg. 29(2) of SEBI (SAST) Regulations, 2011",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=F7218042_3FA1_4701_861D_0CAA7CA0DA6D_142501.pdf"
+    },
+    {
+      "date": "2026-08-16",
+      "headline": "Announcement under Regulation 30 (LODR) - Earnings Call Transcript for the quarter ended June 30, 2026 (call held 2026-08-12)",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=63a27d61-a483-4b08-a88e-aa964364a0c8.pdf",
+      "verified": "PDF fetched and read (18 pages)"
+    }
+  ],
+
+  "consolidated_vs_standalone": {
+    "value": "AMBIGUOUS AND MATERIAL - consolidated is the correct default, and the gap is the largest single source of wrong numbers for this name.",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+    "detail": "screener.in serves consolidated at /company/VIYASH/consolidated/ and standalone at /company/512529/. Same ISIN, same day, and they disagree on: P/E 49.6 vs 129; book value 66.6 vs 73.0; ROE 7.39% vs 3.43%; ROCE 13.4% vs 5.57%; TTM sales 3,575 vs 1,408 Cr; TTM net profit 267 vs 79 Cr; TTM EPS 5.76 vs 2.21; Jun-2026 quarter sales 946 vs 354 Cr. The standalone entity is roughly 40% of the group by revenue because the operating businesses (Alivira animal health, the Ireland/Italy subsidiaries, the merged Viyash entities) sit below the listed company. A terminal that resolves BSE code 512529 to the standalone page and NSE symbol VIYASH to the consolidated page will show two different companies for the same security depending on which identifier the user typed.",
+    "basis_asserted": "consolidated"
+  },
+
+  "traps": [
+    "RENAME (assigned trait): SEQUENT -> VIYASH effective 2026-01-23. Every pre-2026 chart, filing, peer table, broker note and news article is filed under SEQUENT. SEQUENT resolves to nothing in the live NSE master (verified against today's EQUITY_L.csv, not just the repo's stale copy), so a user typing the name they have known for a decade gets a hard miss with no 'formerly known as' hint anywhere.",
+    "The ISIN did NOT change at the rename (INE807F01027). ISIN is therefore the only stable join key across the rename boundary - any history stitched on symbol alone will break at 2026-01-23.",
+    "MERGER DISCONTINUITY: Viyash Life Sciences was merged into the listed entity, landing in the Dec-2024 quarter. Consolidated sales step 369 -> 774 Cr QoQ and 1,370 -> 3,007 Cr YoY. Every CAGR, YoY and TTM computed across that boundary is a scope change reported as growth. The same event moved promoter holding 52.33% -> 61.41% in Dec 2025.",
+    "CONSOLIDATED vs STANDALONE: 2.5x on revenue, 2.6x on P/E, 3.4x on net profit. screener.in's own two pages for this ISIN disagree on every headline ratio.",
+    "TTM EPS spread of 3.3x across five sources (5.76 / 4.90 / 4.18 / 2.21 / 1.75) and P/E spread of 3.1x (41.24 / 49.6 / 51.16 / 59.78 / 129) on the same ISIN on the same date.",
+    "FACE VALUE IS 2 INR, not 10. Any source or pipeline that normalises per-share figures to a 10-rupee face value is off by 5x on EPS and book value.",
+    "screener.in's printed P/E does not equal its own price / its own TTM EPS (250 / 5.76 = 43.4 vs printed 49.6). The printed ratio uses an undisclosed profit basis. Do not assume a site's ratios are internally derivable.",
+    "TRADINGVIEW RANGE TRAP: TradingView's fetched page shows an all-time high (336.50, Jun 29 2021) and all-time low (42.65, Oct 9 2018) where a naive scraper expects a 52-week range. Real 52-week range is 298 / 178. Reading it wrong yields a 52-week low 4x below the actual one.",
+    "TRADINGVIEW STALE SHARE COUNT: prints 194.30 M shares outstanding, irreconcilable with its own market cap and price (implies 553.7 INR/share against a 249.65 quote). Actual count is ~435-441 M. Pre-merger figure never refreshed.",
+    "STALE IDENTITY ACROSS AGGREGATORS: Upstox still titles the page 'Sequent Scientific (VIYASH)'; screener.in's About paragraph still opens 'Sequent Scientific is India's leading animal health company'; TradingView still says 'veterinary pharmaceuticals and specialty chemicals' and 'headquartered in Mumbai'. The registered office is in fact Hyderabad, Telangana (CIN L99999TS1985PLC196357 - note the TS state code on a company incorporated in 1985 as a Maharashtra entity).",
+    "SECTOR IS UNRESOLVABLE: animal health (stockscans), generic pharma (screener, Upstox), 'Health Technology' (TradingView), or the company's own 'integrated API + human health + animal health + CDMO'. Post-merger it is genuinely no longer an animal-health pure play, so the aggregator taxonomies are describing a company that stopped existing in FY25.",
+    "EPS SIGN TRAP: Mar-2024 quarter shows net profit +1 Cr with EPS -0.04 (minority interest). Deriving EPS as net profit / shares gets the sign wrong.",
+    "PLEDGE ABSENT, NOT ZERO: no reachable source publishes a promoter-pledge percentage. Rendering a missing pledge field as 0% is a fabricated reassurance on a promoter-heavy (61.31%) mid-cap.",
+    "OPEN CORPORATE ACTION: the BioForLife Italia acquisition is approved but not completed (expected ~2026-11-08), and two ESOP allotments landed in the two weeks before collection. Share count and consolidation scope are both in motion, so per-share figures legitimately drift between any two collection dates.",
+    "DII DEFINITION SPLIT: screener's single 'DII 3.76%' is Upstox's 'Mutual Funds 2.93% + DII (Other) 0.83%'. A naive field-to-field diff reports a mismatch where the data agrees.",
+    "bseindia.com returns HTTP 403 to automated fetch while its announcement PDFs are reachable with a browser UA and redirect-following - a pipeline that treats a 403 on the quote page as 'no data for this company' will silently lose the entire primary-filing trail."
+  ],
+
+  "world_gaps": [
+    "promoter pledge percentage - GENUINELY UNPUBLISHED by every reachable aggregator (Upstox states 'Not disclosed'; screener.in has no pledge row). Authoritative source is the exchange shareholding-pattern filing, unreachable because bseindia.com blocks automated fetch. Not guessed, not zeroed.",
+    "52-week high/low DATES - values (298 / 178) are well corroborated but no reachable source gave the dates on which they occurred.",
+    "exact results filing / board-meeting date for Q1 FY27 - could not be reached; bracketed by two primary facts (earnings call 2026-08-12, transcript filed 2026-08-16), so the filing is on or before 2026-08-12. Recorded as a bracket rather than a guess.",
+    "BSE listing date and current BSE group - the repo's bundled master says group B; bseindia.com is 403 to automated fetch so neither could be re-verified against the live exchange. The NSE listing date (2016-03-10) is authoritative but is NOT the company's original listing date.",
+    "promoter entity names and the Carlyle / founder shareholding split - not collected; the shareholding tables read give aggregate promoter percentage only.",
+    "BSE-side last traded price - only the NSE price (249.65) was reachable. The manifest's reference price of 250 matches. No BSE/NSE price spread could be measured for this name.",
+    "official corporate-actions register for 2026 - BSE's corporate-actions page is 403. 'No dividend/split/bonus in 2026' is asserted from a 0% dividend payout across FY22-FY26 plus the absence of any such item in five sources, not from the exchange register."
+  ],
+
+  "sources_actually_read": [
+    { "url": "https://nsearchives.nseindia.com/content/circulars/CML72374.pdf", "what": "PRIMARY. NSE circular NSE/CML/72374 dated 2026-01-19 - rename and symbol change, effective 2026-01-23. Full text extracted.", "authority": "exchange" },
+    { "url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv", "what": "PRIMARY. Live NSE equity master, fetched 2026-09-19. Row: VIYASH,Viyash Scientific Limited,EQ,10-MAR-2016,2,1,INE807F01027,2. No SEQUENT row exists.", "authority": "exchange" },
+    { "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c33c6752-e581-4dc7-91b9-13a44fe2675b.pdf", "what": "PRIMARY. Company Reg-30 filing 2026-09-08 on the BioForLife Italia acquisition. Source of CIN, registered office, scrip code and symbol.", "authority": "company filing" },
+    { "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=63a27d61-a483-4b08-a88e-aa964364a0c8.pdf", "what": "PRIMARY. Q1 FY27 earnings call transcript filing 2026-08-16; call held 2026-08-12; management names.", "authority": "company filing" },
+    { "url": "https://www.screener.in/company/VIYASH/consolidated/", "what": "CONSOLIDATED ratios, quarterly and annual series, shareholding history, announcements with hrefs, pros/cons, balance sheet.", "authority": "aggregator" },
+    { "url": "https://www.screener.in/company/512529/", "what": "STANDALONE ratios and P&L for the same ISIN - the consolidated/standalone divergence evidence.", "authority": "aggregator" },
+    { "url": "https://www.stockscans.in/company/NSE:VIYASH", "what": "Price 249.65 (2026-09-18), P/E 51.16, P/B 3.9, ROE 8.0%, ROCE 12.6%, TTM revenue growth 53.04%, FY26 balance-sheet lines.", "authority": "aggregator" },
+    { "url": "https://upstox.com/stocks/viyash-scientific-ltd-share-price/INE807F01027/", "what": "Price, market cap 11,008.60 Cr, P/E 41.24, EPS 1.75, D/E 0.01, Jun-2026 shareholding with the MF/DII split, 'Pledged %: Not disclosed'. Page still titled 'Sequent Scientific (VIYASH)'.", "authority": "aggregator" },
+    { "url": "https://in.tradingview.com/symbols/NSE-VIYASH/", "what": "Market cap 107.59 B, P/E 59.78, EPS 4.18, shares outstanding 194.30 M (stale), all-time range presented where a 52-week range is expected, 'founded June 28, 1985', 'headquartered in Mumbai' (stale).", "authority": "aggregator" },
+    { "url": "https://www.viyash.com/about", "what": "Company self-description: 'Integrated Pharmaceutical Enterprise - API, Human Health, Animal Health & CDMO'. Page body is JS-rendered; only the title was readable.", "authority": "company" },
+    { "url": "https://rhnvrm.github.io/stock-market-circulars/circulars/nse/2026/nse-2026-01-19-af3b07e9de837f6c-change-in-name-and-symbol-of-sequent-scientific-limited/", "what": "Mirror that surfaced the circular number CML72374 and pointed at the authoritative nsearchives PDF.", "authority": "mirror" }
+  ],
+
+  "sources_attempted_and_failed": [
+    { "url": "https://www.bseindia.com/stock-share-price/viyash-scientific-ltd/viyash/512529", "failure": "HTTP 403 to automated fetch (both WebFetch and curl with a browser UA on the HTML page). Would have given BSE group, BSE price, official 52-week dates and the corporate-actions register." },
+    { "url": "https://www.moneycontrol.com/india/stockpricequote/pharmaceuticals/viyashscientific/PID01", "failure": "Host blocked by the fetch tool." },
+    { "url": "https://www.google.com/finance/quote/VIYASH:NSE", "failure": "Returns 'Google Finance isn't supported on this device' to non-browser fetch." },
+    { "url": "https://groww.in/stocks/viyash-scientific-ltd", "failure": "HTTP 404 - Groww has not migrated the slug to the new name." },
+    { "url": "https://www.5paisa.com/stocks/viyash-scientific-ltd-share-price", "failure": "Slug not migrated; served a generic stock-list page instead of the company page." },
+    { "url": "https://lite.duckduckgo.com/lite/?q=...", "failure": "CAPTCHA challenge." },
+    { "url": "trendlyne.com / tijorifinance.com", "failure": "No company URL discoverable - Trendlyne company pages require a numeric id and search returned only marketing pages. WebSearch budget was exhausted, so only a Bing results page was available for discovery." }
+  ]
+}

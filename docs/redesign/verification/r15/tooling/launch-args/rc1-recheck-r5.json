@@ -1,0 +1,19 @@
+{
+ "sha": "949c3c9fd49d61ecadc9813a8321bcdfd81178bd",
+ "round": "5-recheck",
+ "max_fix_rounds": 0,
+ "skip_gui": true,
+ "drive_limit": 3,
+ "batt_limit": 4,
+ "batt_shards": 25,
+ "lanes": [
+  "preflight",
+  "gate8",
+  "heavy",
+  "battery-index",
+  "battery",
+  "collate"
+ ],
+ "skip_verifier": true,
+ "note": "RECHECK of rc1 gate round 5 under gate rule change 1 (operator, Sun 27 Sep 2026): the round-5 sheet (FAIL under the old rubric) was adjudicated under the fixed bar; the one bounded fix round closed R15-LEAD-059 (fix 52fd29e9, int 769b1f31, fresh-verifier certified, merged 794bc68f); this run re-proves the deterministic chain, Gate 8 and the fixed-entry own-repro check (battery) on candidate 949c3c9f. Drives, scenarios, vshards and the final verifier do NOT run; the lead reads the bar from the lane outputs. Evidence root r15/rc1/round-5-recheck/. Register at the candidate: fixed 395, open 277 of which ONE high, R15-LEAD-116 (explicit FOCUS.BO on a same-ticker different-company name), is known and filed for the operator under DECISIONS_FOR_OPERATOR.md 4.22 — the preflight logs the register criterion and continues; it is not a blocker for these lanes and nobody fixes it in this run. 35 blocked_tier4 entries carry DECISIONS pointers (4.9-4.21) and are adjudicated. Gate 8 as always: re-prove live on THIS candidate (safety surface byte-identical, no trading path, order attempt halts, forged accept fails closed, no audit_orders rows); raw rg dumps to scratch gate8-5r/, only summary/product-hits/examples under r15/rc1/round-5-recheck/gate8/. Battery: every fixed id gets raw output (a NOT RUN / SKIPPED placeholder counts as missing); the verdict per id is holds / regressed / ci_pinned against the entry's OWN stated repro — anything beyond the stated repro is an adjacent note, never a regression (gate rule change 1); R15-LEAD-059 is fixed this round: its repro is GET /disclosures/announcements?symbol=FOCUS with X-Vysted-Region: IN -> all rows NSE (Focus Lighting), sources [NSE], note naming the other BSE company, no scrip-543312 rows. HARNESS: no tool call over ~120 s (poll long work in short calls); the sidecar build takes ~9 min and ci-local 15-30 min — poll to the EXIT= line, there is no time budget, a live process is never a blocker, a previous attempt's running process is waited on, never restarted; sidecars boot in 52100-52399 (scripts/r15/vy.py refuses non-GET outside that range); hosted keys are never printed; never delete prior evidence; a lane that cannot run writes its named reason."
+}

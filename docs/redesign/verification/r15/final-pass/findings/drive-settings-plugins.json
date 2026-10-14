@@ -1,0 +1,14 @@
+[
+ {
+  "key": "drive-settings-plugins:searxng-daemon-down-install-copy",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "",
+  "scenario": "settings-searxng (Research > Unlimited (Local) card) with Docker/OrbStack installed but its daemon not running",
+  "title": "Settings SearXNG card tells a user whose Docker/OrbStack is installed but stopped that Docker 'isn't available on this machine' and to install it: the frontend branches on state only and ignores docker.cli_present/daemon_running and the sidecar's 'start Docker/OrbStack' detail",
+  "area": "research-search",
+  "repro": "Own sidecar :52845 from d38b5d1a source, OrbStack installed but not running: GET /search/searxng/status -> 200 {state:'not_installed_docker', detail:'docker CLI found but the daemon is not running — start Docker/OrbStack', docker:{cli_present:true, daemon_running:false}} (two runs, 16:45:04 and 16:45:21 IST). SettingsPanel.tsx:841-842 maps not_installed_docker to the chip 'Docker not found' and :967-978 renders 'SearXNG runs in a local Docker container, and Docker isn't available on this machine. Install Docker first — docs.docker.com/...'; grep for daemon_running|cli_present in src/ and types/ = 0 hits, although the manager contract (searxng_manager.py:13-16) says these flags exist to disambiguate 'Install Docker/OrbStack' vs 'Start it'. Distinct from fixed R15-LIFECYCLE-007 (PATH resolution, cli_present false): here the CLI is found and the UI drops the disambiguation.",
+  "evidence_file": "docs/redesign/verification/r15/surface/settings-plugins/final/03-searxng-daemon-down.txt",
+  "suspected_files": ["src/components/SettingsPanel.tsx", "sidecar/services/searxng_manager.py"]
+ }
+]

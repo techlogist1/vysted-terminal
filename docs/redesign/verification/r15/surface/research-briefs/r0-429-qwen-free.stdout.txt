@@ -1,0 +1,7 @@
+[   1.6s] error: {"kind": "error", "message": "OpenRouter is rate-limiting your account \u2014 try again in a minute.", "action": "Wait a moment, then try again.", "detail": "Error code: 429 - {'error': {'message': 'Provider returned error', 'code': 429, 'metadata': {'raw': 'qwen/qwen3.8-27b:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations', 'provider_name': 'ModelRun', 'is_byok': False, 'provider_error_code': '429', 'limit_source': 'upstream_provider_shared_pool', 'remedy_hint': 'Retry shortly, add your own provider key (https://openrouter.ai/settings/integrations), or route to another provider with provider routing: https://openrouter.ai/docs/features/provider-routing'}}, 'user_id': 'user_2tEz3tvo5KxrgIbAS5XE8eKf8eJ'}", "code": "rate_limit"}
+[   1.6s] done: {"kind": "done", "usage": null, "finish_reason": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 1.6s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · qwen/qwen3.8-27b:free

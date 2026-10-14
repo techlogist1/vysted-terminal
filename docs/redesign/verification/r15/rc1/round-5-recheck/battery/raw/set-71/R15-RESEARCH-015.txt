@@ -1,0 +1,17 @@
+CMD: in-process services.research.verify._claim_evidence, re-pointed repro of register's r015.py (script not preserved from batch-25 run; reconstructed from the fixed source at services/research/verify.py:317-345 + the register's own stated cases)
+case C (www.nseindia.com + nsearchives.nseindia.com, same registrable domain): domains=['nseindia.com'] independence=1 verdict_would_run=False distinct_lanes=False
+case D (SearXNG-only, www.sebi.gov.in + sebi.gov.in, .gov.in suffix): domains=['sebi.gov.in'] independence=1 verdict_would_run=False distinct_lanes=True
+control B (m.economictimes.com + economictimes.indiatimes.com, 2 registrable domains): domains=['economictimes.com', 'indiatimes.com'] independence=2 verdict_would_run=True distinct_lanes=True
+case E (searxng 1 domain + uncited native text -> +1): domains=['rbi.org.in'] independence=2 verdict_would_run=True distinct_lanes=True
+EXIT: 0
+
+CMD: grep -n 'if evidence["independence"] < max(1, min_domains)' services/research/verify.py (confirms independence<min_domains skips the LLM verdict call entirely -> 0 verdict calls, UNVERIFIED)
+        async with asyncio.timeout(remaining_wall(budget)):
+            for claim, result, native_res in pending:
+                evidence = _claim_evidence(result, native_res)
+                if evidence["independence"] < max(1, min_domains):
+                    verdict, detail = (
+                        _VERDICT_UNVERIFIED,
+                        f"only {len(evidence['domains'])} independent source(s) found",
+                    )
+                elif budget.breach() is not None:

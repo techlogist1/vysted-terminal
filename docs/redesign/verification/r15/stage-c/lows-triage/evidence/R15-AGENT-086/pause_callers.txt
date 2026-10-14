@@ -1,0 +1,8 @@
+## pause_run callers
+sidecar/services/agent_runtime.py:1383:ASK_USER_TOOL = "ask_user"
+sidecar/services/agent_runtime.py:1963:    # ask_user belongs to the Delegate MODE, not to an agent's allow-list
+sidecar/services/run_manager.py:24:- **Human-in-the-loop (FR-028).** A Delegate run is offered the ``ask_user``
+sidecar/services/run_manager.py:173:    # The model's ask_user question (R15-CODE-AGENT-011): the run pauses on it.
+sidecar/services/run_manager.py:287:                        turns.append({"role": "assistant", "content": f"[ask_user → {question}]"})
+sidecar/services/run_manager.py:470:    """Deliver a human reply to a run paused on ``ask_user`` and resume it (FR-028).
+sidecar/services/agent_tools/catalog.py:1136:            "ask_user",

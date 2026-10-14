@@ -1,0 +1,22 @@
+{
+ "52895": {
+  "sleep_pid": 60960,
+  "worker_pid": 60961,
+  "sh_pid": 60958,
+  "data": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-reproof"
+ },
+ "52396": {
+  "sleep_pid": 62319,
+  "worker_pid": 62320,
+  "sh_pid": 62317,
+  "data": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-reproof-agent",
+  "why": "vy.py refuses non-GET outside 52100-52399"
+ },
+ "52395": {
+  "sleep_pid": 63830,
+  "worker_pid": 63831,
+  "script_pid": 63825,
+  "data": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-reproof-clean",
+  "what": "head binary, clean profile"
+ }
+}

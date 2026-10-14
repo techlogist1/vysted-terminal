@@ -1,0 +1,11 @@
+types/backtest.ts:53:/** Fee + slippage model applied to every simulated fill. */
+types/ai.ts:40: * The BYOK providers. `openrouter` (JARVIS sprint) is a unified BROKER — one key,
+types/analyst.ts:40:  /** Analyst firm / brokerage that published the change (e.g. ``"Morgan
+types/plugin.ts:122:  /** Stable identifier, e.g. "tradesa.kill-switch". */
+types/screener.ts:84:  | "gross_margin"
+types/screener.ts:85:  | "operating_margin"
+types/screener.ts:86:  | "profit_margin"
+types/data.ts:125: * (`*_margin`, `roe`, `roa`, `*_growth`, `held_percent_*`, `fifty_two_week_change`,
+types/data.ts:194:  gross_margin: number | null;
+types/data.ts:195:  operating_margin: number | null;
+types/data.ts:196:  profit_margin: number | null;

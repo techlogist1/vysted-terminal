@@ -1,0 +1,58 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ sed -n 185,235p sidecar/services/llm/ollama.py; grep -n 'AGENT-076' -A3 sidecar/tests/test_llm_ollama.py | head -12
+exit=0
+        try:
+            if tools is not None:
+                try:
+                    stream = await client.chat(
+                        model=model,
+                        messages=api_messages,
+                        stream=True,
+                        tools=tools,
+                        **kwargs,
+                    )
+                    offered = {tool["function"]["name"] for tool in tools}
+                except pydantic.ValidationError as exc:
+                    logger.warning(
+                        "ollama rejected the tool schemas for %s; this round runs without "
+                        "tools: %s",
+                        model,
+                        exc,
+                    )
+                    yield LLMResearchStepEvent(
+                        tool_call_id="",
+                        tool="ollama_tools",
+                        step_kind="notice",
+                        detail=f"Tools could not be sent to {model}; it answered without them.",
+                        status="error",
+                    )
+            if stream is None:
+                stream = await client.chat(
+                    model=model,
+                    messages=api_messages,
+                    stream=True,
+                    **kwargs,
+                )
+        except Exception as exc:  # noqa: BLE001 — every failure ends as a humanized error
+            yield humanize("ollama", exc).to_event()
+            return
+
+        try:
+            usage: LLMUsage | None = None
+            finish_reason: str | None = None
+            # Text from a leaked call's marker on is held until the rescue
+            # decides whether it was a call (rc1-drive-onboarding-stranger:1).
+            hold = LeakHold(offered)
+            emitted_tool_call = False
+            # <think> spans in content come out as thinking (R15-LEAD-018).
+            splitter = ReasoningSplitter()
+            async for chunk in stream:
+                message = _attr(chunk, "message")
+                if message is not None:
+                    content = _attr(message, "content", "") or ""
+                    for event in splitter.content(content) if content else []:
+                        if isinstance(event, LLMDeltaEvent):
+242:    """R15-AGENT-076: a tool schema the SDK rejects client-side (its own
+243-    ``Tool.model_validate``) drops tools for the round with a logged warning and
+244-    a notice event, never silently."""
+245-    from ollama._client import _copy_tools

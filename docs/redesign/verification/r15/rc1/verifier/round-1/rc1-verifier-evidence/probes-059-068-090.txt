@@ -1,0 +1,14 @@
+## DATA-059 2026-09-25T03:59:03Z
+resolve q=ONC -> {"symbol": "ONC", "name": "BeOne Medicines Ltd.", "isin": null, "former_name": null, "exchange": "US"} cands [('ONC', None, None)]
+resolve q=SIFY -> {"symbol": "SIFY", "name": "SIFY TECHNOLOGIES LTD", "isin": null, "former_name": null, "exchange": "US"} cands [('SIFY', None, None)]
+resolve q=BeiGene -> {"symbol": null, "name": null, "isin": null, "former_name": null, "exchange": null} cands [('ONC', 'BeiGene, Ltd.', None), ('BEIGF', 'BeiGene, Ltd.', None), ('TNMG', None, None)]
+resolve q=Toss%20the%20Coin%20Private%20Limited -> {"symbol": "TTC", "name": "Toss The Coin Ltd", "isin": "INE0XAY01012", "former_name": null, "exchange": "BSE"} cands [('TTC', None, 'INE0XAY01012')]
+## DATA-068
+GET /fundamentals/AAPL/ratings keys: ['buy', 'consensus', 'hold', 'provider', 'sell', 'strong_buy', 'strong_sell', 'symbol', 'target_high', 'target_low', 'target_mean']
+GET /fundamentals/MSFT/ratings keys: ['buy', 'consensus', 'hold', 'provider', 'sell', 'strong_buy', 'strong_sell', 'symbol', 'target_high', 'target_low', 'target_mean']
+GET /fundamentals/AAPL/ratings/individual keys: ['analysts', 'as_of', 'symbol']
+## UI-090 at 09:29 IST
+quote %5ENSEI: {'symbol': '^NSEI', 'provider': 'yfinance', 'timestamp': '2026-09-25T03:59:04Z', 'freshness': 'eod', 'market_state': None}
+quote %5EBSESN: {'symbol': '^BSESN', 'provider': 'yfinance', 'timestamp': '2026-09-25T03:44:04Z', 'freshness': 'eod', 'market_state': None}
+quote AAPL: {'symbol': 'AAPL', 'provider': 'yfinance', 'timestamp': '2026-09-24T20:00:01Z', 'freshness': 'eod', 'market_state': None}
+quote RELIANCE.NS: {'symbol': 'RELIANCE', 'provider': 'nse_direct', 'timestamp': '2026-09-24T00:00:00Z', 'freshness': 'eod', 'market_state': 'REGULAR'}

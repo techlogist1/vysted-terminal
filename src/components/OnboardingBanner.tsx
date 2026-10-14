@@ -1,61 +1,91 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, X } from "lucide-react";
 
+import { tween } from "@/lib/motion";
+import { useKeylessReadiness } from "@/lib/provider-validation";
+import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelForProvider } from "@/store/model-selection";
+import { useOnboardingStore } from "@/store/onboarding";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { useWorkspaceStore } from "@/store/workspace";
 
 /**
  * First-run onboarding banner (Phase 9.5 / Track C).
  *
- * Makes "where do I put my AI key" obvious: shown whenever no key-requiring LLM
- * provider has a key in the keychain, with a one-click jump to Settings → AI
- * Providers. It is driven by real key state (not a one-shot flag), so it
- * disappears the moment a key is saved and reappears only if every key is
- * removed. Dismissible for the session. No-op (renders null) until the first
- * keychain probe completes, so it never flashes before state is known.
+ * Makes "where do I put my AI key" obvious: shown only when NO model is
+ * reachable — no key-requiring provider has a key AND the default lane is not a
+ * keyless model that is ready (R15-UI-019: a working local-model user is never
+ * told to set one up). One-click jump to Settings → AI Providers. Its dismissal
+ * is durable (the onboarding store keeps it beside the "seen" marker). Renders
+ * nothing until the keychain probe and the default lane's probe have answered,
+ * so it never flashes before state is known.
  */
 export function OnboardingBanner() {
   const probed = useProviderKeysStore((s) => s.probed);
   const hasAnyKey = useProviderKeysStore((s) => s.hasAnyKey());
   const refresh = useProviderKeysStore((s) => s.refresh);
+  const dismissed = useOnboardingStore((s) => s.bannerDismissed);
+  const refreshBanner = useOnboardingStore((s) => s.refreshBanner);
+  const dismissBanner = useOnboardingStore((s) => s.dismissBanner);
   const openPanel = useWorkspaceStore((s) => s.openPanel);
-  const [dismissed, setDismissed] = useState(false);
+  const defaultProvider = useLLMProvidersStore((s) => s.defaultProviderId);
+  const keyless = useLLMProvidersStore(
+    (s) => s.providers.find((p) => p.id === defaultProvider)?.requiresKey === false,
+  );
+  const model = useModelForProvider(defaultProvider);
+  const readiness = useKeylessReadiness(defaultProvider, model, keyless && !hasAnyKey);
 
   useEffect(() => {
     void refresh();
-  }, [refresh]);
+    void refreshBanner();
+  }, [refresh, refreshBanner]);
 
-  if (!probed || hasAnyKey || dismissed) {
-    return null;
-  }
+  // A keyless default must have ANSWERED "not ready"; a keyed default with no
+  // key anywhere is not ready by definition.
+  const defaultLaneNotReady = keyless ? readiness !== null && !readiness.ok : true;
+  const showBanner = probed && dismissed === false && !hasAnyKey && defaultLaneNotReady;
 
   return (
-    <div
-      role="status"
-      className="border-charcoal-800 flex shrink-0 items-center gap-3 border-b border-amber-500/20 bg-gradient-to-r from-amber-500/10 to-transparent px-4 py-2"
-    >
-      <Sparkles className="size-4 shrink-0 text-amber-400" aria-hidden="true" />
-      <p className="text-charcoal-200 min-w-0 flex-1 truncate font-mono text-xs">
-        Add an AI provider key to unlock the assistant, agents, and research tools — it stays in
-        your OS keychain.
-      </p>
-      <button
-        type="button"
-        onClick={() => openPanel("settings")}
-        className="shrink-0 rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 font-mono text-xs text-amber-300 hover:bg-amber-500/20"
-      >
-        Add your key →
-      </button>
-      <button
-        type="button"
-        aria-label="Dismiss"
-        onClick={() => setDismissed(true)}
-        className="text-charcoal-500 hover:text-charcoal-200 shrink-0 rounded p-1"
-      >
-        <X className="size-3.5" aria-hidden="true" />
-      </button>
-    </div>
+    <AnimatePresence initial={false}>
+      {showBanner && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          style={{ overflow: "hidden" }}
+          transition={tween(0.28)}
+        >
+          <div
+            role="status"
+            className="bg-charcoal-925 border-charcoal-600/20 flex shrink-0 items-center gap-3 border-b px-4 py-2"
+          >
+            <Sparkles className="text-charcoal-300 size-4 shrink-0" aria-hidden="true" />
+            <p className="text-charcoal-200 text-caption min-w-0 flex-1 font-mono leading-snug">
+              Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant,
+              agents, and research tools. Keys stay in your OS keychain — market data and web
+              searches still go to public providers.
+            </p>
+            <button
+              type="button"
+              onClick={() => openPanel("settings")}
+              className="rounded-control text-caption border-charcoal-600/40 bg-charcoal-700/10 text-charcoal-300 hover:bg-charcoal-700/20 shrink-0 border px-3 py-1 font-mono"
+            >
+              Set up a provider →
+            </button>
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={() => void dismissBanner()}
+              className="text-charcoal-500 hover:text-charcoal-200 rounded-control shrink-0 p-1"
+            >
+              <X className="size-4" aria-hidden="true" />
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

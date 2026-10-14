@@ -1,0 +1,15 @@
+SHA ace7dd76 sidecar :52343
+$ POST /workflow/run dangling edge
+data: {"kind":"run-start","runId":"6987c22b-3946-4ac2-a69a-a3181a53d80e","startedAt":1790986295149}
+
+data: {"kind":"run-error","runId":"6987c22b-3946-4ac2-a69a-a3181a53d80e","message":"edge e1 references unknown target node 'ghost'","durationMs":0.0}
+
+
+HTTP 200
+$ POST /workflow/run unregistered node type (plugin-contributed)
+data: {"kind":"run-start","runId":"d5b50680-b711-44ca-bad3-3051bf1b5210","startedAt":1790986295157}
+
+data: {"kind":"run-error","runId":"d5b50680-b711-44ca-bad3-3051bf1b5210","message":"node 'a' uses unregistered type 'example.plugin-node'; registered: ['action.log', 'action.notify_desktop', 'action.webhook', 'ai.agent_invoke', 'analysis.screener_query', 'compute.indicator', 'data.fetch_analyst_history', 'data.fetch_earnings_calendar', 'data.fetch_earnings_history', 'data.fetch_history', 'data.fetch_insider_transactions', 'data.fetch_macro_series', 'data.fetch_price_target_history', 'data.fetch_quote', 'data.fetch_sec_filing', 'flow.sleep', 'logic.branch', 'logic.compare', 'quant.compute_greeks', 'quant.price_bond', 'quant.price_option', 'quant.yield_curve', 'transform.code', 'transform.json_path']","durationMs":0.0}
+
+
+HTTP 200

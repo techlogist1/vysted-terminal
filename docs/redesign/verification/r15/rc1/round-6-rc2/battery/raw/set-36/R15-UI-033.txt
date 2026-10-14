@@ -1,0 +1,28 @@
+# R15-UI-033 certified only via frontend render (vitest); vitest owned by heavy lane. Pinned tests at ace7dd76:
+14:vi.mock("@/lib/keychain", async () => {
+15:  const actual = await vi.importActual<typeof import("@/lib/keychain")>("@/lib/keychain");
+182:  it("an invalid key is not marked configured (not saved to the keychain)", async () => {
+192:    await screen.findByText("NewsAPI rejected this key");
+193:    // The blocked save never reaches the keychain.
+199:  it("a valid key is saved to the keychain", async () => {
+          setValidationError(`Required: ${missing.map((f) => f.label).join(", ")}`);
+          return;
+        }
+        setValidationError(null);
+        // R15-UI-033: configure() used to have no error path here — a rejected
+        // write (a bad NewsAPI key, a keychain failure) vanished as an
+        // unhandled rejection and the dialog just sat there. Show it instead.
+        configure(entry.pluginId, values)
+          .then(onDone)
+          .catch((err: unknown) => {
+            setValidationError(err instanceof Error ? err.message : "Could not save credentials.");
+          });
+      }}
+    >
+      {entry.instructions && <p className="text-charcoal-400 text-caption">{entry.instructions}</p>}
+      {entry.website && (
+        <a
+          href={entry.website}
+          target="_blank"
+          rel="noreferrer"
+          className="text-caption text-charcoal-300 hover:underline"

@@ -1,0 +1,10 @@
+Source check: types/brief.ts:245-262 `BriefSource` now carries `publishedAt?: string` (wire
+`published_at`) as a field distinct from `provider?: string` ("via Perplexity Sonar" - provenance,
+"never part of domain" per the doc comment) and `domain?: string`. brief-ingest.ts:253-262 `hostOf`
+prefers `new URL(source.url).hostname` (lowercased, www-stripped) and falls back to `source.domain`
+only in the catch (URL parse failure) - so a Sonar-shaped source with "host (via Perplexity Sonar)"
+in `domain` now badges by the real URL host. Matches PLAN.md's fix exactly.
+Verdict: holds (source-confirmed). Note: VERDICTS.md records R15-RESEARCH-024 as "Not fully
+delivered - only the runtime half (C4, W2's auto-publish labelling) landed" for batch-6 itself; this
+entry (the model/type/hostOf contract half) is a SEPARATE deliverable per PLAN.md's W4 section and is
+present and correct in the candidate independent of C4's batch-6 status.

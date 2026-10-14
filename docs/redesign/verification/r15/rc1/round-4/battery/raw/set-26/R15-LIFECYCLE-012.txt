@@ -1,0 +1,10 @@
+=== LIFECYCLE-012 (fake-provider in-process, true mid-round stall + kill -9 sim + restart sweep) ===
+{
+  "status_while_stalled": "running",
+  "task_still_pending": true,
+  "checkpoint_has_tool_turn": true,
+  "status_after_restart_sweep": "error",
+  "detail_after_restart_sweep": "interrupted by sidecar restart",
+  "resume_after_restart_status": "running",
+  "resume_reused_checkpoint": 2
+}

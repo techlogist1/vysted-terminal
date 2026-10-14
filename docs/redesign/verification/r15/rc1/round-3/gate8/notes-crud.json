@@ -1,0 +1,23 @@
+{
+  "created": {
+    "general": "gate8 general note",
+    "bySymbol": {
+      "AAPL": "gate8 note v1: services margin thesis"
+    },
+    "focusSymbol": ""
+  },
+  "updated": {
+    "general": "gate8 general note",
+    "bySymbol": {
+      "AAPL": "gate8 note v2: updated"
+    },
+    "focusSymbol": ""
+  },
+  "deleted": {
+    "general": "",
+    "bySymbol": {
+      "AAPL": ""
+    },
+    "focusSymbol": ""
+  }
+}

@@ -1,0 +1,7 @@
+R15-RESEARCH-017 @ 68d5573aff9a579af084dcbb124843f2aecff6e8
+cmd: cd <worktree>/sidecar && PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python scratchpad/vs2/r017_probe.py (resolve_target patched to raise KeyError; deep_research tool at ultra and deep)
+KeyError: 'injected resolve_target failure'
+KeyError: 'injected resolve_target failure'
+ultra angles 3 -> {'ok': False, 'execution_loop': 'heavy', 'message': "Deep research could not finish — the heavy research loop failed: KeyError: 'injected resolve_target failure'."}
+deep angles 1 -> {'ok': False, 'execution_loop': 'iter', 'message': "Deep research could not finish — the iter research loop failed: KeyError: 'injected resolve_target failure'."}
+=> honest ok:False failure at both depths, no escape. fix_shape single-pass fallback superseded by R15-CODE-RESEARCH-003 (9703eee7). Verdict: HOLDS

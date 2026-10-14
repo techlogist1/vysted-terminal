@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  42.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_9054ceb0499341419028000a98d36953", "name": "add_to_watchlist", "input": {"symbol": "HDFCBANK"}}
+[  42.4s] tool_result: {"kind": "tool_result", "tool_call_id": "call_9054ceb0499341419028000a98d36953", "name": "add_to_watchlist", "ok": true, "error": null}
+[  52.4s] heartbeat: {"kind": "heartbeat"}
+[  62.4s] heartbeat: {"kind": "heartbeat"}
+[  67.7s] research_step: {"kind": "research_step", "tool_call_id": "call_9054ceb0499341419028000a98d36953", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: add_to_watchlist HDFCBANK. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  67.7s] done: {"kind": "done", "usage": {"input_tokens": 2891, "output_tokens": 32, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I've added HDFCBANK to your watchlist, pending your approval. To accept the addition, click the 'Apply' button in the review queue.
+
+=== ok · 67.7s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 32, 'research_step': 1, 'done': 1} · usage in=2891 out=32 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,36 @@
+cmd: grep the seven duplicated members in both providers @e032be7
+-- sidecar/services/openbb_mcp_provider.py
+93:_PORT_ENV = "VYSTED_OPENBB_MCP_PORT"
+94:_HOST_ENV = "VYSTED_OPENBB_MCP_HOST"
+113:_last_tool_call_ok: bool | None = None
+114:_last_error: str | None = None
+122:def _resolve_endpoint() -> str | None:
+139:def is_available() -> bool:
+147:async def status() -> dict[str, Any]:
+172:async def _get_client() -> mcp_client.McpClient:
+182:def _decode_tool_result(result: dict[str, Any], tool_name: str) -> Any:
+241:async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
+-- sidecar/services/sec_filings_provider.py
+63:_PORT_ENV = "VYSTED_SEC_EDGAR_MCP_PORT"
+64:_HOST_ENV = "VYSTED_SEC_EDGAR_MCP_HOST"
+70:_last_tool_call_ok: bool | None = None
+71:_last_error: str | None = None
+83:def _resolve_endpoint() -> str | None:
+96:def is_available() -> bool:
+104:async def status() -> dict[str, Any]:
+124:async def _get_client() -> mcp_client.McpClient:
+134:def _decode_tool_result(result: dict[str, Any], tool_name: str) -> Any:
+170:async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
+
+cmd: grep -n 'class \|def ' sidecar/services/mcp_client.py (no LocalMcpSubprocess)
+52:class McpClient:
+61:    def __init__(
+87:    async def _open(self) -> ClientSession:
+120:        async def _own() -> None:
+155:    async def _ensure_session(self) -> tuple[ClientSession, int]:
+163:    async def close(self, expected_generation: int | None = None) -> None:
+182:    async def _failed(self, exc: BaseException, what: str, generation: int) -> ProviderError:
+196:    async def list_tools(self) -> list[dict[str, Any]]:
+212:    async def call_tool(self, name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
+
+divergence: sec_filings_provider.py:157-160 has a structuredContent fallback, openbb_mcp_provider.py:182-200 does not

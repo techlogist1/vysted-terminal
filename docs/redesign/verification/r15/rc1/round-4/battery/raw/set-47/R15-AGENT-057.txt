@@ -1,0 +1,8 @@
+NOT RUN as a vitest execution: this role's rules forbid running vitest/pytest suites; no tsx/ts-node in candidate node_modules/.bin.
+Attempted (source confirmation, not a run): grep -n "response.ok|status === 409|PUT" src/lib/plugin-agents.ts
+  67:        if (response.status === 409) {
+  69:            method: "PUT",
+  78:      if (!response.ok) {
+-> the fetch Response is now inspected (response.ok checked) and a 409 triggers an explicit PUT/upsert, matching fix_shape "Check response.ok, treat 409 as update (PUT/upsert) explicitly".
+Certified only via vitest: src/lib/plugin-agents.test.ts:57 "updates an already-registered agent via PUT on a 409 so a revised spec replaces it (R15-AGENT-057)".
+Verdict: ci_pinned, naming that test.

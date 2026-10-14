@@ -1,0 +1,2 @@
+# RESEARCH-015 in-process at 4c6dfe8c export: verify._row_domains over two hosts of one registrable domain; 2026-09-26T12:26:02Z
+_row_domains -> ['nsearchives.nseindia.com', 'nseindia.com'] count 2

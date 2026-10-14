@@ -1,0 +1,52 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_4456d4abf9f84d6ab7eb0411ddc85a89", "name": "portfolio_add_position", "input": {"quantity": 20, "symbol": "SBIN", "asset_class": "equity", "cost_basis": 800, "note": "", "purchased_at": "2026-09-25"}}
+{"kind": "tool_result", "tool_call_id": "call_4456d4abf9f84d6ab7eb0411ddc85a89", "name": "portfolio_add_position", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " added"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "20"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " SB"}
+{"kind": "delta", "text": "IN"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "800"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "This"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " pending"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " acceptance"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " click"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "Accept"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " button"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " proposal"}
+{"kind": "delta", "text": " bar"}
+{"kind": "delta", "text": "."}
+{"kind": "research_step", "tool_call_id": "call_4456d4abf9f84d6ab7eb0411ddc85a89", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position SBIN. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 2959, "output_tokens": 44, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

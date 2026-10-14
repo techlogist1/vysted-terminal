@@ -1,0 +1,129 @@
+=== R15-CODE-FRONTEND-009/010: save_screen and write_screener_filters run:true ===
+1012:    case "write_screener_filters":
+1013-      return { name, ...parseScreenRecipe(input), run: input.run === true };
+1014:    case "save_screen":
+1015-      return { name, screenName: str(input, "name").trim(), ...parseScreenRecipe(input) };
+1016-    case "portfolio_add_position": {
+1017-      const holding = holdingFields(input);
+1018-      return {
+1019-        name,
+1020-        portfolioId: activePortfolio()?.id ?? "",
+1021-        holding,
+1022-        problem: holdingProblem(holding),
+1023-      };
+1024-    }
+1025-    case "portfolio_update_position":
+1026-    case "portfolio_delete_position": {
+1027-      const portfolio = activePortfolio();
+1028-      const { target, problem } = resolveHolding(portfolio, input);
+1029-      const portfolioId = portfolio?.id ?? "";
+1030-      const label = target?.symbol || symbol || "position";
+1031-      if (name === "portfolio_delete_position") {
+1032-        return { name, portfolioId, label, target, problem };
+1033-      }
+1034-      const holding = holdingFields(input, target);
+1035-      return {
+1036-        name,
+1037-        portfolioId,
+1038-        label,
+1039-        target,
+--
+1328:    case "write_screener_filters": {
+1329-      const { recipe, count, run } = intent;
+1330-      const s = useScreenerStore.getState();
+1331-      const currentCount = s.advanced && s.group ? countLeaves(s.group) : s.criteria.length;
+1332-      const nested = recipe.group?.criteria.some((c) => "combinator" in c)
+1333-        ? " (nested AND/OR)"
+1334-        : "";
+1335-      const writes = count > 0 || recipe.formula !== "";
+1336-      return {
+1337-        kind: "panel",
+1338-        title: "Write screener filters",
+1339-        before: `Screener: ${criteriaText(currentCount)}`,
+1340-        after: writes
+1341-          ? `Screener: ${criteriaText(count)}${nested}${recipe.universe ? ` · ${recipe.universe}` : ""}${
+1342-              recipe.formula ? " · formula" : ""
+1343-            }${droppedCriteriaNote(recipe)} — ${run ? "runs on apply" : "review then Run"}`
+1344-          : `Screener: no well-formed criteria${droppedCriteriaNote(recipe)} — ${CANT_APPLY}`,
+1345-      };
+1346-    }
+1347:    case "save_screen": {
+1348-      const { screenName, recipe, count } = intent;
+1349-      const replaces = useScreenerStore.getState().savedScreens.some((s) => s.name === screenName);
+1350-      const what = count
+1351-        ? criteriaText(count)
+1352-        : recipe.formula
+1353-          ? "a formula"
+1354-          : "the current filters";
+1355-      return {
+1356-        kind: "data-write",
+1357-        title: `Save the screen as "${screenName || "?"}"`,
+1358-        before: replaces ? `Saved screens: "${screenName}" exists` : "Saved screens: unchanged",
+1359-        after: !screenName
+1360-          ? `Saved screens: no name given — ${CANT_APPLY}`
+1361-          : count === 0 && !recipe.formula && recipe.dropped.length > 0
+1362-            ? `Saved screens: no well-formed criteria${droppedCriteriaNote(recipe)} — ${CANT_APPLY}`
+1363-            : `Saved screens: ${replaces ? `"${screenName}" replaced` : `+"${screenName}"`} (${what})${droppedCriteriaNote(recipe)}`,
+1364-      };
+1365-    }
+1366-    case "portfolio_add_position": {
+1367-      const { holding, problem } = intent;
+1368-      const count = portfolioById(intent.portfolioId)?.holdings.length ?? 0;
+1369-      const price =
+1370-        holding.costBasis === null ? "no price given" : `@ ${formatPrice(holding.costBasis)}`;
+1371-      const qty = Number.isNaN(holding.quantity) ? "" : holding.quantity;
+1372-      return {
+--
+1764:    case "write_screener_filters": {
+1765-      const { recipe, count, run } = intent;
+1766-      // Need at least one well-formed criterion (flat OR nested) or a formula.
+1767-      if (count === 0 && !recipe.formula) {
+1768-        return fail(`no well-formed screener criteria${droppedCriteriaNote(recipe)}`);
+1769-      }
+1770-      // A formula-less write keeps the user's own formula (applyFilters' rule).
+1771-      useScreenerStore.getState().applyFilters({
+1772-        criteria: recipe.criteria,
+1773-        group: recipe.group,
+1774-        universe: recipe.universe,
+1775-        ...(recipe.formula ? { formula: recipe.formula } : {}),
+1776-      });
+1777-      if (run) {
+1778-        void useScreenerStore.getState().runScreener();
+1779-      }
+1780-      // Stage the panel so the proposed filters are on screen (running, or for
+1781-      // the user to Run). The screener module REGISTERS id "screener-panel" —
+1782-      // the bare "screener" id silently no-opped (same drift class as arrange).
+1783-      useWorkspaceStore.getState().openPanel("screener-panel");
+1784-      const what = count
+1785-        ? `${wroteCriteriaText(count, recipe)}${recipe.formula ? " + a formula" : ""}`
+1786-        : "a screener formula";
+1787-      return done(
+1788-        `Wrote ${what}${droppedCriteriaNote(recipe)} — ${run ? "running" : "review and Run"}`,
+1789-      );
+--
+1811:    case "save_screen": {
+1812-      const { screenName, recipe } = intent;
+1813-      if (!screenName) {
+1814-        return fail("no screen name given");
+1815-      }
+1816-      // Every criterion the agent sent was malformed: saving would file the
+1817-      // user's CURRENT filters under the agent's name — refuse and say why.
+1818-      if (intent.count === 0 && !recipe.formula && recipe.dropped.length > 0) {
+1819-        return fail(`no well-formed screener criteria${droppedCriteriaNote(recipe)}`);
+1820-      }
+1821-      // The store saves its current draft, so the agent's recipe is written
+1822-      // into the draft first — the saved screen is the recipe, formula and all
+1823-      // (none given = none). No recipe saves the current filters, as the diff says.
+1824-      const screener = useScreenerStore.getState();
+1825-      if (intent.count > 0 || recipe.formula) {
+1826-        screener.applyFilters({
+1827-          criteria: recipe.criteria,
+1828-          group: recipe.group,
+1829-          universe: recipe.universe,
+1830-          formula: recipe.formula,
+1831-        });
+1832-      } else if (recipe.universe) {
+1833-        screener.setUniverse(recipe.universe);
+1834-      }
+1835-      const previous = screener.savedScreens.find((s) => s.name === screenName) ?? null;
+1836-      useScreenerStore.getState().saveScreen(screenName);

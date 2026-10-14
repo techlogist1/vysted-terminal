@@ -1,0 +1,3 @@
+candidate ace7dd76; command: grep -n -E 'R15-UI-035' src/modules/portfolio/PortfolioPanel.test.tsx; heavy lane runs the vitest
+430:  it("Delete works in a portfolio switched to after mount (R15-UI-035)", async () => {
+exit=0

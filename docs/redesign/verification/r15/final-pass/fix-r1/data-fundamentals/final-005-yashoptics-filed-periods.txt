@@ -1,0 +1,142 @@
+emerge YASHOPTICS.NS True
+YASHOPTICS.NS {
+ "venue": "nse",
+ "basis": "standalone",
+ "cadence": "half-yearly",
+ "trailing": [
+  "2026-03-31",
+  "2025-09-30"
+ ],
+ "periods": [
+  {
+   "start": "2025-10-01",
+   "end": "2026-03-31",
+   "revenue": 306140000.0,
+   "net_profit": 59271000.0,
+   "eps": 2.39,
+   "url": "https://nsearchives.nseindia.com/corporate/xbrl/INTEGRATED_FILING_NONINDAS_1665321_09052026072204_WEB.xml"
+  },
+  {
+   "start": "2025-04-01",
+   "end": "2025-09-30",
+   "revenue": 233758000.0,
+   "net_profit": 31210000.0,
+   "eps": 1.26,
+   "url": "https://nsearchives.nseindia.com/corporate/xbrl/INTEGRATED_FILING_NONINDAS_1575750_14112025075657_WEB.xml"
+  },
+  {
+   "start": "2024-10-01",
+   "end": "2025-03-31",
+   "revenue": 237077000.0,
+   "net_profit": 50384000.0,
+   "eps": 2.03,
+   "url": "https://nsearchives.nseindia.com/corporate/xbrl/INTEGRATED_FILING_NONINDAS_1459768_30052025062146_WEB.xml"
+  }
+ ]
+}
+emerge YASHOPTICS-SM.NS True
+YASHOPTICS-SM.NS {
+ "venue": "nse",
+ "basis": "standalone",
+ "cadence": "half-yearly",
+ "trailing": [
+  "2026-03-31",
+  "2025-09-30"
+ ],
+ "periods": [
+  {
+   "start": "2025-10-01",
+   "end": "2026-03-31",
+   "revenue": 306140000.0,
+   "net_profit": 59271000.0,
+   "eps": 2.39,
+   "url": "https://nsearchives.nseindia.com/corporate/xbrl/INTEGRATED_FILING_NONINDAS_1665321_09052026072204_WEB.xml"
+  },
+  {
+   "start": "2025-04-01",
+   "end": "2025-09-30",
+   "revenue": 233758000.0,
+   "net_profit": 31210000.0,
+   "eps": 1.26,
+   "url": "https://nsearchives.nseindia.com/corporate/xbrl/INTEGRATED_FILING_NONINDAS_1575750_14112025075657_WEB.xml"
+  },
+  {
+   "start": "2024-10-01",
+   "end": "2025-03-31",
+   "revenue": 237077000.0,
+   "net_profit": 50384000.0,
+   "eps": 2.03,
+   "url": "https://nsearchives.nseindia.com/corporate/xbrl/INTEGRATED_FILING_NONINDAS_1459768_30052025062146_WEB.xml"
+  }
+ ]
+}
+emerge SUMAX.NS True
+SUMAX.NS null
+raw filings rows 3 [
+ {
+  "attFileSize": "0 Bytes",
+  "audited": "Audited",
+  "broadcast_Date": "09-May-2026 19:22:04",
+  "cmName": "Yash Optics & Lens Limited",
+  "consolidated": "Standalone",
+  "creation_Date": "09-May-2026 19:22:05",
+  "diff": "00:00:01",
+  "ixbrl": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_NONINDAS_156557_09052026192204_iXBRL_WEB.html",
+  "ixbrlFileSize": "103.64 KB",
+  "pdf_attach": null,
+  "qe_Date": "31-MAR-2026",
+  "revised_Date": null,
+  "revision_Remark": null,
+  "seq_Id": "156557",
+  "smName": "Yash Optics & Lens Limited",
+  "symbol": "YASHOPTICS",
+  "type": "Integrated Filing- Financials",
+  "type_Sub": "Original",
+  "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/INTEGRATED_FILING_NONINDAS_1665321_09052026072204_WEB.xml",
+  "xbrlFileSize": "154.87 KB"
+ },
+ {
+  "attFileSize": "1.97 MB",
+  "audited": "Un-Audited",
+  "broadcast_Date": "14-Nov-2025 19:56:57",
+  "cmName": "Yash Optics & Lens Limited",
+  "consolidated": "Standalone",
+  "creation_Date": "14-Nov-2025 19:56:57",
+  "diff": "00:00:00",
+  "ixbrl": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_NONINDAS_128343_14112025195657_iXBRL_WEB.html",
+  "ixbrlFileSize": "71.81 KB",
+  "pdf_attach": "https://nsearchives.nseindia.com/corporate/YASHOPTICS_14112025195304_Outcome_of_BM.pdf",
+  "qe_Date": "30-SEP-2025",
+  "revised_Date": null,
+  "revision_Remark": null,
+  "seq_Id": "128343",
+  "smName": "Yash Optics & Lens Limited",
+  "symbol": "YASHOPTICS",
+  "type": "Integrated Filing- Financials",
+  "type_Sub": "Original",
+  "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/INTEGRATED_FILING_NONINDAS_1575750_14112025075657_WEB.xml",
+  "xbrlFileSize": "50.50 KB"
+ },
+ {
+  "attFileSize": null,
+  "audited": "Audited",
+  "broadcast_Date": "30-May-2025 18:21:46",
+  "cmName": "Yash Optics & Lens Limited",
+  "consolidated": "Standalone",
+  "creation_Date": "30-May-2025 18:21:47",
+  "diff": "00:00:01",
+  "ixbrl": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_NONINDAS_96851_30052025182146_iXBRL_WEB.html",
+  "ixbrlFileSize": null,
+  "pdf_attach": "https://nsearchives.nseindia.com/corporate/YASHOPTICS_30052025182009_Financial_Results.pdf",
+  "qe_Date": "31-MAR-2025",
+  "revised_Date": null,
+  "revision_Remark": null,
+  "seq_Id": "96851",
+  "smName": "Yash Optics & Lens Limited",
+  "symbol": "YASHOPTICS",
+  "type": "Integrated Filing- Financials",
+  "type_Sub": "Original",
+  "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/INTEGRATED_FILING_NONINDAS_1459768_30052025062146_WEB.xml",
+  "xbrlFileSize": null
+ }
+]

@@ -1,0 +1,14 @@
+gather_floor ok: True n announcements: 50
+floor rows (top 5 ):
+  - Kaynes Technology India Limited has informed the Exchange regarding 'Corrigendum to the consolidated financial results for the year ended 31, March 2026'.
+  - Financial Results For The Quarter Ended 30 June 2026
+  - Kaynes Technology India Limited has submitted to the Exchange, the financial results for the period ended Jun 30, 2026.
+  - Board Meeting Intimation for Quarterly Results For The Period Ended June 30, 2026
+  - Outcome of the Board meeting - Appointment of Internal Auditor for the FY 2026-27.
+raw-newest-first (no sub_question) top 5 :
+  - Kaynes Technology India Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015
+  - Closure of Trading Window
+  - Kaynes Technology India Limited has submitted the Exchange a copy Srutinizers report of  Annual General Meeting held on September 17, 2026. Further, the company has informed the Exchange regarding voting results.
+  - Kaynes Technology India Limited has informed the Exchange about Schedule of meet
+  - Kaynes Technology India Limited has informed the Exchange regarding Proceedings of Annual General Meeting held on September 17, 2026
+results-shaped headline raw positions: [2, 10, 15, 21, 22, 26]

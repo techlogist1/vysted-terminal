@@ -10,8 +10,10 @@ endpoints next to it:
   openbb-mcp-server subprocess. Read by ``plugins/openbb-mcp``'s
   ``healthCheck()``.
 
-Both endpoints are unauthenticated, mirroring the rest of the sidecar API
-(the process binds to 127.0.0.1 only — no remote surface).
+Both endpoints are unauthenticated, mirroring the rest of the sidecar API:
+the process binds to 127.0.0.1 only (no remote surface), and the app-wide
+Origin guard (``app._OriginGuardMiddleware``) refuses any browser page other
+than the Tauri webview / Vite dev server, here and on the ``/mcp`` mount.
 """
 
 from __future__ import annotations

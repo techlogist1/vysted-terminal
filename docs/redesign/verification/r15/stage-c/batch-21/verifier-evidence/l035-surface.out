@@ -1,0 +1,14 @@
+mode=agent n_tools=0 writes=[] | I sold 5 TCS shares at ₹3,100 each. Without calling any tool
+mode=agent n_tools=0 writes=[] | Please answer without using any tools: I own 30 ITC shares a
+mode=agent n_tools=0 writes=[] | No tools please. I bought 15 WIPRO shares at ₹250 and sold t
+mode=agent n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] | Answer without any tools: I sold 5 TCS shares at ₹3,100 each
+mode=agent n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] | Do not call a tool. I sold 5 TCS shares at ₹3,100 each; rest
+mode=agent n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] | Don’t use any tools. I sold 5 TCS shares at ₹3,100 each; res
+mode=agent n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] | Add 10 TCS at 3,200 to my portfolio
+mode=None n_tools=0 writes=[] | I sold 5 TCS shares at ₹3,100 each. Without calling any tool
+mode=None n_tools=0 writes=[] | Please answer without using any tools: I own 30 ITC shares a
+mode=None n_tools=0 writes=[] | No tools please. I bought 15 WIPRO shares at ₹250 and sold t
+mode=None n_tools=36 writes=[] | Answer without any tools: I sold 5 TCS shares at ₹3,100 each
+mode=None n_tools=36 writes=[] | Do not call a tool. I sold 5 TCS shares at ₹3,100 each; rest
+mode=None n_tools=36 writes=[] | Don’t use any tools. I sold 5 TCS shares at ₹3,100 each; res
+mode=None n_tools=36 writes=[] | Add 10 TCS at 3,200 to my portfolio

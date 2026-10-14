@@ -1,0 +1,22 @@
+[
+  {
+    "key": "rc1-vshard-6:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "S&P 500 screen in an IN session serves PTC India Ltd (INR 155.09) as the S&P 500 member PTC: the screener's per-symbol enrichment resolves the bare universe ticker by session region and stores the NSE company's fundamentals under the US key",
+    "repro": "Region IN session. POST /screener/run {\"universe\":\"sp500\",\"criteria\":[]} -> coverage 'spans INR, USD', row PTC name 'PTC India Limited' currency INR price 155.09. GET /fundamentals/PTC with X-Vysted-Region: IN -> symbol PTC.NS 'PTC India Limited'; with US -> 'PTC Inc.'. services/screener.py enrichment _one(): provider_registry.get_fundamentals(key) (no region) then fundamentals_store.upsert_info(key='PTC', ...). The candidate-built seed store already carries PTC|PTC India Limited|INR under the bare key. 10 sp500 tickers collide with NSE names (ACGL CCL HAL IEX IT MOS PNC PPL PTC TECH); each is exposed once enriched in an IN session.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-6-eval/adjacent-ptc-fundamentals.txt",
+    "suspected_files": ["sidecar/services/screener.py", "sidecar/services/provider_registry.py"]
+  },
+  {
+    "key": "rc1-vshard-6:2",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-AGENT-007",
+    "title": "scripts/agent_eval/run.py says 'Stdlib only' but grader.required_args imports the sidecar capability catalog (pydantic), so under a plain python3 the trial runs and then the grade step crashes with ModuleNotFoundError",
+    "repro": "python3 scripts/agent_eval/run.py --lane ollama --k 1 --port <p> --out-dir D --only price-reliance -> Traceback in grader.required_args: ModuleNotFoundError: No module named 'pydantic'. Works with sidecar/.venv/bin/python.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-6.md",
+    "suspected_files": ["scripts/agent_eval/run.py", "scripts/agent_eval/grader.py"]
+  }
+]

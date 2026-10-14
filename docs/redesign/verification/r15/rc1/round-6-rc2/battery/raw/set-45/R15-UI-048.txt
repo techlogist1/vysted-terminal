@@ -1,0 +1,10 @@
+$ grep for the named vitest cases at candidate (heavy lane runs them)
+287:  it("a fresh panel (no persisted view) opens on the settings chart default (R15-UI-048)", async () => {
+298:  it("a persisted per-panel view still wins over the settings default (R15-UI-020)", async () => {
+320:  it('"Make default" persists the current symbol/timeframe/indicators to settings', async () => {
+323:    fireEvent.click(screen.getByRole("button", { name: "Make default" }));
+91:  chartDefaults: ChartDefaults;
+118:  chartDefaults: {
+158:    chartDefaults: {
+159:      ...DEFAULT_SETTINGS.chartDefaults,
+160:      indicators: [...DEFAULT_SETTINGS.chartDefaults.indicators],

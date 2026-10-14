@@ -1,0 +1,4 @@
+### cd <wt>/sidecar && PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python scratchpad/v9_a010_l040.py l040  (checkout 633f844071d972b337f4c3526d86555c80df0568)
+L040 cold 12-way: unrelated to_thread wait=13.5ms total=5.96s errors=[]
+### cd <wt>/sidecar && PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python scratchpad/v9_a010_l040.py l040b  (checkout 633f844071d972b337f4c3526d86555c80df0568)
+L040B cold 12-way: unrelated to_thread wait=11.1ms total=3.51s errors=[]

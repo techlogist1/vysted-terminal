@@ -1,0 +1,7 @@
+CMD: sidecar/.venv/bin/python3 battery13_agent018.py
+EXIT: 0
+rescue result: kind='tool_use' tool_call_id='leaked_d6ba34d418dd461589e87df2ee85d9a1' name='write_note' input={'note': 'Cochin Shipyard: valuation looks stretched at ~54x trailing P/E; revisit after Q2 results.'} provider_meta=None
+PASS AGENT-018: leaked write_note JSON is rescued into a real tool_use
+not-offered case result: None
+PASS AGENT-018b: a name not offered this round stays text
+PASS AGENT-018c: ollama.py calls the shared rescue_leaked_tool_call

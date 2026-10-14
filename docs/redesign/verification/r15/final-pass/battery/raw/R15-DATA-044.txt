@@ -1,0 +1,13 @@
+# R15-DATA-044 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:15+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for body in '{"universe":"nse-all","criteria":[{"field":"pe_ratio","operator":"lt","value":20}],"limit":5}' '{"universe":"nse-all","criteria":[],"formula":"pe < 20","limit":5}'; do echo "\$ POST /screener/run $body"; curl -s -m 110 -H "X-Vysted-Region: IN" -X POST "$H/screener/run" -H 'content-type: application/json' -d "$body" | python3 -c "
+import sys,json,collections;d=json.load(sys.stdin)
+c=collections.Counter(s.get('reason') for s in d.get('skip_details') or [])
+print('coverage',d.get('coverage'),'evaluated',d.get('evaluated_count'),'skipped',d.get('skipped_count'),'reasons',dict(c.most_common(5)))"; done
+--- output ---
+$ POST /screener/run {"universe":"nse-all","criteria":[{"field":"pe_ratio","operator":"lt","value":20}],"limit":5}
+coverage screened 2,688 of 3,506 — 818 unavailable evaluated 2688 skipped 818 reasons {'missing_field:pe_ratio': 554, 'not_found': 150, 'rate_limited': 113, 'correctness_gate': 1}
+$ POST /screener/run {"universe":"nse-all","criteria":[],"formula":"pe < 20","limit":5}
+coverage screened 2,687 of 3,506 — 819 unavailable evaluated 2687 skipped 819 reasons {'missing_field:pe_ratio': 556, 'rate_limited': 257, 'correctness_gate': 6}
+
+EXIT=0 (50.2s)

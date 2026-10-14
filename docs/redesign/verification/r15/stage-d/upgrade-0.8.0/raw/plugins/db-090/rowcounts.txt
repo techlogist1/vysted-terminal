@@ -1,0 +1,10 @@
+== data_cache.db user_version=1
+cache 2
+meta 1
+== fundamentals_cache.db user_version=1
+fundamentals 6157
+== plugins.db user_version=1
+plugin_configs 2
+== workflows.db user_version=1
+schedules 0
+workflows 0

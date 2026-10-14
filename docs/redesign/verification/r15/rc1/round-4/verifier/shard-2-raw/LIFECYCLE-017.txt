@@ -1,0 +1,34 @@
+sha: 68d5573aff9a579af084dcbb124843f2aecff6e8
+$ PYTHONPATH=. ./.venv/bin/python3 scratchpad/vs2/l017.py
+import asyncio, logging
+from services import screener, fundamentals_store, provider_registry, provider_health
+from models.screener import ScreenerUniverse
+logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
+provider_health.is_open = lambda *a, **k: False
+async def no_rows(c): return {}
+fundamentals_store.fetch_rows = no_rows
+syms = [f"S{i}" for i in range(7)]
+def state():
+    return screener._RunState(universe=ScreenerUniverse(id="sp500", label="x", symbols=syms, asset_class="equity"), candidates=list(syms))
+async def case(name, gf, up):
+    provider_registry.get_fundamentals = gf
+    fundamentals_store.upsert_info = up
+    frames = []
+    try:
+        await screener._enrich_survivors({"roe"}, 20, state(), lambda p, d, t, det: frames.append((d, t)))
+        out = "returned"
+    except BaseException as e:
+        out = f"RAISED {type(e).__name__}: {e}"
+    print(f"[{name}] {out}; last progress frame: {frames[-1] if frames else None}")
+async def gf_value(sym): raise ValueError(f"bad field in {sym}")
+async def gf_ok(sym): return {"symbol": sym}
+async def up_ok(sym, rich): return None
+async def up_bug(sym, rich): raise TypeError("upsert_info: unexpected row shape")
+async def main():
+    await case("fresh: get_fundamentals raises ValueError", gf_value, up_ok)
+    await case("adjacent: upsert_info raises TypeError", gf_ok, up_bug)
+asyncio.run(main())
+--- output
+WARNING services.screener: screener: unexpected enrichment error for S6: ValueError: bad field in S6
+[fresh: get_fundamentals raises ValueError] returned; last progress frame: (7, 7)
+[adjacent: upsert_info raises TypeError] RAISED TypeError: upsert_info: unexpected row shape; last progress frame: (7, 7)

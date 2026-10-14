@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  60.0s] heartbeat: {"kind": "heartbeat"}
+[  70.0s] heartbeat: {"kind": "heartbeat"}
+[  77.0s] done: {"kind": "done", "usage": {"input_tokens": 7555, "output_tokens": 78, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The tool that provided the market cap figure was `fundamentals`. The result is as follows:
+
+`{"P/E": 25.4, "market_cap": USD 4.98T, "symbol": "AAPL", "profit_margin": 21.9%, ...}`
+
+Note that this result includes additional financial information for AAPL beyond just the market capitalization.
+
+=== ok · 77.0s · events {'heartbeat': 7, 'delta': 78, 'done': 1} · usage in=7555 out=78 · est $0.00000 · llama3.1:8b

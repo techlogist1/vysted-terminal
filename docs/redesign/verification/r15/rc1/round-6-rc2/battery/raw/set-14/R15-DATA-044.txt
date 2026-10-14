@@ -1,0 +1,13 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad; python3 - <<'X'
+from scr import *
+d=run({'universe':'nse-all','criteria':[{'field':'pe_ratio','operator':'lt','value':20}],'limit':5})
+print(summ(d))
+import collections
+print(collections.Counter(s['reason'] for s in d['skip_details']).most_common(3))
+d2=run({'universe':'nse-all','criteria':[],'formula':'pe < 20','limit':5});print(d2['coverage'],d2['skipped_count'])
+X
+{'universe': 'nse-all', 'evaluated_count': 2686, 'skipped_count': 820, 'result_count': 5, 'matched_count': 1091, 'duration_ms': 340.5462499940768, 'partial': True, 'coverage': 'screened 2,686 of 3,506 — 820 unavailable', 'freshness': {'quotes_as_of': 1790987592.901624, 'valuation_as_of': 1790987592.901621, 'deep_as_of': 1783624086.1028411}, 'basis_counts': {'live': 5}, 'throttled': True}
+[('missing_field:pe_ratio', 567), ('rate_limited', 253)]
+screened 2,686 of 3,506 — 820 unavailable 820
+EXIT=0

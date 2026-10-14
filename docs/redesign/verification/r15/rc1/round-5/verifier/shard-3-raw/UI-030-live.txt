@@ -1,0 +1,23 @@
+# UI-030 live tab defaults, own sidecar :52603 (WT 633f8440)
+## GET /macro/catalog?provider=fred
+{"provider":"fred","entries":[{"provider":"fred","series_id":"DGS10","title":"10-Year Treasury Constant Maturity Rate","category":"Interest Rates","frequency":"daily","units":"Percent"},{"provider":"fred","series_id":"DGS2","title":"2-Year Treasury Constant Maturity Rate","category":"Interest Rates","frequency":"daily","units":"Percent"},{"provider":"fred","series_id":"FEDFUNDS","title":"Federal F
+## GET /macro/DGS10?provider=fred
+{"detail":"FRED needs a free API key for macro data. Get one at fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, and reload — or switch the series provider to ECB, IMF, or World Bank, which need no key.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+
+## GET /macro/catalog?provider=ecb
+{"provider":"ecb","entries":[{"provider":"ecb","series_id":"FM.D.U2.EUR.4F.KR.MRR_FR.LEV","title":"Main Refinancing Operations Rate (MRO) — daily","category":"Monetary Policy","frequency":"daily","units":"Percent per annum"},{"provider":"ecb","series_id":"FM.D.U2.EUR.4F.KR.DFR.LEV","title":"Deposit Facility Rate — daily","category":"Monetary Policy","frequency":"daily","units":"Percent per ann
+## GET /macro/FM.D.U2.EUR.4F.KR.MRR_FR.LEV?provider=ecb
+{"series_id":"FM.D.U2.EUR.4F.KR.MRR_FR.LEV","title":"Main refinancing operations - fixed rate tenders (fixed rate) (date of changes) - Level","units":null,"observations":[{"date":"1999-01-01T00:00:00Z","value":3.0,"is_projection":false},{"date":"1999-01-02T00:00:00Z","value":3.0,"is_projection":fals
+## GET /macro/catalog?provider=imf
+{"provider":"imf","entries":[{"provider":"imf","series_id":"WEO/USA.NGDP_RPCH.A","title":"Real GDP growth, annual, United States","category":"National Accounts","frequency":"annual","units":"Percent change"},{"provider":"imf","series_id":"QNEA/USA.B1GQ.Q.SA.XDC.Q","title":"Real GDP, quarterly, seasonally adjusted, United States","category":"National Accounts","frequency":"quarterly","units":"Natio
+## GET /macro/WEO%2FUSA.NGDP_RPCH.A?provider=imf
+{"series_id":"WEO/USA.NGDP_RPCH.A","title":"Real GDP growth, annual, United States","units":"Percent change","observations":[{"date":"1980-01-01T00:00:00Z","value":-0.256666,"is_projection":false},{"date":"1981-01-01T00:00:00Z","value":2.537436,"is_projection":false},{"date":"1982-01-01T00:00:00Z","
+## GET /macro/catalog?provider=world-bank
+{"provider":"world-bank","entries":[{"provider":"world-bank","series_id":"NY.GDP.PCAP.CD","title":"GDP per capita (current USD)","category":"National Accounts","frequency":"annual","units":"USD"},{"provider":"world-bank","series_id":"NY.GDP.MKTP.CD","title":"GDP (current USD)","category":"National Accounts","frequency":"annual","units":"USD"},{"provider":"world-bank","series_id":"NY.GDP.MKTP.KD.ZG
+## GET /macro/NY.GDP.PCAP.CD?provider=world-bank
+{"series_id":"NY.GDP.PCAP.CD","title":"GDP per capita (current US$) — IND","units":null,"observations":[{"date":"1960-01-01T00:00:00Z","value":84.9328084793106,"is_projection":false},{"date":"1961-01-01T00:00:00Z","value":87.8538613470205,"is_projection":false},{"date":"1962-01-01T00:00:00Z","valu
+## GET /macro/search?q=unemployment&provider=fred (own sidecar :52603, keyless data dir)
+{"detail":"FRED needs a free API key for macro data. Get one at fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, and reload — or switch the series provider to ECB, IMF, or World Bank, which need no key.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+

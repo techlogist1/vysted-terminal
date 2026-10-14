@@ -1,0 +1,24 @@
+# R15-CODE-FRONTEND-004 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY'
+import urllib.request, urllib.parse, json
+H="http://127.0.0.1:52860"
+def req(m,p,b=None):
+    r=urllib.request.Request(H+p,method=m,data=(json.dumps(b).encode() if b is not None else None),headers={"content-type":"application/json","origin":"http://localhost:5173"})
+    try:
+        with urllib.request.urlopen(r,timeout=30) as x: return x.status, x.read().decode()[:200]
+    except urllib.error.HTTPError as e: return e.code, e.read().decode()[:200]
+for n in ["Research: NVDA","Research: RELIANCE.NS","Research: M&M","My Layout (2)","मेरा लेआउट"]:
+    q="/workspace/"+urllib.parse.quote(n,safe="")
+    s1,_=req("POST","/workspace",{"name":n,"workspace":{}})
+    s2,_=req("GET",q); s3,body=req("GET","/workspace"); s4,_=req("DELETE",q)
+    print(repr(n),"POST",s1,"GET",s2,"listed",n in body or json.dumps(n)[1:-1] in body,"DELETE",s4)
+PY
+--- output ---
+'Research: NVDA' POST 200 GET 200 listed True DELETE 204
+'Research: RELIANCE.NS' POST 200 GET 200 listed True DELETE 204
+'Research: M&M' POST 200 GET 200 listed True DELETE 204
+'My Layout (2)' POST 200 GET 200 listed True DELETE 204
+'मेरा लेआउट' POST 200 GET 200 listed True DELETE 204
+
+EXIT=0 (0.1s)

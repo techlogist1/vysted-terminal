@@ -1,0 +1,14 @@
+[
+  {
+    "key": "rc1-scenarios:1",
+    "kind": "new_defect",
+    "severity": "high",
+    "title": "price_data's silent 90-bar cap masquerades as a '52-week' window; the model states an internally-impossible 52-week-low/current-price relationship as fact",
+    "repro": "vy invoke, provider ollama model llama3.1:8b, autonomy ask, candidate 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2, prompt \"What is ELCIDIN's 52-week low, and how far above it is the current price?\" -> tool_use price_data(symbol=ELCIDIN, range omitted so default 6mo is used server-side; a prior run with range=1y showed the same mechanism) -> tool_result ok:true. Direct backend probe of the SAME tool handler (services.agent_tools.price_data._price_data({'symbol':'ELCIDIN.NS','range':'1y'})) shows the tool caps at 90 bars regardless of the requested range (bars_returned=90, bars_available=111, window_start=2026-05-20, i.e. ~4.5 months of data served for a '1y' request) and the tool payload carries no 52-week/window-label field at all -- the model must be inferring '52-week' from a 4.5-month window on its own. In the live scenario the model's final answer was: \"The 52-week low for ELCIDIN is ₹110,095. The current price of ₹103,800 is ₹6,295 above the 52-week low.\" 103,800 is LOWER than 110,095, not above it -- a stated logical impossibility narrated as flat, unremarked fact. Worse, ₹110,095 does not even match the tool's own returned data (the direct probe's min low in its 90-bar window was ₹102,210, and the live scenario's own quote showed current price ₹103,800) -- the model's '52-week low' figure is not traceable to any number in its own tool result. This is a live, reproducible skepticism-property failure, and a distinct root cause from the already-fixed R15-DATA-015 (which added a 'flagged, kept' annotation to the UNRELATED /fundamentals fifty_two_week_low field only -- sidecar/services/agent_tools/price_data.py has zero mentions of fifty_two_week/flagged/reason and was not touched by that fix).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/scenarios/ollama-sk3-elcidin-v2.jsonl",
+    "suspected_files": [
+      "sidecar/services/agent_tools/price_data.py (silently caps at 90 bars for any requested range, no window-label/52-week field, no docstring warning the model that '1y' is not honoured)",
+      "sidecar/agents/copilot.json or agent_runtime.py (no instruction telling the model to sanity-check a stated 'low' against the current price it also has, nor to avoid inferring '52-week' semantics from a tool that doesn't provide them)"
+    ]
+  }
+]

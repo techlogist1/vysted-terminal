@@ -1,0 +1,25 @@
+{
+  "role": "laya-verdict-critic",
+  "what": "independent re-run of run_zeroshot.py's single-item predict pass (same load() args, same to_question override, imported from laya-measure) over all 339 items; batched pass not re-run",
+  "script": "<scratch>/laya-critic/rerun.py (log <scratch>/laya-critic/rerun.log), metrics recomputed by <scratch>/laya-critic/check.py",
+  "items_rerun": {
+    "entity_match": 199,
+    "composer_intent": 53,
+    "holding_relevance": 87
+  },
+  "prediction_agreement": "bit-identical: max |noul diff| 0.0 on all 286 noul items, max |prob diff| 0.0 and 0 choice flips on 53 composer items",
+  "metrics_reproduced": "split (seed 918, disjoint, covers every id), noul sweep/gate/max-F1, composer accuracy 17/27, majority rates, T fits 4.06/1.09/0.79, ECE before/after all identical to noul_metrics.json/composer_metrics.json/calibration.json",
+  "latency_single": {
+    "p50_ms": 41.56899452209473,
+    "p99_ms": 466.86087131500267,
+    "throughput_items_per_s": 15.645352726261217,
+    "note": "p50 reproduces (41.6 vs 42.2); p99 is ~3 samples of 339 and noisy (466.9 vs 350.5, same interpolated percentile as run_zeroshot.py)"
+  },
+  "memory": {
+    "max_rss_bytes": 981909504,
+    "peak_memory_footprint_bytes": 12177887232,
+    "source": "/usr/bin/time -l in rerun.log; measurer's time_wrapper.log shows 980615168 / 12180033728",
+    "host_ram_bytes": 17179869184,
+    "host_ram_source": "sysctl -n hw.memsize"
+  }
+}

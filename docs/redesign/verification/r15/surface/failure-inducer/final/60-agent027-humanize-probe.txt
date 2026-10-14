@@ -1,0 +1,18 @@
+openai     X                    'Error code: 429 - You exceeded your current quota, please ch'   -> insufficient_credit | Your OpenAI account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings.
+openai     X                    'credit balance exhausted'                                       -> insufficient_credit | Your OpenAI account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings.
+openrouter X                    'Rate limit exceeded: free-models-per-day. limit_source share'   -> rate_limit | OpenRouter is rate-limiting your account — try again in a minute. | Wait a moment, then try again.
+openai     X                    "This model's maximum context length is 128000 tokens"           -> context_overflow | The conversation is too long for this OpenAI model. | Start a new chat or pick a model with a larger context window.
+groq       X                    'Request Entity Too Large'                                       -> context_overflow | The conversation is too long for this Groq model. | Start a new chat or pick a model with a larger context window.
+gemini     X                    'The input token count (1200000) exceeds the maximum number o'   -> context_overflow | The conversation is too long for this Google Gemini model. | Start a new chat or pick a model with a larger context window.
+groq       X                    'The model `llama3-70b-8192` has been decommissioned and is n'   -> model_not_found | The requested model is not available on Groq — pick another model. | Choose a different model in Settings.
+xai        X                    "Your newly created team doesn't have any credits yet"           -> insufficient_credit | Your xAI account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings.
+gemini     X                    'API key not valid. Please pass a valid API key. API_KEY_INVA'   -> auth | The Google Gemini API key was rejected — check it in Settings. | Re-enter the API key in Settings.
+openrouter X                    'zzz/not-a-model is not a valid model ID'                        -> model_not_found | The requested model is not available on OpenRouter — pick another model. | Choose a different model in Settings.
+ollama     ConnectError         'All connection attempts failed'                                 -> ollama_not_running | Ollama is not running. | Start Ollama (open the app or run `ollama serve`), then try again.
+ollama     ReadTimeout          'timed out'                                                      -> ollama_not_running | Ollama is not responding. | Make sure Ollama is running (`ollama serve`), then try again.
+openai     RemoteProtocolError  'peer closed connection without sending complete message body'   -> unknown | Something went wrong with OpenAI. | Try again or switch provider in Settings.
+openrouter RemoteProtocolError  'peer closed connection without sending complete message body'   -> unknown | Something went wrong with OpenRouter. | Try again or switch provider in Settings.
+--- round-5 a027 residual cases at d38b5d1a
+groq 413 '' -> unknown | Something went wrong with Groq. | Try again or switch provider in Settings.
+groq 413 'Request too large for model `llama-3.3-70b-versatile` in organization ' -> context_overflow | The conversation is too long for this Groq model. | Start a new chat or pick a model with a larger context window.
+openrouter 429 'meta-llama/llama-3.3-70b-instruct:free is temporarily rate-limited ups' -> free_pool_busy | OpenRouter's free-model pool is busy right now. | Try again shortly, or pick a paid model in Settings.

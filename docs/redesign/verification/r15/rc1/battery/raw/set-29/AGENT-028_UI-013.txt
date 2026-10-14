@@ -1,0 +1,6 @@
+=== UI-013 / AGENT-028: ollama gemma3:4b not pulled ===
+{"ok":false,"reason":"model_not_pulled","detail":"gemma3:4b is not downloaded in Ollama (local) yet."}
+=== ollama llama3.1:8b (pulled) ===
+{"ok":true,"reason":null,"detail":null}
+=== openrouter no key ===
+{"ok":false,"reason":"not_configured","detail":"No API key is set for OpenRouter."}

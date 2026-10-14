@@ -1,0 +1,12 @@
+# R15-DATA-111 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:58+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+rm -f $B/out/R15-DATA-111.txt; "$IP" $B/sc/b16_r.py >/dev/null 2>&1; echo "script exit $?"; cat $B/out/R15-DATA-111.txt
+--- output ---
+script exit 0
+# candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611, in-process python (cand sidecar/.venv), scratch b16_r.py
+drift sim (page parses to 0 rows for the canary query): {'engine': 'ddg', 'ok': False, 'note': 'parser drift'}; breaker failures=1
+LIVE canary_check(ddg) -> {'engine': 'ddg', 'ok': False, 'note': 'keyless web search (DuckDuckGo) is unreachable — check your network, or add an Exa key / local SearXNG for a dedicated search route'}
+LIVE canary_check(brave) -> {'engine': 'brave', 'ok': False, 'note': 'Brave HTML search is blocking/rate-limiting right now (HTTP 429) — rotating to the next keyless engine'}
+LIVE canary_check(mojeek) -> {'engine': 'mojeek', 'ok': False, 'note': 'Mojeek: blocked (challenge page)'}
+
+EXIT=0 (11.5s)

@@ -1,0 +1,3 @@
+WARNING:services.nse_symbol_change:nse_symbol_change: request failed (ConnectTimeout: boom)
+after attempt1: attempts= 1 lane_available= True _refreshed_on= 2026-09-27
+after backoff: attempts= 1 lane_available= True _refreshed_on= 2026-09-27

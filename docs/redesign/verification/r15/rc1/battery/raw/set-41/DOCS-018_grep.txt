@@ -1,0 +1,31 @@
+93:>   data registry** (`provider_registry.py`) resolves by standard model key +
+94:>   preference order (not the asset-class chain); every result carries its serving
+196:import a concrete provider; they go through `provider_registry` or a domain
+277:| GET                 | `/health`                                                                                  | Liveness (Tauri polls on launch)                 | `provider_registry.active_providers()`; version from `request.app.version` |
+278:| GET                 | `/quotes/{symbol}`                                                                         | Single latest quote                              | `provider_registry.get_quote` via `asyncio.to_thread`                      |
+280:| GET                 | `/history/{symbol}`                                                                        | OHLCV (`?timeframe=&range=&asset_class=`)        | `provider_registry.get_history` — **NOT thread-offloaded**                 |
+287:| GET                 | `/fundamentals/{symbol}`                                                                   | Valuation ratios + profile                       | `provider_registry.get_fundamentals`                                       |
+288:| GET                 | `/fundamentals/{symbol}/income` `/balance` `/cashflow`                                     | Financial statements                             | `provider_registry.get_*_statement`                                        |
+289:| GET                 | `/fundamentals/{symbol}/ratings`                                                           | Aggregated analyst rating                        | `provider_registry.get_analyst_rating`                                     |
+320:All under `sidecar/services/`. `provider_registry.py` resolves by **standard
+851:- **The sidecar + data layer.** ~94 REST routes (post-D81), the `provider_registry`
+{
+    "providers": [
+        {
+            "id": "ccxt",
+            "keys": [
+                "ohlcv",
+                "quote"
+            ],
+            "rank": 10,
+            "available": true,
+            "asset_classes": [
+                "crypto"
+            ],
+            "region": []
+        },
+        {
+            "id": "openbb-mcp",
+            "keys": [
+                "analyst_rating",
+                "balance_sheet",

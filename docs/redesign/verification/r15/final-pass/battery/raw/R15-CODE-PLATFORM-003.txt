@@ -1,0 +1,32 @@
+# R15-CODE-PLATFORM-003 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:26:30+0530
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-8062242408456813459.json 'http://127.0.0.1:52861/workflow/run' | head -c 2500
+[exit 0] [0.02s]
+data: {"kind":"run-start","runId":"3bb253a6-d181-4d93-a69c-6b3cf1ce528a","startedAt":1791028590066}
+
+data: {"kind":"node-start","runId":"3bb253a6-d181-4d93-a69c-6b3cf1ce528a","nodeId":"a","nodeType":"ai.agent_invoke","startedAt":1791028590066}
+
+data: {"kind":"node-error","runId":"3bb253a6-d181-4d93-a69c-6b3cf1ce528a","nodeId":"a","message":"ai.agent_invoke (no-such-agent): unknown agent: 'no-such-agent'","durationMs":1.347584}
+
+data: {"kind":"run-error","runId":"3bb253a6-d181-4d93-a69c-6b3cf1ce528a","message":"failures in nodes: ['a']","durationMs":1.568875}
+
+
+[http 200 0.003164s]
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-170947402182367144.json 'http://127.0.0.1:52861/workflow/run' | head -c 2500
+[exit 0] [0.07s]
+data: {"kind":"run-start","runId":"5f959a2d-113c-49e8-87b7-a1f704410f8b","startedAt":1791028590080}
+
+data: {"kind":"node-start","runId":"5f959a2d-113c-49e8-87b7-a1f704410f8b","nodeId":"a","nodeType":"ai.agent_invoke","startedAt":1791028590080}
+
+data: {"kind":"node-error","runId":"5f959a2d-113c-49e8-87b7-a1f704410f8b","nodeId":"a","message":"ai.agent_invoke (strategy_critic): No Anthropic API key is set — add it in Settings.","durationMs":53.87125}
+
+data: {"kind":"run-error","runId":"5f959a2d-113c-49e8-87b7-a1f704410f8b","message":"failures in nodes: ['a']","durationMs":54.23925}
+
+
+[http 200 0.055344s]
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-4604210909689566325.json 'http://127.0.0.1:52861/workflow/run' | head -c 800
+[exit 0] [0.01s]
+{"detail":[{"type":"value_error","loc":["body","spec","nodes",0,"config"],"msg":"Value error, node config must not carry 'api_key'; the run uses the selected provider's key from the request","input":{"agent_id":"buffett","api_key":"x"},"ctx":{"error":{}}}]}
+[http 422 0.001562s]

@@ -1,0 +1,4 @@
+data: {"kind": "error", "message": "No Groq API key is set \u2014 add it in Settings.", "action": "Add your Groq API key in Settings.", "detail": "The api_key client option must be set either by passing api_key to the client or by setting the GROQ_API_KEY environment variable", "code": "auth"}
+
+data: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+

@@ -1,0 +1,12 @@
+# R15-LEAD-014 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:20+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/l014.py 2>&1 | grep -v Warning
+--- output ---
+tools with no required keys: 8
+full echo accepted after fix: 0 of 8
+fenced echo -> None
+prose echo -> None
+legit news args -> {'symbols': ['AAPL']}
+PASS LEAD-014: schema-echo repair replies are rejected; legit args still pass
+
+EXIT=0 (1.3s)

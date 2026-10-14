@@ -1,0 +1,16 @@
+CMD: in-process probe4 reproduction: create a fundamentals table missing the last 3 _ALL_COLUMNS entries, call fs._connect(), PRAGMA table_info
+OUTPUT: missing after migrate: [] ; last 3 target cols were: ['seed_updated_at', 'eod_updated_at', 'provider']
+--- source: sidecar/services/fundamentals_store.py _migrate (single _ALL_COLUMNS vocabulary, ALTERs every column PRAGMA doesn't report) ---
+#: Forward-only migrations, one per ``user_version`` (R15-LIFECYCLE-024).
+_STEPS = (_reconcile,)
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Additive column migration — ``CREATE TABLE IF NOT EXISTS`` never alters
+    an existing table, so a DB created before a column landed gets it here.
+    ALTERs every column in ``_ALL_COLUMNS`` that ``PRAGMA table_info`` doesn't
+    already report — not a hand-picked subset, so a future addition to
+    ``_NUMERIC_FIELDS`` (or any other column) migrates existing DBs without
+    a matching ``_migrate`` edit (R15-DATA-095)."""
+
+VERDICT: holds -- all 3 previously-missing columns are backfilled by _migrate against the one _ALL_COLUMNS vocabulary; matches batch-10's probe4 exactly.

@@ -1,0 +1,6 @@
+cmd: sidecar/.venv/bin/python3 b18-agent047.py (in-process groq._parse_tool_args / ollama._parse_tool_input on truncated JSON + empty string; runtime._normalise_tool_args on quantity:"ten")
+groq truncated: {'__vysted_invalid_args__': 'arguments were not valid JSON: {"symbol": "RELI'}
+groq empty: {}
+ollama truncated: {'__vysted_invalid_args__': 'arguments were not valid JSON: {"symbol": "RELI'}
+ollama empty: {}
+runtime quantity='ten': {'__vysted_invalid_args__': "invalid arguments for portfolio_update_position: 'ten' is not of type 'number'; call again with valid args"}

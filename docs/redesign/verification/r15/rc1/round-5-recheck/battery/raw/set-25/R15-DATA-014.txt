@@ -1,0 +1,6 @@
+COMMAND: curl http://127.0.0.1:52359/fundamentals/DAL ; /fundamentals/FUSION ; /fundamentals/JONJUA (own sidecar, candidate 949c3c9f)
+EXIT: 0 (HTTP 200 all three)
+DAL: revenue_ttm=99,700,000.0 (9.97 Cr) provider=bse, reason="exchange-filed (BSE) figure served; the provider's 27,600,000 disagrees with it — not served", label "standalone, sum of 4 filed quarters to 2026-06-30". Matches screener.in's 9.97 Cr from the register.
+FUSION: revenue_ttm=17,144,200,000.0 (1,714.42 Cr) provider=nse, same "not served" reason vs yfinance's 858.2 Cr. Matches register's "1,714.42 Cr from NSE's filed RevenueFromOperations".
+JONJUA: revenue_ttm status="flagged", provider=yfinance, reason="TTM basis: the exchange filings leave a quarter of the trailing year unfiled or unparsed; kept, flagged" (growth_basis mrq_yoy). The original defect (a synthetic TTM stated as fact with no flag) is fixed: the half-yearly filer's TTM figure is now explicitly flagged, not asserted as fact.
+VERDICT: holds. All three sub-cases (DAL, FUSION, JONJUA) match the certified fix.

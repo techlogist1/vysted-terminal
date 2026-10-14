@@ -1,0 +1,43 @@
+# RESEARCH-032 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/components/vs3-r032.test.tsx
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+stdout | src/components/vs3-r032.test.tsx > SettingsPanel > vs3: the 60 s slow poll (no focus event) moves Ready -> Error; a refused fetch names the engine; recovery clears it
+transport -> SearXNG status unavailable: The data engine is not responding — it may have stopped. Restart Vysted.
+ ✓ src/components/vs3-r032.test.tsx > SettingsPanel > vs3: the 60 s slow poll (no focus event) moves Ready -> Error; a refused fetch names the engine; recovery clears it 172ms
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  17:00:15
+   Duration  2.84s (transform 921ms, setup 69ms, import 2.10s, tests 173ms, environment 404ms)
+
+## test source (appended part)
+  // vs3 fresh: RESEARCH-032 — slow poll alone (no focus/visibility) follows a dying container; transport failure named; recovery clears the error
+  function st(state: string, extra?: Record<string, unknown>) {
+    return { state, detail: null, reason: null, port: null, url: null, ...extra };
+  }
+  it("vs3: the 60 s slow poll (no focus event) moves Ready -> Error; a refused fetch names the engine; recovery clears it", async () => {
+    const slowTicks: Array<() => void> = [];
+    const realSetInterval = globalThis.setInterval;
+    vi.spyOn(globalThis, "setInterval").mockImplementation(((fn: () => void, ms?: number) => {
+      if (ms === 60_000) slowTicks.push(fn);
+      return realSetInterval(fn, ms);
+    }) as typeof setInterval);
+    routeFetch({ "/search/searxng/status": st("ready") });
+    render(<SettingsPanel />);
+    expect((await screen.findByTestId("searxng-status-chip")).textContent).toBe("Ready");
+    expect(slowTicks.length).toBeGreaterThan(0);
+    routeFetch({ "/search/searxng/status": st("error", { reason: "container exited (137)" }) });
+    await act(async () => { slowTicks.forEach((f) => f()); });
+    expect(await screen.findByText(/container exited \(137\)/)).toBeInTheDocument();
+    expect((await screen.findByTestId("searxng-status-chip")).textContent).toBe("Error");
+    // engine gone entirely
+    vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new TypeError("Load failed"))));
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    const alert = await screen.findByText(/SearXNG status unavailable:/);
+    console.log("transport ->", alert.textContent);
+    expect(alert.textContent).not.toMatch(/Load failed/);
+    // recovery
+    routeFetch({ "/search/searxng/status": st("ready") });
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    expect((await screen.findByTestId("searxng-status-chip")).textContent).toBe("Ready");
+    expect(screen.queryByText(/SearXNG status unavailable:/)).toBeNull();
+  });
+});

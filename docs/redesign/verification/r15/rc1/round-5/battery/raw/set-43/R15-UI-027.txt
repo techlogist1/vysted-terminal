@@ -1,0 +1,45 @@
+--- UI-027: source confirmation (resolveChord collapses mod per platform) ---
+ * Resolve a combo to the concrete physical chord it produces on the CURRENT
+ * platform (R15-UI-027 residual): `"mod"` collapses to `"meta"` on macOS or
+ * `"ctrl"` elsewhere, so `"mod+p"` and `"meta+p"` compare equal on macOS
+ * (both are ⌘P) while `"mod+p"` and `"ctrl+p"` compare equal off macOS —
+ * `conflicts()` groups on this instead of the raw string.
+ */
+function resolveChord(keys: string): string {
+  const { modifiers, key } = parseBinding(keys);
+  const mac = isMacPlatform();
+  const resolved = new Set<string>();
+  for (const m of modifiers) {
+    resolved.add(m === "mod" ? (mac ? "meta" : "ctrl") : m);
+  }
+  const order = ["ctrl", "alt", "shift", "meta"] as const;
+  const ordered = order.filter((m) => resolved.has(m));
+  return [...ordered, ...(key ? [key] : [])].join("+");
+}
+
+/** True when running on macOS (so `mod`/`meta` render as ⌘). SSR/jsdom-safe. */
+export function isMacPlatform(): boolean {
+  if (typeof navigator === "undefined") {
+    return false;
+  }
+  // `navigator.platform` is deprecated but still the most reliable signal in a
+  // Tauri WKWebview; fall back to userAgent for environments that null it out.
+  const platform = navigator.platform ?? "";
+  const ua = navigator.userAgent ?? "";
+  return /mac/i.test(platform) || /mac os x/i.test(ua);
+}
+
+/** Human-readable symbol for a key token (e.g. "enter" → "↵"). */
+
+--- pinned test names (keybindings.test.ts) ---
+116:  it("reports no spurious conflicts on the default keymap shell actions", () => {
+124:  it("mod+p and meta+p conflict on macOS (same resolved chord)", () => {
+133:  it("shift+mod+p beside mod+p does NOT conflict (distinct resolved chords)", () => {
+144:  it("class pin: shift+mod+k beside mod+k does NOT conflict", () => {
+154:  it("lowercases and orders modifiers before the key", () => {
+162:  it("renders mod as ⌘ on macOS", () => {
+169:  it("renders mod as Ctrl on non-mac", () => {
+199:  it("matches mod+k as ⌘K on macOS (meta held, not ctrl)", () => {
+205:  it("matches mod+k as Ctrl+K on non-mac (ctrl held, not meta)", () => {
+211:  it("requires the exact modifier set", () => {
+243:    it("shift+mod+p and mod+p each match only their own keystroke", () => {

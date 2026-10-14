@@ -1,0 +1,126 @@
+# before.txt — inventory of the run copy /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-close-upgrade-run before launch (2026-10-04T09:03:16Z)
+## files
+./audit_log.db
+./custom_agents.db
+./data_cache.db
+./data_cache.db-shm
+./data_cache.db-wal
+./plugins.db
+./portfolio.db
+./workspaces/phase9test.vysted-workspace
+notes/: absent
+## workspaces
+phase9test.vysted-workspace size=3932
+keys ['chartDrawings', 'enabledModules', 'layout', 'name']
+name phase9test
+enabledModules {'plugin:tradesa-v2': True, 'plugin:vysted-example': True, 'chart': True, 'watchlist': True, 'news': True, 'portfolio': True, 'equity-overview': True, 'chat': True, 'platform': True, 'plugin-manager': True, 'agent-builder': True, 'node-editor': True, 'backtest': True, 'broker-connect': True, 'safety': True, 'macro': True, 'sec-filings': True, 'quant': True, 'earnings': True, 'analyst-ratings': True, 'screener': True}
+layout panels 9 ['chart-panel', 'chart-panel', 'chat-sidebar', 'equity-overview-panel', 'news-panel', 'option-pricer-panel', 'portfolio-panel', 'settings-panel', 'watchlist-panel']
+False False
+## custom_agents.db
+custom_agents 0
+## workflows.db: absent
+## plugins.db
+plugin_configs 0
+## portfolio.db
+positions 84
+sqlite_sequence 1
+## audit_log.db
+Error: in prepare, unable to open database file (14)
+## data_cache.db
+cache 5
+## portfolio.db positions schema
+CREATE TABLE positions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    symbol TEXT NOT NULL,
+    quantity REAL NOT NULL,
+    cost_basis REAL NOT NULL,
+    asset_class TEXT NOT NULL DEFAULT 'equity',
+    opened_at TEXT,
+    note TEXT
+);
+## portfolio.db positions (all rows)
+id | symbol | quantity | cost_basis | asset_class | opened_at | note
+1 | AAPL | 10.0 | 150.0 | equity |  | 
+2 | AAPL | 1.0e+15 | 1.0e-08 | equity |  | x
+3 | AAPL | -50.0 | -10.0 | equity |  | 
+4 | AAPL | 1.0e+15 | 1.0e-08 | equity |  | AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 🚀 '; DROP TABLE positions;-- <b>x</b> éèê LONGNOTELONGNOTELONGNOTELONGNOTELONGNOTELONGNOTELONGNOTELONGNOTELONGNOTELONGNOTELONGNOTELONGNOTELONGNOTELONGNOTELONGNOTE
+5 | T001 | 2.0 | 10.0 | equity |  | 
+6 | T002 | 3.0 | 20.0 | equity |  | 
+7 | T003 | 4.0 | 30.0 | equity |  | 
+8 | T004 | 5.0 | 40.0 | equity |  | 
+9 | T005 | 6.0 | 50.0 | equity |  | 
+10 | T006 | 7.0 | 60.0 | equity |  | 
+11 | T007 | 8.0 | 70.0 | equity |  | 
+12 | T008 | 9.0 | 80.0 | equity |  | 
+13 | T009 | 10.0 | 90.0 | equity |  | 
+14 | T010 | 11.0 | 100.0 | equity |  | 
+15 | T011 | 12.0 | 110.0 | equity |  | 
+16 | T012 | 13.0 | 120.0 | equity |  | 
+17 | T013 | 14.0 | 130.0 | equity |  | 
+18 | T014 | 15.0 | 140.0 | equity |  | 
+19 | T015 | 16.0 | 150.0 | equity |  | 
+20 | T016 | 17.0 | 160.0 | equity |  | 
+21 | T017 | 18.0 | 170.0 | equity |  | 
+22 | T018 | 19.0 | 180.0 | equity |  | 
+23 | T019 | 20.0 | 190.0 | equity |  | 
+24 | T020 | 21.0 | 200.0 | equity |  | 
+25 | T021 | 22.0 | 210.0 | equity |  | 
+26 | T022 | 23.0 | 220.0 | equity |  | 
+27 | T023 | 24.0 | 230.0 | equity |  | 
+28 | T024 | 25.0 | 240.0 | equity |  | 
+29 | T025 | 26.0 | 250.0 | equity |  | 
+30 | T026 | 27.0 | 260.0 | equity |  | 
+31 | T027 | 28.0 | 270.0 | equity |  | 
+32 | T028 | 29.0 | 280.0 | equity |  | 
+33 | T029 | 30.0 | 290.0 | equity |  | 
+34 | T030 | 31.0 | 300.0 | equity |  | 
+35 | T031 | 32.0 | 310.0 | equity |  | 
+36 | T032 | 33.0 | 320.0 | equity |  | 
+37 | T033 | 34.0 | 330.0 | equity |  | 
+38 | T034 | 35.0 | 340.0 | equity |  | 
+39 | T035 | 36.0 | 350.0 | equity |  | 
+40 | T036 | 37.0 | 360.0 | equity |  | 
+41 | T037 | 38.0 | 370.0 | equity |  | 
+42 | T038 | 39.0 | 380.0 | equity |  | 
+43 | T039 | 40.0 | 390.0 | equity |  | 
+44 | T040 | 41.0 | 400.0 | equity |  | 
+45 | T041 | 42.0 | 410.0 | equity |  | 
+46 | T042 | 43.0 | 420.0 | equity |  | 
+47 | T043 | 44.0 | 430.0 | equity |  | 
+48 | T044 | 45.0 | 440.0 | equity |  | 
+49 | T045 | 46.0 | 450.0 | equity |  | 
+50 | T046 | 47.0 | 460.0 | equity |  | 
+51 | T047 | 48.0 | 470.0 | equity |  | 
+52 | T048 | 49.0 | 480.0 | equity |  | 
+53 | T049 | 50.0 | 490.0 | equity |  | 
+54 | T050 | 51.0 | 500.0 | equity |  | 
+55 | T051 | 52.0 | 510.0 | equity |  | 
+56 | T052 | 53.0 | 520.0 | equity |  | 
+57 | T053 | 54.0 | 530.0 | equity |  | 
+58 | T054 | 55.0 | 540.0 | equity |  | 
+59 | T055 | 56.0 | 550.0 | equity |  | 
+60 | T056 | 57.0 | 560.0 | equity |  | 
+61 | T057 | 58.0 | 570.0 | equity |  | 
+62 | T058 | 59.0 | 580.0 | equity |  | 
+63 | T059 | 60.0 | 590.0 | equity |  | 
+64 | T060 | 61.0 | 600.0 | equity |  | 
+65 | T061 | 62.0 | 610.0 | equity |  | 
+66 | T062 | 63.0 | 620.0 | equity |  | 
+67 | T063 | 64.0 | 630.0 | equity |  | 
+68 | T064 | 65.0 | 640.0 | equity |  | 
+69 | T065 | 66.0 | 650.0 | equity |  | 
+70 | T066 | 67.0 | 660.0 | equity |  | 
+71 | T067 | 68.0 | 670.0 | equity |  | 
+72 | T068 | 69.0 | 680.0 | equity |  | 
+73 | T069 | 70.0 | 690.0 | equity |  | 
+74 | T070 | 71.0 | 700.0 | equity |  | 
+75 | T071 | 72.0 | 710.0 | equity |  | 
+76 | T072 | 73.0 | 720.0 | equity |  | 
+77 | T073 | 74.0 | 730.0 | equity |  | 
+78 | T074 | 75.0 | 740.0 | equity |  | 
+79 | T075 | 76.0 | 750.0 | equity |  | 
+80 | T076 | 77.0 | 760.0 | equity |  | 
+81 | T077 | 78.0 | 770.0 | equity |  | 
+82 | T078 | 79.0 | 780.0 | equity |  | 
+83 | T079 | 80.0 | 790.0 | equity |  | 
+84 | T080 | 81.0 | 800.0 | equity |  | 

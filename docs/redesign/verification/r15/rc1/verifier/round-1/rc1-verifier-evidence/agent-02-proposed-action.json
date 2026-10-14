@@ -1,0 +1,13 @@
+{
+ "kind": "tool_use",
+ "tool_call_id": "call_210efd671ed74be5a2c99856dde2b618",
+ "name": "portfolio_add_position",
+ "input": {
+  "asset_class": "equity",
+  "cost_basis": 3500,
+  "note": "",
+  "purchased_at": "",
+  "quantity": 5,
+  "symbol": "TCS"
+ }
+}

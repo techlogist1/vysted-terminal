@@ -1,0 +1,116 @@
+[
+ {
+  "key": "rc1-vshard-2:1",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-063",
+  "title": "NOT CERTIFIED: /indicators empty-series downgrade lands but the typed freshness/reason the fix_shape requires is not carried (IndicatorResponse has no freshness field)",
+  "repro": "curl :52602/indicators/HDFC.NS?indicators=rsi&timeframe=1d&range=1mo -> 200 keys [symbol,timeframe,provider,indicators,volume_profile], provider none; /history/TCS carries freshness 'eod', /indicators/TCS carries none",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-2-raw/DATA-063.txt",
+  "suspected_files": [
+   "sidecar/routers/indicators.py",
+   "sidecar/models/indicators.py",
+   "types/data.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:2",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-015",
+  "title": "NOT CERTIFIED: a listing younger than 52 weeks serves its since-listing extremes as the 52-week range with status ok and no 'since <date>' label",
+  "repro": "curl :52602/fundamentals/JNPR -> fifty_two_week_high 282.0 / low 232.11, meta status ok, label null; curl :52602/history/JNPR?timeframe=1d&range=1y -> 36 bars from 2026-08-06 (listing), hi 282 lo 232.11",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-2-raw/DATA-015.txt",
+  "suspected_files": [
+   "sidecar/services/correctness_gate.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-LIFECYCLE-020",
+  "title": "NOT CERTIFIED: the warm loop is now lazy and region-following, but its 429s still record into the same YAHOO circuit user requests read (no separate budget or lower-priority weight)",
+  "repro": "code: screener.py:1338 _warm_once -> yahoo_batch_provider.fetch_quotes_batch -> yahoo_batch_provider.py:322 provider_health.record_rate_limited(YAHOO); live :52602 after POST /screener/run nifty50: 'screener warm: rate-limited ... backing off 78s' and yahoo consecutive_throttles 1, throttles_total 236 -> 238",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-2-raw/LIFECYCLE-020.txt",
+  "suspected_files": [
+   "sidecar/services/screener.py",
+   "sidecar/services/yahoo_batch_provider.py",
+   "sidecar/services/provider_health.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:4",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-LEAD-014",
+  "title": "Tool-arg repair still accepts a placeholder schema echo ({prop: '<type-name>'}) as repaired arguments for 20 of 54 tools",
+  "repro": "in-process: OpenAIProvider._repair_tool_args with a oneshot reply of {\"symbol\":\"string\"} (fundamentals), {\"symbol\":\"string\",\"quarter\":\"string\"} (earnings_call_transcript), ask_user, close_panel ... -> accepted; full/fenced/properties-only echoes rejected (0)",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-2-raw/LEAD-014.txt",
+  "suspected_files": [
+   "sidecar/services/llm/openai.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:5",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-CODE-FRONTEND-015",
+  "title": "NOT CERTIFIED: bus keys and dockview panel ids still differ for Earnings Calendar ('earnings' vs 'earnings-calendar') and Screener ('screener' vs 'screener-panel'), so a focused Earnings Calendar falls back to the chart symbol",
+  "repro": "vitest on a copy of worktree src: render EarningsCalendarPanel -> lastEventBySource keys ['earnings'], earningsModule.panels[0].id 'earnings-calendar'; PanelHost.tsx:286 setFocusedSource(panel.id); ScreenerPanel.tsx:216 source 'screener' vs screener/index.ts id 'screener-panel'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-2-raw/CODE-FRONTEND-015.txt",
+  "suspected_files": [
+   "src/modules/earnings/EarningsCalendarPanel.tsx",
+   "src/modules/screener/ScreenerPanel.tsx",
+   "src/modules/chat/context-provider.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:6",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-UI-021",
+  "title": "With keyboard focus on document.body (after clicking any non-focusable spot), one Backspace deletes the selected drawing in EVERY chart panel",
+  "repro": "vitest: two ChartPanels, each with a selected trendline; click a non-focusable div; fireEvent.keyDown(document.body,{key:'Backspace'}) -> chart-A 0, chart-B 0 drawings (expected 1/1)",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-2-raw/UI-021.txt",
+  "suspected_files": [
+   "src/modules/chart/ChartPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-037",
+  "title": "ccxt 1h/5y is clamped to 10,000 bars (starts 2025-08-06) but served partial=false, coverage_start=null",
+  "repro": "curl :52602/history/BTC%2FUSDT?timeframe=1h&range=5y -> ccxt:binance 10000 bars 2025-08-06..2026-09-26, partial False, coverage_start None (same ETH, SOL)",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-2-raw/DATA-037.txt",
+  "suspected_files": [
+   "sidecar/services/ccxt_provider.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-DATA-006",
+  "title": "A run rejected by the formula pre-flight does not abort the in-flight run, whose late completion then overwrites the formula error with status ready and the OLD criteria's result",
+  "repro": "vitest on src/store/screener.ts: start run A; setFormula('pe < ('); runScreener -> error 'Formula: unexpected end of formula (col 7)'; resolve A -> status ready, error null, lastResult from A",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-2-raw/CODE-DATA-006.txt",
+  "suspected_files": [
+   "src/store/screener.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:9",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-LIFECYCLE-017",
+  "title": "fundamentals_store.upsert_info sits outside _enrich_survivors' per-symbol try, so a store error escapes enrichment instead of being logged per symbol",
+  "repro": "in-process: patch fundamentals_store.upsert_info to raise TypeError -> _enrich_survivors RAISED TypeError (screener.py:1094 outside the try)",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-2-raw/LIFECYCLE-017.txt",
+  "suspected_files": [
+   "sidecar/services/screener.py"
+  ]
+ }
+]

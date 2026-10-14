@@ -1,0 +1,4 @@
+RELIANCE.NS: curl price 1226.0 INR -> mv 12260.0000 pnl 260.0000 | panel mv 12260.0000 pnl 260.0000 | match=True
+AAPL: curl price 341.07000732421875 USD -> mv 1705.3500 pnl 205.3500 | panel mv 1705.3500 pnl 205.3500 | match=True
+MSFT: curl price 516.1699829101562 USD -> mv 1548.5099 pnl 198.5099 | panel mv 1548.5099 pnl 198.5099 | match=True
+ALL_MATCH True

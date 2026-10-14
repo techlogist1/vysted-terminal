@@ -1,0 +1,57 @@
+=== R15-LEAD-033: own repro, live two-turn ollama llama3.1:8b run against :52344 ===
+Turn 1: vy.py invoke copilot "What is AAPL's market cap?" --port 52344 --provider ollama --model llama3.1:8b --mode agent --autonomy ask (no history)
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_2c9eefc7ec404e65a25682a95c108ca8", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+[  27.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_2c9eefc7ec404e65a25682a95c108ca8", "name": "fundamentals", "ok": true, "error": null}
+[  37.2s] heartbeat: {"kind": "heartbeat"}
+[  47.2s] heartbeat: {"kind": "heartbeat"}
+[  50.1s] done: {"kind": "done", "usage": {"input_tokens": 5878, "output_tokens": 13, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+AAPL's market cap is $4.98T.
+
+=== ok · 50.1s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 12, 'done': 1} · usage in=5878 out=13 · est $0.00000 · llama3.1:8b
+
+--- turn-1 history built exactly as chat-history.ts's withTrailer would (content + '
+
+[tool steps: Using fundamentals]', label confirmed at ChatSidebar.tsx:293 readToolLabel default case) ---
+{"history": [{"role": "user", "content": "What is AAPL's market cap?"}, {"role": "assistant", "content": "AAPL's market cap is $4.98T.\n\n[tool steps: Using fundamentals]"}]}
+Turn 2: vy.py invoke copilot "Which tool gave you that market cap figure? Show exactly what it returned." --port 52344 --provider ollama --model llama3.1:8b --mode agent --autonomy ask --options '{"history": [...]}' (same session/port)
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_52cb0d271d3b4279a0049ffdeb9f295c", "name": "price_data", "input": {"symbol": "AAPL"}}
+[  38.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_52cb0d271d3b4279a0049ffdeb9f295c", "name": "price_data", "ok": true, "error": null}
+[  48.3s] heartbeat: {"kind": "heartbeat"}
+[  58.3s] heartbeat: {"kind": "heartbeat"}
+[  68.3s] heartbeat: {"kind": "heartbeat"}
+[  78.3s] heartbeat: {"kind": "heartbeat"}
+[  88.3s] heartbeat: {"kind": "heartbeat"}
+[  98.3s] heartbeat: {"kind": "heartbeat"}
+[ 104.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_30f570eea86e4ce28e2e36b8c10cf1c3", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+[ 106.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_30f570eea86e4ce28e2e36b8c10cf1c3", "name": "fundamentals", "ok": true, "error": null}
+[ 116.9s] heartbeat: {"kind": "heartbeat"}
+[ 126.9s] heartbeat: {"kind": "heartbeat"}
+[ 136.9s] heartbeat: {"kind": "heartbeat"}
+[ 147.0s] heartbeat: {"kind": "heartbeat"}
+[ 157.0s] heartbeat: {"kind": "heartbeat"}
+[ 167.0s] heartbeat: {"kind": "heartbeat"}
+[ 177.0s] heartbeat: {"kind": "heartbeat"}
+[ 187.0s] heartbeat: {"kind": "heartbeat"}
+[ 198.0s] done: {"kind": "done", "usage": {"input_tokens": 9636, "output_tokens": 70, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The price_data tool returned the market data for AAPL, but it doesn't explicitly mention the market cap.
+
+To get the market cap, I will try calling the fundamentals tool. 
+
+The market cap of AAPL is $4.98T. This figure comes from the fundamentals tool. 
+
+You can see the full result of the fundamentals tool call above. The "market_cap" field in the result has a status of "ok", indicating that it was successfully fetched, and its value is indeed "$4.98T".
+
+=== ok · 198.0s · events {'heartbeat': 17, 'tool_use': 2, 'tool_result': 2, 'delta': 108, 'done': 1} · usage in=9636 out=70 · est $0.00000 · llama3.1:8b
+
+CMD: grep -c '\[tool steps' on turn-2 log and jsonl
+log: 0
+jsonl: 0

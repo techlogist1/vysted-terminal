@@ -1,0 +1,51 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9  grep for a recorded packaged-app cold boot (docs, CHANGELOG, BLOCKERS; excludes R15_BRIEF*, local, lows-triage)
+docs/redesign/verification/vysted-r15-run-state.md:111:- **L28 (19:55 24 Sep) STAGE C BATCH 8 MERGED `68bb7aa4`** (workflow `wf_b829ac35-3a5`, 10 agents, 131 min, 3.1M tokens, zero stall kills): adjudicator flipped 50 batch-7 ids fixed @ e81c9e7, UI-022 → needs_gui, registered LEAD-019 (BudgetGuard 
+docs/redesign/verification/vysted-r15-register.md:981:| R15-LIFECYCLE-040 | low | release | rust-core | The Tauri-Rust MCP spawn (the Windows deadlock fix) has never been exercised inside a launched packaged app; CI builds the bundle and smoke-tests the raw binaries, but no packaged cold boot is rec
+docs/redesign/verification/vysted-r15-register.json:2635:   "repro": "Cold launch of the packaged app (after a reboot, no warm _MEI dirs). setup() spawns the openbb-mcp and sec-edgar-mcp supervisors, joins both inline (each waits up to 45 s x 2 attempts), and only then calls start_main_sidecar. The 
+docs/redesign/verification/vysted-r15-register.json:2649:   "note": "Batch-8 (68bb7aa4) needs_gui. Headless: the Rust pin boot_returns_at_once_and_spawns_the_sidecar_before_any_mcp_bind_wait_ends passes; setup() hands spawn_boot(start_openbb, start_sec, start_main) to one thread, env vars set before
+docs/redesign/verification/vysted-r15-register.json:14959:   "title": "The Tauri-Rust MCP spawn (the Windows deadlock fix) has never been exercised inside a launched packaged app; CI builds the bundle and smoke-tests the raw binaries, but no packaged cold boot is recorded",
+docs/redesign/verification/vysted-r15-register.json:14970:   "fix_shape": "Run one packaged-app cold boot on each platform (launch the built bundle, check /openbb-mcp/status and /sec/status bind) and record it in DECISIONS.md; add it to the release gate docs. Adding it to CI would touch .github/work
+docs/redesign/verification/r12/regression/onefile-boot-proof.md:6:- **Data layer in the packaged binary**: a live nifty50 screener run returned **27 rows** with the R11 **seed pack loaded** (throttled:true, "27 rows on stale/snapshot basis") and the **Yahoo circuit breaker** cycling (opens=1) — the 
+docs/redesign/verification/r15/tooling/rc1-gate.js:303:APP: in ${tagWt} run pnpm tauri build --debug (static frontend, the three sidecars, the packaged tauri:// origin R15-CODE-AGENT-001 needs). Home = ${SCRATCH}/rc1-gui-home: seed <home>/Library/Application Support/com.vysted.terminal from a copy o
+docs/redesign/verification/r15/stage-c/batch-8/VERDICTS.md:41:  - A GUI round must check four things on a packaged cold launch (after a reboot):
+docs/redesign/verification/r15/stage-c/batch-7/PLAN.md:8:  - **Highs.** 3 of the 6 open highs are taken: `DATA-014`, `DATA-027`, `AGENT-023`. The other 3 are in §4 (funded live lanes; packaged cold launch).
+docs/redesign/verification/r15/stage-c/batch-7/PLAN.md:435:- **`LIFECYCLE-001`.** Moving the MCP joins and `start_main_sidecar` off Tauri's main thread needs proof from a packaged cold launch (GUI); the `--onedir` follow-up is Tier-1 (`tauri.conf.json`). Operator-attended.
+docs/redesign/verification/r15/stage-c/batch-6/PLAN.md:7:  - **Highs.** 5 of the 8 open highs are taken: `DATA-014`, `DATA-017`, `DATA-027`, `AGENT-023` and `LEAD-012`. The other 3 are in §4 with the reason. `AGENT-007` and `AGENT-017` need funded live lanes. `LIFECYCLE-001` needs proof from a packa
+docs/redesign/verification/r15/stage-c/batch-6/PLAN.md:619:- **`LIFECYCLE-001`.** Moving the MCP joins and `start_main_sidecar` off Tauri's main thread needs proof from a packaged cold launch (GUI; none this run). A boot regression bricks the app, and the `--onedir` follow-up is Tier-1 (`tauri.conf.
+docs/redesign/verification/r15/stage-c/batch-5/PLAN.md:519:- **`LIFECYCLE-001`.** Moving both MCP joins and `start_main_sidecar` off Tauri's main thread plus late MCP port attach. The proof is a packaged-app cold launch (GUI; none this run), and a boot regression bricks the app. The `--onedir` follo
+docs/redesign/verification/r15/stage-c/batch-8/PLAN.md:140:- **Test.** Rust: the orchestration is one function taking the three step closures; a test with stub `start`/`supervise` closures that sleep 2 s asserts the function returns in < 200 ms and that the main-sidecar step ran after both `start` s
+docs/redesign/verification/r15/stage-c/batch-8/PLAN.md:371:7. Certification notes: `LIFECYCLE-001` certifies on the Rust orchestration test + a needs-GUI record for the packaged cold launch (window paints during the MCP bind); `LIFECYCLE-010`/`UI-014` certify on the cargo/vitest pins, with the live 
+docs/redesign/verification/r15/census/PROMISE_LEDGER.md:388:- **INT-DF-17** [PARTIAL] The openbb-mcp startup-deadlock fix (F1) actually unblocks the full workflow+backtest chain in production, not merely degrading gracefully to 'unavailable'. Gap: Proven on dev-built binaries via the smoke test and 
+docs/redesign/verification/r15/census/merge-in/lifecycle.json:409:  "repro": "design + measured: launch the packaged app cold (after reboot). lib.rs setup spawns openbb-mcp + sec-edgar-mcp, JOINS both bind waits (measured 34.2s/33.6s cold in isolation, 13.6s/24.6s warm; up to 90s each under contenti
+docs/redesign/verification/r15/census/merge-in/lifecycle.json:426:  "repro": "design: src-tauri/src/openbb_mcp.rs replaces Python subprocess.Popen with Tauri's app.shell().sidecar() spawn (side-steps the anyio/_MEIPASS/handle-inheritance deadlock class per CLAUDE.md's own gotcha) but never touches t
+docs/redesign/verification/r15/census/merge-in/lifecycle.json:428:  "notes": "Two related but distinct gaps beyond the cold-boot-latency finding (INT-deferred-0-1): (a) the streamable-http transport's own deadlock surface was never investigated/fixed, only avoided by changing who spawns the process;
+docs/redesign/verification/r15/census/refute/intent-deferred-0.json:8:  "evidence_checked": "Code only, at HEAD d7b7167. Opened the cited lib.rs regions, both MCP spawn supervisors, both ensure scripts, tauri.conf externalBin, DECISIONS D76, both Python env-var readers, and the vendored Tauri 2.11.1
+docs/redesign/verification/r15/census/refute/intent-deferred-0.json:9:  "repro_check": "Would run: cold-launch the packaged .app after a reboot and time launch until the [openbb-mcp]/[sec-edgar-mcp] 'subprocess healthy' lines, then until the main sidecar's /health answers. Expect about 34s cold, wit
+docs/redesign/verification/r15/census/merge/lifecycle.json:15:   "repro": "Cold launch of the packaged app (after a reboot, no warm _MEI dirs). setup() spawns the openbb-mcp and sec-edgar-mcp supervisors, joins both inline (each waits up to 45 s x 2 attempts), and only then calls start_main_sidecar.
+docs/redesign/verification/r15/census/merge/lifecycle.json:938:   "title": "The Tauri-Rust MCP spawn (the Windows deadlock fix) has never been exercised inside a launched packaged app; CI builds the bundle and smoke-tests the raw binaries, but no packaged cold boot is recorded",
+docs/redesign/verification/r15/census/merge/lifecycle.json:949:   "fix_shape": "Run one packaged-app cold boot on each platform (launch the built bundle, check /openbb-mcp/status and /sec/status bind) and record it in DECISIONS.md; add it to the release gate docs. Adding it to CI would touch .github
+docs/redesign/verification/r15/census/intent/ledger-deferred-0.json:174:    "gap": "Proven on dev-built binaries via the smoke test and dev runs only. No evidence in the repo of a packaged `tauri build` cold boot where openbb-mcp binds and a workflow+backtest chain consumes it; on a slow cold boot t
+docs/redesign/verification/r15/census/raw/intent-deferred-0.json:9:    "repro": "design + measured: launch the packaged app cold (after reboot). lib.rs setup spawns openbb-mcp + sec-edgar-mcp, JOINS both bind waits (measured 34.2s/33.6s cold in isolation, 13.6s/24.6s warm; up to 90s each under conte
+docs/redesign/verification/r15/census/raw/intent-deferred-0.json:20:    "repro": "design: src-tauri/src/openbb_mcp.rs replaces Python subprocess.Popen with Tauri's app.shell().sidecar() spawn (side-steps the anyio/_MEIPASS/handle-inheritance deadlock class per CLAUDE.md's own gotcha) but never touch
+docs/redesign/verification/r15/census/raw/intent-deferred-0.json:22:    "notes": "Two related but distinct gaps beyond the cold-boot-latency finding (INT-deferred-0-1): (a) the streamable-http transport's own deadlock surface was never investigated/fixed, only avoided by changing who spawns the proc
+
+r12/regression/onefile-boot-proof.md:1-6 (raw binaries spawned directly, not the packaged app):
+# R12 PyInstaller --onefile build + boot proof
+
+- **Build**: ci-local `ensure-all-sidecars` rebuilt the `--onefile` binary with all R12 code → `src-tauri/binaries/vysted-sidecar-aarch64-apple-darwin`, **105 MB** (≤120 MB target), 2026-07-10 02:43.
+- **Boot**: spawned on throwaway port 59999 + temp data-dir, stdin held → `/health` answered in **20s** (`{"status":"ok","version":"0.8.0"}`).
+- **ICONIKSPEV hard check**: `/resolve?q=ICONIKSPEV` → **Iconik Sports And Events Ltd, BSE, confidence 1.0** — deterministic, never drifts to a foreign ticker. (Its `/fundamentals` 404s honestly — a coverage-less micro-scrip; identity is the gate.)
+- **Data layer in the packaged binary**: a live nifty50 screener run returned **27 rows** with the R11 **seed pack loaded** (throttled:true, "27 rows on stale/snapshot basis") and the **Yahoo circuit breaker** cycling (opens=1) — the whole cold-start data stack functions inside the release artifact.
+
+smoke-test-sidecars.mjs:802-812:
+async function _smokeTestMcpSidecar(name, triple) {
+  const bin = _binaryPath(name, triple);
+  if (!existsSync(bin)) {
+    throw new Error(`[smoke] ${name} binary missing: ${bin}`);
+  }
+  const port = await _pickFreePort();
+  console.log(`[smoke] ${name}: spawning on :${port} (no-watchdog), probing port bind ...`);
+  const { child, output } = _spawnChild(bin, ["--port", String(port), "--no-watchdog"], true);
+
+  let exited = false;
+  let exitCode = null;

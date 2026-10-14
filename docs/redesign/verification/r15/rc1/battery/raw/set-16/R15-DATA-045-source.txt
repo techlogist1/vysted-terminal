@@ -1,0 +1,2 @@
+sidecar/services/search/transport.py:160:    async with httpx.AsyncClient(timeout=timeout, follow_redirects=False) as http:
+sidecar/services/search/extract.py:353:            timeout=DEFAULT_TIMEOUT_SECS * 2, follow_redirects=False

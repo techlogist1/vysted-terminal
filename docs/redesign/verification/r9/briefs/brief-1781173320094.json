@@ -1,0 +1,328 @@
+{
+ "query": "TMCV.NS \u2014 Tata Motors Commercial Vehicles",
+ "symbol": "TMCV",
+ "mode": "DEEP",
+ "depth": "heavy",
+ "markdown": "**TMCV.NS \u2014 Tata Motors Commercial Vehicles**  \n**Brief as of 2026-06-11**\n\n### Post-Demerger Context\nTMCV.NS operates as the listed pure-play commercial vehicle entity following the demerger of Tata Motors Limited\u2019s CV business (effective post-Oct 2025) [9][27].\n\n### Latest Reported Financial Performance\n**Q4 FY26** (ended 31 Mar 2026) consolidated results showed revenue of \u20b926.1K Cr (+19% YoY), EBITDA margin of 13.1% (+150 bps YoY), PBT (bei) of \u20b92.4K Cr (+29% YoY) and PAT of \u20b91.8K Cr (+35% YoY) [13].  \nTTM revenue stood at INR 838.55 bn with TTM net income of INR 30.3 bn. Net cash position was positive at \u20b91.2K Cr as of 30 Sep 2025 [13].  \n\nQ2 FY26 interim revenue was \u20b918.4K Cr with EBITDA margin of 12.2% [13]. No full FY26 annual consolidated EPS, complete balance-sheet items or later quarterly updates are available in the current run.\n\n### Valuation & Key Metrics\n- Trailing EPS: 8.25; trailing P/E: 43.436; forward P/E: 16.332  \n- EV/EBITDA: 14.962; P/B: 10.361; P/S: 1.574  \n- Current ratio: 0.758; debt-to-equity: 0.441  \n- Latest close: 364.9 INR (2026-06-10) [13][18]  \n\nAll ratios and fundamentals are drawn from the latest yfinance pull cross-referenced with Moneycontrol data.\n\n### Sales Volumes (Demand Signal)\n- **May 2026** total CV wholesales: 32,850 units (domestic 30,784), including 7,877 HCV Trucks and 11,819 SCV cargo/pickup units (+30% YoY in the SCV segment) [1][33].  \n- Domestic CV wholesales growth: +19% YoY [1].  \n- **Q4 FY26** CV wholesales: 132K units (+25% YoY) [13].  \n\nApril 2026 volumes showed 28% YoY growth (34,833 units) per supplementary filings [30][32].\n\n### Electric CV Position\nTMCV sold 64,269 EVs on late-2025 data and maintains dominance in India\u2019s electric CV segment [9][28].\n\n### Competitive Dynamics & Market Share\nNo India CV market-share percentages (overall, MHCV, LCV or electric) or peer volume totals are available in the 2026-06-11 corpus. Ashok Leyland reported 32,929 MHCV units in Q3 FY26 (+23% YoY) [20]. Competitive positioning versus Ashok Leyland, Mahindra or other peers cannot be quantified from gathered evidence.\n\n### Regulatory & Forward Outlook\nNo references to BS-VII norms, post-2026 safety regulations, FAME-III subsidies, e-bus/e-truck mandates or quantified demand impacts appear in filings, news or industry sources [2][3][7]. Broader 2026 CV industry forecasts, GDP/infrastructure trends and order-book visibility remain unavailable. Further analysis requires post-demerger analyst or SIAM/CRISIL reports.",
+ "sources": [
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/TMLCOMMERCIAL_01062026134603_NSEBSE.pdf",
+   "title": "Tata Motors Limited has informed the Exchange regarding a press release dated Jun 01, 2026, titled \"Press Release Tata Motors Limited (formerly TML Commercial Vehicles Limited) Monthly Sales - May 2026\".",
+   "excerpt": "NSE \u00b7 Press Release \u00b7 2026-06-01T13:46:14+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a9fe66b7-9b92-4199-bd38-ff62e5319850.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-06-01T13:45:22.710000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/8f716a4a-71b0-4cda-9a48-2512ae77f34a.pdf",
+   "title": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-06-07T18:03:55.343000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/TMLCOMMERCIAL_07062026175712_NSEBSELETTERNEWS.pdf",
+   "title": "Tata Motors Limited has informed the Exchange about Copy of Newspaper Publication for e-voting information for the 2nd Annual General Meeting of the Company.",
+   "excerpt": "NSE \u00b7 Copy of Newspaper Publication \u00b7 2026-06-07T17:57:41+05:30",
+   "domain": "NSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/1e04f1a0-2e02-4e6c-b02b-b6995de2e5a4.pdf",
+   "title": "Tata Motors Limited Has Informed The Exchange About Physical Letters Sent To Shareholders Of The Company",
+   "excerpt": "BSE \u00b7 Company Update \u00b7 2026-06-06T23:02:09.863000+05:30",
+   "domain": "BSE",
+   "sourceType": "filing"
+  },
+  {
+   "url": "https://www.nseindia.com/get-quotes/equity?symbol=TMCV",
+   "title": "NSE India - Tata Motors Limited Stock Price Today, Live NSE Share Price, Latest News",
+   "excerpt": "Tata Motors Limited Share Price Today, Live NSE Stock Price: Get the latest Tata Motors Limited news, company updates, quotes, offers, annual financial reports, graph, volumes, 52 week high low, buy sell tips, balance sheet, historical charts, market performance, capitalisation, dividends, volume, profit and loss account, research, results and more details at NSE India.",
+   "domain": "web"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/TMLCOMMERCIAL_13112025171536_NSEBSELETTERFINAL.pdf",
+   "title": "TATA MOTORS LIMITED",
+   "excerpt": "Cr.) ... FCF (Rs. Cr.)** ... Tata Motors Commercial Vehicles segment delivered strong Q2 FY26 results driven by a 12% yoy increase in volumes and \u00b7 continued focus on profitable growth. Revenues stood at \u20b918.4K Cr (+6.6%), EBITDA margins improved to 12.2% (+150",
+   "domain": "web"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/TATAMOTORSSJS_14052026164936_NSEBSEINVESTORPRESENTATION.pdf",
+   "title": "Tata Motors Passenger Vehicles Limited",
+   "excerpt": "Q4 FY26 | Tata Passenger Vehicles | IndAS, \u20b9 KCr ... (1) Includes free cash flows of TMPVL, TPEML and Joint operations FIAPL and includes corporate and interest costs not allocated to PV segment \u00b7 (2) Inflows on account of tax refunds of prior years. Healthy cash profits funding planned investment spends",
+   "domain": "web"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporates/offerdocument/scheme/IM_TMCV.pdf",
+   "title": "1 TATA MOTORS LIMITED (formerly known as TML Commercial Vehicles Limited)",
+   "excerpt": "For our domestic Commercial Vehicles Business, we plan to improve the Vahan share which for the quarter ended June \u00b7 30, 2025 was 36.1%, which we believe may consequently improve our EBITDA margins and ROCE while simultaneously",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/dd254e14-5794-42bb-8d6f-1caf2bb991e9.pdf",
+   "title": "Tata Motors Passenger Vehicles Limited",
+   "excerpt": "Q3 cash balance \u00a31.9bn; total liquidity \u00a36.6bn including \u00a31.7bn undrawn RCF, \u00a31.5bn undrawn bridge",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.nseindia.com/get-quote/equity/TMCV/Tata-Motors-Limited",
+   "title": "Tata Motors Limited (INE1TAE01010)",
+   "excerpt": "NSE India (National Stock Exchange of India Ltd) \u2013 LIVE Share/Stock Market Updates Today. Get all latest share market news, live charts, analysis, IPO, stock/share tips, indices, equity, currency and commodity market, derivatives, finance, budget, mutual fund, bond, and corporate announcements ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://nsearchives.nseindia.com/corporate/TMLCOMMERCIAL_10022026160621_NSEBSELETTERFINAL.pdf",
+   "title": "PT Tata Motors Distribusi Indonesia, a wholly owned ind",
+   "excerpt": "Part of the USD 180 billion Tata Group, Tata Motors Ltd., (BSE: Scrip code 544569; NSE: Scrip code TMCV) is India\u2019s largest and a globally renowned",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.moneycontrol.com/india/stockpricequote/auto-lcvshcvs/tatamotorspassengervehicles/TM03",
+   "title": "TMPV Share Price, TMPV Stock Price, Tata Motors Passenger Vehicles Ltd. Stock Price, Share Price, Live BSE/NSE, Tata Motors Passenger Vehicles Ltd. Bids Offers. Buy/Sell Tata Motors Passenger Vehicles Ltd. news & tips, & F&O Quotes, NSE/BSE Forecast News and Live Quotes - Moneycontrol.com",
+   "excerpt": "[{\"heading\":\"Revenue\",\"data\":[...,\"formattedValue\":\"437,927.77 Cr\"},{\"year\":\"2025\",\"value\":\"439695.00\",\"formattedValue\":\"439,695.00 Cr\"},{\"year\":\"2026\",\"value\":\"335582.00\",\"formattedValue\":\"335,582.00 Cr\"}]},{\"heading\":\"Net ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://economictimes.indiatimes.com/tata-motors-passenger-vehicles-ltd/stocksupdate/companyid-12934.cms",
+   "title": "Tata Motors Passenger Vehicles News - Tata Motors Passenger Vehicles Announcement, Latest News on Tata Motors Passenger Vehicles - The Economic Times",
+   "excerpt": "Pursuant to Regulation 30 of the SEBI (LODR) Regulations, 2015, we are enclosing herewith a Press Release titled ''Tata Motors Passenger Vehicles Limited (formerly Tata Motors Limited) Monthly Sales - February 2026''.",
+   "domain": "web"
+  },
+  {
+   "url": "vysted://price/TMCV",
+   "title": "Price for TMCV",
+   "excerpt": "Structured price snapshot via nse_direct gathered this run.",
+   "domain": "nse_direct"
+  },
+  {
+   "url": "vysted://fundamentals/TMCV",
+   "title": "Fundamentals for TMCV",
+   "excerpt": "Structured fundamentals snapshot via yfinance gathered this run.",
+   "domain": "yfinance"
+  },
+  {
+   "url": "vysted://news/TMCV",
+   "title": "News for TMCV",
+   "excerpt": "Structured news pull.",
+   "domain": "vysted"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/TMCV.NS/",
+   "title": "TATA MOTORS LIMITED (TMCV.NS) Stock Price, News, Quote & History - Yahoo Finance",
+   "excerpt": "TMCV.NS announced a cash dividend of INR 4.00 with an ex-date of Jun. 12, 2026 ... Avg. Volume ... Tata Motors Limited engages in the design, manufacture, and sale of automotive vehicles in India, South Korea, and internationally. The company offers pick-ups, trucks, buses, small commercial vehicles, and electric vehicles.",
+   "domain": "web"
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Tata_Motors",
+   "title": "Tata Motors - Wikipedia",
+   "excerpt": "The principal reasons behind the acquisition were to reduce Tata's dependence on the Indian commercial vehicle market (which was responsible for around 94% of its sales in the MHCV segment and around 84% in the light commercial vehicle segment) and expand its product portfolio by leveraging on Daewoo's strengths in the heavy-tonnage sector. Tata Motors has jointly worked with Tata Daewoo to develop trucks such as Novus and World Truck and buses including GloBus and StarBus. In 2012, Tata began developing a new line to manufacture competitive and fuel-efficient commercial vehicles to face the competition posed by the entry of international brands such as Mercedes-Benz, Volvo, and Navistar into the Indian market.",
+   "domain": "web"
+  },
+  {
+   "url": "https://tradebrains.in/tata-motors-cv-vs-ashok-leyland-how-did-these-commercial-vehicle-companies-perform-in-q3/",
+   "title": "Tata Motors CV Vs Ashok Leyland: How did these commercial vehicle companies perform in Q3?",
+   "excerpt": "Looking ahead, management expects demand to strengthen further in Q4 FY26 across most CV segments. The outlook remains supported by continued government-led infrastructure spending and expansion in key end-use industries, which are likely to drive industry momentum in 2026. Backed by a streamlined product portfolio, calibrated pricing strategy, and deeper customer engagement initiatives, the company believes it is well-positioned to capitalise on emerging demand opportunities. For Ashok Leyland, Medium and Heavy Commercial Vehicle (MHCV) volumes stood at 32,929 units in Q3 FY26, up 23 percent compared to 26,692 units in Q3 FY25.",
+   "domain": "web"
+  },
+  {
+   "url": "https://market.us/statistics/automotive-companies/tata-motors/",
+   "title": "Tata Motors Statistics Facts, Revenue, Growth, Share, Size, Trends",
+   "excerpt": "The company sold 64,269 electric vehicles (EVs) during the period, reaffirming Tata Motors\u2019 dominant position in India\u2019s EV segment and its continued focus on advancing sustainable and clean mobility solutions.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.marketscreener.com/quote/stock/TATA-MOTORS-LIMITED-196722101/",
+   "title": "Tata Motors Limited Stock (TMCV) - Quote NSE India S.E.- MarketScreener",
+   "excerpt": "Its aggregates include Gensets, Trailer Axles and Components and Industrial Engines. Its service offerings include Fleetcare, Tata Alert, Tata Zippy, Tata Kavach, Tata Delight, Tata Motors Genuine Oil and Sampoorna Seva 2.0.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.tickertape.in/stocks/tata-motors-TMC",
+   "title": "What are the peers or stocks similar to Tata Motors Ltd (TMCV)?",
+   "excerpt": "The peers or stocks similar to Tata Motors Ltd (TMCV) include: Tata Motors Ltd Eicher Motors Ltd Ashok Leyland Ltd SML Mahindra Ltd Automobile Corp Of Goa Ltd",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.screener.in/company/TMCV/",
+   "title": "Tata Motors Ltd share price | About Tata Motors | Key Insights - Screener",
+   "excerpt": "Tata Motors \u00b7 Mkt Cap: 1,33,632 Crore \u00b7 Revenue: 77,399 Cr \u00b7 Profit: 3,362 Cr \u00b7 Stock is trading at 9.91 times its book value \u00b7 Promoter Holding: 42.6%",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.tradingview.com/symbols/NSE-TMCV/",
+   "title": "NSE:TMCV - Tata Motors Limited",
+   "excerpt": "TMCV reached its all-time high on Feb 27, 2026 with the price of 509.00 INR, and its all-time low was 306.30 INR and was reached on Nov 14, 2025. View more price dynamics on TMCV chart.",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.kotakneo.com/stocks/tata-motors-share-price/",
+   "title": "Tata Motors Commercial Share Price Today - Live NSE: TMCV Stock Price & Chart",
+   "excerpt": "Tata Motors Commercial Share Price - Get live NSE/BSE updates on Tata Motors Commercial stock price including performance, fundamentals, market cap, shareholding, technical analysis, news & company profile at Kotak Neo!",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.reddit.com/r/IndianStockMarket/comments/1ouvi1u/tmcv_be_tata_motor_commercial_vehicle_listed/",
+   "title": "r/IndianStockMarket on Reddit: TMCV -BE - Tata motor Commercial vehicle listed today November 12th 2025",
+   "excerpt": "",
+   "domain": "web"
+  },
+  {
+   "url": "https://cv.tatamotors.com/news/tata-motors-expands-indias-most-comprehensive-electric-cv-portfolio",
+   "title": "Tata Motors Expands India\u2019s Most Comprehensive Electric CV Portfolio Launches Tata Intra EV Pickup at an unmatched price of Rs. 11.95 lakh | Tata Motors CV",
+   "excerpt": "s per the Composite Scheme of Arrangement sanctioned by the Hon\u2019ble National Company Law Tribunal, Mumbai Bench\u2014amongst Tata Motors Limited, TML Commercial Vehicles Limited (the Company) and Tata Motors Passenger Vehicles Limited\u2014the Company\u2019 name was changed to Tata Motors Limited from TML Commercial Vehicles Limited (effective 29 October 2025), and its equity shares are listed on the BSE Ltd and the National Stock Exchange of India Limited.",
+   "domain": "web"
+  },
+  {
+   "url": "https://uk.finance.yahoo.com/quote/TMCV.BO/",
+   "title": "Tata Motors Limited (TMCV.BO) stock price, news, quote and history - Yahoo Finance",
+   "excerpt": "Find the latest Tata Motors Limited (TMCV.BO) stock quote, history, news and other vital information to help you with your stock trading and investing.",
+   "domain": "web"
+  },
+  {
+   "url": "https://cv.tatamotors.com/news/tata-motors-registered-28-percentage-growth-yoy-with-total-sales-of-34833-commercial-vehicle-units-in-april-2026",
+   "title": "Tata Motors registered 28% growth YoY with total sales of 34,833 commercial vehicle units in April 2026 | Tata Motors CV",
+   "excerpt": "umbai, 1 May 2026: Tata Motors Limited sales in the domestic & international markets for April 2026 stood at 34,833 units, compared to 27,221 units during April 2025, up 28% YoY.Domestic sales of MH&ICV in April 2026, was 14565 units vs 12093 units in April 2025.Domestic & International sales ...",
+   "domain": "web"
+  },
+  {
+   "url": "https://finance.yahoo.com/quote/TMCV.NS/history/",
+   "title": "TATA MOTORS LIMITED (TMCV.NS) Stock Historical Prices & Data - Yahoo Finance",
+   "excerpt": "Discover historical prices for TMCV.NS stock on Yahoo Finance. View daily, weekly or monthly format back to when TATA MOTORS LIMITED stock was issued.",
+   "domain": "web"
+  },
+  {
+   "url": "https://auto.hindustantimes.com/auto/news/tata-motors-limited-posts-28-yoy-growth-in-april-2026-cv-sales-41777655633231.html",
+   "title": "Tata Motors Limited posts 28% YoY growth in April 2026 CV sales | HT Auto",
+   "excerpt": "Tata Motors reported a strong start to FY2026, registering a 28 percent year-on-year growth in its commercial vehicle (CV) business for April 2026. The company\u2019s total domestic and international sales stood at 34,833 units, compared to 27,221 ... Published May 3, 2026",
+   "domain": "web"
+  },
+  {
+   "url": "https://www.autopunditz.com/post/tata-motors-commercial-vehicle-sales-grow-17-yoy-in-may-2026-scv-cargo-pickup-segment-leads-the",
+   "title": "Tata Motors Commercial Vehicle Sales Grow 17% YoY In May 2026; SCV Cargo & Pickup Segment Leads The Charge",
+   "excerpt": "Tata Motors Limited reported a strong commercial vehicle sales performance in May 2026, with total domestic and international sales standing at 32,850 units. This marks a healthy 17% year-on-year growth over 28,147 units sold in May 2025.The ...",
+   "domain": "web"
+  }
+ ],
+ "sourceCount": 33,
+ "cost": {
+  "tokens": 0,
+  "spendUsd": 0
+ },
+ "webAvailable": true,
+ "structured": {
+  "resolved": {
+   "ok": true,
+   "query": "TMCV.NS \u2014",
+   "region": "IN",
+   "resolved": {
+    "symbol": "TMCV",
+    "name": "TATA MOTORS LIMITED",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TMCV.NS",
+    "confidence": 0.6
+   },
+   "needs_disambiguation": true,
+   "candidates": [
+    {
+     "symbol": "TMCV",
+     "name": "TATA MOTORS LIMITED",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "TMCV.NS",
+     "confidence": 0.6
+    }
+   ]
+  },
+  "price": {
+   "ok": true,
+   "provider": "nse_direct",
+   "data": {
+    "symbol": "TMCV",
+    "price": 364.9,
+    "change": 1.599999999999966,
+    "change_percent": 0.4404073768235524,
+    "volume": 6580451,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-06-10T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "TMCV.NS",
+    "name": "TATA MOTORS LIMITED",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Manufacturers",
+    "currency": "INR",
+    "market_cap": 1319619919872,
+    "pe_ratio": 43.436363,
+    "forward_pe": 16.331617,
+    "peg_ratio": null,
+    "price_to_book": 10.360828,
+    "price_to_sales": 1.5736926,
+    "ev_to_ebitda": 14.962,
+    "book_value": 34.587,
+    "dividend_yield": 0.011000000000000001,
+    "dividend_per_share": 4,
+    "eps": 8.25,
+    "beta": null,
+    "fifty_two_week_high": 509,
+    "fifty_two_week_low": 306.3,
+    "fifty_two_week_change": 0.10760355,
+    "roe": 0.26045,
+    "roa": 0.09228,
+    "gross_margin": 0.32345,
+    "operating_margin": 0.08489,
+    "profit_margin": 0.03613,
+    "debt_to_equity": 0.44095,
+    "current_ratio": 0.758,
+    "quick_ratio": 0.542,
+    "revenue_ttm": 838550028288,
+    "net_income_ttm": 30300000256,
+    "free_cash_flow": 184731254784,
+    "shares_outstanding": 3682488958,
+    "revenue_growth": -0.378,
+    "earnings_growth": -0.253,
+    "held_percent_insiders": 0.45171002,
+    "held_percent_institutions": 0.26001,
+    "provider": "yfinance"
+   }
+  },
+  "panel": [
+   {
+    "angle": 1,
+    "note": null,
+    "symbol": "TMCV"
+   },
+   {
+    "angle": 2,
+    "note": null,
+    "symbol": "TMCV"
+   },
+   {
+    "angle": 3,
+    "note": null,
+    "symbol": "TMCV"
+   }
+  ],
+  "cross_check": {
+   "skipped": true,
+   "reason": "Skipped to stay within the run's time budget."
+  }
+ },
+ "backend": "native",
+ "createdAt": 1781173320094
+}

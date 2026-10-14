@@ -1,0 +1,7 @@
+
+=== ASSISTANT TEXT ===
+The ADR-to-ordinary-share ratio is not available from this session's sources.
+
+TTM Revenue for BABA is unavailable. The terminal's data does not include it.
+
+=== ok · 69.4s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 20, 'done': 1} · usage in=6945 out=33 · est $0.00000 · llama3.1:8b

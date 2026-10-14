@@ -1,0 +1,11 @@
+=== AAPL under IN and US ===
+AAPL/IN freshness: eod
+AAPL/US freshness: eod
+RELIANCE.NS/IN freshness: eod
+RELIANCE.NS/US freshness: eod
+^NSEI/IN freshness: eod
+24:from services.locale import freshness_for, instrument_region
+29:def _label_freshness(quote: Quote, asset_class: str) -> Quote:
+43:        region = instrument_region(quote.symbol, quote.provider)
+61:    return _label_freshness(quote, asset_class)
+91:            quotes.append(_label_freshness(result, asset_class))

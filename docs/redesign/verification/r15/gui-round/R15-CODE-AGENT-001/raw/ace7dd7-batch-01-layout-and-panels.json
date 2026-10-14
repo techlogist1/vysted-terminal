@@ -1,0 +1,710 @@
+[
+ {
+  "cmd": "click",
+  "x": 768,
+  "y": 598
+ },
+ {
+  "cmd": "wait",
+  "seconds": 4
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-02-packaged-after-terms.png"
+ },
+ {
+  "cmd": "click",
+  "x": 502,
+  "y": 728
+ },
+ {
+  "cmd": "wait",
+  "seconds": 4
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-03-packaged-layout-chart-brief.png"
+ },
+ {
+  "cmd": "click",
+  "x": 515,
+  "y": 148
+ },
+ {
+  "cmd": "wait",
+  "seconds": 6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-04-packaged-layout-portfolio.png"
+ },
+ {
+  "cmd": "click",
+  "x": 612,
+  "y": 148
+ },
+ {
+  "cmd": "wait",
+  "seconds": 3
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open News Feed"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-10-packaged-panel-news-feed.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Watchlist"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-11-packaged-panel-watchlist.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Equity Overview"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-12-packaged-panel-equity-overview.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Analyst Ratings"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-13-packaged-panel-analyst-ratings.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Earnings Calendar"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-14-packaged-panel-earnings-calendar.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open SEC Filings"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-15-packaged-panel-sec-filings.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Macro"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-16-packaged-panel-macro.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Yield Curve"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-17-packaged-panel-yield-curve.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Screener"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-18-packaged-panel-screener.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Option Chain"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-19-packaged-panel-option-chain.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Option Pricer"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-20-packaged-panel-option-pricer.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Greeks Dashboard"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-21-packaged-panel-greeks-dashboard.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Bond Pricer"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-22-packaged-panel-bond-pricer.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Backtest"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-23-packaged-panel-backtest.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Notes"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-24-packaged-panel-notes.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Node Editor"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-25-packaged-panel-node-editor.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Agent Builder"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-26-packaged-panel-agent-builder.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Marketplace"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-27-packaged-panel-marketplace.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Plugin Manager"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-28-packaged-panel-plugin-manager.png"
+ },
+ {
+  "cmd": "click",
+  "x": 243,
+  "y": 56
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1.5
+ },
+ {
+  "cmd": "type",
+  "text": "Open Settings"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "key",
+  "combo": "down"
+ },
+ {
+  "cmd": "key",
+  "combo": "return"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 7
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/ace7dd7-29-packaged-panel-settings.png"
+ }
+]

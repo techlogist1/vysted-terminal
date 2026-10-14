@@ -1,0 +1,15 @@
+HEAD 633f844071d972b337f4c3526d86555c80df0568
+$ curl -s 127.0.0.1:52312/data-sources
+{"providers":[{"id":"ccxt","keys":["ohlcv","quote"],"rank":10,"available":true,"asset_classes":["crypto"],"region":[]},{"id":"openbb-mcp","keys":["analyst_rating","balance_sheet","cash_flow","fundamentals","income_statement","macro_series"],"rank":10,"available":true,"asset_classes":[],"region":[]},{"id":"nse_direct","keys":["ohlcv","quote"],"rank":15,"available":true,"asset_classes":["equity"],"region":["IN"]},{"id":"nse","keys":["ohlcv","quote"],"rank":20,"available":true,"asset_classes":["equity"],"region":["IN"]},{"id":"bse","keys":["ohlcv","quote"],"rank":25,"available":true,"asset_classes":["equity"],"region":["IN"]},{"id":"yfinance","keys":["analyst_rating","balance_sheet","cash_flow","fundamentals","income_statement","ohlcv","quote"],"rank":50,"available":true,"asset_classes":["equity"],"region":[]}]}
+$ grep -n "pluginId:\|REGISTRY_PROVIDER_ID\|INDIA_DATA_LANES\|ccxt" src/lib/marketplace.ts
+63:      pluginId: "vysted-yfinance",
+79:      pluginId: "openbb-mcp",
+94:      pluginId: "vysted-lenses",
+108:      pluginId: "vysted-news",
+143:      pluginId: "vysted-example",
+185:export const REGISTRY_PROVIDER_ID: Readonly<Record<string, string>> = {
+204:export const INDIA_DATA_LANES: readonly DataLaneRow[] = [
+export const REGISTRY_PROVIDER_ID: Readonly<Record<string, string>> = {
+  "vysted-yfinance": "yfinance",
+  "openbb-mcp": "openbb-mcp",
+};

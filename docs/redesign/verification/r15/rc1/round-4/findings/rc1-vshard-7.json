@@ -1,0 +1,89 @@
+[
+ {
+  "key": "rc1-vshard-7:1",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-UI-090",
+  "title": "UI-090 not certified: every non-US/non-IN listing (BHP.AX, 7203.T, ^N225, HSBA.L) is dated on the US calendar and reads 'live' hours after its own exchange closed",
+  "repro": "scratch pytest reusing tests/test_quotes._freeze_locale_clock, get_quote patched to yfinance: BHP.AX now=2026-09-23T15:00Z last_trade=06:00Z -> freshness live (same for 7203.T, ^N225 under IN, HSBA.L at 17:00Z)",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-7.md",
+  "suspected_files": [
+   "sidecar/services/locale.py",
+   "sidecar/routers/quotes.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:2",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "A Delegate round halted by a budget ceiling still delivers its undispatched publish_brief as a proposed change",
+  "repro": "run_manager.launch_run with a provider whose round 2 emits publish_brief + done(100k tokens), RunBudget(max_tokens=1000) -> status error, dispatched ['write_note'] only, row.brief == the halted round's brief; delegate-runs.ts:282 enqueues it",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-7.md",
+  "suspected_files": [
+   "sidecar/services/run_manager.py",
+   "src/lib/delegate-runs.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:3",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "Option chain: a transport failure on the walk-back day (today 404) returns None/502 while an older good day is cached, and re-probes that day every request",
+  "repro": "fetch_latest_fo with today=Tue 404, Mon failed, Fri cached -> [None, None, None], network_calls Tue, Mon, Mon, Mon",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-7.md",
+  "suspected_files": [
+   "sidecar/services/option_chain.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:4",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "Every 10-Q opens in the filing viewer with zero sections and 'No section selected.' with no stated reason (sec-edgar-mcp returns only has_financials for 10-Q)",
+  "repro": "GET /sec/filings/0000320193-26-000020?identifier=AAPL&form_type=10-Q -> 200 sections []; raw get_filing_sections -> {sections:{has_financials:true}}",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-7.md",
+  "suspected_files": [
+   "sidecar/services/sec_filings_provider.py",
+   "src/modules/sec/FilingViewer.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:5",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "Unhinted SEC lookup 404s a 10-Q past row 40 of its form list (agent sec_filing_content without form_type)",
+  "repro": "GET /sec/filings/0001193125-10-090116?identifier=MSFT -> 404 not_found; with form_type=10-Q -> 200 (23 s)",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-7.md",
+  "suspected_files": [
+   "sidecar/services/sec_filings_provider.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "_parse_verdict marker fallback reads a negated reason with no verdict word ('Not verified - no source confirms') as agree",
+  "repro": "_parse_verdict('Not verified - no source confirms')[0] == 'agree'; same for 'I cannot verify this; no source confirms it'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-7.md",
+  "suspected_files": [
+   "sidecar/services/research/verify.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-7:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "CURRENT_STATE.md 3.3 yfinance bullet says fundamentals hit yfinance first; openbb-mcp (rank 10, no region gate) is tried first",
+  "repro": "docs/CURRENT_STATE.md:340 vs sidecar/services/provider_registry.py openbb-mcp rank=10 serves fundamentals; /health 'fundamentals: openbb-mcp (yfinance fallback)'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-7.md",
+  "suspected_files": [
+   "docs/CURRENT_STATE.md"
+  ]
+ }
+]

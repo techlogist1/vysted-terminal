@@ -1,0 +1,67 @@
+{
+ "symbol": "SEL",
+ "kind": null,
+ "count": 4,
+ "deals": [
+  {
+   "symbol": "SEL",
+   "kind": "bulk",
+   "date": "2026-07-23",
+   "party": "CHAUBARA EATS PRIVATE LIMITED",
+   "side": "buy",
+   "quantity": 12200.0,
+   "price": 269.08,
+   "value": 3282776.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  },
+  {
+   "symbol": "SEL",
+   "kind": "bulk",
+   "date": "2026-07-23",
+   "party": "CHAUBARA EATS PRIVATE LIMITED",
+   "side": "sell",
+   "quantity": 3000.0,
+   "price": 265.27,
+   "value": 795810.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  },
+  {
+   "symbol": "SEL",
+   "kind": "bulk",
+   "date": "2026-07-23",
+   "party": "TEJAS CHAWLA",
+   "side": "sell",
+   "quantity": 13600.0,
+   "price": 265.0,
+   "value": 3604000.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  },
+  {
+   "symbol": "SEL",
+   "kind": "bulk",
+   "date": "2026-07-10",
+   "party": "TEJAS CHAWLA",
+   "side": "buy",
+   "quantity": 13600.0,
+   "price": 218.1,
+   "value": 2966160.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  }
+ ],
+ "sources": [
+  "NSE bulk",
+  "NSE block",
+  "NSE sast"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": "BSE SEL is a different company; only the NSE feed is served"
+}

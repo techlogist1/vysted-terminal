@@ -1,0 +1,9 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: in-process ASGI app (candidate) with VYSTED_OPENBB_MCP_PORT=52379 (closed port = dead child); GET /fundamentals/MAZDOCK, /fundamentals/KPITTECH, GET /openbb-mcp/status. Note: /openbb-mcp/status shows available:false after the failed call
+--- output
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'MAZDOCK'
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'KPITTECH'
+L5 /fundamentals/MAZDOCK 200 16.6s {"symbol":"MAZDOCK.NS","name":"Mazagon Dock Shipbuilders Limited","sector":"Industrials","industry":
+L5 /fundamentals/KPITTECH 200 15.2s {"symbol":"KPITTECH.NS","name":"KPIT Technologies Limited","sector":"Technology","industry":"Informa
+L5 status 200 {"available":false,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52379/mcp","lastToolCallOk":false,"lastError":"ProviderError: MCP server 'openbb-mcp' failed to open: ConnectError('All connection attempts failed')"}
+EXIT=0

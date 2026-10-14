@@ -1,0 +1,4 @@
+A (entry case) TUE=failed: seeded=['2026-09-21'] results=['2026-09-21', '2026-09-21', '2026-09-21'] network_calls=['2026-09-22']
+B TUE=404: seeded=['2026-09-21'] results=['2026-09-21', '2026-09-21', '2026-09-21'] network_calls=['2026-09-22']
+C fresh: TUE=404, MON=failed: seeded=['2026-09-18'] results=[None, None, None] network_calls=['2026-09-22', '2026-09-21', '2026-09-21', '2026-09-21']
+D fresh: TUE=failed, MON uncached: seeded=['2026-09-18'] results=['2026-09-18', '2026-09-18', '2026-09-18'] network_calls=['2026-09-22']

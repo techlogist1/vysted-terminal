@@ -1,0 +1,6 @@
+HTTP/1.1 500 Internal Server Error
+date: Fri, 25 Sep 2026 00:10:42 GMT
+server: uvicorn
+content-length: 21
+content-type: text/plain; charset=utf-8
+

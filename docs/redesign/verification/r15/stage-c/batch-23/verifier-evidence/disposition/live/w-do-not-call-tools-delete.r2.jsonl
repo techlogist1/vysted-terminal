@@ -1,0 +1,39 @@
+{"kind": "delta", "text": "Removing"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " HDF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": " holding"}
+{"kind": "delta", "text": "...\n\n"}
+{"kind": "delta", "text": "portfolio"}
+{"kind": "delta", "text": "_delete"}
+{"kind": "delta", "text": "_position"}
+{"kind": "delta", "text": "(symbol"}
+{"kind": "delta", "text": "=\""}
+{"kind": "delta", "text": "H"}
+{"kind": "delta", "text": "DF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": "\")"}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " position"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " proposed"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " removal"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " proposal"}
+{"kind": "delta", "text": " bar"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Review"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " accept"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " deletion"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2733, "output_tokens": 38, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

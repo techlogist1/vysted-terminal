@@ -1,0 +1,12 @@
+R15-DATA-017 @ 68d5573aff9a579af084dcbb124843f2aecff6e8 (isolated sidecar :52602)
+Own repro (curl :52602/disclosures/{shareholding,announcements?limit=25,results}?symbol=X):
+JNPR shareholding 200 (promoter 85.94 fii 1.77 dii ...), announcements 200 count 25, results 200 count 1
+DHOOTTRANS shareholding 200 (promoter 82.78), announcements 200 count 21, results 200 count 1
+SUMAX shareholding 200 (promoter 69.67), announcements 200 count 7, results 200 count 0 coverage covered
+/quotes/SUMAX 200 price 109.15 provider nse_direct freshness eod
+/resolve/autocomplete?q=Sumax Engineering Limited -> SUMAX (yahoo SUMAX-SM.NS, board SME) conf 0.9; Dhoot Transmission Limited -> DHOOTTRANS; Juniper Green Energy Limited -> JNPR
+Code: symbol_resolver.py:177-600 daily runtime refresh of NSE/BSE masters into <data-dir>/resolver_masters (unioned), SM series -> -SM.NS (test_symbol_resolver.py:247), distinctive-token live fallback (symbol_resolver.py:1307).
+Fresh variant: names present ONLY in the runtime-refreshed master (_generated 2026-09-26) and absent from the bundled one (2026-09-24):
+AXIOMGAS (SM) announcements 200 count 1, quotes 200 54.05, autocomplete -> AXIOMGAS-SM.NS; shareholding 200 count 0 coverage covered
+AGASTYAEN (EQ) shareholding 200 count 23, announcements 200, quotes 200 72.42, autocomplete -> AGASTYAEN (former SANGINITA)
+Verdict: HOLDS

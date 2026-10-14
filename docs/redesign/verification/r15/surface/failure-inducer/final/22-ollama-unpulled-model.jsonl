@@ -1,0 +1,2 @@
+{"kind": "error", "message": "The model qwen9.9:404b-notpulled is not downloaded in Ollama.", "action": "Run `ollama pull qwen9.9:404b-notpulled`, or pick an installed model in Settings.", "detail": "model 'qwen9.9:404b-notpulled' not found (status code: 404)", "code": "model_not_pulled"}
+{"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}

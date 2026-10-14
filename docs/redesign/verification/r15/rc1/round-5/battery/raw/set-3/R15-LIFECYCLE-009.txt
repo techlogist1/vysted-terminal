@@ -1,0 +1,3 @@
+CMD: curl -s http://127.0.0.1:52357/portfolio/positions
+[]
+HTTP_200

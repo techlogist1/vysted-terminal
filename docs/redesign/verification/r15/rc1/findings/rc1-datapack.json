@@ -1,0 +1,32 @@
+[
+  {
+    "key": "rc1-datapack:1",
+    "kind": "regression",
+    "severity": "critical",
+    "register_id": "R15-DATA-008",
+    "title": "SIFY revenue_ttm/net_income_ttm still served as INR-scale numbers under currency:\"USD\" (partial fix)",
+    "repro": "GET http://<sidecar>/fundamentals/SIFY -> currency:\"USD\", revenue_ttm:46506049536.0, net_income_ttm:-912369984.0 (identical to the original defect's cited numbers). financial_currency:\"INR\" now exists as a separate field and price_to_sales is correctly withheld with a reason, but revenue_ttm/net_income_ttm keep status:\"ok\" with no reason and are not cross-checked against financial_currency, so a consumer reading currency next to revenue_ttm (EquityOverviewPanel.tsx, brief-blocks.tsx, per the entry's own root_cause) still renders ~94x-overstated USD figures.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/DATAPACK.md",
+    "suspected_files": ["sidecar/services/yfinance_provider.py", "sidecar/models/fundamentals.py", "src/modules/equity-overview/EquityOverviewPanel.tsx", "src/modules/research/brief-blocks.tsx"]
+  },
+  {
+    "key": "rc1-datapack:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-058",
+    "title": "Sify (ADR) name-search: SIFY now included but still ranked last despite the highest score",
+    "repro": "GET http://<sidecar>/resolve?q=Sify+Technologies+Ltd+(ADR) -> candidates [ASMTEC 0.80, IKOMA 0.766, EMIAC 0.766, RELICTEC 0.766, 7TEC 0.766, SIFY 0.913]. SIFY is present now (was previously excluded by the 6-candidate cap) but sorts last, an 11-point-margin inversion the fix_shape (\"let score dominate locale beyond a margin\") was meant to close.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/DATAPACK.md",
+    "suspected_files": ["sidecar/services/symbol_resolver.py"]
+  },
+  {
+    "key": "rc1-datapack:3",
+    "kind": "environment",
+    "severity": "low",
+    "register_id": "R15-DATA-003",
+    "title": "BSE shareholding index returned 403 Forbidden for every BSE-only symbol this run, not just AMAL/SMR",
+    "repro": "GET /disclosures/shareholding?symbol=AMAL, ?symbol=SMR, ?symbol=CSL all return 502 provider_error; sidecar.log shows the identical root cause for all three: 'BSE: bse shareholding: index HTTP 403'. This blocks direct re-verification of R15-DATA-003 and R15-DATA-022 this run; it is an upstream BSE block (also seen in the prior gate round), not a symbol-specific regression.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/DATAPACK.md",
+    "suspected_files": []
+  }
+]

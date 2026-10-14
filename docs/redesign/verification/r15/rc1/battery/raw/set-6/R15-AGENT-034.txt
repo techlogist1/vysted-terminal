@@ -1,0 +1,11 @@
+$ python3 -c RunBudget().model_dump() (budget: {} defaults) + maxSteps:0 validation
+defaults: {'max_tokens': None, 'max_spend_usd': None, 'max_wall_seconds': None, 'max_steps': None}
+maxSteps:0 -> rejected: ValidationError
+
+$ grep -n "DEFAULT_RUN_BUDGET" sidecar/models/run.py
+DEFAULT_RUN_BUDGET = RunBudget(max_tokens=120_000, max_spend_usd=1.0, max_wall_seconds=600, max_steps=12)
+
+Confirms budget:{} resolves to 120000/$1.0/600s/12 steps via this server-floor constant
+(RunBudget's own field defaults are None; DEFAULT_RUN_BUDGET is what run launch falls
+back to for an omitted ceiling) -- matches the certified figures exactly. maxSteps:0
+correctly rejected (ValidationError, gt=0 constraint).

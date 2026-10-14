@@ -1,0 +1,56 @@
+[
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-1",
+  "verdict": "admitted",
+  "severity_final": "high",
+  "reason": "Holds: get_provider('openrouter') is an OpenAIProvider on the OpenRouter base URL and validate_key only lists models, which OpenRouter serves without auth, so any non-empty key returns ok:true; CloudStep then saves it, switches the default provider/model and renders the 'OpenRouter is connected... live' DoneStep, and the banner hides. Same root as COD-llm-adapters-2-4 / SURF-SETTINGS-PLUGINS-1 (register should merge under one root); the onboarding instance is the most consequential because it also replaces the working keyless default.",
+  "evidence": "sidecar/services/llm/__init__.py:98-99; sidecar/services/llm/openai.py:842-855; src/components/OnboardingFlow.tsx:343-359, :676-677; src/components/OnboardingBanner.tsx:32; src/store/provider-keys.ts:57-61",
+  "evidence_checked": "Opened all cited code; live: POST /llm/keys/validate with a fake key on my clean :52223 -> ok:true (http-log K02); jsdom replay of the real OnboardingFlow to DoneStep (20-onboarding-replay.json T2); curl OpenRouter /api/v1/models (200) vs /api/v1/key (401) with the same fake bearer.",
+  "repro_check": "curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer sk-or-v1-fake' https://openrouter.ai/api/v1/models -> 200; same on /api/v1/key -> 401 {'message':'User not found.'}"
+ },
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-2",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Tried to find any keyless web-research surface and found none: the sidecar has no search-query route (only /search/status and /search/searxng/{status,setup,teardown}), no workflow node type performs web search (21 registered types, none search), the brief store is published only by the agent host action, and /research is a composer slash command behind the same model gate. The claim is true only when a local model is already running, which the welcome screen presents as a separate setup path.",
+  "evidence": "src/components/OnboardingFlow.tsx:250-252, :680; src/modules/chat/ChatSidebar.tsx:797-805; sidecar/routers/search_status.py:20; sidecar/routers/search_tiers.py:27-42; sidecar/services/workflow_nodes/__init__.py:47-56 + research_nodes.py:141-144 + screener_nodes.py:89; src/lib/host-actions.ts:1123",
+  "evidence_checked": "Code-read of routers, workflow node registry, bundled plugins list (brokers, example, openbb-mcp, vysted-lenses, vysted-news, yfinance - none exposes web search), brief publishers; live A4 shows web research only inside an agent turn.",
+  "repro_check": "grep -rn '@router' sidecar/routers/search_*.py -> 4 routes, none takes a query; grep register_node_type -> no search node; grep useBriefStore.getState().publish -> host-actions.ts only"
+ },
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-3",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "The welcome sentence 'Nothing leaves this computer except the model calls you authorize' is unambiguous and false: keyless panels fetch every ticker from Yahoo/NSE/BSE/openbb and research sends the query to web search and fetches third-party pages even on the local-model lane the flow calls 'fully private... offline'. The banner's 'nothing leaves this machine' can be read as about keys only, so the defect rests on the welcome and local-path copy; severity kept at medium because the local-first privacy promise is product DNA and the copy is on the first two screens.",
+  "evidence": "src/components/OnboardingFlow.tsx:242-243, :270; src/components/OnboardingBanner.tsx:50-52; docs/redesign/verification/r15/surface/onboarding-stranger/A4-donestep-research-nvda-qwen3.jsonl (research_step 'searching the web', publish_brief.sources, structured.price.provider yfinance)",
+  "evidence_checked": "Opened the copy lines; read the A4 SSE log for the outbound sources/providers; /health provider map (http-log B01).",
+  "repro_check": "Keyless local lane 'research NVDA' -> research_step 'searching the web for NVIDIA CORP' + 6 source URLs on cnn/yahoo/cnbc/tradingview/nasdaq/seekingalpha"
+ },
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-4",
+  "verdict": "admitted_with_correction",
+  "severity_final": "medium",
+  "reason": "Corrected framing, not severity: the TOS body is BLUEPRINT §6.5 #8's trading disclaimer (keychain namespace broker:_meta, every clause about orders/brokers/live mode), so its stale trading text goes away with the removal batch; what survives the removal is that it is the product's ONLY first-launch acknowledgement and also the gate OnboardingFlow sequences on, so deleting or keeping it as-is leaves the research/data product with no data-accuracy or AI-output disclosure at first run. The finding stands as 'the removal batch must replace, not just delete, the first-launch TOS'.",
+  "evidence": "src/modules/safety/DisclaimerFlow.tsx:1-19, :37-45, :94, :228-230; src/store/safety.ts:55-72; src/components/OnboardingFlow.tsx:104, :124; src/app/page.tsx:289-293",
+  "evidence_checked": "Opened DisclaimerFlow, safety store, OnboardingFlow gate and page mount; jsdom replay T1 rendered the exact text.",
+  "repro_check": "Clean first launch (replay T1_before_ack.tosText) -> the dialog describes live trading venues/orders/kill switch; no data or AI-accuracy disclosure anywhere in the TOS or onboarding copy"
+ },
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-5",
+  "verdict": "admitted",
+  "severity_final": "high",
+  "reason": "Holds and is not rescued by the live rung: resolve() only applies the rename lane to what _resolve_masters matched, the current NSE master carries ETERNAL but not ZOMATO, and the stage-4 yfinance.Search fallback returns [] for both 'zomato' and 'ZOMATO' (Yahoo dropped the retired ticker), so the NSE symbol-change row ZOMATO->ETERNAL that IS loaded is never consulted - contrary to the lane's own stated purpose 'an OLD ticker resolves to the CURRENT one'. Re-checked on the shared :52152 stack with the Yahoo breaker CLOSED: same 'No instrument matched'.",
+  "evidence": "sidecar/services/nse_symbol_change.py:1-10 (purpose), :323-336; sidecar/services/symbol_resolver.py:660-673, :770, :782-800, :971-1003; sidecar/services/resolver_masters/nse_instruments.json (ETERNAL only)",
+  "evidence_checked": "Code-read of the resolve pipeline and live rung; GET /resolve?q=zomato on :52152 (breaker closed, opens_total 181) -> ok:false; direct yfinance.Search('zomato'|'ZOMATO') in the sidecar venv -> []; data_cache on my clean profile holds nse_symbol_change:20260923 containing ZOMATO.",
+  "repro_check": "curl '127.0.0.1:52152/resolve?q=zomato&region=IN' -> {\"ok\":false,...\"No instrument matched 'zomato'.\"}; ./.venv/bin/python3 -c \"import yfinance as yf; print(yf.Search('zomato').quotes)\" -> []"
+ },
+ {
+  "raw_id": "SURF-ONBOARDING-STRANGER-6",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "No region-aware seeding exists: ChartPanel hardcodes SPY, the symbols store seeds DEFAULT_SYMBOLS (US ETFs/megacaps + crypto) unconditionally, while lib/region.ts sets IN as the deliberate India-first default. Low: the panels work, the first screen just contradicts the region the app chose.",
+  "evidence": "src/modules/chart/ChartPanel.tsx:80, :259-260; src/store/symbols.ts:21-27, :43; src/lib/region.ts:37-39; src/config/default-layout.ts:31-57",
+  "evidence_checked": "grep for DEFAULT_SYMBOL(S) and region use across src (only AnalystRatingsPanel's own AAPL default besides these); no region branch in symbols store or chart.",
+  "repro_check": "grep -rn 'DEFAULT_SYMBOLS\\|DEFAULT_SYMBOL\\b' src -> chart SPY, symbols store seed; grep region in both files -> none"
+ }
+]

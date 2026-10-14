@@ -1,0 +1,5 @@
+Static code check (no GUI, no vitest per role rules): src/lib/host-actions.ts
+wroteCriteriaText() (:936-939): '${count} of ${total} screener criteria' when recipe.dropped.length; droppedCriteriaNote() (:931-933): '; dropped ${recipe.dropped.join}'.
+write_screener_filters apply case (:1764-1786): 'Wrote ${what}${droppedCriteriaNote(recipe)} - ${run?running:review and Run}'. Matches the certified repro string exactly.
+Committed pinned test: src/lib/host-actions.test.ts:338 'write_screener_filters says which malformed criterion it dropped, in label and ack (R15-AGENT-043)'; :359 save_screen-all-malformed variant.
+NOT RUN: vitest (role forbids running vitest/pytest suites; the heavy lane owns them).

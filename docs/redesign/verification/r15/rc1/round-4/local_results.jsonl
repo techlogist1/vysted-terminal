@@ -1,0 +1,12 @@
+{"scenario": "rb-watchlist", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/rb-watchlist-local-t1.jsonl"}
+{"scenario": "rb-note", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/rb-note-local-t1.jsonl"}
+{"scenario": "rb-portfolio", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/rb-portfolio-local-t1.jsonl"}
+{"scenario": "rb-brief", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/rb-brief-local-t1.jsonl"}
+{"scenario": "sk-amal", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/sk-amal-local-t1.jsonl"}
+{"scenario": "sk-smr", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/sk-smr-local-t1.jsonl"}
+{"scenario": "sk-sify", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/sk-sify-local-t1.jsonl"}
+{"scenario": "sk-dal", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/sk-dal-local-t1.jsonl"}
+{"scenario": "sc-reliance", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/sc-reliance-local-t1.jsonl"}
+{"scenario": "sc-amal", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/sc-amal-local-t1.jsonl"}
+{"scenario": "sc-sify", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/sc-sify-local-t1.jsonl"}
+{"scenario": "sc-watchlist", "outcome": "ran", "returncode": 0, "out_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/scenarios/sc-watchlist-local-t1.jsonl"}

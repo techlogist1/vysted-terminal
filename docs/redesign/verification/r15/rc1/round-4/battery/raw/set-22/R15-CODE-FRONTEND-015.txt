@@ -1,0 +1,375 @@
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand
+
+ ✓ src/modules/chat/context-provider.test.ts > captureTerminalState — portfolio holdings (FR-110/111, SC-024) > extracts the full holdings array + active id/name from a multi-portfolio payload 2ms
+ ✓ src/modules/chat/context-provider.test.ts > captureTerminalState — portfolio holdings (FR-110/111, SC-024) > carries marketValue/pnl as null when a holding has no resolved quote 0ms
+ ✓ src/modules/chat/context-provider.test.ts > captureTerminalState — portfolio holdings (FR-110/111, SC-024) > yields holdings:[] for an older payload that predates multi-portfolio truth 0ms
+ ✓ src/modules/chat/context-provider.test.ts > captureTerminalState — portfolio holdings (FR-110/111, SC-024) > falls back to the portfolios STORE when the panel has not published (E6) 1ms
+ ✓ src/modules/chat/context-provider.test.ts > captureTerminalState — portfolio holdings (FR-110/111, SC-024) > the bus payload still wins over the store fallback when published 0ms
+ ✓ src/modules/chat/context-provider.test.ts > captureTerminalState — portfolio holdings (FR-110/111, SC-024) > drops malformed holding rows (missing symbol) defensively 0ms
+ ✓ src/modules/chat/context-provider.test.ts > captureTerminalState — otherPanels generic summary (R15-AGENT-053) > carries a backtest AND a news publish, each as a generic summary 0ms
+ ✓ src/modules/chat/context-provider.test.ts > captureTerminalState — otherPanels generic summary (R15-AGENT-053) > caps a generic summary to 200 characters 0ms
+ ✓ src/modules/chat/context-provider.test.ts > captureTerminalState — otherPanels generic summary (R15-AGENT-053) > never duplicates chart/watchlist/portfolio sources into otherPanels 0ms
+ ✓ src/modules/chat/context-provider.test.ts > captureNotes — the __notes__ entry (R15-AGENT-020) > caps a long note with a marker and drops empty ones 0ms
+stderr | src/modules/panel-context-publishers.test.tsx > NewsFeedPanel publisher > publishes the watched symbols + focused article id on mount
+An update to NewsFeedPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to NewsFeedPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/modules/panel-context-publishers.test.tsx > WatchlistPanel publisher > publishes the symbols + selectedSymbol selection on mount 489ms
+ ✓ src/modules/panel-context-publishers.test.tsx > WatchlistPanel publisher > publishes again when the user clicks a row to select a symbol 21ms
+ ✓ src/modules/panel-context-publishers.test.tsx > WatchlistPanel publisher > does not trigger an infinite re-render loop 17ms
+ ✓ src/modules/panel-context-publishers.test.tsx > NewsFeedPanel publisher > publishes the watched symbols + focused article id on mount 17ms
+ ✓ src/modules/panel-context-publishers.test.tsx > NewsFeedPanel publisher > does not trigger an infinite re-render loop 3ms
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > offers every first-party agent (by display name) in the plus menu's persona drill
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > the persona row always shows the display name, never a raw agent id
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/modules/panel-context-publishers.test.tsx > EquityOverviewPanel publisher > publishes a null ticker on mount, then the loaded ticker after load 83ms
+ ✓ src/modules/panel-context-publishers.test.tsx > EquityOverviewPanel publisher > is found under the dockview id PanelHost focuses (R15-AGENT-052) 23ms
+ ✓ src/modules/panel-context-publishers.test.tsx > EquityOverviewPanel publisher > does not trigger an infinite re-render loop 2ms
+ ✓ src/modules/panel-context-publishers.test.tsx > PortfolioPanel publisher > publishes a positionCount + totalValue snapshot on mount 39ms
+ ✓ src/modules/panel-context-publishers.test.tsx > PortfolioPanel publisher > does not trigger an infinite re-render loop 6ms
+ ✓ src/modules/panel-context-publishers.test.tsx > publisher cleanup > watchlist unregisters its source on unmount 13ms
+ ✓ src/modules/panel-context-publishers.test.tsx > publisher cleanup > news unregisters its source on unmount 2ms
+ ✓ src/modules/panel-context-publishers.test.tsx > publisher cleanup > equity unregisters its source on unmount 1ms
+ ✓ src/modules/panel-context-publishers.test.tsx > publisher cleanup > portfolio unregisters its source on unmount 5ms
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > replaces the old depth escalation with the segmented three-stop pill (no toggle button)
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+Not implemented: Window's scrollTo() method
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > offers every first-party agent (by display name) in the plus menu's persona drill 167ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > the persona row always shows the display name, never a raw agent id 59ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > replaces the old depth escalation with the segmented three-stop pill (no toggle button) 18ms
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > the plus menu's Mode rows switch Agent ↔ Delegate
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > the model chip opens the provider/model popover with the refresh affordance
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > queues a prompt typed while streaming and drains it in order when the stream ends
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AgentsRail inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > the depth pill sets the store and the depth rides the invocation options 47ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > the plus menu's Mode rows switch Agent ↔ Delegate 31ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > the model chip opens the provider/model popover with the refresh affordance 26ms
+Not implemented: Window's scrollTo() method
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > a queued chip's [x] removes it before it sends
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AgentsRail inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+Not implemented: Window's scrollTo() method
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > queues a prompt typed while streaming and drains it in order when the stream ends 60ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > a queued chip's [x] removes it before it sends 58ms
+Not implemented: Window's scrollTo() method
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > collapses a finished run's step trace into one disclosure line, expandable on demand
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > keeps the live activity visible (no disclosure) while the run streams
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > renders an empty-state hint until a message is sent
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > the stop square aborts the in-flight stream and marks the message stopped 56ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > a stream call that rejects still settles the message and frees the composer 34ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > collapses a finished run's step trace into one disclosure line, expandable on demand 24ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > keeps the live activity visible (no disclosure) while the run streams 15ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > renders an empty-state hint until a message is sent 7ms
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > /help shows the cheat-sheet without sending a message
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+Not implemented: Window's scrollTo() method
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > /ask <prompt> appends a user message and invokes streamChat with the keychain key 23ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > a raw chat cut at the output limit says so under the answer (R15-AGENT-026) 19ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > /agent buffett invokes the agent endpoint with the context snapshot 20ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > a focused Equity Overview's ticker drives the badge, the chips and the snapshot (R15-CODE-FRONTEND-015) 25ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > an agent send carries the user's notes as __notes__ (R15-AGENT-020) 19ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > /help shows the cheat-sheet without sending a message 13ms
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > /clear empties the conversation
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > the context badge reports the focused panel's symbol when populated
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > surfaces an error when no API key is set for the default provider 23ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > a send with no key leaves no orphaned user turn and keeps the prompt (R15-UI-017) 23ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > a keyless provider whose model is not pulled opens setup at the download step (R15-AGENT-028) 31ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > a data engine that does not answer the probe is not 'no model set up' (R15-UI-013) 24ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > /clear empties the conversation 13ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > the context badge reports the focused panel's symbol when populated 8ms
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > under AUTO a staged data write reads 'Proposed:', never 'Applied:'
+An update to ComposerPlusMenu inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+Not implemented: Window's scrollTo() method
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > under AUTO a failing auto-apply writes no 'Applied:' line, it says why (R15-AGENT-032)
+An update to ComposerPlusMenu inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > a depth-carrying agent command OVERRIDES the slider depth on the wire (E2 UI leg)
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+Not implemented: Window's scrollTo() method
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > passes the active mode to the agent invocation (default Agent — FR-003, Track B) 19ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > stages an agent-proposed cockpit mutation as a reviewable diff — never auto-applies (FR-010) 22ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > under AUTO a staged data write reads 'Proposed:', never 'Applied:' 31ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar > under AUTO a failing auto-apply writes no 'Applied:' line, it says why (R15-AGENT-032) 25ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > a depth-carrying agent command OVERRIDES the slider depth on the wire (E2 UI leg) 15ms
+Not implemented: Window's scrollTo() method
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > renders a STRUCTURED error frame as message + action + a Details disclosure (E9) 59ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > a legacy plain-string error renders exactly as before (no Details) 40ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > a first-provider auth failure is answered by the next configured provider, and the notice names both 50ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > a provider failure AFTER answer text does not fall back 33ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > a content error (not a provider failure) does not fall back 33ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > a history compaction notice renders the older-turns marker and the context meter (R15-AGENT-040) 47ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > a finished message's footer shows tokens and estimated spend (R15-AGENT-082) 39ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > a free model's finished message shows ~$0.00, not a hidden spend (R15-AGENT-082) 22ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > a message with no spend_usd (unpriced model) shows tokens with no spend segment 21ms
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > E10: the streaming caret never reaches over the message eyebrow on an empty body
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > E10: with rendered content the caret keeps its gap-cancelling margin
+An update to ChatSidebar inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > renders a runtime notice as a quiet chip by kind, not a step row (C9) 30ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > E10: the streaming caret never reaches over the message eyebrow on an empty body 7ms
+ ✓ src/modules/chat/ChatSidebar.test.tsx > ChatSidebar — R10 brief/error honesty > E10: with rendered content the caret keeps its gap-cancelling margin 6ms
+
+ Test Files  3 passed (3)
+      Tests  66 passed (66)
+   Start at  02:43:42
+   Duration  2.94s (transform 815ms, setup 252ms, import 1.24s, tests 2.07s, environment 1.83s)
+

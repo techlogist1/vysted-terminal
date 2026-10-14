@@ -1,0 +1,17 @@
+# rc1-battery-14:1 triage probe, own sidecar :52331 (region IN), 2026-09-26T23:02:17Z
+== GET /resolve?q=KPIT%20Technologies
+needs_disambiguation True resolved None
+   KPITTECH | KPIT Technologies Limited | 1.0 | former_name None
+   BSOFT | BIRLASOFT LIMITED | 1.0 | former_name KPIT
+   EXATO | Exato Technologies Ltd | 0.7179 | former_name None
+== GET /resolve?q=KPIT
+needs_disambiguation False resolved BSOFT
+   BSOFT | BIRLASOFT LIMITED | 1.0 | former_name KPIT
+   KPITTECH | KPIT Technologies Limited | 0.97 | former_name None
+== GET /resolve?q=KPIT%20Technologies%20Limited
+needs_disambiguation True resolved None
+   KPITTECH | KPIT Technologies Limited | 1.0 | former_name None
+   BSOFT | BIRLASOFT LIMITED | 1.0 | former_name KPIT
+   KFINTECH | Kfin Technologies Limited | 0.92 | former_name None
+
+former_names.json in[BSOFT] = ['KPIT Technologies Limited'] (Birlasoft's pre-2019 legal name), in[KPITTECH] = None

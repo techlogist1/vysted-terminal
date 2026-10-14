@@ -1,0 +1,25 @@
+PROBE: R15-CODE-FRONTEND-020 (Agent Builder test no longer pins the UI to its own constants)
+Pinned tests (vitest/pytest, barred under stall rule):
+- src/modules/agent-builder/agent-builder.test.tsx:335-342 (mocked-fetch case returning
+  ["brand_new_tool"] not in the static KNOWN_TOOL_IDS fallback array; asserts the button
+  "brand_new_tool" renders — proves the render comes from the live fetch, not the constant).
+- sidecar/tests/test_custom_agents_router.py (comment at line ~73: "Tool ids (R15-UI-003 /
+  R15-CODE-FRONTEND-020)") pinning the /custom-agents/tool-ids route to
+  agent_selectable_tool_ids().
+
+Live confirmation of the underlying mechanism (shared with R15-UI-003's probe, this shard):
+- GET /custom-agents/tool-ids against own sidecar :52349 -> 56 ids (dynamic, grew from the
+  batch-4-certified 48 as later batches added tools) -- see R15-UI-003.txt.
+- src/modules/agent-builder/AgentBuilderPanel.tsx:136-154 (read at candidate sha
+  1006c6da694ede5776c3dabbd27b305aeb56b5ad):
+    136: // /custom-agents/tool-ids` == `agent_selectable_tool_ids()`) — the static
+    137: // `KNOWN_TOOL_IDS` array is only the pre-fetch fallback.
+    138: const [toolIds, setToolIds] = useState<string[]>([...KNOWN_TOOL_IDS]);
+    ...
+    154: const response = await fetch(new URL("/custom-agents/tool-ids", base).toString());
+  Confirms the panel renders from the LIVE fetched list (KNOWN_TOOL_IDS is documented and
+  coded as only the pre-fetch fallback), which is exactly what CODE-FRONTEND-020's fix
+  claims and what its pinned mocked-fetch test (brand_new_tool) checks.
+
+VERDICT: holds (backend mechanism + source confirmed live; render-time assertion itself is
+pinned by agent-builder.test.tsx:335-342, barred under the stall rule).

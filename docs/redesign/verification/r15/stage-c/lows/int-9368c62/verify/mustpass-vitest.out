@@ -1,0 +1,40 @@
+
+ RUN  v4.1.6 <scratch>/lows-int-verify
+
+ ↓ src/modules/quant/YieldCurvePanel.test.tsx > YieldCurvePanel date defaults (R15-UI-063) > defaults valuation date to today, not a frozen literal
+ ↓ src/modules/quant/YieldCurvePanel.test.tsx > YieldCurvePanel > renders the default 7-instrument grid + sample count
+ ↓ src/modules/quant/YieldCurvePanel.test.tsx > YieldCurvePanel > bootstraps and renders the sample table
+ ↓ src/modules/quant/YieldCurvePanel.test.tsx > YieldCurvePanel > renders the composed empty state before the first bootstrap
+ ↓ src/modules/quant/YieldCurvePanel.test.tsx > YieldCurvePanel > surfaces inline validation and blocks the POST on a bad sample count
+ ✓ src/modules/quant/YieldCurvePanel.test.tsx > YieldCurvePanel > R15-UI-077: two instruments on the same pillar names the duplicate and blocks the POST 47ms
+ ↓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel date defaults (R15-UI-063) > defaults valuation to today and expiry to today + 45d, not a frozen literal
+ ↓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel > renders the input form and method selector
+ ↓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel > prices an option and renders price + Greeks
+ ↓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel > R15-UI-028: in region IN, ₹ price and vega/theta in market units
+ ↓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel > shows binomial-specific steps field when binomial selected
+ ↓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel > shows MC-specific paths + seed fields when MC selected
+ ↓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel > disables Price when American + Black-Scholes selected
+ ↓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel > renders the composed empty state before the first price
+ ↓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel > surfaces inline validation and blocks the POST on a bad input
+ ✓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel > R15-CODE-PLATFORM-041: steps below the shared floor blocks submit with a message before the POST 38ms
+ ↓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel > surfaces errors from the store via the error card
+ ↓ src/modules/quant/OptionPricerPanel.test.tsx > OptionPricerPanel > publishes the active method/payoff/strike/price to the panel context bus (R15-AGENT-053)
+ ↓ src/modules/agent-builder/agent-builder.test.tsx > validate() > returns ok with a fully-formed payload on a valid form
+ ↓ src/modules/agent-builder/agent-builder.test.tsx > validate() > rejects an empty id body
+ ↓ src/modules/agent-builder/agent-builder.test.tsx > validate() > rejects an id body with invalid characters
+ ↓ src/modules/agent-builder/agent-builder.test.tsx > validate() > rejects a short system prompt
+ ↓ src/modules/agent-builder/agent-builder.test.tsx > validate() > R15-UI-003: payload keeps every selected tool, not just the fallback allow-list
+ ↓ src/modules/agent-builder/agent-builder.test.tsx > validate() > nullifies blank optional fields
+ ↓ src/modules/agent-builder/agent-builder.test.tsx > AgentBuilderPanel > renders the form with the custom: prefix label and known tools
+ ↓ src/modules/agent-builder/agent-builder.test.tsx > AgentBuilderPanel > surfaces field errors when submitted empty
+ ✓ src/modules/agent-builder/agent-builder.test.tsx > AgentBuilderPanel > POSTs the payload and refreshes the list on save 141ms
+ ↓ src/modules/agent-builder/agent-builder.test.tsx > AgentBuilderPanel > renders existing custom agents in the side list and supports edit
+ ↓ src/modules/agent-builder/agent-builder.test.tsx > AgentBuilderPanel > R15-UI-003: edit and save round-trips a tool set + provider the fallback arrays don't list
+ ↓ src/modules/agent-builder/agent-builder.test.tsx > AgentBuilderPanel > case not written against: a tool id the sidecar lists but the fallback array lacks is selectable
+
+ Test Files  3 passed (3)
+      Tests  3 passed | 27 skipped (30)
+   Start at  04:43:27
+   Duration  1.04s (transform 368ms, setup 151ms, import 1.09s, tests 230ms, environment 1.14s)
+
+EXIT=0

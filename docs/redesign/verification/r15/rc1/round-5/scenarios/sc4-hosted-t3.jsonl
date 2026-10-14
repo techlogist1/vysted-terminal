@@ -1,0 +1,76 @@
+{"kind": "tool_use", "tool_call_id": "call_b2452c83374a4e5d915eab494cb82b54", "name": "financial_statements", "input": {"symbol": "DAL", "statement": "income", "period": "annual"}}
+{"kind": "tool_use", "tool_call_id": "call_9a179e544c7d42c597ad4c65b0c5f885", "name": "financial_statements", "input": {"symbol": "DAL", "statement": "balance", "period": "annual"}}
+{"kind": "tool_result", "tool_call_id": "call_b2452c83374a4e5d915eab494cb82b54", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_9a179e544c7d42c597ad4c65b0c5f885", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "delta", "text": "For"}
+{"kind": "delta", "text": " Delta"}
+{"kind": "delta", "text": " Air"}
+{"kind": "delta", "text": " Lines"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "DAL"}
+{"kind": "delta", "text": "),"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " most"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " fiscal"}
+{"kind": "delta", "text": " year"}
+{"kind": "delta", "text": " ending"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " March"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "31"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " figures"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " follows"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Total"}
+{"kind": "delta", "text": " Revenue"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "07"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Net"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "659"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "ind"}
+{"kind": "delta", "text": "icating"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " loss"}
+{"kind": "delta", "text": ")\n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " further"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " insights"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 17160, "output_tokens": 72, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.015619}

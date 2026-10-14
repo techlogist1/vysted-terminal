@@ -1,0 +1,3 @@
+cmd: grep -n "import.meta.dirname\|import.meta.url).pathname" scripts/audit-design-tokens.mjs
+output: line 25: const ROOT = resolve(import.meta.dirname, ".."); comment at line 23 explicitly notes avoiding import.meta.url).pathname for Windows correctness. No URL.pathname usage present.
+verdict: holds

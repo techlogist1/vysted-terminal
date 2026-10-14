@@ -1,0 +1,51 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ sed -n 183,230p src/store/marketplace.ts
+exit=0
+    try {
+      // R15-CODE-PLATFORM-049: removePlugin only patches installed/enabled and
+      // unloads — it never touches the keychain, so a removed plugin's granted
+      // secrets were orphaned there forever. disable() correctly leaves them
+      // (it's reversible, the plugin stays installed); remove() is the one
+      // irreversible transition, so it deletes every grant.
+      const config = await runtime.readConfig(pluginId).catch(() => null);
+      await runtime.removePlugin(pluginId);
+      if (config) {
+        await Promise.all(
+          config.grantedSecretIds.map((account) => deleteSecret(account).catch(() => undefined)),
+        );
+      }
+      usePluginsStore.getState().refreshFromRuntime();
+      await get().refresh();
+    } finally {
+      set((s) => ({ busy: { ...s.busy, [pluginId]: false } }));
+    }
+  },
+
+  configure: async (pluginId, values) => {
+    const row = CATALOG_BY_ID[pluginId];
+    const runtime = usePluginsStore.getState().runtime;
+    if (!row || !runtime) return;
+    set((s) => ({ busy: { ...s.busy, [pluginId]: true } }));
+    try {
+      // MERGE with the existing grants — a partial re-configure (submitting only
+      // some fields) must not wipe previously-stored secrets (FR-036).
+      const current = await runtime.readConfig(pluginId);
+      const granted = new Set(current.grantedSecretIds);
+      try {
+        for (const field of row.entry.credentialFields ?? []) {
+          const account = secretAccount(row.entry, field.key);
+          const value = values[field.key];
+          if (value && value.length > 0) {
+            if (pluginId === "vysted-news" && field.key === "newsapi_key") {
+              await probeNewsApiKeyOrThrow(value);
+            }
+            await setSecret(account, value);
+            granted.add(account);
+          } else if (!field.required) {
+            // An explicitly-emptied optional field clears its secret + grant.
+            await deleteSecret(account).catch(() => undefined);
+            granted.delete(account);
+          }
+          // A required field left blank keeps its existing secret + grant untouched.
+        }
+      } finally {

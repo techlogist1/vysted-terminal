@@ -1,0 +1,9 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: grep pinned streaming tests for AGENT-029 (vitest, heavy lane)
+5:  getSidecarBaseUrl: vi.fn(async () => "http://127.0.0.1:8787"),
+314:// ── One terminal callback per stream call (R15-AGENT-029 / CODE-PLATFORM-037 / LIFECYCLE-005) ──
+316:import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+340:    vi.mocked(getSidecarBaseUrl).mockRejectedValueOnce(
+341:      new Error("The data engine did not become ready in time."),
+347:    expect(rec.errors).toEqual(["The data engine did not become ready in time."]);
+EXIT=0

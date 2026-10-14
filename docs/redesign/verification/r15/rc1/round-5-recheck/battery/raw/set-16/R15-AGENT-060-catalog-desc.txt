@@ -1,0 +1,18 @@
+CMD: grep -n -A20 'shareholding_pattern' /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/services/agent_tools/catalog.py | sed -n '1,30p'
+---
+        _cap(
+            "shareholding_pattern",
+            description=(
+                "Quarterly shareholding pattern for an NSE- or BSE-listed Indian "
+                "company, newest quarter first: promoter(+group), public (incl. "
+                "institutions) and the non-institutional float, the FII/DII/"
+                "institutions split, and the promoter pledge (pledged or encumbered, "
+                "percent of the promoter holding; 0 when the filing declares none, "
+                "null when it declares nothing). source/split_source/split_as_of/"
+                "split_basis state where each figure came from. Use to check "
+                "promoter-stake and pledge trends and ownership shifts on Indian names."
+            ),
+            input_schema=_obj(
+                {
+                    "symbol": {
+                        "type": "string",

@@ -1,0 +1,36 @@
+# probe at ace7dd768c3b809b0e72b20b20cfc94eea2368bd (source read; vitest owned by heavy lane)
+CMD: sed -n 1693,1722p src/lib/host-actions.ts; grep it() names in src/lib/host-actions.test.ts:1930-2040
+          pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
+        return done(`Arranged the ${label} layout`);
+      }
+      // Layout-MENU mode ids (fundamental/technical/macro/compare-desk) reaching
+      // arrange_layout through chat get the SAME layout the native menu produces
+      // (R15-LEAD-048) — never the silent factory reset below.
+      const mode = Object.hasOwn(MENU_PAYLOAD_TO_MODE, pattern)
+        ? MENU_PAYLOAD_TO_MODE[pattern]
+        : undefined;
+      if (mode) {
+        const api = ws.dockviewApi;
+        if (!api) {
+          return fail("the layout has not mounted");
+        }
+        applyLayoutMode(api, mode);
+        if (symbol) {
+          useChartCommandStore.getState().loadSymbol(symbol);
+        } else if (symbols[0]) {
+          useChartCommandStore.getState().loadSymbol(symbols[0]);
+        }
+        return done(`Arranged the ${mode.replace("-", " ")} layout`);
+      }
+      // The agent's default/unknown arrange is layout-only: a cosmetic tool must
+      // never delete drawings or re-enable modules (R15-AGENT-056); the factory
+      // reset stays the explicit Settings/menu action. Anything else is a
+      // genuinely unrecognised pattern — fail loudly instead of resetting.
+      if (pattern !== "default") {
+        return fail(`unrecognised layout "${pattern}"`);
+      }
+      ws.resetLayout();
+31:describe("arrange_layout routes Layout-menu mode ids instead of resetting (R15-LEAD-048)", () => {
+52:  it("a recognised Layout-menu mode id (e.g. 'fundamental') applies that mode, never resetLayout", () => {
+83:  it("'default' still resets", () => {
+91:  it("class case: 'compare-desk' routes to the mode, 'compare' still takes the template path", () => {

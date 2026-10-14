@@ -1,0 +1,52 @@
+=== LIFECYCLE-018: warm_detect at lifespan boot, flag flips after refresh under lock ===
+105:async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
+106:    """FastAPI lifespan — runs the FastMCP transport lifespan + cleanup.
+108:    FastMCP's Starlette app has its own ``lifespan`` context that wires the
+110:    sidecar's lifespan so the mount is fully active by the time the first
+117:    the lifespan still have a usable client) and closed here on shutdown. The
+126:    async with mcp_app.lifespan(mcp_app):
+144:        searxng_manager.manager.warm_detect()
+196:    second call from ``main.py`` after the lifespan kicks in is a
+329:    app = FastAPI(title="Vysted Terminal Sidecar", version="0.8.0", lifespan=_lifespan)
+333:    # that skip the lifespan still resolve ``request.app.state.httpx_client``;
+334:    # the lifespan closes it on shutdown. Connection reuse eliminates the
+--- searxng_manager.py: flag set point ---
+382:        self._hot_path_detected = False
+550:        if not self._hot_path_detected:
+552:                if not self._hot_path_detected:
+558:                        self._hot_path_detected = True
+573:    async def detect(self) -> DockerProbe:
+611:    async def refresh(self) -> dict[str, object]:
+701:            async with self._lock:
+811:        async with self._lock:
+        but unused" disease (gate 2: running -> used). The FIRST hot-path read
+        re-derives from docker once; every later read is the pure in-memory
+        check again (status polls keep it current thereafter).
+
+        R15-LIFECYCLE-018: the guard flag flips only AFTER ``refresh()``
+        completes (never before it), under a dedicated lock — two concurrent
+        callers racing the cold first read both await the SAME derivation
+        instead of the second one reading a still-``STATE_UNKNOWN`` manager and
+        wrongly concluding "no managed instance" for that one request.
+        """
+        if not self._hot_path_detected:
+            async with self._detect_lock:
+                if not self._hot_path_detected:
+                    try:
+                        await self.refresh()
+                    except Exception:  # noqa: BLE001 — detection must never break retrieval
+                        pass
+                    finally:
+                        self._hot_path_detected = True
+        return self.ready_base_url()
+
+    def warm_detect(self) -> None:
+        """Kick the one-shot hot-path derivation off eagerly (app lifespan boot).
+
+        Fire-and-forget: :meth:`ready_base_url_detected`'s lock keeps a later
+        hot-path read from racing it, and :meth:`shutdown` cancels it if the
+        process shuts down before it lands.
+        """
+        if self._detect_task is None or self._detect_task.done():
+            self._detect_task = asyncio.ensure_future(self.ready_base_url_detected())
+

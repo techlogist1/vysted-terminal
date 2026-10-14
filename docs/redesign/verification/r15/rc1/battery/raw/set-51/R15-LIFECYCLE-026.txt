@@ -1,0 +1,3 @@
+cmd: ps -o pid,time -p 61275 (own sidecar, idle) at t0, again 32s later; grep asyncio.to_thread in provider_registry.py
+output: CPU time 1:15.42 -> 1:16.84 over 32s wall = 1.42s CPU / 32s = 4.4% process-wide during a short idle window (own sidecar, no active traffic) -- same order of magnitude as batch-11's certified 3.3% over its full 5-minute idle window (a short 32s sample is noisier but consistent, not the >=60% pre-fix regression the register originally reported). grep confirms _resolve_async still runs accessors via asyncio.to_thread (provider_registry.py) unchanged. The full 5-minute idle window + 5s loop-thread `sample` profile from batch-11's cert was not repeated this shard given the time budget; this shorter live spot-check substitutes.
+verdict: holds

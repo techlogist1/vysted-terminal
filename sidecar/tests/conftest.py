@@ -15,12 +15,181 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import create_app
+from services import provider_health
+
+
+@pytest.fixture(autouse=True)
+def _reset_provider_health() -> None:
+    """The Yahoo-family circuit breaker (R11/D53) is process-global state —
+    a 429 storm simulated by one test must never leak an open circuit into
+    the next."""
+    provider_health.reset_for_tests()
+    yield
+    provider_health.reset_for_tests()
+
+
+@pytest.fixture(autouse=True)
+def _reset_witness_cache() -> None:
+    """The correctness gate's witness inputs are cached per listing
+    (R15-LEAD-002) — one test's stubbed filing must never serve the next."""
+    from services import correctness_gate
+
+    correctness_gate.reset_witness_cache_for_tests()
+    yield
+    correctness_gate.reset_witness_cache_for_tests()
+
+
+@pytest.fixture(autouse=True)
+def _bundled_resolver_masters_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The resolver unions a daily runtime refresh of the masters from the data
+    dir (R15-DATA-017); tests read the bundled masters only, and never start the
+    refresh (a network fetch)."""
+    from services import symbol_resolver
+
+    monkeypatch.setattr(symbol_resolver, "_refreshed_master", lambda filename: None)
+
+
+@pytest.fixture(autouse=True)
+def _no_network_us_isin(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep the R15-DATA-059 US ISIN lookup off the network: every ``resolve()``
+    of a US best calls it. An empty suggest body is a definite miss (ISIN None);
+    the resolver's own tests monkeypatch the seam with canned responses."""
+    import httpx
+
+    from services import symbol_resolver
+
+    monkeypatch.setattr(symbol_resolver, "_us_isin_http_get", lambda symbol: httpx.Response(200))
+    symbol_resolver._reset_live_lookup_for_tests()
 
 
 @pytest.fixture
 def client() -> TestClient:
     """A TestClient bound to a freshly built app instance."""
     return TestClient(create_app())
+
+
+@pytest.fixture(autouse=True)
+def _no_network_adr_ratio(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep the R15-AGENT-090 20-F cover-page read off the network: the
+    ``fundamentals`` tool looks the depositary ratio up for every foreign
+    reporter. Stub it to ``None`` for every test EXCEPT ``test_adr_ratio``."""
+    if request.module.__name__.rsplit(".", 1)[-1] == "test_adr_ratio":
+        return
+    from services import adr_ratio
+
+    async def _stub(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(adr_ratio, "lookup", _stub)
+
+
+@pytest.fixture(autouse=True)
+def _no_network_dividend_history(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep the R11/D56 dividend-history cross-check off the network.
+
+    ``snapshot_structured`` now calls ``dividend_history.get_dividend_ttm`` on
+    every research snapshot (a yfinance ``.dividends`` pull); the research tests
+    inject a fake ``tool_call`` but not a fake yfinance, so without this the new
+    seam would reach the live network. Stub it to ``None`` (no cross-check card)
+    for every test EXCEPT ``test_dividend_history`` — the module that exercises
+    the real function with ``yf.Ticker`` mocked directly."""
+    if request.module.__name__.rsplit(".", 1)[-1] == "test_dividend_history":
+        return
+    from services import dividend_history
+
+    async def _stub(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", _stub)
+
+
+@pytest.fixture(autouse=True)
+def _no_network_growth_check(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep the R12/D66 quarterly-growth cross-check off the network.
+
+    ``snapshot_structured`` calls ``growth_check.get_quarterly_yoy`` (a
+    yfinance ``.quarterly_income_stmt`` pull) whenever the fundamentals leg
+    carries provider growth scalars — same seam-vs-network shape as the D56
+    dividend stub above. Stub it to ``None`` (no computed figure, no conflict)
+    for every test EXCEPT ``test_growth_check`` — the module that exercises the
+    real function with ``yf.Ticker`` mocked directly."""
+    if request.module.__name__.rsplit(".", 1)[-1] == "test_growth_check":
+        return
+    from services import growth_check
+
+    async def _stub(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(growth_check, "get_quarterly_yoy", _stub)
+
+
+@pytest.fixture(autouse=True)
+def _no_network_ownership_check(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep the R13/D68 exchange-ownership cross-check off the network.
+
+    ``snapshot_structured`` calls ``ownership_check.get_exchange_ownership`` when
+    the fundamentals leg carries a provider ownership scalar — same seam-vs-
+    network shape as the D56/D66 stubs above. Stub it to ``None`` (no exchange
+    facts) for every test EXCEPT ``test_ownership_check`` — the module that
+    exercises the real function with ``corporate_disclosures.get_shareholding``
+    mocked directly."""
+    if request.module.__name__.rsplit(".", 1)[-1] == "test_ownership_check":
+        return
+    from services import ownership_check
+
+    async def _stub(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", _stub)
+
+
+@pytest.fixture(autouse=True)
+def _no_network_dividend_actions(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep the R13/D57 declared-unpaid-dividend cross-check off the network.
+
+    ``snapshot_structured`` calls ``dividend_actions.get_declared_unpaid_dividend``
+    on every research snapshot (an NSE corporate-actions pull) — same seam-vs-
+    network shape as the D56/D66 stubs above. Stub it to ``None`` (no declared
+    figure) for every test EXCEPT ``test_dividend_actions`` — the module that
+    exercises the real function with ``nse_provider.get_corporate_actions``
+    mocked directly."""
+    if request.module.__name__.rsplit(".", 1)[-1] == "test_dividend_actions":
+        return
+    from services import dividend_actions
+
+    async def _stub(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", _stub)
+
+
+@pytest.fixture(autouse=True)
+def _no_network_exchange_financials(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep the exchange-filed results lane (D-B7-1) off the network.
+
+    ``GET /fundamentals``, the agent ``fundamentals`` tool and the growth
+    cross-check read an Indian listing's NSE/BSE filed results — same
+    seam-vs-network shape as the stubs above. Stub it to ``None`` (no filed
+    periods) for every test EXCEPT the ``test_b7_exchange_*`` modules, which
+    drive the real lane over recorded exchange payloads."""
+    if request.module.__name__.rsplit(".", 1)[-1].startswith("test_b7_exchange_"):
+        return
+    from services import exchange_financials
+
+    async def _stub(_listing: str) -> None:
+        return None
+
+    monkeypatch.setattr(exchange_financials, "get_filed_periods", _stub)
 
 
 # --------------------------------------------------------------------------
@@ -151,7 +320,9 @@ class _FakeCcxtExchange:
             "timestamp": 1_747_200_000_000,
         }
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str, limit: int) -> list[list[float]]:  # noqa: ARG002
+    def fetch_ohlcv(  # noqa: ARG002
+        self, symbol: str, timeframe: str, since: int | None = None, limit: int | None = None
+    ) -> list[list[float]]:
         return [
             [1_747_000_000_000, 66_000.0, 66_500.0, 65_500.0, 66_200.0, 1_000.0],
             [1_747_086_400_000, 66_200.0, 67_200.0, 66_100.0, 67_000.0, 1_500.0],

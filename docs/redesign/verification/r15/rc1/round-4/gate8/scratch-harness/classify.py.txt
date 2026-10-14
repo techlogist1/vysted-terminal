@@ -1,0 +1,32 @@
+import re, json, sys
+G = sys.argv[1]
+ABSENCE = re.compile(r"no brokerage|no broker|not a broker|never (a|as a) broker|removed|D81|cannot place|cannot connect|can(not|'t) .{0,20}(place|route|simulate)|propose_order|FORBIDDEN|forbidden|place_order|submit_order|execute_order|kill.?switch|killswitch|broker-connect|broker-order-entry|broker_config|configure_broker|broker-at-boot|§6\.5|audit_orders|No broker|no order|not deferred|Historical|historical|superseded|untouched|broker_base|\(broker\)|no trading|No brokers|Connect broker|broker:_meta|\"broker\"|broker\b.*contentComponent|views: \[\"chart\", \"broker\"\]|pluginId: \"broker\"|fakePlugin\(\"broker\"\)|no broker sync|order routing|broker execution|broker / order|broker, order|order-placement|order placement", re.I)
+HIST_PATH = re.compile(r"^docs/(redesign/|archive/|research/|screenshots/|PHASE_\d+_HANDOFF)")
+TRADE_CORE = re.compile(r"place.?order|propose_order|order (entry|ticket|placement)|paper.?trad|live.?trading|kill.?switch|audit_orders|broker(?!s? ?(Limited|Ltd|Inc|Group))|demat", re.I)
+FP_WORD = re.compile(r"margin|simulat|live.?mode|order book|marginal|live model|LIVE model|Live model", re.I)
+out = {}
+product = []   # none expected; filled by manual override list below
+for root in ["src","sidecar","src-tauri","plugins","docs"]:
+    lines = [l.rstrip("\n") for l in open(f"{G}/grep-{root}.txt", encoding="utf-8", errors="replace")]
+    c = {"total": len(lines), "product": 0, "historical": 0, "false_positive": 0}
+    rows = []
+    for l in lines:
+        path = l.split(":",1)[0]
+        text = l.split(":",2)[2] if l.count(":")>=2 else l
+        if HIST_PATH.search(path) or path in ("docs/CURRENT_STATE.md","docs/BROKER_INTEGRATIONS.md","docs/README.md") :
+            k = "historical"
+        elif ABSENCE.search(text):
+            k = "historical"
+        elif re.search(r"resolver_masters/|public_suffix|tests/fixtures/", path):
+            k = "false_positive"
+        elif FP_WORD.search(text) and not TRADE_CORE.search(text):
+            k = "false_positive"
+        elif re.search(r"openrouter|OpenRouter|BROKER with|unified BROKER|is a broker|\(a broker\)|broker \(OpenRouter\)|broker for every model|JARVIS sprint — broker|model-routing aggregator", text, re.I):
+            k = "false_positive"
+        else:
+            k = "UNCLASSIFIED"
+        c[k] = c.get(k,0)+1
+        rows.append(f"{k}\t{l[:400]}")
+    open(f"{G}/grep-{root}-classified.tsv","w").write("\n".join(rows)+("\n" if rows else ""))
+    out[root] = c
+print(json.dumps(out, indent=1))

@@ -1,0 +1,12 @@
+IBN ok= True keys= ['ok', 'ads_ratio', 'fundamentals'] finCcy= INR
+   ads_ratio= {"ordinary_shares_per_ads": 2, "statement": "American Depositary Shares, each representing two Equity Shares", "provenance": {"source": "SEC 20-F cover page", "filed": "2026-07-20", "url": "https://www.sec.gov/Archives/edgar/data/1103838/000095010326010820/dp249803_20f.htm"}}
+HDB ok= True keys= ['ok', 'ads_ratio', 'fundamentals'] finCcy= INR
+   ads_ratio= {"ordinary_shares_per_ads": 3, "statement": "American Depositary Shares, each representing three Equity Shares", "provenance": {"source": "SEC 20-F cover page", "filed": "2026-07-29", "url": "https://www.sec.gov/Archives/edgar/data/1144967/000119312526322004/d88195d20f.htm"}}
+TSM ok= True keys= ['ok', 'fundamentals'] finCcy= TWD
+   ads_ratio= null
+BABA ok= True keys= ['ok', 'fundamentals'] finCcy= None
+   ads_ratio= null
+INFY ok= True keys= ['ok', 'ads_ratio', 'fundamentals'] finCcy= USD
+   ads_ratio= {"ordinary_shares_per_ads": 1, "statement": "American Depositary Shares each represented by one Equity Share", "provenance": {"source": "SEC 20-F cover page", "filed": "2026-06-15", "url": "https://www.sec.gov/Archives/edgar/data/1067491/000119312526270520/infy-20260331.htm"}}
+MSFT ok= True keys= ['ok', 'fundamentals'] finCcy= None
+   ads_ratio= null

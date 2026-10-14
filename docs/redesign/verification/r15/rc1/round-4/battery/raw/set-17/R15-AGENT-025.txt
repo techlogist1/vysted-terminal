@@ -1,0 +1,21 @@
+COMMAND (in-process, candidate sidecar venv, sha 1006c6da): called
+services.agent_runtime._relay_provider directly with a stream that never emits (the same
+"silent stub" shape the register repro used against a real junk provider), idle=25.0 (shortened
+from the production IDLE_TIMEOUT_S to keep this probe fast; _HEARTBEAT_SECONDS=10.0 is an
+unparameterized module constant so the heartbeat cadence itself is exactly production):
+
+  cd <cand>/sidecar && ./.venv/bin/python3 test_agent025.py
+
+OUTPUT:
+t= 10.0s  kind='heartbeat'
+t= 20.0s  kind='heartbeat'
+t= 30.0s  kind='error' message='The provider went quiet and did not finish the answer.' action='Retry, or switch the composer to a different model.' detail='no provider event for 25s' code='provider_idle'
+
+VERDICT: holds.
+Two heartbeats fire at the 10s cadence, then an error frame the moment accumulated quiet time
+reaches idle (agent_runtime.py:1122-1160, _HEARTBEAT_SECONDS=10.0, R15-AGENT-025 comment cites
+this exact defect). Production wiring confirmed present and unchanged: _PLANNER_TIMEOUT_SECONDS
+=20.0 (agent_runtime.py:1128), idle = LOCAL_IDLE_TIMEOUT_S if provider=="ollama" else
+IDLE_TIMEOUT_S (agent_runtime.py:3297), matching batch-5's "20 s planner timeout plus 180 s
+adapter idle" certification. Base (pre-fix) behaviour was zero events in 150s; here the runtime
+never goes silent past the configured idle window.

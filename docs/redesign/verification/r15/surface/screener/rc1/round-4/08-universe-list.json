@@ -1,0 +1,2 @@
+{"detail":[{"type":"missing","loc":["query","id"],"msg":"Field required","input":null}]}
+HTTP 422

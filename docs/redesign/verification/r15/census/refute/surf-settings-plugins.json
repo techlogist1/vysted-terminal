@@ -1,0 +1,65 @@
+[
+  {
+    "raw_id": "SURF-SETTINGS-PLUGINS-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Both halves hold: OpenAICompatible.validate_key only calls models.list(), and OpenRouter's /models is public, so any string validates ok:true and Settings then prints 'OpenRouter key configured - research bills to it'; run_research_model_brief returns ok:false on HTTPStatusError without emitting a _step, so the SSE trace shows only ok steps then done. Correction to mechanism: the G01 transcript shows llama3.1:8b DID disclose 'I wasn't able to fetch ... based on my prior knowledge and may not be up-to-date' and no brief reached the panel (ok:false skips auto-publish) - the fabrication is the unfetched 'Brief sources: Wikipedia, Forbes, Bloomberg' list and figures in chat text, not a published brief; severity stays high because the trace and Settings both assert success for a key that 401s.",
+    "evidence": "sidecar/services/llm/openai.py:842-855, sidecar/routers/llm.py:99-111, sidecar/services/llm/openrouter_catalog.py:10-15, sidecar/services/agent_tools/deep_research.py:668-678,720-731, sidecar/services/agent_tools/research.py:180-187, src/components/SettingsPanel.tsx:1100-1105, docs/redesign/verification/r15/surface/settings-plugins/G01-tierb-fake-openrouter-key.stdout.txt",
+    "evidence_checked": "Opened all cited code; re-ran the validate half against :52152; read the seeded G01 transcript (did not re-run the ollama drive).",
+    "repro_check": "vy.py post --port 52152 /llm/keys/validate {provider:openrouter, api_key:'sk-or-v1-R15REFUTE-not-a-real-key'} -> HTTP 200 {\"ok\":true,\"detail\":null}; G01 stdout shows research_step x2 status ok then done, no error frame."
+  },
+  {
+    "raw_id": "SURF-SETTINGS-PLUGINS-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "KeyEntryDialog.handleSave passes the raw `key` state to postValidate and setSecret with no trim, while OnboardingFlow trims before both; LLMKeyValidationRequest.api_key has no strip validator and the router returns the SDK exception text as 'transport error: ...'. A trailing space therefore reads as a network failure.",
+    "evidence": "src/components/KeyEntryDialog.tsx:64-80,175-185, src/components/OnboardingFlow.tsx:343-354, sidecar/models/llm.py:262-269, sidecar/routers/llm.py:99-111",
+    "evidence_checked": "Opened all cited code; re-ran one case against :52152.",
+    "repro_check": "vy.py post --port 52152 /llm/keys/validate {provider:openai, api_key:'sk-R15REFUTE-fake-0000 '} -> HTTP 200 {\"ok\":false,\"detail\":\"transport error: Connection error.\"}"
+  },
+  {
+    "raw_id": "SURF-SETTINGS-PLUGINS-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "buildSettingsExport emits only keybindingOverrides + useSettingsStore.toBundle() = {defaultAgentId, region, deepResearchBackend}; research tier/models/SearXNG URL/provider defaults are absent. handleImportFile sets the 'Imported settings.' ok status unconditionally after two optional ifs, so {} or a foreign JSON reports success; setAll merges over seed() so a settings block lacking region resets it; setDeepResearchBackend has no UI caller (only the store definition).",
+    "evidence": "src/components/SettingsPanel.tsx:1766-1773,1796-1812,1847-1850, src/store/settings.ts:81-85,162-192, src/store/keybindings.ts:205-215, grep -rn setDeepResearchBackend src -> settings.ts:91,157 only",
+    "evidence_checked": "Code-only (import/export is a browser-side store path; no sidecar route to replay); all cited lines opened.",
+    "repro_check": "Code trace: JSON.parse('{}') -> parsed.keybindingOverrides and parsed.settings undefined -> neither branch runs -> setStatus ok 'Imported settings.'; buildSettingsExport has no searchSettings/provider fields."
+  },
+  {
+    "raw_id": "SURF-SETTINGS-PLUGINS-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Marketplace isConfigured is purely 'required secret present' and configure() writes the secret and grants it with no probe; server-side _fetch_newsapi_resilient swallows the 401 after retries into [] with only a log warning, and GET /news returns a bare list[NewsItem] with no source-status field, so the panel cannot know NewsAPI was rejected.",
+    "evidence": "src/store/marketplace.ts:70-82,210-247, sidecar/services/news_provider.py:316-329, sidecar/routers/news.py:82-131",
+    "evidence_checked": "Opened all cited code; re-ran the fake-key GET against :52152.",
+    "repro_check": "curl -H 'X-Vysted-Newsapi-Key: R15REFUTE-fake' '127.0.0.1:52152/news?limit=20' -> 20 items, sources only Economic Times 13 / Zerodha Pulse 4 / mint 3 (RSS only, no NewsAPI item), 1.79 s wall, no status signal in the body."
+  },
+  {
+    "raw_id": "SURF-SETTINGS-PLUGINS-5",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "chatModule declares panels: [], commands: [] (the agent is the AgentDock column, not a dockview panel), yet ModulesSection renders a live switch for every non-platform module; the only consumers of the enabled map are enabledPanels/enabledCommands/commandHandler and the page.tsx palette refresh, none of which touch AgentDock/ChatSidebar, so flipping 'AI Assistant' off changes nothing.",
+    "evidence": "src/modules/chat/index.ts:16-22, src/components/SettingsPanel.tsx:1712-1745, src/store/modules.ts:74-84, src/app/page.tsx:94-98, grep useModulesStore src -> no AgentDock/ChatSidebar hit",
+    "evidence_checked": "Code-only (browser-store behaviour, no sidecar route); all cited files opened and consumers grepped.",
+    "repro_check": "grep -rn 'enabledModules()\\|state.enabled' src -> only modules.ts, page.tsx palette refresh, SettingsPanel, MarketplacePanel (plugin state, unrelated); AgentDock.tsx/ChatSidebar.tsx contain no useModulesStore/enabled reference."
+  },
+  {
+    "raw_id": "SURF-SETTINGS-PLUGINS-6",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "_SAFE_NAME is ASCII-only ^[A-Za-z0-9 _-]+$ so a Devanagari name 400s with a clear detail, but saveWorkspace throws a status-only WorkspaceError that discards that detail; _validate_name has no length cap and the Settings layout input has no maxLength, so a 240-char name reaches the filesystem and 500s.",
+    "evidence": "sidecar/services/workspace_store.py:31,42-55, src/lib/workspace.ts:400-410, src/components/SettingsPanel.tsx:1620 (grep maxLength in SettingsPanel.tsx -> 0 hits)",
+    "evidence_checked": "Opened all cited code; re-ran both repros against :52152 (invalid names fail validation before any write).",
+    "repro_check": "vy.py post --port 52152 /workspace {name:'मेरा लेआउट'} -> HTTP 400 'Invalid workspace name ... use letters, digits, spaces, hyphens, or underscores.'; {name:'L'*240} -> HTTP 500 'Internal Server Error'."
+  },
+  {
+    "raw_id": "SURF-SETTINGS-PLUGINS-7",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "findPanel resolves over get().modules (all modules, not enabledModules()), openPanel only bails on a findPanel miss, and PanelHost builds its component map from all modules, so a disabled Portfolio/Notes still opens and renders; write_note and portfolio_add_position apply paths call openPanel directly, and the open_panel host action's own comment wrongly assumes a disabled module is a findPanel miss. Portfolio here is the user's tracked portfolio (in scope), not trading.",
+    "evidence": "src/store/modules.ts:83, src/store/workspace.ts:92-100, src/components/PanelHost.tsx:121-126, src/lib/host-actions.ts:934-940,1191,1349",
+    "evidence_checked": "Code-only (dockview/browser-store path, no sidecar route); all cited lines opened; seeded harness evidence 13-openpanel-ids-disabled-module.json not re-run.",
+    "repro_check": "Code trace: setModuleEnabled('portfolio', false) -> findPanel('portfolio') still returns the spec (collectPanels(get().modules)) -> openPanel proceeds to api.addPanel with component 'portfolio-panel', which exists in PanelHost's all-modules component map."
+  }
+]

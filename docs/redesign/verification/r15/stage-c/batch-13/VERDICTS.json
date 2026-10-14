@@ -1,0 +1,11 @@
+{
+  "certified": ["R15-RESEARCH-007", "R15-DOCS-017"],
+  "needs_gui": [],
+  "not_certified": [
+    {"id": "R15-AGENT-090", "reason": "Live bar met (0/5 llama3.1:8b runs state an untraced ratio; the guard fired in runs 1, 3, 4), but the class guard fails fresh phrasings it was not written against: 'SIFY American Depositary Shares each represent six underlying equity shares.', 'Each ADR is equivalent to 2 shares of common stock.' and 'The ADR-to-share ratio is 1 ADR : 6 shares.' all pass through _guard_ratio_claims untouched against a fundamentals result with no depositary term. _CLAIM_NUMBERS needs the number directly before (ordinary|equity|underlying|common) shares, or directly beside ':'/'to'/'-for-'; a two-word qualifier, 'shares of common stock', or an 'N ADR : M shares' form escapes."},
+    {"id": "R15-CODE-AGENT-033", "reason": "No fix landed. The integration branch does not touch models/llm.py, services/llm/base.py, types/ai.ts, streaming.ts or scripts/agent_eval/grader.py, and the W1 branch carries only the AGENT-090 commit. The live stream still has no tool_result kind (events seen: heartbeat/tool_use/delta/done), and grade({'expect':{}}, [tool_use option_chain expiry=nearest, tool_result ok:false '422', delta, done]) still returns [] (a pass)."}
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-13-int@e02073bdf863144b46f73a7ac3d2f0d7275b4961"
+}

@@ -1,0 +1,4 @@
+GET /quotes?symbols=BTC%2FUSDT%2CETH%2FUSDT&asset_class=crypto
+status=200
+---
+[{"symbol":"BTC/USDT","price":84644.5,"change":-1728.68,"change_percent":-2.001,"volume":18357.83717,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-10-03T11:06:07.003000Z","provider":"ccxt:binance","freshness":"live"},{"symbol":"ETH/USDT","price":2683.72,"change":-62.9,"change_percent":-2.29,"volume":287615.0314,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-10-03T11:06:07.014000Z","provider":"ccxt:binance","freshness":"live"}]

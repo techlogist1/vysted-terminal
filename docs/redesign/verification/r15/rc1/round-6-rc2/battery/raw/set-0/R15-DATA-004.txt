@@ -1,0 +1,36 @@
+
+$ curl -H X-Vysted-Region: IN :52364/fundamentals/DHANBANK  (exit 0, HTTP 200)
+{
+"held_percent_insiders": 0.50159,
+"held_percent_institutions": 0.04271
+}
+field_meta.held_percent_insiders: {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T01:13:15.980400+00:00", "reason": "yfinance insiders 50.16% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (promoter group: no promoter group reported) beyond 3pp (insiders \u2260 promoter group); kept, flagged", "label": null, "basis_note": null}
+field_meta.held_percent_institutions: {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T01:13:15.980400+00:00", "reason": "yfinance institutions 4.27% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: 14.26%) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged", "label": null, "basis_note": null}
+$ curl -H X-Vysted-Region: IN :52364/fundamentals/JONJUA  (exit 0, HTTP 200)
+{
+"held_percent_insiders": 0.41482,
+"held_percent_institutions": 0.0
+}
+field_meta.held_percent_insiders: {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.476431+00:00", "reason": "yfinance insiders 41.48% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (promoter group: 29.67%) beyond 3pp (insiders \u2260 promoter group); kept, flagged", "label": null, "basis_note": null}
+field_meta.held_percent_institutions: {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.476431+00:00", "reason": null, "label": null, "basis_note": null}
+$ curl -H X-Vysted-Region: IN :52364/fundamentals/VERTEX  (exit 0, HTTP 200)
+{
+"held_percent_insiders": 0.75133,
+"held_percent_institutions": 0.0
+}
+field_meta.held_percent_insiders: {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.114372+00:00", "reason": "yfinance insiders 75.13% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (promoter group: 36.43%) beyond 3pp (insiders \u2260 promoter group); kept, flagged", "label": null, "basis_note": null}
+field_meta.held_percent_institutions: {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.114372+00:00", "reason": null, "label": null, "basis_note": null}
+$ curl -H X-Vysted-Region: IN :52364/fundamentals/NAPEROL  (exit 0, HTTP 200)
+{
+"held_percent_insiders": 0.7304,
+"held_percent_institutions": 0.0
+}
+field_meta.held_percent_insiders: {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.304099+00:00", "reason": null, "label": null, "basis_note": null}
+field_meta.held_percent_institutions: {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.304099+00:00", "reason": "yfinance institutions 0.00% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: 1.77%) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged", "label": null, "basis_note": null}
+$ curl -H X-Vysted-Region: IN :52364/fundamentals/DHOOTTRANS  (exit 0, HTTP 200)
+{
+"held_percent_insiders": 0.39935002,
+"held_percent_institutions": 0.5391
+}
+field_meta.held_percent_insiders: {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.139458+00:00", "reason": "yfinance insiders 39.94% disagrees with the NSE shareholding filing for the quarter ended 2026-08-14 (promoter group: 82.78%) beyond 3pp (insiders \u2260 promoter group); kept, flagged", "label": null, "basis_note": null}
+field_meta.held_percent_institutions: {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T01:13:16.139458+00:00", "reason": "yfinance institutions 53.91% disagrees with the BSE shareholding filing for the quarter ended 2026-08-14 (institutional holding: 8.14%) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged", "label": null, "basis_note": null}

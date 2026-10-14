@@ -1,0 +1,19 @@
+# R15-CODE-DATA-011 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:10+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- test_corrupt_cache_entry_refetches_for_all_ratin sidecar/tests/test_router_cached_helper.py | head -3; test -f sidecar/tests/test_router_cached_helper.py || echo 'MISSING sidecar/tests/test_router_cached_helper.py'
+[exit 0] [0.00s]
+39:def test_corrupt_cache_entry_refetches_for_all_rating_routes(
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-DATA-011\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+Binary file sidecar/routers/__pycache__/_cached.cpython-313.pyc matches
+sidecar/routers/_cached.py:10:``routers/earnings.py`` (R15-CODE-DATA-011, R15-CODE-DATA-012); a provider
+Binary file sidecar/tests/__pycache__/test_router_cached_helper.cpython-313-pytest-9.0.3.pyc matches
+sidecar/tests/test_router_cached_helper.py:6:helper (R15-CODE-DATA-011, R15-CODE-DATA-012) — every route below rides the
+

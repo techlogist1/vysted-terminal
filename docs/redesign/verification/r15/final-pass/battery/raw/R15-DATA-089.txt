@@ -1,0 +1,9 @@
+# R15-DATA-089 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; echo "syncPositionToSidecar/sidecarPositionId/portfolioUrl in src:"; grep -rn 'syncPositionToSidecar\|sidecarPositionId\|portfolioUrl' src || echo "no hits"; grep -rn 'R15-CODE-FRONTEND-012\|R15-DATA-089' src --include=*.test.* | cut -c1-200 | head -3
+--- output ---
+syncPositionToSidecar/sidecarPositionId/portfolioUrl in src:
+no hits
+src/lib/host-actions.test.ts:1210:  it("add/update/delete write only the store — no sidecar ledger call (R15-CODE-FRONTEND-012)", async () => {
+
+EXIT=0 (0.1s)

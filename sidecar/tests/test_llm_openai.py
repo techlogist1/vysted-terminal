@@ -8,13 +8,15 @@ raising; transport errors propagate.
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator
 from typing import Any
 
+import httpx
 import openai
 import pytest
 
-from models.llm import LLMMessage
+from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMMessage
 from services.llm import (
     DEEPSEEK_BASE_URL,
     XAI_BASE_URL,
@@ -92,6 +94,7 @@ class _FakeOpenAI:
         **kwargs: Any,
     ) -> None:
         self.base_url = kwargs.get("base_url")
+        self.default_headers = kwargs.get("default_headers")
         self.chat = _FakeChat(_FakeCompletions(chunks or []))
         self.models = models or _FakeModels()
 
@@ -226,6 +229,12 @@ async def test_stream_chat_emits_error_on_openai_error(monkeypatch: pytest.Monke
     ):
         out.append(event)
     assert any(e.kind == "error" for e in out)
+    err = next(e for e in out if e.kind == "error")
+    # E9: the adapter routed through humanize — raw text behind detail,
+    # a stable machine code, and a plain message (not the raw blob).
+    assert err.detail is not None
+    assert err.code is not None
+    assert err.message
 
 
 # ---------------------------------------------------------------------------
@@ -257,6 +266,85 @@ async def test_validate_key_false_on_auth_error(monkeypatch: pytest.MonkeyPatch)
     assert await provider.validate_key("sk-bad") is False
 
 
+def _serve(monkeypatch: pytest.MonkeyPatch, routes: dict[str, httpx.Response]) -> list[str]:
+    """Run the real SDK against canned responses keyed by URL path."""
+    real_client = openai.AsyncOpenAI
+    seen: list[str] = []
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request.url.path)
+        return routes[request.url.path]
+
+    monkeypatch.setattr(
+        openai,
+        "AsyncOpenAI",
+        lambda **kw: real_client(
+            **kw, http_client=httpx.AsyncClient(transport=httpx.MockTransport(_handler))
+        ),
+    )
+    return seen
+
+
+#: OpenRouter's public catalog answers 200 with or without a key (live probe).
+_PUBLIC_MODELS = httpx.Response(200, json={"data": [{"id": "minimax/minimax-m3"}]})
+
+
+@pytest.mark.asyncio
+async def test_openrouter_validate_key_false_when_key_endpoint_401(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R15-UI-008 / CODE-AGENT-003 / RESEARCH-010: /models is public, so it
+    # passed any string; the authenticated /key probe answers 401.
+    seen = _serve(
+        monkeypatch,
+        {
+            "/api/v1/models": _PUBLIC_MODELS,
+            "/api/v1/key": httpx.Response(401, json={"error": {"message": "User not found."}}),
+        },
+    )
+    provider = get_provider("openrouter")
+    assert await provider.validate_key("sk-or-v1-R15CANARY-this-is-not-a-real-key") is False
+    assert seen == ["/api/v1/key"]
+
+
+@pytest.mark.asyncio
+async def test_openrouter_validate_key_true_when_key_endpoint_200(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _serve(
+        monkeypatch,
+        {
+            "/api/v1/models": _PUBLIC_MODELS,
+            "/api/v1/key": httpx.Response(200, json={"data": {"label": "sk-or-v1-abc...xyz"}}),
+        },
+    )
+    assert await get_provider("openrouter").validate_key("sk-or-v1-good") is True
+
+
+@pytest.mark.asyncio
+async def test_xai_validate_key_false_on_400_incorrect_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # xAI answers a bogus key with 400 (live probe), not 401.
+    body = {
+        "code": "invalid-argument",
+        "error": "Incorrect API key provided: xa***ey. You can obtain an API key from "
+        "https://console.x.ai.",
+    }
+    _serve(monkeypatch, {"/v1/models": httpx.Response(400, json=body)})
+    assert await get_provider("xai").validate_key("xai-not-a-key") is False
+
+
+@pytest.mark.asyncio
+async def test_validate_key_raises_on_a_400_that_is_not_about_the_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    body = {"code": "invalid-argument", "error": "Malformed request."}
+    _serve(monkeypatch, {"/v1/models": httpx.Response(400, json=body)})
+    with pytest.raises(openai.BadRequestError):
+        await get_provider("xai").validate_key("xai-real")
+
+
 # ---------------------------------------------------------------------------
 # DeepSeek + xAI dispatch (factory wires base_url correctly)
 # ---------------------------------------------------------------------------
@@ -280,3 +368,847 @@ def test_get_provider_dispatches_xai_through_openai_base_url() -> None:
 def test_get_provider_unknown_raises() -> None:
     with pytest.raises(ValueError, match="Unknown LLM provider"):
         get_provider("not-real")  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# OpenRouter dispatch (JARVIS sprint — broker)
+# ---------------------------------------------------------------------------
+
+
+def test_get_provider_dispatches_openrouter_through_openai_base_url() -> None:
+    from services.llm import OPENROUTER_BASE_URL
+
+    provider = get_provider("openrouter")
+    assert isinstance(provider, OpenAIProvider)
+    assert provider._base_url == OPENROUTER_BASE_URL
+    assert provider._provider_id == "openrouter"
+
+
+@pytest.mark.asyncio
+async def test_openrouter_sends_attribution_headers_and_cheapest_capable_routing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """OpenRouter rides the OpenAI adapter but adds attribution headers and a
+    cheapest-capable provider-routing block; with tools sent it refuses a
+    provider that would drop them (require_parameters)."""
+    chunks = [_Chunk([_Choice(_Delta(content="ok"), finish_reason="stop")])]
+    state = _patch_client(monkeypatch, chunks=chunks)
+    provider = get_provider("openrouter")
+    async for _ in provider.stream_chat(
+        messages=[LLMMessage(role="user", content="hi")],
+        model="openai/gpt-4o-mini",
+        api_key="sk-or-test",
+        tool_ids=["price_data"],
+    ):
+        pass
+    client = state["last"]
+    # Attribution headers identify the app (no secret).
+    assert client.default_headers == {
+        "HTTP-Referer": "https://vysted.app",
+        "X-Title": "Vysted Terminal",
+    }
+    # Cheapest-capable routing rides extra_body.provider; tools => require_parameters.
+    kwargs = client.chat.completions.last_kwargs
+    assert kwargs is not None
+    provider_block = kwargs["extra_body"]["provider"]
+    assert provider_block["sort"] == "price"
+    assert provider_block["require_parameters"] is True
+    # Run clean on OpenRouter's own credits — never an account-level Amazon Bedrock
+    # BYOK integration (Track 4: drop Bedrock).
+    assert "amazon-bedrock" in provider_block["ignore"]
+
+
+def test_plain_openai_sends_no_attribution_headers_or_routing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A vanilla OpenAI instance must NOT carry OpenRouter-only headers/routing."""
+
+    async def _run() -> _FakeOpenAI:
+        chunks = [_Chunk([_Choice(_Delta(content="ok"), finish_reason="stop")])]
+        state = _patch_client(monkeypatch, chunks=chunks)
+        provider = OpenAIProvider()
+        async for _ in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        ):
+            pass
+        return state["last"]
+
+    import asyncio
+
+    client = asyncio.run(_run())
+    assert client.default_headers is None
+    assert "extra_body" not in (client.chat.completions.last_kwargs or {})
+
+
+# ---------------------------------------------------------------------------
+# WS8 — tool-call validate + repair (Step 1)
+# ---------------------------------------------------------------------------
+
+
+class _ToolFunction:
+    def __init__(self, name: str | None, arguments: str | None) -> None:
+        self.name = name
+        self.arguments = arguments
+
+
+class _ToolCall:
+    def __init__(self, id_: str, function: _ToolFunction, index: int = 0) -> None:
+        self.id = id_
+        self.function = function
+        self.index = index
+
+
+def _tool_call_chunks(name: str, args: str, *, call_id: str = "call-1") -> list[_Chunk]:
+    """A minimal function-call stream: id/name then args, then a tool_calls finish."""
+    return [
+        _Chunk(
+            [
+                _Choice(
+                    _Delta(content=None, tool_calls=[_ToolCall(call_id, _ToolFunction(name, args))])
+                )
+            ]
+        ),
+        _Chunk([_Choice(_Delta(content=""), finish_reason="tool_calls")]),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_malformed_args_triggers_exactly_one_repair_then_recovers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A tool call whose args fail SCHEMA validation runs EXACTLY ONE repair
+    round (oneshot.complete mocked) and recovers with the valid args."""
+    # ``price_data`` requires ``symbol``; send args that validate-fail (missing it).
+    chunks = _tool_call_chunks("price_data", '{"timeframe": "1d"}')
+    _patch_client(monkeypatch, chunks=chunks)
+
+    calls: list[Any] = []
+
+    async def _fake_complete(
+        provider: str,
+        model: str,
+        api_key: str | None,
+        messages: Any,
+        *,
+        timeout: float | None = None,
+        base_url: str | None = None,
+    ) -> tuple[str, None]:
+        calls.append((provider, model, messages))
+        return '{"symbol": "AAPL"}', None
+
+    import services.llm.oneshot as oneshot_mod
+
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
+
+    provider = OpenAIProvider()
+    out: list[Any] = []
+    async for event in provider.stream_chat(
+        messages=[LLMMessage(role="user", content="quote AAPL")],
+        model="gpt-4.1-mini",
+        api_key="sk-test",
+        tool_ids=["price_data"],
+    ):
+        out.append(event)
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert len(tool_use) == 1
+    # Repaired args won — NOT the malformed originals, NOT coerced to {}.
+    assert tool_use[0].input == {"symbol": "AAPL"}
+    # EXACTLY one repair round.
+    assert len(calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_repair_round_keeps_configured_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-077: the tool-arg repair call rebuilds its adapter against the
+    SAME configured base_url as the stream it repairs, not the vendor default."""
+    chunks = _tool_call_chunks("price_data", '{"timeframe": "1d"}')
+    _patch_client(monkeypatch, chunks=chunks)
+    built: list[tuple[str, str | None]] = []
+
+    class _RepairAdapter:
+        async def stream_chat(self, **_: Any) -> AsyncIterator[Any]:
+            yield LLMDeltaEvent(text='{"symbol": "AAPL"}')
+            yield LLMDoneEvent()
+
+    def _get_provider(provider_id: str, base_url: str | None = None) -> _RepairAdapter:
+        built.append((provider_id, base_url))
+        return _RepairAdapter()
+
+    import services.llm.oneshot as oneshot_mod
+
+    monkeypatch.setattr(oneshot_mod, "get_provider", _get_provider)
+    proxy = "https://my-proxy.internal/v1"
+    out = [
+        e
+        async for e in OpenAIProvider(base_url=proxy).stream_chat(
+            messages=[LLMMessage(role="user", content="quote AAPL")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        )
+    ]
+    assert built == [("openai", proxy)]
+    assert [e.input for e in out if e.kind == "tool_use"] == [{"symbol": "AAPL"}]
+
+
+@pytest.mark.asyncio
+async def test_malformed_json_args_repaired_not_coerced_to_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A buffer of MALFORMED JSON (not just schema-invalid) must NOT silently
+    become {} — it runs the one repair round and recovers."""
+    chunks = _tool_call_chunks("price_data", '{"symbol": "AAP')  # truncated JSON
+    _patch_client(monkeypatch, chunks=chunks)
+
+    async def _fake_complete(*_a: Any, **_k: Any) -> tuple[str, None]:
+        return '{"symbol": "AAPL"}', None
+
+    import services.llm.oneshot as oneshot_mod
+
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
+
+    provider = OpenAIProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="quote AAPL")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        )
+    ]
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert len(tool_use) == 1
+    assert tool_use[0].input == {"symbol": "AAPL"}
+
+
+@pytest.mark.asyncio
+async def test_repair_still_fails_surfaces_error_sentinel_not_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When the ONE repair round STILL fails, the call carries the
+    INVALID_ARGS_SENTINEL (a model-readable error) — NEVER coerced to {}."""
+    from services.llm.openai import INVALID_ARGS_SENTINEL
+
+    chunks = _tool_call_chunks("price_data", '{"timeframe": "1d"}')  # missing symbol
+    _patch_client(monkeypatch, chunks=chunks)
+
+    async def _fake_complete(*_a: Any, **_k: Any) -> tuple[str, None]:
+        # Repair returns args that ALSO fail validation (still no symbol).
+        return '{"range": "1y"}', None
+
+    import services.llm.oneshot as oneshot_mod
+
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
+
+    provider = OpenAIProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="quote AAPL")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        )
+    ]
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert len(tool_use) == 1
+    # NOT {} — the sentinel carries the error the model self-corrects from.
+    assert tool_use[0].input != {}
+    assert INVALID_ARGS_SENTINEL in tool_use[0].input
+    assert "invalid arguments for price_data" in tool_use[0].input[INVALID_ARGS_SENTINEL]
+
+
+@pytest.mark.asyncio
+async def test_repair_rejects_a_schema_echo_on_a_tool_with_no_required_keys(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-014: ``news`` requires nothing, so its own schema echoed back
+    validates as args. The repair must refuse it and fall to the sentinel."""
+    from services.agent_tools.schemas import TOOL_SCHEMAS
+    from services.llm.openai import INVALID_ARGS_SENTINEL
+
+    echo = json.dumps(TOOL_SCHEMAS["news"]["input_schema"])
+    _patch_client(monkeypatch, chunks=_tool_call_chunks("news", '{"symbols": ["AA'))
+
+    async def _fake_complete(*_a: Any, **_k: Any) -> tuple[str, None]:
+        return echo, None
+
+    import services.llm.oneshot as oneshot_mod
+
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
+
+    out = [
+        e
+        async for e in OpenAIProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="news on AAPL")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=["news"],
+        )
+    ]
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert len(tool_use) == 1
+    assert INVALID_ARGS_SENTINEL in tool_use[0].input
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("tool", "bad_args", "reply", "rejected"),
+    [
+        ("fundamentals", '{"symbol": 123}', '{"symbol": "string"}', True),
+        ("resolve_symbol", '{"query": 123}', '{"query": "string"}', True),
+        ("write_note", '{"scope": 1}', '{"scope": "string", "text": "string"}', True),
+        ("news", '{"symbols": ["AA', "{}", False),
+        ("fundamentals", '{"symbol": 123}', '{"symbol": "AAPL"}', False),
+    ],
+)
+async def test_repair_rejects_a_type_name_placeholder_echo(
+    monkeypatch: pytest.MonkeyPatch, tool: str, bad_args: str, reply: str, rejected: bool
+) -> None:
+    """R15-LEAD-014: a repair reply keyed by the tool's real properties but filled
+    with each property's own type name validates, yet it is not args. It must fall
+    to the sentinel; a real (or legitimately empty) reply is still returned."""
+    from services.llm.openai import INVALID_ARGS_SENTINEL
+
+    _patch_client(monkeypatch, chunks=_tool_call_chunks(tool, bad_args))
+
+    async def _fake_complete(*_a: Any, **_k: Any) -> tuple[str, None]:
+        return reply, None
+
+    import services.llm.oneshot as oneshot_mod
+
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
+
+    out = [
+        e
+        async for e in OpenAIProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="go")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=[tool],
+        )
+    ]
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert len(tool_use) == 1
+    if rejected:
+        assert INVALID_ARGS_SENTINEL in tool_use[0].input
+    else:
+        assert tool_use[0].input == json.loads(reply)
+
+
+@pytest.mark.asyncio
+async def test_repairs_are_capped_timed_and_metered_per_round(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-048: five bad calls in one round cost at most the capped number
+    of repairs, each with a wall-clock cap, and their tokens land in the round's
+    usage instead of vanishing."""
+    from models.llm import LLMUsage
+    from services.llm import openai as openai_adapter
+    from services.llm.openai import INVALID_ARGS_SENTINEL
+
+    bad = [
+        _ToolCall(f"call-{i}", _ToolFunction("price_data", '{"range": "1y"}'), i) for i in range(5)
+    ]
+    chunks = [
+        _Chunk([_Choice(_Delta(content=None, tool_calls=bad))]),
+        _Chunk([_Choice(_Delta(content=""), finish_reason="tool_calls")]),
+        _Chunk([], usage=_Usage(1_000, 200)),
+    ]
+    _patch_client(monkeypatch, chunks=chunks)
+    timeouts: list[float | None] = []
+
+    async def _fake_complete(
+        *_a: Any, timeout: float | None = None, base_url: str | None = None
+    ) -> tuple[str, LLMUsage]:
+        timeouts.append(timeout)
+        return '{"symbol": "BDL.NS"}', LLMUsage(input_tokens=300, output_tokens=12)
+
+    import services.llm.oneshot as oneshot_mod
+
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
+    out = [
+        e
+        async for e in OpenAIProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="quote BDL on five timeframes")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        )
+    ]
+    cap = openai_adapter._MAX_REPAIRS_PER_ROUND
+    assert timeouts == [openai_adapter._REPAIR_TIMEOUT_S] * cap
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert [INVALID_ARGS_SENTINEL in e.input for e in tool_use] == [False] * cap + [True] * (
+        5 - cap
+    )
+    done = out[-1]
+    assert done.kind == "done"
+    assert done.usage == LLMUsage(input_tokens=1_000 + 300 * cap, output_tokens=200 + 12 * cap)
+
+
+# ---------------------------------------------------------------------------
+# WS8 — content-leak rescue (Step 2)
+# ---------------------------------------------------------------------------
+
+
+def _leaked_text_chunks(text: str) -> list[_Chunk]:
+    """A round that finishes via 'stop' with a leaked tool block in the text."""
+    return [
+        _Chunk([_Choice(_Delta(content=text))]),
+        _Chunk([_Choice(_Delta(content=""), finish_reason="stop")]),
+    ]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("provider_id", ["deepseek", "openrouter", "ollama"])
+async def test_content_leaked_tool_call_rescued_for_gated_providers(
+    monkeypatch: pytest.MonkeyPatch, provider_id: str
+) -> None:
+    """A model that LEAKS a {"name", "arguments"} tool block as plain text is
+    rescued into a tool_use event for the gated providers."""
+    leaked = '{"name": "price_data", "arguments": {"symbol": "AAPL"}}'
+    chunks = _leaked_text_chunks(leaked)
+    _patch_client(monkeypatch, chunks=chunks)
+    provider = OpenAIProvider(provider_id=provider_id)
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="quote AAPL")],
+            model="some-model",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        )
+    ]
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert len(tool_use) == 1
+    assert tool_use[0].name == "price_data"
+    assert tool_use[0].input == {"symbol": "AAPL"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("leaked", "expected_input"),
+    [
+        # Prose-wrapped block with a NESTED arguments object — the realistic
+        # chatty-DeepSeek case. A non-greedy regex truncated this at the first
+        # inner brace ('…{"symbol": "AAPL"}' with no outer '}') → invalid JSON →
+        # silently skipped. Must rescue.
+        (
+            'Sure, calling the tool now: {"name": "price_data", "arguments": '
+            '{"symbol": "AAPL"}} Let me fetch that.',
+            {"symbol": "AAPL"},
+        ),
+        # Deeply-nested arguments inside prose — the nested object must be
+        # captured WHOLE (a truncating regex would lose it).
+        (
+            'Okay: {"name": "price_data", "arguments": {"symbol": "AAPL", "opts": '
+            '{"adjusted": true}}} done.',
+            {"symbol": "AAPL", "opts": {"adjusted": True}},
+        ),
+        # ``arguments`` key BEFORE ``name`` (order-independent) + trailing JSON
+        # later in the message that must NOT be swept into the candidate.
+        (
+            'Result {"arguments": {"symbol": "AAPL"}, "name": "price_data"} and metadata {"k": 1}.',
+            {"symbol": "AAPL"},
+        ),
+        # A ```json fenced block (no surrounding prose).
+        (
+            '```json\n{"name": "price_data", "arguments": {"symbol": "AAPL"}}\n```',
+            {"symbol": "AAPL"},
+        ),
+    ],
+)
+async def test_content_leaked_tool_call_rescued_when_wrapped_in_prose(
+    monkeypatch: pytest.MonkeyPatch, leaked: str, expected_input: dict[str, Any]
+) -> None:
+    """A leaked tool block buried in PROSE (with a nested arguments object, or
+    trailing JSON, or a code fence) is still rescued — the prior non-greedy regex
+    truncated the nested object and silently dropped the call."""
+    chunks = _leaked_text_chunks(leaked)
+    _patch_client(monkeypatch, chunks=chunks)
+    provider = OpenAIProvider(provider_id="deepseek")
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="quote AAPL")],
+            model="deepseek-chat",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        )
+    ]
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert len(tool_use) == 1
+    assert tool_use[0].name == "price_data"
+    assert tool_use[0].input == expected_input
+
+
+@pytest.mark.asyncio
+async def test_gated_rescue_hides_the_leaked_call_and_its_made_up_result(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """rc1-drive-onboarding-stranger:1 on the openai adapter: a leaked JSON call
+    and the result the model typed after it are held, then dropped once the
+    rescue fires, so neither reaches the user."""
+    text = (
+        "Fetching the quote.\n"
+        '{"name": "price_data", "arguments": {"symbol": "AAPL"}}\n'
+        'Result: {"price": 231.7}\nPer the live data AAPL trades at $231.7.'
+    )
+    chunks = [_Chunk([_Choice(_Delta(content=text[i : i + 5]))]) for i in range(0, len(text), 5)]
+    chunks.append(_Chunk([_Choice(_Delta(content=""), finish_reason="stop")]))
+    _patch_client(monkeypatch, chunks=chunks)
+    out = [
+        e
+        async for e in OpenAIProvider(provider_id="openrouter").stream_chat(
+            messages=[LLMMessage(role="user", content="quote AAPL")],
+            model="some-model",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        )
+    ]
+    shown = "".join(e.text for e in out if e.kind == "delta")
+    assert "231.7" not in shown
+    assert shown.startswith("Fetching the quote.\n")
+    calls = [e for e in out if e.kind == "tool_use"]
+    assert [(c.name, c.input) for c in calls] == [("price_data", {"symbol": "AAPL"})]
+    assert out[-1].kind == "done"
+
+
+def test_balanced_json_objects_brackets_nested_and_skips_trailing() -> None:
+    """The brace-depth scanner extracts each top-level object whole — a nested
+    arguments object stays intact and a trailing object is a SEPARATE candidate,
+    never merged into the first."""
+    from services.llm.tool_call_rescue import balanced_json_objects as _balanced_json_objects
+
+    text = 'x {"name": "a", "arguments": {"b": {"c": 1}}} y {"d": 2}'
+    objects = _balanced_json_objects(text)
+    assert objects == ['{"name": "a", "arguments": {"b": {"c": 1}}}', '{"d": 2}']
+    # A brace inside a quoted string must NOT miscount depth.
+    s = '{"v": "a{b}c"}'
+    assert _balanced_json_objects(s) == [s]
+    # Unbalanced/truncated text yields no complete object (not a partial one).
+    assert _balanced_json_objects('{"name": "a", "arguments": {"b": 1}') == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("provider_id", ["openai", "anthropic"])
+async def test_content_leaked_tool_call_not_rescued_for_chatty_providers(
+    monkeypatch: pytest.MonkeyPatch, provider_id: str
+) -> None:
+    """The SAME leaked block on a chatty OpenAI/Anthropic answer must NOT be
+    rescued — a false rescue would mis-fire a tool the user did not intend."""
+    leaked = '{"name": "price_data", "arguments": {"symbol": "AAPL"}}'
+    chunks = _leaked_text_chunks(leaked)
+    _patch_client(monkeypatch, chunks=chunks)
+    provider = OpenAIProvider(provider_id=provider_id)
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="quote AAPL")],
+            model="some-model",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        )
+    ]
+    assert not [e for e in out if e.kind == "tool_use"]
+
+
+# ---------------------------------------------------------------------------
+# WS8 — header-aware transport retry (Step 3)
+# ---------------------------------------------------------------------------
+
+
+def _make_status_error(status: int, message: str | None = None) -> openai.APIStatusError:
+    """Build an APIStatusError (or RateLimitError for 429) with a status code."""
+
+    class _Resp:
+        def __init__(self, status_code: int) -> None:
+            self.status_code = status_code
+            self.headers: dict[str, str] = {}
+            self.request = object()
+
+    resp = _Resp(status)
+    cls = openai.RateLimitError if status == 429 else openai.APIStatusError
+    err = cls.__new__(cls)
+    Exception.__init__(err, message or f"HTTP {status}")
+    err.response = resp  # type: ignore[attr-defined]
+    err.status_code = status  # type: ignore[attr-defined]
+    err.request = resp.request  # type: ignore[attr-defined]
+    return err
+
+
+class _RetryingCompletions:
+    """``create`` raises the queued errors then yields the success chunks."""
+
+    def __init__(self, errors: list[BaseException], chunks: list[Any]) -> None:
+        self._errors = list(errors)
+        self._chunks = chunks
+        self.attempts = 0
+
+    async def create(self, **kwargs: Any) -> AsyncIterator[Any]:
+        self.attempts += 1
+        self.last_kwargs = kwargs
+        if self._errors:
+            raise self._errors.pop(0)
+        return _make_iter(self._chunks)
+
+
+def _patch_retrying_client(
+    monkeypatch: pytest.MonkeyPatch, completions: _RetryingCompletions
+) -> None:
+    class _Client:
+        def __init__(self, **_kw: Any) -> None:
+            self.chat = _FakeChat(completions)
+            self.models = _FakeModels()
+
+    monkeypatch.setattr(openai, "AsyncOpenAI", lambda **_kw: _Client())
+    # No real sleeping in the backoff.
+    import services.llm.openai as openai_mod
+
+    async def _no_sleep(_seconds: float) -> None:
+        return None
+
+    monkeypatch.setattr(openai_mod.asyncio, "sleep", _no_sleep)
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_then_success_retries_and_recovers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A 429 then a 200 retries and succeeds — a single 429 no longer kills it."""
+    chunks = [_Chunk([_Choice(_Delta(content="ok"), finish_reason="stop")])]
+    completions = _RetryingCompletions([_make_status_error(429)], chunks)
+    _patch_retrying_client(monkeypatch, completions)
+    provider = OpenAIProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+        )
+    ]
+    assert completions.attempts == 2  # one failure + one success
+    assert [e.kind for e in out] == ["delta", "done"]
+
+
+@pytest.mark.asyncio
+async def test_400_bad_request_does_not_retry(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A deterministic 4xx (400) is NOT retried — it surfaces as one error."""
+    completions = _RetryingCompletions([_make_status_error(400)], chunks=[])
+    _patch_retrying_client(monkeypatch, completions)
+    provider = OpenAIProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+        )
+    ]
+    assert completions.attempts == 1  # NO retry on a 400
+    assert any(e.kind == "error" for e in out)
+
+
+@pytest.mark.asyncio
+async def test_reasoning_effort_conflict_is_repaired_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A gpt-5.x "function tools + reasoning_effort" 400 retries with it off.
+
+    We never send ``reasoning_effort`` — the model's own default trips the
+    refusal — so the repair is to send it explicitly as ``"none"`` once.
+    """
+    msg = (
+        "Error code: 400 - Function tools with reasoning_effort are not supported "
+        "for gpt-5.6-luna in /v1/chat/completions. To use function tools, use "
+        "/v1/responses or set reasoning_effort to 'none'."
+    )
+    chunks = [_Chunk([_Choice(_Delta(content="ok"), finish_reason="stop")])]
+    completions = _RetryingCompletions([_make_status_error(400, msg)], chunks)
+    _patch_retrying_client(monkeypatch, completions)
+    provider = OpenAIProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gpt-5.6-luna",
+            api_key="sk-test",
+        )
+    ]
+    assert completions.attempts == 2
+    assert completions.last_kwargs["reasoning_effort"] == "none"
+    assert [e.kind for e in out] == ["delta", "done"]
+
+
+@pytest.mark.asyncio
+async def test_reasoning_effort_repair_is_not_infinite(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If the repaired request 400s the same way, it surfaces — no retry loop."""
+    msg = "Error code: 400 - ... set reasoning_effort to 'none'."
+    completions = _RetryingCompletions(
+        [_make_status_error(400, msg), _make_status_error(400, msg)], chunks=[]
+    )
+    _patch_retrying_client(monkeypatch, completions)
+    provider = OpenAIProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gpt-5.6-luna",
+            api_key="sk-test",
+        )
+    ]
+    assert completions.attempts == 2  # one repair attempt, then surface
+    assert any(e.kind == "error" for e in out)
+
+
+@pytest.mark.asyncio
+async def test_5xx_then_success_retries(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A 503 (5xx) is transient and retried."""
+    chunks = [_Chunk([_Choice(_Delta(content="ok"), finish_reason="stop")])]
+    completions = _RetryingCompletions([_make_status_error(503)], chunks)
+    _patch_retrying_client(monkeypatch, completions)
+    provider = OpenAIProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+        )
+    ]
+    assert completions.attempts == 2
+    assert [e.kind for e in out] == ["delta", "done"]
+
+
+@pytest.mark.asyncio
+async def test_retry_caps_at_max_then_surfaces_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Past the retry budget the failure surfaces — it is not retried forever."""
+    # 3 failures > _MAX_TRANSPORT_RETRIES (2) → 3 attempts total, then error.
+    errors = [_make_status_error(429) for _ in range(3)]
+    completions = _RetryingCompletions(errors, chunks=[])
+    _patch_retrying_client(monkeypatch, completions)
+    provider = OpenAIProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+        )
+    ]
+    assert completions.attempts == 3  # initial + 2 retries
+    assert any(e.kind == "error" for e in out)
+
+
+@pytest.mark.asyncio
+async def test_client_disables_sdk_retries_so_adapter_is_sole_authority(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The adapter constructs the client with ``max_retries=0`` so the openai
+    SDK's own retry loop (default 2) does NOT double-count the adapter's
+    transport-retry budget into ~9 stacked HTTP calls."""
+    captured: dict[str, Any] = {}
+
+    def factory(**kwargs: Any) -> _FakeOpenAI:
+        captured.update(kwargs)
+        return _FakeOpenAI(
+            chunks=[_Chunk([_Choice(_Delta(content="ok"), finish_reason="stop")])], **kwargs
+        )
+
+    monkeypatch.setattr(openai, "AsyncOpenAI", factory)
+    provider = OpenAIProvider()
+    async for _ in provider.stream_chat(
+        messages=[LLMMessage(role="user", content="hi")],
+        model="gpt-4.1-mini",
+        api_key="sk-test",
+    ):
+        pass
+    # The SDK default is openai.DEFAULT_MAX_RETRIES (==2); the adapter overrides
+    # it to 0 so _create_with_retry is the single retry layer.
+    assert openai.DEFAULT_MAX_RETRIES == 2
+    assert captured.get("max_retries") == 0
+
+
+def test_retry_after_header_is_honoured() -> None:
+    """A ``Retry-After`` header on a 429 drives the backoff delay (Step 3)."""
+    from services.llm.openai import _retry_after_seconds
+
+    err = _make_status_error(429)
+    err.response.headers = {"retry-after": "2"}  # type: ignore[attr-defined]
+    assert _retry_after_seconds(err) == 2.0
+    # Missing header → fall back to exponential backoff (None).
+    err2 = _make_status_error(429)
+    assert _retry_after_seconds(err2) is None
+
+
+def test_retry_after_http_date_is_honoured() -> None:
+    """An HTTP-date Retry-After (RFC 7231) is parsed too, not only integer-seconds."""
+    from datetime import UTC, datetime, timedelta
+    from email.utils import format_datetime
+
+    from services.llm.openai import _RETRY_MAX_DELAY, _retry_after_seconds
+
+    def _err(status: int, value: str) -> openai.APIStatusError:
+        err = _make_status_error(status)
+        err.response.headers = {"retry-after": value}  # type: ignore[attr-defined]
+        return err
+
+    now = datetime.now(UTC)
+    # A near-future HTTP-date is parsed to ~its delay (under the 8s cap).
+    near = _err(429, format_datetime(now + timedelta(seconds=4), usegmt=True))
+    delay = _retry_after_seconds(near)
+    assert delay is not None and 2.5 <= delay <= 4.0
+    # A far-future HTTP-date is capped at _RETRY_MAX_DELAY.
+    far = _err(503, format_datetime(now + timedelta(seconds=120), usegmt=True))
+    assert _retry_after_seconds(far) == _RETRY_MAX_DELAY
+    # A past HTTP-date → non-positive → None (fall back to backoff).
+    assert (
+        _retry_after_seconds(_err(429, format_datetime(now - timedelta(seconds=10), usegmt=True)))
+        is None
+    )
+    # An unparseable Retry-After → None.
+    assert _retry_after_seconds(_err(429, "not-a-date")) is None
+
+
+@pytest.mark.asyncio
+async def test_nemotron_reasoning_echo_stays_out_of_the_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-018, live capture (OpenRouter free nemotron, max_tokens=60): the
+    reasoning streams in ``delta.reasoning``, then on the ``length`` cut the whole
+    of it arrives again as one ``content`` chunk. The chat must not render it."""
+    from pathlib import Path
+
+    from openai.types.chat import ChatCompletionChunk
+
+    fixture = Path(__file__).parent / "fixtures" / "llm" / "nemotron_cot.jsonl"
+    chunks = [
+        ChatCompletionChunk.model_validate(json.loads(line))
+        for line in fixture.read_text(encoding="utf-8").splitlines()
+    ]
+    reasoning = "".join(
+        getattr(choice.delta, "reasoning", None) or "" for c in chunks for choice in c.choices
+    )
+    assert any(choice.delta.content == reasoning for c in chunks for choice in c.choices)
+    _patch_client(monkeypatch, chunks=chunks)
+
+    out = [
+        event
+        async for event in get_provider("openrouter").stream_chat(
+            messages=[LLMMessage(role="user", content="Explain how P/E is used.")],
+            model="nvidia/nemotron-3-super-120b-a12b:free",
+            api_key="sk-test",
+        )
+    ]
+
+    assert [e for e in out if e.kind == "delta"] == []
+    assert "".join(e.text for e in out if e.kind == "thinking") == reasoning
+    assert out[-1].kind == "done" and out[-1].finish_reason == "length"

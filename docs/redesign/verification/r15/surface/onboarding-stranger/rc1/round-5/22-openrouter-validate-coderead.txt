@@ -1,0 +1,21 @@
+$ grep -n 'openrouter' -A6 sidecar/services/llm/openai.py | sed -n '1,20p'
+55:    openrouter_web_search_tool,
+56-)
+57-from .reasoning_split import ReasoningSplitter
+58-from .tool_call_rescue import LeakHold, rescue_leaked_tool_call
+59-
+60-logger = logging.getLogger(__name__)
+61-
+--
+70:_CONTENT_LEAK_PROVIDERS = frozenset({"deepseek", "openrouter", "ollama"})
+71-
+72-#: Transport retry budget for the streaming request (Step 3, ported from the
+73-#: vercel/ai ``retry-with-exponential-backoff.ts`` pattern as original code).
+74-#: Only RETRYABLE failures (429 / 5xx / connection) consume an attempt; a
+75-#: deterministic 4xx (e.g. a 400 bad-request) is surfaced immediately — it is a
+76-#: bug to fix, never a transient to retry.
+--
+85:#: (OpenRouter-specific; only openrouter instances reach the branch that uses it).
+86-#: A slug that no longer exists is a harmless no-op, never a routing break.
+87-_OPENROUTER_IGNORE_PROVIDERS = ["amazon-bedrock"]
+88-

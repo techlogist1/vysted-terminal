@@ -1,0 +1,45 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9  lib.rs:110-125 (wait_for_port_timeout: bare TcpStream::connect), :322-344 (healthy log + endpoint write on bound)
+/// subprocess has bound to its claimed port before declaring spawn
+/// success. Without this probe, ``Command::spawn`` returns immediately
+/// after the OS creates the process — the process may deadlock during
+/// startup (Phase 8 found this for the MCP subprocesses) and the parent
+/// has no way to detect it (per CLAUDE.md PyInstaller --onefile +
+/// anyio + Windows handle interactions).
+pub(crate) fn wait_for_port_timeout(port: u16, timeout_secs: u64) -> bool {
+    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
+    while Instant::now() < deadline {
+        if TcpStream::connect(("127.0.0.1", port)).is_ok() {
+            return true;
+        }
+        thread::sleep(Duration::from_millis(200));
+    }
+    false
+}
+...
+        let bound = wait_for_port_with_retries(
+            port,
+            MCP_PORT_WAIT_SECS,
+            MCP_PORT_WAIT_ATTEMPTS,
+            |attempt, attempts| {
+                diag_eprintln!(
+                    "[vysted] Python sidecar not up yet on port {port} after attempt \
+                     {attempt}/{attempts} ({MCP_PORT_WAIT_SECS}s); cold PyInstaller \
+                     extraction may be slow — retrying."
+                );
+            },
+        );
+        wait_app.state::<SidecarStatus>().settle_boot(bound);
+        if bound {
+            diag_println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
+            // FR-025: publish the loopback MCP endpoint so an external MCP
+            // client can discover it without scraping the console. Only on a
+            // confirmed-up sidecar — a failed boot leaves no stale file.
+            write_mcp_endpoint_file(&endpoint_data_dir, port);
+        } else {
+            diag_eprintln!("[vysted] Python sidecar did not come up on port {port}");
+        }
+    });
+...
+openbb_mcp.rs wait_for_port call:
+37:    pick_free_port, wait_for_port_with_retries, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS,
+160:    let bound = wait_for_port_with_retries(

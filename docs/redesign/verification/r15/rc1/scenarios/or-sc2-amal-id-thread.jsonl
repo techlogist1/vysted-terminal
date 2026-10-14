@@ -1,0 +1,21 @@
+{"kind": "thinking", "text": "We"}
+{"kind": "thinking", "text": " need to resolve the"}
+{"kind": "thinking", "text": " symbol AM"}
+{"kind": "thinking", "text": "AL. Could"}
+{"kind": "thinking", "text": " be ambiguous"}
+{"kind": "thinking", "text": ":"}
+{"kind": "thinking", "text": " might"}
+{"kind": "thinking", "text": " be a"}
+{"kind": "thinking", "text": " US t"}
+{"kind": "thinking", "text": "icker (Am"}
+{"kind": "thinking", "text": "algam"}
+{"kind": "thinking", "text": "ated? etc"}
+{"kind": "thinking", "text": ") or Indian"}
+{"kind": "thinking", "text": "."}
+{"kind": "thinking", "text": " Let's call"}
+{"kind": "thinking", "text": " resolve_symbol for"}
+{"kind": "thinking", "text": " AM"}
+{"kind": "thinking", "text": "AL.\n"}
+{"kind": "tool_use", "tool_call_id": "call_13bcbcae3edb452c82e8191cdd84d552", "name": "resolve_symbol", "input": {"query": "AMAL", "region": "IN"}}
+{"kind": "error", "message": "OpenRouter returned a server error \u2014 it may be a temporary outage.", "action": "Try again in a few minutes.", "detail": "Upstream error from Nvidia: Service temporarily overloaded", "code": "provider_5xx"}
+{"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}

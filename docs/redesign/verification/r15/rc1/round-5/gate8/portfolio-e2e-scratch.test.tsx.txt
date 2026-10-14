@@ -1,0 +1,218 @@
+// SCRATCH (rc1-gate8 round 5) — never committed. Drives the real panel/store/workspace code
+// against the live sidecar on :52310. Only the Rust file-write boundary (saveTextArtifact) is stubbed.
+import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { writeFileSync, readFileSync, existsSync } from "fs";
+
+const captured: string[] = [];
+vi.mock("@/lib/export-artifact", async (orig) => ({
+  ...(await orig<typeof import("@/lib/export-artifact")>()),
+  saveTextArtifact: vi.fn(async (_sub: string, filename: string, content: string) => {
+    captured.push(content);
+    return { path: `/scratch/${filename}`, fellBack: false };
+  }),
+}));
+
+import { PortfolioPanel } from "@/modules/portfolio/PortfolioPanel";
+import { usePortfoliosStore } from "@/store/portfolios";
+import { useNotesStore } from "@/store/notes";
+import { useSymbolsStore } from "@/store/symbols";
+import { PERSISTED_SLICES, serializeWorkspace } from "@/lib/workspace";
+import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
+import { fetchPositionQuotes } from "@/modules/portfolio/api";
+import { buildPortfolioSummary } from "@/modules/portfolio/metrics";
+import { captureAgentContext } from "@/modules/chat/context-provider";
+import { useProposedChangesStore } from "@/store/proposed-changes";
+
+const G = process.env.G8_OUT!;
+const BASE = "http://127.0.0.1:52310";
+const out: Record<string, unknown> = { steps: [] as unknown[] };
+const step = (name: string, pass: boolean, detail: unknown) => {
+  (out.steps as unknown[]).push({ name, pass, detail });
+  writeFileSync(`${G}/${process.env.G8_PHASE}-out.json`, JSON.stringify(out, null, 1));
+};
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const active = () => {
+  const s = usePortfoliosStore.getState();
+  return s.portfolios.find((p) => p.id === s.activeId)!;
+};
+const slim = (hs: { id: string; symbol: string; quantity: number; costBasis: number; note?: string }[]) =>
+  hs.map(({ id, symbol, quantity, costBasis, note }) => ({ id, symbol, quantity, costBasis, note: note ?? null }));
+
+async function persist() {
+  const r = await fetch(`${BASE}/workspace`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: AUTOSAVE_LAYOUT_NAME, workspace: serializeWorkspace(AUTOSAVE_LAYOUT_NAME) }),
+  });
+  return r.status;
+}
+async function readBack() {
+  return (await (await fetch(`${BASE}/workspace/${AUTOSAVE_LAYOUT_NAME}`)).json()) as Record<string, any>;
+}
+function restoreGlobal(ws: any) {
+  // no dockview in jsdom: a stub that hands back the saved layout unchanged (layout is not under test)
+  if (!useWorkspaceStore.getState().dockviewApi) useWorkspaceStore.setState({ dockviewApi: { toJSON: () => ws.layout } as never });
+  for (const s of PERSISTED_SLICES) if (s.scope === "global") s.restore(ws);
+}
+function blobHoldings(ws: any) {
+  const pf = ws.portfolios.list.find((p: any) => p.id === ws.portfolios.activeId);
+  return slim(pf.holdings);
+}
+function parseCsv(text: string) {
+  const rows = text.split("\n").map((l) => {
+    const cells: string[] = []; let cur = ""; let q = false;
+    for (let i = 0; i < l.length; i++) {
+      const c = l[i];
+      if (q) { if (c === '"' && l[i + 1] === '"') { cur += '"'; i++; } else if (c === '"') q = false; else cur += c; }
+      else if (c === '"') q = true; else if (c === ",") { cells.push(cur); cur = ""; } else cur += c;
+    }
+    cells.push(cur); return cells;
+  });
+  return { header: rows[0], rows: rows.slice(1) };
+}
+async function exportUntilPriced(expectRows: number) {
+  for (let i = 0; i < 60; i++) {
+    captured.length = 0;
+    await act(async () => { fireEvent.click(screen.getByLabelText("Export portfolio to CSV")); });
+    await act(async () => { await sleep(1000); });
+    const csv = captured[captured.length - 1];
+    if (csv) {
+      const p = parseCsv(csv);
+      if (p.rows.length === expectRows && p.rows.every((r) => r[5] !== "")) return csv;
+    }
+  }
+  return captured[captured.length - 1] ?? "";
+}
+async function rawQuote(symbol: string) {
+  const r = await fetch(`${BASE}/quotes/${encodeURIComponent(symbol)}?asset_class=equity`);
+  return (await r.json()) as { price: number; currency: string; provider: string; timestamp: string };
+}
+
+describe("gate8 portfolio e2e", () => {
+  it("phase", async () => {
+    window.history.replaceState(null, "", "/?sidecar-port=52310");
+    if (process.env.G8_PHASE === "crud") {
+      restoreGlobal(await readBack()); // the launch restore of the seed autosave slot
+      step("seed-restore", active().holdings.length === 0, { holdings: active().holdings.length, watchlist: useSymbolsStore.getState().entries.map((e) => e.symbol) });
+      render(<PortfolioPanel />);
+      const add = async (symbol: string, qty: string, cost: string, note: string) => {
+        fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: symbol } });
+        fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: qty } });
+        fireEvent.change(screen.getByLabelText("Avg cost / share"), { target: { value: cost } });
+        fireEvent.change(screen.getByLabelText("Note"), { target: { value: note } });
+        await act(async () => { fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!); });
+      };
+      await add("RELIANCE.NS", "10", "1200", "");
+      await add("AAPL", "5", "180", "");
+      await add("MSFT", "3", "400", "gate8 r5: core holding, added via the panel form");
+      const afterAdd = slim(active().holdings);
+      step("add-3-via-panel-form", afterAdd.length === 3 && afterAdd[2].note !== null, afterAdd);
+      const st1 = await persist();
+      const rb1 = blobHoldings(await readBack());
+      step("persist+readback-after-add", st1 === 200 && JSON.stringify(rb1) === JSON.stringify(afterAdd), { status: st1, readback: rb1 });
+
+      const csv1 = await exportUntilPriced(3);
+      writeFileSync(`${G}/export-after-add.csv`, csv1);
+      const p1 = parseCsv(csv1);
+      const raw: Record<string, unknown> = {};
+      const pnlCheck = [];
+      for (const r of p1.rows) {
+        const [sym, qty, cost, , cur, price, mv, pnl, pnlPct, , note] = r;
+        const rq = await rawQuote(sym);
+        raw[sym] = rq;
+        const recompute = Number(price) * Number(qty) - Number(cost) * Number(qty);
+        const fromRaw = rq.price * Number(qty) - Number(cost) * Number(qty);
+        pnlCheck.push({ sym, qty, cost, currency: cur, panelPrice: Number(price), rawPrice: rq.price, rawProvider: rq.provider, rawTs: rq.timestamp,
+          panelMV: Number(mv), panelPnl: Number(pnl), panelPnlPct: Number(pnlPct), recomputePnlFromPanelPrice: recompute, recomputePnlFromRawQuote: fromRaw,
+          pnlMatchesPanelPrice: Math.abs(recompute - Number(pnl)) < 1e-6 * Math.max(1, Math.abs(recompute)),
+          priceDriftPct: ((rq.price - Number(price)) / Number(price)) * 100, note });
+      }
+      const summary = buildPortfolioSummary(
+        active().holdings.map((h, i) => ({ id: i, symbol: h.symbol, quantity: h.quantity, cost_basis: h.costBasis, asset_class: h.assetClass, opened_at: null, note: h.note ?? null })),
+        (await fetchPositionQuotes(active().holdings.map((h) => ({ symbol: h.symbol, assetClass: h.assetClass })))).quotes,
+      );
+      step("csv-columns", JSON.stringify(p1.header) === JSON.stringify(["Symbol","Quantity","Cost basis","Asset class","Currency","Price","Market value","P&L","P&L %","Weight %","Note"]) &&
+        JSON.stringify(p1.rows.map((r) => [r[0], Number(r[1]), Number(r[2]), r[10] || null])) === JSON.stringify(afterAdd.map((h) => [h.symbol, h.quantity, h.costBasis, h.note])),
+        { header: p1.header, rows: p1.rows });
+      step("pnl-recompute-from-quotes", pnlCheck.every((c) => c.pnlMatchesPanelPrice && Math.abs(c.priceDriftPct) < 1), { pnlCheck, mixedCurrencies: summary.mixedCurrencies, byCurrency: summary.byCurrency });
+
+      // update AAPL (5@180 -> 7@175) and delete RELIANCE.NS through the panel
+      await act(async () => { fireEvent.click(screen.getByLabelText("Edit AAPL")); });
+      fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: "7" } });
+      fireEvent.change(screen.getByLabelText("Avg cost / share"), { target: { value: "175" } });
+      await act(async () => { fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!); });
+      const del = screen.getByLabelText("Delete RELIANCE.NS");
+      await act(async () => { fireEvent.click(del); });
+      await act(async () => { fireEvent.click(del); }); // armed ConfirmButton: second click confirms
+      const afterUpd = slim(active().holdings);
+      const aapl = afterUpd.find((h) => h.symbol === "AAPL");
+      step("update-and-delete-via-panel", afterUpd.length === 2 && !afterUpd.some((h) => h.symbol === "RELIANCE.NS") && aapl?.quantity === 7 && aapl?.costBasis === 175 && aapl?.id === afterAdd[1].id, afterUpd);
+      const st2 = await persist();
+      const ws2 = await readBack();
+      const rb2 = blobHoldings(ws2);
+      step("persist+readback-after-update-delete", st2 === 200 && JSON.stringify(rb2) === JSON.stringify(afterUpd), { status: st2, readback: rb2 });
+      // restore round trip through the real global-slice restore
+      usePortfoliosStore.setState({ portfolios: [{ id: "default", name: "Portfolio", holdings: [] }], activeId: "default" });
+      await act(async () => { restoreGlobal(ws2); });
+      step("restore-roundtrip", JSON.stringify(slim(active().holdings)) === JSON.stringify(afterUpd), slim(active().holdings));
+      const csv2 = await exportUntilPriced(2);
+      writeFileSync(`${G}/export-after-update.csv`, csv2);
+      const p2 = parseCsv(csv2);
+      step("csv-after-update-matches-holdings", JSON.stringify(p2.rows.map((r) => [r[0], Number(r[1]), Number(r[2]), r[10] || null])) === JSON.stringify(afterUpd.map((h) => [h.symbol, h.quantity, h.costBasis, h.note])), p2.rows);
+
+      // notes CRUD
+      const notes = useNotesStore.getState();
+      notes.setGeneral("gate8 r5 general note");
+      notes.setSymbolNote("MSFT", "gate8 r5 MSFT note v1");
+      await persist();
+      let nb = (await readBack()).notes;
+      const c1 = nb.general === "gate8 r5 general note" && nb.bySymbol.MSFT === "gate8 r5 MSFT note v1";
+      useNotesStore.getState().setSymbolNote("MSFT", "gate8 r5 MSFT note v2 (updated)");
+      await persist();
+      nb = (await readBack()).notes;
+      const c2 = nb.bySymbol.MSFT === "gate8 r5 MSFT note v2 (updated)";
+      useNotesStore.getState().setSymbolNote("MSFT", "");
+      useNotesStore.getState().setGeneral("");
+      await persist();
+      const nb3 = (await readBack()).notes;
+      const c3 = !nb3.bySymbol.MSFT && nb3.general === "";
+      step("notes-crud", c1 && c2 && c3, { create: c1, update: c2, delete: c3, final: nb3 });
+
+      // watchlist CRUD
+      const wl0 = useSymbolsStore.getState().entries.map((e) => e.symbol);
+      useSymbolsStore.getState().addSymbol("INFY.NS", "equity", "IN");
+      await persist();
+      const wl1 = ((await readBack()).watchlist as any[]).map((e) => e.symbol);
+      useSymbolsStore.getState().removeSymbol("INFY.NS", "IN");
+      await persist();
+      const wl2 = ((await readBack()).watchlist as any[]).map((e) => e.symbol);
+      step("watchlist-crud", wl1.includes("INFY.NS") && !wl2.includes("INFY.NS") && JSON.stringify(wl2) === JSON.stringify(wl0), { before: wl0, afterAdd: wl1, afterRemove: wl2 });
+
+      // context snapshot the chat would send (panel mounted -> bus publish)
+      await act(async () => { await sleep(500); });
+      const ctx = captureAgentContext();
+      writeFileSync(`${G}/context.json`, JSON.stringify({ focused_source: ctx.focusedSource, by_source: ctx.bySource, captured_at: ctx.capturedAt }));
+      writeFileSync(`${G}/ledger.json`, JSON.stringify(afterUpd));
+      step("context-snapshot", true, (ctx.bySource.__terminal__ as any).portfolio);
+    } else {
+      // apply phase: stage the agent's proposed call and accept it as the ChatSidebar does
+      const call = JSON.parse(readFileSync(`${G}/proposal.json`, "utf8"));
+      const ws0 = await readBack();
+      restoreGlobal(ws0);
+      const before = slim(active().holdings);
+      const ledger = JSON.parse(readFileSync(`${G}/ledger.json`, "utf8"));
+      step("ledger-unchanged-while-proposed", JSON.stringify(blobHoldings(ws0)) === JSON.stringify(ledger), { blob: blobHoldings(ws0), ledger });
+      const { id, outcome } = useProposedChangesStore.getState().enqueue({ toolCallId: call.toolCallId, name: call.name, input: call.input, batchId: "gate8-r5", agentName: "copilot" });
+      const staged = await outcome;
+      const midStore = slim(active().holdings);
+      step("enqueue-stages-without-applying", staged === "staged" && JSON.stringify(midStore) === JSON.stringify(before), { staged, change: useProposedChangesStore.getState().changes.find((c) => c.id === id)?.title });
+      const res = await useProposedChangesStore.getState().accept(id);
+      const after = slim(active().holdings);
+      const st = await persist();
+      const rb = blobHoldings(await readBack());
+      step("accept-applies-and-persists", res === "applied" && after.length === before.length + 1 && st === 200 && JSON.stringify(rb) === JSON.stringify(after), { res, added: after.filter((h) => !before.some((b) => b.id === h.id)), readback: rb });
+    }
+    expect(existsSync(`${G}/${process.env.G8_PHASE}-out.json`)).toBe(true);
+  }, 240_000);
+});

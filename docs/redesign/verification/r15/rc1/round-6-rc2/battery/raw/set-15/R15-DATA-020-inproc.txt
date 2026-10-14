@@ -1,0 +1,14 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar && ./.venv/bin/python3 - <<'E'
+import json
+from services import corporate_disclosures as c
+n=json.load(open('tests/fixtures/nse/corporate_announcements.json'))
+b=json.load(open('tests/fixtures/bse/ann_sub_category_get_data.json'))['Table']
+a=c._nse_row_to_announcement('RELIANCE',n[0]); bb=c._bse_row_to_announcement('RELIANCE',b[0])
+print(a.headline if hasattr(a,'headline') else a); print(bb)
+ka,kb=c._dedup_key(a),c._dedup_key(bb); print(ka,kb,'COLLAPSES:',ka==kb)
+E
+exit=0
+This is further to the disclosure dated June 4, 2026 made by the Company. We wish to inform you that the Company executives participated in the Institutional Investors' Meeting - ICICI Securities India Investor Conference 2026 and no unpublished price sensitive information was shared/discussed in the said one-on-one meeting.
+symbol='RELIANCE' exchange='BSE' headline="Update On Institutional Investors'' Meeting - ICICI Securities India Investor Conference 2026" category='Company Update' attachment_url='https://www.bseindia.com/xml-data/corpfiling/AttachLive/94035dd9-d667-49df-8161-a90b6c8cd851.pdf' ts=datetime.datetime(2026, 6, 9, 19, 44, 2, 210000, tzinfo=zoneinfo.ZoneInfo(key='Asia/Kolkata'))
+('RELIANCE', '911b3457c59ed144', '2026-06-09') ('RELIANCE', '911b3457c59ed144', '2026-06-09') COLLAPSES: True

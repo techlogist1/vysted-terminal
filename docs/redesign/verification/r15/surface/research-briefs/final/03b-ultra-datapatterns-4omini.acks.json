@@ -1,0 +1,14 @@
+[
+ {
+  "t": 288.2,
+  "tool": "publish_brief",
+  "tool_call_id": "call_e935a9bd4c54482190179ac2e34bfe59__autobrief",
+  "ack_http": "200 {\"ok\":true}"
+ },
+ {
+  "t": 563.9,
+  "tool": "publish_brief",
+  "tool_call_id": "call_5b7f9ecacaab484a9fd8d82c2493e18c__autobrief",
+  "ack_http": "200 {\"ok\":true}"
+ }
+]

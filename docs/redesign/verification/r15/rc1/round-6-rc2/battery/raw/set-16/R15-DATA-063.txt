@@ -1,0 +1,14 @@
+# R15-DATA-063
+illiquid probe
+$ history ZZZZQQ
+{"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."}
+HTTP 429
+$ indicators ZZZZQQ
+{"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."}
+HTTP 429
+$ history DAL
+{"symbol":"DAL","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":null,"partial":false,"coverage_start":null}
+HTTP 200
+$ indicators DAL
+{"symbol":"DAL","timeframe":"1d","provider":"none","indicators":[],"volume_profile":null,"freshness":null}
+HTTP 200

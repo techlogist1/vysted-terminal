@@ -1,0 +1,15 @@
+# R15-LEAD-022 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:24+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in BHP.AX 0700.HK 7203.T VOD.L SAP.DE BRK.B; do curl -s -m 60 -w ' @@%{http_code}' "$H/quotes/$s" | python3 -c "import sys,json;t=sys.stdin.read();b,h=t.rsplit(' @@',1)
+try:
+  d=json.loads(b);print('$s','HTTP',h,d.get('symbol'),d.get('price'),d.get('currency'),d.get('provider'))
+except Exception: print('$s','HTTP',h,b[:200])"; done
+--- output ---
+BHP.AX HTTP 200 BHP.AX 61.209999084472656 AUD yfinance
+0700.HK HTTP 200 0700.HK 421.20001220703125 HKD yfinance
+7203.T HTTP 200 7203.T 2856.5 JPY yfinance
+VOD.L HTTP 200 VOD.L 126.80000305175781 GBp yfinance
+SAP.DE HTTP 200 SAP.DE 183.9199981689453 EUR yfinance
+BRK.B HTTP 200 BRK-B 502.6499938964844 USD yfinance
+
+EXIT=0 (2.3s)

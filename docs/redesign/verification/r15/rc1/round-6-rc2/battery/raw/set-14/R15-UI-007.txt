@@ -1,0 +1,18 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand; grep -n -A14 'R15-UI-007' src/modules/screener/ScreenerPresets.test.tsx | head -30
+33:  it("R15-UI-007: a preset resets a nested group + formula, not just criteria", () => {
+34-    // A draft with BOTH a nested group (which supersedes flat criteria) and a
+35-    // formula (AND-combined) — the exact "old group and formula still ride"
+36-    // defect shape.
+37-    useScreenerStore.setState({
+38-      advanced: true,
+39-      group: {
+40-        combinator: "or",
+41-        criteria: [
+42-          {
+43-            combinator: "and",
+44-            criteria: [{ field: "roe", operator: "gt", value: 0.5 }],
+45-          },
+46-        ],
+47-      },
+EXIT=0

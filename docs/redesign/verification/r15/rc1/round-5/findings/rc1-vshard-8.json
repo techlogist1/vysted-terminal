@@ -1,0 +1,27 @@
+[
+ {
+  "key": "rc1-vshard-8:1",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-LEAD-031",
+  "title": "Not certified: a type-first leaked tool call ({\"type\": \"function\", \"name\": ...}) is rescued and run but never held, so it streams whole and the ratio-guard replacement is glued on with no separator",
+  "repro": "Real OllamaProvider + fake ollama client through agent_runtime.invoke_agent. Round 1 '{\"type\": \"function\", \"name\": \"fundamentals\", \"parameters\": {\"symbol\": \"SIFY\"}}', round 2 \"SIFY's ADR-to-ordinary-share ratio is 1:1, per the fundamentals tool.\" -> streamed '...\"SIFY\"}}The ADR-to-ordinary-share ratio is not available from this session's sources.' The entry's name-first sify-1 chunking holds.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-8-raw/l031rt-final.txt",
+  "suspected_files": [
+   "sidecar/services/llm/tool_call_rescue.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-8:2",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-LEAD-033",
+  "title": "Not certified: withTrailer's sibling '[failed: ...]' trailer still rides the verbatim assistant history content (runtime strips only '[tool steps:'), and llama3.1:8b echoes it as its own prose",
+  "repro": "vy.py invoke copilot 'Repeat your previous answer to me word for word...' --port 52152 --provider ollama --model llama3.1:8b --mode ask --autonomy ask --options with history assistant turn '...\\n\\n[tool steps: Using fundamentals; Using price data]\\n\\n[failed: provider error: yfinance history rate-limited for SIFY]' -> answer reproduces the '[failed: provider error: ...]' line. In-process capture shows the provider-bound assistant message keeps it. The entry's literal [tool steps] repro holds.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-8-raw/l033-t3.log",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py",
+   "src/store/chat-history.ts"
+  ]
+ }
+]

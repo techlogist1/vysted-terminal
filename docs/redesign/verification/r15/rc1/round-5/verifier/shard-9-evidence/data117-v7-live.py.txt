@@ -1,0 +1,16 @@
+import asyncio, json, sys
+sys.path.insert(0, ".")
+from services import yahoo_batch_provider as y
+SY = ["TSM","HDB","IBN","PDD","SIFY","BABA","WIT","AAPL","NVO","UMC"]
+async def main():
+    ok, fail = await y.fetch_quotes_batch(SY)
+    print("fail:", fail)
+    for s in SY:
+        row = ok.get(s)
+        if not row: print(s, "no row"); continue
+        raw = {k: row.get(k) for k in ("currency","financialCurrency","regularMarketPrice","priceToBook","bookValue","trailingPE","forwardPE","epsTrailingTwelveMonths","epsForward","epsCurrentYear","priceEpsCurrentYear","firstTradeDateMilliseconds","fiftyTwoWeekHigh","fiftyTwoWeekLow")}
+        f = y.fundamentals_from_v7(row)
+        fm = f.field_meta or {}
+        served = {k: (getattr(f, k), (fm.get(k).status if fm.get(k) else None)) for k in ("price_to_book","book_value","pe_ratio","forward_pe","eps")}
+        print(s, "RAW", json.dumps(raw)); print(s, "SERVED", served)
+asyncio.run(main())

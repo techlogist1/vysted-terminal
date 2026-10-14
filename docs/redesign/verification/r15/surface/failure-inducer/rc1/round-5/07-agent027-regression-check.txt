@@ -1,0 +1,6 @@
+openai -> insufficient_credit | Your OpenAI account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings.
+openai -> context_overflow | The conversation is too long for this OpenAI model. | Start a new chat or pick a model with a larger context window.
+groq -> context_overflow | The conversation is too long for this Groq model. | Start a new chat or pick a model with a larger context window.
+ollama -> ollama_not_running | Ollama is not running. | Start Ollama (open the app or run `ollama serve`), then try again.
+gemini -> auth | The Google Gemini API key was rejected — check it in Settings. | Re-enter the API key in Settings.
+xai -> auth | The xAI API key was rejected — check it in Settings. | Re-enter the API key in Settings.

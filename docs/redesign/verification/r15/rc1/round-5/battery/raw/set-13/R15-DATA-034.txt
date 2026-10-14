@@ -1,0 +1,4 @@
+yield-1.5 -> dividend_yield= None meta= status='withheld' provider='yahoo-v7-batch' as_of=None reason='a dividend yield of 150.00% exceeds the plausible fraction bound of 25% — an ambiguous-unit value; withheld' label=None basis_note=None
+yield-0.9-fresh -> dividend_yield= None meta= status='withheld' provider='yahoo-v7-batch' as_of=None reason='a dividend yield of 90.00% exceeds the plausible fraction bound of 25% — an ambiguous-unit value; withheld' label=None basis_note=None
+yield-0.03-pass -> dividend_yield= 0.03 meta= None
+exit=0

@@ -1,0 +1,20 @@
+== GET /quotes/%3Cscript%3Ealert%281%29%3C%2Fscript%3E
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /quotes/%24%24%25%5E
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /history/XYZ%2FABC
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /quotes/%24%24%24
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /fundamentals/ZZZZNOTREAL
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /fundamentals/ZZZZNOTREAL/income
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /fundamentals/ZZZZNOTREAL/balance
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /fundamentals/ZZZZNOTREAL/cashflow
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /fundamentals/ZZZZNOTREAL/ratings
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /history/ZZZZNOTREAL
+{"symbol":"ZZZZNOTREAL","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":"unknown_symbol","partial":false,"coverage_start":null}  HTTP 200

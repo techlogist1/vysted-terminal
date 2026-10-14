@@ -1,0 +1,9 @@
+CWEN.A ERR No data found, symbol may be delisted 
+CWEN-A ERR No data found, symbol may be delisted 
+EBR.B ERR No data found, symbol may be delisted 
+EBR-B ERR No data found, symbol may be delisted 
+2222.SR ERR  ('SAR', 'Saudi Arabian Oil Company', 25.9)
+SAP.F ERR  ('EUR', 'SAP SE', 185.2)
+GGAL.BA ERR  ('ARS', 'Grupo Financiero Galicia S.A.', 6290.0)
+CEZ.PR ERR  ('CZK', 'CEZ, a. s.', 1349.0)
+BMW.MU ERR  ('EUR', 'Bayerische Motoren Werke AG', 55.74)

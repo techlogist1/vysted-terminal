@@ -1,0 +1,22 @@
+# R15-AGENT-084 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:52:38+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services.agent_tools import catalog
+from services.agent_tools.schemas import TOOL_SCHEMAS
+ids=[c.id for c in catalog.CAPABILITIES] if hasattr(catalog,"CAPABILITIES") else catalog.internal_tool_ids()
+names=[s.get("name") or s.get("function",{}).get("name") for s in TOOL_SCHEMAS] if isinstance(TOOL_SCHEMAS,list) else list(TOOL_SCHEMAS)
+print("add_chart_drawing in catalog:", "add_chart_drawing" in ids, "in TOOL_SCHEMAS:", "add_chart_drawing" in names)
+PY
+cd "$C"; grep -n "add_chart_drawing" src/lib/host-actions.ts | head -6; ls src/lib/hand-action-inventory.test.ts sidecar/tests/test_capability_completeness.py
+--- output ---
+add_chart_drawing in catalog: True in TOOL_SCHEMAS: True
+83:  "add_chart_drawing",
+108:  "Draw a horizontal line or trendline": "add_chart_drawing",
+827:      name: "add_chart_drawing";
+968:    case "add_chart_drawing":
+1085:/** The drawing kinds the agent may add (`add_chart_drawing`); every other kind
+1097: * Bind an `add_chart_drawing` to the open chart panel and the view it shows at
+sidecar/tests/test_capability_completeness.py
+src/lib/hand-action-inventory.test.ts
+
+EXIT=0 (0.5s)

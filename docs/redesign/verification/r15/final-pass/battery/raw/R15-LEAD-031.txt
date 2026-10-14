@@ -1,0 +1,9 @@
+# R15-LEAD-031 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:02+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/inproc_ratio.py 2>&1 | grep -v Warning | sed -n '/LEAD-031/,/==/p' | head -30
+--- output ---
+== LEAD-031 (LeakHold partial marker, chunks not in the tests)
+shown='' held='Sure. {"name": "fundamentals", "arg'
+== LEAD-032 (_fetch raises OSError; second lookup must not re-fetch)
+
+EXIT=0 (1.5s)

@@ -1,0 +1,12 @@
+CMD: grep -n "R15-LIFECYCLE-003" src/lib/workspace.test.ts (candidate 949c3c9f)
+Not a live probe: autosave gating/debounce during restore; certified via pinned vitest per batch-2 VERDICTS.md.
+1317:describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018)", () => {
+describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018)", () => {
+  let unwire: (() => void) | null = null;
+
+  beforeEach(() => {
+  it("autosaves nothing during the launch restore; the first save after it carries the research space", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const posts = stubSidecar({
+      name: "__autosave__",

@@ -1,0 +1,8 @@
+portfolio.db user_version=1
+delegate_runs.db user_version=0
+plugins.db user_version=0
+custom_agents.db user_version=0
+touched all three
+delegate_runs.db user_version=1
+plugins.db user_version=1
+custom_agents.db user_version=1

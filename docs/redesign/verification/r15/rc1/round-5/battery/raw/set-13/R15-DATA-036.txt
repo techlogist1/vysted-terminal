@@ -1,0 +1,9 @@
+=== cold call KSE.BO (warms cache) ===
+curl -s -m 60 "http://127.0.0.1:52354/history/KSE.BO?range=1y&interval=1d" -o  0.00s user 0.00s system 1% cpu 0.425 total
+rows: 255 provider maybe in first bar keys: ['symbol', 'timeframe', 'bars', 'provider', 'freshness', 'reason', 'partial', 'coverage_start']
+{"symbol":"KSE","timeframe":"1d","bars":[{"timestamp":"2025-09-12T00:00:00Z","open":2600.0,"high":2600.0,"low":2431.3,"close":2487.4,"volume":5549.0},{"timestamp":"2025-09-15T00:00:00Z","open":2506.7,"high":2509.9,"low":2453.2,"close":2474.5,"volume":1496.0},{"timestamp":"2025-09-16T00:00:00Z","open":2401.0,"high":2479.8,"low":2401.0,"close":2445.9,"volume":2089.0},{"timestamp":"2025-09-17T00:00:00Z","open":2484.95,"high":2535.6,"low":2429.2,"close":2507.8,"volume":2317.0},{"timestamp":"2025-09-
+=== warm call KSE.BO ===
+curl -s -m 60 "http://127.0.0.1:52354/history/KSE.BO?range=1y&interval=1d" -o  0.00s user 0.00s system 1% cpu 0.342 total
+rows: 255
+byte-identical: yes
+last bar: {'timestamp': '2026-09-25T00:00:00Z', 'open': 184.7, 'high': 184.7, 'low': 179.25, 'close': 180.8, 'volume': 1529.0}

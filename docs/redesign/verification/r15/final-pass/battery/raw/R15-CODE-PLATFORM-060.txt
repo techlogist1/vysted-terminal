@@ -1,0 +1,8 @@
+# R15-CODE-PLATFORM-060 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rniE 'tray' src-tauri/src/*.rs src-tauri/tauri.conf.json | head; echo "grep exit (1=none) ${PIPESTATUS[0]}"; echo '--docs'; grep -niE 'tray' docs/BLUEPRINT.md | head
+--- output ---
+grep exit (1=none) 1
+--docs
+
+EXIT=0 (0.0s)

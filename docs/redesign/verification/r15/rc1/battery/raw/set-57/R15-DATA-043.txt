@@ -1,0 +1,8 @@
+=== custom [AAPL, RELIANCE.NS, MSFT, TCS.NS] market_cap desc limit 2 ===
+RELIANCE.NS 16590811449284.0 INR
+TCS.NS 7532858212476.0 INR
+coverage screened 2 of 4 — 2 unavailable
+=== fresh: 6 mixed symbols asc limit 3 ===
+INFY.NS 4051153627711.8003 INR
+TCS.NS 7532858212476.0 INR
+RELIANCE.NS 16590811449284.0 INR

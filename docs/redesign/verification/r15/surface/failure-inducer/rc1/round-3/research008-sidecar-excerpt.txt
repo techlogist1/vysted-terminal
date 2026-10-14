@@ -1,0 +1,5 @@
+2026-09-26 22:02:42,220 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"
+2026-09-26 22:02:42,910 INFO httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/1.1 202 Accepted"
+2026-09-26 22:02:45,530 INFO httpx: HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/1.1 202 Accepted"
+2026-09-26 22:02:49,061 INFO httpx: HTTP Request: GET https://www.mojeek.com/search?q=Dixon+Technologies&arc=in "HTTP/1.1 200 OK"
+2026-09-26 22:02:50,529 INFO httpx: HTTP Request: POST http://127.0.0.1:11434/api/chat "HTTP/1.1 200 OK"

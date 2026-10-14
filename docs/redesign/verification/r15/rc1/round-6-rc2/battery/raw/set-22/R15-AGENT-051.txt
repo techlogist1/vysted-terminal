@@ -1,0 +1,11 @@
+# ace7dd76 in-process, candidate venv
+$ _render_terminal_preamble two charts, second focused
+## What the user is looking at
+Focused chart: INFY (1d, ema:9).
+When the user says "this" or "it", they mean INFY unless they name another symbol. Never invent figures — call a tool to fetch them.
+---- equity-overview focused, one chart SPY
+## What the user is looking at
+Chart: SPY (1d, no indicators).
+Focused panel: equity-overview.
+When the user says "this" or "it", they mean INFY unless they name another symbol. Never invent figures — call a tool to fetch them.
+EXIT=0

@@ -1,0 +1,16 @@
+[
+  {
+    "key": "realuser:5",
+    "id": "R15-DATA-002",
+    "scenario": "xadv-realuser-2, xadv-realuser-6",
+    "note": "New instance through the agent tools: copilot (llama3.1:8b, region IN) asked for Halliburton's price/P-E/mcap called fundamentals {symbol:'HAL.NS'} (ok) and answered 'Halliburton's current share price is Rs4601.0, its P/E ratio is 33.003372, and its market cap is Rs307,703 cr' - Hindustan Aeronautics' figures (screener.in/company/HAL 'Current Price: Rs 4,601', 'Stock P/E: 33.0'). MCP fundamentals {symbol:'HAL'} -> 'Hindustan Aeronautics Limited'. Same silent session-region bind of a dual-listed bare ticker; the research/fast.py variant is filed separately as realuser:3.",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-realuser-6.md"
+  },
+  {
+    "key": "realuser:6",
+    "id": "R15-LEAD-053",
+    "scenario": "xadv-realuser-6",
+    "note": "New instances: GET /quotes/IBULHSGFIN.NS, /quotes/IBULHSGFIN, /quotes/ANGELBRKG.NS -> 404 'check the symbol' with no rename hint to SAMMAANCAP / ANGELONE, and MCP price_data IBULHSGFIN.NS raises 'correctness gate: empty series', while /resolve binds the old ticker to SAMMAANCAP with former IBULHSGFIN.",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-realuser-6.md"
+  }
+]

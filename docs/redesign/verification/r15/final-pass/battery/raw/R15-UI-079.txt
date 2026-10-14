@@ -1,0 +1,10 @@
+# R15-UI-079 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'FORMULA_TRIGGER' src/lib/csv.ts | head -3; grep -n 'R15-UI-079\|formula' src/lib/csv.test.ts | head -4
+--- output ---
+13:const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+21:  const guarded = typeof value !== "number" && FORMULA_TRIGGER.test(s) ? `'${s}` : s;
+31:    it("R15-UI-079: prefixes a formula-trigger leading char so no text cell opens a live formula", () => {
+42:    it("R15-UI-079: leaves a plain numeric VALUE unprefixed (not text a spreadsheet parses as a formula)", () => {
+
+EXIT=0 (0.0s)

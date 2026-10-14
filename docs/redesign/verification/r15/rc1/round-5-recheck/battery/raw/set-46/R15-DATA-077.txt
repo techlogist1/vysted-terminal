@@ -1,0 +1,91 @@
+=== marketplace.ts India data-source row? ===
+64:      name: "Yahoo Finance (keyless equities)",
+131:          help: "Optional. Adds NewsAPI breadth on top of the keyless RSS feeds.",
+191: * The keyless India data lanes (nse_direct / nse / bse, FR-060/064) — always-on
+206:    id: "nse_direct",
+207:    name: "NSE (direct)",
+208:    description: "Exchange-direct NSE equity quotes + EOD history. Keyless, region: IN.",
+212:    name: "NSE (jugaad-data)",
+213:    description: "The keyless NSE/BSE equity + ETF EOD default when the direct lane is blocked.",
+217:    name: "BSE (micro-cap EOD)",
+218:    description: "Keyless BSE-only micro-cap EOD coverage NSE never listed.",
+=== chart empty-state copy (D81 change) ===
+481:            series.reason === "in_eod_only"
+        const candleData = toCandlestickData(series);
+        if (candleData.length === 0) {
+          // Bug-2: an all-providers-empty history now returns a clean 200 (not a
+          // 502). Clear the PRIOR symbol's series so its candles don't linger
+          // behind the empty-state overlay — the chart must visibly show "No price
+          // data", not the previous symbol's chart.
+          candleSeriesRef.current?.setData([]);
+          candleDataRef.current = [];
+          setProvider(series.provider);
+          setFreshness(series.freshness ?? null);
+          setPriceError(
+            series.reason === "in_eod_only"
+              ? "No EOD data for this symbol. BSE/NSE serve end-of-day data only; intraday/realtime is not available for this listing."
+              : series.reason === "unknown_symbol"
+                ? "No such symbol"
+                : "No price data for this symbol",
+          );
+          setPriceState("error");
+          return;
+        }
+        const candleSeries = candleSeriesRef.current;
+        if (candleSeries) {
+          candleSeries.setData(candleData);
+          candleDataRef.current = candleData;
+          chartRef.current?.timeScale().fitContent();
+          setCandlesKey(`${symbol}|${timeframe}`);
+=== full marketplace.ts India section 185-230 ===
+export const REGISTRY_PROVIDER_ID: Readonly<Record<string, string>> = {
+  "vysted-yfinance": "yfinance",
+  "openbb-mcp": "openbb-mcp",
+};
+
+/**
+ * The keyless India data lanes (nse_direct / nse / bse, FR-060/064) — always-on
+ * backend routing inside `provider_registry`, not installable plugins (no
+ * manifest/instance, nothing to enable/disable/remove). Rendered as
+ * informational marketplace rows once `GET /data-sources` confirms they
+ * exist, so their coverage is visible instead of silently absent from the
+ * catalog (R15-DATA-077).
+ */
+export interface DataLaneRow {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export const INDIA_DATA_LANES: readonly DataLaneRow[] = [
+  {
+    id: "nse_direct",
+    name: "NSE (direct)",
+    description: "Exchange-direct NSE equity quotes + EOD history. Keyless, region: IN.",
+  },
+  {
+    id: "nse",
+    name: "NSE (jugaad-data)",
+    description: "The keyless NSE/BSE equity + ETF EOD default when the direct lane is blocked.",
+  },
+  {
+    id: "bse",
+    name: "BSE (micro-cap EOD)",
+    description: "Keyless BSE-only micro-cap EOD coverage NSE never listed.",
+  },
+];
+
+/** Fetch every provider's live declaration, keyed by its `provider_registry` id. */
+export async function fetchDataSourceDeclarations(): Promise<
+  Record<string, DataSourceDeclaration>
+> {
+  try {
+    const res = await sidecarGet<{
+      providers: {
+        id: string;
+        keys: string[];
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/lib/marketplace.ts:204:export const INDIA_DATA_LANES: readonly DataLaneRow[] = [
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/lib/marketplace.test.ts:15:  INDIA_DATA_LANES,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/lib/marketplace.test.ts:122:    expect(INDIA_DATA_LANES.map((l) => l.id)).toEqual(["nse_direct", "nse", "bse"]);
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/modules/marketplace/MarketplacePanel.tsx:10:  INDIA_DATA_LANES,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/modules/marketplace/MarketplacePanel.tsx:129:  const rows = INDIA_DATA_LANES.map((lane) => ({ lane, live: declarations[lane.id] })).filter(

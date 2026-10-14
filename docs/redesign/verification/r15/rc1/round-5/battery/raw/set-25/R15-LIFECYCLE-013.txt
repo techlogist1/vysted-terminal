@@ -1,0 +1,6 @@
+CMD: R15-LIFECYCLE-013 — resume preserves provider+model (same live run as R15-AGENT-035; both entries are the same repro/bug class per the register).
+See R15-AGENT-035.txt in this same directory for the full sequence: launch ollama/llama3.1:8b -> breach maxTokens:1500 -> error -> POST /resume (no body, no provider/model override).
+Result: GET /runs/f7f850c179b04f6886b5a1564a721a3a after resume shows provider:"ollama", model:"llama3.1:8b" (not the agent's qwen2.5:7b default).
+Ollama /api/ps polled during the resumed run confirms llama3.1:8b is the loaded/active model, not qwen2.5:7b:
+(sidecar since stopped; see the /api/ps capture already recorded inline in R15-AGENT-035.txt at the time of the live run)
+verdict: holds

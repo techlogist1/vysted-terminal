@@ -1,0 +1,6 @@
+$ in-process data_cache (temp data dir /var/folders/1s/3bgs17xd07z839yf5kj6mc3m0000gn/T/b21-lead003-20bt4raa)
+ensure_build('0.7.9') on empty -> True
+size after warm on 0.7.9: 1
+ensure_build('0.8.0') (upgrade) -> cleared=True; size=0; get stale row=None
+ensure_build('0.8.0') again (same version) -> False; size=1
+backups: ['/var/folders/1s/3bgs17xd07z839yf5kj6mc3m0000gn/T/b21-lead003-20bt4raa/backups/0.7.9']

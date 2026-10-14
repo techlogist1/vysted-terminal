@@ -1,0 +1,12 @@
+=== parseHostAction exists, describe/apply both use HostIntent ===
+947:export function parseHostAction(name: string, input: Record<string, unknown>): HostIntent {
+1453:export function describeHostAction(name: string, input: Record<string, unknown>) {
+1994:export function applyHostAction(name: string, input: Record<string, unknown>): string | null {
+--- portfolio_update_position parse binds portfolioId+holding ---
+88:  "portfolio_update_position",
+125:  "Edit a portfolio position": "portfolio_update_position",
+855:      name: "portfolio_update_position";
+1025:    case "portfolio_update_position":
+1386:    case "portfolio_update_position":
+1389:      const update = intent.name === "portfolio_update_position";
+1877:    case "portfolio_update_position":

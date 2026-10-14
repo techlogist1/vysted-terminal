@@ -1,0 +1,38 @@
+=== resolve q=cochin minerals
+{'ok': True, 'query': 'cochin minerals', 'region': 'IN', 'resolved': {'symbol': 'COCHINM', 'name': 'Cochin Minerals & Rutiles Ltd-$', 'exchange': 'BSE', 'region': 'IN', 'asset_class': 'equity', 'yahoo_symbol': 'COCHINM.BO', 'confidence': 0.92, 'isin': 'INE105D01013', 'bse_code': '513353', 'industry': None, 'former_name': None, 'board': 'mainboard', 'exchange_group': 'X', 'face_value': 10.0}, 'needs_disambiguation': False, 'rename_lane': 'available'}
+ BOUND: None
+  cand COCHINM | Cochin Minerals & Rutiles Ltd-$ BSE 0.92
+  cand KACHCHH | Kachchh Minerals Ltd BSE 0.6286
+  cand NAMM | Namib Minerals US 0.6897
+  cand NAMMW | Namib Minerals US 0.6897
+  cand AUMN | Golden Minerals Co US 0.6667
+=== resolve q=cochin minerals and rutile
+{'ok': True, 'query': 'cochin minerals and rutile', 'region': 'IN', 'resolved': None, 'needs_disambiguation': True, 'rename_lane': 'available'}
+ BOUND: None
+  cand COCHINM | Cochin Minerals & Rutiles Ltd-$ BSE 0.807
+  cand RSMIY | RESOLUTION MINERALS LTD/ADR US 0.6038
+  cand RLMLF | RESOLUTION MINERALS LTD/ADR US 0.6038
+=== resolve q=cochin minrals
+{'ok': True, 'query': 'cochin minrals', 'region': 'IN', 'resolved': None, 'needs_disambiguation': True, 'rename_lane': 'available'}
+ BOUND: None
+  cand COCHINM | Cochin Minerals & Rutiles Ltd-$ BSE 0.6222
+  cand NAMM | Namib Minerals US 0.6429
+  cand NAMMW | Namib Minerals US 0.6429
+  cand AUMN | Golden Minerals Co US 0.625
+  cand WMLLF | Wealth Minerals Ltd. US 0.6145
+=== resolve q=513353
+{'ok': True, 'query': '513353', 'region': 'IN', 'resolved': {'symbol': 'COCHINM', 'name': 'Cochin Minerals & Rutiles Ltd-$', 'exchange': 'BSE', 'region': 'IN', 'asset_class': 'equity', 'yahoo_symbol': 'COCHINM.BO', 'confidence': 1.0, 'isin': 'INE105D01013', 'bse_code': '513353', 'industry': None, 'former_name': None, 'board': 'mainboard', 'exchange_group': 'X', 'face_value': 10.0}, 'needs_disambiguation': False, 'rename_lane': 'available'}
+ BOUND: None
+  cand COCHINM | Cochin Minerals & Rutiles Ltd-$ BSE 1.0
+=== resolve q=COCHINM
+{'ok': True, 'query': 'COCHINM', 'region': 'IN', 'resolved': {'symbol': 'COCHINM', 'name': 'Cochin Minerals & Rutiles Ltd-$', 'exchange': 'BSE', 'region': 'IN', 'asset_class': 'equity', 'yahoo_symbol': 'COCHINM.BO', 'confidence': 1.0, 'isin': 'INE105D01013', 'bse_code': '513353', 'industry': None, 'former_name': None, 'board': 'mainboard', 'exchange_group': 'X', 'face_value': 10.0}, 'needs_disambiguation': False, 'rename_lane': 'available'}
+ BOUND: None
+  cand COCHINM | Cochin Minerals & Rutiles Ltd-$ BSE 1.0
+=== resolve q=cochin
+{'ok': True, 'query': 'cochin', 'region': 'IN', 'resolved': None, 'needs_disambiguation': True, 'rename_lane': 'available'}
+ BOUND: None
+  cand COCHINSHIP | Cochin Shipyard Limited NSE 0.97
+  cand COCHINM | Cochin Minerals & Rutiles Ltd-$ BSE 0.97
+  cand COCHMAL | Cochin Malabar Estates & Industries Ltd BSE 0.97
+  cand TPR | TAPESTRY, INC. US 0.792
+  cand COHU | COHU INC US 0.7143

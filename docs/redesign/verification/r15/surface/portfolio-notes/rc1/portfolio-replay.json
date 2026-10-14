@@ -1,0 +1,251 @@
+{
+ "P1-empty": {
+  "panelText": "PortfolioSymbolQuantityAvg cost / shareClassEquityCryptoNoteAddThis portfolio is emptyManually add a stock or crypto holding to track P&L, weight, and concentration.Add your first holding",
+  "exportDisabled": true,
+  "net": 0
+ },
+ "P2-validation": {
+  "empty": {
+   "error": "Symbol, quantity, and avg cost per share are required",
+   "holdings": []
+  },
+  "qty0": {
+   "error": "Quantity must be greater than 0",
+   "holdings": []
+  },
+  "negcost": {
+   "error": "Avg cost cannot be negative",
+   "holdings": []
+  },
+  "qtyabc": {
+   "error": "Symbol, quantity, and avg cost per share are required",
+   "holdings": []
+  },
+  "qty-neg": {
+   "error": "Quantity must be greater than 0",
+   "holdings": []
+  },
+  "qty-1e20": {
+   "error": null,
+   "holdings": [
+    [
+     "TCS.NS",
+     100000000000000000000,
+     100
+    ]
+   ]
+  },
+  "cost-blank": {
+   "error": null,
+   "holdings": [
+    [
+     "TCS.NS",
+     5,
+     0
+    ]
+   ]
+  },
+  "qty-comma": {
+   "error": "Symbol, quantity, and avg cost per share are required",
+   "holdings": []
+  }
+ },
+ "P3-inr": {
+  "settleMs": 80778,
+  "ref": {
+   "RELIANCE.NS": 1219.2,
+   "TCS.NS": 2087
+  },
+  "expected": {
+   "mv": 22627,
+   "pnl": -1873,
+   "pnlPct": -7.644897959183673,
+   "wRel": 0.5388252972112962
+  },
+  "summary": "Market value: ₹22,627.00·Total P&L: -₹1,873.00 (-7.64%)·Concentration: 53.9%·as of Sep 24, 2026, 5:30 AMRiskSharpe: -1.17Sortino: -1.55Max DD: -28.9%Calmar: -0.74VaR 95% (1d): 2.2%Beta: 0.86257d historyRELIANCE.NSTCS.NSRELIANCE.NS1.000.14TCS.NS0.141.00SymbolQt",
+  "rows": [
+   "SymbolQtyAvg costPriceMkt valP&LWt",
+   "RELIANCE.NSEODMarket closed10₹1,200.00₹1,219.20₹12,192.00+₹192.00 (+1.60%)53.9%",
+   "TCS.NSEODMarket closed5₹2,500.00₹2,087.00₹10,435.00-₹2,065.00 (-16.52%)46.1%"
+  ],
+  "bus": {
+   "positionCount": 2,
+   "totalValue": 22627,
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-4be46ae9-8f8e-4947-b569-efc2388840bc",
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "marketValue": 12192,
+     "pnl": 192
+    },
+    {
+     "id": "h-3ff47169-1298-482c-b771-f95e838ab567",
+     "symbol": "TCS.NS",
+     "quantity": 5,
+     "costBasis": 2500,
+     "assetClass": "equity",
+     "marketValue": 10435,
+     "pnl": -2065
+    }
+   ]
+  }
+ },
+ "P4-stale-closure": {
+  "before": {
+   "active": "Second",
+   "holdings": [
+    "TCS.NS"
+   ]
+  },
+  "afterDelete": {
+   "active": "Second",
+   "holdings": [
+    "TCS.NS"
+   ],
+   "all": [
+    [
+     "Portfolio",
+     [
+      "RELIANCE.NS"
+     ]
+    ],
+    [
+     "Second",
+     [
+      "TCS.NS"
+     ]
+    ]
+   ]
+  },
+  "afterEdit": [
+   [
+    "TCS.NS",
+    7
+   ]
+  ],
+  "controlDeleteInFirstPortfolio": [
+   "RELIANCE.NS"
+  ],
+  "panelText": "Portfolio · 1Second · 1SymbolQuantityAvg cost / shareClassEquityCryptoNoteAddMarket value: ₹12,192.00·Total P&L: +₹192.00 (+1.60%)·Concentration: 100.0%·as of Sep 24, 2026, 5:30 AMRiskSharpe: -0.47Sortino: -0.65Max DD: -23.4%Calmar: -0.42VaR 95% (1d): 2.2%Beta: 0.91257d historySymbolQtyAvg costPriceMkt valP&LWtRELIANCE.NSEODMarket closed10₹1,200.00₹1,219.20₹12,192.00+₹192.00 (+1.60%)100.0%"
+ },
+ "P4b-fresh-mount-delete": {
+  "holdings": [
+   "TCS.NS"
+  ]
+ },
+ "P5-unresolved-crypto": {
+  "unresolved": {
+   "summary": "Market value: — (no live quotes)·Total P&L: —·Concentration: —%·1 without a live quoteCouldn't refresh live quotes — values shown without market data.RetrySymbolQtyAvg costPriceMkt valP&LWtZZZZNOTREAL10₹100.00————",
+   "rows": "SymbolQtyAvg costPriceMkt valP&LWtZZZZNOTREAL10₹100.00————",
+   "bus": {
+    "positionCount": 1,
+    "totalValue": null,
+    "totalValueNote": "no live quotes resolved",
+    "activePortfolioId": "default",
+    "activePortfolioName": "Portfolio",
+    "holdings": [
+     {
+      "id": "h-27b070e0-8f7c-40de-96cf-95cd4c8d72f5",
+      "symbol": "ZZZZNOTREAL",
+      "quantity": 10,
+      "costBasis": 100,
+      "assetClass": "equity",
+      "marketValue": null,
+      "pnl": null
+     }
+    ]
+   }
+  },
+  "cryptoSlash": {
+   "summary": "Market value: 42,350.44 USDT·Total P&L: +12,350.43 USDT (+41.17%)·Concentration: 100.0%·as of Sep 25, 2026, 5:39 AMRiskSharpe: -0.29Sortino: -0.41Max DD: -53.0%Calmar: -0.20VaR 95% (1d): 3.5%Beta: —364d historySymbolQtyAvg costPriceMkt valP&LWtBTC/USDTlive0.56",
+   "rows": "SymbolQtyAvg costPriceMkt valP&LWtBTC/USDTlive0.560,000.00 USDT84,700.87 USDT42,350.44 USDT+12,350.43 USDT (+41.17%)100.0%"
+  },
+  "cryptoNoSlash": {
+   "summary": "Market value: $42,358.00·Total P&L: +$12,358.00 (+41.19%)·Concentration: 100.0%·as of Sep 25, 2026, 5:39 AMRiskSharpe: -0.29Sortino: -0.41Max DD: -53.0%Calmar: -0.20VaR 95% (1d): 3.5%Beta: 1.68364d historySymbolQtyAvg costPriceMkt valP&LWtBTCUSDTlive0.5$60,000",
+   "rows": "SymbolQtyAvg costPriceMkt valP&LWtBTCUSDTlive0.5$60,000.00$84,715.99$42,358.00+$12,358.00 (+41.19%)100.0%"
+  },
+  "net": [
+   {
+    "t": 1790294957903,
+    "method": "GET",
+    "url": "/quotes/BTC%2FUSDT?asset_class=crypto",
+    "status": 200,
+    "ms": 2115
+   },
+   {
+    "t": 1790294968013,
+    "method": "GET",
+    "url": "/quotes/BTCUSDT?asset_class=crypto",
+    "status": 200,
+    "ms": 2957
+   },
+   {
+    "t": 1790294962899,
+    "method": "GET",
+    "url": "/quotes/BTCUSDT?asset_class=crypto",
+    "status": 200,
+    "ms": 9479
+   },
+   {
+    "t": 1790294973092,
+    "method": "GET",
+    "url": "/quotes/BTCUSDT?asset_class=crypto",
+    "status": 200,
+    "ms": 2363
+   }
+  ]
+ },
+ "P6-mixed-csv": {
+  "summary": "Market value: ₹12,192.00 + $1,007.76·Total P&L: +₹192.00 (+1.60%) + +$107.76 (+11.97%)·mixed currencies — totals per currency·1 without a live quote·as of Sep 24, 2026, 5:30 AMRiskINRSharpe: -0.47Sortino: -0.65Max DD: -23.4%Calmar: -0.42VaR 95% (1d): 2.2%Beta:",
+  "header": "SymbolQtyAvg costPriceMkt valP&LRELIANCE.NSEODMarket closed10₹1,200.00₹1,219.20₹12,192.00+₹192.00 (+1.60%)AAPLEOD3$300.0",
+  "csv": {
+   "name": "vysted-portfolio-portfolio.csv",
+   "content": "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note\nRELIANCE.NS,10,1200,equity,INR,1219.2,12192,192,1.6,,\"=HYPERLINK(\"\"http://example.invalid\"\",\"\"x\"\")\"\nAAPL,3,300,equity,USD,335.92,1007.76,107.75999999999999,11.973333333333331,,\"core, long\"\nZZZZNOTREAL,1,10,equity,,,,,,,"
+  },
+  "bus": {
+   "positionCount": 3,
+   "totalValue": null,
+   "totalValueNote": "holdings span multiple currencies (INR, USD) — no cross-currency total; read per-holding values",
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-0c374f03-6800-4598-aae0-3c814b955051",
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "marketValue": 12192,
+     "pnl": 192
+    },
+    {
+     "id": "h-299bca3b-8633-4b74-b8b7-211ccfd1757d",
+     "symbol": "AAPL",
+     "quantity": 3,
+     "costBasis": 300,
+     "assetClass": "equity",
+     "marketValue": 1007.76,
+     "pnl": 107.75999999999999
+    },
+    {
+     "id": "h-f15d9630-06de-4bb2-99c6-930ad17bfe23",
+     "symbol": "ZZZZNOTREAL",
+     "quantity": 1,
+     "costBasis": 10,
+     "assetClass": "equity",
+     "marketValue": null,
+     "pnl": null
+    }
+   ]
+  }
+ },
+ "P7-quotes-down": {
+  "panelText": "Portfolio · 1SymbolQuantityAvg cost / shareClassEquityCryptoNoteAddMarket value: — (no live quotes)·Total P&L: —·Concentration: —%·1 without a live quoteCouldn't refresh live quotes — values shown without market data.RetrySymbolQtyAvg costPriceMkt valP&LWtRELIANCE.NS10₹1,200.00————",
+  "bannerShown": true
+ }
+}

@@ -1,0 +1,23 @@
+CMD: in-process python call (candidate venv) invoking quant_nodes.price_option(monte-carlo, 5,000,000 paths) while polling GET /health every 0.2s on :52349, per COD-workflow-engine-8 (R15-CODE-PLATFORM-018).
+Source check: sidecar/services/quant/pool.py uses ProcessPoolExecutor(max_workers=2, mp_context=spawn) — run_quant() offloads pricing off the event loop entirely (async run_in_executor).
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+PRICE_OPTION_ELAPSED_S: 3.127336582983844
+RESULT_PRICE: 9.412395733290683
+HEALTH_POLLS_DURING_PRICING: 16
+WORST_HEALTH_LATENCY_S: 0.016621542046777904
+  poll 0.009806832997128367 200
+  poll 0.0014500830438919365 200
+  poll 0.0014075420331209898 200
+  poll 0.0015476249973289669 200
+  poll 0.0013622080441564322 200
+  poll 0.0013899580226279795 200
+  poll 0.0013994580367580056 200
+  poll 0.0014543330180458724 200
+  poll 0.001524958002846688 200
+  poll 0.0013771670055575669 200
+  poll 0.001364208001177758 200
+  poll 0.001358790963422507 200
+  poll 0.0014190839719958603 200
+  poll 0.016621542046777904 200
+  poll 0.0015845409943722188 200
+  poll 0.0013550830190069973 200

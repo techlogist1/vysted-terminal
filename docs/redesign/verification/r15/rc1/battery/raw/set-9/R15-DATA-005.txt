@@ -1,0 +1,3 @@
+$ curl -s http://127.0.0.1:52341/fundamentals/JNPR
+{"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."}
+EXIT 0

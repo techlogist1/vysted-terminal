@@ -1,0 +1,14 @@
+# R15-CODE-PLATFORM-075 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:05:36+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+SPEC='{"id":"fb2-075","name":"fb2 075","nodes":[{"id":"a","type":"data.quote","config":{"symbol":"AAPL"},"position":{"x":0,"y":0}}],"edges":[]}'
+echo '$ mode=resume-from + resumeFrom'; curl -s -m 20 -X POST "$H/workflow/run" -H 'content-type: application/json' -d "{\"spec\":$SPEC,\"mode\":\"resume-from\",\"resumeFrom\":\"a\"}" -w '\nHTTP %{http_code}\n' | cut -c1-250
+echo '$ mode=resume-from only'; curl -s -m 20 -X POST "$H/workflow/run" -H 'content-type: application/json' -d "{\"spec\":$SPEC,\"mode\":\"resume-from\"}" -w '\nHTTP %{http_code}\n' | cut -c1-250
+--- output ---
+$ mode=resume-from + resumeFrom
+{"detail":[{"type":"extra_forbidden","loc":["body","resumeFrom"],"msg":"Extra inputs are not permitted","input":"a"}]}
+HTTP 422
+$ mode=resume-from only
+{"detail":"unsupported run mode 'resume-from'; only 'full' is implemented"}
+HTTP 400
+
+EXIT=0 (0.0s)

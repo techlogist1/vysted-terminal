@@ -1,0 +1,1 @@
+{"symbol":"RELIANCE","price":1226.0,"change":7.0,"change_percent":0.5742411812961444,"volume":528000.0,"open":1215.0,"high":1227.2,"low":1214.0,"prev_close":1219.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}

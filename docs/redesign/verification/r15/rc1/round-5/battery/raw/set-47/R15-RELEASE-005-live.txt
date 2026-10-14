@@ -1,0 +1,2 @@
+fresh case, isStale: false
+after touching .gz mtime forward, isStale: true

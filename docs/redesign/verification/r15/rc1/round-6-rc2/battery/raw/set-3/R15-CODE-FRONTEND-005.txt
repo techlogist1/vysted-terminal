@@ -1,0 +1,4 @@
+ci_pinned: repro is a frontend store/workspace.ts scenario (vitest only); battery never runs suites. Existence check at ace7dd76:
+COMMAND: grep -nE 'every declared blob key is written by a registered slice' src/lib/workspace.test.ts
+1540:  it("every declared blob key is written by a registered slice, and each slice's change autosaves", async () => {
+EXIT: 0

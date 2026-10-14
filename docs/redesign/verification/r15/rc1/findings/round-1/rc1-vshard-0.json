@@ -1,0 +1,145 @@
+[
+ {
+  "key": "rc1-vshard-0:1",
+  "kind": "regression",
+  "severity": "critical",
+  "register_id": "R15-RESEARCH-002",
+  "title": "verify._parse_verdict still reads a negative verdict as 'agree' when the verdict word is not literally first",
+  "repro": "In-process: _parse_verdict('Verdict: UNVERIFIED - no source confirms the 23% operating margin.') -> 'agree'. The same happens for '**Verdict:** UNVERIFIED - no source confirms the figure', 'Answer: UNVERIFIED - evidence does not support the figure', '\"UNVERIFIED\" - no source confirms it', '[UNVERIFIED] no source confirms it', 'UNVERIFIED— the filing does not confirm it', 'CANNOT VERIFY - agree in spirit' and 'NOT VERIFIED - agrees with guidance'. The leading-token check misses, so the substring marker scan runs over 'confirm'/'support'/'agree'.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/research/verify.py",
+   "sidecar/services/research/deep.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:2",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-DATA-002",
+  "title": "The Cmd-K palette's per-listing ticker row loads the chart without a region, so a US AMAL pick in an IN session charts Amal Ltd (NSE, INR)",
+  "repro": "The palette 'Tickers' section lists 'AMAL NSE' and 'AMAL US'. Picking the US row calls loadSymbolIntoChart('AMAL') (CommandPalette.tsx:198-208,:390), which passes symbol + timeframe only. ChartPanel history(symbol, timeframe, undefined, assetClass) carries no region, so an IN-region session serves /history/AMAL from nse_direct at 687.65 INR, versus 47.21 USD under US. Fix 8f8f5f34 covered equity-overview only.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0.md",
+  "suspected_files": [
+   "src/components/CommandPalette.tsx",
+   "src/lib/host-actions.ts",
+   "src/store/chart-command.ts",
+   "src/lib/sidecar-client.ts",
+   "src/modules/chart/ChartPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:3",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-AGENT-019",
+  "title": "A question-shaped portfolio write request is classified as a read and write tools are stripped",
+  "repro": "_resolve_tool_surface for 'Can you log 10 TCS at 3400 in my portfolio?', 'Can you record that I hold 20 ITC at 410?', 'What if you drop TCS from my holdings?' and 'Why not trim my INFY holding to 5 shares?' gives read_only=True, 42 tools and no portfolio_*. The control 'Add 10 INFY.NS at 1500 to my portfolio' gives 55 tools including portfolio_add/update/delete. The _READ_SIGNALS '?'/why/how cue outranks edit verbs log/record/drop/trim, which are absent from _EDIT_SIGNALS.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/planner.py",
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:4",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-AGENT-003",
+  "title": "On a budget halt the runtime yields tool_use events it never dispatches, and delegate runs turn them into proposed changes",
+  "repro": "Scratch pytest: the model emits 3 tool calls per round, and on_round_usage returns False after round 2. The run yields 6 tool_use events (including write_note), but only 3 are dispatched, and it then emits 'Stopped before running N tool call(s)'. run_manager.py:263-300 collects the halted round's tool_use host actions into host_actions, and delegate-runs.ts:277-289 enqueues them into proposed-changes (AUTO autonomy auto-accepts).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py",
+   "sidecar/services/run_manager.py",
+   "src/lib/delegate-runs.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:5",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-AGENT-027",
+  "title": "errors.humanize still gives the wrong next step for common provider errors",
+  "repro": "humanize() results: gemini 400 'The input token count (1200000) exceeds the maximum number of tokens allowed' -> unknown 'Try again'. groq 400 'model ... has been decommissioned' -> unknown 'Try again'. ollama httpx.ReadTimeout -> 'Could not reach Ollama — check your network' / 'Check your internet connection' (local model, slow load). xai 403 \"team doesn't have any credits yet\" -> auth 'Re-enter the API key'.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/errors.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:6",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-043",
+  "title": "A top-K cut over a mixed-currency screen silently keeps the alphabetically-first currency group and drops the 'ranked within each currency' note",
+  "repro": "POST /screener/run {universe:custom, custom_symbols:[AAPL, RELIANCE.NS], sort_by:market_cap, sort_dir:desc, limit:1} on an isolated sidecar returns only RELIANCE.NS (matched_count 2, result_count 1). Coverage reads 'screened 2 of 2 — 0 unavailable' with no 'spans INR, USD' note, because served_currencies is computed on the served rows. The group order is _currency_sort_key alphabetical (INR<USD) for both sort directions. The agent screen tool defaults limit=50.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/screener.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:7",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-DATA-006",
+  "title": "A BSE quote before the open reports change 0.0 for the last session's real move",
+  "repro": "At 08:53 IST, /quotes/SMR with X-Vysted-Region: IN returns change 0.0 / 0.0%, prev_close 95, price 96, timestamp 2026-09-24. BSE getScripHeaderData CurrRate shows Chg +1.00, PcChg +1.05, Ason '24 Sep 26 | 16:00'. _quote_from_header compares trade_day against locale.most_recent_session (today, 2026-09-25, pre-open) instead of last_closed_session, so yesterday's close is treated as not traded this session and change is zeroed.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/bse_provider.py",
+   "sidecar/services/locale.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-006",
+  "title": "The NSE direct quote stamps most_recent_session, which is a latent pre-open misdate",
+  "repro": "nse_provider._quote_from_payload (:562-594) stamps locale.most_recent_session. Before the open this is today's date, not the last closed session. This was not reproduced live because quote-equity was blocked from this vantage (connection reset). It is recorded from code.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/nse_provider.py",
+   "sidecar/services/locale.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:9",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-FRONTEND-004",
+  "title": "Workspace names differing only by case overwrite each other on case-insensitive filesystems",
+  "repro": "On an isolated sidecar: save 'Research: NVDA', then save 'Research: nvda' with a different body. The list shows only 'Research: NVDA', and GET 'Research: NVDA' returns the lower-case save's body. _filename_stem percent-encodes but does not case-fold or detect a collision on APFS/NTFS.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/workspace_store.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:10",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-021",
+  "title": "Exchange-verbatim corporate_actions / exchange_deals / sec_filings_list text reaches the model unfenced",
+  "repro": "catalog untrusted_text covers corporate_announcements, news, web_search, research, market_overview, transcripts and sec_filing_content only. An injected 'purpose' string in a corporate_actions result, a party name in exchange_deals and a title in sec_filings_list came out RAW from _model_facing_content, while the same string in corporate_announcements came out FENCED. Live HAL corporate_actions returns 20 exchange-verbatim purpose rows.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/agent_tools/catalog.py",
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:11",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-UI-001",
+  "title": "An agent write_note that lands inside the 600 ms typing debounce discards the user's unsaved keystrokes",
+  "repro": "NotesPanel scope effect: when the store value for the shown scope changes from outside (an agent write_note) while a local edit is pending, the pending edit is dropped ('store wins') instead of merged or flushed first. Repro: type in General, and within 600 ms have the agent write_note to General; the typed burst is lost. From code; not run in a GUI.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0.md",
+  "suspected_files": [
+   "src/modules/notes/NotesPanel.tsx"
+  ]
+ }
+]

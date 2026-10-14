@@ -1,0 +1,12 @@
+[   2.9s] done: {"kind": "done", "usage": {"input_tokens": 2743, "output_tokens": 51, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Added 25 shares of WIPRO to your portfolio at ₹165 per share.
+
+Current Portfolio Summary:
+- Holdings: 1
+- Cash: ₹0
+- Positions:
+  - WIPRO (₹165, 25 shares)
+
+=== ok · 2.9s · events {'delta': 50, 'done': 1} · usage in=2743 out=51 · est $0.00000 · llama3.1:8b

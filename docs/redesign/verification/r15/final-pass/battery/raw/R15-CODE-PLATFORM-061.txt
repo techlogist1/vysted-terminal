@@ -1,0 +1,10 @@
+# R15-CODE-PLATFORM-061 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:04+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$PATH
+T=$(mktemp -d "$B/out/dang.XXXX"); mkdir -p $T/services; echo x > $T/services/a.py; ln -s /nonexistent $T/services/dangling.py; echo y > $T/out.bin; touch -t 202001010000 $T/out.bin
+cd "$C"; node -e "import('./scripts/sidecar-staleness.mjs').then(m=>{console.log('newestSourceMtime=',m.newestSourceMtime(['$T/services']));console.log('isStale=',m.isStale('$T/out.bin',['$T/services']))}).catch(e=>{console.log('THREW',e.message);process.exit(1)})"
+--- output ---
+newestSourceMtime= 1791027784063.0798
+isStale= true
+
+EXIT=0 (0.1s)

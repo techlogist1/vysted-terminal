@@ -1,0 +1,9 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: grep stale claims in docs/CURRENT_STATE.md + live check of the code facts the §0 banner asserts
+44:> - **§4 "~11 registered handlers unreachable" → CLOSED.** Every registered,
+47:> - **§4 "Gemini multi-round likely broken" → FIXED** (tool name threaded onto
+444:deleted, not merely unreachable.
+612:`TOOL_SCHEMAS` exactly) rather than hand-maintained — the 5-id stale list and
+TOOL_SCHEMAS 56 read_handler ids minus schemas: set()
+KNOWN_TOOL_IDS == agent_selectable_tool_ids(): True 56
+EXIT=0

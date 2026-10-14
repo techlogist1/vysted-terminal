@@ -1,0 +1,5 @@
+=== R15-UI-050 (needs_gui): Notes slash-menu row height ===
+341:            className="text-caption text-charcoal-500 border-charcoal-800 bg-charcoal-900 truncate border-b px-3 py-1 font-mono"
+349:        <div className="notes-scope-bar border-charcoal-800 flex flex-wrap items-center gap-2 border-b px-3 py-1">
+395:                "flex min-h-8 w-full flex-col items-start justify-center px-3 py-1 text-left transition-colors",
+432:                "flex h-8 w-full items-center gap-2 px-3 text-left transition-colors",

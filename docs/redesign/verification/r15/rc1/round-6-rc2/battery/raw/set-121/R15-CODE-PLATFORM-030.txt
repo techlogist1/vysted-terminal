@@ -1,0 +1,37 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p030.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import asyncio
+from models.backtest import BacktestRequest, BacktestFeeModel
+from services import backtest_engine as be
+from services.backtest_engine import BacktestOrderIntent, BacktestStrategy, Bar, SimPortfolio
+class Sell100(BacktestStrategy):
+    NAME="sell100"
+    async def on_bar(self, bar, portfolio):
+        i=int(bar.timestamp[-2:])
+        if i==2: return [BacktestOrderIntent(symbol=bar.symbol,quantity=10,reason="buy")]
+        if i==5: return [BacktestOrderIntent(symbol=bar.symbol,quantity=-100,reason="oversell")]
+        return []
+class Lots(BacktestStrategy):
+    NAME="lots"
+    async def on_bar(self, bar, portfolio):
+        i=int(bar.timestamp[-2:])
+        q={2:10,3:10,5:-20}.get(i)
+        return [BacktestOrderIntent(symbol=bar.symbol,quantity=q,reason="x")] if q else []
+be.register_strategy("sell100",Sell100); be.register_strategy("lots",Lots)
+def bars(prices): return [Bar(timestamp=f"2024-01-{d:02d}",symbol="AAPL",open=p,high=p,low=p,close=p,volume=1) for d,p in enumerate(prices,1)]
+async def run(sid,prices,fees=None):
+    async def loader(*a): return bars(prices)
+    req=BacktestRequest(strategyId=sid,params={},symbols=["AAPL"],startDate="2024-01-01",endDate="2024-01-10",initialCapital=100000,feeModel=fees)
+    r=await be.run_backtest(req,bar_loader=loader)
+    return r
+async def main():
+    r=await run("sell100",[100]*10)
+    print("probe1 flat 100, buy10 then sell-100: totalReturn",r.metrics.total_return,"trades",[(t.side,t.quantity,t.pnl) for t in r.trades],"final equity",r.equity_curve[-1].equity if hasattr(r.equity_curve[-1],'equity') else r.equity_curve[-1], "warnings",r.warnings)
+    r=await run("lots",[100,100,100,120,110,110,110,110,110,110],BacktestFeeModel(commissionBps=0,slippageBps=0) if False else None)
+    print("probe2 buy10@100(bar2) buy10@120(bar3)? sell20: trades",[(t.side,t.quantity,round(t.entry_price,2),round(t.exit_price,2) if t.exit_price else None,round(t.pnl,2)) for t in r.trades],"totalReturn",r.metrics.total_return)
+asyncio.run(main())
+--- output ---
+probe1 flat 100, buy10 then sell-100: totalReturn -2e-05 trades [('buy', 10.0, -1.9999999999998863)] final equity 99998.0 warnings None
+probe2 buy10@100(bar2) buy10@120(bar3)? sell20: trades [('buy', 20, 100.1, 109.89, 195.8)] totalReturn 0.001958000000000029
+EXIT=0

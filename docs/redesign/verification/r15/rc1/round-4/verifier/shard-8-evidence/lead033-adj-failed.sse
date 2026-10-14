@@ -1,0 +1,66 @@
+data: {"kind": "delta", "text": "MS"}
+
+data: {"kind": "delta", "text": "FT"}
+
+data: {"kind": "delta", "text": "'s"}
+
+data: {"kind": "delta", "text": " trailing"}
+
+data: {"kind": "delta", "text": " P"}
+
+data: {"kind": "delta", "text": "/E"}
+
+data: {"kind": "delta", "text": " is"}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "36"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": "4"}
+
+data: {"kind": "delta", "text": ".\n\n"}
+
+data: {"kind": "delta", "text": "["}
+
+data: {"kind": "delta", "text": " failed"}
+
+data: {"kind": "delta", "text": ":"}
+
+data: {"kind": "delta", "text": " Open"}
+
+data: {"kind": "delta", "text": "Router"}
+
+data: {"kind": "delta", "text": " rate"}
+
+data: {"kind": "delta", "text": "-l"}
+
+data: {"kind": "delta", "text": "imited"}
+
+data: {"kind": "delta", "text": " this"}
+
+data: {"kind": "delta", "text": " request"}
+
+data: {"kind": "delta", "text": " ("}
+
+data: {"kind": "delta", "text": "429"}
+
+data: {"kind": "delta", "text": ")."}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "Try"}
+
+data: {"kind": "delta", "text": " again"}
+
+data: {"kind": "delta", "text": " in"}
+
+data: {"kind": "delta", "text": " a"}
+
+data: {"kind": "delta", "text": " minute"}
+
+data: {"kind": "delta", "text": ".]"}
+
+data: {"kind": "done", "usage": {"input_tokens": 2800, "output_tokens": 32, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

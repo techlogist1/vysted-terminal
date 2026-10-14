@@ -1,0 +1,6 @@
+CMD: curl -s http://127.0.0.1:52356/macro/CPIAUCSL (no provider) ; curl -s 'http://127.0.0.1:52356/macro/CPIAUCSL?provider=fred'
+OUTPUT (no provider):
+{"detail":"provider is required for a series id"}
+OUTPUT (provider=fred):
+{"detail":"FRED needs a free API key for macro data. Get one at fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, and reload — or switch the series provider to ECB, IMF, or World Bank, which need no key.","code":"provider_error","action":"Retry, or try again later."}
+VERDICT: holds -- a provider-less GET now 422s 'provider is required for a series id' instead of silently reinterpreting the id's namespace by region. provider=fred then dispatches to FRED and 502s only because this isolated keyless profile has no FRED key configured (expected, matches D-B10-2's own test rig, not a regression of this entry).

@@ -1,0 +1,11 @@
+# R15-CODE-RESEARCH-012 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:26+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+if [ ! -f $B/out/R15-CODE-RESEARCH-012.txt ]; then "$IP" $B/sc/b16_r.py > $B/out/b16_r.log 2>&1; echo "script exit $?"; fi; cat $B/out/R15-CODE-RESEARCH-012.txt 2>/dev/null || tail -30 $B/out/b16_r.log
+--- output ---
+script exit 0
+# candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611, in-process python (cand sidecar/.venv), scratch b16_r.py
+relevance defines own _host_matches: False; relevance.finance is finance module: True; finance.host_matches('sub.pinterest.com',{'pinterest.com'})=True; ('notpinterest.com')=False
+JUNK_HOSTS sample=['facebook.com', 'instagram.com', 'pinterest.com', 'quora.com', 'scribd.com']
+grep in relevance.py for 'def _host_matches': False
+
+EXIT=0 (1.6s)

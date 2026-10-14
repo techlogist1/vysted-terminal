@@ -1,0 +1,4 @@
+## portfolio/workspace state on :52396 after all agent runs vs the seed
+workspaces/: identical to seed
+portfolio.db positions seed=0 after=0
+GET /portfolio/positions :52396 = []

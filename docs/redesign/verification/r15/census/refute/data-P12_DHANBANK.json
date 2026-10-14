@@ -1,0 +1,47 @@
+[
+  {
+    "raw_id": "DAT-P12-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "critical",
+    "reason": "Holds: the plain GET /fundamentals/DHANBANK still serves held_percent_insiders=0.51176 with field_meta status 'ok' (no flag), rendered as 'Insiders' 51.18%, while the app's own exchange-sourced /disclosures/shareholding shows promoter_percent 0.0 for every quarter (NSE SHP XBRL, Q1 FY27 2026-06-30: FII 14.21 / DII 0.05 / non-institutional public 85.75); the ownership_check cross-check is wired only into research/fast.py, never the plain route, and company_narrative folds the field into its verification set. Correction of a particular only: the disclosures endpoint returns promoter_percent 0.0 (not null) across 20 quarters (not 12); it also shows institutions 6.02% (yf) vs 14.26% (exchange), a second unflagged ownership divergence on the same panel.",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:141; sidecar/services/yfinance_provider.py:398; sidecar/services/correctness_gate.py:194-226; sidecar/services/ownership_check.py:1-37; sidecar/services/research/fast.py:323-394 (only caller of get_exchange_ownership); sidecar/services/company_narrative.py:166-180",
+    "evidence_checked": "Opened all cited code; grep of sidecar for ownership_check callers (only research/fast.py + semantics.py); re-ran both GETs against :52152 on 2026-09-23T01:09Z",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/DHANBANK -> held_percent_insiders 0.51176, field_meta status ok, reason null; curl -s '127.0.0.1:52152/disclosures/shareholding?symbol=DHANBANK' -> 20 patterns, promoter_percent 0.0, fii 14.21, dii 0.05 (2026-06-30, source NSE)"
+  },
+  {
+    "raw_id": "DAT-P12-2",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds: /fundamentals/{symbol}/income|balance|cashflow are single unparametrized routes returning annual periods only (DHANBANK: 2026/2025/2024/2023); the only 'results' route (/disclosures/results) is a board-meeting calendar with no numbers, and quarterly statements are read only by growth_check on the research snapshot path (models/fundamentals.py documents the computed-growth fields as research-only). The product-wide absence of quarterly results is a core screener.in-benchmark gap, so high stands.",
+    "evidence": "sidecar/routers/fundamentals.py:177-192; sidecar/routers/disclosures.py:74-92; sidecar/models/fundamentals.py:110-122; sidecar/services/research/fast.py:338-350",
+    "evidence_checked": "Opened router, disclosures router, model; grep for quarterly_income usage in sidecar (growth_check.py only); re-ran /fundamentals/DHANBANK/income and /disclosures/results?symbol=DHANBANK against :52152",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/DHANBANK/income -> periods ['2026','2025','2024','2023'], keys symbol/periods/lines/provider; /disclosures/results -> 71 board-meeting events (purpose/description/date only, no figures)"
+  },
+  {
+    "raw_id": "DAT-P12-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real but overstated: the blank is not unexplained -- dividend_per_share and dividend_yield carry field_meta status 'unavailable' with reason 'provider did not publish this field', which the panel renders as a 'not published' chip (EquityOverviewPanel fieldReasonChip). The genuine defect is narrower: the affirmed-zero stamp (dividend_per_share_ttm=0.0 with reason) runs only in research/fast.py, so the plain panel says 'not published' for a bank with a sourced 0% payout rather than 'none paid' -- a labelled, mildly misleading gap, not a silent blank, hence low.",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:129-133,182-201; sidecar/services/yfinance_provider.py:165-185; sidecar/services/research/fast.py:215-225",
+    "evidence_checked": "Opened panel rendering, provider derived-field set, research affirmed-zero stamp; re-ran /fundamentals/DHANBANK against :52152 and read field_meta",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/DHANBANK -> dividend_per_share/dividend_yield null with field_meta {status:'unavailable', reason:'provider did not publish this field'}; dividend_per_share_ttm null with no field_meta"
+  },
+  {
+    "raw_id": "DAT-P12-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The ranking defect reproduces, but the mechanism is misattributed: Instrument.former_name is by design the retired NSE SYMBOL from the rename lane (symbol_resolver.py:239, 896), not a company-name alias, and DHANBANK's ticker never changed, so null there is correct. The real cause is that the bundled BSE master's expired rights-entitlement line DHAN-RE (ISIN INE680A20011, asset_class 'equity') is never filtered from fuzzy name ranking -- it outranks the bank for 'Dhanalakshmi Bank' (0.7429 vs 0.6667) and TIES it at 1.0 for the exact current name 'Dhanlaxmi Bank', forcing disambiguation on the bank's own name. Severity lowered to medium: the real bank is always in the candidate list and disambiguation is explicit (not a silent wrong resolve), though picking the top row lands on a dead instrument.",
+    "evidence": "sidecar/services/symbol_resolver.py:239, 855-905 (former_name = inst.rename.renamed_from; no rights-entitlement exclusion found by grep); fresh GET /resolve against :52152 on 2026-09-23",
+    "evidence_checked": "Opened resolver Instrument field + _enrich_instrument; grep for RE/entitlement filtering in symbol_resolver.py (none); re-ran three /resolve queries against :52152",
+    "repro_check": "curl -s '127.0.0.1:52152/resolve?q=Dhanalakshmi+Bank' -> DHAN-RE 0.7429 above DHANBANK 0.6667; q=Dhanlaxmi+Bank -> DHANBANK 1.0 and DHAN-RE 1.0 tie, needs_disambiguation true; q=Dhanlaxmi -> four-way 0.97 tie incl. DHAN-RE"
+  },
+  {
+    "raw_id": "DAT-P12-5",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: the only face_value in the codebase is the bond-pricing request field (models/quant.py:152, types/quant.ts:101); neither the Fundamentals model nor types/data.ts nor the live /fundamentals/DHANBANK body carries an equity face value, while the pack's Rs 10 is sourced (screener.in) and first-party corroborated (Letter of Offer Rs 21 = Rs 10 + Rs 11 premium). Low stands: a missing reference fact, not a wrong value.",
+    "evidence": "sidecar/models/quant.py:152; types/quant.ts:100-101; sidecar/models/fundamentals.py (no face_value); https://www.screener.in/company/DHANBANK/ (via pack)",
+    "evidence_checked": "grep -i face_value/face value over types/, sidecar/models, services, routers, src (bond-only hits); live /fundamentals/DHANBANK keys contain no 'face'",
+    "repro_check": "grep -rn -i 'face_value' types sidecar/models sidecar/services src -> only quant bond fields; curl /fundamentals/DHANBANK -> no key containing 'face'"
+  }
+]

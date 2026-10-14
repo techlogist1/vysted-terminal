@@ -1,0 +1,10 @@
+=== ci_pinned: entry certified via vitest, not re-run per battery instructions ===
+=== NotesPanel.tsx TaskList/TaskItem registration ===
+33:import { TaskList, TaskItem } from "@tiptap/extension-list";
+129:      TaskList,
+130:      TaskItem.configure({ nested: true }),
+=== NotesToolbar.test.tsx test names ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/notes/NotesToolbar.test.tsx
+84:  it("the Task list button toggles a task list (extension is registered)", async () => {
+95:  it("Insert [[wikilink]] WRAPS a selection instead of deleting it (repro e)", async () => {
+109:  it("Insert [[wikilink]] with no selection still opens the picker (falls back to '[[')", async () => {

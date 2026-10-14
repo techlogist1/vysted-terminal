@@ -1,0 +1,4 @@
+r1 WIPRO 15.24s witness_fetches={'get_exchange_ownership': 1, 'get_income_statement': 1, 'get_quarterly_period_ends': 1, 'get_newest_equity': 1, 'get_venue_history': 1}
+r1 LT 14.91s witness_fetches={'get_exchange_ownership': 1, 'get_income_statement': 1, 'get_quarterly_period_ends': 1, 'get_newest_equity': 1, 'get_venue_history': 1}
+r2 WIPRO 0.29s witness_fetches={'get_newest_equity': 1}
+r2 LT 0.23s witness_fetches={'get_newest_equity': 1}

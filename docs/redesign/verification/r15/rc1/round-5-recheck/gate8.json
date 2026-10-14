@@ -1,0 +1,202 @@
+{
+  "pass": true,
+  "candidate": "949c3c9fd49d61ecadc9813a8321bcdfd81178bd",
+  "routes": {
+    "total": 111,
+    "hits": [
+      {
+        "route": "GET /disclosures/shareholding",
+        "class": "false_positive",
+        "why": "shareholding-pattern disclosure data"
+      },
+      {
+        "route": "GET /portfolio/positions",
+        "class": "tracked_portfolio",
+        "why": "legacy tracked ledger, GET-only import (POST 405, PUT/DELETE 404)"
+      }
+    ],
+    "forged_trading_routes": "all 404 (gate8/forged-trading-routes.txt)"
+  },
+  "tools": {
+    "catalog": 56,
+    "TOOL_SCHEMAS": 56,
+    "KNOWN_TOOL_IDS": 56,
+    "registered_tools": 33,
+    "hits": [
+      "portfolio_add_position",
+      "portfolio_update_position",
+      "portfolio_delete_position (host_action, tracked portfolio, gated)",
+      "shareholding_pattern (false positive)"
+    ],
+    "trading_tools": 0
+  },
+  "mcp": {
+    "in_process": 40,
+    "live_52310": 40,
+    "identical": true,
+    "status_toolCount": 40,
+    "forged_calls": "propose_order/place_order/portfolio_add_position -> Unknown tool, isError true"
+  },
+  "pytest": {
+    "file": "sidecar/tests/test_no_trading_surface.py",
+    "passed": 8,
+    "failed": 0,
+    "exit": 0
+  },
+  "safety_surface": {
+    "identical_to": "9bc600ec",
+    "diff_stat": "empty"
+  },
+  "grep": {
+    "src": {
+      "total": 111,
+      "product": 0,
+      "historical": 26,
+      "false_positive": 85
+    },
+    "sidecar": {
+      "total": 262,
+      "product": 0,
+      "historical": 70,
+      "false_positive": 192
+    },
+    "src-tauri": {
+      "total": 3,
+      "product": 0,
+      "historical": 2,
+      "false_positive": 1
+    },
+    "plugins": {
+      "total": 0,
+      "product": 0,
+      "historical": 0,
+      "false_positive": 0
+    },
+    "docs": {
+      "total": 197547,
+      "product": 0,
+      "historical": 151344,
+      "false_positive": 46203
+    }
+  },
+  "portfolio": {
+    "steps": [
+      {
+        "id": "crud:0 fresh blob slot",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "crud:1 add 3 holdings via the panel form",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "crud:2 persist + read back (POST /workspace, GET /workspace/{name})",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "crud:3 CSV via the panel Export button: columns + rows vs holdings",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "crud:4 P&L recomputed from /quotes/{sym} equals the panel's",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "crud:5 update AAPL (Edit, same id) + delete RELIANCE.NS (ConfirmButton x2)",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "crud:6 persist + read back after update/delete",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "crud:7 CSV after update: rows == holdings",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "crud:8 restore round-trip from the read-back blob (portfolios slice)",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "crud:9 notes CRUD (create/update/delete, blob read back each step)",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "crud:10 watchlist CRUD (add INFY.NS IN, read back, remove, read back)",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "crud:11 agent context snapshot carries the ledger",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "apply:A agent emitted portfolio_add_position as a tool_use (ask)",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "apply:B isHostActionMutation(portfolio_add_position) routes it to the gate",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "apply:C staged under ask: pending, store + persisted ledger unchanged",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "apply:D accept (as ProposedChangesReview does) applies it to the store",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "apply:E persist + read back shows the applied holding",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "apply:F forged propose_order: not a host-action mutation; accept fails closed; ledger unchanged",
+        "name": null,
+        "pass": true
+      },
+      {
+        "id": "agent:get_portfolio",
+        "name": "agent get_portfolio (llama3.1:8b) equals ledger",
+        "pass": true,
+        "evidence": "gate8/agent-get-portfolio.jsonl",
+        "note": "attempt1 camelCase context was a harness error, kept as attempt1-camelcase-context.*"
+      },
+      {
+        "id": "agent:add_position_ask",
+        "name": "gated portfolio_add_position under --autonomy ask leaves ledger unchanged until applied",
+        "pass": true,
+        "evidence": "gate8/agent-add-position-ask.jsonl"
+      },
+      {
+        "id": "agent:order_attempt",
+        "name": "order attempt under --autonomy auto halts; ledger unchanged; no audit db",
+        "pass": true,
+        "evidence": "gate8/agent-order-attempt.jsonl"
+      },
+      {
+        "id": "audit_orders",
+        "name": "no audit_orders rows anywhere",
+        "pass": true,
+        "evidence": "gate8/audit-orders-check.txt"
+      }
+    ]
+  },
+  "failures": []
+}

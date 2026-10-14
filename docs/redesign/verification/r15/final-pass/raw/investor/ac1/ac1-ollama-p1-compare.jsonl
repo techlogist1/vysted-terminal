@@ -1,0 +1,84 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_e1d9782796074237847c8b77f9d2ffb3", "name": "compare_symbols", "input": {"symbols": ["KPITTEC.NS", "TATATELENG.NS"], "asset_class": "equity", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_e1d9782796074237847c8b77f9d2ffb3", "name": "compare_symbols", "ok": false, "error": "fewer than two symbols resolved \u2014 0 of 2 returned a quote. KPITTEC.NS: unresolved name: 'KPITTEC.NS' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ti"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " KP"}
+{"kind": "delta", "text": "ITTE"}
+{"kind": "delta", "text": "C"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "AT"}
+{"kind": "delta", "text": "ATE"}
+{"kind": "delta", "text": "LE"}
+{"kind": "delta", "text": "NG"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Could"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " correct"}
+{"kind": "delta", "text": " tick"}
+{"kind": "delta", "text": "ers"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " companies"}
+{"kind": "delta", "text": "?"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " happy"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " compare"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " valuation"}
+{"kind": "delta", "text": " metrics"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "(Note"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'re"}
+{"kind": "delta", "text": " looking"}
+{"kind": "delta", "text": " up"}
+{"kind": "delta", "text": " Indian"}
+{"kind": "delta", "text": " stocks"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " using"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " N"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " format"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " usually"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " format"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " XYZ"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ")"}
+{"kind": "done", "usage": {"input_tokens": 1977, "output_tokens": 77, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,11 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-data-b4-019-fresh /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/ip.sh /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b4_019.py 2>&1 | grep -v '^$' ; echo; curl -s 'localhost:52344/resolve?q=GUJGASLTD' | python3 -c 'import sys,json;d=json.load(sys.stdin);print("live route: rename",d["resolved"].get("rename"),"lane",d.get("rename_lane"))'
+nse_symbol_change: request failed (ConnectTimeout: probe: first fetch times out)
+nse_symbol_change: no file and no recent cache — rename lane is a no-op
+after first (failed) attempt: attempts 1 lane False refreshed_on None
+after backoff retry: attempts 2 lane True refreshed_on 2026-10-03
+GUJGASLTD -> AppliedRename(renamed_from='GUJGASLTD', renamed_to='GUJENERGY', effective_date=datetime.date(2026, 7, 1), new_name='GUJARAT ENERGY LIMITED')
+
+live route: rename {'renamed_from': 'GUJGASLTD', 'renamed_to': 'GUJENERGY', 'effective_date': '2026-07-01', 'note': 'GUJGASLTD was renamed to GUJENERGY on NSE (effective 2026-07-01); the resolver answers the current symbol.'} lane available
+
+exit=0

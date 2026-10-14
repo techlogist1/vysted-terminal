@@ -1,0 +1,14 @@
+=== R15-DATA-115 probe (candidate 1006c6da) ===
+Live HTTP GET /history/AMAL.BO?range=1y against own sidecar :52358 (original repro symbol):
+bar count: 255
+first bar date: 2025-09-12T00:00:00Z
+last bar date: 2026-09-25T00:00:00Z
+
+Sidecar log for this request:
+2026-09-27 03:56:39,435 INFO uvicorn.access: 127.0.0.1:64722 - "GET /history/AMAL.BO?range=1y HTTP/1.1" 200
+2026-09-27 03:56:57,121 WARNING services.provider_registry: provider nse_direct failed for ohlcv, falling through: nse_direct: 'AMAL.BO' is not a known NSE instrument
+2026-09-27 03:56:57,121 WARNING services.provider_registry: provider nse failed for ohlcv, falling through: nse: 'AMAL.BO' is a BSE listing
+2026-09-27 03:56:57,429 INFO uvicorn.access: 127.0.0.1:64739 - "GET /history/AMAL.BO?range=1y HTTP/1.1" 200
+
+Code: sidecar/services/india_provider.py:133-138 _require_nse() now explicitly raises for any .BO-suffixed symbol ('is a BSE listing') before nse_direct/nse can serve it, so the registry falls through to the BSE provider.
+VERDICT: holds. 255 bars over a full year returned (was NSE's 28-bar listing-limited response pre-fix); log shows nse_direct and nse both explicitly reject the .BO symbol and fall through.

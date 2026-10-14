@@ -1,0 +1,9 @@
+=== R15-DATA-044 probe ===
+--- POST /screener/run nse-all pe_ratio<20 ---
+HTTP:200 time:0.206919
+evaluated_count 2738 skipped_count 768
+n skip_details 768
+sample skip_detail {'symbol': 'INDIGO.NS', 'reason': 'missing_field:pe_ratio'}
+missing_field:pe_ratio count 508
+{'universe': 'nse-all', 'evaluated_count': 2738, 'skipped_count': 768, 'result_count': 50, 'matched_count': 1043, 'duration_ms': 193.97279096301645, 'partial': True, 'coverage': 'screened 2,738 of 3,506 — 768 unavailable', 'freshness': {'quotes_as_of': 1790517385.531011, 'valuation_as_of': 1790513559.62274, 'deep_as_of': 1783627280.0531368}, 'basis_counts': {'live': 50}, 'throttled': True}
+[('missing_field:pe_ratio', 508), ('rate_limited', 260)]

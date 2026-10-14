@@ -1,0 +1,3178 @@
+{
+ "slot": "P2",
+ "symbol": "DAL",
+ "manifest_name": "Dynamic Archistructures Ltd",
+ "exchange": "BSE",
+ "bse_code": "539681",
+ "collected_at": "2026-09-19T15:11:28+0530",
+ "sidecar": "http://127.0.0.1:52152",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52152/resolve?q=DAL",
+   "status": 200,
+   "elapsed_ms": 87,
+   "body": {
+    "ok": true,
+    "query": "DAL",
+    "region": "IN",
+    "resolved": {
+     "symbol": "DAL",
+     "name": "Dynamic Archistructures Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "DAL.BO",
+     "confidence": 1.0,
+     "isin": "INE874E01012",
+     "bse_code": "539681",
+     "industry": null,
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "DAL",
+      "name": "Dynamic Archistructures Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DAL.BO",
+      "confidence": 1.0,
+      "isin": "INE874E01012",
+      "bse_code": "539681",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "DAL",
+      "name": "DELTA AIR LINES, INC.",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "DAL",
+      "confidence": 1.0,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": true,
+    "parked_s": 120.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52152/resolve?q=Dynamic+Archistructures+Ltd",
+   "status": 200,
+   "elapsed_ms": 2798,
+   "body": {
+    "ok": true,
+    "query": "Dynamic Archistructures Ltd",
+    "region": "IN",
+    "resolved": {
+     "symbol": "DAL",
+     "name": "Dynamic Archistructures Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "DAL.BO",
+     "confidence": 1.0,
+     "isin": "INE874E01012",
+     "bse_code": "539681",
+     "industry": null,
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "DAL",
+      "name": "Dynamic Archistructures Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DAL.BO",
+      "confidence": 1.0,
+      "isin": "INE874E01012",
+      "bse_code": "539681",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "DYNAMIND",
+      "name": "Dynamic Industries Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DYNAMIND.BO",
+      "confidence": 0.7347,
+      "isin": "INE457C01010",
+      "bse_code": "524818",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "ANNAINFRA",
+      "name": "Anna Infrastructures Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ANNAINFRA.BO",
+      "confidence": 0.7059,
+      "isin": "INE336D01014",
+      "bse_code": "530799",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "NACDAC",
+      "name": "NACDAC Infrastructure Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "NACDAC.BO",
+      "confidence": 0.6923,
+      "isin": "INE0LB101011",
+      "bse_code": "544313",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "JYOTISTRUC",
+      "name": "Jyoti Structures Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JYOTISTRUC.NS",
+      "confidence": 0.6667,
+      "isin": "INE197A01024",
+      "bse_code": "513250",
+      "industry": "Specialty Industrial Machinery",
+      "former_name": null
+     },
+     {
+      "symbol": "NILAINFRA",
+      "name": "Nila Infrastructures Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "NILAINFRA.NS",
+      "confidence": 0.6545,
+      "isin": "INE937C01029",
+      "bse_code": "530377",
+      "industry": "Real Estate - Development",
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 14.5
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52152/resolve?q=539681",
+   "status": 200,
+   "elapsed_ms": 7,
+   "body": {
+    "ok": true,
+    "query": "539681",
+    "region": "IN",
+    "resolved": {
+     "symbol": "DAL",
+     "name": "Dynamic Archistructures Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "DAL.BO",
+     "confidence": 1.0,
+     "isin": "INE874E01012",
+     "bse_code": "539681",
+     "industry": null,
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "DAL",
+      "name": "Dynamic Archistructures Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DAL.BO",
+      "confidence": 1.0,
+      "isin": "INE874E01012",
+      "bse_code": "539681",
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52152/quotes/DAL?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 603,
+   "body": {
+    "symbol": "DAL",
+    "price": 49.88,
+    "change": 2.3700000000000045,
+    "change_percent": 4.988423489791632,
+    "volume": null,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-18T00:00:00Z",
+    "provider": "bse",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52152/fundamentals/DAL",
+   "status": 200,
+   "elapsed_ms": 7460,
+   "body": {
+    "symbol": "DAL.BO",
+    "name": "Dynamic Archistructures Limited",
+    "sector": "Financial Services",
+    "industry": "Credit Services",
+    "currency": "INR",
+    "market_cap": 249898800.0,
+    "pe_ratio": 5.6044946,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 0.74869037,
+    "price_to_sales": 9.054304,
+    "ev_to_ebitda": null,
+    "book_value": 66.623,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": 8.9,
+    "beta": -0.384,
+    "fifty_two_week_high": 49.88,
+    "fifty_two_week_low": 46.58,
+    "fifty_two_week_change": 0.0,
+    "roe": null,
+    "roa": null,
+    "gross_margin": 0.99638003,
+    "operating_margin": 0.96438,
+    "profit_margin": 0.36957002,
+    "debt_to_equity": null,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "revenue_ttm": 27600000.0,
+    "net_income_ttm": 10200000.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 5010000.0,
+    "revenue_growth": 0.46,
+    "earnings_growth": 0.462,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.70862,
+    "held_percent_institutions": 0.0,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "forward_pe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "ev_to_ebitda": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "dividend_yield": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "beta": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "roe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "debt_to_equity": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_insiders": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_institutions": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": null,
+      "label": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:41:13.856833+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52152/fundamentals/DAL/income",
+   "status": 200,
+   "elapsed_ms": 2152,
+   "body": {
+    "symbol": "DAL",
+    "periods": [
+     "2025-12-31",
+     "2024-12-31",
+     "2023-12-31",
+     "2022-12-31",
+     "2021-12-31"
+    ],
+    "lines": [
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2025-12-31": 52668000000.0,
+       "2024-12-31": 51716000000.0,
+       "2023-12-31": 49632000000.0,
+       "2022-12-31": 41268000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2025-12-31": 63364000000.0,
+       "2024-12-31": 61643000000.0,
+       "2023-12-31": 58048000000.0,
+       "2022-12-31": 50582000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cost_of_revenue",
+      "values": {
+       "2025-12-31": 48052000000.0,
+       "2024-12-31": 46475000000.0,
+       "2023-12-31": 43913000000.0,
+       "2022-12-31": 39985000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "gross_profit",
+      "values": {
+       "2025-12-31": 15312000000.0,
+       "2024-12-31": 15168000000.0,
+       "2023-12-31": 14135000000.0,
+       "2022-12-31": 10597000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "salaries_and_wages",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 1389000000.0,
+       "2023-12-31": 244000000.0,
+       "2022-12-31": -292000000.0,
+       "2021-12-31": -451000000.0
+      }
+     },
+     {
+      "label": "general_and_administrative_expense",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 1389000000.0,
+       "2023-12-31": 244000000.0,
+       "2022-12-31": -292000000.0,
+       "2021-12-31": -451000000.0
+      }
+     },
+     {
+      "label": "selling_and_marketing_expense",
+      "values": {
+       "2025-12-31": 2485000000.0,
+       "2024-12-31": 2485000000.0,
+       "2023-12-31": 2334000000.0,
+       "2022-12-31": 1891000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2025-12-31": 2485000000.0,
+       "2024-12-31": 2485000000.0,
+       "2023-12-31": 2334000000.0,
+       "2022-12-31": 1891000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_operating_expenses",
+      "values": {
+       "2025-12-31": 7005000000.0,
+       "2024-12-31": 6688000000.0,
+       "2023-12-31": 6280000000.0,
+       "2022-12-31": 5045000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "operating_expense",
+      "values": {
+       "2025-12-31": 9490000000.0,
+       "2024-12-31": 9173000000.0,
+       "2023-12-31": 8614000000.0,
+       "2022-12-31": 6936000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "operating_income",
+      "values": {
+       "2025-12-31": 5822000000.0,
+       "2024-12-31": 5995000000.0,
+       "2023-12-31": 5521000000.0,
+       "2022-12-31": 3661000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "interest_expense_non_operating",
+      "values": {
+       "2025-12-31": 679000000.0,
+       "2024-12-31": 747000000.0,
+       "2023-12-31": 834000000.0,
+       "2022-12-31": 1029000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_non_operating_interest_income_expense",
+      "values": {
+       "2025-12-31": -679000000.0,
+       "2024-12-31": -747000000.0,
+       "2023-12-31": -834000000.0,
+       "2022-12-31": -1029000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "gain_on_sale_of_security",
+      "values": {
+       "2025-12-31": 1212000000.0,
+       "2024-12-31": -319000000.0,
+       "2023-12-31": 1263000000.0,
+       "2022-12-31": -783000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "restructuring_and_mergern_acquisition",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": -124000000.0,
+       "2021-12-31": -19000000.0
+      }
+     },
+     {
+      "label": "write_off",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 20000000.0,
+       "2021-12-31": 337000000.0
+      }
+     },
+     {
+      "label": "other_special_charges",
+      "values": {
+       "2025-12-31": 26000000.0,
+       "2024-12-31": 39000000.0,
+       "2023-12-31": 63000000.0,
+       "2022-12-31": 100000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "special_income_charges",
+      "values": {
+       "2025-12-31": -26000000.0,
+       "2024-12-31": -39000000.0,
+       "2023-12-31": -63000000.0,
+       "2022-12-31": -100000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_non_operating_income_expenses",
+      "values": {
+       "2025-12-31": -144000000.0,
+       "2024-12-31": -232000000.0,
+       "2023-12-31": -279000000.0,
+       "2022-12-31": 165000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_income_expense",
+      "values": {
+       "2025-12-31": 1042000000.0,
+       "2024-12-31": -590000000.0,
+       "2023-12-31": 921000000.0,
+       "2022-12-31": -718000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2025-12-31": 6185000000.0,
+       "2024-12-31": 4658000000.0,
+       "2023-12-31": 5608000000.0,
+       "2022-12-31": 1914000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2025-12-31": 1180000000.0,
+       "2024-12-31": 1201000000.0,
+       "2023-12-31": 999000000.0,
+       "2022-12-31": 596000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2025-12-31": 5005000000.0,
+       "2024-12-31": 3457000000.0,
+       "2023-12-31": 4609000000.0,
+       "2022-12-31": 1318000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2025-12-31": 5005000000.0,
+       "2024-12-31": 3457000000.0,
+       "2023-12-31": 4609000000.0,
+       "2022-12-31": 1318000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2025-12-31": 5005000000.0,
+       "2024-12-31": 3457000000.0,
+       "2023-12-31": 4609000000.0,
+       "2022-12-31": 1318000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2025-12-31": 5005000000.0,
+       "2024-12-31": 3457000000.0,
+       "2023-12-31": 4609000000.0,
+       "2022-12-31": 1318000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2025-12-31": 5005000000.0,
+       "2024-12-31": 3457000000.0,
+       "2023-12-31": 4609000000.0,
+       "2022-12-31": 1318000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2025-12-31": 7.720031,
+       "2024-12-31": 5.390022,
+       "2023-12-31": 7.210029,
+       "2022-12-31": 2.070008,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2025-12-31": 7.660031,
+       "2024-12-31": 5.330021,
+       "2023-12-31": 7.170029,
+       "2022-12-31": 2.060008,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2025-12-31": 647997408.0,
+       "2024-12-31": 640997436.0,
+       "2023-12-31": 638997444.0,
+       "2022-12-31": 637997448.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2025-12-31": 653997384.0,
+       "2024-12-31": 647997408.0,
+       "2023-12-31": 642997428.0,
+       "2022-12-31": 640997436.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_operating_income_as_reported",
+      "values": {
+       "2025-12-31": 5822000000.0,
+       "2024-12-31": 5995000000.0,
+       "2023-12-31": 5521000000.0,
+       "2022-12-31": 3661000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "rent_expense_supplemental",
+      "values": {
+       "2025-12-31": 4106000000.0,
+       "2024-12-31": 3698000000.0,
+       "2023-12-31": 3095000000.0,
+       "2022-12-31": 2689000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_expenses",
+      "values": {
+       "2025-12-31": 57542000000.0,
+       "2024-12-31": 55648000000.0,
+       "2023-12-31": 52527000000.0,
+       "2022-12-31": 46921000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2025-12-31": 5005000000.0,
+       "2024-12-31": 3457000000.0,
+       "2023-12-31": 4609000000.0,
+       "2022-12-31": 1318000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2025-12-31": 4045526000.0,
+       "2024-12-31": 3722636000.0,
+       "2023-12-31": 3622600000.0,
+       "2022-12-31": 1925504000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "interest_expense",
+      "values": {
+       "2025-12-31": 679000000.0,
+       "2024-12-31": 747000000.0,
+       "2023-12-31": 834000000.0,
+       "2022-12-31": 1029000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2025-12-31": -679000000.0,
+       "2024-12-31": -747000000.0,
+       "2023-12-31": -834000000.0,
+       "2022-12-31": -1029000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "ebit",
+      "values": {
+       "2025-12-31": 6864000000.0,
+       "2024-12-31": 5405000000.0,
+       "2023-12-31": 6442000000.0,
+       "2022-12-31": 2943000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "ebitda",
+      "values": {
+       "2025-12-31": 9307000000.0,
+       "2024-12-31": 7918000000.0,
+       "2023-12-31": 8783000000.0,
+       "2022-12-31": 5050000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "reconciled_cost_of_revenue",
+      "values": {
+       "2025-12-31": 48052000000.0,
+       "2024-12-31": 46475000000.0,
+       "2023-12-31": 43913000000.0,
+       "2022-12-31": 39985000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2025-12-31": 2443000000.0,
+       "2024-12-31": 2513000000.0,
+       "2023-12-31": 2341000000.0,
+       "2022-12-31": 2107000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2025-12-31": 5005000000.0,
+       "2024-12-31": 3457000000.0,
+       "2023-12-31": 4609000000.0,
+       "2022-12-31": 1318000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2025-12-31": 1186000000.0,
+       "2024-12-31": -358000000.0,
+       "2023-12-31": 1200000000.0,
+       "2022-12-31": -883000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2025-12-31": 1186000000.0,
+       "2024-12-31": -358000000.0,
+       "2023-12-31": 1200000000.0,
+       "2022-12-31": -883000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "normalized_ebitda",
+      "values": {
+       "2025-12-31": 8121000000.0,
+       "2024-12-31": 8276000000.0,
+       "2023-12-31": 7583000000.0,
+       "2022-12-31": 5933000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2025-12-31": 0.191,
+       "2024-12-31": 0.258,
+       "2023-12-31": 0.178,
+       "2022-12-31": 0.312,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2025-12-31": 226526000.0,
+       "2024-12-31": -92364000.0,
+       "2023-12-31": 213600000.0,
+       "2022-12-31": -275496000.0,
+       "2021-12-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52152/fundamentals/DAL/balance",
+   "status": 200,
+   "elapsed_ms": 711,
+   "body": {
+    "symbol": "DAL",
+    "periods": [
+     "2025-12-31",
+     "2024-12-31",
+     "2023-12-31",
+     "2022-12-31",
+     "2021-12-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2025-12-31": 4310000000.0,
+       "2024-12-31": 3069000000.0,
+       "2023-12-31": 2741000000.0,
+       "2022-12-31": 3266000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "short_term_investments",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 0.0,
+       "2023-12-31": 1127000000.0,
+       "2022-12-31": 3268000000.0,
+       "2021-12-31": 3386000000.0
+      }
+     },
+     {
+      "label": "cash_cash_equivalents_and_short_term_investments",
+      "values": {
+       "2025-12-31": 4310000000.0,
+       "2024-12-31": 3069000000.0,
+       "2023-12-31": 3868000000.0,
+       "2022-12-31": 6534000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "gross_accounts_receivable",
+      "values": {
+       "2025-12-31": 2863000000.0,
+       "2024-12-31": 3242000000.0,
+       "2023-12-31": 3147000000.0,
+       "2022-12-31": 3199000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "allowance_for_doubtful_accounts_receivable",
+      "values": {
+       "2025-12-31": -13000000.0,
+       "2024-12-31": -18000000.0,
+       "2023-12-31": -17000000.0,
+       "2022-12-31": -23000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2025-12-31": 2850000000.0,
+       "2024-12-31": 3224000000.0,
+       "2023-12-31": 3130000000.0,
+       "2022-12-31": 3176000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_receivables",
+      "values": {
+       "2025-12-31": 2850000000.0,
+       "2024-12-31": 3224000000.0,
+       "2023-12-31": 3130000000.0,
+       "2022-12-31": 3176000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "inventories",
+      "values": {
+       "2025-12-31": 1601000000.0,
+       "2024-12-31": 1428000000.0,
+       "2023-12-31": 1314000000.0,
+       "2022-12-31": 1424000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "prepaid_assets",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 1877000000.0,
+       "2021-12-31": 1119000000.0
+      }
+     },
+     {
+      "label": "other_current_assets",
+      "values": {
+       "2025-12-31": 2207000000.0,
+       "2024-12-31": 2123000000.0,
+       "2023-12-31": 1957000000.0,
+       "2022-12-31": 1877000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_current_assets",
+      "values": {
+       "2025-12-31": 10968000000.0,
+       "2024-12-31": 9844000000.0,
+       "2023-12-31": 10269000000.0,
+       "2022-12-31": 13011000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2025-12-31": 3167000000.0,
+       "2024-12-31": 3135000000.0,
+       "2023-12-31": 3307000000.0,
+       "2022-12-31": 3375000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_properties",
+      "values": {
+       "2025-12-31": 17409000000.0,
+       "2024-12-31": 17339000000.0,
+       "2023-12-31": 16990000000.0,
+       "2022-12-31": 16032000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2025-12-31": 964000000.0,
+       "2024-12-31": 1075000000.0,
+       "2023-12-31": 1062000000.0,
+       "2022-12-31": 1067000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2025-12-31": 70706000000.0,
+       "2024-12-31": 67467000000.0,
+       "2023-12-31": 64197000000.0,
+       "2022-12-31": 60515000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2025-12-31": -24719000000.0,
+       "2024-12-31": -23228000000.0,
+       "2023-12-31": -21707000000.0,
+       "2022-12-31": -20370000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2025-12-31": 45987000000.0,
+       "2024-12-31": 44239000000.0,
+       "2023-12-31": 42490000000.0,
+       "2022-12-31": 40145000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "goodwill",
+      "values": {
+       "2025-12-31": 9753000000.0,
+       "2024-12-31": 9753000000.0,
+       "2023-12-31": 9753000000.0,
+       "2022-12-31": 9753000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_intangible_assets",
+      "values": {
+       "2025-12-31": 5966000000.0,
+       "2024-12-31": 5975000000.0,
+       "2023-12-31": 5983000000.0,
+       "2022-12-31": 5992000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2025-12-31": 15719000000.0,
+       "2024-12-31": 15728000000.0,
+       "2023-12-31": 15736000000.0,
+       "2022-12-31": 15745000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "long_term_equity_investment",
+      "values": {
+       "2025-12-31": 4222000000.0,
+       "2024-12-31": 2846000000.0,
+       "2023-12-31": 3457000000.0,
+       "2022-12-31": 2128000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "available_for_sale_securities",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 2128000000.0,
+       "2021-12-31": 1712000000.0
+      }
+     },
+     {
+      "label": "investmentin_financial_assets",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 2128000000.0,
+       "2021-12-31": 1712000000.0
+      }
+     },
+     {
+      "label": "investments_and_advances",
+      "values": {
+       "2025-12-31": 4222000000.0,
+       "2024-12-31": 2846000000.0,
+       "2023-12-31": 3457000000.0,
+       "2022-12-31": 2128000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_assets",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 325000000.0,
+       "2021-12-31": 1294000000.0
+      }
+     },
+     {
+      "label": "non_current_deferred_assets",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 325000000.0,
+       "2021-12-31": 1294000000.0
+      }
+     },
+     {
+      "label": "other_non_current_assets",
+      "values": {
+       "2025-12-31": 4421000000.0,
+       "2024-12-31": 2715000000.0,
+       "2023-12-31": 1692000000.0,
+       "2022-12-31": 1259000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_non_current_assets",
+      "values": {
+       "2025-12-31": 70349000000.0,
+       "2024-12-31": 65528000000.0,
+       "2023-12-31": 63375000000.0,
+       "2022-12-31": 59277000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2025-12-31": 81317000000.0,
+       "2024-12-31": 75372000000.0,
+       "2023-12-31": 73644000000.0,
+       "2022-12-31": 72288000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "accounts_payable",
+      "values": {
+       "2025-12-31": 5226000000.0,
+       "2024-12-31": 4650000000.0,
+       "2023-12-31": 4446000000.0,
+       "2022-12-31": 5106000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "payables",
+      "values": {
+       "2025-12-31": 5226000000.0,
+       "2024-12-31": 4650000000.0,
+       "2023-12-31": 4446000000.0,
+       "2022-12-31": 5106000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "current_accrued_expenses",
+      "values": {
+       "2025-12-31": 6851000000.0,
+       "2024-12-31": 6574000000.0,
+       "2023-12-31": 6178000000.0,
+       "2022-12-31": 5067000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "payables_and_accrued_expenses",
+      "values": {
+       "2025-12-31": 12077000000.0,
+       "2024-12-31": 11224000000.0,
+       "2023-12-31": 10624000000.0,
+       "2022-12-31": 10173000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_current_borrowings",
+      "values": {
+       "2025-12-31": 1605000000.0,
+       "2024-12-31": 2175000000.0,
+       "2023-12-31": 2983000000.0,
+       "2022-12-31": 2359000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "current_debt",
+      "values": {
+       "2025-12-31": 1605000000.0,
+       "2024-12-31": 2175000000.0,
+       "2023-12-31": 2983000000.0,
+       "2022-12-31": 2359000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "current_capital_lease_obligation",
+      "values": {
+       "2025-12-31": 809000000.0,
+       "2024-12-31": 763000000.0,
+       "2023-12-31": 759000000.0,
+       "2022-12-31": 714000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "current_debt_and_capital_lease_obligation",
+      "values": {
+       "2025-12-31": 2414000000.0,
+       "2024-12-31": 2938000000.0,
+       "2023-12-31": 3742000000.0,
+       "2022-12-31": 3073000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "current_deferred_revenue",
+      "values": {
+       "2025-12-31": 4876000000.0,
+       "2024-12-31": 4314000000.0,
+       "2023-12-31": 3908000000.0,
+       "2022-12-31": 3434000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "current_deferred_liabilities",
+      "values": {
+       "2025-12-31": 4876000000.0,
+       "2024-12-31": 4314000000.0,
+       "2023-12-31": 3908000000.0,
+       "2022-12-31": 3434000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_current_liabilities",
+      "values": {
+       "2025-12-31": 8257000000.0,
+       "2024-12-31": 8194000000.0,
+       "2023-12-31": 8144000000.0,
+       "2022-12-31": 9260000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "current_liabilities",
+      "values": {
+       "2025-12-31": 27624000000.0,
+       "2024-12-31": 26670000000.0,
+       "2023-12-31": 26418000000.0,
+       "2022-12-31": 25940000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "long_term_debt",
+      "values": {
+       "2025-12-31": 12507000000.0,
+       "2024-12-31": 14019000000.0,
+       "2023-12-31": 17071000000.0,
+       "2022-12-31": 20671000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "long_term_capital_lease_obligation",
+      "values": {
+       "2025-12-31": 5353000000.0,
+       "2024-12-31": 5814000000.0,
+       "2023-12-31": 6468000000.0,
+       "2022-12-31": 6866000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_and_capital_lease_obligation",
+      "values": {
+       "2025-12-31": 17860000000.0,
+       "2024-12-31": 19833000000.0,
+       "2023-12-31": 23539000000.0,
+       "2022-12-31": 27537000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_liabilities",
+      "values": {
+       "2025-12-31": 3444000000.0,
+       "2024-12-31": 2176000000.0,
+       "2023-12-31": 908000000.0,
+       "2022-12-31": 24000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_revenue",
+      "values": {
+       "2025-12-31": 4386000000.0,
+       "2024-12-31": 4512000000.0,
+       "2023-12-31": 4512000000.0,
+       "2022-12-31": 4448000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_liabilities",
+      "values": {
+       "2025-12-31": 7830000000.0,
+       "2024-12-31": 6688000000.0,
+       "2023-12-31": 5420000000.0,
+       "2022-12-31": 4472000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "non_current_pension_and_other_postretirement_benefit_plans",
+      "values": {
+       "2025-12-31": 3156000000.0,
+       "2024-12-31": 3144000000.0,
+       "2023-12-31": 3601000000.0,
+       "2022-12-31": 3707000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "employee_benefits",
+      "values": {
+       "2025-12-31": 3156000000.0,
+       "2024-12-31": 3144000000.0,
+       "2023-12-31": 3601000000.0,
+       "2022-12-31": 3707000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_non_current_liabilities",
+      "values": {
+       "2025-12-31": 3994000000.0,
+       "2024-12-31": 3744000000.0,
+       "2023-12-31": 3561000000.0,
+       "2022-12-31": 4050000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_non_current_liabilities_net_minority_interest",
+      "values": {
+       "2025-12-31": 32840000000.0,
+       "2024-12-31": 33409000000.0,
+       "2023-12-31": 36121000000.0,
+       "2022-12-31": 39766000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2025-12-31": 60464000000.0,
+       "2024-12-31": 60079000000.0,
+       "2023-12-31": 62539000000.0,
+       "2022-12-31": 65706000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 0.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 0.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "additional_paid_in_capital",
+      "values": {
+       "2025-12-31": 11883000000.0,
+       "2024-12-31": 11740000000.0,
+       "2023-12-31": 11641000000.0,
+       "2022-12-31": 11526000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2025-12-31": 13343000000.0,
+       "2024-12-31": 8783000000.0,
+       "2023-12-31": 5650000000.0,
+       "2022-12-31": 1170000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "treasury_stock",
+      "values": {
+       "2025-12-31": 238000000.0,
+       "2024-12-31": 251000000.0,
+       "2023-12-31": 341000000.0,
+       "2022-12-31": 313000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_equity_adjustments",
+      "values": {
+       "2025-12-31": -4135000000.0,
+       "2024-12-31": -4979000000.0,
+       "2023-12-31": -5845000000.0,
+       "2022-12-31": -5801000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "gains_losses_not_affecting_retained_earnings",
+      "values": {
+       "2025-12-31": -4135000000.0,
+       "2024-12-31": -4979000000.0,
+       "2023-12-31": -5845000000.0,
+       "2022-12-31": -5801000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2025-12-31": 20853000000.0,
+       "2024-12-31": 15293000000.0,
+       "2023-12-31": 11105000000.0,
+       "2022-12-31": 6582000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2025-12-31": 20853000000.0,
+       "2024-12-31": 15293000000.0,
+       "2023-12-31": 11105000000.0,
+       "2022-12-31": 6582000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2025-12-31": 33360000000.0,
+       "2024-12-31": 29312000000.0,
+       "2023-12-31": 28176000000.0,
+       "2022-12-31": 27253000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2025-12-31": 20853000000.0,
+       "2024-12-31": 15293000000.0,
+       "2023-12-31": 11105000000.0,
+       "2022-12-31": 6582000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "capital_lease_obligations",
+      "values": {
+       "2025-12-31": 6162000000.0,
+       "2024-12-31": 6577000000.0,
+       "2023-12-31": 7227000000.0,
+       "2022-12-31": 7580000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2025-12-31": 5134000000.0,
+       "2024-12-31": -435000000.0,
+       "2023-12-31": -4631000000.0,
+       "2022-12-31": -9163000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "working_capital",
+      "values": {
+       "2025-12-31": -16656000000.0,
+       "2024-12-31": -16826000000.0,
+       "2023-12-31": -16149000000.0,
+       "2022-12-31": -12929000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2025-12-31": 34965000000.0,
+       "2024-12-31": 31487000000.0,
+       "2023-12-31": 31159000000.0,
+       "2022-12-31": 29612000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2025-12-31": 5134000000.0,
+       "2024-12-31": -435000000.0,
+       "2023-12-31": -4631000000.0,
+       "2022-12-31": -9163000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2025-12-31": 20274000000.0,
+       "2024-12-31": 22771000000.0,
+       "2023-12-31": 27281000000.0,
+       "2022-12-31": 30610000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_debt",
+      "values": {
+       "2025-12-31": 9802000000.0,
+       "2024-12-31": 13125000000.0,
+       "2023-12-31": 17313000000.0,
+       "2022-12-31": 19764000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "share_issued",
+      "values": {
+       "2025-12-31": 659669346.0,
+       "2024-12-31": 654571606.0,
+       "2023-12-31": 654671194.0,
+       "2022-12-31": 651800786.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "ordinary_shares_number",
+      "values": {
+       "2025-12-31": 653171237.0,
+       "2024-12-31": 646472635.0,
+       "2023-12-31": 643446948.0,
+       "2022-12-31": 641265753.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "treasury_shares_number",
+      "values": {
+       "2025-12-31": 6498109.0,
+       "2024-12-31": 8098971.0,
+       "2023-12-31": 11224246.0,
+       "2022-12-31": 10535033.0,
+       "2021-12-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52152/fundamentals/DAL/cashflow",
+   "status": 200,
+   "elapsed_ms": 854,
+   "body": {
+    "symbol": "DAL",
+    "periods": [
+     "2025-12-31",
+     "2024-12-31",
+     "2023-12-31",
+     "2022-12-31",
+     "2021-12-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2025-12-31": 5005000000.0,
+       "2024-12-31": 3457000000.0,
+       "2023-12-31": 4609000000.0,
+       "2022-12-31": 1318000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "pension_and_employee_benefit_expense",
+      "values": {
+       "2025-12-31": -210000000.0,
+       "2024-12-31": -296000000.0,
+       "2023-12-31": -121000000.0,
+       "2022-12-31": -453000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "operating_gains_losses",
+      "values": {
+       "2025-12-31": -210000000.0,
+       "2024-12-31": -296000000.0,
+       "2023-12-31": -121000000.0,
+       "2022-12-31": -453000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2025-12-31": 2443000000.0,
+       "2024-12-31": 2513000000.0,
+       "2023-12-31": 2341000000.0,
+       "2022-12-31": 2107000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "depreciation_amortization_depletion",
+      "values": {
+       "2025-12-31": 2443000000.0,
+       "2024-12-31": 2513000000.0,
+       "2023-12-31": 2341000000.0,
+       "2022-12-31": 2107000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "deferred_income_tax",
+      "values": {
+       "2025-12-31": 1109000000.0,
+       "2024-12-31": 1155000000.0,
+       "2023-12-31": 980000000.0,
+       "2022-12-31": 591000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "deferred_tax",
+      "values": {
+       "2025-12-31": 1109000000.0,
+       "2024-12-31": 1155000000.0,
+       "2023-12-31": 980000000.0,
+       "2022-12-31": 591000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "asset_impairment_charge",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 20000000.0,
+       "2021-12-31": 337000000.0
+      }
+     },
+     {
+      "label": "unrealized_gain_loss_on_investment_securities",
+      "values": {
+       "2025-12-31": -1209000000.0,
+       "2024-12-31": 323000000.0,
+       "2023-12-31": -1283000000.0,
+       "2022-12-31": 874000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2025-12-31": -332000000.0,
+       "2024-12-31": 163000000.0,
+       "2023-12-31": -50000000.0,
+       "2022-12-31": -227000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2025-12-31": 432000000.0,
+       "2024-12-31": -126000000.0,
+       "2023-12-31": -7000000.0,
+       "2022-12-31": -728000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_inventory",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 121000000.0,
+       "2022-12-31": -158000000.0,
+       "2021-12-31": -318000000.0
+      }
+     },
+     {
+      "label": "change_in_prepaid_assets",
+      "values": {
+       "2025-12-31": -183000000.0,
+       "2024-12-31": -241000000.0,
+       "2023-12-31": 137000000.0,
+       "2022-12-31": -1026000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_payable",
+      "values": {
+       "2025-12-31": 842000000.0,
+       "2024-12-31": 614000000.0,
+       "2023-12-31": -285000000.0,
+       "2022-12-31": 1226000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_payables_and_accrued_expense",
+      "values": {
+       "2025-12-31": 842000000.0,
+       "2024-12-31": 614000000.0,
+       "2023-12-31": -285000000.0,
+       "2022-12-31": 1226000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_assets",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": null,
+       "2021-12-31": -76000000.0
+      }
+     },
+     {
+      "label": "change_in_other_current_liabilities",
+      "values": {
+       "2025-12-31": 10000000.0,
+       "2024-12-31": 56000000.0,
+       "2023-12-31": -395000000.0,
+       "2022-12-31": 2357000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_other_working_capital",
+      "values": {
+       "2025-12-31": 435000000.0,
+       "2024-12-31": 407000000.0,
+       "2023-12-31": 538000000.0,
+       "2022-12-31": 324000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2025-12-31": 1536000000.0,
+       "2024-12-31": 710000000.0,
+       "2023-12-31": -12000000.0,
+       "2022-12-31": 2153000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_operating_activities",
+      "values": {
+       "2025-12-31": 8342000000.0,
+       "2024-12-31": 8025000000.0,
+       "2023-12-31": 6464000000.0,
+       "2022-12-31": 6363000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2025-12-31": 8342000000.0,
+       "2024-12-31": 8025000000.0,
+       "2023-12-31": 6464000000.0,
+       "2022-12-31": 6363000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2025-12-31": -4499000000.0,
+       "2024-12-31": -5140000000.0,
+       "2023-12-31": -5323000000.0,
+       "2022-12-31": -6366000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "sale_of_ppe",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 0.0,
+       "2021-12-31": 0.0
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2025-12-31": -4499000000.0,
+       "2024-12-31": -5140000000.0,
+       "2023-12-31": -5323000000.0,
+       "2022-12-31": -6366000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "purchase_of_business",
+      "values": {
+       "2025-12-31": -276000000.0,
+       "2024-12-31": 0.0,
+       "2023-12-31": -152000000.0,
+       "2022-12-31": -870000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "sale_of_business",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": null,
+       "2021-12-31": 0.0
+      }
+     },
+     {
+      "label": "net_business_purchase_and_sale",
+      "values": {
+       "2025-12-31": -276000000.0,
+       "2024-12-31": 0.0,
+       "2023-12-31": -152000000.0,
+       "2022-12-31": -870000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "purchase_of_investment",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 0.0,
+       "2023-12-31": -2312000000.0,
+       "2022-12-31": -2704000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "sale_of_investment",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 1137000000.0,
+       "2023-12-31": 4547000000.0,
+       "2022-12-31": 2804000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_investment_purchase_and_sale",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 1137000000.0,
+       "2023-12-31": 2235000000.0,
+       "2022-12-31": 100000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_other_investing_changes",
+      "values": {
+       "2025-12-31": 589000000.0,
+       "2024-12-31": 264000000.0,
+       "2023-12-31": 92000000.0,
+       "2022-12-31": 212000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_investing_activities",
+      "values": {
+       "2025-12-31": -4186000000.0,
+       "2024-12-31": -3739000000.0,
+       "2023-12-31": -3148000000.0,
+       "2022-12-31": -6924000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2025-12-31": -4186000000.0,
+       "2024-12-31": -3739000000.0,
+       "2023-12-31": -3148000000.0,
+       "2022-12-31": -6924000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_issuance",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 0.0,
+       "2021-12-31": 0.0
+      }
+     },
+     {
+      "label": "long_term_debt_payments",
+      "values": {
+       "2025-12-31": -4827000000.0,
+       "2024-12-31": -3953000000.0,
+       "2023-12-31": -4071000000.0,
+       "2022-12-31": -4475000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2025-12-31": -4827000000.0,
+       "2024-12-31": -3953000000.0,
+       "2023-12-31": -4071000000.0,
+       "2022-12-31": -4475000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2025-12-31": -4827000000.0,
+       "2024-12-31": -3953000000.0,
+       "2023-12-31": -4071000000.0,
+       "2022-12-31": -4475000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "repurchase_of_common_equity",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 0.0,
+       "2021-12-31": 0.0
+      }
+     },
+     {
+      "label": "net_common_stock_issuance",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 0.0,
+       "2021-12-31": 0.0
+      }
+     },
+     {
+      "label": "common_stock_dividend_paid",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": -321000000.0,
+       "2023-12-31": -128000000.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_dividends_paid",
+      "values": {
+       "2025-12-31": -440000000.0,
+       "2024-12-31": -321000000.0,
+       "2023-12-31": -128000000.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_other_financing_charges",
+      "values": {
+       "2025-12-31": 2191000000.0,
+       "2024-12-31": 14000000.0,
+       "2023-12-31": 805000000.0,
+       "2022-12-31": -60000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_financing_activities",
+      "values": {
+       "2025-12-31": -3076000000.0,
+       "2024-12-31": -4260000000.0,
+       "2023-12-31": -3394000000.0,
+       "2022-12-31": -4535000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2025-12-31": -3076000000.0,
+       "2024-12-31": -4260000000.0,
+       "2023-12-31": -3394000000.0,
+       "2022-12-31": -4535000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2025-12-31": 1080000000.0,
+       "2024-12-31": 26000000.0,
+       "2023-12-31": -78000000.0,
+       "2022-12-31": -5096000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2025-12-31": 3421000000.0,
+       "2024-12-31": 3395000000.0,
+       "2023-12-31": 3473000000.0,
+       "2022-12-31": 8569000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2025-12-31": 4501000000.0,
+       "2024-12-31": 3421000000.0,
+       "2023-12-31": 3395000000.0,
+       "2022-12-31": 3473000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "interest_paid_supplemental_data",
+      "values": {
+       "2025-12-31": 850000000.0,
+       "2024-12-31": 1001000000.0,
+       "2023-12-31": 1164000000.0,
+       "2022-12-31": 1261000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2025-12-31": -4499000000.0,
+       "2024-12-31": -5140000000.0,
+       "2023-12-31": -5323000000.0,
+       "2022-12-31": -6366000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "issuance_of_debt",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 0.0,
+       "2021-12-31": 0.0
+      }
+     },
+     {
+      "label": "repayment_of_debt",
+      "values": {
+       "2025-12-31": -4827000000.0,
+       "2024-12-31": -3953000000.0,
+       "2023-12-31": -4071000000.0,
+       "2022-12-31": -4475000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "repurchase_of_capital_stock",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 0.0,
+       "2021-12-31": 0.0
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2025-12-31": 3843000000.0,
+       "2024-12-31": 2885000000.0,
+       "2023-12-31": 1141000000.0,
+       "2022-12-31": -3000000.0,
+       "2021-12-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52152/fundamentals/DAL/ratings",
+   "status": 200,
+   "elapsed_ms": 591,
+   "body": {
+    "symbol": "DAL.BO",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52152/disclosures/shareholding?symbol=DAL",
+   "status": 200,
+   "elapsed_ms": 4332,
+   "body": {
+    "symbol": "DAL",
+    "count": 43,
+    "patterns": [
+     {
+      "symbol": "DAL",
+      "quarter_end": "2026-06-30",
+      "promoter_percent": 70.86,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.0,
+      "public_percent": 29.14,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.14,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-07-17",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/539681_177202617723_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2026-03-31",
+      "promoter_percent": 70.86,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.0,
+      "public_percent": 29.14,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.14,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-04-21",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/539681_2142026101331_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2025-12-31",
+      "promoter_percent": 70.86,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.0,
+      "public_percent": 29.14,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.14,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-01-20",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/539681_2012026193716_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2025-09-30",
+      "promoter_percent": 70.86,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.0,
+      "public_percent": 29.14,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.14,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-10-16",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/539681_1610202519015_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2025-06-30",
+      "promoter_percent": 70.86,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.0,
+      "public_percent": 29.14,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.14,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-07-18",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/539681_1872025155631_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2025-03-31",
+      "promoter_percent": 70.86,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.0,
+      "public_percent": 29.14,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.14,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-04-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1842025192920_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2024-12-31",
+      "promoter_percent": 70.86,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.0,
+      "public_percent": 29.14,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.14,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-01-13",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_131202516538_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2024-09-30",
+      "promoter_percent": 70.86,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": 0.0,
+      "public_percent": 29.14,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.14,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-10-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1910202418432_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2024-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-07-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1972024115059_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2024-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-04-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1842024175022_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2023-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-01-08",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_81202413448_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2023-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-10-17",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_17102023122817_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2023-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-07-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1872023122629_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2023-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-04-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_2042023115829_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2022-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-01-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1612023172950_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2022-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-10-14",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_14102022143740_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2022-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-07-11",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1172022114728_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2022-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-04-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_124202213930_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2021-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-01-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1512022164914_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2021-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-10-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_12102021173910_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2021-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-07-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1572021122939_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2021-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-04-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1642021115513_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2020-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-01-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1612021172815_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2020-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-10-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1610202013343_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2020-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-07-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_2072020173751_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2020-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-05-11",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_115202011118_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2019-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-01-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1812020165856_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2019-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-10-22",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_2010201910656_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2019-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_382019123851_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2019-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-04-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_194201915495_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2018-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_251201917346_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2018-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_111201817712_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2018-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-07-17",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1672018191413_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2018-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-04-30",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_2042018122450_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2017-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-01-17",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1612018183411_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2017-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-10-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_12102017152720_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2017-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-07-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_197201794353_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2017-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-04-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_184201716625_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2016-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_1812017101421_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2016-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-10-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_15102016113331_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2016-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-07-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/539681_18720168333_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2016-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-04-27",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DAL",
+      "quarter_end": "2015-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52152/disclosures/announcements?symbol=DAL&limit=25",
+   "status": 200,
+   "elapsed_ms": 266,
+   "body": {
+    "symbol": "DAL",
+    "exchange": null,
+    "count": 3,
+    "announcements": [
+     {
+      "symbol": "DAL",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/d2df4ced-66d4-4280-aa47-4e93c1e2ae6b.pdf",
+      "ts": "2026-08-29T13:44:31.440000+05:30"
+     },
+     {
+      "symbol": "DAL",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a14b85ac-1ebc-469b-8c02-abb1532dcfd2.pdf",
+      "ts": "2026-08-27T19:33:09.400000+05:30"
+     },
+     {
+      "symbol": "DAL",
+      "exchange": "BSE",
+      "headline": "Notice Of 30Th Annual General Meeting And Annual Report For The Financial Year 2025-2026",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/7a1dbedc-4803-473c-9a3e-2a918d93e4d8.pdf",
+      "ts": "2026-08-27T19:18:50.610000+05:30"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {}
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52152/disclosures/results?symbol=DAL",
+   "status": 502,
+   "elapsed_ms": 53,
+   "body": {
+    "detail": "nse_direct: 'DAL' is not a known NSE instrument"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

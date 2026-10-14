@@ -1,0 +1,116 @@
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " calculate"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " profit"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " calculate"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " amount"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " money"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " made"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " selling"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " bought"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": " W"}
+{"kind": "delta", "text": "IP"}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "250"}
+{"kind": "delta", "text": " each"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " so"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": " x"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "250"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "750"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " sold"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " same"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "262"}
+{"kind": "delta", "text": " each"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " so"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": " x"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "262"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "930"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "Now"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " calculate"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " profit"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " subtract"}
+{"kind": "delta", "text": "ing"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "930"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "750"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "180"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " profit"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "180"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2748, "output_tokens": 117, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,5 @@
+candidate ace7dd76; grep of pinned vitest + source
+406:  it("disable during a pending healthCheck stays stopped, not reverted to active", async () => {
+--- source healthCheckOne
+542:      await this.healthCheckOne(record);
+546:  private async healthCheckOne(record: LoadedPlugin): Promise<void> {

@@ -94,7 +94,33 @@ describe("useSecStore.loadFilings", () => {
       form_type: "10-K",
     });
     expect(useSecStore.getState().filingsStatus).toBe("ready");
-    expect(useSecStore.getState().activeIdentifier).toBe("AAPL");
+    // The caller owns the active identifier (the panel sets it before loading).
+    expect(useSecStore.getState().activeIdentifier).toBeNull();
+  });
+
+  it("a slower response for the previous symbol never overwrites the newer one (R15-CODE-FRONTEND-017)", async () => {
+    let resolveAapl: (value: FilingsListResponse) => void = () => {};
+    let rejectAapl: (reason: Error) => void = () => {};
+    (sidecarGet as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(
+        new Promise((resolve, reject) => {
+          resolveAapl = resolve;
+          rejectAapl = reject;
+        }),
+      )
+      .mockResolvedValueOnce({ ...FILINGS_FIXTURE, symbol: "MSFT" });
+    const { loadFilings, setActiveIdentifier } = useSecStore.getState();
+    setActiveIdentifier("AAPL");
+    const aapl = loadFilings("AAPL");
+    setActiveIdentifier("MSFT");
+    await loadFilings("MSFT");
+
+    rejectAapl(new Error("late AAPL failure"));
+    await aapl;
+    expect(useSecStore.getState().activeIdentifier).toBe("MSFT");
+    expect(useSecStore.getState().filingsStatus).toBe("ready");
+    expect(useSecStore.getState().filingsError).toBeNull();
+    void resolveAapl;
   });
 
   it("hits /sec/filings with cik= for a numeric identifier", async () => {
@@ -119,7 +145,95 @@ describe("useSecStore.loadFilingDetail", () => {
       identifier: "AAPL",
     });
     expect(useSecStore.getState().filingDetailStatus).toBe("ready");
-    expect(useSecStore.getState().activeAccession).toBe("0000320193-24-000123");
+    // R15-CODE-FRONTEND-017: `loadFilingDetail` no longer writes
+    // `activeAccession` from the response — the caller (`setActiveAccession`
+    // in SecFilingsPanel) already owns it, mirroring the fix that stopped
+    // `loadFilings` writing `activeIdentifier`. It stays whatever the caller
+    // set it to (nothing, here).
+    expect(useSecStore.getState().activeAccession).toBeNull();
+  });
+
+  it("R15-LEAD-010: passes the listed row's form type as the lookup hint", async () => {
+    (sidecarGet as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce(FILINGS_FIXTURE)
+      .mockResolvedValueOnce(DETAIL_FIXTURE);
+    await useSecStore.getState().loadFilings("AAPL", "10-Q");
+    await useSecStore.getState().loadFilingDetail("0000320193-24-000100", "AAPL");
+    expect(sidecarGet).toHaveBeenLastCalledWith("/sec/filings/0000320193-24-000100", {
+      identifier: "AAPL",
+      form_type: "10-Q",
+    });
+  });
+
+  // R15-CODE-FRONTEND-017 / R15-UI-015 (triage-c rc1-vshard-3:4): loadFilings
+  // was the only slice with a generation guard — a slower detail/insider
+  // response could reopen a filing the user navigated away from, or paint
+  // another request's error over the current one.
+  function deferred<T>() {
+    let resolve: (value: T) => void = () => {};
+    let reject: (reason: unknown) => void = () => {};
+    const promise = new Promise<T>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  }
+
+  it("D1: a late response for a previously-open filing does not reopen it or overwrite the current one's status", async () => {
+    const a1 = deferred<FilingDetail>();
+    const b2 = deferred<FilingDetail>();
+    (sidecarGet as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(a1.promise)
+      .mockReturnValueOnce(b2.promise);
+    const { loadFilingDetail, setActiveAccession } = useSecStore.getState();
+
+    setActiveAccession("A-1");
+    const p1 = loadFilingDetail("A-1", "AAPL");
+    setActiveAccession("B-2");
+    const p2 = loadFilingDetail("B-2", "AAPL");
+    b2.resolve({ ...DETAIL_FIXTURE, filing: { ...DETAIL_FIXTURE.filing, accession: "B-2" } });
+    await p2;
+    expect(useSecStore.getState().activeAccession).toBe("B-2");
+    expect(useSecStore.getState().filingDetailStatus).toBe("ready");
+
+    a1.resolve({ ...DETAIL_FIXTURE, filing: { ...DETAIL_FIXTURE.filing, accession: "A-1" } });
+    await p1;
+    expect(useSecStore.getState().activeAccession).toBe("B-2");
+    expect(useSecStore.getState().filingDetailStatus).toBe("ready");
+  });
+
+  it("D2: a late response after the user closed the viewer does not reopen it", async () => {
+    const a1 = deferred<FilingDetail>();
+    (sidecarGet as ReturnType<typeof vi.fn>).mockReturnValueOnce(a1.promise);
+    const { loadFilingDetail, setActiveAccession } = useSecStore.getState();
+
+    setActiveAccession("A-1");
+    const p1 = loadFilingDetail("A-1", "AAPL");
+    setActiveAccession(null);
+    a1.resolve(DETAIL_FIXTURE);
+    await p1;
+    expect(useSecStore.getState().activeAccession).toBeNull();
+  });
+
+  it("D3: a late rejection for a previous filing does not paint its error over the current one", async () => {
+    const a1 = deferred<FilingDetail>();
+    const b2 = deferred<FilingDetail>();
+    (sidecarGet as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(a1.promise)
+      .mockReturnValueOnce(b2.promise);
+    const { loadFilingDetail, setActiveAccession } = useSecStore.getState();
+
+    setActiveAccession("A-1");
+    const p1 = loadFilingDetail("A-1", "AAPL");
+    setActiveAccession("B-2");
+    const p2 = loadFilingDetail("B-2", "AAPL");
+    b2.resolve({ ...DETAIL_FIXTURE, filing: { ...DETAIL_FIXTURE.filing, accession: "B-2" } });
+    await p2;
+
+    a1.reject(new Error("EDGAR timeout"));
+    await p1;
+    expect(useSecStore.getState().filingDetailError).toBeNull();
+    expect(useSecStore.getState().filingDetailStatus).toBe("ready");
   });
 });
 
@@ -129,6 +243,26 @@ describe("useSecStore.loadInsider", () => {
     await useSecStore.getState().loadInsider("AAPL", "4");
     expect(sidecarGet).toHaveBeenCalledWith("/sec/insider/AAPL", { limit: 50, form: "4" });
     expect(useSecStore.getState().insiderStatus).toBe("ready");
+  });
+
+  it("I1: a late rejection for a previous issuer does not paint its error over the current one (R15-CODE-FRONTEND-017)", async () => {
+    let rejectAapl: (reason: unknown) => void = () => {};
+    (sidecarGet as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(
+        new Promise((_resolve, reject) => {
+          rejectAapl = reject;
+        }),
+      )
+      .mockResolvedValueOnce({ ...INSIDER_FIXTURE, issuer_name: "Microsoft Corp" });
+    const { loadInsider } = useSecStore.getState();
+    const aapl = loadInsider("AAPL");
+    await loadInsider("MSFT");
+    expect(useSecStore.getState().insiderStatus).toBe("ready");
+
+    rejectAapl(new Error("EDGAR timeout"));
+    await aapl;
+    expect(useSecStore.getState().insiderStatus).toBe("ready");
+    expect(useSecStore.getState().insiderError).toBeNull();
   });
 });
 
@@ -174,5 +308,44 @@ describe("searchCompanies", () => {
     await useSecStore.getState().searchCompanies("  ");
     expect(sidecarGet).not.toHaveBeenCalled();
     expect(useSecStore.getState().searchResults).toHaveLength(0);
+  });
+
+  it("keeps the failure reason instead of discarding it (R15-UI-015)", async () => {
+    (sidecarGet as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      Object.assign(new Error("sec-edgar-mcp is not available"), { status: 501 }),
+    );
+    await useSecStore.getState().searchCompanies("apple");
+    expect(useSecStore.getState().searchStatus).toBe("error");
+    expect(useSecStore.getState().searchError).toContain("sec-edgar-mcp is not available");
+  });
+
+  it("clearSearch and a fresh load both clear a prior search error", async () => {
+    (sidecarGet as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("boom"));
+    await useSecStore.getState().searchCompanies("apple");
+    expect(useSecStore.getState().searchError).toBe("boom");
+    useSecStore.getState().clearSearch();
+    expect(useSecStore.getState().searchError).toBeNull();
+  });
+
+  it("a late 'app' result after the 'apple' search resolved does not overwrite it (class case)", async () => {
+    let resolveApp: (value: { results: unknown[] }) => void = () => {};
+    (sidecarGet as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveApp = resolve;
+        }),
+      )
+      .mockResolvedValueOnce({
+        results: [{ cik: "0000320193", name: "Apple Inc.", ticker: "AAPL" }],
+      });
+    const { searchCompanies } = useSecStore.getState();
+    const app = searchCompanies("app");
+    await searchCompanies("apple");
+    expect(useSecStore.getState().searchResults).toHaveLength(1);
+
+    resolveApp({ results: [{ cik: "0000012345", name: "Applied Materials", ticker: "AMAT" }] });
+    await app;
+    expect(useSecStore.getState().searchResults).toHaveLength(1);
+    expect(useSecStore.getState().searchResults[0]?.ticker).toBe("AAPL");
   });
 });

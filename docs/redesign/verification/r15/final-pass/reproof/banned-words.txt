@@ -1,0 +1,33 @@
+BANNED_WORD/BANNED_PHRASE at cac9d206759c2cd83d46778cc94a4dbd0b678429 (patterns built in shell; counts and file:line only)
+outside docs/redesign/verification: word(-w) 0 phrase 0
+substring outside verification:
+docs/redesign/R8_TRACK_SEAMS_REPORT.md:133
+sidecar/services/research/psl/public_suffix_list.dat:6578
+sidecar/services/research/psl/public_suffix_list.dat:9450
+sidecar/services/research/psl/public_suffix_list.dat:9451
+sidecar/services/research/psl/public_suffix_list.dat:9452
+sidecar/services/research/psl/public_suffix_list.dat:9454
+sidecar/services/research/psl/public_suffix_list.dat:9455
+sidecar/services/research/psl/public_suffix_list.dat:9456
+sidecar/services/resolver_masters/bse_instruments.json:7
+sidecar/services/resolver_masters/bse_instruments.json:247
+sidecar/services/resolver_masters/bse_instruments.json:1731
+sidecar/services/resolver_masters/bse_instruments.json:2143
+sidecar/services/resolver_masters/bse_instruments.json:3123
+sidecar/services/resolver_masters/bse_instruments.json:4113
+sidecar/services/resolver_masters/bse_instruments.json:4532
+sidecar/services/resolver_masters/india_sector_map.json:14200
+sidecar/services/resolver_masters/india_sector_map.json:17458
+sidecar/services/resolver_masters/india_sector_map.json:39364
+sidecar/services/resolver_masters/nse_instruments.json:7
+sidecar/services/resolver_masters/nse_instruments.json:8
+sidecar/services/resolver_masters/nse_instruments.json:247
+sidecar/services/resolver_masters/nse_instruments.json:1650
+sidecar/services/resolver_masters/nse_instruments.json:1928
+sidecar/services/resolver_masters/nse_instruments.json:2960
+sidecar/services/resolver_masters/us_instruments.json:1
+sidecar/tests/test_agent_runtime.py:1990
+sidecar/tests/test_agent_runtime.py:2137
+sidecar/tests/test_agent_runtime.py:2139
+sidecar/tests/test_agent_runtime.py:2150
+inside docs/redesign/verification (run evidence; out of product scope): word files       25 phrase files        7

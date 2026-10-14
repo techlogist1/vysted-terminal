@@ -1,0 +1,653 @@
+{
+  "collected_at": "2026-09-19",
+  "slot": "S1",
+  "symbol": "DHOOTTRANS",
+  "status": "complete",
+  "collector_notes": "Outside-truth pack for S1 (Dhoot Transmission Ltd), a 33-day-old mainboard listing (listed 2026-08-17). The session's WebSearch budget was already exhausted (200/200) before this task began, so NOTHING here comes from a search-result snippet: every value is from a page fetched directly by URL, from BSE's own JSON API over headless curl, or from the company's own PDFs filed with BSE (downloaded and text-extracted). That turned out to be a strength: the FILED Q1 FY27 results and press release are the top-authority source and they settle three separate aggregator disagreements outright. NSE's API is Akamai-blocked (403) to non-browser clients and Trendlyne paywalls its metrics, so both are recorded as reachability gaps, not as data. Where an aggregator contradicts a filing, the filing is marked authoritative and the aggregator value is kept verbatim as a disagreement - those ARE the findings for the differ, not noise to smooth over.",
+  "authority_note": "Order of authority used: (1) company results/press release filed with BSE under LODR Reg 30/33 and SAST disclosures filed under Reg 29/31 (PDFs downloaded from bseindia.com/xml-data/corpfiling/), (2) BSE's own scrip APIs (api.bseindia.com), (3) screener.in, (4) chittorgarh (IPO record), (5) Groww. Groww is demonstrably WRONG on the latest quarter - see traps.groww_stale_quarter.",
+
+  "identity": {
+    "legal_name": {
+      "value": "Dhoot Transmission Limited",
+      "as_of": "2026-09-04",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "note": "Exact header on the company's own filed Q1 FY27 results statement, page 5 and page 9."
+    },
+    "former_names": {
+      "value": "Dhoot Transmission Private Limited",
+      "rename_date": null,
+      "as_of": "2026-09-04",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "quote": "Dhoot Transmission Limited (formerly known as Dhoot Transmission Private Limited)",
+      "note": "The company still prints the 'formerly known as' line on the face of its filed results. The private-to-public conversion date itself is not stated in the results; it is in the RHP. See world_gaps.conversion_date_unreached."
+    },
+    "isin": {
+      "value": "INE01NH01023",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid=",
+      "corroboration": "Printed on the company's own 2026-09-04 press-release covering letter (https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf) and by chittorgarh (https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/). Three independent sources agree."
+    },
+    "cin": {
+      "value": "U31300PN1998PLC131629",
+      "as_of": "2026-09-04",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "note": "STILL BEGINS WITH 'U' (unlisted) on the 2026-09-04 results. The company filed a separate 2026-09-12 intimation to change the CIN and listing status - i.e. the CIN on the newest filed financials is already stale by design. See traps.cin_still_unlisted."
+    },
+    "bse_code": {
+      "value": "544867",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid="
+    },
+    "nse_symbol": {
+      "value": "DHOOTTRANS",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid=",
+      "note": "BSE's own API returns SecurityId 'DHOOTTRANS'. Corroborated by the company's press-release covering letter which prints 'NSE Scrip Symbol: DHOOTTRANS'."
+    },
+    "board": {
+      "value": "Mainboard",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid=",
+      "evidence": "BSE Group 'B', Index 'BSE IPO', settlement T+1. NOT SME: the IPO lot was 17 shares / INR 14,807 minimum (mainboard retail lot sizing), and the issue was INR 3,067 crore with a 50/15/35 QIB/NII/retail split - an SME issue has none of those. Source: https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/"
+    },
+    "exchange": {
+      "value": "Listed on BOTH NSE and BSE",
+      "as_of": "2026-08-17",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "quote": "On August 17, 2026, the equity shares of the Holding Company were listed on National Stock Exchange of India Limited (NSE) and BSE Limited (BSE)."
+    },
+    "sector": {
+      "value": "Consumer Discretionary",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid=",
+      "note": "BSE's own classification chain: Sector 'Consumer Discretionary' > IndustryNew 'Automobile and Auto Components' > IGroup 'Auto Components' > ISubGroup 'Auto Components & Equipments'. screener.in prints the identical four-level chain."
+    },
+    "industry": {
+      "value": "Auto Components & Equipments",
+      "hierarchy": "Consumer Discretionary > Automobile and Auto Components > Auto Components > Auto Components & Equipments",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid=",
+      "disagreement": "Trendlyne buckets it as Sector 'Automobiles & Auto Components' / Industry 'Auto Parts & Equipment' (https://trendlyne.com/equity/3612273/DHOOTTRANS/dhoot-transmission-ltd/, as_of 2026-09-18) - same meaning, different string. A string-equality industry match across sources fails here."
+    },
+    "listing_date": {
+      "value": "2026-08-17",
+      "as_of": "2026-08-17",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "corroboration": "BSE announcement 2026-08-17 category 'New Listing': 'Trading Members of the Exchange are hereby informed that effective from August 17, 2026, the Equity Shares of ...' (https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260801&strScrip=544867&strSearch=P&strToDate=20260919&strType=C&subcategory=-1)"
+    },
+    "incorporated": {
+      "value": "1998",
+      "as_of": "2026-09-04",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "evidence": "The CIN U31300PN1998PLC131629 encodes year 1998 and state PN (Pune).",
+      "disagreement": "The company's OWN 2026-09-04 press release says 'Founded in 1999' (https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf). Trendlyne states 'Incorporation Date 28 April 1998' (https://trendlyne.com/equity/3612273/DHOOTTRANS/dhoot-transmission-ltd/). The CIN and Trendlyne agree on 1998; the company's marketing copy says 1999. BOTH recorded."
+    },
+    "registered_office": {
+      "value": "Gut No 312, Nanekarwadi, Chakan, Pune - 410 501, Maharashtra, India",
+      "as_of": "2026-09-04",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "note": "The Q1 press release is datelined 'Chhatrapati Sambhajinagar' (formerly Aurangabad), a DIFFERENT city from the registered office. A location-matching heuristic that trusts the press-release dateline lands in the wrong district."
+    },
+    "managing_director": {
+      "value": "Rahul Dhoot",
+      "as_of": "2026-09-04",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf",
+      "quote": "Rahul Dhoot, Managing Director"
+    },
+    "company_secretary": {
+      "value": "Amey Jogas (Membership No. A39922)",
+      "as_of": "2026-09-04",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf"
+    },
+    "website": {
+      "value": "www.dhoottransmission.com",
+      "as_of": "2026-09-04",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf"
+    },
+    "business_description": {
+      "value": "Tier-1 auto component group; leader in two-wheeler and three-wheeler wiring harness with 41% market share in India for FY26. Also supplies wiring harnesses for HCV/LCV, off-road and farm equipment in ICE and EV segments, plus electronic sensors and controllers, automotive switches, connection systems, EV charging guns, inlets, off-board chargers, RCDs and Li-ion battery assembly. 2,500+ employees across 23 manufacturing facilities in India, the UK, Slovakia and Thailand.",
+      "as_of": "2026-09-04",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf"
+    },
+    "reportable_segments": {
+      "value": "ONE reportable segment: 'Automotive wiring harness & ancillary components business'. No segment disclosure is made.",
+      "as_of": "2026-09-04",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "note": "Note 3 of both the standalone and consolidated results. Any UI that expects a segment breakdown must render 'single segment', not an empty table."
+    }
+  },
+
+  "ipo": {
+    "note": "Included because S1's whole hostility is that this name is 33 days old at curation and absent from both bundled Indian masters. The IPO record IS the identity record for the pre-listing period.",
+    "open_date": { "value": "2026-08-10", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" },
+    "close_date": { "value": "2026-08-12", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" },
+    "allotment_date": { "value": "2026-08-13", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" },
+    "listing_date": { "value": "2026-08-17", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" },
+    "price_band": { "value": "INR 829 - INR 871 per share", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" },
+    "issue_price": { "value": 871.0, "unit": "INR per share", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-08-13" },
+    "face_value": { "value": 2.0, "unit": "INR per share", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" },
+    "lot_size": { "value": 17, "unit": "shares", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" },
+    "minimum_investment": { "value": 14807, "unit": "INR", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19", "note": "17 shares x INR 871 = 14,807 exactly (cut-off price, one lot). Contrast the SME pattern where minimum investment is quoted at TWO lots on the LOWER band." },
+    "issue_size": { "value": 3067.0, "unit": "INR crore", "shares": 35218047, "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19", "note": "The battery manifest records 3066.89 crore; chittorgarh rounds to 3,067. Same number." },
+    "fresh_issue": { "value": 1400.0, "unit": "INR crore", "shares": 16080445, "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" },
+    "offer_for_sale": { "value": 1667.0, "unit": "INR crore", "shares": 19137602, "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19", "note": "OFS is 54% of the issue - only the 1,400 crore fresh component reached the company. A pipeline that adds 3,067 crore to the balance sheet overstates the cash raised by 119%." },
+    "anchor_investment": { "value": 918.27, "unit": "INR crore", "shares": 10542657, "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" },
+    "reservation": { "value": { "qib_pct": 50.0, "qib_shares": 17571096, "nii_pct": 15.0, "nii_shares": 5271330, "retail_pct": 35.0, "retail_shares": 12299768, "employee_shares": 75853, "employee_discount_inr": 80 }, "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" },
+    "subscription_total": { "value": "52.71x", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-08-12", "confidence": "medium - chittorgarh's category-wise breakdown rendered as reservation percentages rather than subscription multiples in the fetch, so only the total is recorded. See world_gaps.subscription_by_category_unreached." },
+    "listing_price_nse_close": { "value": 1187.05, "unit": "INR per share", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-08-17" },
+    "listing_price_bse_close": { "value": 1187.5, "unit": "INR per share", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-08-17" },
+    "listing_gain": { "value": "approximately +36.4% over the INR 871 issue price", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-08-17", "disagreement": "The battery manifest records listing_price_inr = 1200 and '+37.8%' (sourced to trendlyne/chittorgarh). Chittorgarh's page as fetched on 2026-09-19 gives the listing-day CLOSE (1,187.05 NSE / 1,187.50 BSE), not the listing-day OPEN. 1,200 is plausibly the open and 1,187 the close - two different, both-correct numbers for 'listing price'. Recorded BOTH; do not treat the manifest and this pack as conflicting." },
+    "market_cap_listing_day": { "value": 24280.88, "unit": "INR crore", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-08-17" },
+    "registrar": { "value": "KFin Technologies Ltd", "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" },
+    "lead_managers": { "value": ["Axis Capital Ltd", "Jefferies India", "Kotak Mahindra Capital", "Nomura Financial Advisory", "SBI Capital Markets", "360 One WAM"], "source_url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "as_of": "2026-09-19" }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 1590.55,
+      "unit": "INR per share",
+      "exchange": "BSE",
+      "date": "2026-09-18",
+      "as_of": "2026-09-18T16:00:00+05:30",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544867&seriesid=",
+      "note": "BSE's own API, field Header.LTP, stamped 'Ason: 18 Sep 26 | 16:00'."
+    },
+    "previous_close": { "value": 1575.65, "unit": "INR per share", "date": "2026-09-17", "as_of": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544867&seriesid=" },
+    "open": { "value": 1576.6, "unit": "INR per share", "date": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544867&seriesid=" },
+    "day_high": { "value": 1604.15, "unit": "INR per share", "date": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544867&seriesid=" },
+    "day_low": { "value": 1560.0, "unit": "INR per share", "date": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544867&seriesid=" },
+    "change_pct": { "value": 0.95, "unit": "percent", "date": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544867&seriesid=" },
+    "nse_last_close": {
+      "value": 1590.7,
+      "unit": "INR per share",
+      "exchange": "NSE",
+      "date": "2026-09-18",
+      "as_of": "2026-09-18T15:31:00+05:30",
+      "source_url": "https://trendlyne.com/equity/3612273/DHOOTTRANS/dhoot-transmission-ltd/",
+      "corroboration": "Groww shows the identical NSE LTP 1,590.70, +10.90 (+0.69%), previous close 1,579.80, day range 1,558.00-1,603.80 (https://groww.in/stocks/dhoot-transmission-ltd)."
+    },
+    "intra_bse_disagreement": {
+      "note": "BSE'S OWN TWO ENDPOINTS DISAGREE on the same day. getScripHeaderData returns LTP 1590.55 / High 1604.15; StockReachGraph returns CurrVal 1588.15 / HighVal 1610 for the same scrip and the same session (CurrDate 'Fri Sep 18 2026 16:01:18').",
+      "values": { "getScripHeaderData_ltp": 1590.55, "stockreachgraph_currval": 1588.15, "getScripHeaderData_high": 1604.15, "stockreachgraph_high": 1610.0 },
+      "source_urls": [
+        "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544867&seriesid=",
+        "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=544867&flag=0&fromdate=&todate=&seriesid="
+      ],
+      "as_of": "2026-09-18"
+    },
+    "nse_vs_bse_spread": {
+      "note": "BSE 1590.55 vs NSE 1590.70 on 2026-09-18 - a 0.15 spread (0.009%). The battery manifest's reference (NSE 1600.00 / BSE 1599.00 on 2026-09-16) shows a 1.00 spread on a different date. Both are normal dual-listing behaviour, NOT an error; a differ must not flag a sub-rupee NSE/BSE gap as wrong data.",
+      "as_of": "2026-09-18"
+    }
+  },
+
+  "week52": {
+    "high": { "value": 1739.0, "unit": "INR per share", "date": "2026-09-15", "as_of": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544867", "note": "BSE reports the adjusted and unadjusted values as identical (Fifty2WkHigh_adj = Fifty2WkHigh_unadj = 1739.00), i.e. no corporate action has occurred since listing." },
+    "low": { "value": 1130.5, "unit": "INR per share", "date": "2026-08-17", "as_of": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544867" },
+    "month_high_low": { "value": "1739.00 / 1271.35", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544867", "as_of": "2026-09-18" },
+    "week_high_low": { "value": "1739.00 / 1399.20", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544867", "as_of": "2026-09-18" },
+    "disagreement": "Three sources, three values. BSE (authoritative): 1739.00 / 1130.50. screener.in: 1,739 / 1,130 (truncated, not rounded - 1130.50 -> 1,130). Groww: 1,735.30 / 1,131.00 (NSE-based, genuinely different because it is a different exchange's range). A differ must key 52w range on the EXCHANGE, not on the symbol.",
+    "critical_caveat": "THE '52-WEEK' RANGE COVERS 33 CALENDAR DAYS. The low's date (2026-08-17) IS the listing date. Any UI that prints '52-week high/low' for this scrip is making a false claim about the window; any screen that ranks on '% off 52-week high' silently compares a 33-day range against peers' 365-day ranges."
+  },
+
+  "market_cap": {
+    "value": 32535.0,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/DHOOTTRANS/",
+    "basis": "Derived-and-corroborated: 204,550,445 shares x INR 1,590.55 (BSE close) = INR 32,534.9 crore.",
+    "share_count_derivation": "Paid-up equity capital at 2026-06-30 was INR 376.94 million at FV INR 2 = 188,470,000 shares (filed results, page 9). The IPO fresh issue of 16,080,445 shares was allotted 2026-08-13, AFTER that balance-sheet date. 188,470,000 + 16,080,445 = 204,550,445. Independently confirmed by the SAST Reg 29(1) filing: 87,632,093 shares = 42.84% of capital implies 204,547,000 (rounding of the stated percentage).",
+    "disagreement": "screener.in prints INR 32,537 Cr (2026-09-18, https://www.screener.in/company/DHOOTTRANS/). Groww prints INR 32,230 Cr (2026-09-18, https://groww.in/stocks/dhoot-transmission-ltd) - 307 crore / 0.94% lower, consistent with Groww using a pre-IPO or otherwise stale share count. The battery manifest records NSE 31,825.63 Cr / BSE 31,800.06 Cr as of 2026-09-16, which is a DIFFERENT DATE (price was lower) and is not a conflict."
+  },
+
+  "pe_ttm": {
+    "value": 75.1,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "basis": "Computed from filed figures only: TTM consolidated PAT attributable to owners = FY26 3,966.54 + Q1 FY27 1,326.55 - Q1 FY26 962.78 = INR 4,330.31 million = INR 433.03 crore. Market cap INR 32,534.9 crore / 433.03 = 75.1x.",
+    "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+    "disagreement": "FOUR different P/E values are published for this stock on the same day (2026-09-18): screener.in STANDALONE page 166 (https://www.screener.in/company/DHOOTTRANS/); screener.in CONSOLIDATED page 72.6 (https://www.screener.in/company/DHOOTTRANS/consolidated/); Groww 81.22 (https://groww.in/stocks/dhoot-transmission-ltd); this pack's filing-derived 75.1. The standalone-vs-consolidated pair alone is a 2.3x spread. BSE's own API returns PE '-' (no value) for this scrip.",
+    "note": "The screener STANDALONE 166 is not wrong arithmetic - it is the right arithmetic on the wrong entity scope. The group earns 433 crore consolidated and 171 crore standalone because the UK/Slovakia/Thailand/Multilink operations sit in subsidiaries. Defaulting a newly listed multinational to standalone roughly doubles its apparent P/E."
+  },
+
+  "pb": {
+    "value": 8.4,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://groww.in/stocks/dhoot-transmission-ltd",
+    "confidence": "medium - single aggregator source, not a filing. Internally consistent with Groww's own book value (1,590.70 / 187.48 = 8.48). screener.in leaves Book Value BLANK on both its standalone and consolidated pages for this scrip, and BSE's API returns PB '-'.",
+    "caveat": "No post-IPO balance sheet has been FILED yet. The 2026-06-30 balance sheet predates the 2026-08-13 allotment, so every published P/B for this name is an aggregator estimate of post-money equity, not a reported one. The first filed post-IPO net worth arrives with Q2 FY27 results (~November 2026)."
+  },
+
+  "roe": {
+    "value": 24.0,
+    "unit": "percent",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/DHOOTTRANS/consolidated/",
+    "disagreement": "THREE values: screener consolidated 24.0%; screener standalone 26.2% (https://www.screener.in/company/DHOOTTRANS/); Groww 16.29% (https://groww.in/stocks/dhoot-transmission-ltd). Groww's is ~8 points below both screener figures, consistent with Groww dividing by post-IPO equity while screener divides by pre-IPO equity. All three are 'as of 2026-09-18'. BSE API returns ROE '-'.",
+    "note": "None of the three is filed. ROE straddling an IPO is genuinely ambiguous (average equity over a period in which 1,400 crore of fresh equity landed on day 1 of Q2 FY27); a defensible terminal should show the input equity, not just the ratio."
+  },
+
+  "roce": {
+    "value": 24.4,
+    "unit": "percent",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/DHOOTTRANS/consolidated/",
+    "disagreement": "screener standalone page prints 26.0% (https://www.screener.in/company/DHOOTTRANS/). screener's own consolidated ratios table leaves the ROCE % cells for Mar 2025 and Mar 2026 EMPTY while printing a headline 24.4% - the headline number has no visible row behind it.",
+    "historical_roce_row": { "Mar 2021": "15%", "Mar 2022": "34%", "Mar 2024": "24%", "Mar 2025": null, "Mar 2026": null, "source_url": "https://www.screener.in/company/DHOOTTRANS/consolidated/" }
+  },
+
+  "debt_to_equity": {
+    "value": 0.38,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://groww.in/stocks/dhoot-transmission-ltd",
+    "corroboration": "Independently derived from screener's consolidated balance sheet: borrowings INR 918 crore / (equity capital 38 + reserves 2,397 = 2,435 crore) = 0.377x at 2026-03-31 (https://www.screener.in/company/DHOOTTRANS/consolidated/). Two independent routes agree.",
+    "caveat": "This is the PRE-IPO ratio. Against post-money equity of roughly 3,900 crore the same borrowings give D/E ~0.24x. Finance cost in Q1 FY27 fell 34.0% YoY (154.94 mn vs 234.83 mn) because, in the company's words, 'we continued to optimise the working capital debt levels as a result of equity infusion in March 2026' (https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf). A stale D/E shown next to a falling interest line is internally contradictory."
+  },
+
+  "revenue_ttm": {
+    "value": 5005.0,
+    "unit": "INR crore",
+    "as_of": "2026-06-30",
+    "basis": "Consolidated revenue from operations, TTM = FY26 45,249.55 + Q1 FY27 14,464.15 - Q1 FY26 9,663.28 = INR 50,050.42 million = INR 5,005.04 crore.",
+    "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+    "standalone_equivalent": { "value": 3825.5, "unit": "INR crore", "basis": "FY26 34,860.70 + Q1 FY27 10,774.29 - Q1 FY26 7,379.94 = 38,255.05 million.", "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf" }
+  },
+
+  "net_profit_ttm": {
+    "value": 433.03,
+    "unit": "INR crore",
+    "as_of": "2026-06-30",
+    "basis": "Consolidated PAT attributable to owners of the holding company, TTM = FY26 3,966.54 + Q1 FY27 1,326.55 - Q1 FY26 962.78 = INR 4,330.31 million.",
+    "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+    "note": "Total consolidated PAT including non-controlling interests is INR 4,332.62 million = 433.26 crore; the NCI share is tiny (0.15 mn in Q1 FY27) but nonzero, so 'net profit' has two defensible definitions here differing by ~0.2 crore.",
+    "standalone_equivalent": { "value": 187.52, "unit": "INR crore", "basis": "FY26 1,709.77 + Q1 FY27 572.37 - Q1 FY26 406.99 = 1,875.15 million.", "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf" }
+  },
+
+  "revenue_growth_yoy": {
+    "value": 49.7,
+    "unit": "percent",
+    "basis": "Consolidated revenue from operations, Q1 FY27 (quarter ended 2026-06-30) vs Q1 FY26: 14,464.15 vs 9,663.28 INR million.",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf",
+    "quote": "Revenue from operations for the quarter was Rs 14,464 million, an increase of 49.7% over Q1 FY26.",
+    "other_bases": {
+      "fy26_full_year_consolidated": { "value": 31.4, "unit": "percent", "basis": "FY26 45,249.55 vs FY25 revenue; FY25 consolidated revenue from screener = INR 3,445 crore. 4,525.0 / 3,445 - 1 = +31.4%.", "source_url": "https://www.screener.in/company/DHOOTTRANS/consolidated/" },
+      "q1_standalone": { "value": 46.0, "unit": "percent", "basis": "Standalone Q1 FY27 10,774.29 vs Q1 FY26 7,379.94 INR million.", "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf" },
+      "india_business": { "value": 53.2, "unit": "percent", "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf" },
+      "global_business": { "value": 18.3, "unit": "percent", "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf" },
+      "ev_related_supplies": { "value": 79.2, "unit": "percent", "note": "Now 27% of consolidated revenue.", "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf" }
+    },
+    "disagreement": "Groww publishes '+31.89% YoY' for the quarter labelled Jun '26 (https://groww.in/stocks/dhoot-transmission-ltd). The company's own filed press release says 49.7%. Groww is wrong - see traps.groww_stale_quarter.",
+    "growth_is_partly_inorganic": "Control of the Multilink business was gained 2026-06-11, so Q1 FY27 consolidates roughly three weeks of an acquired business. The 49.7% is NOT like-for-like organic growth and the company does not disclose an organic split. Source: https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf"
+  },
+
+  "eps_ttm": {
+    "value": 21.17,
+    "unit": "INR per share",
+    "as_of": "2026-06-30",
+    "basis": "TTM consolidated PAT attributable to owners INR 4,330.31 million / 204,550,445 post-IPO shares.",
+    "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+    "alternative_on_prelisting_count": { "value": 22.98, "unit": "INR per share", "basis": "Same TTM profit / 188,470,000 shares (the count actually used in the filed EPS line).", "note": "An 8.5% swing purely from which share count is used. The company's filed EPS uses the PRE-IPO count because the IPO allotment postdates the 2026-06-30 reporting date." },
+    "disagreement": "Groww publishes EPS (TTM) INR 19.40 (https://groww.in/stocks/dhoot-transmission-ltd), 8.4% below the filing-derived 21.17, consistent with Groww's understated latest-quarter profit.",
+    "filed_eps_lines": {
+      "standalone_q1_fy27": { "value": 3.04, "unit": "INR", "note": "not annualised" },
+      "standalone_q4_fy26": { "value": 2.73, "unit": "INR" },
+      "standalone_q1_fy26": { "value": 2.52, "unit": "INR" },
+      "standalone_fy26": { "value": 10.52, "unit": "INR", "note": "annualised (full year)" },
+      "consolidated_q1_fy27": { "value": 7.04, "unit": "INR", "basis": "1,326.55 mn / 188.47 mn shares; matches screener's consolidated EPS cell." },
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf"
+    }
+  },
+
+  "book_value_per_share": {
+    "value": 187.48,
+    "unit": "INR per share",
+    "as_of": "2026-09-18",
+    "source_url": "https://groww.in/stocks/dhoot-transmission-ltd",
+    "confidence": "medium - aggregator estimate; NOT a filed figure. screener.in leaves Book Value blank on both pages and BSE's API returns '-'.",
+    "sanity_check": "Consolidated equity at 2026-03-31 was INR 2,435 crore (capital 38 + reserves 2,397). Add Q1 FY27 profit 132.7 crore, OCI -1.5 crore and the 1,400 crore fresh issue net of expenses, and post-money equity lands near 3,900 crore; 3,900 / 20.455 crore shares = ~INR 191/share. Groww's 187.48 is in the defensible range.",
+    "filed_reference_point": { "standalone_other_equity": { "value": 27767.68, "unit": "INR million", "as_of": "2026-03-31", "confidence": "low - the extracted results table renders this figure in the standalone section with an ambiguous column alignment; treat as the FY26 year-end standalone 'other equity' and re-read the PDF before relying on it.", "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf" } }
+  },
+
+  "face_value": {
+    "value": 2.0,
+    "unit": "INR per share",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid=",
+    "corroboration": "The filed results state 'Paid up equity share capital (Face value of INR 2 each)'. screener, Groww and chittorgarh all agree. Four sources, no disagreement."
+  },
+
+  "dividend": {
+    "last_declared_per_share": { "value": null, "gap": "world_gaps.no_dividend_since_listing" },
+    "record_date": null,
+    "ex_date": null,
+    "paid_trailing_12m_per_share": { "value": null, "gap": "world_gaps.prelisting_dividend_history_unreached" },
+    "yield": { "value": 0.0, "unit": "percent", "as_of": "2026-09-18", "source_url": "https://www.screener.in/company/DHOOTTRANS/", "corroboration": "Groww also shows Dividend Yield 0.00% (https://groww.in/stocks/dhoot-transmission-ltd)." },
+    "note": "No dividend has been declared since listing: BSE's corporate-action API returns three EMPTY tables for this scrip ({\"Table\":[],\"Table1\":[],\"Table2\":[]}) and no dividend appears among the 19 announcements filed between 2026-08-17 and 2026-09-19. Any pre-listing dividend paid while the company was private would sit in the RHP, not on the exchange - recorded as a gap, not asserted as zero."
+  },
+
+  "shareholding": {
+    "quarter": "As on listing / August 2026 (one-time post-listing disclosure). NOT a regular quarterly filing.",
+    "as_of": "2026-08-2026",
+    "promoter_pct": { "value": 82.78, "unit": "percent", "source_url": "https://www.screener.in/company/DHOOTTRANS/", "corroboration": "chittorgarh's post-issue shareholding row gives promoters 82.78% / public 17.22% (https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/). Two independent sources agree exactly." },
+    "fii_pct": { "value": 2.3, "unit": "percent", "source_url": "https://www.screener.in/company/DHOOTTRANS/" },
+    "dii_pct": { "value": 5.84, "unit": "percent", "source_url": "https://www.screener.in/company/DHOOTTRANS/" },
+    "public_pct": { "value": 9.08, "unit": "percent", "source_url": "https://www.screener.in/company/DHOOTTRANS/" },
+    "no_of_shareholders": { "value": 746831, "as_of": "2026-08", "source_url": "https://www.screener.in/company/DHOOTTRANS/" },
+    "sums_to": "82.78 + 2.30 + 5.84 + 9.08 = 100.00",
+    "pledged_pct_of_promoter": {
+      "value": 51.75,
+      "unit": "percent of promoter holding",
+      "equivalent_pct_of_total_capital": 42.842,
+      "shares": 87632093,
+      "as_of": "2026-08-19",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3F0828F5_E726_428E_AE83_4879FA9BF048_151451.pdf",
+      "basis": "42.842 / 82.78 = 51.75%.",
+      "CONTESTED": "THE TWO FILINGS MADE ON THE SAME DAY ABOUT THE SAME SHARES CONTRADICT EACH OTHER. See traps.encumbrance_nil_vs_42pct. Treat this field as 'contested', never as a single number.",
+      "type": "Indirect encumbrance - a limited-recourse Mauritian fixed-and-floating charge over the SHARES OF THE PROMOTER ENTITY, created 2025-03-17, not a pledge over the target company's own shares.",
+      "encumbrance_holder": "Deutsche Bank AG (Hong Kong Branch) as agent and security agent for a 11-bank syndicate (BNP Paribas Singapore, DBS GIFT City, Nomura Singapore, SMBC Singapore, HSBC GIFT City, Bank SinoPac, KGI Bank, Siemens Bank Singapore, Taishin International Bank, Credit Agricole CIB Singapore, CTBC Bank Singapore).",
+      "reported_by": "Deutsche Bank AG Hong Kong Branch under SAST Reg 29(1) on 2026-08-19, and by BC Asia Investments XV/XVI under SAST Reg 31(1) on 2026-08-19."
+    },
+    "promoter_composition": {
+      "bc_asia_investments_xv_and_xvi": { "value": 42.842, "unit": "percent of total share capital", "shares": 87632093, "note": "Mauritius-incorporated private-equity vehicles; BC Asia XVI holds 83 nominee shares on behalf of BC Asia XV. BC Asia Investments XXIII Limited holds 100% of both and holds no shares directly.", "as_of": "2026-08-14", "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/436B7797_E272_4D4E_873E_8A1E1D2000C9_153535.pdf" },
+      "remainder": { "value": 39.94, "unit": "percent of total share capital", "basis": "82.78 total promoter group - 42.842 BC Asia = 39.94, i.e. the Dhoot family side.", "confidence": "derived, not filed - the promoter-wise split is in the shareholding pattern, which was not reachable in machine-readable form. See world_gaps.promoter_wise_split_unreached." }
+    },
+    "filing_status_caveat": "AS OF 2026-09-19 NO REGULAR QUARTERLY SHAREHOLDING PATTERN HAS BEEN FILED. The company listed on 2026-08-17, mid-quarter. The first regular pattern (quarter ended 2026-09-30) is due within 21 days of quarter end, i.e. around 2026-10-21. Everything above is the one-time as-on-listing disclosure. A pipeline that labels this 'Q2 FY27 shareholding' is asserting a filing that does not exist yet.",
+    "source_url_shareholding_reference_date": "The Reg 31 filing states the promoter percentages are 'as per the shareholding pattern of the TC as on August 14, 2026' - three days BEFORE listing."
+  },
+
+  "corporate_actions_2026": {
+    "post_listing": {
+      "value": "NONE. No dividend, bonus, split, rights or any other corporate action since listing.",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544867",
+      "evidence": "BSE's corporate-action API returns {\"Table\":[],\"Table1\":[],\"Table2\":[]} - three empty tables. Corroborated by BSE's HighLow API reporting adjusted and unadjusted 52-week values as identical (1739.00 both), which is only true when no adjustment event has occurred."
+    },
+    "pre_listing_capital_restructuring": {
+      "value": "A LARGE pre-IPO capital expansion occurred during FY26, evidenced by the company's own filed paid-up capital line (FV INR 2 throughout): 2025-06-30 INR 193.62 million (96,810,000 shares) -> 2026-03-31 INR 376.91 million (188,455,000 shares) -> 2026-06-30 INR 376.94 million (188,470,000 shares). The share count roughly DOUBLED inside FY26, and the company separately refers to an 'equity infusion in March 2026'.",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "exact_mechanism": "NOT ESTABLISHED. The filed results say EPS is 'Refer note 8' (the note text was not extracted) and do not name a bonus ratio. The doubling is consistent with a 1:1 bonus, but a bonus plus a fresh preferential allotment would look the same on this line. Recorded as an observed capital change with an unresolved mechanism - see world_gaps.bonus_ratio_unreached. DO NOT assert a ratio.",
+      "why_it_matters": "This is the event behind the single most dangerous number on any aggregator page for this stock - see traps.unrestated_historical_eps."
+    },
+    "acquisition_multilink": {
+      "value": "Business Transfer Agreement dated 2026-04-06 (with a Letter Agreement dated 2026-06-06) between subsidiary Dhoot Automotive Systems Private Limited and M/s. Multilink for its auto-electrical manufacturing undertaking. CONTROL GAINED 2026-06-11. The company invested INR 4,991.14 million in DASPL to fund it. Majority of consideration paid June 2026, balance in July/August 2026. Integration expected to complete Q3 / early Q4 FY27.",
+      "as_of": "2026-06-11",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "corroboration": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf"
+    },
+    "subsidiary_investments_august_2026": {
+      "value": "Three separate Reg 30 intimations filed 2026-08-28 covering investment in step-down subsidiaries and in Dhoot Transmission UK Limited (wholly owned). A further INR 28.21 million was invested in Dhoot Transmission GMBH during Q1 FY27.",
+      "as_of": "2026-08-28",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260801&strScrip=544867&strSearch=P&strToDate=20260919&strType=C&subcategory=-1"
+    },
+    "credit_rating": { "value": "Credit rating intimation filed 2026-08-26.", "as_of": "2026-08-26", "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/dde9e014-acab-4d1f-9da6-ca70c65febc1.pdf", "note": "screener's document list references a CRISIL rating update dated 25 Aug; the BSE filing is dated 26 Aug. One-day offset between the rating agency's letter date and the exchange filing date - a normal, and normally mis-joined, pattern." }
+  },
+
+  "latest_results": {
+    "quarter": "Q1 FY27 (quarter ended 2026-06-30)",
+    "filing_date": "2026-09-04",
+    "board_meeting_date": "2026-09-04",
+    "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+    "first_results_since_listing": true,
+    "audit_status": "Q1 FY27 figures were subjected to LIMITED REVIEW by the statutory auditors. The comparative quarters (Q1 FY26 and Q4 FY26) were NOT reviewed - the company states 'the management has exercised necessary diligence in preparing the financial results of these periods'. Q4 FY26 is additionally a BALANCING FIGURE between the audited full year and the unaudited nine months.",
+    "consolidated_inr_million": {
+      "revenue_from_operations": { "q1_fy27": 14464.15, "q4_fy26": 12772.81, "q1_fy26": 9663.28, "fy26": 45249.55 },
+      "other_income": { "q1_fy27": 136.55, "q4_fy26": 71.79, "q1_fy26": 75.64, "fy26": 387.45 },
+      "total_income": { "q1_fy27": 14600.7, "q4_fy26": 12844.6, "q1_fy26": 9738.92, "fy26": 45637.0 },
+      "total_expenses": { "q1_fy27": 12831.21, "q4_fy26": 11559.83, "q1_fy26": 8469.7, "fy26": 40277.54 },
+      "finance_costs": { "q1_fy27": 154.94, "q4_fy26": 225.93, "q1_fy26": 234.83, "fy26": 912.44 },
+      "depreciation_and_amortisation": { "q1_fy27": 396.43, "q4_fy26": 350.48, "q1_fy26": 265.11, "fy26": 1225.44 },
+      "profit_before_exceptional_and_tax": { "q1_fy27": 1769.49, "q4_fy26": 1284.77, "q1_fy26": 1269.22, "fy26": 5359.46 },
+      "exceptional_items": { "q1_fy27": 30.0, "q4_fy26": 38.72, "q1_fy26": 29.59, "fy26": 202.59 },
+      "profit_before_tax": { "q1_fy27": 1739.49, "q4_fy26": 1246.05, "q1_fy26": 1239.63, "fy26": 5156.87 },
+      "total_tax_expense": { "q1_fy27": 412.79, "q4_fy26": 292.24, "q1_fy26": 277.13, "fy26": 1188.45 },
+      "profit_for_the_period": { "q1_fy27": 1326.7, "q4_fy26": 953.81, "q1_fy26": 962.5, "fy26": 3968.42 },
+      "profit_attributable_to_owners": { "q1_fy27": 1326.55, "q4_fy26": 952.43, "q1_fy26": 962.78, "fy26": 3966.54 },
+      "profit_attributable_to_nci": { "q1_fy27": 0.15, "q4_fy26": 1.38, "q1_fy26": -0.28, "fy26": 1.88 },
+      "total_other_comprehensive_income": { "q1_fy27": -14.83, "q4_fy26": 75.89, "q1_fy26": 101.37, "fy26": 228.27 },
+      "total_comprehensive_income": { "q1_fy27": 1311.87, "q4_fy26": 1029.7, "q1_fy26": 1063.87, "fy26": 4196.69 },
+      "ebitda_per_press_release": { "q1_fy27": 2184.0, "q4_fy26": 1789.0, "q1_fy26": 1694.0, "fy26": 7110.0 },
+      "ebitda_margin_pct": { "q1_fy27": 15.1, "q4_fy26": 14.0, "q1_fy26": 17.5, "fy26": 15.7 }
+    },
+    "standalone_inr_million": {
+      "revenue_from_operations": { "q1_fy27": 10774.29, "q4_fy26": 9879.73, "q1_fy26": 7379.94, "fy26": 34860.7 },
+      "other_income": { "q1_fy27": 51.56, "q4_fy26": 51.43, "q1_fy26": 44.3, "fy26": 210.49 },
+      "total_income": { "q1_fy27": 10825.85, "q4_fy26": 9931.16, "q1_fy26": 7424.24, "fy26": 35071.19 },
+      "finance_costs": { "q1_fy27": 88.78, "q4_fy26": 163.38, "q1_fy26": 157.03, "fy26": 639.47 },
+      "depreciation_and_amortisation": { "q1_fy27": 209.67, "q4_fy26": 199.45, "q1_fy26": 149.22, "fy26": 683.87 },
+      "profit_before_tax": { "q1_fy27": 771.56, "q4_fy26": 593.59, "q1_fy26": 545.38, "fy26": 2277.03 },
+      "profit_for_the_period": { "q1_fy27": 572.37, "q4_fy26": 454.26, "q1_fy26": 406.99, "fy26": 1709.77 },
+      "paid_up_equity_share_capital": { "q1_fy27": 376.94, "q4_fy26": 376.91, "q1_fy26": 193.62, "fy26": 376.91, "unit": "INR million at FV INR 2" },
+      "basic_and_diluted_eps_inr": { "q1_fy27": 3.04, "q4_fy26": 2.73, "q1_fy26": 2.52, "fy26": 10.52 }
+    },
+    "margin_commentary": "EBITDA margin 15.1%, up 110bps QoQ but DOWN 250bps YoY. Company attributes the YoY decline to copper and other raw-material price increases not fully passed through in the quarter incurred ('generally there is a time lag') and to higher labour costs. Source: https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf"
+  },
+
+  "last_3_announcements": [
+    { "date": "2026-09-12", "headline": "Intimation for change of Corporate Identification Number (CIN) and Listing Status of the Company", "category": "Company Update / General", "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/325450fd-e580-4c4e-87a6-2ae138b2c378.pdf" },
+    { "date": "2026-09-10", "headline": "Transcript of Q1 FY 2026-27 Earning Call", "category": "Company Update / Earnings Call Transcript", "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/da53b452-ebe5-49f1-98ae-3979327a3344.pdf" },
+    { "date": "2026-09-05", "headline": "Newspaper Advertisement - Publication of Quarterly Results - June 30, 2026", "category": "Company Update / Newspaper Publication", "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/4355c77a-6791-4cd0-8abb-806af0bfd85f.pdf" }
+  ],
+
+  "all_announcements_since_listing": {
+    "count": 19,
+    "window": "2026-08-01 to 2026-09-19 (the company's entire listed life plus 16 days)",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260801&strScrip=544867&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+    "items": [
+      { "date": "2026-09-12", "category": "Company Update / General", "headline": "Intimation for change of Corporate Identification Number (CIN) and Listing Status of the Company" },
+      { "date": "2026-09-10", "category": "Company Update / Earnings Call Transcript", "headline": "Transcript of Q1 FY 2026-27 Earning Call" },
+      { "date": "2026-09-05", "category": "Company Update / Newspaper Publication", "headline": "Newspaper Advertisement - Publication of Quarterly Results - June 30, 2026" },
+      { "date": "2026-09-04", "category": "Company Update / Analyst / Investor Meet", "headline": "Audio recording of Q1 FY 2026-27 Earnings Call held on Friday, September 4, 2026" },
+      { "date": "2026-09-04", "category": "Result / Financial Results", "headline": "Unaudited financial results (standalone and consolidated) - Q1 2026-27" },
+      { "date": "2026-09-04", "category": "Company Update / Press Release", "headline": "Press release - Dhoot Tranmission Limited announces its results for Q1 FY27" },
+      { "date": "2026-09-04", "category": "Company Update / Investor Presentation", "headline": "Investor presentation" },
+      { "date": "2026-09-04", "category": "Board Meeting / Outcome of Board Meeting", "headline": "Unaudited Financial Results (Standalone and Consolidated) for the quarter" },
+      { "date": "2026-09-01", "category": "Company Update / Analyst / Investor Meet", "headline": "Intimation of Conference Call with Investors and Analysts: Q1 FY2026-27 Earnings Call" },
+      { "date": "2026-08-31", "category": "Board Meeting / Board Meeting", "headline": "Board meeting scheduled intimation" },
+      { "date": "2026-08-28", "category": "Company Update / Acquisition", "headline": "Investment in the step-down subsidiaries of the Company" },
+      { "date": "2026-08-28", "category": "Company Update / Acquisition", "headline": "Investment in the step-down subsidiaries of the Company (second filing, same headline)" },
+      { "date": "2026-08-28", "category": "Company Update / Acquisition", "headline": "Intimation for investment in Dhoot Transmission UK Limited, wholly owned subsidiary" },
+      { "date": "2026-08-26", "category": "Company Update / Credit Rating", "headline": "Intimation of credit rating of the Company" },
+      { "date": "2026-08-20", "category": "Insider Trading / SAST / Reg 31(1) and 31(2)", "headline": "Disclosures of reasons for encumbrance by promoter of listed companies" },
+      { "date": "2026-08-20", "category": "Insider Trading / SAST / Reg 31(1) and 31(2)", "headline": "Disclosure under Regulation 31(1) and 31(2) of SEBI (SAST) Regulations" },
+      { "date": "2026-08-19", "category": "Insider Trading / SAST / Reg 29(1)", "headline": "Disclosure under Regulation 29(1) of SEBI (SAST) Regulations" },
+      { "date": "2026-08-17", "category": "Insider Trading / SAST / Closure of Trading Window", "headline": "Intimation about Trading window closure" },
+      { "date": "2026-08-17", "category": "New Listing / New Listing", "headline": "Equity Shares listed effective from August 17, 2026" }
+    ],
+    "pdf_path_note": "Announcement PDFs live under TWO different directories and the API does not tell you which. Lowercase-GUID attachment names resolve under /xml-data/corpfiling/AttachLive/; the uppercase-underscore names used for exchange-received SAST disclosures 404 there and resolve only under /xml-data/corpfiling/AttachHis/. A fetcher that hardcodes AttachLive silently loses exactly the SAST/encumbrance filings - the highest-signal category."
+  },
+
+  "consolidated_vs_standalone_note": {
+    "summary": "THIS IS THE SINGLE MOST IMPORTANT SCOPE DECISION FOR THIS NAME. Consolidated FY26 revenue is INR 4,525.0 crore against standalone INR 3,486.1 crore - the standalone entity is only 77% of group revenue. On profit the gap is far worse: consolidated FY26 PAT INR 396.84 crore vs standalone INR 170.98 crore - standalone captures only 43% of group earnings.",
+    "why": "The group operates 23 plants across India, the UK, Slovakia and Thailand, and the newly acquired Multilink business sits inside subsidiary Dhoot Automotive Systems Private Limited. Substantially all the international and acquired earnings are outside the standalone entity.",
+    "downstream_effect": "Defaulting to standalone yields a P/E of 166 instead of ~73, an EPS of 10.52 instead of ~21, and a revenue growth rate of 46.0% instead of 49.7%. screener.in's DEFAULT page for this scrip is the standalone one; its consolidated page is a separate URL. An aggregator-scraper that takes the default URL gets the wrong entity scope on every ratio.",
+    "company_reports_both": "The company files both statements in a single PDF (consolidated on pages 5-8, standalone on pages 9-10). The press release quotes ONLY consolidated figures.",
+    "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf"
+  },
+
+  "traps": {
+    "absent_from_bundled_masters": {
+      "severity": "high",
+      "detail": "Listed 2026-08-17, 33 days before curation. The battery manifest records master_presence bse/nse/us all 'absent'. Any symbol resolution that consults only a bundled master returns NOTHING for a stock with a INR 32,500 crore market cap - i.e. the failure mode is a large-cap 'not found', not an obscure-microcap miss."
+    },
+    "near_miss_name_collision": {
+      "severity": "critical",
+      "detail": "The BSE master's only 'Dhoot' row is a DIFFERENT, unrelated company. Verified directly against BSE's own API: scrip 526971 = SecurityId 'DHOOTIN', ISIN INE313G01016, face value INR 10.00, Group 'XT', Sector 'Services', Industry 'Trading & Distributors'. The target is scrip 544867 = 'DHOOTTRANS', ISIN INE01NH01023, face value INR 2.00, Group 'B', Sector 'Consumer Discretionary', Industry 'Auto Components & Equipments'.",
+      "why_fuzzy_matching_lands_wrong": "Token overlap on 'Dhoot' is the only shared signal; every discriminating attribute differs. A fuzzy name match that returns the sole master hit produces a Services/Trading microcap in Group XT when the user asked for a 32,500-crore auto-component large cap. The two share NO field value except the word 'Dhoot'.",
+      "evidence": [
+        "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=526971&seriesid=",
+        "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid="
+      ],
+      "correct_discriminator": "ISIN. INE01NH01023 vs INE313G01016 - unambiguous, and both are printed by BSE's own API."
+    },
+    "unrestated_historical_eps": {
+      "severity": "critical",
+      "detail": "screener.in publishes a Q1 FY26 (Jun 2025) EPS of INR 203.97 on its standalone page and INR 482.51 on its consolidated page. THE COMPANY'S OWN FILED COMPARATIVE FOR THE SAME QUARTER IS INR 2.52 (standalone). That is an ~81x discrepancy sitting in the column immediately left of the current quarter's INR 3.04.",
+      "mechanism": "Ind AS 33 requires EPS for prior periods to be restated retrospectively for bonus elements. The company restated; the aggregator did not, and is still showing the pre-restatement per-share figure against a post-restatement one.",
+      "consequence": "MONEY-RELEVANT AND CATASTROPHIC. Any automatic YoY EPS calculation off screener's quarterly table returns roughly -98.5% ('earnings collapsed 98%') for a company whose filed EPS actually grew +20.6% YoY (3.04 vs 2.52) and whose PAT grew +37.8%. A screener, an alert, or an agent summarising 'EPS trend' inverts the sign of the story.",
+      "evidence": [
+        "https://www.screener.in/company/DHOOTTRANS/",
+        "https://www.screener.in/company/DHOOTTRANS/consolidated/",
+        "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf"
+      ],
+      "detection_rule": "Any per-share series where consecutive periods differ by more than ~10x is a restatement artefact, not a business event. Cross-check against the paid-up capital line in the same filing (193.62 -> 376.91 INR million) before believing it."
+    },
+    "groww_stale_quarter": {
+      "severity": "critical",
+      "detail": "Groww publishes, under the label 'Jun '26', Revenue INR 1,284 Cr (+31.89% YoY) and Net Profit INR 96.25 Cr (+39.10% YoY). The company's FILED consolidated Q1 FY27 is Revenue INR 1,446.4 Cr (+49.7%) and PAT INR 132.7 Cr (+37.8%). Groww's profit figure of 96.25 crore is, to within rounding, the Q1 FY26 PAT of INR 962.50 million (96.25 crore) - the YEAR-AGO quarter, presented under the current quarter's label.",
+      "consequence": "Understates the latest quarter's profit by 27.5% and revenue by 11.2%, and propagates into every Groww-derived ratio on the page (EPS TTM 19.40, P/E 81.22, ROE 16.29%). A user comparing the app against Groww would conclude the APP is wrong.",
+      "evidence": [
+        "https://groww.in/stocks/dhoot-transmission-ltd",
+        "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf",
+        "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf"
+      ],
+      "note": "This is the canonical 'stale aggregator page' trap and here it is provable against a primary filing rather than merely suspected."
+    },
+    "encumbrance_nil_vs_42pct": {
+      "severity": "critical",
+      "detail": "Two SAST filings made on 2026-08-19 about the SAME 87,632,093 shares state opposite things. The Reg 31(1) filing by the promoter (BC Asia Investments XV/XVI) reports 'Promoter holding already encumbered: NIL / NIL', type of encumbrance 'NA', and states verbatim 'There is no direct encumbrance on the shares of the TC. Pursuant to the Indirect Encumbrance, 100% of the shares of the Promoter and Guarantor are encumbered.' The Reg 29(1) filing by Deutsche Bank AG the same day reports line (d) 'Shares in the nature of encumbrance (pledge/lien/non-disposal undertaking/others): 87,632,093 / 42.84% / 42.41%'.",
+      "consequence": "pledged_pct_of_promoter is 0% or 51.75% depending entirely on which of two same-day exchange filings the pipeline reads. screener.in and Groww show NO pledge line at all for this stock, so both silently report the 0% branch. For a leveraged-PE-owned promoter with a 42.8% stake charged to an 11-bank syndicate, 'no pledge' is a materially misleading answer to 'is the promoter pledged?'.",
+      "structure": "The security is a limited-recourse Mauritian fixed-and-floating charge created 2025-03-17 by BC Asia Investments XXIII Limited over the SHARES OF the promoter entities, not over the listed company's shares. It was reportable only once the target listed - hence the 2026-08-19 filing for a 2025-03-17 event.",
+      "evidence": [
+        "https://www.bseindia.com/xml-data/corpfiling/AttachHis/436B7797_E272_4D4E_873E_8A1E1D2000C9_153535.pdf",
+        "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3F0828F5_E726_428E_AE83_4879FA9BF048_151451.pdf",
+        "https://www.bseindia.com/xml-data/corpfiling/AttachLive/7934DA57_E323_49FB_BE30_34386334F2B8_170337.pdf"
+      ],
+      "honest_answer": "Both, with the structure named. 'No direct pledge on company shares; 42.84% of capital is indirectly encumbered via a charge over the promoter entity, held by Deutsche Bank AG as security agent for an 11-bank syndicate.'"
+    },
+    "standalone_default_scope": {
+      "severity": "high",
+      "detail": "screener.in's DEFAULT URL for this scrip is standalone, which captures only 43% of group PAT. See consolidated_vs_standalone_note. Produces P/E 166 vs ~73."
+    },
+    "fiftytwo_week_window_is_33_days": {
+      "severity": "high",
+      "detail": "The 52-week low (INR 1,130.50) is dated 2026-08-17 - the listing date itself. The 'range' spans 33 calendar days. Printing '52-week high/low' is a false claim about the observation window, and any relative-strength or '% off highs' ranking silently compares a 33-day range against peers' 365-day ranges."
+    },
+    "prelisting_share_count_in_filed_eps": {
+      "severity": "medium",
+      "detail": "The filed EPS of INR 3.04 (standalone Q1 FY27) is computed on the paid-up capital at 2026-06-30 = 188,470,000 shares. The IPO fresh issue of 16,080,445 shares was allotted 2026-08-13, after the reporting date. Dividing today's price by a filed EPS therefore uses a share count 8.5% below the actual current count. Correct current-basis EPS TTM is INR 21.17, not INR 22.98."
+    },
+    "total_income_vs_revenue": {
+      "severity": "medium",
+      "detail": "chittorgarh reports FY26 'Total Income INR 4,563.70 Cr'; screener reports FY26 'Sales INR 4,525 Cr'. Both are right: 45,637.00 million is total income (revenue + other income) and 45,249.55 million is revenue from operations. The INR 38.7 crore gap is other income. A differ comparing 'revenue' across these two sources flags a false mismatch unless it knows which line each source publishes."
+    },
+    "ofs_vs_fresh_issue": {
+      "severity": "medium",
+      "detail": "The INR 3,067 crore issue is 54% offer-for-sale (INR 1,667 crore to selling shareholders) and only INR 1,400 crore fresh. Treating the headline issue size as capital raised overstates the cash that reached the company by 119%."
+    },
+    "cin_still_unlisted": {
+      "severity": "medium",
+      "detail": "The CIN printed on the 2026-09-04 filed results, U31300PN1998PLC131629, still carries the 'U' (unlisted) prefix; the company filed a CIN/listing-status change intimation on 2026-09-12. Any registry join keyed on CIN will find the company under its unlisted CIN in filings dated up to 2026-09-04 and under a new 'L' CIN afterwards. A CIN is not a stable key across a listing event."
+    },
+    "attachlive_vs_attachhis": {
+      "severity": "medium",
+      "detail": "Announcement PDFs resolve under two directories and the API does not indicate which. Lowercase-GUID names -> /xml-data/corpfiling/AttachLive/; uppercase-underscore names (used for exchange-received SAST disclosures) 404 there and resolve only under /xml-data/corpfiling/AttachHis/. Verified: 436B7797_..._153535.pdf returns HTTP 404 on AttachLive and HTTP 200 (1,188,844 bytes) on AttachHis. A fetcher hardcoding AttachLive loses precisely the encumbrance and substantial-acquisition filings."
+    },
+    "nse_blocks_non_browser_clients": {
+      "severity": "medium",
+      "detail": "nseindia.com returns HTTP 302 on the quote page bootstrap and HTTP 403 (Akamai 'Access Denied', reference #18.9fdc55b8) on /api/quote-equity even with a browser User-Agent, Referer, X-Requested-With and a cookie jar seeded from the site. BSE's api.bseindia.com answered every request with HTTP 200 under the same conditions. Any NSE-primary data path degrades to nothing for this name while the BSE path works."
+    },
+    "company_name_typo_in_own_filing": {
+      "severity": "low",
+      "detail": "The company's own 2026-09-04 press-release announcement headline on BSE reads 'Dhoot Tranmission Limited' (missing the 's'). Exact-name matching against announcement headlines fails on the company's own filing."
+    },
+    "intra_exchange_price_disagreement": {
+      "severity": "low",
+      "detail": "BSE's getScripHeaderData (LTP 1590.55, High 1604.15) and StockReachGraph (CurrVal 1588.15, HighVal 1610) disagree for the same scrip and session. Picking 'the exchange' as a source is not sufficient; the endpoint matters."
+    },
+    "founding_year_conflict": {
+      "severity": "low",
+      "detail": "The company's own press release says 'Founded in 1999'; its CIN encodes 1998 and Trendlyne states 28 April 1998. The company contradicts its own registration on its own letterhead."
+    },
+    "press_release_dateline_vs_registered_office": {
+      "severity": "low",
+      "detail": "Results are datelined 'Chhatrapati Sambhajinagar' while the registered office is at Chakan, Pune. Extracting company location from a press-release dateline puts it in the wrong district. Note also that Chhatrapati Sambhajinagar is itself a renamed city (formerly Aurangabad) - a second rename trap on the same string."
+    },
+    "duplicate_announcement": {
+      "severity": "low",
+      "detail": "Two announcements filed 2026-08-28 carry the identical headline 'Investment in the step-down subsidiaries of the Company' with different NEWSIDs and different attachments. Deduplicating announcements on (date, headline) silently drops a genuine second filing."
+    }
+  },
+
+  "world_gaps": {
+    "no_dividend_since_listing": "GENUINELY DOES NOT EXIST. No dividend has been declared since the 2026-08-17 listing; BSE's corporate-action API returns three empty tables and no dividend appears in the 19 announcements filed. last_declared_per_share, record_date and ex_date have no value to find.",
+    "first_regular_shareholding_pattern": "GENUINELY DOES NOT EXIST YET. The company listed mid-quarter on 2026-08-17; the first regular quarterly shareholding pattern (quarter ended 2026-09-30) is due around 2026-10-21. Only the one-time as-on-listing disclosure exists.",
+    "post_ipo_balance_sheet": "GENUINELY DOES NOT EXIST YET. The most recent filed balance-sheet date is 2026-06-30, which precedes the 2026-08-13 IPO allotment. Every published book value, P/B and post-money net worth for this name is an estimate until Q2 FY27 results (~November 2026).",
+    "prelisting_dividend_history_unreached": "COULD NOT REACH. Any dividend paid while the company was private would be disclosed in the RHP/DRHP, not on the exchange. The DRHP is linked from screener's document list but was not fetched.",
+    "bonus_ratio_unreached": "COULD NOT REACH. The paid-up capital line proves the share count roughly doubled during FY26 (193.62 -> 376.91 INR million at FV INR 2), and the filed EPS is marked 'Refer note 8', but note 8's text was not extracted and no bonus ratio is stated on the pages read. The mechanism (bonus vs preferential allotment vs both) is unresolved. DO NOT assert a ratio.",
+    "conversion_date_unreached": "COULD NOT REACH. The company prints 'formerly known as Dhoot Transmission Private Limited' but the private-to-public conversion date is in the RHP, not in the results.",
+    "isin_change_history": "COULD NOT REACH. A face-value change or conversion often carries an ISIN change; only the current ISIN INE01NH01023 was obtained.",
+    "subscription_by_category_unreached": "COULD NOT REACH. Chittorgarh's category-wise subscription table rendered as reservation percentages in the fetch; only the 52.71x total was obtained.",
+    "promoter_wise_split_unreached": "COULD NOT REACH in machine-readable form. BC Asia XV+XVI at 42.842% is filed; the Dhoot family's 39.94% is derived by subtraction from the 82.78% total, not read off a shareholding pattern.",
+    "nse_side_data_unreached": "BLOCKED, NOT ABSENT. nseindia.com returns 403 to non-browser clients (see traps.nse_blocks_non_browser_clients). NSE last close 1,590.70 was obtained second-hand from Trendlyne and Groww, which agree exactly; NSE-filed shareholding and announcements were not independently checked.",
+    "trendlyne_metrics_paywalled": "BLOCKED, NOT ABSENT. Trendlyne renders only price, sector, industry, incorporation date and SWOT counts (19 strengths / 5 weaknesses / 0 opportunities / 1 threat) without a subscription; every valuation metric requires login.",
+    "screener_book_value_blank": "The field is BLANK AT SOURCE on both screener pages for this scrip, and BSE's API returns '-' for EPS, PE, PB, ROE, OPM and NPM. The absence is real, not a fetch failure - a newly listed scrip has no populated ratio block in BSE's own store.",
+    "screener_fy23_column_missing": "screener's consolidated annual tables jump from Mar 2022 to Mar 2024 with no Mar 2023 column, while its STANDALONE page does show Mar 2023 (sales 1,746, net profit 101). Consolidated FY23 may genuinely be unavailable (pre-restructuring) or may be a rendering gap; not resolved.",
+    "concall_transcript_not_read": "The 2026-09-10 Q1 FY27 earnings call transcript and the 2026-09-04 investor presentation were downloaded-addressable but not read; management guidance statements in them were not extracted.",
+    "credit_rating_value_unreached": "A credit-rating intimation was filed 2026-08-26 and screener references a CRISIL update dated 25 Aug, but the actual rating symbol and outlook were not extracted from the PDF."
+  },
+
+  "verification_log": {
+    "sources_fetched": [
+      { "url": "https://www.screener.in/company/DHOOTTRANS/", "result": "ok", "note": "standalone default page" },
+      { "url": "https://www.screener.in/company/DHOOTTRANS/consolidated/", "result": "ok" },
+      { "url": "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/", "result": "ok", "note": "IPO record" },
+      { "url": "https://groww.in/stocks/dhoot-transmission-ltd", "result": "ok", "note": "DEMONSTRABLY WRONG on the latest quarter" },
+      { "url": "https://trendlyne.com/equity/3612273/DHOOTTRANS/dhoot-transmission-ltd/", "result": "partial", "note": "metrics paywalled" },
+      { "url": "https://www.bseindia.com/stock-share-price/dhoot-transmission-ltd/dhoottrans/544867/", "result": "HTTP 403 via WebFetch", "note": "the HTML page blocks; the JSON API does not" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=544867&seriesid=", "result": "HTTP 200" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=526971&seriesid=", "result": "HTTP 200", "note": "collision scrip DHOOTIN" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544867&seriesid=", "result": "HTTP 200" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=544867&flag=0&fromdate=&todate=&seriesid=", "result": "HTTP 200" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=544867", "result": "HTTP 200" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=544867", "result": "HTTP 200, three empty tables" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260801&strScrip=544867&strSearch=P&strToDate=20260919&strType=C&subcategory=-1", "result": "HTTP 200, 19 announcements" },
+      { "url": "https://api.bseindia.com/BseIndiaAPI/api/HeaderShareholding/w?Scripcode=544867", "result": "HTTP 302", "note": "wrong endpoint; shareholding not obtained from BSE directly" },
+      { "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf", "result": "HTTP 200, 10 pages, text-extracted", "note": "FILED Q1 FY27 results - the authoritative source for this pack" },
+      { "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/5e6277b4-aa31-4020-95cc-fd3d89b0722c.pdf", "result": "HTTP 200, 3 pages, text-extracted", "note": "FILED Q1 FY27 press release" },
+      { "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/436B7797_E272_4D4E_873E_8A1E1D2000C9_153535.pdf", "result": "HTTP 200, 14 pages, text-extracted", "note": "SAST Reg 31(1) encumbrance disclosure" },
+      { "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/7934DA57_E323_49FB_BE30_34386334F2B8_170337.pdf", "result": "HTTP 200, 5 pages, text-extracted", "note": "SAST Reg 29(1) by Deutsche Bank AG" },
+      { "url": "https://www.nseindia.com/api/quote-equity?symbol=DHOOTTRANS", "result": "HTTP 403 Akamai Access Denied", "note": "after a cookie-seeding bootstrap that itself returned 302" }
+    ],
+    "method_note": "WebSearch was unavailable (session budget 200/200 exhausted before this task began). All sources were reached by direct URL via WebFetch, or by headless curl with a browser User-Agent and Referer at approximately 1 request per 1.2 seconds per host. PDFs were downloaded and text-extracted locally with pypdf. No GUI, no browser window, no process started other than curl and python.",
+    "rate_limiting": "A 1.2 s sleep was interposed between consecutive requests to api.bseindia.com and www.bseindia.com, satisfying the <=1 req/sec/host rule."
+  },
+
+  "differ_guidance": {
+    "authoritative_values_for_diffing": {
+      "isin": "INE01NH01023",
+      "bse_code": "544867",
+      "nse_symbol": "DHOOTTRANS",
+      "face_value_inr": 2.0,
+      "listing_date": "2026-08-17",
+      "shares_outstanding": 204550445,
+      "last_close_bse_inr": 1590.55,
+      "last_close_date": "2026-09-18",
+      "week52_high_inr": 1739.0,
+      "week52_low_inr": 1130.5,
+      "latest_quarter": "Q1 FY27 ended 2026-06-30, filed 2026-09-04",
+      "q1_fy27_revenue_consolidated_inr_crore": 1446.42,
+      "q1_fy27_pat_consolidated_inr_crore": 132.67,
+      "fy26_revenue_consolidated_inr_crore": 4524.96,
+      "fy26_pat_consolidated_inr_crore": 396.84,
+      "revenue_ttm_consolidated_inr_crore": 5005.04,
+      "net_profit_ttm_consolidated_inr_crore": 433.03,
+      "eps_ttm_current_share_count_inr": 21.17,
+      "pe_ttm_consolidated": 75.1,
+      "promoter_pct": 82.78,
+      "dividend_yield_pct": 0.0
+    },
+    "fields_where_a_single_expected_value_is_WRONG_to_assert": [
+      "pe_ttm - four published values (166 / 72.6 / 81.22 / 75.1); assert scope, not a number",
+      "roe - three published values (24.0 / 26.2 / 16.29)",
+      "pledged_pct_of_promoter - two same-day filings say 0% and 42.84%",
+      "book_value_per_share / pb - no filed post-IPO balance sheet exists",
+      "week52 range - exchange-dependent and covers only 33 days",
+      "revenue/profit - standalone and consolidated differ by 30% and 132% respectively"
+    ],
+    "scoring_note": "For this name, an app that returns a CORRECTLY SCOPED, correctly sourced answer with the standalone/consolidated basis stated should score ABOVE one that matches a single aggregator's number. Matching Groww exactly on the latest quarter is a FAILURE, not a pass - Groww contradicts the filing."
+  }
+}

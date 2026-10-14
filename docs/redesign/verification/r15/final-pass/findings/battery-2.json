@@ -1,0 +1,11 @@
+[
+  {
+    "key": "battery2-brave-impersonated-fetch-429",
+    "kind": "new_defect",
+    "severity": "medium",
+    "title": "Keyless web search: the product's Brave engine (impersonated_fetch) gets HTTP 429 while a plain-UA curl from the same host gets a 20-result Brave page in the same minute, so keyless web_search returns zero rows on this network (DDG unreachable, Mojeek 403)",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/battery/raw/R15-RESEARCH-008.txt",
+    "register_id": "R15-RESEARCH-008",
+    "scenario": "in-process BraveSearchBackend.search('Dixon Technologies') -> SearchError HTTP 429; curl -A 'Mozilla/5.0' search.brave.com same query -> 200, 20 data-type=web blocks. Not a regression of R15-RESEARCH-008 (rotation and the 25 s cap hold); filed for 0.9.1."
+  }
+]

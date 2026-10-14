@@ -1,0 +1,14 @@
+# R15-UI-019 at ace7dd7 (frontend component; repro is a React render, no GUI/vitest in this lane)
+$ grep -n "it(" OnboardingBanner.test.tsx
+44:  it("no banner for a working local model with no cloud key", async () => {
+51:  it("shows when no key is set and the local model is not reachable", async () => {
+57:  it("does not claim nothing leaves the machine (R15-UI-052) — only keys do not", async () => {
+65:  it("a dismissal survives a remount", async () => {
+$ source: banner uses live readiness not hasAnyKey
+21: * told to set one up). One-click jump to Settings → AI Providers. Its dismissal
+28:  const hasAnyKey = useProviderKeysStore((s) => s.hasAnyKey());
+30:  const dismissed = useOnboardingStore((s) => s.bannerDismissed);
+32:  const dismissBanner = useOnboardingStore((s) => s.dismissBanner);
+39:  const readiness = useKeylessReadiness(defaultProvider, model, keyless && !hasAnyKey);
+49:  const showBanner = probed && dismissed === false && !hasAnyKey && defaultLaneNotReady;
+81:              onClick={() => void dismissBanner()}

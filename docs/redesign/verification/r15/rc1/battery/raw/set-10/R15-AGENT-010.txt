@@ -1,0 +1,2 @@
+resolve ok: True bound
+ticks in 2.0s window: 308 max_gap_ms 28.45

@@ -1,0 +1,47 @@
+== d38b5d1-check1-run.log
+launch_epoch 1791012478.284
+poller 66404
+app 66411 launched 2026-10-03T07:27:59.3NZ
+window_epoch 1791012481.298 bounds {"owner": "Vysted Terminal", "id": 6709, "layer": 0, "bounds": [116.0, 43.0, 1280.0, 832.0]}
+front_epoch 1791012481.826
+1791012482.163 step 0 capture ok
+1791012482.234 step 1 click ok
+1791012483.739 step 2 wait ok
+1791012483.800 step 3 click ok
+1791012484.805 step 4 wait ok
+1791012484.896 step 5 capture ok
+1791012484.958 step 6 click ok
+1791012487.964 step 7 wait ok
+1791012488.061 step 8 capture ok
+1791012488.254 step 9 key ok
+1791012490.260 step 10 wait ok
+1791012490.348 step 11 capture ok
+1791012490.348 {"sha256": "44daaa71297223620c60e7a720215fe6876f7e64da29fa2fef809adb6a4adac7", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-01-boot-2s.png", "tool": "scri
+1791012490.348 {"sha256": "6ffc64d7461ac4bd893fe1a90cd069573d908f9974c5a46c808a95770f05a668", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-02-boot-6s-after-clicks.png", 
+1791012490.348 {"sha256": "70e5d6ee3846bfa99d8af76ec5a57a4c145b4aa6bfe980c65b3ae8121fb23f15", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-03-boot-toolbar-palette.png", 
+1791012490.348 {"sha256": "916c484f40291a7f6b27e4488be410a74890d0bf74c800ebf1fb2292a1c70f49", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-04-boot-12s.png", "tool": "scr
+batch_exit 0 1791012490.369
+== d38b5d1-check3-run.log
+launch_epoch 1791013442.410
+poller 76760
+app 76768 launched 2026-10-03T07:44:02.3NZ
+window_epoch 1791013444.388 bounds {"owner": "Vysted Terminal", "id": 6726, "layer": 0, "bounds": [116.0, 43.0, 1280.0, 832.0]}
+front_epoch 1791013444.837
+1791013446.027 step 0 wait ok
+1791013446.173 step 1 capture ok
+1791013457.185 step 2 wait ok
+1791013457.275 step 3 capture ok
+1791013457.275 {"sha256": "b99f70248bf1186fa161a9046a79a904f25120b69e0f4abba186172b4f3c068a", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-20-broken-3s.png", "tool": "sc
+1791013457.275 {"sha256": "6664b77143c5d765c87596c59e73f61d8b22a33214e89e4afceb578460d2c737", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-21-broken-15s.png", "tool": "s
+batch_exit 0 1791013457.294
+== d38b5d1-check4-chat-run.log
+step 0 click ok
+step 1 type ok
+step 2 key ok
+step 3 wait ok
+step 4 capture ok
+step 5 click ok
+step 6 wait ok
+step 7 capture ok
+{"sha256": "c5f75f3d6e3782e662aa8413fe7c0714750213a56c6c04a369a93ea6ca139541", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-33-launchC-chat-after-kill.png", "tool": "scr
+{"sha256": "1bd0e7657c13d41158c2beea74c887839dd9b7e0a3b2edca9f7ed9af0db9824a", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/d38b5d1-34-launchC-portfolio-after-kill.png", "tool":

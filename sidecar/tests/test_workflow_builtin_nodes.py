@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from datetime import UTC, datetime
 from typing import Any
 
@@ -122,6 +123,29 @@ _BUILTIN_PAIRS = [
     ("transform", "json_path"),
     ("flow", "sleep"),
 ]
+
+
+def test_create_app_registers_every_builtin_node() -> None:
+    """``create_app`` alone (no main.py step) registers what ``register_all`` does."""
+    from app import create_app
+
+    workflow_nodes.register_all()
+    expected = set(workflow_engine.registered_node_types())
+    workflow_engine.reset_registry_for_tests()
+
+    create_app()
+
+    registered = set(workflow_engine.registered_node_types())
+    assert registered == expected
+    one_per_domain = {
+        "transform.code",
+        "data.fetch_macro_series",
+        "data.fetch_sec_filing",
+        "quant.price_option",
+        "data.fetch_earnings_calendar",
+        "analysis.screener_query",
+    }
+    assert set(workflow_nodes.BUILTIN_NODE_SPECS) | one_per_domain <= registered
 
 
 # ---------------------------------------------------------------------------
@@ -237,13 +261,11 @@ async def test_agent_invoke_aggregates_stream(monkeypatch: pytest.MonkeyPatch) -
         {"context": "AAPL is up"},
         {"agent_id": "buffett", "prompt_template": "Analyze: {context}"},
     )
-    assert result["content"] == "Hello world."
-    assert result["agent_id"] == "buffett"
-    assert result["error"] is None
+    assert result == {"content": "Hello world.", "agent_id": "buffett"}
 
 
 @pytest.mark.asyncio
-async def test_agent_invoke_degrades_on_provider_error(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_agent_invoke_raises_on_provider_error(monkeypatch: pytest.MonkeyPatch) -> None:
     from models.llm import LLMDoneEvent, LLMErrorEvent
 
     async def _fake_invoke(agent_id: str, prompt: str, **_: Any):
@@ -251,9 +273,8 @@ async def test_agent_invoke_degrades_on_provider_error(monkeypatch: pytest.Monke
         yield LLMDoneEvent()
 
     monkeypatch.setattr("services.agent_runtime.invoke_agent", _fake_invoke)
-    result = await builtin.agent_invoke({}, {"agent_id": "buffett"})
-    assert result["content"] == "(no provider key configured)"
-    assert result["error"] == "no API key"
+    with pytest.raises(RuntimeError, match="no API key"):
+        await builtin.agent_invoke({}, {"agent_id": "buffett"})
 
 
 @pytest.mark.asyncio
@@ -270,26 +291,33 @@ async def test_agent_invoke_requires_agent_id() -> None:
 @pytest.mark.asyncio
 async def test_logic_branch_truthy_routes_value() -> None:
     result = await builtin.logic_branch({"value": "non-empty"}, {})
-    assert result == {"true_path": "non-empty", "false_path": None}
+    assert result == {"true_path": "non-empty", "false_path": workflow_engine.SKIP}
 
 
 @pytest.mark.asyncio
 async def test_logic_branch_falsy_routes_false_path() -> None:
     result = await builtin.logic_branch({"value": ""}, {})
-    assert result == {"true_path": None, "false_path": ""}
+    assert result == {"true_path": workflow_engine.SKIP, "false_path": ""}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("value", ["false", "no", "0", "off", " FALSE ", "Off"])
+async def test_logic_branch_falsy_strings_route_false_path(value: str) -> None:
+    result = await builtin.logic_branch({"value": value}, {})
+    assert result == {"true_path": workflow_engine.SKIP, "false_path": value}
 
 
 @pytest.mark.asyncio
 async def test_logic_branch_gt_mode() -> None:
     result = await builtin.logic_branch({"value": 5.5, "threshold": 3.0}, {"mode": "gt"})
     assert result["true_path"] == 5.5
-    assert result["false_path"] is None
+    assert result["false_path"] is workflow_engine.SKIP
 
 
 @pytest.mark.asyncio
 async def test_logic_branch_gt_mode_below() -> None:
     result = await builtin.logic_branch({"value": 1.0, "threshold": 3.0}, {"mode": "gt"})
-    assert result["true_path"] is None
+    assert result["true_path"] is workflow_engine.SKIP
     assert result["false_path"] == 1.0
 
 
@@ -529,3 +557,67 @@ async def test_research_workflow_runs_end_to_end(
     assert by_id["i"].status == "ok"
     assert by_id["a"].outputs["content"] == "Analysis for buffett."
     assert by_id["l"].status == "ok"
+
+
+# ---------------------------------------------------------------------------
+# transform.code — size bounds (R15-CODE-PLATFORM-066)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_huge_pow_and_repeat_rejected_fast() -> None:
+    from services.workflow_nodes import code_node
+
+    for expression in ("7**(10**7)", "[0]*10**9", "10^9 * 'ab'", "round(1, 10^7)"):
+        started = time.perf_counter()
+        with pytest.raises(ValueError, match="too large|digits"):
+            await code_node.evaluate_code({}, {"expression": expression})
+        assert time.perf_counter() - started < 0.05, expression
+
+    # In-bound uses of the same operators still evaluate.
+    out = await code_node.evaluate_code({}, {"expression": "2^10 + sum([1] * 3) + round(2.5)"})
+    assert out == {"value": 1024 + 3 + 3}
+
+
+# ---------------------------------------------------------------------------
+# Domain node input/config precedence (R15-CODE-PLATFORM-067)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_zero_input_not_replaced_by_config_and_unknown_provider_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import sec_filings_provider
+    from services.macro import macro_router
+    from services.workflow_nodes import macro_nodes, research_nodes, sec_nodes
+
+    # A present 0 input is a value: it is validated, not swapped for config.
+    with pytest.raises(ValueError, match=r"\[1, 60\]"):
+        await research_nodes.fetch_earnings_calendar({"days": 0}, {"days": 7})
+
+    captured: dict[str, Any] = {}
+
+    async def _list(identifier: str, form_type: Any = None, limit: int = 30) -> Any:
+        captured.update(identifier=identifier, form=form_type, limit=limit)
+        raise RuntimeError("stop")
+
+    monkeypatch.setattr(sec_filings_provider, "list_insider_transactions", _list)
+    with pytest.raises(RuntimeError, match="stop"):
+        await sec_nodes.fetch_insider_transactions(
+            {"symbol": "AAPL", "limit": 0}, {"identifier": "MSFT", "limit": 15, "form": "4"}
+        )
+    assert captured == {"identifier": "AAPL", "form": "4", "limit": 0}
+
+    # An empty provider input is not silently replaced by the config's; an
+    # unknown one errors before any provider is dispatched.
+    async def _never(*_a: Any, **_k: Any) -> Any:
+        raise AssertionError("dispatched")
+
+    monkeypatch.setattr(macro_router, "get_series", _never)
+    with pytest.raises(ValueError, match="missing 'provider'"):
+        await macro_nodes.fetch_macro_series(
+            {"provider": ""}, {"series_id": "X", "provider": "fred"}
+        )
+    with pytest.raises(ValueError, match="unknown provider 'yodlee'"):
+        await macro_nodes.fetch_macro_series({}, {"series_id": "X", "provider": "yodlee"})

@@ -1,0 +1,116 @@
+[
+ {
+  "key": "rc1-vshard-3:1",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-LEAD-004",
+  "title": "A quarterly filer with one missing exchange quarter is still labelled '(a half-yearly filer)': cadence derives from TTM coverage, not period lengths",
+  "repro": "sha 68d5573a: curl -s http://127.0.0.1:52603/fundamentals/NDTV -> field_meta.revenue_ttm/net_income_ttm reason 'TTM basis: the exchange filings do not cover the trailing year in four quarters (a half-yearly filer) ...'; NSE lane period lengths [3,3,3,6,3] (Sep-2025 quarter missing, H1 present); screener.in shows NDTV quarterly results Jun-2023..Jun-2026 incl. Sep-2025. In-process: FiledPeriods of 3-month periods with one hole -> cadence()=='half-yearly'.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-3.md",
+  "suspected_files": [
+   "sidecar/services/exchange_financials.py",
+   "sidecar/services/correctness_gate.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:2",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-AGENT-055",
+  "title": "Agent arrange_layout and the View menu still build different panel sets for single-focus, compare and research-cockpit",
+  "repro": "sha 68d5573a scratch vitest over src/lib/layout-templates.ts: single-focus agent=[chart] (maximized) vs menu(technical)=[chart,watchlist,news]; compare agent=[chart] vs menu(compare-desk)=[chart,equity-overview]; research-cockpit agent=[chart,equity-overview,brief,news] vs menu(fundamental)=[chart,equity-overview,brief]; only macro-scan matches. fix_shape test 'for each template id the agent and menu paths produce the same panel set' fails.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-3.md",
+  "suspected_files": [
+   "src/lib/layout-templates.ts",
+   "sidecar/config/layout_templates.json",
+   "src-tauri/src/lib.rs"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-AGENT-043",
+  "title": "write_screener_filters silently drops a malformed flat criterion whenever a group is also sent (criteria is schema-required, so every group call carries one)",
+  "repro": "sha 68d5573a scratch vitest (host-actions parseScreenRecipe via the gate): {criteria:[{field:'roe',operator:'gt',value:'15'},{field:'market_cap',operator:'gt',value:1000}], group:{and:[{field:'pe_ratio',operator:'lt',value:20}]}} -> label 'Wrote 1 screener criterion - review and Run', no 'dropped' note; roe leaf vanishes. Code: dropped: group ? groupDropped : [...flatDropped, ...groupDropped].",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-3.md",
+  "suspected_files": [
+   "src/lib/host-actions.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:4",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-CODE-FRONTEND-017",
+  "title": "SEC filing-detail and insider slices still have no per-slice generation: a late response for the previous symbol overwrites the current one",
+  "repro": "sha 68d5573a scratch vitest over src/store/sec.ts: loadFilingDetail(A-1) slow, loadFilingDetail(B-2) ready, A-1 resolves -> activeAccession back to 'A-1'; loadInsider(AAPL) slow 504, loadInsider(MSFT) ready, AAPL rejects -> insiderStatus 'error', insiderError 'EDGAR timeout' shown on MSFT. Only loadFilings is guarded (filingsGeneration).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-3.md",
+  "suspected_files": [
+   "src/store/sec.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:5",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-UI-031",
+  "title": "Equity Overview seq guard landed but the fix_shape's 'abort the prior request' did not: superseded loads keep all six sidecar requests running",
+  "repro": "sha 68d5573a: grep -n 'Abort\\|signal' src/modules/equity-overview/EquityOverviewPanel.tsx src/modules/equity-overview/api.ts -> no match; doLoad (EquityOverviewPanel.tsx:712-747) only drops stale results via loadSeqRef; loadEquityOverview(symbol, region) takes no signal. Fresh vitest (superseded load settles/rejects LAST) passes, so the visible defect is fixed.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-3.md",
+  "suspected_files": [
+   "src/modules/equity-overview/EquityOverviewPanel.tsx",
+   "src/modules/equity-overview/api.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:6",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-AGENT-043",
+  "title": "A flat AND screener group never runs: runScreener sends only the flat criteria, so the label and the executed screen disagree",
+  "repro": "sha 68d5573a scratch vitest: write_screener_filters {criteria:[{market_cap gt 1000}], group:{and:[{pe_ratio lt 20}]}, run:true} -> POST /screener/run/stream body {criteria:[{field:'market_cap',operator:'gt',value:1000}],...} with no group; label counts pe_ratio. applyFilters sets advanced=hasNestedGroup(group) (false for a flat AND group).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-3.md",
+  "suspected_files": [
+   "src/store/screener.ts",
+   "src/lib/host-actions.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-FRONTEND-017",
+  "title": "quant store slices carry no generation guard (fix_shape named quant)",
+  "repro": "sha 68d5573a: src/store/quant.ts has no generation/seq on any slice; practical exposure low because the work is local compute.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-3.md",
+  "suspected_files": [
+   "src/store/quant.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-UI-037",
+  "title": "Portfolio CSV export header still says 'Cost basis' for the per-share average cost column",
+  "repro": "sha 68d5573a: src/modules/portfolio/PortfolioPanel.tsx ~719 CSV header 'Cost basis' while the form/column read 'Avg cost / share' / 'Avg cost'.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-3.md",
+  "suspected_files": [
+   "src/modules/portfolio/PortfolioPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-3:9",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-PLATFORM-022",
+  "title": "portfolio_add/portfolio_update schemas still advertise purchased_at, which nothing persists any more",
+  "repro": "sha 68d5573a: sidecar/services/agent_tools/catalog.py ~1610/1639 '\"purchased_at\": _DATE'; no reader of purchased_at in src/ host-action apply path -> the model is invited to send a field that is silently dropped.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-3.md",
+  "suspected_files": [
+   "sidecar/services/agent_tools/catalog.py",
+   "src/lib/host-actions.ts"
+  ]
+ }
+]

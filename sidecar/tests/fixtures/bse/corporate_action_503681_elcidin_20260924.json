@@ -1,0 +1,92 @@
+{
+ "Table": [
+  {
+   "purpose_name": "Final Dividend",
+   "BCRD_from": "24 Jul 2026",
+   "Amount": 25.0
+  },
+  {
+   "purpose_name": "Final Dividend",
+   "BCRD_from": "23 Jul 2025",
+   "Amount": 25.0
+  },
+  {
+   "purpose_name": "Final Dividend",
+   "BCRD_from": "16 Aug 2024",
+   "Amount": 25.0
+  },
+  {
+   "purpose_name": "Final Dividend",
+   "BCRD_from": "15 Sep 2023",
+   "Amount": 25.0
+  },
+  {
+   "purpose_name": "Final Dividend",
+   "BCRD_from": "22 Sep 2022",
+   "Amount": 15.0
+  }
+ ],
+ "Table1": [],
+ "Table2": [
+  {
+   "DR": 1,
+   "scrip_code": 503681,
+   "sLongName": "EL CID Investments Ltd",
+   "BCRD": "RD 24/07/2026",
+   "purpose_code": "DP ",
+   "short_name": "ELCIDIN",
+   "Ex_date": "24 Jul 2026",
+   "purpose": "Final Dividend",
+   "Details": "25.00",
+   "PAYMENT_DATE": "2026-08-30T00:00:00"
+  },
+  {
+   "DR": 2,
+   "scrip_code": 503681,
+   "sLongName": "EL CID Investments Ltd",
+   "BCRD": "RD 23/07/2025",
+   "purpose_code": "DP ",
+   "short_name": "ELCIDIN",
+   "Ex_date": "23 Jul 2025",
+   "purpose": "Final Dividend",
+   "Details": "25.00",
+   "PAYMENT_DATE": null
+  },
+  {
+   "DR": 3,
+   "scrip_code": 503681,
+   "sLongName": "EL CID Investments Ltd",
+   "BCRD": "RD 16/08/2024",
+   "purpose_code": "DP ",
+   "short_name": "ELCIDIN",
+   "Ex_date": "16 Aug 2024",
+   "purpose": "Final Dividend",
+   "Details": "25.00",
+   "PAYMENT_DATE": "2024-09-27T00:00:00"
+  },
+  {
+   "DR": 4,
+   "scrip_code": 503681,
+   "sLongName": "EL CID Investments Ltd",
+   "BCRD": "RD 15/09/2023",
+   "purpose_code": "DP ",
+   "short_name": "ELCIDIN",
+   "Ex_date": "15 Sep 2023",
+   "purpose": "Final Dividend",
+   "Details": "25.00",
+   "PAYMENT_DATE": "2023-10-22T00:00:00"
+  },
+  {
+   "DR": 5,
+   "scrip_code": 503681,
+   "sLongName": "EL CID Investments Ltd",
+   "BCRD": "BC 23/09/2022-29/09/2022",
+   "purpose_code": "DP ",
+   "short_name": "ELCIDIN",
+   "Ex_date": "22 Sep 2022",
+   "purpose": "Final Dividend",
+   "Details": "15.00",
+   "PAYMENT_DATE": "2022-10-29T00:00:00"
+  }
+ ]
+}

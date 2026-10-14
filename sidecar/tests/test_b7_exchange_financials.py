@@ -1,0 +1,398 @@
+"""The exchange-filed results lane (R15-DATA-014/027/076, R15-LEAD-004; D-B7-1/2).
+
+Every lane runs for real over payloads recorded live on 2026-09-24
+(``fixtures/{nse,bse}/filed_results_*.json``); only the exchange accessors are
+replayed. The yfinance side is stubbed to the figures the battery observed.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import threading
+from datetime import date
+from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
+
+from models.fundamentals import Fundamentals, IncomeStatement, StatementLine
+from services import (
+    bse_provider,
+    correctness_gate,
+    exchange_financials,
+    nse_provider,
+    provider_registry,
+    symbol_resolver,
+    yfinance_provider,
+)
+from services.exchange_financials import FiledPeriod, FiledPeriods
+from services.symbol_resolver import Resolution
+
+_FIXTURES = Path(__file__).parent / "fixtures"
+_DAL = "bse/filed_results_539681_dal_20260924.json"
+_JONJUA = "bse/filed_results_542446_jonjua_20260924.json"
+_FUSION = "nse/filed_results_fusion_20260924.json"
+_DHANBANK = "nse/filed_results_dhanbank_20260924.json"
+
+
+@pytest.fixture(autouse=True)
+def _fresh_lane() -> None:
+    exchange_financials.reset_for_tests()
+
+
+def _replay(monkeypatch: pytest.MonkeyPatch, *fixtures: str) -> list[str]:
+    """Serve the exchange accessors from recorded payloads; returns the call log.
+    Any accessor with no recording raises (a lane never reaches the network)."""
+    recorded: dict[str, dict] = {}
+    for name in fixtures:
+        for accessor, calls in json.loads((_FIXTURES / name).read_text(encoding="utf-8")).items():
+            recorded.setdefault(accessor, {}).update(calls)
+    log: list[str] = []
+
+    def player(accessor: str):  # noqa: ANN202
+        def play(*args: object) -> object:
+            log.append(accessor)
+            return recorded[accessor]["|".join(str(a) for a in args)]
+
+        return play
+
+    for module, names in (
+        (nse_provider, ("get_financial_filings", "get_archive_text")),
+        (bse_provider, ("get_results_summary", "get_result_detail", "get_nbfc_profit_loss")),
+    ):
+        for accessor in names:
+            monkeypatch.setattr(module, accessor, player(accessor))
+    return log
+
+
+def _route(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    symbol: str,
+    fields: dict,
+    annual_revenue: float,
+    quarter_ends: list[str],
+) -> dict:
+    """GET /fundamentals for a stubbed Yahoo payload and its own statements."""
+
+    async def fake_fundamentals(requested: str) -> Fundamentals:  # noqa: ARG001
+        return Fundamentals(symbol=symbol, name="X Ltd", provider="yfinance", **fields)
+
+    def fake_income(listing: str) -> IncomeStatement:  # noqa: ARG001
+        line = StatementLine(label="Total Revenue", values={"2026": annual_revenue})
+        return IncomeStatement(symbol=symbol, periods=["2026"], lines=[line], provider="yfinance")
+
+    def fake_quarters(listing: str) -> list[date]:  # noqa: ARG001
+        return [date.fromisoformat(d) for d in quarter_ends]
+
+    def fake_resolve(query: str, region: str) -> Resolution:  # noqa: ARG001
+        return Resolution(query=query, best=None, candidates=[])
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", fake_fundamentals)
+    monkeypatch.setattr(yfinance_provider, "get_income_statement", fake_income)
+    monkeypatch.setattr(yfinance_provider, "get_quarterly_period_ends", fake_quarters)
+    monkeypatch.setattr(symbol_resolver, "resolve", fake_resolve)
+    return client.get(f"/fundamentals/{symbol}").json()
+
+
+_QUARTERS = ["2026-06-30", "2026-03-31", "2025-12-31", "2025-09-30", "2025-06-30"]
+
+
+# --- R15-DATA-014: the served TTM is the filed-period sum --------------------------
+
+
+def test_dal_revenue_ttm_is_the_bse_filed_sum(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """DAL: Yahoo 2.76 Cr (its own FY 2.07 Cr agrees, so no Yahoo witness sees
+    it); BSE's filed Sep-25..Jun-26 quarters sum to 9.97 Cr (screener 9.97)."""
+    _replay(monkeypatch, _DAL)
+    fields = {"revenue_ttm": 27_600_000, "net_income_ttm": 10_200_000, "profit_margin": 0.36957}
+    body = _route(client, monkeypatch, "DAL.BO", fields, 20_668_000, _QUARTERS)
+    assert body["revenue_ttm"] == pytest.approx(99_700_000)
+    assert body["net_income_ttm"] == pytest.approx(10_200_000)  # screener 1.02 Cr
+    meta = body["field_meta"]["revenue_ttm"]
+    assert (meta["status"], meta["provider"], meta["as_of"]) == ("ok", "bse", "2026-06-30")
+    assert "sum of 4 filed quarters" in meta["label"]
+    assert "27,600,000" in meta["reason"]  # Yahoo's figure disclosed, not served
+
+
+def test_fusion_revenue_ttm_is_the_nse_filed_sum(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The class case not written against (the NSE lane): FUSION's filed
+    quarters sum to 1,714 Cr (screener ~1,699 Cr) against Yahoo's 858 Cr."""
+    _replay(monkeypatch, _FUSION)
+    fields = {"revenue_ttm": 8_582_000_128, "net_income_ttm": 1_685_100_032}
+    body = _route(client, monkeypatch, "FUSION.NS", fields, 15_131_300_000, _QUARTERS)
+    assert body["revenue_ttm"] == pytest.approx(17_144_200_000)
+    assert body["net_income_ttm"] == pytest.approx(1_685_100_000)
+    meta = body["field_meta"]["revenue_ttm"]
+    assert (meta["provider"], meta["label"]) == (
+        "nse",
+        "standalone, sum of 4 filed quarters to 2026-06-30",
+    )
+    assert "8,582,000,128" in meta["reason"]
+
+
+# --- R15-DATA-027: the two single-name seams only ------------------------------
+
+
+def test_agent_fundamentals_tool_serves_the_exchange_figure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services.agent_tools import fundamentals as fundamentals_tool
+
+    log = _replay(monkeypatch, _DAL)
+
+    async def fake(symbol: str) -> Fundamentals:
+        return Fundamentals(symbol=symbol, provider="yfinance", revenue_ttm=27_600_000)
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", fake)
+    out = asyncio.run(fundamentals_tool._fundamentals({"symbol": "DAL.BO"}))
+    served = out["fundamentals"]
+    assert served["revenue_ttm"] == pytest.approx(99_700_000)
+    assert served["field_meta"]["revenue_ttm"]["provider"] == "bse"
+    assert log  # the lane ran
+
+    log.clear()
+    out = asyncio.run(fundamentals_tool._fundamentals({"symbol": "AAPL"}))
+    assert out["fundamentals"]["revenue_ttm"] == 27_600_000
+    assert log == []  # a US listing never calls the lane
+
+
+def test_the_registry_bulk_path_never_calls_the_lane(
+    monkeypatch: pytest.MonkeyPatch, mock_yfinance: object
+) -> None:
+    """The screener/warm crawlers read ``provider_registry.get_fundamentals``;
+    the exchange lane must never ride it (one NSE hit per universe symbol)."""
+    calls: list[str] = []
+
+    async def spy(listing: str) -> None:
+        calls.append(listing)
+
+    monkeypatch.setattr(exchange_financials, "get_filed_periods", spy)
+    asyncio.run(provider_registry.get_fundamentals("RELIANCE.NS"))
+    assert calls == []
+
+
+# --- R15-DATA-102: the filed growth states its own basis -------------------------
+
+
+def test_filed_growth_states_mrq_yoy_and_never_overrides_an_annual_basis() -> None:
+    """A provider that served no growth stated no basis (the model no longer
+    defaults one): the filed MRQ-YoY growth still serves over it and STATES
+    ``mrq_yoy``. A provider that stated ``annual_yoy`` keeps its figure and
+    basis — the overlay never mixes an MRQ figure under an annual label."""
+    filed = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 120.0, 12.0, None),
+            FiledPeriod(date(2025, 4, 1), date(2025, 6, 30), 100.0, 10.0, None),
+        ),
+    )
+    bare = Fundamentals(symbol="X.NS", provider="yfinance")
+    assert bare.growth_basis is None
+    served = correctness_gate.overlay_filed_periods(bare, filed)
+    assert served.revenue_growth == pytest.approx(0.2)
+    assert served.earnings_growth == pytest.approx(0.2)
+    assert served.growth_basis == "mrq_yoy"
+    assert served.field_meta is not None
+    assert served.field_meta["revenue_growth"].provider == "nse"
+
+    annual = Fundamentals(
+        symbol="X.NS", provider="yfinance", revenue_growth=0.05, growth_basis="annual_yoy"
+    )
+    kept = correctness_gate.overlay_filed_periods(annual, filed)
+    assert kept.revenue_growth == 0.05
+    assert kept.growth_basis == "annual_yoy"
+
+
+# --- R15-LEAD-004: the cadence label comes from the filings -----------------------
+
+
+def test_jonjua_keeps_yahoos_value_on_a_fresh_listings_quarter_gap(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """JONJUA is a recent listing with only its first three quarters ever
+    filed (Oct-25..Jun-26; BSE has nothing before that, not a half-year — the
+    earlier qtr ids are blank stubs). R15-LEAD-051 corrected this filer's
+    label from 'half-yearly' (the pre-fix reading of the fiscal-half rule) to
+    'quarterly-gap': it has filed quarters, it is just missing the rest of
+    the trailing year because it hasn't existed that long. No trailing-4Q sum
+    exists either way, so Yahoo's value still stays, kept and flagged."""
+    _replay(monkeypatch, _JONJUA)
+    fields = {"revenue_ttm": 239_033_504, "net_income_ttm": 87_482_000, "profit_margin": 0.36598}
+    body = _route(client, monkeypatch, "JONJUA.BO", fields, 212_051_000, _QUARTERS)
+    assert body["revenue_ttm"] == 239_033_504
+    reason = body["field_meta"]["revenue_ttm"]["reason"]
+    assert "half-yearly" not in reason and "unfiled or unparsed" in reason
+
+
+def test_a_quarterly_filer_with_a_six_month_q2_is_not_half_yearly() -> None:
+    """NDTV-shaped: three trailing quarters are filed standalone, but the
+    Sep-2025 Integrated Filing carries only an Apr-Sep 2025 (6-month) context.
+    A quarter (Apr-Jun 2025) IS filed separately inside that half, so this is
+    a quarterly filer with an unparsed quarter, not a half-yearly filer."""
+    periods = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2026, 1, 1), date(2026, 3, 31), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 10, 1), date(2025, 12, 31), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 4, 1), date(2025, 9, 30), 200.0, 20.0, 2.0),
+            FiledPeriod(date(2025, 4, 1), date(2025, 6, 30), 100.0, 10.0, 1.0),
+        ),
+    )
+    assert periods.cadence() == "quarterly-gap"
+    reason = correctness_gate._ttm_basis(None, periods.cadence())
+    assert "half-yearly" not in reason
+    assert "annual, not trailing-4Q" not in reason
+    assert "unfiled or unparsed" in reason
+
+
+def test_an_unfiled_quarter_without_a_half_year_context_is_not_half_yearly() -> None:
+    """Fresh A (R15-LEAD-004 round-4 regression): Oct-Dec 2025 is missing and no
+    6-month period stands in for it — a plain hole, not a half-yearly filing."""
+    periods = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2026, 1, 1), date(2026, 3, 31), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 7, 1), date(2025, 9, 30), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 4, 1), date(2025, 6, 30), 100.0, 10.0, 1.0),
+        ),
+    )
+    assert periods.cadence() == "quarterly-gap"
+    reason = correctness_gate._ttm_basis(None, periods.cadence())
+    assert "half-yearly" not in reason
+
+
+def test_a_half_year_with_its_quarter_filed_inside_is_not_half_yearly() -> None:
+    """Fresh B (R15-LEAD-004 round-4 regression): the trailing chain picks up
+    the Oct-Mar 6-month period, but Oct-Dec 2025 is ALSO filed standalone
+    inside that half — a quarterly filer, not a half-yearly one, even though
+    the greedy trailing walk never needed the standalone quarter."""
+    periods = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 10, 1), date(2026, 3, 31), 200.0, 20.0, 2.0),
+            FiledPeriod(date(2025, 10, 1), date(2025, 12, 31), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 7, 1), date(2025, 9, 30), 100.0, 10.0, 1.0),
+        ),
+    )
+    assert periods.cadence() != "half-yearly"
+
+
+def test_a_fresh_listing_with_only_two_quarters_filed_is_not_half_yearly() -> None:
+    """R15-LEAD-051: a recently listed filer with only its first two quarters
+    ever filed (no half-yearly period on record, no prior fiscal half to
+    contradict) is quarterly, not half-yearly — the trailing chain is
+    incomplete (6 of 12 months), so the label is 'quarterly-gap'."""
+    periods = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2026, 1, 1), date(2026, 3, 31), 100.0, 10.0, 1.0),
+        ),
+    )
+    assert periods.cadence() == "quarterly-gap"
+    reason = correctness_gate._ttm_basis(None, periods.cadence())
+    assert "half-yearly" not in reason
+
+
+def test_a_fresh_listing_with_only_one_quarter_filed_is_not_half_yearly() -> None:
+    """Class case not written against: a single filed quarter (no half-yearly
+    period, no other quarter) is still not half-yearly."""
+    periods = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 100.0, 10.0, 1.0),),
+    )
+    assert periods.cadence() != "half-yearly"
+
+
+def test_a_pure_half_yearly_filer_is_still_half_yearly() -> None:
+    """Class case the fix was not written against: a filer that files ONLY
+    6-month periods, with no quarter filed anywhere inside either fiscal
+    half, is still labelled half-yearly."""
+    periods = FiledPeriods(
+        venue="bse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2025, 10, 1), date(2026, 3, 31), 200.0, 20.0, 2.0),
+            FiledPeriod(date(2025, 4, 1), date(2025, 9, 30), 180.0, 18.0, 1.8),
+        ),
+    )
+    assert periods.cadence() == "half-yearly"
+
+
+def test_a_quarterly_filer_with_a_yahoo_gap_is_not_half_yearly(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """DHANBANK-shaped: Yahoo's frame skips 2025-09-30. Without the lane the
+    median period gap says quarterly (a provider gap); with it the four filed
+    quarters are served."""
+    gap = ["2026-06-30", "2026-03-31", "2025-12-31", "2025-06-30"]
+    fields = {"revenue_ttm": 18_000_000_000, "net_income_ttm": 1_150_000_000}
+
+    async def no_lane(listing: str) -> None:  # noqa: ARG001
+        return None
+
+    with monkeypatch.context() as m:
+        m.setattr(exchange_financials, "get_filed_periods", no_lane)
+        body = _route(client, monkeypatch, "DHANBANK.NS", fields, 17_500_000_000, gap)
+    reason = body["field_meta"]["revenue_ttm"]["reason"]
+    assert "spans a provider gap" in reason and "half-yearly" not in reason
+
+    _replay(monkeypatch, _DHANBANK)
+    body = _route(client, monkeypatch, "DHANBANK.NS", fields, 17_500_000_000, gap)
+    meta = body["field_meta"]["revenue_ttm"]
+    assert (meta["provider"], meta["reason"]) == ("nse", None)
+    assert body["revenue_ttm"] == pytest.approx(18_710_600_000)
+
+
+# --- rc1-battery-4:1: a cancelled caller's fetch still lands in the cache ----------
+
+
+def test_a_cancelled_caller_still_caches_the_worker_result(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """FAST's budget box cancels the fundamentals leg before the paced NSE walk
+    finishes; the worker thread keeps running and must cache its result there
+    (not after the caller's ``await``), so the next call is served from cache
+    instead of repeating the whole paced fetch."""
+    release = threading.Event()
+    calls: list[str] = []
+    worker: threading.Thread | None = None
+    stub = FiledPeriods(venue="nse", basis="standalone", periods=())
+
+    def fake_fetch(listing: str) -> FiledPeriods | None:
+        nonlocal worker
+        worker = threading.current_thread()
+        calls.append(listing)
+        release.wait(timeout=5)
+        return stub
+
+    monkeypatch.setattr(exchange_financials, "_fetch", fake_fetch)
+
+    async def scenario() -> None:
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(exchange_financials.get_filed_periods("X.NS"), 0.05)
+
+    asyncio.run(scenario())
+    release.set()
+    assert worker is not None
+    worker.join(timeout=5)
+    assert not worker.is_alive()
+
+    result = asyncio.run(exchange_financials.get_filed_periods("X.NS"))
+    assert result is stub
+    assert calls == ["X.NS"]  # _fetch ran exactly once

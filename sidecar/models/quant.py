@@ -30,7 +30,9 @@ from pydantic import BaseModel, ConfigDict
 MIN_RATE = -1.0  # a yield / rate below -100% is economically meaningless
 MAX_RATE = 10.0  # 1000% — far above any real rate, rejects 1e6-style garbage
 MAX_VOLATILITY = 100.0  # 10000% annualised vol ceiling
+MIN_BINOMIAL_STEPS = 3  # fewer steps than this degenerates the CRR lattice
 MAX_BINOMIAL_STEPS = 100_000  # guard against runaway lattice compute
+MIN_MC_PATHS = 100  # fewer paths than this makes the std. error meaningless
 MAX_MC_PATHS = 10_000_000  # guard against runaway Monte-Carlo compute
 MAX_CURVE_SAMPLES = 10_000  # guard against runaway curve sampling
 
@@ -101,14 +103,18 @@ class OptionPricingRequest(BaseModel):
             valuation_date=self.valuation_date,
             expiry_date=self.expiry_date,
         )
-        if self.binomial_steps is not None and not 1 <= self.binomial_steps <= MAX_BINOMIAL_STEPS:
+        if self.binomial_steps is not None and not (
+            MIN_BINOMIAL_STEPS <= self.binomial_steps <= MAX_BINOMIAL_STEPS
+        ):
             raise ValueError(
-                f"binomial_steps must be between 1 and {MAX_BINOMIAL_STEPS} "
+                f"binomial_steps must be between {MIN_BINOMIAL_STEPS} and {MAX_BINOMIAL_STEPS} "
                 f"(got {self.binomial_steps})"
             )
-        if self.monte_carlo_paths is not None and not 1 <= self.monte_carlo_paths <= MAX_MC_PATHS:
+        if self.monte_carlo_paths is not None and not (
+            MIN_MC_PATHS <= self.monte_carlo_paths <= MAX_MC_PATHS
+        ):
             raise ValueError(
-                f"monte_carlo_paths must be between 1 and {MAX_MC_PATHS} "
+                f"monte_carlo_paths must be between {MIN_MC_PATHS} and {MAX_MC_PATHS} "
                 f"(got {self.monte_carlo_paths})"
             )
 

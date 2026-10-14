@@ -1,0 +1,31 @@
+wc -l on the three ensure-*.mjs + sidecar-specs.mjs
+      14 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/scripts/ensure-sidecar.mjs
+      16 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/scripts/ensure-openbb-mcp-sidecar.mjs
+      15 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/scripts/ensure-sec-edgar-mcp-sidecar.mjs
+     313 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/scripts/sidecar-specs.mjs
+     358 total
+
+ensure-sidecar.mjs full contents:
+// scripts/ensure-sidecar.mjs
+//
+// Idempotently builds the Python sidecar into a single-file binary that Tauri
+// picks up via `bundle.externalBin`. Fast no-op when the binary is present and
+// newer than its source, unless --force. The recipe lives in sidecar-specs.mjs.
+//
+// Output: src-tauri/binaries/vysted-sidecar-<target-triple>[.exe]
+
+import { SIDECAR_SPECS, buildSidecar } from "./sidecar-specs.mjs";
+
+buildSidecar(
+  SIDECAR_SPECS.find((s) => s.name === "vysted-sidecar"),
+  { force: process.argv.includes("--force") },
+);
+
+sidecar-specs.mjs exports:
+27:export const BINARIES_DIR = join(ROOT, "src-tauri", "binaries");
+180:export const SIDECAR_SPECS = SPECS.map((spec) => ({
+190:export function targetTriple() {
+197:export function binaryPath(name, triple) {
+206:export function assertAllFresh(triple = targetTriple()) {
+215:export function pyinstallerCommand(spec) {
+235:export function buildSidecar(spec, { force = false } = {}) {

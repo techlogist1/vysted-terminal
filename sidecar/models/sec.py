@@ -20,6 +20,9 @@ from pydantic import BaseModel, ConfigDict
 # Filing identity
 # ---------------------------------------------------------------------------
 
+# The FILTER enum the panel and agent offer. A listed filing's own form type is
+# an open string: EDGAR has far more forms (20-F, 6-K, 10-K/A, SC 13D, ...)
+# and a closed type dropped every one of them (R15-DATA-039).
 FilingFormType = Literal["10-K", "10-Q", "8-K", "DEF 14A", "3", "4", "5"]
 
 
@@ -32,7 +35,7 @@ class Filing(BaseModel):
     cik: str
     company_name: str
     symbol: str | None = None
-    form_type: FilingFormType
+    form_type: str
     filed_date: date
     period_of_report: date | None = None
     edgar_url: str
@@ -117,8 +120,10 @@ class InsiderTransaction(BaseModel):
     issuer_symbol: str | None = None
     form_type: InsiderFormType
     transaction_date: date
-    direction: InsiderTransactionDirection
-    shares: str
+    # Null on a filing-level row (sec-edgar-mcp reports the Form 3/4/5 filing,
+    # not its trades), never a guessed "acquired" / "0" (R15-DATA-038).
+    direction: InsiderTransactionDirection | None = None
+    shares: str | None = None
     price_per_share: str | None = None
     transaction_value: str | None = None
     transaction_code: str

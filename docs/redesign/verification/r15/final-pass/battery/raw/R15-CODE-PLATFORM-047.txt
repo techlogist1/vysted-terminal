@@ -1,0 +1,21 @@
+# R15-CODE-PLATFORM-047 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'CODE-PLATFORM-047' src | cut -c1-200; sed -n 400,412p src/lib/plugin-runtime.test.ts 2>/dev/null | cut -c1-160
+--- output ---
+src/lib/plugin-runtime.ts:557:    // R15-CODE-PLATFORM-047: re-read the CURRENT record post-await rather than
+src/lib/plugin-runtime.test.ts:401:  // R15-CODE-PLATFORM-047: healthCheckOne used to write back a snapshot of
+
+  // R15-CODE-PLATFORM-047: healthCheckOne used to write back a snapshot of
+  // `record` captured BEFORE the `healthCheck()` await, so a disable landing
+  // mid-check overwrote the record with `{...staleActiveRecord, healthHistory}`
+  // once the check resolved — reviving state:"active" on a plugin that had
+  // just been stopped.
+  it("disable during a pending healthCheck stays stopped, not reverted to active", async () => {
+    let resolveHealth: (status: HealthStatus) => void = () => {};
+    const pendingHealth = new Promise<HealthStatus>((resolve) => {
+      resolveHealth = resolve;
+    });
+    const runtime = new PluginRuntime();
+    const plugin = discovered(fakePlugin("a", { healthCheck: () => pendingHealth }));
+
+EXIT=0 (0.0s)

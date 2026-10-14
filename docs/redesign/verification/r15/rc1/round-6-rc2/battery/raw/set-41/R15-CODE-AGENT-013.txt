@@ -1,0 +1,26 @@
+COMMAND: in-process catalog probes (scratch p41.py) + alias resolve + grep catalog.py:1471 region
+EXIT: 0
+OUTPUT:
+internal_tool_ids 56 agent_selectable 56 default_grant 55
+not default_grant: ['ask_user']
+mcp_capabilities 31
+resolve_tool_ids(["macro"]) -> (['macro_series'], [])
+caps with aliases: [('macro_series', ('macro',))]
+caps internal=False: []
+caps default_grant=False: ['ask_user']
+
+def mcp_tool_ids() -> list[str]:
+    """Ids of every capability exposed on the external MCP surface."""
+    return [c.id for c in mcp_capabilities()]
+
+
+def read_handler_ids() -> list[str]:
+    """Ids of internal capabilities backed by a registered agent_tools handler.
+
+    These are exactly the ids a registry-completeness audit expects to find in
+    :func:`services.agent_tools.registered_tools` once all tools are registered.
+    """
+    return [c.id for c in internal_capabilities() if c.kind == "read_handler"]
+
+
+def agent_selectable_tool_ids() -> frozenset[str]:

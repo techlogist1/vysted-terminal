@@ -1,0 +1,12 @@
+Entry: R15-CROSS-PLATFORM-004 (batch-9, W5-frontend-shell)
+Repro per register: on Windows/Linux the deterministic layout modes are unreachable except via the gated /layout slash path; menu bridge is macOS-only.
+No GUI/no vitest available to this battery role -> ci_pinned.
+Pinned committed test:
+  src/store/command-palette.test.ts:358-375 describe("dispatchLayoutMenuCommand") — comment explicitly ties it to R15-CROSS-PLATFORM-004:
+  "The ONE dispatch both the palette's layout-mode commands and the macOS menu bridge call (R15-CROSS-PLATFORM-004) — pins the routing contract so Windows/Linux (palette-only; no native menu) get the same deterministic layout modes the menu always gave macOS."
+19:  dispatchLayoutMenuCommand,
+358:// bridge call (R15-CROSS-PLATFORM-004) — pins the routing contract so
+361:describe("dispatchLayoutMenuCommand", () => {
+369:    expect(dispatchLayoutMenuCommand("default")).toBe(true);
+374:    expect(dispatchLayoutMenuCommand("not-a-real-mode")).toBe(false);
+378:    expect(dispatchLayoutMenuCommand("fundamental")).toBe(false);

@@ -1,0 +1,7 @@
+RAW rc1-battery-12 @ ace7dd76 in-process FastMCP in-memory Client (candidate venv)
+  from starlette.testclient import TestClient as TestClient  # noqa
+save: 200
+REST /workspaces: 404 /workspace: 200
+list_workspaces {} is_error= False data= {'workspaces': ['refaudit3-ws']}
+get_workspace {'workspace_id': 'refaudit3-ws'} is_error= False data= {'version': 1, 'x': 'y'}
+get_workspace {'workspace_id': 'nope'} is_error= False data= {'ok': False, 'error': "GET /workspace/nope failed: Client error '404 Not Found' for url 'http://sidecar/workspace/nope'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FlaskConical, ArrowUp, ArrowDown, ReceiptText } from "lucide-react";
 import {
   AreaSeries,
   createChart,
@@ -13,6 +14,7 @@ import {
   type UTCTimestamp,
 } from "lightweight-charts";
 
+import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import {
   ACCENT_CORAL,
@@ -27,7 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
 import type { BacktestRunState } from "@/store/backtest";
-import type { BacktestTrade } from "../../../types/backtest";
+import type { BacktestRequest, BacktestTrade } from "../../../types/backtest";
 
 // ---------------------------------------------------------------------------
 // Chart theming — reused from ChartPanel for visual continuity
@@ -219,36 +221,85 @@ function TradeTable({ trades }: TradeTableProps) {
   );
 
   if (trades.length === 0) {
-    return <p className="text-charcoal-400 px-3 py-2 font-mono text-xs">No trades yet.</p>;
+    return (
+      <EmptyState
+        dense
+        icon={ReceiptText}
+        headline="No trades yet"
+        hint="Fills appear here as the strategy trades."
+      />
+    );
   }
 
+  // Auto table layout + nowrap cells: every column takes the width its widest
+  // value needs — no fixed <colgroup> widths clipping prices mid-number.
   return (
-    <div className="max-h-64 overflow-y-auto">
+    <div
+      className={
+        "max-h-64 overflow-x-auto overflow-y-auto" /* tokens-ok: trade-log scroll cap - layout, not rhythm */
+      }
+    >
       <table className="w-full border-collapse">
         <thead className="bg-charcoal-900 sticky top-0">
-          <tr className="text-charcoal-400 border-charcoal-700 border-b text-left font-mono text-[0.6rem] uppercase">
+          <tr className="text-charcoal-400 border-charcoal-700 text-micro border-b text-left font-mono whitespace-nowrap uppercase">
             <th
-              className="cursor-pointer px-3 py-1.5 font-medium"
+              className={cn(
+                "cursor-pointer px-3 py-1 font-medium",
+                sortKey === "symbol" ? "text-charcoal-100" : "text-charcoal-400",
+              )}
               onClick={() => handleSort("symbol")}
             >
               Symbol
+              {sortKey === "symbol" ? (
+                direction === "asc" ? (
+                  <ArrowUp className="ml-0.5 inline size-3" />
+                ) : (
+                  <ArrowDown className="ml-0.5 inline size-3" />
+                )
+              ) : (
+                <span className="text-charcoal-500 ml-0.5">↕</span>
+              )}
             </th>
-            <th className="px-3 py-1.5 font-medium">Side</th>
+            <th className="px-3 py-1 font-medium">Side</th>
             <th
-              className="cursor-pointer px-3 py-1.5 font-medium"
+              className={cn(
+                "cursor-pointer px-3 py-1 font-medium",
+                sortKey === "enteredAt" ? "text-charcoal-100" : "text-charcoal-400",
+              )}
               onClick={() => handleSort("enteredAt")}
             >
               Entered
+              {sortKey === "enteredAt" ? (
+                direction === "asc" ? (
+                  <ArrowUp className="ml-0.5 inline size-3" />
+                ) : (
+                  <ArrowDown className="ml-0.5 inline size-3" />
+                )
+              ) : (
+                <span className="text-charcoal-500 ml-0.5">↕</span>
+              )}
             </th>
-            <th className="px-3 py-1.5 font-medium">Exited</th>
-            <th className="px-3 py-1.5 text-right font-medium">Entry</th>
-            <th className="px-3 py-1.5 text-right font-medium">Exit</th>
-            <th className="px-3 py-1.5 text-right font-medium">Qty</th>
+            <th className="px-3 py-1 font-medium">Exited</th>
+            <th className="px-3 py-1 text-right font-medium">Entry</th>
+            <th className="px-3 py-1 text-right font-medium">Exit</th>
+            <th className="px-3 py-1 text-right font-medium">Qty</th>
             <th
-              className="cursor-pointer px-3 py-1.5 text-right font-medium"
+              className={cn(
+                "cursor-pointer px-3 py-1 text-right font-medium",
+                sortKey === "pnl" ? "text-charcoal-100" : "text-charcoal-400",
+              )}
               onClick={() => handleSort("pnl")}
             >
               P&amp;L
+              {sortKey === "pnl" ? (
+                direction === "asc" ? (
+                  <ArrowUp className="ml-0.5 inline size-3" />
+                ) : (
+                  <ArrowDown className="ml-0.5 inline size-3" />
+                )
+              ) : (
+                <span className="text-charcoal-500 ml-0.5">↕</span>
+              )}
             </th>
           </tr>
         </thead>
@@ -259,24 +310,28 @@ function TradeTable({ trades }: TradeTableProps) {
             return (
               <tr
                 key={trade.id}
-                className="border-charcoal-800 hover:bg-charcoal-800/40 border-b font-mono text-xs"
+                className="border-charcoal-800 hover:bg-charcoal-800/40 text-caption border-b font-mono"
               >
-                <td className="text-charcoal-100 px-3 py-1.5">{trade.symbol}</td>
-                <td className="text-charcoal-300 px-3 py-1.5">{trade.side}</td>
-                <td className="text-charcoal-300 px-3 py-1.5">{trade.enteredAt.slice(0, 10)}</td>
-                <td className="text-charcoal-300 px-3 py-1.5">
+                <td className="text-charcoal-100 px-3 py-1 whitespace-nowrap">{trade.symbol}</td>
+                <td className="text-charcoal-300 px-3 py-1 whitespace-nowrap">{trade.side}</td>
+                <td className="text-charcoal-300 px-3 py-1 whitespace-nowrap tabular-nums">
+                  {trade.enteredAt.slice(0, 10)}
+                </td>
+                <td className="text-charcoal-300 px-3 py-1 whitespace-nowrap tabular-nums">
                   {trade.exitedAt ? trade.exitedAt.slice(0, 10) : "—"}
                 </td>
-                <td className="text-charcoal-300 px-3 py-1.5 text-right">
+                <td className="text-charcoal-300 px-3 py-1 text-right whitespace-nowrap tabular-nums">
                   {trade.entryPrice.toFixed(2)}
                 </td>
-                <td className="text-charcoal-300 px-3 py-1.5 text-right">
+                <td className="text-charcoal-300 px-3 py-1 text-right whitespace-nowrap tabular-nums">
                   {trade.exitPrice ? trade.exitPrice.toFixed(2) : "—"}
                 </td>
-                <td className="text-charcoal-300 px-3 py-1.5 text-right">{trade.quantity}</td>
+                <td className="text-charcoal-300 px-3 py-1 text-right whitespace-nowrap tabular-nums">
+                  {trade.quantity.toLocaleString("en-US")}
+                </td>
                 <td
                   className={cn(
-                    "px-3 py-1.5 text-right",
+                    "px-3 py-1 text-right whitespace-nowrap tabular-nums",
                     pnl === null
                       ? "text-charcoal-400"
                       : positive
@@ -309,7 +364,7 @@ function WalkForwardStrip({ slices }: WalkForwardStripProps) {
   }
   return (
     <div className="border-charcoal-700 flex items-center gap-2 overflow-x-auto border-t px-3 py-2">
-      <span className="text-charcoal-500 mr-1 font-mono text-[10px] tracking-widest uppercase">
+      <span className="text-charcoal-500 text-micro mr-1 font-mono tracking-widest uppercase">
         Walk-fwd
       </span>
       {slices.map((slice) => {
@@ -318,7 +373,7 @@ function WalkForwardStrip({ slices }: WalkForwardStripProps) {
           <div
             key={slice.index}
             className={cn(
-              "rounded-control min-w-32 border px-2 py-1 font-mono text-[10px]",
+              "rounded-control text-micro min-w-32 border px-2 py-1 font-mono",
               positive ? "border-positive/60" : "border-negative/60",
             )}
             title={`${slice.startDate} → ${slice.endDate}`}
@@ -349,9 +404,15 @@ interface BacktestResultViewProps {
   run: BacktestRunState | null;
   /** Invoked when the user clicks "Open in Strategy Critic". */
   onOpenInCritic?: (runId: string) => void;
+  /** Re-run a failed or stopped request; the panel owns its AbortController. */
+  onRetry: (request: BacktestRequest) => void;
 }
 
-export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewProps) {
+// The bus key is the backtest's dockview panel id (a singleton), the id
+// PanelHost focuses (R15-AGENT-052).
+const BUS_SOURCE = "backtest";
+
+export function BacktestResultView({ run, onOpenInCritic, onRetry }: BacktestResultViewProps) {
   // Publish a context snapshot so the chat sidebar's Strategy Critic
   // invocation can pick up the focused run id.
   const publishPanelContext = usePanelContextBus((state) => state.publish);
@@ -365,7 +426,7 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
       return;
     }
     publishPanelContext({
-      source: "backtest-panel",
+      source: BUS_SOURCE,
       kind: "snapshot",
       payload: {
         runId,
@@ -378,15 +439,18 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
 
   useEffect(() => {
     return () => {
-      unregisterPanelContext("backtest-panel");
+      unregisterPanelContext(BUS_SOURCE);
     };
   }, [unregisterPanelContext]);
 
   if (!run) {
     return (
-      <div className="text-charcoal-400 flex h-full items-center justify-center px-3 py-2 font-mono text-xs">
-        No backtest run yet — configure a strategy and click Run.
-      </div>
+      <EmptyState
+        icon={FlaskConical}
+        headline="Run your first backtest"
+        hint="Select a strategy on the left, set your date range, then click Run."
+        className="h-full justify-center pt-0"
+      />
     );
   }
 
@@ -397,68 +461,102 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
   return (
     <div className="flex h-full min-h-0 flex-col" data-run-id={run.runId}>
       {/* Header — status + metrics */}
-      <div className="border-charcoal-700 flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-3 py-2 font-mono text-xs">
-        <span className="text-charcoal-200">
-          {run.request.strategyId} · {run.request.symbols.join(", ")}
-        </span>
-        {run.status === "streaming" && (
-          <span className="text-amber-300" data-testid="streaming-progress">
-            running… {run.barsProcessed}/{run.totalBars} ({progressPct}%)
+      <div className="border-charcoal-700 text-caption border-b px-3 py-2 font-mono">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <span className="text-charcoal-200">
+            {run.request.strategyId} · {run.request.symbols.join(", ")}
           </span>
-        )}
-        {run.status === "pending" && <span className="text-amber-300">starting…</span>}
-        {run.status === "error" && (
-          <span className="text-negative" data-testid="run-error">
-            error: {run.error}
-          </span>
-        )}
-        {metrics && (
-          <>
-            <span>
-              Return:{" "}
-              <span className={metrics.totalReturn >= 0 ? "text-positive" : "text-negative"}>
-                {formatPercent(metrics.totalReturn)}
+          {run.status === "streaming" && (
+            <span className="text-charcoal-300" data-testid="streaming-progress">
+              running… {run.barsProcessed}/{run.totalBars} ({progressPct}%)
+            </span>
+          )}
+          {run.status === "pending" && <span className="text-charcoal-300">starting…</span>}
+          {run.status === "idle" && (
+            <span className="text-charcoal-300" data-testid="run-note">
+              {run.note}
+            </span>
+          )}
+          {run.status === "error" && (
+            <span className="text-negative" data-testid="run-error">
+              error: {run.error}
+            </span>
+          )}
+          {metrics && (
+            <>
+              <span>
+                Return:{" "}
+                <span className={metrics.totalReturn >= 0 ? "text-positive" : "text-negative"}>
+                  {formatPercent(metrics.totalReturn)}
+                </span>
               </span>
-            </span>
-            <span>
-              Sharpe: <span className="text-charcoal-100">{metrics.sharpe.toFixed(2)}</span>
-            </span>
-            <span>
-              Sortino: <span className="text-charcoal-100">{metrics.sortino.toFixed(2)}</span>
-            </span>
-            <span>
-              Calmar: <span className="text-charcoal-100">{metrics.calmar.toFixed(2)}</span>
-            </span>
-            <span>
-              Max DD: <span className="text-negative">{formatPercent(metrics.maxDrawdownPct)}</span>
-            </span>
-            <span>
-              Win rate:{" "}
-              <span className="text-charcoal-100">{(metrics.winRate * 100).toFixed(1)}%</span>
-            </span>
-            <span>
-              Trades: <span className="text-charcoal-100">{metrics.tradeCount}</span>
+              <span>
+                Sharpe: <span className="text-charcoal-100">{metrics.sharpe.toFixed(2)}</span>
+              </span>
+              <span>
+                Sortino: <span className="text-charcoal-100">{metrics.sortino.toFixed(2)}</span>
+              </span>
+              <span>
+                Calmar: <span className="text-charcoal-100">{metrics.calmar.toFixed(2)}</span>
+              </span>
+              <span>
+                Max DD:{" "}
+                <span className="text-negative">{formatPercent(metrics.maxDrawdownPct)}</span>
+              </span>
+              <span>
+                Win rate:{" "}
+                <span className="text-charcoal-100">{(metrics.winRate * 100).toFixed(1)}%</span>
+              </span>
+              <span>
+                Trades: <span className="text-charcoal-100">{metrics.tradeCount}</span>
+              </span>
+            </>
+          )}
+        </div>
+        {run.result?.warnings?.map((warning) => (
+          <div key={warning} className="text-warning text-micro mt-1" data-testid="run-warning">
+            {warning}
+          </div>
+        ))}
+        {metrics && (
+          <div className="mt-1 flex items-center justify-between">
+            <span className="text-charcoal-500">
+              {run.request.startDate} → {run.request.endDate} ·{" "}
+              {formatMoney(run.request.initialCapital)} initial
             </span>
             <Button
               type="button"
               size="sm"
               variant="outline"
-              className="ml-auto"
               onClick={() => onOpenInCritic?.(run.runId)}
               data-testid="open-in-critic"
             >
               Open in Strategy Critic
             </Button>
-          </>
+          </div>
         )}
       </div>
 
       {/* Equity curve + drawdown */}
       {run.result ? (
         <EquityChart equityCurve={run.result.equityCurve} />
+      ) : run.status === "error" || run.status === "idle" ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+          <p
+            className={cn(
+              "text-caption font-mono",
+              run.status === "error" ? "text-negative" : "text-charcoal-300",
+            )}
+          >
+            {run.status === "error" ? run.error : run.note}
+          </p>
+          <Button size="sm" variant="outline" onClick={() => onRetry(run.request)}>
+            Retry
+          </Button>
+        </div>
       ) : (
-        <div className="text-charcoal-400 flex flex-1 items-center justify-center font-mono text-xs">
-          {run.status === "error" ? run.error : "computing equity curve…"}
+        <div className="text-charcoal-400 text-caption flex flex-1 items-center justify-center font-mono">
+          computing equity curve…
         </div>
       )}
 
@@ -467,8 +565,9 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
 
       {/* Trade log */}
       <div className="border-charcoal-700 border-t">
-        <div className="text-charcoal-500 px-3 pt-2 font-mono text-[10px] tracking-widest uppercase">
-          Trades ({run.trades.length})
+        <div className="text-charcoal-500 text-micro px-3 pt-2 font-mono tracking-widest uppercase">
+          Trades ({run.trades.filter((t) => t.exitedAt != null).length} closed,{" "}
+          {run.trades.filter((t) => t.exitedAt == null).length} open)
         </div>
         <TradeTable trades={run.trades} />
       </div>

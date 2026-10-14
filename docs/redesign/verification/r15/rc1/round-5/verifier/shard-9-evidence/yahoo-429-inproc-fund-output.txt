@@ -1,0 +1,29 @@
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'TSM': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'HDB': Too Many Requests. Rate limited. Try after a while.
+provider health: yahoo circuit OPEN for 51s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'IBN': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'UMC': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'BABA': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'AAPL': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'SIFY': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'WIT': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'INFY': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'INFY.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'NAVN': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'MDLN': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'AAPL': Too Many Requests. Rate limited. Try after a while.
+F117 TSM "ERR ProviderError: yfinance fundamentals rate-limited for 'TSM': Too Many Requests. Rate limited. Try after a while."
+F117 HDB "ERR ProviderError: yfinance fundamentals rate-limited for 'HDB': Too Many Requests. Rate limited. Try after a while."
+F117 IBN "ERR ProviderError: yfinance fundamentals rate-limited for 'IBN': Too Many Requests. Rate limited. Try after a while."
+F117 UMC "ERR ProviderError: yfinance fundamentals rate-limited for 'UMC': Too Many Requests. Rate limited. Try after a while."
+F117 BABA "ERR ProviderError: yfinance fundamentals rate-limited for 'BABA': Too Many Requests. Rate limited. Try after a while."
+F117 AAPL "ERR ProviderError: yfinance fundamentals rate-limited for 'AAPL': Too Many Requests. Rate limited. Try after a while."
+F008 SIFY "ERR ProviderError: yfinance fundamentals rate-limited for 'SIFY': Too Many Requests. Rate limited. Try after a while."
+F008 WIT "ERR ProviderError: yfinance fundamentals rate-limited for 'WIT': Too Many Requests. Rate limited. Try after a while."
+F008 INFY "ERR ProviderError: yfinance fundamentals rate-limited for 'INFY': Too Many Requests. Rate limited. Try after a while."
+F008 INFY.NS "ERR ProviderError: yfinance fundamentals rate-limited for 'INFY.NS': Too Many Requests. Rate limited. Try after a while."
+F055 NAVN "ERR ProviderError: yfinance fundamentals rate-limited for 'NAVN': Too Many Requests. Rate limited. Try after a while."
+F055 MDLN "ERR ProviderError: yfinance fundamentals rate-limited for 'MDLN': Too Many Requests. Rate limited. Try after a while."
+F055 AAPL "ERR ProviderError: yfinance fundamentals rate-limited for 'AAPL': Too Many Requests. Rate limited. Try after a while."
+provider_health yahoo open: True
+DONE

@@ -1,0 +1,200 @@
+{
+ "A-underIN": {
+  "bus": {
+   "positionCount": 2,
+   "totalValue": 31075,
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-572b8559-12e9-4eb2-980c-7a4b259fc415",
+     "symbol": "INFY",
+     "quantity": 20,
+     "costBasis": 1500,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 20700,
+     "pnl": -9300
+    },
+    {
+     "id": "h-e4c3a18f-69e9-4a16-a96c-b039d9b306ab",
+     "symbol": "TCS",
+     "quantity": 5,
+     "costBasis": 3500,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 10375,
+     "pnl": -7125
+    }
+   ]
+  },
+  "ref": {
+   "INFY_IN": {
+    "symbol": "INFY",
+    "price": 1035,
+    "change": 40.89999999999998,
+    "change_percent": 4.114274217885523,
+    "volume": 15166446,
+    "open": 1010,
+    "high": 1035,
+    "low": 999.15,
+    "prev_close": 994.1,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-10-01T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   },
+   "TCS_IN": {
+    "symbol": "TCS",
+    "price": 2075,
+    "change": 24.40000000000009,
+    "change_percent": 1.1898956403004044,
+    "volume": 3428501,
+    "open": 2052.6,
+    "high": 2093.9,
+    "low": 2045.1,
+    "prev_close": 2050.6,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-10-01T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   }
+  }
+ },
+ "B-afterUS": {
+  "bus": {
+   "positionCount": 2,
+   "totalValue": 31075,
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-572b8559-12e9-4eb2-980c-7a4b259fc415",
+     "symbol": "INFY",
+     "quantity": 20,
+     "costBasis": 1500,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 20700,
+     "pnl": -9300
+    },
+    {
+     "id": "h-e4c3a18f-69e9-4a16-a96c-b039d9b306ab",
+     "symbol": "TCS",
+     "quantity": 5,
+     "costBasis": 3500,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 10375,
+     "pnl": -7125
+    }
+   ]
+  },
+  "quoteReqs": [
+   {
+    "url": "/quotes?symbols=INFY%2CTCS&asset_class=equity",
+    "region": "IN"
+   }
+  ],
+  "ref": {
+   "INFY_US": {
+    "symbol": "INFY",
+    "price": 11.039999961853027,
+    "change": -0.28640003814697224,
+    "change_percent": -2.528606072070316,
+    "volume": 19592500,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "USD",
+    "market_state": null,
+    "timestamp": "2026-10-02T20:00:02Z",
+    "provider": "yfinance",
+    "freshness": "eod"
+   },
+   "TCS_US": {
+    "symbol": "TCS",
+    "price": 2075,
+    "change": 24.40000000000009,
+    "change_percent": 1.1898956403004044,
+    "volume": 3428501,
+    "open": 2052.6,
+    "high": 2093.9,
+    "low": 2045.1,
+    "prev_close": 2050.6,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-10-01T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   }
+  }
+ },
+ "C-csv": [
+  {
+   "name": "vysted-portfolio-portfolio.csv",
+   "content": "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note\nINFY,20,1500,equity,INR,1035,20700,-9300,-31,66.61,\nTCS,5,3500,equity,INR,2075,10375,-7125,-40.714285714285715,33.39,"
+  }
+ ],
+ "D-closedPanel-FINAL-007": {
+  "positionCount": 5,
+  "totalValue": null,
+  "activePortfolioId": "default",
+  "activePortfolioName": "Portfolio",
+  "holdings": [
+   {
+    "id": "h-06c174ff-13ae-40b2-9848-6e510f8406f2",
+    "symbol": "AAPL",
+    "quantity": 2,
+    "costBasis": 190,
+    "assetClass": "equity",
+    "currency": null,
+    "marketValue": null,
+    "pnl": null
+   },
+   {
+    "id": "h-fcb52969-12bb-4f33-a908-b6859a66d259",
+    "symbol": "MSFT",
+    "quantity": 1,
+    "costBasis": 400,
+    "assetClass": "equity",
+    "currency": null,
+    "marketValue": null,
+    "pnl": null
+   },
+   {
+    "id": "h-e9c93f63-ff20-49d0-982e-c5835b0f5579",
+    "symbol": "RELIANCE.NS",
+    "quantity": 3,
+    "costBasis": 1200,
+    "assetClass": "equity",
+    "currency": "INR",
+    "marketValue": null,
+    "pnl": null
+   },
+   {
+    "id": "h-55d3a0a8-5d67-4544-be68-75019f31fce6",
+    "symbol": "BTC/USDT",
+    "quantity": 0.1,
+    "costBasis": 60000,
+    "assetClass": "crypto",
+    "currency": "USDT",
+    "marketValue": null,
+    "pnl": null
+   },
+   {
+    "id": "h-48ed32d5-c920-45c2-a330-7c2de35509ba",
+    "symbol": "TCS.NS",
+    "quantity": 2,
+    "costBasis": 3300,
+    "assetClass": "equity",
+    "currency": "INR",
+    "marketValue": null,
+    "pnl": null
+   }
+  ]
+ }
+}

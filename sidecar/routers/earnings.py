@@ -14,22 +14,21 @@ fresh) so repeat calls within the TTL skip the upstream entirely.
 
 from __future__ import annotations
 
-import logging
 from datetime import UTC, date, datetime, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
+import config
 from models.earnings import (
     EarningsEstimateDetail,
     EarningsHistoryResponse,
     EarningsSurprisesResponse,
     EarningsUpcomingResponse,
 )
-from services import data_cache, earnings_provider
-from services.errors import ProviderError
-
-logger = logging.getLogger(__name__)
+from routers._cached import cached as _cached
+from services import earnings_provider
+from services.yfinance_provider import _yahoo_symbol
 
 router = APIRouter(prefix="/earnings", tags=["earnings"])
 
@@ -40,7 +39,8 @@ _TTL_ESTIMATES = 6 * 60 * 60  # 6 hours
 
 def _watchlist_key(watchlist: list[str] | None) -> str:
     if not watchlist:
-        return "default"
+        # The default universe follows the request region (C4, R15-LEAD-009).
+        return f"default:{config.get_region()}"
     return ",".join(sorted({s.strip().upper() for s in watchlist if s.strip()}))
 
 
@@ -65,19 +65,13 @@ async def get_upcoming(
         f"earnings:upcoming:{start.isoformat()}:{end.isoformat()}:"
         f"{_watchlist_key(parsed_watchlist)}"
     )
-    cached = await data_cache.get(cache_key, _TTL_UPCOMING)
-    if isinstance(cached, dict):
-        try:
-            return EarningsUpcomingResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
-
-    try:
-        response = await earnings_provider.get_upcoming(start, end, parsed_watchlist)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    response, as_of = await _cached(
+        cache_key,
+        _TTL_UPCOMING,
+        EarningsUpcomingResponse,
+        lambda: earnings_provider.get_upcoming(start, end, parsed_watchlist),
+    )
+    response.as_of = as_of
     return response
 
 
@@ -85,18 +79,14 @@ async def get_upcoming(
 async def get_history(symbol: str) -> EarningsHistoryResponse:
     """Return past earnings results for ``symbol``."""
     normalized = symbol.strip().upper()
-    cache_key = f"earnings:{normalized}:history"
-    cached = await data_cache.get(cache_key, _TTL_HISTORY)
-    if isinstance(cached, dict):
-        try:
-            return EarningsHistoryResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await earnings_provider.get_history(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    cache_key = f"earnings:{_yahoo_symbol(normalized)}:history"  # the resolved listing
+    response, as_of = await _cached(
+        cache_key,
+        _TTL_HISTORY,
+        EarningsHistoryResponse,
+        lambda: earnings_provider.get_history(normalized),
+    )
+    response.as_of = as_of
     return response
 
 
@@ -104,18 +94,14 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
 async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
     """Return per-quarter EPS surprise rows for ``symbol``."""
     normalized = symbol.strip().upper()
-    cache_key = f"earnings:{normalized}:surprises"
-    cached = await data_cache.get(cache_key, _TTL_HISTORY)
-    if isinstance(cached, dict):
-        try:
-            return EarningsSurprisesResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await earnings_provider.get_surprises(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    cache_key = f"earnings:{_yahoo_symbol(normalized)}:surprises"  # the resolved listing
+    response, as_of = await _cached(
+        cache_key,
+        _TTL_HISTORY,
+        EarningsSurprisesResponse,
+        lambda: earnings_provider.get_surprises(normalized),
+    )
+    response.as_of = as_of
     return response
 
 
@@ -123,18 +109,15 @@ async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
 async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
     """Return the next-event analyst-estimate detail for ``symbol``."""
     normalized = symbol.strip().upper()
-    cache_key = f"earnings:{normalized}:estimates"
-    cached = await data_cache.get(cache_key, _TTL_ESTIMATES)
-    if isinstance(cached, dict):
-        try:
-            return EarningsEstimateDetail.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await earnings_provider.get_estimate_detail(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    cache_key = f"earnings:{_yahoo_symbol(normalized)}:estimates"  # the resolved listing
+    # The provider stamps its own as_of (unlike the other routes above); the
+    # cache row's write time is unused here.
+    response, _ = await _cached(
+        cache_key,
+        _TTL_ESTIMATES,
+        EarningsEstimateDetail,
+        lambda: earnings_provider.get_estimate_detail(normalized),
+    )
     return response
 
 

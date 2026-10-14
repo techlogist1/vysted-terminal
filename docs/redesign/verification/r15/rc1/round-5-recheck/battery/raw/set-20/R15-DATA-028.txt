@@ -1,0 +1,59 @@
+=== R15-DATA-028: agent's earnings calendar, IN region default (no watchlist) vs US ===
+CMD: curl -s -m 60 'http://127.0.0.1:52344/earnings/upcoming?days=60' (default region context, no header -> IN per this session)
+default-region (IN) event count: 60
+sample symbols: ['DEEPA.NS', 'MOMSBELIEF.NS', 'PRASOLCHEM.NS', 'ANSALAPI.NS', 'VIPULLTD.NS', 'MPIMANIPAL.NS', 'LCCPROJECT.NS', 'STEAMHOUSE.NS', 'GMBREW.NS', 'TCS.NS']
+any of the old hardcoded US-10 default present: False
+
+CMD: curl -s -m 60 'http://127.0.0.1:52344/earnings/upcoming?days=60' -H 'X-Vysted-Region: US'
+US-region event count: 10
+symbols: ['JPM', 'TSLA', 'V', 'GOOGL', 'META', 'MSFT', 'AAPL', 'AMZN', 'NVDA', 'WMT']
+
+CMD: sed -n '440,460p' sidecar/services/earnings_provider.py (region-aware branch)
+    """Return scheduled earnings events in ``[start, end]`` for ``watchlist``.
+
+    Defaults: ``start`` = today, ``end`` = today + 7 days. With no
+    ``watchlist`` an IN session reads NSE's market-wide event calendar (every
+    results board meeting in the window); any other region uses a small
+    built-in universe of US large-caps so the panel populates.
+    """
+    today = datetime.now(tz=UTC).date()
+    start_date = start or today
+    end_date = end or (today + timedelta(days=7))
+    if start_date > end_date:
+        raise ProviderError("start_date must be on or before end_date")
+    if not watchlist and get_region() == "IN":
+        events_in = await asyncio.to_thread(_nse_results_events, start_date, end_date)
+        events_in.sort(key=lambda event: (event.scheduled_date, event.symbol))
+        return EarningsUpcomingResponse(start_date=start_date, end_date=end_date, events=events_in)
+    universe = list(watchlist) if watchlist else list(_DEFAULT_UNIVERSE)
+
+    async def _one(symbol: str) -> EarningsEvent | None:
+        try:
+            payload = await asyncio.to_thread(_fetch_calendar_sync, symbol)
+
+CMD: sed -n '28,50p' sidecar/services/agent_tools/earnings_tools.py (agent tool calls the same get_upcoming)
+async def _earnings_upcoming(args: dict[str, Any]) -> dict[str, Any]:
+    """Return scheduled earnings events in the next ``days`` days."""
+    days = int(args.get("days", 7) or 7)
+    if days < 1 or days > 60:
+        return {"ok": False, "error": "days must be in [1, 60]"}
+    watchlist_arg = args.get("watchlist")
+    watchlist: list[str] | None
+    if isinstance(watchlist_arg, str):
+        watchlist = [s.strip() for s in watchlist_arg.split(",") if s.strip()]
+    elif isinstance(watchlist_arg, list):
+        watchlist = [str(s).strip() for s in watchlist_arg if str(s).strip()]
+    else:
+        watchlist = None
+
+    today = datetime.now(tz=UTC).date()
+    try:
+        response = await earnings_provider.get_upcoming(
+            today, today + timedelta(days=days), watchlist
+        )
+    except ProviderError as exc:
+        return {"ok": False, "error": f"provider error: {exc}"}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": f"unexpected error: {exc}"}
+
+    return {

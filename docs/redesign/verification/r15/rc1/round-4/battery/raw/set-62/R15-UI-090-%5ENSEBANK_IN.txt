@@ -1,0 +1,3 @@
+REGION=IN SYM=%5ENSEBANK
+{"symbol":"^NSEBANK","price":55580.3984375,"change":141.8984375,"change_percent":0.25595648781983643,"volume":145900.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":null,"timestamp":"2026-09-25T10:02:14Z","provider":"yfinance","freshness":"eod"}
+HTTP_STATUS:200

@@ -1,0 +1,27 @@
+Probe: in-process function calls to services.llm.native_search.native_search_available for the
+register's own cases (Groq default model, Groq Compound, Gemini default model, Gemini 3, xAI).
+
+Command:
+  cd <cand>/sidecar && .venv/bin/python3 /tmp/probe_agent005.py
+
+Exit: 0
+
+Output:
+native_search_available('groq', None, 'llama-3.3-70b-versatile') -> False
+native_search_available('groq', None, 'groq/compound') -> True
+native_search_available('gemini', None, 'gemini-2.5-pro') -> False
+native_search_available('gemini', None, 'gemini-3-pro') -> True
+native_search_available('xai', None, 'grok-4') -> False
+
+Source check: sidecar/services/llm/native_search.py:67
+  PROVIDER_LEVEL_NATIVE_SEARCH: set[str] = {"anthropic"}
+(no longer includes gemini/groq/xai as a blanket provider-level guarantee).
+
+Verdict basis: matches batch-3's certification verbatim ("native_search_available is False for
+Groq llama-3.3-70b-versatile and for Gemini gemini-2.5-pro, so the runtime keeps the local
+web_search. It is True for groq/compound and gemini-3-*."). Default-model Groq/Gemini agents now
+correctly keep the local web_search tool instead of silently losing search; xai stays False
+(local web_search kept), matching R15-LEAD-008 (separate entry, not in this shard, also
+certified in batch-4). Live Gemini/Groq/xAI keyed lanes remain unverified (no funded keys on
+this lane) — the register's own certification carried the same "no live key" caveat
+("code-level, as the original repro was; no Groq or Gemini key is funded").

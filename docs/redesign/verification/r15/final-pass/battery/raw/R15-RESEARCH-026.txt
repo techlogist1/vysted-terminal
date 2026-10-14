@@ -1,0 +1,13 @@
+# R15-RESEARCH-026 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:31:35+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; echo '(rc2 ran deriveMetrics through a vite ssr bundle; the battery builds nothing: source + pin)'; grep -n 'currency unknown' src/lib/format.ts; grep -n 'formatInstrumentMoney' src/modules/research/brief-blocks.tsx | head -3; grep -n 'currency unknown' src/modules/research/brief-blocks.test.ts
+--- output ---
+(rc2 ran deriveMetrics through a vite ssr bundle; the battery builds nothing: source + pin)
+137: *  the bare magnitude is labelled "· currency unknown", never a silent region
+149:  return `${compact ? formatCompactNumber(value) : formatPrice(value)} · currency unknown`;
+46:  formatInstrumentMoney,
+165:    return formatInstrumentMoney(value, derivedCurrency(v, currency), false);
+317:    push("Market cap", formatInstrumentMoney(num(fund.market_cap), currency));
+356:    expect(byLabel["Market cap"]).toBe("2.00B · currency unknown");
+
+EXIT=0 (0.0s)

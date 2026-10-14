@@ -1,0 +1,4 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9
+cmd: cd <scratch>/sidecar && ./.venv/bin/python -c 'bootstrap_curve(YieldCurveRequest(valuation_date=2026-05-16, instruments=[3M depo 0.05], sample_count=100)); print(len(dates), len(set(dates)), d0, d1, dlast)'
+=> 100 99 2026-05-17 2026-05-17 2026-08-23
+code: sidecar/services/quant/yield_curve.py:120 enableExtrapolation; :124-125 total_days/step_days=max(1,total//(n-1)); :137 if qld <= qd: qld = qd + 1

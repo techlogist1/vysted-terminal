@@ -1,0 +1,63 @@
+[  75.7s] tool_use research {"query": "Mazagon Dock Shipbuilders \u2014 latest quarterly results", "depth": "quick"}
+[  76.7s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin 8d66eac6680540a1afac9998505fcd5b depth=normal query=Mazagon Dock Shipbuilders \u2014 latest quarterly results", "latency_ms": null, "status": "ok", "index": 1, "_t": 76.67}
+[  76.7s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolving \"Mazagon Dock Shipbuilders \u2014 latest quarterly results\"", "latency_ms": null, "status": "ok", "index": 2, "_t": 76.67}
+[  76.7s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 MAZDOCK", "latency_ms": 906, "status": "ok", "index": 3, "_t": 76.67}
+[  76.7s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulling market data for MAZDOCK", "latency_ms": null, "status": "ok", "index": 4, "_t": 76.67}
+[ 100.6s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulled 4/4 data sources", "latency_ms": 23974, "status": "ok", "index": 5, "_t": 100.64}
+[ 100.6s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "searching the web for Mazagon Dock Shipbuilders Limited", "latency_ms": null, "status": "ok", "index": 6, "_t": 100.64}
+[ 151.7s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "0 web source(s)", "latency_ms": 50998, "status": "ok", "index": 7, "_t": 151.65}
+[ 151.7s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 8, "_t": 151.65}
+[ 151.7s] tool_use publish_brief {"query": "Mazagon Dock Shipbuilders \u2014 latest quarterly results", "symbol": "MAZDOCK", "mode": "fast", "depth": "quick", "execution": {"run_id": "8d66eac6680540a1afac9998505fcd5b", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790131246.570955, "finished_at": 1790
+
+=== TEXT ===
+Here is a summary of the research results for Mazagon Dock Shipbuilders:
+
+**Symbol:** MAZDOCK
+**Name:** Mazagon Dock Shipbuilders Limited
+**Exchange:** NSE (National Stock Exchange)
+**Region:** India
+**Asset Class:** Equity
+
+**Price:** ₹2204.0 (as of September 22, 2026)
+
+**Fundamentals:**
+
+* Market Capitalization: ₹8,89,049,513,984
+* P/E Ratio: 33.56
+* Forward P/E: 28.45
+* Price to Book: 9.11
+* Dividend Yield: 0.09%
+* Earnings Per Share (EPS): ₹65.68
+
+**Revenue and Growth:**
+
+* Revenue TTM: ₹13,32,34,196,480
+* Net Income TTM: ₹26,81,03,998,976
+* Revenue Growth: 12.1%
+* Earnings Growth: 21.5%
+
+**Ownership:**
+
+* Promoter Holdings: 81.22%
+* Institutional Holdings: 6.73%
+* Public Holdings: 18.78%
+
+**News and Filings:**
+
+The company has submitted several announcements to the exchange, including:
+
+* Receipt of an Order from MSETCL for Al-based comprehensive Infrasecure Project
+* Signing of MoU with National Shipbuilding & Heavy Industries Park Andhra Pradesh (NSHIPAP)
+* Appointment of Part-time Non-official (Independent) Director
+
+**Web Search:**
+
+No on-entity news found.
+
+**Brief:**
+
+Built a brief on Mazagon Dock Shipbuilders. Click any ticker to dig in.
+
+Please let me know if you'd like me to adjust the range or provide further analysis!
+
+=== ok 232.5s kinds={'tool_use': 2, 'research_step': 8, 'delta': 360, 'done': 1} usage={'input_tokens': 9106, 'output_tokens': 361, 'cache_read_input_tokens': None, 'cache_creation_input_tokens': None}

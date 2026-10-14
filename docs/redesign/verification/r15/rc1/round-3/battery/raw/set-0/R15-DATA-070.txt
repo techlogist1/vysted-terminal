@@ -1,0 +1,216 @@
+_RETRY_BACKOFF_SECONDS = 0.25
+# Strip HTML tags out of RSS summaries — feeds vary wildly in how much markup
+# they embed and the sentiment scorer wants plain text.
+_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _stable_id(url: str, title: str) -> str:
+    """Derive a stable, deterministic id for a news item from its url+title."""
+    digest = hashlib.sha1(f"{url}\n{title}".encode(), usedforsecurity=False)
+    return digest.hexdigest()[:16]
+
+
+def _clean(text: str | None) -> str | None:
+    """Strip HTML tags and collapse whitespace; return ``None`` if empty."""
+    if not text:
+        return None
+    stripped = _TAG_RE.sub(" ", text)
+    collapsed = " ".join(stripped.split())
+    return collapsed or None
+
+
+def _parse_struct_time(value: struct_time | None) -> datetime | None:
+    """Convert a feedparser ``struct_time`` to a UTC datetime.
+
+    ``None`` when the entry carried no date or a malformed one: an undated item
+    is never stamped now() (which would sort it above genuinely recent stories).
+    """
+    if value is None:
+        return None
+    try:
+        return datetime(*value[:6], tzinfo=UTC)
+    except (TypeError, ValueError):
+        return None
+
+
+def _parse_iso(value: str | None) -> datetime | None:
+    """Parse an ISO-8601 timestamp (NewsAPI's format); ``None`` when absent or
+    malformed, never now()."""
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed
+
+
+async def fetch_rss(
+    client: httpx.AsyncClient, feed_url: str, *, fallback_source: str
+) -> list[NewsItem]:
+    """Fetch and map a single RSS feed to :class:`NewsItem` models.
+
+    Uses the shared, pooled ``client`` so connections are reused across sources
+    and requests. ``feedparser`` itself never raises on a bad feed — it sets
+    ``bozo`` — but the underlying HTTP fetch can, so the request goes through
+    ``httpx`` first and a failure here propagates to the caller, which decides
+    whether to skip it.
+    """
+    response = await client.get(
+        feed_url,
+        timeout=_HTTP_TIMEOUT,
+        follow_redirects=True,
+        headers={"User-Agent": "VystedTerminal/1.0 (+news)"},
+    )
+    response.raise_for_status()
+    parsed = feedparser.parse(response.content)
+
+    items: list[NewsItem] = []
+    for entry in parsed.entries:
+        title = _clean(entry.get("title"))
+        url = entry.get("link")
+        if not title or not url:
+            continue
+        summary = _clean(entry.get("summary") or entry.get("description"))
+        source = (
+            (entry.get("source") or {}).get("title") or parsed.feed.get("title") or fallback_source
+        )
+        published = _parse_struct_time(entry.get("published_parsed") or entry.get("updated_parsed"))
+        items.append(
+            NewsItem(
+                id=_stable_id(url, title),
+                title=title,
+                summary=summary,
+                url=url,
+                source=str(source),
+                published_at=published,
+                symbols=[],
+                provider=PROVIDER_RSS,
+            )
+469:    dated = [item for item in unique if item.published_at is not None]
+470:    dated.sort(key=lambda item: item.published_at, reverse=True)
+471:    return dated + [item for item in unique if item.published_at is None]
+225:async def fetch_newsapi(
+226-    client: httpx.AsyncClient, query: str, *, limit: int, api_key: str
+227-) -> list[NewsItem]:
+228-    """Fetch and map NewsAPI ``/v2/everything`` results to :class:`NewsItem`."""
+229-    response = await client.get(
+230-        _NEWSAPI_URL,
+231-        timeout=_HTTP_TIMEOUT,
+232-        params={
+233-            "q": query,
+234-            "language": "en",
+235-            "sortBy": "publishedAt",
+236-            "pageSize": min(max(limit, 1), 100),
+237-        },
+238-        headers={"X-Api-Key": api_key},
+239-    )
+240-    response.raise_for_status()
+241-    payload: dict[str, Any] = response.json()
+242-
+243-    items: list[NewsItem] = []
+244-    for article in payload.get("articles", []):
+245-        title = _clean(article.get("title"))
+--
+381:async def fetch_news(
+382-    client: httpx.AsyncClient,
+383-    symbols: list[str],
+384-    limit: int,
+385-    *,
+386-    newsapi_key: str | None = None,
+387-    source_status: dict[str, str] | None = None,
+388-) -> list[NewsItem]:
+389-    """Fetch news from every configured source, de-duplicated and newest-first.
+390-
+391-    ``symbols`` may be empty — in that case only the general market feeds are
+392-    used. All sources are fetched **concurrently** over the shared pooled
+393-    ``client``. Per-source failures are swallowed (partial success). A
+394-    :class:`ProviderError` is raised *only* when nothing at all was collected
+395-    (every source returned empty or failed) so the router can surface a clean
+396-    502; any collected item yields a normal 200.
+397-
+398-    ``newsapi_key`` is the BYOK NewsAPI key the ``/news`` router reads from a
+399-    request header (sourced from the OS keychain — FR-036). It takes precedence
+400-    over the ``NEWSAPI_KEY`` env var; absent both, the fetch is RSS-only.
+401-
+    NewsAPI contributed nothing instead of that being indistinguishable from
+    "no fresh articles right now".
+
+    The active region is read here (not passed by the router) via
+    :func:`config.get_region` so the market feeds + per-symbol locale are
+    region-appropriate (Pass B / Pillar A — FR-060) without changing the router
+    contract. The default ``"US"`` keeps every existing caller unchanged.
+    """
+    region = get_region()
+    tasks: list[asyncio.Future[list[NewsItem]]] = [
+        asyncio.ensure_future(
+            _fetch_feed(client, feed_url, fallback_source=source_label, symbol=feed_symbol)
+        )
+        for source_label, feed_url, feed_symbol in _feed_urls_for(symbols, region)
+    ]
+
+    api_key = _newsapi_key(newsapi_key)
+    newsapi_task_index: int | None = None
+    if api_key is not None:
+        query = " OR ".join(symbols) if symbols else "stock market OR finance"
+        newsapi_task_index = len(tasks)
+        tasks.append(
+            asyncio.ensure_future(
+                _fetch_newsapi_status(client, query, limit=limit, api_key=api_key)
+            )
+        )
+    elif source_status is not None:
+        source_status["newsapi"] = "absent"
+
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    collected: list[NewsItem] = []
+    for index, result in enumerate(results):
+        # The resilient helpers swallow their own errors, but guard against any
+        # unexpected exception escaping so one source still cannot fail the batch.
+        if isinstance(result, BaseException):
+        if isinstance(result, BaseException):
+            logger.warning("news: source raised unexpectedly: %s", result)
+            if index == newsapi_task_index and source_status is not None:
+                source_status["newsapi"] = "error"
+            continue
+        if index == newsapi_task_index:
+            items, status = result
+            if source_status is not None:
+                source_status["newsapi"] = status
+            collected.extend(items)
+            continue
+        collected.extend(result)
+
+    if not collected:
+        raise ProviderError("all news sources failed")
+
+    # De-duplicate on the stable id (the same story shows up across feeds),
+    # keeping every feed's provenance symbol on the surviving copy.
+    by_id: dict[str, NewsItem] = {}
+    for item in collected:
+        kept = by_id.get(item.id)
+        if kept is None:
+            by_id[item.id] = item
+        elif item.symbols:
+            merged = kept.symbols + [s for s in item.symbols if s not in kept.symbols]
+            by_id[item.id] = kept.model_copy(update={"symbols": merged})
+    unique = list(by_id.values())
+
+    # Newest first; an undated item sorts last (its recency is unknown).
+    dated = [item for item in unique if item.published_at is not None]
+    dated.sort(key=lambda item: item.published_at, reverse=True)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/models/news.py:25:    published_at: datetime | None
+    dated.sort(key=lambda item: item.published_at, reverse=True)
+    return dated + [item for item in unique if item.published_at is None]
+
+
+# ---------------------------------------------------------------------------
+# Enrichment — sentiment scoring + symbol tagging (R15-AGENT-063)
+#
+# Moved here from ``routers/news.py`` so the agent-tool path (``news_tool``)
+# gets the SAME scoring/tagging/filtering the HTTP route does, instead of
+# returning raw unscored items. A symbol like ``BTC/USDT`` is normalised to
+# its base (``BTC``) before alias matching — a headline says "BTC", never the

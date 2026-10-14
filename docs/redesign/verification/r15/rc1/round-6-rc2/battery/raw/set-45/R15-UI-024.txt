@@ -1,0 +1,7 @@
+$ grep for TaskList registration + NotesToolbar tests
+33:import { TaskList, TaskItem } from "@tiptap/extension-list";
+130:      TaskList,
+131:      TaskItem.configure({ nested: true }),
+84:  it("the Task list button toggles a task list (extension is registered)", async () => {
+95:  it("Insert [[wikilink]] WRAPS a selection instead of deleting it (repro e)", async () => {
+109:  it("Insert [[wikilink]] with no selection still opens the picker (falls back to '[[')", async () => {

@@ -1,0 +1,7 @@
+# ace7dd76 in-process (candidate venv; pytest stubbed - not installed in venv; test file imported only for its fixture builders)
+$ python /tmp/b5_res2.py 036
+emitted keys: ['dividend_declared', 'dividend_per_share', 'dividend_per_share_ttm', 'dividend_yield', 'drawdown_from_high', 'earnings_growth', 'earnings_growth_computed', 'fifty_two_week_change', 'fifty_two_week_high_exchange', 'institutions_percent_exchange', 'market_cap', 'market_cap_witness', 'normalized_net_income', 'promoter_percent_exchange', 'reported_net_income', 'revenue_growth', 'revenue_growth_computed']
+MODE 036
+len _PROMPT_KEYS 18
+emitted not in _PROMPT_KEYS: []
+EXIT=0

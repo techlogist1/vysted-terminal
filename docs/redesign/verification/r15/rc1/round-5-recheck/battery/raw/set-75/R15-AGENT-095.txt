@@ -1,0 +1,8 @@
+CMD: in-process _guard_ratio_claims / _share_counts with the register's exact SIFY filing-date sentence and phrasings
+sourced_counts: {'1', '6'}
+ISO -> replaced: False | out: 2026-06-26: One SIFY ADS represents six equity shares.
+MM/DD/YYYY -> replaced: False | out: 06/26/2026: One SIFY ADS represents six equity shares.
+DD-MM-YYYY -> replaced: False | out: 26-06-2026: One SIFY ADS represents six equity shares.
+Month DD, YYYY -> replaced: False | out: Filed on June 26, 2026: one SIFY ADS represents six equity shares.
+DD Month YYYY -> replaced: False | out: Filed on 26 June 2026: one SIFY ADS represents six equity shares.
+EXIT: 0

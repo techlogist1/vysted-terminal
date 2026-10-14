@@ -1,0 +1,74 @@
+=== R15-UI-003 probe (backend surface) ===
+--- GET /custom-agents/tool-ids ---
+HTTP:200
+count 56
+has research True has web_search True has publish_brief True
+--- POST /custom-agents create with tools:[research, web_search, price_data], provider openrouter ---
+HTTP:422
+{
+    "detail": [
+        {
+            "type": "value_error",
+            "loc": [
+                "body",
+                "id"
+            ],
+            "msg": "Value error, custom-agent id must start with 'custom:' (got 'rc1-battery6-probe')",
+            "input": "rc1-battery6-probe",
+            "ctx": {
+                "error": {}
+            }
+        },
+        {
+            "type": "missing",
+            "loc": [
+                "body",
+                "philosophy"
+            ],
+            "msg": "Field required",
+            "input": {
+                "id": "rc1-battery6-probe",
+                "name": "RC1 Battery6 Probe",
+                "system_prompt": "Probe agent for R15-UI-003 backend recheck only, long enough system prompt.",
+                "tools": [
+                    "research",
+                    "web_search",
+                    "price_data"
+                ],
+                "default_provider": "openrouter"
+            }
+        }
+    ]
+}
+--- GET /custom-agents/rc1-battery6-probe after create ---
+HTTP:400
+tools None
+default_provider None
+--- retry POST /custom-agents with id prefix custom: and philosophy field ---
+HTTP:201
+{
+    "id": "custom:rc1-battery6-probe",
+    "name": "RC1 Battery6 Probe",
+    "philosophy": "probe",
+    "system_prompt": "Probe agent for R15-UI-003 backend recheck only, long enough system prompt.",
+    "tools": [
+        "research",
+        "web_search",
+        "price_data"
+    ],
+    "default_provider": "openrouter",
+    "default_model": null,
+    "icon": null,
+    "created_at": 1790517578,
+    "updated_at": 1790517578
+}
+--- PUT edit: change name only, tools unspecified in payload? test PUT semantics with full tools resent ---
+HTTP:200
+tools after PUT ['research', 'web_search', 'price_data']
+default_provider after PUT openrouter
+name RC1 Battery6 Probe Renamed
+DELETE HTTP:204
+
+NOTE: backend accepts+persists full tool arrays and openrouter provider through create+PUT (confirms API layer is not the limiting factor).
+The entry's core defect is FRONTEND-only (form.tsx hardcoded 20-tool fallback array silently truncating on save); verifying the UI truncation itself requires jsdom component rendering, not run in this shard per harness rule (vitest suites owned by the heavy lane).
+ci_pinned: src/modules/agent-builder/agent-builder.test.tsx:111 'R15-UI-003: payload keeps every selected tool, not just the fallback allow-list' and :266 'R15-UI-003: edit and save round-trips a tool set + provider the fallback arrays don't list'

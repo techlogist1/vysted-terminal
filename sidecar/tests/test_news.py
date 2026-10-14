@@ -104,7 +104,12 @@ def mock_news(monkeypatch: pytest.MonkeyPatch) -> list[NewsItem]:
         client: httpx.AsyncClient,  # noqa: ARG001
         symbols: list[str],  # noqa: ARG001
         limit: int,  # noqa: ARG001
+        *,
+        newsapi_key: str | None = None,  # noqa: ARG001
+        source_status: dict[str, str] | None = None,
     ) -> list[NewsItem]:
+        if source_status is not None:
+            source_status["newsapi"] = "absent"
         return list(canned)
 
     monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
@@ -162,7 +167,101 @@ def test_get_news_provider_error_is_502(
     monkeypatch.setattr(news_provider, "fetch_news", boom)
     response = client.get("/news")
     assert response.status_code == 502
-    assert "all news sources failed" in response.json()["detail"]
+    assert response.json()["detail"] == "The data provider returned an unexpected response."
+
+
+# --------------------------------------------------------------------------
+# Symbol tagging by alias set and provenance (R15-DATA-030)
+# --------------------------------------------------------------------------
+
+
+def _news_for(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, item: NewsItem, symbols: str
+) -> list[dict]:
+    async def fake_fetch_news(client, symbols, limit, *, newsapi_key=None, source_status=None):  # noqa: ANN001, ANN202, ARG001
+        return [item]
+
+    monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
+    return client.get("/news", params={"symbols": symbols}).json()
+
+
+def test_company_name_tags_a_suffixed_india_symbol(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    item = _news_item("r1", "Reliance Industries Q2 profit rises 10%", "RIL beats estimates")
+    body = _news_for(client, monkeypatch, item, "RELIANCE.NS")
+    assert [i["symbols"] for i in body] == [["RELIANCE.NS"]]
+
+
+def test_one_letter_ticker_never_matches_the_article_a(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    item = _news_item("n1", "Nvidia unveils a new chip", "A report from a bank")
+    assert _news_for(client, monkeypatch, item, "A") == []
+
+
+def test_company_name_tags_a_bare_nse_ticker(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    item = _news_item("s1", "State Bank of India raises rates")
+    body = _news_for(client, monkeypatch, item, "SBIN")
+    assert [i["symbols"] for i in body] == [["SBIN"]]
+
+
+def test_btc_usdt_tags_a_bitcoin_headline(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-AGENT-063 residual: news_provider._aliases used to yield only
+    ["BTC/USDT", "BTC"] with no company-name alias, so a headline that never
+    says the literal pair or bare base ("BTC") went untagged."""
+    item = _news_item("btc1", "Bitcoin options expiry looms as volatility spikes")
+    body = _news_for(client, monkeypatch, item, "BTC/USDT")
+    assert [i["symbols"] for i in body] == [["BTC/USDT"]]
+
+
+def test_eth_usdt_tags_an_ethereum_headline(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Class pin, not written against: the same residual on a different base."""
+    item = _news_item("eth1", "Ethereum upgrade activates on mainnet")
+    body = _news_for(client, monkeypatch, item, "ETH/USDT")
+    assert [i["symbols"] for i in body] == [["ETH/USDT"]]
+
+
+def test_items_from_a_symbols_own_feed_are_tagged_by_provenance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        # The same story on a market feed and on HDFCBANK's own feed.
+        return [_news_item("h1", "Lender posts record quarter")]
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.delenv("NEWSAPI_KEY", raising=False)
+    items = asyncio.run(news_provider.fetch_news(_CLIENT, ["HDFCBANK"], limit=10))
+    assert [i.symbols for i in items] == [["HDFCBANK"]]
+
+
+@pytest.mark.parametrize(
+    ("symbol", "title"),
+    [
+        ("RELIANCE.NS", "Reliance Q2 profit jumps 9% on retail, Jio"),
+        ("RELIANCE.NS", "Reliance shares hit record high"),
+        ("MARUTI.NS", "Maruti sales rise 8% in September"),
+        ("META", "Meta unveils new Llama model"),
+        ("META", "Bank of America backs Meta stock after Muse surprise"),
+        ("UBER", "Uber beats estimates on ride growth"),
+    ],
+)
+def test_data_030_revert_guard_short_name_headline_tags_its_symbol(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, symbol: str, title: str
+) -> None:
+    """R15-DATA-030 regression guard: a headline that names the company by its
+    short name ("Meta", not "Meta Platforms"; "Reliance", not "Reliance
+    Industries") tags the symbol. e7d5a628 made tickers case-sensitive, so none
+    of these tagged; the batch-29 integration reverted it."""
+    item = _news_item("g1", title)
+    body = _news_for(client, monkeypatch, item, symbol)
+    assert [i["symbols"] for i in body] == [[symbol]]
 
 
 # --------------------------------------------------------------------------
@@ -193,6 +292,52 @@ def test_fetch_news_dedupes_and_sorts(monkeypatch: pytest.MonkeyPatch) -> None:
     assert ids.count("dup") == 1
     # Newest first.
     assert ids == ["fresh", "dup"]
+
+
+def test_undated_rss_item_has_no_date_and_sorts_last(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-070: an RSS entry with no pubDate is served with published_at None
+    and sorted after every dated story — never stamped now() and put on top."""
+    rss = (
+        '<?xml version="1.0"?><rss version="2.0"><channel><title>Feed</title>'
+        "<item><title>Undated story</title><link>https://example.com/u</link></item>"
+        "<item><title>Dated story</title><link>https://example.com/d</link>"
+        "<pubDate>Thu, 14 May 2026 12:00:00 GMT</pubDate></item>"
+        "</channel></rss>"
+    )
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, text=rss))
+    monkeypatch.delenv("NEWSAPI_KEY", raising=False)
+
+    async def run() -> list[NewsItem]:
+        async with httpx.AsyncClient(transport=transport) as client:
+            return await news_provider.fetch_news(client, [], limit=50)
+
+    items = asyncio.run(run())
+    assert [item.title for item in items] == ["Dated story", "Undated story"]
+    assert items[0].published_at == datetime(2026, 5, 14, 12, 0, tzinfo=UTC)
+    assert items[1].published_at is None
+
+
+def test_rss_titles_and_summaries_are_html_unescaped() -> None:
+    """R15-FINAL-027: a double-escaped feed title ("F&amp;amp;O" in the XML) reached
+    the UI as the literal "F&amp;O". Titles and summaries are decoded once."""
+    rss = (
+        '<?xml version="1.0"?><rss version="2.0"><channel><title>Feed</title>'
+        "<item><title>F&amp;amp;O Talk: Nifty &amp;#8377;25,000</title>"
+        "<link>https://example.com/fo</link>"
+        "<description>Tata &amp;amp; Sons</description></item>"
+        "</channel></rss>"
+    )
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, text=rss))
+
+    async def run() -> list[NewsItem]:
+        async with httpx.AsyncClient(transport=transport) as client:
+            return await news_provider.fetch_rss(
+                client, "https://example.com/feed", fallback_source="x"
+            )
+
+    (item,) = asyncio.run(run())
+    assert item.title == "F&O Talk: Nifty \u20b925,000"
+    assert item.summary == "Tata & Sons"
 
 
 def test_fetch_news_survives_partial_failure(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -317,6 +462,212 @@ def test_fetch_news_uses_newsapi_when_key_set(monkeypatch: pytest.MonkeyPatch) -
     assert ids == {"rss1", "api1"}
     assert seen["api_key"] == "test-key-123"
     assert "NVDA" in str(seen["query"])
+
+
+def test_fetch_news_request_key_takes_precedence_over_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FR-036: the request-supplied (keychain) key wins over the env var."""
+    rss_item = _news_item("rss1", "RSS market item")
+    api_item = _news_item("api1", "NewsAPI item").model_copy(
+        update={"provider": news_provider.PROVIDER_NEWSAPI}
+    )
+    seen: dict[str, object] = {}
+
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        return [rss_item]
+
+    async def fake_fetch_newsapi(client, query, *, limit, api_key):  # noqa: ANN001, ANN202, ARG001
+        seen["api_key"] = api_key
+        return [api_item]
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.setattr(news_provider, "fetch_newsapi", fake_fetch_newsapi)
+    # Env var present, but the request-supplied key must win.
+    monkeypatch.setenv("NEWSAPI_KEY", "env-key")
+
+    items = asyncio.run(
+        news_provider.fetch_news(_CLIENT, ["NVDA"], limit=10, newsapi_key="keychain-key")
+    )
+    assert {item.id for item in items} == {"rss1", "api1"}
+    assert seen["api_key"] == "keychain-key"
+
+
+def test_fetch_news_env_key_is_last_resort_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No request key → the NEWSAPI_KEY env var is the dev fallback."""
+    api_item = _news_item("api1", "NewsAPI item").model_copy(
+        update={"provider": news_provider.PROVIDER_NEWSAPI}
+    )
+    seen: dict[str, object] = {}
+
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        return [_news_item("rss1", "RSS market item")]
+
+    async def fake_fetch_newsapi(client, query, *, limit, api_key):  # noqa: ANN001, ANN202, ARG001
+        seen["api_key"] = api_key
+        return [api_item]
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.setattr(news_provider, "fetch_newsapi", fake_fetch_newsapi)
+    monkeypatch.setenv("NEWSAPI_KEY", "env-key")
+
+    items = asyncio.run(news_provider.fetch_news(_CLIENT, ["NVDA"], limit=10))
+    assert {item.id for item in items} == {"rss1", "api1"}
+    assert seen["api_key"] == "env-key"
+
+
+def test_get_news_passes_header_key_to_provider(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """FR-036: the /news route reads the BYOK key from a HEADER and passes it on;
+    the key is never echoed in the response."""
+    seen: dict[str, object] = {}
+
+    async def fake_fetch_news(
+        client_: httpx.AsyncClient,  # noqa: ARG001
+        symbols: list[str],  # noqa: ARG001
+        limit: int,  # noqa: ARG001
+        *,
+        newsapi_key: str | None = None,
+        source_status: dict[str, str] | None = None,
+    ) -> list[NewsItem]:
+        seen["newsapi_key"] = newsapi_key
+        if source_status is not None:
+            source_status["newsapi"] = "ok"
+        return [_news_item("a1", "NVDA shares soar")]
+
+    monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
+    response = client.get("/news", headers={"X-Vysted-Newsapi-Key": "keychain-key"})
+    assert response.status_code == 200
+    assert seen["newsapi_key"] == "keychain-key"
+    # The key must never appear in the response payload.
+    assert "keychain-key" not in response.text
+
+
+# --------------------------------------------------------------------------
+# R15-DATA-094: NewsAPI 401 is reported, not silently swallowed
+# --------------------------------------------------------------------------
+
+
+def test_fetch_news_reports_unauthorized_status_on_a_401(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A rejected NewsAPI key still returns the RSS items, but ``source_status``
+    names the 401 instead of it reading as merely "NewsAPI had nothing new"."""
+    request = httpx.Request("GET", "https://newsapi.org/v2/everything")
+    unauthorized = httpx.HTTPStatusError(
+        "401", request=request, response=httpx.Response(401, request=request)
+    )
+
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        return [_news_item("rss1", "RSS market item")]
+
+    async def failing_fetch_newsapi(client, query, *, limit, api_key):  # noqa: ANN001, ANN202, ARG001
+        raise unauthorized
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.setattr(news_provider, "fetch_newsapi", failing_fetch_newsapi)
+
+    status: dict[str, str] = {}
+    items = asyncio.run(
+        news_provider.fetch_news(_CLIENT, [], limit=10, newsapi_key="bad-key", source_status=status)
+    )
+    assert {item.id for item in items} == {"rss1"}
+    assert status == {"newsapi": "unauthorized"}
+
+
+def test_fetch_news_reports_absent_status_with_no_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        return [_news_item("rss1", "RSS market item")]
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.delenv("NEWSAPI_KEY", raising=False)
+
+    status: dict[str, str] = {}
+    asyncio.run(news_provider.fetch_news(_CLIENT, [], limit=10, source_status=status))
+    assert status == {"newsapi": "absent"}
+
+
+def test_get_news_sets_the_x_news_sources_header(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def fake_fetch_news(
+        client_,  # noqa: ANN001, ARG001
+        symbols,  # noqa: ANN001, ARG001
+        limit,  # noqa: ANN001, ARG001
+        *,
+        newsapi_key=None,  # noqa: ANN001, ARG001
+        source_status=None,  # noqa: ANN001
+    ):
+        if source_status is not None:
+            source_status["newsapi"] = "unauthorized"
+        return [_news_item("a1", "headline")]
+
+    monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
+    response = client.get("/news", headers={"X-Vysted-Newsapi-Key": "bad-key"})
+    assert response.status_code == 200
+    assert response.headers["X-News-Sources"] == "rss=ok;newsapi=unauthorized"
+
+
+def test_news_sources_status_probes_the_header_key(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    seen: dict[str, object] = {}
+
+    async def fake_probe(client_, api_key):  # noqa: ANN001, ARG001
+        seen["api_key"] = api_key
+        return "unauthorized"
+
+    monkeypatch.setattr(news_provider, "probe_newsapi_key", fake_probe)
+    response = client.get("/news/sources/status", headers={"X-Vysted-Newsapi-Key": "bad-key"})
+    assert response.status_code == 200
+    assert response.json() == {"newsapi": "unauthorized"}
+    assert seen["api_key"] == "bad-key"
+    assert "bad-key" not in response.text
+
+
+def test_news_sources_status_with_no_key_is_absent(client: TestClient) -> None:
+    response = client.get("/news/sources/status")
+    assert response.status_code == 200
+    assert response.json() == {"newsapi": "absent"}
+
+
+def test_probe_newsapi_key_ok_and_unauthorized(monkeypatch: pytest.MonkeyPatch) -> None:
+    request = httpx.Request("GET", "https://newsapi.org/v2/everything")
+
+    async def ok_fetch(client, query, *, limit, api_key):  # noqa: ANN001, ANN202, ARG001
+        return [_news_item("a1", "headline")]
+
+    monkeypatch.setattr(news_provider, "fetch_newsapi", ok_fetch)
+    assert asyncio.run(news_provider.probe_newsapi_key(_CLIENT, "good-key")) == "ok"
+
+    async def unauthorized_fetch(client, query, *, limit, api_key):  # noqa: ANN001, ANN202, ARG001
+        raise httpx.HTTPStatusError(
+            "401", request=request, response=httpx.Response(401, request=request)
+        )
+
+    monkeypatch.setattr(news_provider, "fetch_newsapi", unauthorized_fetch)
+    assert asyncio.run(news_provider.probe_newsapi_key(_CLIENT, "bad-key")) == "unauthorized"
+
+
+def test_bare_nse_symbol_in_an_in_session_fetches_its_ns_feed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-029: bare BDL in IN must hit BDL.NS, not Flanigan's (US BDL)."""
+    import config
+
+    urls: list[str] = []
+
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        urls.append(feed_url)
+        return [_news_item("x", "headline")]
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.delenv("NEWSAPI_KEY", raising=False)
+    token = config.set_request_region("IN")
+    try:
+        asyncio.run(news_provider.fetch_news(_CLIENT, ["BDL"], limit=10))
+    finally:
+        config.reset_request_region(token)
+    symbol_feeds = [u for u in urls if "headline?s=" in u]
+    assert len(symbol_feeds) == 1
+    assert "s=BDL.NS&" in symbol_feeds[0]
 
 
 # --------------------------------------------------------------------------

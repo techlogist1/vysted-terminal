@@ -1,0 +1,10 @@
+COMMAND: curl http://127.0.0.1:52359/system/provider-health (own sidecar, IN-profile seed data, candidate 949c3c9f); source read of sidecar/services/screener.py, sidecar/services/fundamentals_warm.py, sidecar/app.py
+EXIT: 0
+LIVE: {"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":0.0,"consecutive_opens":0,"opens_total":0,"throttles_total":0.0},"fallthroughs":[]}
+ — matches batch-29 cert's live check exactly ("yahoo open=false, ct=0").
+
+SOURCE CHECK (both original sub-defects):
+1. Region-blindness: screener.py:1361-1370 `_warm_follow_region()` sets `_warm_universe = default_universe_for_region()` and starts the loop on first run (comment cites R15-LIFECYCLE-020 by id), replacing the old unconditional `_WARM_UNIVERSES = ('sp500',)` constant. app.py:131 still calls `start_warm_precompute()` unconditionally at boot, but the loop now follows the request region instead of hardcoding sp500.
+2. Shared-circuit weight (round-4 refutation follow-up, fixed in batch-29 d841fc3e): screener.py:163/170 `_WARM_THROTTLE_RATIO=0.5`, `_WARM_THROTTLE_WEIGHT=0.0`; `_warm_once()` (screener.py:1387) and fundamentals_warm.py:178-179 both call `yahoo_batch_provider.fetch_quotes_batch(..., throttle_weight=_WARM_THROTTLE_WEIGHT)` i.e. 0.0 — a warm-loop 429 records `provider_health.record_rate_limited(YAHOO, weight=0.0)` (yahoo_batch_provider.py:337), which cannot advance or open the user-shared circuit. A real user 429 elsewhere in the codebase still passes the default weight=1.0.
+
+VERDICT: holds. Both the region-blind boot-time sp500 warm and the shared-circuit-spend defect (the round-4 partial-refutation follow-up) are fixed in source, and the live circuit state on this candidate matches the certified re-check.

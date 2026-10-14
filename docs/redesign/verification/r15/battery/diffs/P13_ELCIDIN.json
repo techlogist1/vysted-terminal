@@ -1,0 +1,383 @@
+{
+  "battery_slot": "P13",
+  "symbol": "ELCIDIN",
+  "diffed_at": "2026-09-23",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P13_ELCIDIN.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P13_ELCIDIN.json",
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "EL CID Investments Limited (NSE resolve) / EL CID Investments Ltd (BSE resolve)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Elcid Investments Limited",
+      "outside_as_of": "2026-08-13",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "status": "definitional difference",
+      "note": "App's /resolve returns the exchange-master spelling ('EL CID...' with a space), which exactly matches the BSE/NSE security master strings the pack itself records as the authoritative exchange spelling; the pack's chosen 'outside truth' value is the company letterhead spelling ('Elcid...'). The pack explicitly documents this as a known spacing/casing variant, not a rename or data error (identity.legal_name.disagreement). Not filed as a raw finding."
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": "former_name: null (both NSE and BSE resolve candidates)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "none found",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "status": "match"
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE927X01018",
+      "app_as_of": "2026-09-19",
+      "outside_value": "INE927X01018",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "503681",
+      "app_as_of": "2026-09-19",
+      "outside_value": "503681",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": "ELCIDIN",
+      "app_as_of": "2026-09-19",
+      "outside_value": "ELCIDIN",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://groww.in/stocks/elcid-investments-ltd",
+      "status": "match"
+    },
+    {
+      "field": "identity.board",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "mainboard",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=",
+      "status": "app blank",
+      "note": "The collected snapshot (self-declared 'complete': true) never returns a board/segment field for ELCIDIN across any of its 11 calls (resolve x3, quote, fundamentals, income, balance, cashflow, ratings, shareholding, announcements, results_calendar). Inferred absence, not a directly-observed null like identity.industry."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "Financial Services",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=",
+      "status": "app blank",
+      "note": "No 'sector' key appears anywhere in the complete collected snapshot; /resolve carries an 'industry' key (returned null, see identity.industry row) but has no sibling 'sector' key at all. Inferred absence."
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "industry: null (both NSE and BSE /resolve candidates, and the resolved object)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Investment Company",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/",
+      "status": "app blank",
+      "note": "Directly observed: /resolve?q=ELCIDIN and /resolve?q=503681 both return 'industry': null for every candidate despite the classification being unambiguous and multiply-corroborated (BSE ComHeader ISubGroup='Investment Company', screener 'Financial Services > Finance > Investment Company', the Q1 FY27 filing's own segment note). This is the single most solid app-blank in this pack since the field key is present and explicitly null, not merely absent from a payload."
+    },
+    {
+      "field": "identity.listing_date_bse",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "status": "no source truth",
+      "note": "Pack itself records this as world_gaps.bse_listing_date_unreached (value: null) \u2014 no outside source was found, so not diffable/filed regardless of app behaviour."
+    },
+    {
+      "field": "price.last_close (NSE basis)",
+      "app_value": 105130.0,
+      "app_as_of": "2026-09-18T00:00:00Z",
+      "outside_value": 105130.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.indmoney.com/stocks/elcid-investments-ltd-share-price",
+      "status": "match",
+      "note": "App GET /quotes/ELCIDIN?asset_class=equity -> price 105130.0, change -1140.0, change_percent -1.0727392490825256, provider 'nse_direct', freshness 'eod'. Matches pack's NSE-basis last_close_nse_basis (105130.0, change -1140.00/-1.07%) exactly. Pack separately documents the app's provider is necessarily NSE-basis only and the BSE close (107500.0) is a different, unlabelled-by-exchange figure the app never surfaces in this snapshot \u2014 not diffable since no app BSE-basis price was captured."
+    },
+    {
+      "field": "price.bse_day_range / nse_day_range (OHLC)",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "BSE open 107989.55 / high 107990.0 / low 106271.0; NSE (aggregator) low 103820.0 / high 109735.0",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=503681&seriesid=",
+      "status": "app blank",
+      "note": "The /quotes payload returned only symbol/price/change/change_percent/volume/currency/market_state/timestamp/provider/freshness \u2014 no open/high/low keys at all in the complete snapshot."
+    },
+    {
+      "field": "market_cap",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 2102.6,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.indmoney.com/stocks/elcid-investments-ltd-share-price",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 22.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "pb",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 0.242,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 1.23,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 1.45,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 0.0,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 115.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 95.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": -36.5,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 4773.5,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 433672.47,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://groww.in/stocks/elcid-investments-ltd",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 10.0,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "25.0 (Final dividend FY2025-26; declared 2026-05-25; ex/record 2026-07-24)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://groww.in/stocks/elcid-investments-ltd",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 25.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/elcid-investments-ltd",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure. Mandatory subtle-tier check: pack explicitly flags this as a DIFFERENT fact from last_declared_per_share (a naive TTM window would double-count the 23-Jul-2025 and 24-Jul-2026 Rs 25 dividends to Rs 50) \u2014 both are equally absent in-app, so the app cannot currently get this wrong OR right; the gap itself is the finding."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 0.0238,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure."
+    },
+    {
+      "field": "week52.high",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 144500.0,
+      "outside_as_of": "2025-10-17",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=503681",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure. Mandatory subtle-tier field. Pack separately documents a three-way 52w-high disagreement across BSE/INDmoney/Groww (144500/137000/133699.95) \u2014 moot for this diff since the app shows none of them."
+    },
+    {
+      "field": "week52.low",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 87003.0,
+      "outside_as_of": "2026-04-02",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=503681",
+      "status": "app blank",
+      "note": "App GET /fundamentals/ELCIDIN -> HTTP 502, 32964ms, body.detail: \"yfinance fundamentals failed for 'ELCIDIN': Failed to perform, curl: (28) Operation timed out after 30004 milliseconds with 0 bytes received.\" GET /fundamentals/ELCIDIN/income, /balance, /cashflow each returned HTTP 200 but with empty periods:[] and lines:[] (provider yfinance). GET /fundamentals/ELCIDIN/ratings -> HTTP 502 timeout, same shape. This is the app's only attempted route for valuation/fundamental metrics in the collected snapshot; every field below is inferred blank from this shared failure. Mandatory subtle-tier field; each leg (high vs low) carries its own as-of date per the pack (17 Oct 2025 vs 2 Apr 2026) and both are absent in-app."
+    },
+    {
+      "field": "shareholding.quarter",
+      "app_value": "2026-06-30 (submission_date 2026-07-17)",
+      "app_as_of": "2026-06-30",
+      "outside_value": "Jun 2026 (quarter ended 2026-06-30)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.promoter_pct",
+      "app_value": 75.0,
+      "app_as_of": "2026-06-30",
+      "outside_value": 75.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "match",
+      "note": "Promoter-holding sub-check (single most gameable field per spec): exact match, both pinned at the SEBI 75% ceiling."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": 0.0,
+      "app_as_of": "2026-06-30",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": 0.06,
+      "app_as_of": "2026-06-30",
+      "outside_value": 0.06,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": "public_non_institutional_percent: 24.94 (public_percent incl. institutions: 25.0)",
+      "app_as_of": "2026-06-30",
+      "outside_value": 24.94,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://groww.in/stocks/elcid-investments-ltd",
+      "status": "match",
+      "note": "App exposes two public-holding fields with different bases: public_percent (25.0, includes institutions) and public_non_institutional_percent (24.94, excludes institutions). The pack's public_pct (24.94, Groww basis, excl. institutions) matches app's public_non_institutional_percent exactly. screener's own 24.95 print is separately flagged in the pack as a rounding artifact that fails a sum==100 check; the app's own screener-basis field is not present so that specific artifact cannot recur in-app."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack records this as world_gaps.promoter_pledge_unreached \u2014 genuinely not printed by any outside source reached (screener/Groww/INDmoney omit it, BSE pledge endpoints 302 to an error page, Trendlyne has no resolvable URL for ELCIDIN). No source_url exists, so per spec this is never filed as a raw finding regardless of what the app shows (app's shareholding payload also carries no pledged key, for reference)."
+    },
+    {
+      "field": "corporate_actions_2026",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "3 items: Final dividend Rs25 (ex 2026-07-24); physical-share re-lodgement window (2026-02-05 to 2027-02-04); Risk Mgmt Committee constitution (eff. 2026-08-14)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8ac2ae04-d96d-4e27-96e5-ff24523bb4a8.pdf",
+      "status": "app blank",
+      "note": "No corporate-actions/dividends-calendar endpoint was called in the collected snapshot at all (11 calls made: resolve x3, quote, fundamentals, income, balance, cashflow, ratings, shareholding, announcements, results_calendar \u2014 none return corporate-action rows). Inferred absence from the complete snapshot."
+    },
+    {
+      "field": "latest_results (quarter / filing_date)",
+      "app_value": "results_calendar: count 0, events: []",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Q1 FY2026-27, filed 2026-08-13 15:58 IST",
+      "outside_as_of": "2026-08-13",
+      "outside_source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "status": "app blank",
+      "note": "Directly observed: App GET /disclosures/results?symbol=ELCIDIN -> HTTP 200, {symbol: ELCIDIN, count: 0, events: []}. The company filed and had its Q1 FY2026-27 results reviewed and published on BSE just over five weeks before the 2026-09-19 collection date; the app's dedicated results-calendar route shows zero events for this scrip."
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "count 2 (2026-09-18 Closure of Trading Window; 2026-09-04 Reg 30 re-lodgement notice)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "3rd item: 2026-08-14 Reg 30 Newspaper Publication of Q1 FY2026-27 results (in addition to the 2 the app shows)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260401&strScrip=503681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "status": "app blank",
+      "note": "Directly observed: App GET /disclosures/announcements?symbol=ELCIDIN&limit=25 -> HTTP 200, count: 2, returning exactly the pack's #1 and #2 items with matching timestamps/headlines/attachment URLs (though on the AttachLive path, which the pack separately flags \u2014 traps.bse_attachment_path_attachhis_not_attachlive \u2014 as 404ing for this filer; AttachHis is what actually resolves). The pack's 3rd of its 'last 3 announcements' (2026-08-14 Reg 30 Newspaper Publication of results) is absent from the app's 25-row-limit pull despite being chronologically between the two dates the app DOES return correctly."
+    },
+    {
+      "field": "consolidated_vs_standalone (basis indicator)",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "screener defaults ELCIDIN to consolidated; manifest reference block (pe 26.7, book_value 301137, pb 0.35) is standalone \u2014 the two bases diverge 21-44% on every headline metric",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "status": "app blank",
+      "note": "No field in the collected snapshot names which basis (standalone vs consolidated) any app value would use, and since /fundamentals never returned data at all, the app cannot currently be checked against either basis for this scrip. Recorded per the pack's explicit instruction that 'the differ must establish which basis the app claims before scoring any of these as wrong' \u2014 here it can establish neither, which is itself the gap."
+    }
+  ],
+  "subtle_tier_covered": true
+}

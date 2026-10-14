@@ -1,0 +1,15 @@
+Repro (live, own sidecar :52346, isolated seed data, X-Vysted-Region: IN):
+
+$ curl -s "http://127.0.0.1:52346/macro/NY.GDP.MKTP.KD.ZG?provider=world-bank" -H "X-Vysted-Region: IN"
+{"title":"GDP growth (annual %) — IND", ...,
+ "source_url":"https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=IND",
+ "notes":"Indicator=NY.GDP.MKTP.KD.ZG, country=IND"}
+
+Code trace: world_bank_provider.py:42-43 _DEFAULT_COUNTRY="USA" (R15-DATA-046 comment: "The
+country a bare indicator reads as, per session region"); :141 `default = _COUNTRY_BY_REGION.get(
+region or "", _DEFAULT_COUNTRY)`; macro_router.get_series threads region through
+(macro_router.py:86-115, "region is part of the fetch and the cache key").
+
+Verdict: holds live. Region IN + a bare World Bank indicator id now resolves to India (IND), not
+the hardwired USA default — confirmed against the live World Bank upstream on this candidate's
+own isolated sidecar.

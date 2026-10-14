@@ -1,20 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Play } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Play, Square } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { backtestDateDefaults } from "@/lib/date-defaults";
 import { cn } from "@/lib/utils";
 import { selectActiveRun, useBacktestStore } from "@/store/backtest";
 import { useChatHistoryStore } from "@/store/chat-history";
 import type { BacktestRequest } from "../../../types/backtest";
 
 import { BacktestResultView } from "./BacktestResultView";
+import { CustomStrategyEditor } from "./custom-strategy-editor";
 import { ParamsForm, StrategyPicker } from "./strategy-picker";
 
 const DEFAULT_SYMBOL = "SPY";
-const DEFAULT_START = "2024-01-01";
-const DEFAULT_END = "2025-12-31";
 const DEFAULT_CAPITAL = 100_000;
 
 /**
@@ -44,9 +44,11 @@ export function BacktestPanel() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [params, setParams] = useState<Record<string, unknown>>({});
+  // `false` only when the custom-DSL editor's inline validation failed.
+  const [customValid, setCustomValid] = useState(true);
   const [symbols, setSymbols] = useState(DEFAULT_SYMBOL);
-  const [startDate, setStartDate] = useState(DEFAULT_START);
-  const [endDate, setEndDate] = useState(DEFAULT_END);
+  const [startDate, setStartDate] = useState(() => backtestDateDefaults().startDate);
+  const [endDate, setEndDate] = useState(() => backtestDateDefaults().endDate);
   const [capital, setCapital] = useState(DEFAULT_CAPITAL);
   const [walkForwardSlices, setWalkForwardSlices] = useState(1);
 
@@ -99,8 +101,30 @@ export function BacktestPanel() {
     setParams(defaults);
   }, [selectedSpec]);
 
+  const isCustom = selectedSpec?.id === "custom";
+
+  // A strategy switch resets the custom-validity gate (the editor re-emits
+  // on its first debounce when re-selected).
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- gate reset on strategy switch, one bounded paint
+    setCustomValid(true);
+  }, [selectedId]);
+
   const isRunning = activeRun?.status === "pending" || activeRun?.status === "streaming";
-  const canRun = !!selectedSpec && !isRunning;
+  const canRun = !!selectedSpec && !isRunning && (!isCustom || customValid);
+
+  // One controller per run, shared by Run and Retry, so Stop can abort
+  // whichever stream is live (R15-UI-011).
+  const controllerRef = useRef<AbortController | null>(null);
+  const launch = useCallback(
+    async (request: BacktestRequest) => {
+      const controller = new AbortController();
+      controllerRef.current = controller;
+      await startRun(request, { signal: controller.signal });
+    },
+    [startRun],
+  );
+  const handleStop = useCallback(() => controllerRef.current?.abort(), []);
 
   const handleRun = useCallback(async () => {
     if (!selectedSpec) {
@@ -118,8 +142,8 @@ export function BacktestPanel() {
       initialCapital: capital,
       walkForwardSlices,
     };
-    await startRun(request);
-  }, [selectedSpec, params, symbols, startDate, endDate, capital, walkForwardSlices, startRun]);
+    await launch(request);
+  }, [selectedSpec, params, symbols, startDate, endDate, capital, walkForwardSlices, launch]);
 
   const handleOpenInCritic = useCallback(
     (runId: string) => {
@@ -138,116 +162,152 @@ export function BacktestPanel() {
   return (
     <div className="bg-charcoal-900 flex h-full min-h-0 w-full">
       {/* Left rail — controls */}
-      <aside className="border-charcoal-700 flex w-72 flex-col gap-3 overflow-y-auto border-r p-3">
-        <StrategyPicker
-          strategies={strategies}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-          disabled={isRunning}
-        />
-        {catalogueStatus === "loading" && (
-          <p className="text-charcoal-400 font-mono text-xs">Loading strategies…</p>
-        )}
-        {catalogueStatus === "error" && (
-          <p className="text-negative font-mono text-xs">
-            {catalogueError ?? "Failed to load strategies"}
-          </p>
-        )}
-
-        {selectedSpec && (
-          <ParamsForm
-            schema={selectedSpec.paramsSchema as Record<string, unknown>}
-            values={params}
-            onChange={setParams}
+      <aside className="border-charcoal-700 flex w-72 shrink-0 flex-col border-r">
+        {/* Scrollable controls area */}
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 pb-2">
+          <StrategyPicker
+            strategies={strategies}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
             disabled={isRunning}
+            loading={catalogueStatus === "loading"}
           />
-        )}
+          {catalogueStatus === "error" && (
+            <div className="flex flex-col gap-2">
+              <p className="text-negative text-caption font-mono">
+                {catalogueError ?? "Failed to load strategies"}
+              </p>
+              <Button size="sm" variant="outline" onClick={() => void refreshStrategies()}>
+                Retry
+              </Button>
+            </div>
+          )}
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-charcoal-500 font-mono text-[10px] tracking-widest uppercase">
-            Universe
-          </span>
-          <label className="flex flex-col gap-1">
-            <span className="text-charcoal-300 font-mono text-[10px]">Symbols (comma-sep)</span>
-            <input
-              value={symbols}
-              onChange={(e) => setSymbols(e.target.value)}
-              disabled={isRunning}
-              spellCheck={false}
-              aria-label="Symbols"
-              className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs uppercase outline-none focus-visible:border-amber-500 disabled:opacity-50"
-            />
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <label className="flex flex-col gap-1">
-              <span className="text-charcoal-300 font-mono text-[10px]">Start</span>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+          {selectedSpec &&
+            (isCustom ? (
+              <CustomStrategyEditor
+                values={params}
+                onChange={setParams}
                 disabled={isRunning}
-                aria-label="Start date"
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                onValidityChange={setCustomValid}
+              />
+            ) : (
+              <ParamsForm
+                schema={selectedSpec.paramsSchema as Record<string, unknown>}
+                values={params}
+                onChange={setParams}
+                disabled={isRunning}
+              />
+            ))}
+
+          <div className="flex flex-col gap-2">
+            <span className="text-charcoal-500 text-micro font-mono tracking-widest uppercase">
+              Universe
+            </span>
+            <label className="flex flex-col gap-1">
+              <span className="text-charcoal-300 text-micro font-mono">Symbols (comma-sep)</span>
+              <input
+                value={symbols}
+                onChange={(e) => setSymbols(e.target.value)}
+                disabled={isRunning}
+                spellCheck={false}
+                aria-label="Symbols"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono uppercase outline-none disabled:opacity-50"
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex flex-col gap-1">
+                <span className="text-charcoal-300 text-micro font-mono">Start</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  disabled={isRunning}
+                  aria-label="Start date"
+                  style={{ colorScheme: "dark" }}
+                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-charcoal-300 text-micro font-mono">End</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  disabled={isRunning}
+                  aria-label="End date"
+                  style={{ colorScheme: "dark" }}
+                  className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
+                />
+              </label>
+            </div>
+            <label className="flex flex-col gap-1">
+              <span className="text-charcoal-300 text-micro font-mono">Initial capital</span>
+              <input
+                type="number"
+                value={capital}
+                onChange={(e) => setCapital(Number(e.target.value))}
+                disabled={isRunning}
+                aria-label="Initial capital"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-charcoal-300 font-mono text-[10px]">End</span>
+              <span className="text-charcoal-300 text-micro font-mono">Walk-forward slices</span>
               <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                type="number"
+                min={1}
+                max={10}
+                value={walkForwardSlices}
+                onChange={(e) =>
+                  setWalkForwardSlices(Math.max(1, Math.min(10, Number(e.target.value) || 1)))
+                }
                 disabled={isRunning}
-                aria-label="End date"
-                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
+                aria-label="Walk-forward slices"
+                className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"
               />
             </label>
           </div>
-          <label className="flex flex-col gap-1">
-            <span className="text-charcoal-300 font-mono text-[10px]">Initial capital</span>
-            <input
-              type="number"
-              value={capital}
-              onChange={(e) => setCapital(Number(e.target.value))}
-              disabled={isRunning}
-              aria-label="Initial capital"
-              className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-charcoal-300 font-mono text-[10px]">Walk-forward slices</span>
-            <input
-              type="number"
-              min={1}
-              max={10}
-              value={walkForwardSlices}
-              onChange={(e) =>
-                setWalkForwardSlices(Math.max(1, Math.min(10, Number(e.target.value) || 1)))
-              }
-              disabled={isRunning}
-              aria-label="Walk-forward slices"
-              className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control h-8 border px-2 font-mono text-xs outline-none focus-visible:border-amber-500 disabled:opacity-50"
-            />
-          </label>
         </div>
-
-        <Button
-          type="button"
-          onClick={handleRun}
-          disabled={!canRun}
-          size="sm"
-          variant="default"
-          aria-label="Run backtest"
-          className={cn("mt-auto", !canRun && "cursor-not-allowed")}
-          data-testid="run-backtest"
-        >
-          <Play />
-          {isRunning ? "Running…" : "Run backtest"}
-        </Button>
+        {/* Sticky footer — Run button always visible */}
+        <div className="border-charcoal-700 shrink-0 border-t p-3">
+          {/* Form rung (R9 §3): Run joins the rail's sibling h-8 inputs. */}
+          {isRunning ? (
+            <Button
+              type="button"
+              onClick={handleStop}
+              variant="outline"
+              aria-label="Stop backtest"
+              className="w-full"
+              data-testid="stop-backtest"
+            >
+              <Square />
+              Stop
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleRun}
+              disabled={!canRun}
+              variant="default"
+              aria-label="Run backtest"
+              className={cn("w-full", !canRun && "cursor-not-allowed")}
+              data-testid="run-backtest"
+            >
+              <Play />
+              Run backtest
+            </Button>
+          )}
+        </div>
       </aside>
 
       {/* Main column — result view */}
       <section className="flex min-h-0 flex-1 flex-col">
-        <BacktestResultView run={activeRun} onOpenInCritic={handleOpenInCritic} />
+        <BacktestResultView
+          run={activeRun}
+          onOpenInCritic={handleOpenInCritic}
+          onRetry={(request) => void launch(request)}
+        />
       </section>
     </div>
   );

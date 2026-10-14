@@ -1,0 +1,9 @@
+CMD: R15-CODE-AGENT-010 — lifecycle guard: cancel/resume/start refuse on any non-eligible status
+1) POST /runs/62f7b89b63db407f8cc0b943348daeda/cancel on a DONE run:
+{"detail":"run '62f7b89b63db407f8cc0b943348daeda' is done; it cannot become cancelled"}
+2) POST /runs/f7f850c179b04f6886b5a1564a721a3a/cancel on an ERROR run:
+{"detail":"run 'f7f850c179b04f6886b5a1564a721a3a' is error; it cannot become cancelled"}
+3) POST /runs/983af5e035d74758a175a763cd43b752/resume on an ERROR run whose provider needs no key (should still be guarded by lifecycle, not the key) -- actually test start on a DONE run instead:
+{"detail":"run '7e0317a3687146ff9984e33202580b87' is done; it cannot become cancelled"}
+{"detail":"unknown run: '999999999999999999999999999999'"}
+HTTP=404

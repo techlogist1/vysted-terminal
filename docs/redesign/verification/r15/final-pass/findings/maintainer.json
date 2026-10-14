@@ -1,0 +1,123 @@
+[
+ {
+  "key": "maintainer:1",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "",
+  "scenario": "G8-2",
+  "title": "Ollama lane: a tool call leaked as a Python-literal dict (None/True/False) is not rescued; the raw call blob is shown as the assistant reply",
+  "area": "agent-chat",
+  "repro": "llama3.1:8b on own sidecar :52825, prompt 'Buy 10 RELIANCE for me' (ask or auto): 3-4 of 6 G8-2 replies were the literal text {\"name\": \"portfolio_add_position\", \"parameters\": {... \"cost_basis\": None ...}}. rescue_leaked_tool_call returns None for that verbatim text (json.loads fails on None) and rescues the identical text with null (G8-2/rescue-repro.txt). Class gap of R15-AGENT-018 (fixed): JSON and call-syntax are handled, the Python-literal dict form is not. Safety held: nothing staged or applied.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/G8-2/rescue-repro.txt",
+  "suspected_files": [
+   "sidecar/services/llm/tool_call_rescue.py",
+   "sidecar/services/llm/ollama.py"
+  ]
+ },
+ {
+  "key": "maintainer:2",
+  "kind": "new_defect",
+  "severity": "high",
+  "register_id": "R15-DATA-002",
+  "scenario": "UI-2",
+  "title": "A bare-ticker portfolio lot is re-priced against a different listing when the session region changes: INFY 20 @ Rs1,500 shows -$29,779.20 (-99.26%) under region US",
+  "area": "portfolio",
+  "repro": "Holding INFY qty 20 cost 1500 (bare symbol, as the add form and portfolio_add_position store it; entered under region IN where /quotes/INFY = INR 1035, P&L -Rs9,300 correct). Switch region to US: PortfolioPanel fetches /quotes/INFY with X-Vysted-Region US -> the NYSE ADR, USD 11.04; the row reads Avg cost $1,500.00, P&L -$29,779.20 (-99.26%), the header Total P&L -$28,242.30 (-88.81%), and the CSV export carries the same figures with Currency USD. Holding stores no listing or currency, so nothing detects the cost/price currency mismatch. Class sibling of R15-DATA-002 (blocked_tier4, DECISIONS 4.15): that entry's scope and its pending option (a) cover the watchlist pick and the agent add_to_watchlist leg only; the portfolio Holding (and portfolio_add_position) carry no region either, and here the harm is a fabricated money P&L, so it is filed as its own site rather than attached.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/UI-2/harness-portfolio.json",
+  "suspected_files": [
+   "src/store/portfolios.ts",
+   "src/modules/portfolio/api.ts",
+   "src/modules/portfolio/PortfolioPanel.tsx",
+   "src/lib/host-actions.ts"
+  ]
+ },
+ {
+  "key": "maintainer:3",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "scenario": "UI-4",
+  "title": "Screener freshness line prints unrounded float seconds ('quotes 41.64699196815491s ago')",
+  "area": "screener",
+  "repro": "Run any screen (custom INFY.NS,TCS.NS,...; region IN) in ScreenerPanel; within the first minute the freshness line reads 'quotes 41.64699196815491s ago \u00b7 valuation 41.64699912071228s ago \u00b7 deep fields 46.1444091796875s ago'. fmtAgo computes Math.floor(Date.now()/1000) - epochSec with a float epochSec from the sidecar freshness block and prints it as is below 60 s.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/UI-4/harness-screener.json",
+  "suspected_files": [
+   "src/modules/screener/ScreenerPanel.tsx"
+  ]
+ },
+ {
+  "key": "maintainer:4",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "scenario": "free-maintainer-1",
+  "title": "News titles keep raw HTML entities: the News Feed shows 'F&amp;O Talk: ...' literally",
+  "area": "news",
+  "repro": "GET /news?limit=60 (region IN): Economic Times items arrive as 'F&amp;O Talk: 22,600 is a key Nifty support; ...' and 'Bonus issues &amp; stock split: ...'. NewsFeedPanel renders item.title as text, so the panel shows '&amp;'. Same text reaches the agent news tool.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/free-maintainer-1.md",
+  "suspected_files": [
+   "sidecar/services/news_provider.py",
+   "src/modules/news/NewsFeedPanel.tsx"
+  ]
+ },
+ {
+  "key": "maintainer:5",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "",
+  "scenario": "LS-2",
+  "title": "A corrupt custom_agents.db 500s every custom-agent route (list, get, create) for good: no quarantine or recovery, unlike workspaces",
+  "area": "lifecycle",
+  "repro": "Own bundle sidecar :52827, data $S/ls2-data: create a custom agent (201), stop, truncate custom_agents.db 12288->6144 bytes, reboot. GET /custom-agents, GET /custom-agents/custom:ls2-agent and POST /custom-agents all return 500 (sqlite3.DatabaseError: database disk image is malformed, boot-3.log); the user cannot even create a new agent until the file is removed by hand, and a 500 without CORS headers shows in the webview as a CORS error. In the same boot the half-written workspace blob was quarantined as .corrupt-<ts> and served 404 (R15-DATA-090's fix), and an 18-byte garbage delegate_runs.db was silently re-initialised by SQLite. Class sibling of R15-DATA-090 (fixed, workspace JSON only): agents_store._connect has no DatabaseError handling.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/LS-2/ls2.log",
+  "suspected_files": [
+   "sidecar/services/agents_store.py",
+   "sidecar/services/schema_version.py"
+  ]
+ },
+ {
+  "key": "maintainer:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "scenario": "LS-2",
+  "title": "A bundle sidecar that cannot bind its port dies with SIGABRT (exit 134, 'Fatal Python error: _enter_buffered_busy' on the stdin watchdog) instead of a clean non-zero exit",
+  "area": "lifecycle",
+  "repro": "With my own sidecar holding :52825, start the bundle binary on --port 52825 with stdin held open (fifo): uvicorn logs [Errno 48] address already in use, shuts down, then the interpreter aborts at finalisation because the stdin-EOF watchdog daemon thread holds the stdin buffer lock (taken-port.log); exit status 134. The first instance is unaffected (health 200). On macOS an abort also writes a crash report.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/LS-2/taken-port.log",
+  "suspected_files": [
+   "sidecar/main.py"
+  ]
+ },
+ {
+  "key": "maintainer:7",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "",
+  "scenario": "LS-4",
+  "title": "THIRD_PARTY_NOTICES.md lists the wrong version for 56 of 121 main-sidecar Python components: transitive deps are unpinned, so the bundle ships what pip resolved at build time",
+  "area": "release",
+  "repro": "final-cand d38b5d1a: compare THIRD_PARTY_NOTICES.md 'Python - vysted-sidecar' rows with the build venv final-cand/sidecar/.venv (built 14:35, the venv the bundle binary was frozen from): 56 of 121 differ (anyio 4.13.0 listed vs 4.15.1, aiohttp 3.13.5 vs 3.14.3, cachetools 6.2.6 vs 7.2.0, caio 0.9.25 vs 0.12.9, certifi 2026.5.20 vs 2026.7.22, ...; LS-4/notices-drift.txt). The frozen binary's own archive confirms it (anyio-4.15.1.dist-info, LS-4/main-binary-dist-info.txt). sidecar/requirements.txt pins only top-level packages (and google-genai>=1.0, jsonschema>=4.0 float), with no lock or constraints file, so every rebuild can ship a different closure than the one the notices (and CI) saw. No package is missing from the notices and no licence family changed in the drifted set (frozendict LGPL-3.0 still listed in Section A).",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/LS-4/notices-drift.txt",
+  "suspected_files": [
+   "sidecar/requirements.txt",
+   "scripts/r15/third_party_notices.py",
+   "THIRD_PARTY_NOTICES.md",
+   "scripts/ensure-sidecar.mjs"
+  ]
+ },
+ {
+  "key": "maintainer:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-PLATFORM-066",
+  "scenario": "free-maintainer-2",
+  "title": "transform.code size caps are bypassed by sum(list, start): a 25-character expression builds an uncapped list (8.3 GB peak RSS) and keeps running after the 5 s timeout",
+  "area": "workflow-engine",
+  "repro": "evaluate_code({}, {'expression': 'sum([[0]*100000]*250, [])'}) -> TimeoutError after 7.98 s with the worker thread still running, peak RSS 8.3 GB; n=80 returns an 8,000,000-item list in 0.6 s. [0]*100001 and 7^(10^7) are refused, so PLATFORM-066's own repros hold; sum's start argument and list + are uncapped. Reachable via save_workflow/run_workflow (MCP, agent) and the server preview.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/free-maintainer-2-repro.txt",
+  "suspected_files": [
+   "sidecar/services/workflow_nodes/code_node.py"
+  ]
+ }
+]

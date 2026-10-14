@@ -1,0 +1,1 @@
+{"history": [{"role": "user", "content": "What is SIFY's market cap and price?"}, {"role": "assistant", "content": "SIFY's market cap is $420M and it last traded at $5.80.\n\n[tool steps: Using fundamentals; Using price data]\n\n[failed: provider error: yfinance history rate-limited for 'SIFY']"}]}

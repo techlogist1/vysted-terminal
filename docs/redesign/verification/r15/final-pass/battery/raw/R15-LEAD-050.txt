@@ -1,0 +1,27 @@
+# R15-LEAD-050 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:13:55+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services.research.relevance import row_relevant
+from services.research.target import target_from_payload
+def T(sym,name,ex="NYSE",reg="US"):
+    return target_from_payload({"ok":True,"resolved":{"symbol":sym,"name":name,"exchange":ex,"region":reg,"asset_class":"equity","confidence":0.95}})
+cases=[("GE","GE Aerospace","GE beats estimates on jet engine demand","",True),
+ ("GE","GE Aerospace","Why GE raised its guidance after strong aftermarket sales","",True),
+ ("IT","Gartner, Inc.","IT spending forecast to rise next year across enterprises","",False),
+ ("ON","ON Semiconductor Corporation","Turn ON your laptop with these tips","",False),
+ ("ALL","The Allstate Corporation","ALL you need to know about summer sales","",False)]
+bad=0
+for sym,name,title,sn,exp in cases:
+    got=row_relevant({"title":title,"snippet":sn,"url":"https://news.example.com/x"},target=T(sym,name))
+    bad+=got!=exp; print(sym,repr(title[:50]),'->',got,'expected',exp,'' if got==exp else 'MISMATCH')
+print('mismatches',bad)
+PY
+--- output ---
+GE 'GE beats estimates on jet engine demand' -> True expected True 
+GE 'Why GE raised its guidance after strong aftermarke' -> True expected True 
+IT 'IT spending forecast to rise next year across ente' -> False expected False 
+ON 'Turn ON your laptop with these tips' -> False expected False 
+ALL 'ALL you need to know about summer sales' -> False expected False 
+mismatches 0
+
+EXIT=0 (0.1s)

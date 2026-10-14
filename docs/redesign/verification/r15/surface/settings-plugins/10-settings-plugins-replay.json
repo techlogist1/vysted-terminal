@@ -1,0 +1,708 @@
+{
+ "S0-render": {
+  "sections": [
+   "settings-providers",
+   "settings-research",
+   "settings-region",
+   "settings-keybindings",
+   "settings-advanced",
+   "settings-integrations",
+   "settings-layouts",
+   "settings-modules",
+   "settings-export",
+   "settings-about"
+  ],
+  "nav": "AI ProvidersResearchRegion & localeKeybindingsAdvanced",
+  "providers": "AI ProvidersPaste an API key to enable an AI provider. Keys are stored in your OS keychain — never on disk or sent anywhere but the provider you call.AnthropicNo key yetDefaultAdd keyOpenAINo key yetDefaultAdd keyGoogle GeminiNo key yetDefaultAdd keyGroqNo key yetDefaultAdd keyOllama (local)No key required (local)DefaultDeepSeekNo key yetDefaultAdd keyxAINo key yetDefaultAdd keyOpenRouterNo key yetDefaultAdd keyDefaultsThe persona, provider, and model the copilot starts on.Default agentThe persona the chat starts on — applies now and at every launch.Raw chat (no persona)Warren BuffettVysted CopilotRay DalioStanley DruckenmillerBenjamin GrahamSeth KlarmanPeter LynchHoward MarksCharlie MungerAI Portfolio AdvisorAI ResearcherGeorge SorosAI Strategy CriticDefault providerThe provider the copilot uses when an agent has no preference.AnthropicOpenAIGoogle GeminiGroqOllama (local)DeepSeekxAIOpenRouterDefault modelOllama (local) — Live · 3 modelsllama3.1:8bqwen2.5:7bqwen3:8b",
+  "research": "ResearchTwo ways to run research: unlimited private local search with your chat model, or a hosted research model on your own OpenRouter key.Unlimited (Local)Private local search via SearXNG, paired with your active chat model. Unmetered and free — nothing leaves this machine but the pages it fetches.ReadyRunning at http://127.0.0.1:8888 — research searches route through it automatically.Stop▸▾Advanced: custom instance URLOptional. Leave blank to use the managed instance above. A custom instance must enable the JSON output format and disable the limiter in its settings.yml.Hosted research modelPurpose-built internet-native research via OpenRouter — research routes here at every depth regardless of chat model. Chat stays on your chat model.Needs your OpenRouter API key — research stays on the local tier until one is added. The key lives in your OS keychain, never on disk.Add OpenRouter keyHardware & local modelsHeavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else stays remote.Apple M1 Pro16 GiB RAM · 10.6 GiB GPU budget · 6P/8 cores · macOS 26.3Installed local models (Ollama)qwen3:8bfits with headroom (8.1 GiB of 10.6 GiB GPU budget) — enable locally.runs locallyqwen2.5:7bfits with headroom (7.4 GiB of 10.6 GiB GPU budget) — enable locally.runs locallyllama3.1:8bfits with headroom (7.8 GiB of 10.6 GiB GPU budget) — enable locally.runs locallyFrontier deep-research models30B-A3B MoE (IQ3_S)can't hold a usable context",
+  "region": "Region & localeLocale used for number formatting — a foundation for region-first data + feeds in a later release.RegionDefaults to United States.United StatesIndiaGlobal",
+  "keybindings": "KeybindingsRemap any shortcut. Press Record, then the new combination. Conflicts are flagged below — two actions on one combo both fire.Command paletteOpen command paletteOpen the fuzzy command palette.Ctrl+KRecordAgent modesAgent modeInteractive agent for this cockpit.Alt+1RecordDelegate modeBudget-capped autonomous run.Alt+2RecordToggle agent panelShow or fully hide the agent column.Ctrl+BRecordProposed changesAccept all proposed changesApply every staged proposed change.Ctrl+↵RecordReject all proposed changesDiscard every staged proposed change.Ctrl+⌫RecordWorkspaceSave workspaceSave the cu",
+  "integrations": "IntegrationsConnect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account.Broker connections are managed in the Marketplace.Open Marketplace",
+  "layouts": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultR15 SwingLoadAutosave slot: __autosave__ (hidden; restored on launch)",
+  "modules": "ModulesDisabled modules contribute no panels or ⌘K commands.Chart1 panel · 1 commandWatchlist1 panel · 1 commandNews1 panel · 1 commandPortfolio1 panel · 1 commandEquity Overview1 panel · 1 commandAI Assistant0 panels · 0 commandsResearch1 panel · 1 commandPlatform1 panel · 4 commands · always onPlugin Manager1 panel · 1 commandMarketplace1 panel · 1 commandAgent Builder1 panel · 1 commandNode Editor1 panel · 1 commandBacktest1 panel · 1 commandBroker Connect2 panels · 2 commandsSafety1 panel · 1 commandMacro1 panel · 1 commandSEC Filings1 panel · 1 commandQuant4 panels · 4 commandsEarnings1 panel · 1 commandAnalyst Ratings1 panel · 1 commandScreener1 panel · 1 commandNotes1 panel · 1 command",
+  "exportImport": "Export / ImportCarry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine.Export settingsImport settingsThe export bundles your keybinding remaps and preferences (default agent, region, research engine). API keys and broker credentials stay in your OS keychain and are never written to the file.",
+  "about": "AboutVysted v0.8.0 — a source-available, AI-native finance terminal.Plugin architecture · local-first · bring-your-own-keys. Your data, your keys, your machine — extend it like an IDE.",
+  "net": [
+   {
+    "method": "GET",
+    "url": "/health",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/agents",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/custom-agents",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/workspace",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/llm/models?provider=ollama&base_url=http%3A%2F%2F127.0.0.1%3A11434",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/system/hardware",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/search/searxng/status",
+    "status": 200
+   }
+  ]
+ },
+ "S1-keys": {
+  "openai": {
+   "dialogText": "OpenAI API keyStored in the OS keychain; never written to disk by Vysted.unauthorized or no key suppliedCancelSaveClose",
+   "keychainHas": false,
+   "rowAfter": "OpenAINo key yetDefaultAdd key"
+  },
+  "openrouter": {
+   "dialogText": "",
+   "keychainHas": true,
+   "rowAfter": "OpenRouterKey configuredDefaultUpdate key"
+  },
+  "afterRemove": {
+   "keychainKeys": [],
+   "row": "OpenRouterNo key yetDefaultAdd key"
+  },
+  "validateCalls": [
+   {
+    "method": "POST",
+    "url": "/llm/keys/validate",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "url": "/llm/keys/validate",
+    "status": 200
+   }
+  ],
+  "invokes": [
+   {
+    "cmd": "keychain_set",
+    "args": {
+     "account": "llm-provider:openrouter",
+     "secret": "<redacted>"
+    }
+   },
+   {
+    "cmd": "keychain_delete",
+    "args": {
+     "account": "llm-provider:openrouter"
+    }
+   }
+  ]
+ },
+ "S2-keybindings-export-import": {
+  "actions": [
+   "Open command palette",
+   "Agent mode",
+   "Delegate mode",
+   "Toggle agent panel",
+   "Accept all proposed changes",
+   "Reject all proposed changes",
+   "Save workspace",
+   "Load workspace",
+   "Open settings",
+   "Open chart",
+   "Open watchlist",
+   "Open news",
+   "Open portfolio"
+  ],
+  "recordedTarget": {
+   "secondCombo": "Alt+1",
+   "overrides": {
+    "palette.open": "alt+1"
+   },
+   "conflicts": [
+    {
+     "keys": "alt+1",
+     "actionIds": [
+      "palette.open",
+      "agent.mode.agent"
+     ]
+    }
+   ],
+   "banner": "KeybindingsRemap any shortcut. Press Record, then the new combination. Conflicts are flagged below — two actions on one combo both fire.Conflicting bindings detectedAlt+1 is bound to Open command palette and Agent mode.Command paletteOpen command paletteOpen the fuzzy command palette.Alt+1RecordAgent modesAgent modeInteractive agent for this cockpit.Alt+1RecordDelegate modeBudget-capped autonomous"
+  },
+  "export": {
+   "anchorClicks": [
+    "vysted-settings.json"
+   ],
+   "exported": "{\n  \"version\": 1,\n  \"keybindingOverrides\": {\n    \"palette.open\": \"alt+1\"\n  },\n  \"settings\": {\n    \"defaultAgentId\": \"copilot\",\n    \"region\": \"IN\",\n    \"deepResearchBackend\": \"native\"\n  }\n}",
+   "status": "Exported vysted-settings.json (no secrets included)."
+  },
+  "imports": {
+   "empty-object": {
+    "status": "Imported settings. Secrets re-enter via the keychain.",
+    "regionAfter": "IN",
+    "overrides": {
+     "palette.open": "alt+1"
+    }
+   },
+   "package-json": {
+    "status": "Imported settings. Secrets re-enter via the keychain.",
+    "regionAfter": "IN",
+    "overrides": {
+     "palette.open": "alt+1"
+    }
+   },
+   "region-bogus": {
+    "status": "Imported settings. Secrets re-enter via the keychain.",
+    "regionAfter": "IN",
+    "overrides": {
+     "palette.open": "alt+1"
+    }
+   },
+   "partial-older-export": {
+    "status": "Imported settings. Secrets re-enter via the keychain.",
+    "regionAfter": "IN",
+    "overrides": {}
+   },
+   "malformed": {
+    "status": "Could not read that file — expected a Vysted export.",
+    "regionAfter": "IN",
+    "overrides": {}
+   },
+   "garbage-bindings": {
+    "status": "Imported settings. Secrets re-enter via the keychain.",
+    "regionAfter": "IN",
+    "overrides": {
+     "no.such.action": "mod+q"
+    }
+   }
+  }
+ },
+ "S3-layouts-integrations": {
+  "layoutsText": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultR15 SwingLoadAutosave slot: __autosave__ (hidden; restored on launch)",
+  "afterSave": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultLayout operation failed.R15 SwingLoadAutosave slot: __autosave__ (hidden; restored on launch)",
+  "afterReservedishSave": "LayoutsDrag tabs to dock, split, or rearrange any panel into your own cockpit, then save it. Your last layout is restored automatically on launch.SaveReset to defaultLayout operation failed.R15 SwingLoadAutosave slot: __autosave__ (hidden; restored on launch)",
+  "openMarketplaceAdded": [],
+  "net": [
+   {
+    "method": "GET",
+    "url": "/workspace",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/workspace",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/workspace",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/workspace",
+    "status": 200
+   }
+  ]
+ },
+ "S4-modules": {
+  "switchFound": true,
+  "before": {
+   "enabled": {
+    "chart": true,
+    "watchlist": true,
+    "news": true,
+    "portfolio": true,
+    "equity-overview": true,
+    "chat": true,
+    "research": true,
+    "platform": true,
+    "plugin-manager": true,
+    "marketplace": true,
+    "agent-builder": true,
+    "node-editor": true,
+    "backtest": true,
+    "broker-connect": true,
+    "safety": true,
+    "macro": true,
+    "sec-filings": true,
+    "quant": true,
+    "earnings": true,
+    "analyst-ratings": true,
+    "screener": true,
+    "notes": true
+   },
+   "portfolioPanel": true
+  },
+  "after": {
+   "portfolioEnabled": false,
+   "findPanel": true,
+   "panelsCount": 21
+  },
+  "modulesText": "ModulesDisabled modules contribute no panels or ⌘K commands.Chart1 panel · 1 commandWatchlist1 panel · 1 commandNews1 panel · 1 commandPortfolio1 panel · 1 commandEquity Overview1 panel · 1 commandAI Assistant0 panels · 0 commandsResearch1 panel · 1 commandPlatform1 panel · 4 commands · always onPlugin Manager1 panel · 1 commandMarketplace1 panel · 1 commandAgent Builder1 panel · 1 commandNode Editor1 panel · 1 commandBacktest1 panel · 1 commandBroker Connect2 panels · 2 commandsSafety1 panel · 1 commandMacro1 panel · 1 commandSEC Filings1 panel · 1 commandQuant4 panels · 4 commandsEarnings1 panel · 1 commandAnalyst Ratings1 panel · 1 commandScreener1 panel · 1 commandNotes1 panel · 1 command"
+ },
+ "P1-plugins": {
+  "hostVersion": "0.8.0",
+  "managerText": "Plugins5 active of 12 loaded · 6 data sources · 1 agents · 0 nodesYahoo Finance (keyless equities)activev1.0.0 · Vysted · id vysted-yfinanceThe no-key equity + fundamentals data default — works out of the box, zero credentials. Pre-installed.just nowOpenBB (MCP)activev0.1.0 · Vysted Team · id openbb-mcpOpenBB Open Data Platform via the Model Context Protocol — replaces the Phase-2 in-process plugin with a Tauri-Rust-spawned openbb-mcp-server subprocess (architectural fix for the Windows subprocess.Popen deadlock).just nowVysted Lenses (agent pack)activev1.0.0 · Vysted · id vysted-lensesA first-party agent pack — adds the Quant Tutor lens. The reference agent-collection marketplace plugin. Pre-installed.just nowMarket News (RSS + optional NewsAPI)activev1.0.0 · Vysted · id vysted-newsSentiment-scored market news. Works keyless over RSS; supply a BYOK NewsAPI key to add NewsAPI breadth. Pre-installed.just nowVysted Example Pluginactivev0.1.0 · Vysted Team · id vysted-exampleMinimal example plugin proving the runtime end-to-end. Contributes one fake data source and one slash command.just nowKite Connectdiscoveredv0.1.0 · Vysted Team · id vysted-kiteKite Connect (Zerodha) execution adapter. SEBI/NSE retail-algo compliance requires a registered static IP for order placement; this plugin surfaces a banner when the detected public IP does not match the configured static IP.awaiting first health checkno health samples yetDhandiscoveredv0.1.0 · Vysted Team · id vysted-dhanDhan execution adapter (India equities + F&O). Routes every order through the safety-layer-enforced BrokerAdapter on the sidecar; paper mode is the default.awaiting first health checkno health samples yetAngel Onediscoveredv0.1.0 · Vysted Team · id vysted-angeloneAngel One (SmartAPI) execution adapter for India equities + F&O. Paper mode default; all orders gated by the safety-layer BrokerAdapter.awaiting first health checkno health samples yetAlpaca (US equities + options + crypto)discoveredv0.1.0 · Vysted Team · id broker-alpacaBroker execution plugin for Alpaca commission-free US equities, options, and crypto. Paper-mode default; BYOK via the OS keychain (broker:alpaca:api_key + broker:alpaca:api_secret). Order placement gated by the v0.5.0 safety layer (BLUEPRINT §6.5).awaiting first health checkno health samples yetInteractive Brokers (TWS / IB Gateway)discoveredv0.1.0 · Vysted Team · id broker-ibBroker execution plugin for Interactive Brokers via the ib_async SDK. Requires Trader Workstation",
+  "storePlugins": [
+   {
+    "id": "vysted-yfinance",
+    "state": "active",
+    "err": null,
+    "health": [
+     {
+      "status": "healthy",
+      "message": "Sidecar reachable; yfinance is the keyless equity default.",
+      "recordedAt": 1790135180578
+     }
+    ]
+   },
+   {
+    "id": "openbb-mcp",
+    "state": "active",
+    "err": null,
+    "health": [
+     {
+      "status": "healthy",
+      "message": "openbb-mcp running at http://127.0.0.1:53221/mcp",
+      "recordedAt": 1790135180579
+     }
+    ]
+   },
+   {
+    "id": "vysted-lenses",
+    "state": "active",
+    "err": null,
+    "health": [
+     {
+      "status": "healthy",
+      "message": "1 agent lens available.",
+      "recordedAt": 1790135180579
+     }
+    ]
+   },
+   {
+    "id": "vysted-news",
+    "state": "active",
+    "err": null,
+    "health": [
+     {
+      "status": "healthy",
+      "message": "Sidecar reachable; news is keyless over RSS (NewsAPI key optional).",
+      "recordedAt": 1790135180580
+     }
+    ]
+   },
+   {
+    "id": "vysted-example",
+    "state": "active",
+    "err": null,
+    "health": [
+     {
+      "status": "healthy",
+      "message": "running",
+      "recordedAt": 1790135180580
+     }
+    ]
+   },
+   {
+    "id": "vysted-kite",
+    "state": "discovered",
+    "err": null,
+    "health": []
+   },
+   {
+    "id": "vysted-dhan",
+    "state": "discovered",
+    "err": null,
+    "health": []
+   },
+   {
+    "id": "vysted-angelone",
+    "state": "discovered",
+    "err": null,
+    "health": []
+   },
+   {
+    "id": "broker-alpaca",
+    "state": "discovered",
+    "err": null,
+    "health": []
+   },
+   {
+    "id": "broker-ib",
+    "state": "discovered",
+    "err": null,
+    "health": []
+   },
+   {
+    "id": "broker-oanda",
+    "state": "discovered",
+    "err": null,
+    "health": []
+   },
+   {
+    "id": "ccxt-exec",
+    "state": "discovered",
+    "err": null,
+    "health": []
+   }
+  ],
+  "marketText": "MarketplaceInstall, enable, configure, and remove extensions — brokers, data, panels, and agents.BrokersRead-only broker connections. None pre-installed — install the one you use.Kite Connect (Zerodha)AvailableThe reference broker plugin — genuine read-only Kite Connect OAuth + granular positions/holdings/margins. Read-only; no order execution.InstallDhanAvailableRead-only Dhan account + positions. Read-only; no order execution.InstallAngel OneAvailableRead-only Angel One account + positions. Read-only; no order execution.InstallAlpacaAvailableRead-only Alpaca account + positions. Read-only; no order execution.InstallInteractive BrokersAvailableRead-only IBKR account + positions. Read-only; no order execution.InstallOANDAAvailableRead-only OANDA account + positions. Read-only; no order execution.InstallCrypto exchange (ccxt)AvailableRead-only crypto-exchange account via ccxt. Read-only; no order execution.InstallData providersMarket + fundamentals + macro sources. yfinance is the keyless default.Yahoo Finance (keyless equities)Pre-installedThe no-key equity + fundamentals default. Works out of the box, zero credentials.DisableOpenBB (fundamentals + macro)Pre-installedRicher fundamentals + macro series via the bundled OpenBB MCP subprocess.DisableMarket News (RSS + optional NewsAPI)Pre-installedSentiment-scored, symbol-tagged market news. Keyless over RSS out of the box; add a BYOK NewsAPI key for NewsAPI breadth.DisableExample data sourcePre-installedA pedagogical data-source plugin that proves the contract end-to-end.DisableAgentsAgent packs that add personas/lenses.Vysted Lenses (agent pack)Pre-installedA first-party agent pack — the Quant Tutor lens. The reference agent plugin.Disable",
+  "afterDisable": {
+   "store": "stopped",
+   "sidecar": {
+    "plugin_id": "vysted-example",
+    "enabled": false,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   }
+  },
+  "afterRemove": {
+   "store": "stopped",
+   "sidecar": 200,
+   "card": "Example data sourceAvailableA pedagogical data-source plugin that proves the contract end-to-end.Install"
+  },
+  "afterInstall": {
+   "store": "active",
+   "sidecar": {
+    "plugin_id": "vysted-example",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   "card": "Example data sourcePre-installedA pedagogical data-source plugin that proves the contract end-to-end.Disable"
+  },
+  "configureNews": {
+   "configured": true,
+   "sidecar": {
+    "plugin_id": "vysted-news",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": [
+     "plugin-secret:vysted-news:newsapi_key"
+    ]
+   }
+  },
+  "net": [
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-example/config",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "url": "/plugins/vysted-example/config",
+    "status": 200,
+    "body": "{\"installed\":true,\"enabled\":false,\"settings\":{},\"granted_secret_ids\":[]}"
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/openbb-mcp/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-dhan/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-oanda/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-lenses/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-kite/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-yfinance/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-alpaca/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-ib/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-angelone/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/ccxt-exec/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-news/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-example/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-example/config",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "url": "/plugins/vysted-example/config",
+    "status": 200,
+    "body": "{\"installed\":false,\"enabled\":false,\"settings\":{},\"granted_secret_ids\":[]}"
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-example/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-angelone/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-alpaca/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-news/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-lenses/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/ccxt-exec/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-oanda/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/openbb-mcp/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-dhan/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-yfinance/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-ib/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-kite/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-example/config",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "url": "/plugins/vysted-example/config",
+    "status": 200,
+    "body": "{\"installed\":true,\"enabled\":true,\"settings\":{},\"granted_secret_ids\":[]}"
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-example/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-yfinance/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-news/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-ib/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-alpaca/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/ccxt-exec/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-lenses/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-dhan/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-oanda/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-angelone/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-example/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/openbb-mcp/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-kite/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-news/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-news/config",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "url": "/plugins/vysted-news/config",
+    "status": 200,
+    "body": "{\"installed\":true,\"enabled\":true,\"settings\":{},\"granted_secret_ids\":[\"plugin-secret:vysted-news:newsapi_key\"]}"
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-news/config",
+    "status": 200
+   },
+   {
+    "method": "POST",
+    "url": "/plugins/vysted-news/config",
+    "status": 200,
+    "body": "{\"installed\":true,\"enabled\":true,\"settings\":{},\"granted_secret_ids\":[\"plugin-secret:vysted-news:newsapi_key\"]}"
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-yfinance/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/openbb-mcp/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/ccxt-exec/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-example/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-alpaca/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-dhan/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-oanda/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/broker-ib/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-news/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-angelone/config",
+    "status": 404
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-kite/config",
+    "status": 200
+   },
+   {
+    "method": "GET",
+    "url": "/plugins/vysted-lenses/config",
+    "status": 200
+   }
+  ],
+  "emptyState": {
+   "text": "PluginsNo plugins loadedNo plugins are loaded. Open the Marketplace to install brokers, data providers, panels, and agent packs.Open Marketplace",
+   "ctaAdded": []
+  }
+ }
+}

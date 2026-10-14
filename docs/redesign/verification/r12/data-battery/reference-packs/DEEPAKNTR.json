@@ -1,0 +1,190 @@
+{
+  "meta": {
+    "ticker": "DEEPAKNTR",
+    "exchange_scope": "BOTH (NSE + BSE)",
+    "research_date": "2026-07-10",
+    "market_last_closed": "2026-07-09",
+    "researcher": "independent web-only pass (screener.in primary, cross-checked against NSE/BSE-linked aggregators, stockanalysis.com, companiesmarketcap.com, tickertape.in, groww.in, Google Finance, Wikipedia, equitypandit.com)",
+    "hard_rule_followed": "no localhost/Vysted API touched; all figures from live public web sources fetched during this session"
+  },
+  "identity": {
+    "legal_name": "Deepak Nitrite Limited",
+    "isin": "INE288B01029",
+    "isin_confidence_note": "Confirmed independently via Wikipedia infobox, nseindia.com listing URL slug, nseequity.com, investonline.in, and marketscreener.com. An initial hypothesis of INE787D01026 (used only as a search seed) was checked and found WRONG/unsupported by any source — discarded.",
+    "bse_code": "506401",
+    "nse_symbol": "DEEPAKNTR",
+    "face_value_per_share_inr": 2.0,
+    "face_value_note": "Confirmed Rs 2 (post the May/June 2014 sub-division of Rs 10 shares into 5x Rs 2 shares, plus a 1:1 bonus at the same time). tickertape.in showed 'Face Value: Rs 1' — this is a stale/erroneous outlier contradicted by screener.in (Rs 2), groww.in (Rs 2), and the corporate-action history; Rs 2 is used.",
+    "incorporation_year": 1970,
+    "sources": [
+      "https://en.wikipedia.org/wiki/Deepak_Nitrite",
+      "https://www.screener.in/company/DEEPAKNTR/consolidated/",
+      "https://www.tickertape.in/stocks/deepak-nitrite-DPNT",
+      "https://groww.in/stocks/deepak-nitrite-ltd"
+    ]
+  },
+  "price_and_market_cap": {
+    "as_of": "2026-07-09 (most recent close available; NSE trading day)",
+    "latest_close_inr": 1621.20,
+    "latest_close_basis": "NSE close, 09-Jul-2026",
+    "latest_close_agreement": "stockanalysis.com historical table (1,621.20), tickertape.in (1,621.20), groww.in (1,621.20) all agree exactly. screener.in and companiesmarketcap.com show a rounded '₹1,621'. Day-over-day check: prior close 08-Jul-2026 = ₹1,571.30 (Google Finance 'previous close' + stockanalysis history agree), implying +3.18% day change — matches screener.in's displayed '+3.18%' precisely, confirming the 1,621.20 print.",
+    "day_change_pct": 3.18,
+    "market_cap_inr_cr": 22112,
+    "market_cap_range_across_sources": "22,112–22,168 Cr cluster (companiesmarketcap.com: 22,112.04 Cr; tickertape.in: 22,112.04 Cr; screener.in: 22,168 Cr — within 0.25% of each other, treated as agreeing). Google Finance intraday snapshot showed 22,649 Cr against a later/different intraday tick (1,624.90) rather than the settled close, not used.",
+    "market_cap_disagreement_note": "groww.in reported an outlier market cap of ₹21,378 Cr at the same 1,621.20 price — implies ~13.19 Cr shares outstanding vs. the ~13.64 Cr shares outstanding implied by every other source (companiesmarketcap/tickertape math, and independently by NSE-referenced shares-outstanding figure of 136.39 million found via search). Treated groww's mcap figure as a stale-share-count outlier and NOT used as primary; primary market cap = ~₹22,100–22,170 Cr.",
+    "shares_outstanding_approx_cr": 13.64,
+    "sources": [
+      "https://www.screener.in/company/DEEPAKNTR/consolidated/",
+      "https://stockanalysis.com/quote/nse/DEEPAKNTR/history/",
+      "https://companiesmarketcap.com/inr/deepak-nitrite/marketcap/",
+      "https://www.tickertape.in/stocks/deepak-nitrite-DPNT",
+      "https://groww.in/stocks/deepak-nitrite-ltd",
+      "https://www.google.com/finance/quote/DEEPAKNTR:NSE"
+    ]
+  },
+  "valuation": {
+    "pe_ttm": 40.17,
+    "pe_ttm_basis": "Computed from price 1,621.20 / EPS-TTM 40.36 (consolidated); matches tickertape.in's stated 40.17 exactly.",
+    "pe_ttm_disagreement_note": "Sources disagree modestly on P/E TTM: screener.in 39.6, stockanalysis.com 38.55, groww.in 38.82, Google Finance 40.26 (on a different/higher intraday price), tickertape.in 40.17. Range is ~38.5–40.3; likely differences from denominator (diluted vs basic EPS, or slightly different TTM EPS rounding). Reported 40.17 as best self-consistent figure (see EPS derivation below) but the disagreement is noted rather than silently resolved.",
+    "eps_ttm_inr": 40.36,
+    "eps_ttm_basis": "Consolidated, sum of last 4 reported quarters: Jun-2025 (8.23) + Sep-2025 (8.70) + Dec-2025 (7.32) + Mar-2026 (16.11) = 40.36. Independently matches stockanalysis.com's stated EPS (TTM) of ₹40.36 exactly.",
+    "book_value_per_share_inr": 428.0,
+    "book_value_basis": "Consolidated, as of latest FY-end (Mar-2026). screener.in: 428; groww.in: 427.94. Effectively in agreement.",
+    "roe_latest_fy_pct": 9.97,
+    "roe_note": "screener.in (consolidated, latest FY/TTM): 9.97%. groww.in: 9.43%. Minor disagreement (~0.5pt), both sources agree it is in the ~9.4–10.0% band; reporting screener's 9.97% as primary, groww's 9.43% noted as alternate.",
+    "sources": [
+      "https://www.screener.in/company/DEEPAKNTR/consolidated/",
+      "https://stockanalysis.com/quote/nse/DEEPAKNTR/",
+      "https://www.tickertape.in/stocks/deepak-nitrite-DPNT",
+      "https://groww.in/stocks/deepak-nitrite-ltd"
+    ]
+  },
+  "52_week": {
+    "high_inr": 1999.50,
+    "low_inr": 1280.00,
+    "as_of": "2026-07-09",
+    "agreement": "Consistent across screener.in (shown rounded as 2,000/1,280), stockanalysis.com (1,999.50/1,280.00), Google Finance (1,999.50/1,280.00), tickertape.in, groww.in — no material disagreement.",
+    "drawdown_from_52w_high_pct": -18.92,
+    "drawdown_calc": "(1621.20 - 1999.50) / 1999.50 = -18.92%",
+    "price_change_52w_pct": -18.15,
+    "price_change_52w_calc": "(1621.20 - 1980.70) / 1980.70 = -18.15%, using 09-Jul-2025 close of ₹1,980.70 (equitypandit.com historical data) vs. 09-Jul-2026 close of ₹1,621.20.",
+    "price_change_52w_cross_check": "Independent search snippets (aggregator summaries, not a single named source) cited '~-18.53%' and '~-20.23%' 1-year return figures at slightly different reference dates/prices — broadly consistent with the -18.15% computed figure; small variance attributed to different exact reference dates used by each aggregator. Note: equitypandit's historical table showed an anomalous 11-Jul-2025 close of ₹1,749.40 sandwiched between days around ₹1,980 — treated as a likely data glitch/adjustment artifact and NOT used as the reference point.",
+    "sources": [
+      "https://www.screener.in/company/DEEPAKNTR/consolidated/",
+      "https://stockanalysis.com/quote/nse/DEEPAKNTR/",
+      "https://www.equitypandit.com/historical-data/DEEPAKNTR",
+      "https://www.google.com/finance/quote/DEEPAKNTR:NSE"
+    ]
+  },
+  "dividends": {
+    "face_value_inr": 2.0,
+    "dividend_yield_pct": 0.46,
+    "dividend_yield_basis": "Trailing dividend / current price: 7.50 / 1621.20 = 0.4626%; matches screener.in, stockanalysis.com, Google Finance, tickertape.in (all 0.46%). groww.in showed 0.48% (minor outlier, uses a slightly different price/timing base).",
+    "paid_trailing_12_months": [
+      {
+        "type": "Final/Annual dividend (FY2025)",
+        "amount_per_share_inr": 7.50,
+        "ex_date": "2025-08-04",
+        "record_date": "2025-08-04",
+        "pay_date": "2025-09-13",
+        "special": false
+      }
+    ],
+    "paid_ttm_total_inr": 7.50,
+    "declared_unpaid": [
+      {
+        "type": "Final/Annual dividend (FY2026, recommended by board)",
+        "amount_per_share_inr": 7.50,
+        "record_date": "2026-07-27",
+        "expected_agm_date": "2026-08-05",
+        "expected_pay_date": "2026-09-04",
+        "status": "Declared/recommended, record date and AGM upcoming as of research date (2026-07-10) — NOT included in trailing-12-month paid total.",
+            "special": false
+      }
+    ],
+    "specials_note": "No special dividends identified in the last several years of history; all recent payouts are labeled 'Annual' in dividend-history tables. Rate has been flat at Rs 7.50/share for FY2023, FY2024, FY2025-declared, and now FY2026-recommended (Rs 7.00/share in FY2022 before that).",
+    "sources": [
+      "https://stockanalysis.com/quote/nse/DEEPAKNTR/dividend/",
+      "https://www.screener.in/company/DEEPAKNTR/consolidated/",
+      "https://groww.in/stocks/deepak-nitrite-ltd"
+    ]
+  },
+  "quarterly_results": {
+    "basis": "Consolidated, Rs Crore",
+    "latest_reported_quarter": {
+      "period_label": "Q4 FY26 (Jan–Mar 2026)",
+      "revenue_inr_cr": 2120,
+      "net_profit_inr_cr": 220,
+      "eps_inr": 16.11
+    },
+    "same_quarter_prior_year": {
+      "period_label": "Q4 FY25 (Jan–Mar 2025)",
+      "revenue_inr_cr": 2180,
+      "net_profit_inr_cr": 202,
+      "eps_inr": 14.84,
+      "cross_check": "Independently corroborated by Bajaj Broking's Q4FY25 results coverage (revenue Rs 2,180 Cr, PAT Rs 202 Cr, down 20% YoY at the time) — matches screener.in's quarterly table exactly."
+    },
+    "revenue_growth_yoy_mrq_pct": -2.75,
+    "revenue_growth_yoy_mrq_calc": "(2120 - 2180) / 2180 = -2.75%",
+    "earnings_growth_yoy_mrq_pct": 8.91,
+    "earnings_growth_yoy_mrq_calc": "(220 - 202) / 202 = +8.91%",
+    "eps_growth_yoy_mrq_pct": 8.56,
+    "prior_quarters_for_context": [
+      {"period_label": "Q3 FY26 (Oct–Dec 2025)", "revenue_inr_cr": 1975, "net_profit_inr_cr": 100, "eps_inr": 7.32},
+      {"period_label": "Q2 FY26 (Jul–Sep 2025)", "revenue_inr_cr": 1902, "net_profit_inr_cr": 119, "eps_inr": 8.70},
+      {"period_label": "Q1 FY26 (Apr–Jun 2025)", "revenue_inr_cr": 1890, "net_profit_inr_cr": 112, "eps_inr": 8.23}
+    ],
+    "full_year_sanity_check": "FY2026 (sum of 4 quarters above) revenue = 7,887 Cr, net profit = 551 Cr — matches stockanalysis.com's independently reported FY2026 figures (Revenue Rs 78.87bn, Net Income Rs 5.51bn) exactly, and its stated YoY declines (revenue -4.8%, net income -21.0%) reconcile against FY2025 revenue of Rs 8,282 Cr / PAT Rs 698 Cr (Bajaj Broking).",
+    "note_on_next_quarter": "As of research date (2026-07-10), Q1 FY27 (Apr–Jun 2026) results had not yet been reported; company's next annual-results-adjacent disclosure is expected around the Aug 4–5, 2026 AGM window. Q4 FY26 (Mar-2026) remains the latest reported quarter.",
+    "sources": [
+      "https://www.screener.in/company/DEEPAKNTR/consolidated/",
+      "https://www.bajajbroking.in/share-market-news/deepak-nitrite-q4-results-fy-24-25",
+      "https://stockanalysis.com/quote/nse/DEEPAKNTR/"
+    ]
+  },
+  "shareholding": {
+    "as_of": "2026-03-31 (Mar-2026 quarter-end shareholding pattern; latest disclosed as of research date)",
+    "promoter_holding_pct": 49.33,
+    "dii_pct": 23.46,
+    "fii_pct": 6.19,
+    "public_pct": 21.01,
+    "sources": ["https://www.screener.in/company/DEEPAKNTR/consolidated/"]
+  },
+  "figures": [
+    {"metric": "Legal name", "value": "Deepak Nitrite Limited", "basis": "n/a", "as_of": "current", "source": "en.wikipedia.org/wiki/Deepak_Nitrite; screener.in"},
+    {"metric": "ISIN", "value": "INE288B01029", "basis": "n/a", "as_of": "current", "source": "en.wikipedia.org; nseindia.com listing URL; nseequity.com; investonline.in"},
+    {"metric": "BSE code", "value": "506401", "basis": "n/a", "as_of": "current", "source": "screener.in; en.wikipedia.org"},
+    {"metric": "NSE symbol", "value": "DEEPAKNTR", "basis": "n/a", "as_of": "current", "source": "screener.in; nseindia.com"},
+    {"metric": "Latest closing price", "value": "₹1,621.20", "basis": "NSE close", "as_of": "2026-07-09", "source": "stockanalysis.com history; tickertape.in; groww.in (all agree); screener.in shows rounded ₹1,621"},
+    {"metric": "Market capitalization", "value": "≈₹22,112–22,168 Cr", "basis": "current price x shares outstanding", "as_of": "2026-07-09", "source": "companiesmarketcap.com (22,112.04 Cr); tickertape.in (22,112.04 Cr); screener.in (22,168 Cr); groww.in outlier at 21,378 Cr (stale share count, not used)"},
+    {"metric": "P/E (TTM)", "value": "40.17 (range across sources 38.5–40.3)", "basis": "consolidated TTM", "as_of": "2026-07-09", "source": "tickertape.in 40.17; screener.in 39.6; stockanalysis.com 38.55; groww.in 38.82; Google Finance 40.26"},
+    {"metric": "EPS (TTM)", "value": "₹40.36", "basis": "consolidated, sum of last 4 quarters", "as_of": "quarter ended Mar-2026", "source": "computed from screener.in quarterly table; matches stockanalysis.com stated EPS TTM exactly"},
+    {"metric": "52-week high", "value": "₹1,999.50", "basis": "NSE/BSE", "as_of": "trailing 52 weeks to 2026-07-09", "source": "stockanalysis.com; Google Finance; screener.in (rounded ₹2,000)"},
+    {"metric": "52-week low", "value": "₹1,280.00", "basis": "NSE/BSE", "as_of": "trailing 52 weeks to 2026-07-09", "source": "stockanalysis.com; Google Finance; screener.in"},
+    {"metric": "Drawdown from 52w high", "value": "-18.92%", "basis": "(close - 52wHigh)/52wHigh", "as_of": "2026-07-09", "source": "computed: (1621.20-1999.50)/1999.50"},
+    {"metric": "52-week price change", "value": "≈-18.15% (range -18% to -20% across sources)", "basis": "close-to-close, 1 year", "as_of": "2025-07-09 to 2026-07-09", "source": "equitypandit.com historical close 09-Jul-2025 (₹1,980.70) vs 09-Jul-2026 close; aggregator search snippets cited -18.53%/-20.23% as broad corroboration"},
+    {"metric": "Dividend paid (trailing 12 months)", "value": "₹7.50/share (ex-date 2025-08-04, paid 2025-09-13)", "basis": "per share, FY2025 final dividend", "as_of": "TTM to 2026-07-10", "source": "stockanalysis.com dividend history"},
+    {"metric": "Dividend declared, unpaid", "value": "₹7.50/share (record date 2026-07-27, expected pay 2026-09-04, pending AGM 2026-08-05)", "basis": "per share, FY2026 recommended final dividend", "as_of": "as of 2026-07-10", "source": "stockanalysis.com; screener.in AGM/record-date note"},
+    {"metric": "Face value", "value": "₹2.00", "basis": "per share", "as_of": "current", "source": "screener.in; groww.in; corporate-action history (2014 sub-division)"},
+    {"metric": "Dividend yield", "value": "0.46%", "basis": "trailing dividend / current price", "as_of": "2026-07-09", "source": "screener.in; stockanalysis.com; Google Finance; tickertape.in"},
+    {"metric": "Latest reported quarter revenue", "value": "₹2,120 Cr (Q4 FY26, Jan–Mar 2026)", "basis": "consolidated, MRQ", "as_of": "quarter ended 2026-03-31", "source": "screener.in"},
+    {"metric": "Latest reported quarter net profit", "value": "₹220 Cr (Q4 FY26, Jan–Mar 2026)", "basis": "consolidated, MRQ", "as_of": "quarter ended 2026-03-31", "source": "screener.in"},
+    {"metric": "Same quarter prior year revenue", "value": "₹2,180 Cr (Q4 FY25, Jan–Mar 2025)", "basis": "consolidated", "as_of": "quarter ended 2025-03-31", "source": "screener.in; corroborated by bajajbroking.in Q4FY25 coverage"},
+    {"metric": "Same quarter prior year net profit", "value": "₹202 Cr (Q4 FY25, Jan–Mar 2025)", "basis": "consolidated", "as_of": "quarter ended 2025-03-31", "source": "screener.in; corroborated by bajajbroking.in"},
+    {"metric": "Revenue growth YoY (MRQ)", "value": "-2.75%", "basis": "(2120-2180)/2180", "as_of": "Q4 FY26 vs Q4 FY25", "source": "computed from screener.in quarterly table"},
+    {"metric": "Earnings growth YoY (MRQ)", "value": "+8.91%", "basis": "(220-202)/202", "as_of": "Q4 FY26 vs Q4 FY25", "source": "computed from screener.in quarterly table"},
+    {"metric": "ROE (latest FY)", "value": "9.97% (screener) / 9.43% (groww)", "basis": "consolidated, latest FY/TTM", "as_of": "FY ended 2026-03-31", "source": "screener.in; groww.in"},
+    {"metric": "Book value per share", "value": "₹428 (screener) / ₹427.94 (groww)", "basis": "consolidated", "as_of": "quarter ended 2026-03-31", "source": "screener.in; groww.in"},
+    {"metric": "Promoter holding", "value": "49.33%", "basis": "consolidated shareholding pattern", "as_of": "quarter ended 2026-03-31", "source": "screener.in"}
+  ],
+  "notes": [
+    "Price/mcap cross-checked across 5 independent live sources (screener.in, stockanalysis.com, companiesmarketcap.com, tickertape.in, groww.in) plus Google Finance; core price (1,621.20 close, 09-Jul-2026) and mcap (~22,100-22,170 Cr) cluster tightly, with groww.in's mcap figure (21,378 Cr) flagged as a likely stale-share-count outlier rather than silently discarded.",
+    "WebSearch snippet summaries (as opposed to direct WebFetch of live pages) repeatedly surfaced stale/cached price figures (e.g. Rs 1,556-1,558 'as of 8 July 2026') that were contradicted by directly-fetched historical data tables showing 08-Jul-2026 close = Rs 1,571.30. Direct WebFetch of primary pages was treated as authoritative over search-engine cached snippets throughout this pack.",
+    "ISIN required independent verification: an initially search-seeded ISIN (INE787D01026) turned out to be unsupported by any source and was discarded in favor of the verified INE288B01029, confirmed by 4+ independent sources including Wikipedia and NSE's own listing URL.",
+    "Face value shows one erroneous outlier (tickertape.in: Rs 1) against the corroborated correct value of Rs 2 (screener.in, groww.in, and the 2014 corporate-action record of a Rs10→Rs2 sub-division plus bonus).",
+    "P/E (TTM) and ROE show mild (~2-5%) cross-source disagreement likely due to differing EPS/equity averaging conventions; ranges reported rather than a single silently-chosen figure.",
+    "FY2026 revenue/net-profit aggregates independently reconstructed from the quarterly table match stockanalysis.com's reported annual figures and YoY deltas to within rounding — strong internal consistency check across two unrelated data providers.",
+    "Standalone-vs-consolidated: all financial figures in this pack are CONSOLIDATED (screener.in's default 'consolidated' view) unless otherwise stated; standalone figures were not separately pulled since consolidated is the standard basis Deepak Nitrite reports and is used by essentially all secondary sources.",
+    "Q1 FY27 (Apr-Jun 2026) results were not yet published as of the research date (2026-07-10); the FY26 Q4 (Mar-2026) quarter is correctly the latest reported quarter."
+  ]
+}

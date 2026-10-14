@@ -1,0 +1,9 @@
+{
+  "id": "vysted-lenses",
+  "version": "1.0.0",
+  "name": "Vysted Lenses (agent pack)",
+  "entry": "index.ts",
+  "requiredHostVersion": "0.8.0",
+  "description": "A first-party agent pack — adds the Quant Tutor lens. The reference agent-collection marketplace plugin. Pre-installed.",
+  "author": "Vysted"
+}

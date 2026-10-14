@@ -1,0 +1,6 @@
+CMD: python3 -c "...verify default_base_url_for('deepseek') matches DEEPSEEK_BASE_URL constant..."
+registry deepseek base_url: https://api.deepseek.com
+llm.DEEPSEEK_BASE_URL      : https://api.deepseek.com
+SINGLE-SOURCED: True
+registry xai base_url: https://api.x.ai/v1 == llm.XAI_BASE_URL: https://api.x.ai/v1
+registry openrouter base_url: https://openrouter.ai/api/v1 == llm.OPENROUTER_BASE_URL: https://openrouter.ai/api/v1

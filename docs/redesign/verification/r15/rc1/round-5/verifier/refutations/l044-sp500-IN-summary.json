@@ -1,0 +1,40 @@
+{
+ "coverage": "screened 503 of 503 \u2014 0 unavailable",
+ "duration_ms": 818.0687500280328,
+ "basis_counts": {
+  "live": 503
+ },
+ "inr_rows": [],
+ "probe_rows": [
+  {
+   "symbol": "ACGL",
+   "name": "Arch Capital Group Ltd.",
+   "currency": "USD",
+   "price": 94.66
+  },
+  {
+   "symbol": "CCL",
+   "name": "Carnival Corporation Ltd.",
+   "currency": "USD",
+   "price": 22.25
+  },
+  {
+   "symbol": "HAL",
+   "name": "Halliburton Company",
+   "currency": "USD",
+   "price": 32.76
+  },
+  {
+   "symbol": "IEX",
+   "name": "IDEX Corporation",
+   "currency": "USD",
+   "price": 230.08
+  },
+  {
+   "symbol": "PTC",
+   "name": "PTC Inc.",
+   "currency": "USD",
+   "price": 138.12
+  }
+ ]
+}

@@ -1,0 +1,13 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p023.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+from services.search.base import SearchResult
+from services.search.keyless import _filter_results
+r=SearchResult(url='https://www.routemobile.com/investors',title='Route Mobile Q2 FY25 results',snippet='Consolidated revenue rose 9%. (c) 2025 Route Mobile Limited. All rights reserved.')
+print(_filter_results([r],set()))
+ch=SearchResult(url='https://dup.example/x',title='Unusual traffic',snippet='Our systems have detected unusual traffic from your computer network. Please verify you are a human')
+print("challenge row:",_filter_results([ch],set()))
+--- output ---
+([SearchResult(url='https://www.routemobile.com/investors', title='Route Mobile Q2 FY25 results', snippet='Consolidated revenue rose 9%. (c) 2025 Route Mobile Limited. All rights reserved.', published_at=None, source=None)], 0)
+challenge row: ([], 1)
+EXIT=0

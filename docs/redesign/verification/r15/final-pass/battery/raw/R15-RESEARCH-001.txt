@@ -1,0 +1,15 @@
+# R15-RESEARCH-001 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:40+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+rm -f $B/out/R15-RESEARCH-001.txt; "$IP" $B/sc/b15_set2b.py >/dev/null 2>&1; echo "script exit $?"; cat $B/out/R15-RESEARCH-001.txt
+--- output ---
+script exit 0
+d38b5d1a candidate venv, cwd sidecar
+COMMAND: gate_news on the original BDL region-wide news feed (Sterling and Wilson item present) + live /news
+EXIT: 0
+OUTPUT:
+orig 21-news-tool-BDL.json in= 129 kept= 1 note= None
+  Sterling/985 kept: []
+LIVE /news?symbol=BDL&region=IN in= 50 kept= 0 note= No on-entity news found for BDL — 50 item(s) returned by the news feed were off-entity/off-topic and dropped.
+  Sterling/985 kept: []
+
+EXIT=0 (4.2s)

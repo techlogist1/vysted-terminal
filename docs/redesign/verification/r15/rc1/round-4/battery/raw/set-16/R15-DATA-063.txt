@@ -1,0 +1,5 @@
+=== history DAL ===
+{"symbol":"DAL","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":null,"partial":false,"coverage_start":null}
+=== indicators DAL ===
+{"symbol":"DAL","timeframe":"1d","provider":"none","indicators":[],"volume_profile":null}
+HTTP_STATUS:200

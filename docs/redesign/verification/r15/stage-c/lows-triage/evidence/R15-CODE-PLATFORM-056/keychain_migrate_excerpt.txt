@@ -1,0 +1,123 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9  keychain.rs:45-60, :170-205, :224, :255-292, :346-368
+pub const USE_DEV_KEYSTORE: bool = cfg!(debug_assertions);
+
+/// Outcome of a `keychain_migrate` call (surfaced to the renderer, never logged
+/// with values).
+#[derive(Debug, Serialize)]
+pub struct MigrateReport {
+    /// Which backend served this build (`"dev-keystore"` / `"os-keychain"`).
+    pub backend: &'static str,
+    /// How many accounts were copied keychain→file on THIS call.
+    pub migrated: u32,
+    /// True when migration had already run before (a no-op that never touches
+    /// the keychain), or when running in release (nothing to migrate).
+    pub already_done: bool,
+}
+
+// --- OS keychain backend (always compiled — the release path, and the source
+...
+    /// `reader` — the keychain is never touched again.
+    pub fn migrate_at<R>(
+        file: &Path,
+        accounts: &[String],
+        reader: R,
+    ) -> Result<MigrateReport, String>
+    where
+        R: Fn(&str) -> Result<Option<String>, String>,
+    {
+        let mut store = load(file);
+        if store.migrated {
+            return Ok(MigrateReport {
+                backend: "dev-keystore",
+                migrated: 0,
+                already_done: true,
+            });
+        }
+        let mut migrated = 0u32;
+        for account in accounts {
+            // A keychain read failure (denied dialog / no store) is non-fatal:
+            // skip that account — the user re-adds it via Settings.
+            if let Ok(Some(value)) = reader(account) {
+                // Never clobber a value already set in the dev keystore.
+                store.secrets.entry(account.clone()).or_insert(value);
+                migrated += 1;
+            }
+        }
+        store.migrated = true;
+        save(file, &store)?;
+        Ok(MigrateReport {
+            backend: "dev-keystore",
+            migrated,
+            already_done: false,
+        })
+    }
+
+...
+    /// the same-cdhash reads return the real values instantly (the rounds-A/B
+    /// "read → idle → read succeeds" pattern).
+    const MIGRATE_SELF_DISMISS_WAIT_SECS: u64 = 140;
+
+    pub fn migrate(app: &tauri::AppHandle, accounts: &[String]) -> Result<MigrateReport, String> {
+...
+        // zero SecurityAgent dialogs). The check MUST precede the pass-1 reads;
+        // leaving it to `migrate_at` (which only records already-read values)
+        // re-hit the keychain on every boot and re-raised the dialog.
+        if load(file).migrated {
+            return Ok(MigrateReport {
+                backend: "dev-keystore",
+                migrated: 0,
+                already_done: true,
+            });
+        }
+        // Pass 1 (trigger): read each account once. An existing item errors while
+        // its ACL evaluation is in flight; absent items return at once.
+        let mut resolved: std::collections::BTreeMap<String, Option<String>> =
+            std::collections::BTreeMap::new();
+        let mut errored: Vec<String> = Vec::new();
+        for account in accounts {
+            match read(account) {
+                Ok(v) => {
+                    resolved.insert(account.clone(), v);
+                }
+                Err(_) => errored.push(account.clone()),
+            }
+        }
+        // Pass 2 (re-read after the idle settle), only if something errored — by
+        // then the one cdhash ACL evaluation has self-dismissed-as-allow.
+        if !errored.is_empty() {
+            eprintln!(
+                "[keychain-migrate] {} item(s) pending the ACL self-dismiss — idle {}s then re-read",
+                errored.len(),
+                MIGRATE_SELF_DISMISS_WAIT_SECS
+            );
+            std::thread::sleep(Duration::from_secs(MIGRATE_SELF_DISMISS_WAIT_SECS));
+            for account in &errored {
+                resolved.insert(account.clone(), read(account).unwrap_or(None));
+            }
+        }
+        // Record the resolved values + set `migrated` (no further keychain touch).
+        migrate_at(file, accounts, |a| Ok(resolved.get(a).cloned().flatten()))
+...
+/// a pure no-op — the OS keychain is authoritative, nothing to migrate.
+#[tauri::command]
+pub async fn keychain_migrate(
+    app: tauri::AppHandle,
+    accounts: Vec<String>,
+) -> Result<MigrateReport, String> {
+    let _ = (&app, &accounts);
+    #[cfg(debug_assertions)]
+    {
+        // Reads run INLINE on the async-command thread — the context where a
+        // keychain read self-dismisses-as-allow and returns the value (proven
+        // in the R9 verification rounds). A `spawn_blocking` background thread
+        // errored every read instead. The migration's idle-then-re-read does the
+        // ~140s wait here; the file backend serves every other read meanwhile.
+        dev_keystore::migrate(&app, &accounts)
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        Ok(MigrateReport {
+            backend: "os-keychain",
+            migrated: 0,
+            already_done: true,
+        })

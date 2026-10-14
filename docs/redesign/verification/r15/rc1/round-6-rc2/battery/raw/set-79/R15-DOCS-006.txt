@@ -1,0 +1,18 @@
+CMD: grep -n "no 'static-export'" src/lib/source-guards.test.ts; grep -rn 'SSR-safe\|static-export' src --include=*.ts --include=*.tsx | grep -v '\.test\.' | head; grep -n 'ONE search surface' src/components/SettingsPanel.tsx; grep -n 'three-place' src/lib/chart-theme.ts
+81:  it("no 'static-export'/'SSR-safe' claim under src/ outside the shrinking allowlist", () => {
+src/lib/dev-mcp-bridge.ts:9:// static-export production build, so the `tauri-plugin-mcp` devDependency
+src/lib/export-artifact.ts:14: * initial bundle or run during SSR/static-export. `sidecar-client` is
+src/lib/use-sidecar-retry.ts:31: * sites. SSR-safe: all timers/subscriptions live inside effects.
+src/lib/sidecar-client.ts:275:  // `getState()` is SSR/static-export safe (no window/navigator at module load).
+src/modules/notes/NotesPanel.tsx:119:  // Tiptap editor — `immediatelyRender: false` required for static export SSR-safety.
+src/store/settings.ts:33: * SSR-safe: no `window`/`navigator` at module load.
+src/store/agent-command.ts:16: * SSR-safe: no `window`/`navigator` at module load.
+src/store/search-settings.ts:33: * SSR-safe: no `window`/`navigator` at module load.
+src/store/keybindings.ts:27: * SSR-safe: no `window`/`navigator` access at module load. Platform detection
+src/store/keybindings.ts:433: * elsewhere. `"alt+1"` → `"⌥1"` (mac) / `"Alt+1"`. Pure + SSR-safe.
+EXIT=1
+CMD: grep original false-claim sites
+PanelHost/page exit=1
+11: * canvas + tokens in lockstep).
+'use client' count:
+      79

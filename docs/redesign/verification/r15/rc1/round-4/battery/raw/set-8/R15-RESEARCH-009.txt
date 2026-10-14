@@ -1,0 +1,4 @@
+CMD: pytest -v test_research_metering.py::test_deep_run_with_reported_usage_has_a_nonzero_cost (candidate sha 1006c6da694ede5776c3dabbd27b305aeb56b5ad, sidecar/tests)
+---MATCHED LINES---
+tests/test_research_metering.py::test_deep_run_with_reported_usage_has_a_nonzero_cost PASSED [  7%]
+tests/test_research_metering.py::test_unmeasured_usage_reports_unknown_cost_not_zero PASSED [ 14%]

@@ -1,0 +1,16 @@
+# R15-AGENT-091 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:12+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'R15-AGENT-091' src/modules/chat/context-provider.test.ts; grep -n 'currency' src/modules/chat/context-provider.ts | head -8
+--- output ---
+210:  it("get_portfolio holdings carry a currency field on both the panel-published and store-fallback paths (R15-AGENT-091)", () => {
+47:   * The cost basis's currency (R15-AGENT-091) — without it the model guesses
+49:   * resolved quote's currency, else the region default; never absent.
+51:  currency: string;
+64:   * currencies so no honest cross-currency sum exists — R11/D57, see
+158:/** The currency a holding reports when the source didn't carry one (older bus
+165:  return regionConfig(useSettingsStore.getState().region).currency;
+191:      currency: asString(row.currency) ?? fallbackCurrency(symbol, assetClass),
+225:      currency: fallbackCurrency(h.symbol, h.assetClass),
+
+EXIT=0 (0.0s)

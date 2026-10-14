@@ -1,0 +1,14 @@
+[
+ {
+  "key": "rc1-fix-r1-triage:1",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "title": "Research target resolution discards a full-query disambiguation in favour of a one-word prefix bind, so an ambiguous full company name can bind a different company via a narrower query",
+  "repro": "services/research/target.resolve_target: attempt 1 'KPIT Technologies' -> non-curated disambiguation (KPITTECH, BSOFT) is only remembered; attempt 'KPIT' (1-word prefix) binds BSOFT via the retired-ticker lane at confidence 1.0 >= the one-word minimum and is returned. The chooser the user should have seen is dropped. The KPIT instance is fixed at the resolver in fix-r1 W3; this ladder behaviour remains for any other full-name tie.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/fix-r1/evidence/battery-14-1-kpit-resolve.txt",
+  "suspected_files": [
+   "sidecar/services/research/target.py"
+  ]
+ }
+]

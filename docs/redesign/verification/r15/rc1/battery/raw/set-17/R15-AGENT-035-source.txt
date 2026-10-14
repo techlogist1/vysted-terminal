@@ -1,0 +1,26 @@
+
+# ---------------------------------------------------------------------------
+# Public control surface
+# ---------------------------------------------------------------------------
+
+
+def launch_run(
+    *,
+    agent_id: str,
+    prompt: str,
+    context_snapshot: dict[str, Any] | None = None,
+    provider: LLMProviderId | None = None,
+    model: str | None = None,
+    api_key: str | None = None,
+    budget: RunBudget | None = None,
+    options: dict[str, Any] | None = None,
+) -> str:
+    """Create a durable run row and spawn its detached executor task.
+
+    Returns the new run id immediately — the caller (the HTTP route) returns it
+    in a 201 and the request closes while the task keeps running (FR-027).
+    Raises :class:`RunManagerError` if the agent id is unknown.
+    """
+    spec = agent_runtime.get_agent(agent_id)
+    if spec is None:
+        raise RunManagerError(f"unknown agent: {agent_id!r}")

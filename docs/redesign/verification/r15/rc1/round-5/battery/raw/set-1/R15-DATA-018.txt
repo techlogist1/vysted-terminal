@@ -1,0 +1,8 @@
+Commands: curl 'http://127.0.0.1:52352/resolve?q=zomato&region=IN', q=ZOMATO, q=SEQUENT; curl '.../resolve/autocomplete?q=ZOMA'
+Exit: 0, HTTP 200 all.
+Observed:
+- q=zomato / q=ZOMATO -> ok:true, resolved symbol ETERNAL, former_name "ZOMATO", rename.note "ZOMATO was renamed to ETERNAL on NSE (effective 2025-04-09); the resolver answers the current symbol."
+- q=SEQUENT -> ok:true, resolved symbol VIYASH, former_name "SEQUENT", rename note present.
+- The register's core repro (exact old ticker/name unfindable, "No instrument matched") NO LONGER reproduces.
+- Known documented residual (register's own "note" field, not part of this fix's acceptance): autocomplete on a PARTIAL prefix of the old ticker ("ZOMA") still returns [] (see raw json) -- this is the already-noted verifier batch-8 residual, unchanged, not a new regression.
+Verdict: HOLDS (core repro fixed); pre-existing documented autocomplete-prefix residual still present, unchanged from the register's own note -- not treated as a regression.

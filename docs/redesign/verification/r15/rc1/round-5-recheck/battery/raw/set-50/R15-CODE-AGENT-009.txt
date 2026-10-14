@@ -1,0 +1,29 @@
+=== R15-CODE-AGENT-009 repro: live AST line-count of invoke_agent / _dispatch_round + phase-test census ===
+Live python (sidecar venv, candidate 949c3c9f), ast.walk over
+services/agent_runtime.py counting each async def's line span (not pytest):
+
+  _dispatch_round: lines 3052-3244 = 193 lines
+  invoke_agent: lines 3247-3347 = 101 lines
+
+  test_runtime_phases.py direct phase test count (grep -c '^def test_\|^async def test_'): 9
+    test_prepare_run_pops_every_runtime_option_and_publishes_it_task_local
+    test_open_round_caps_the_last_round_and_spends_down_native_search
+    test_consume_round_collects_tool_calls_and_swallows_the_mid_run_done
+    test_consume_round_halts_before_dispatch_when_the_budget_says_stop
+    test_consume_round_drops_tool_calls_on_the_capped_round
+    test_finish_turn_names_a_length_cut_and_an_empty_answer
+    test_finish_turn_explains_a_content_filter_refusal
+    test_finish_unterminated_says_the_answer_was_cut_and_closes_the_stream
+    test_dispatch_round_answers_each_call_and_stops_searching_past_the_cap
+
+  test_agent_runtime.py still present (179K, the pre-existing regression suite).
+
+VERDICT: holds. invoke_agent is 101 lines at candidate 949c3c9f (certified 95
+lines at batch-11's base sha, small drift from later unrelated commits — still
+a fraction of the pre-fix 488/537-line god function). The register's own
+repro field is "design" (a structural defect, not a runtime repro); the
+acceptance criterion — invoke_agent's defect-bearing branches reachable by
+direct unit tests without a full fake provider — holds: test_runtime_phases.py
+carries 9 direct phase tests exercising prepare_run/open_round/consume_round/
+finish_turn/dispatch_round in isolation. Did not run the pytest suite itself
+(role restriction); this is a live AST/grep census, not a static text read.

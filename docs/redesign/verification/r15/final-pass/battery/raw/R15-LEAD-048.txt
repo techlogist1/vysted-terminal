@@ -1,0 +1,14 @@
+# R15-LEAD-048 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:26+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'MENU_PAYLOAD_TO_MODE\|unrecognised layout' src/lib/host-actions.ts | head -5; grep -n 'R15-LEAD-048' src/lib/host-actions.test.ts | head -5
+--- output ---
+31:  MENU_PAYLOAD_TO_MODE,
+1283:      if (Object.hasOwn(MENU_PAYLOAD_TO_MODE, pattern)) {
+1699:      const mode = Object.hasOwn(MENU_PAYLOAD_TO_MODE, pattern)
+1700:        ? MENU_PAYLOAD_TO_MODE[pattern]
+1720:        return fail(`unrecognised layout "${pattern}"`);
+1937:  // to silently reset (the R15-LEAD-048 defect). It now fails instead — see
+1960:describe("arrange_layout routes Layout-menu mode ids instead of resetting (R15-LEAD-048)", () => {
+
+EXIT=0 (0.0s)

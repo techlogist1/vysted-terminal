@@ -1,0 +1,16 @@
+SOURCE CHECK: sidecar/services/llm/gemini.py:187-198 (GeminiProvider.stream_chat usage extraction)
+                            )
+                            tool_call_index += 1
+                # Usage arrives on every chunk; the final value wins.
+                meta = getattr(response, "usage_metadata", None)
+                if meta is not None:
+                    # Gemini bills thinking and the tool-use prompt too
+                    # (R15-CODE-AGENT-004); each count may be None.
+                    usage = LLMUsage(
+                        input_tokens=(getattr(meta, "prompt_token_count", 0) or 0)
+                        + (getattr(meta, "tool_use_prompt_token_count", 0) or 0),
+                        output_tokens=(getattr(meta, "candidates_token_count", 0) or 0)
+                        + (getattr(meta, "thoughts_token_count", 0) or 0),
+
+Formula matches the register/batch-8 repro exactly: output_tokens = candidates_token_count + thoughts_token_count (so 800+6000=6800), input_tokens = prompt_token_count + tool_use_prompt_token_count (1000+200=1200). BudgetGuard._usage_tokens (budget_guard.py:115-124) sums usage.input_tokens+usage.output_tokens for the ceiling check, so a BudgetGuard(max_tokens=7000) would still see 8000 used and breach, as certified.
+VERDICT: holds

@@ -7,14 +7,15 @@ its ISO-3 code.
 
 Series id format used by this provider:
 
-  - ``NY.GDP.PCAP.CD`` — defaults to ``USA``.
+  - ``NY.GDP.PCAP.CD`` — the session region's country (``IN`` → ``IND``),
+    else ``USA``.
   - ``NY.GDP.PCAP.CD:DEU`` — explicit country code (legacy colon form).
   - ``WB:NY.GDP.PCAP.CD:DEU`` — fully-qualified per spec; the leading
     ``WB:`` is stripped.
 
 Public surface (matches every other macro provider in this package):
 
-  - :func:`get_series(series_id) -> MacroSeriesExtended`
+  - :func:`get_series(series_id, region) -> MacroSeriesExtended`
   - :func:`search(query, limit) -> list[MacroSearchResult]`
   - :func:`catalog(limit) -> MacroCatalog`
 """
@@ -28,17 +29,21 @@ from typing import Any
 from models.macro_extended import (
     MacroCatalog,
     MacroCatalogEntry,
+    MacroProvider,
     MacroSearchResult,
     MacroSeriesExtended,
 )
 from models.market import MacroObservation
 from services.errors import ProviderError
 
-PROVIDER = "world-bank"
+PROVIDER: MacroProvider = "world-bank"
 
 _log = logging.getLogger(__name__)
 
 _DEFAULT_COUNTRY = "USA"
+#: The country a bare indicator id reads as, per session region (R15-DATA-046):
+#: IN routes macro to World Bank for its India series, so IN means IND.
+_COUNTRY_BY_REGION = {"IN": "IND"}
 
 # Curated featured catalog — the World Bank WDI indicators that cover Use
 # Case 5's headline national-development surface. The full WB catalog has
@@ -128,26 +133,31 @@ def _make_client() -> Any:
     return wbgapi
 
 
-def _parse_series_id(series_id: str) -> tuple[str, str]:
-    """Return (indicator, country) from one of the supported series_id forms."""
+def _parse_series_id(series_id: str, region: str | None = None) -> tuple[str, str]:
+    """Return (indicator, country) from one of the supported series_id forms.
+
+    A bare indicator reads as ``region``'s country (``USA`` when the region has
+    no mapping); an explicit ``:<ISO3>`` always wins.
+    """
+    default = _COUNTRY_BY_REGION.get(region or "", _DEFAULT_COUNTRY)
     raw = series_id.strip()
     if raw.upper().startswith("WB:"):
         raw = raw[3:]
     if ":" in raw:
         head, country = raw.split(":", 1)
-        return head.strip(), country.strip().upper() or _DEFAULT_COUNTRY
-    return raw, _DEFAULT_COUNTRY
+        return head.strip(), country.strip().upper() or default
+    return raw, default
 
 
-def get_series(series_id: str) -> MacroSeriesExtended:
+def get_series(series_id: str, region: str | None = None) -> MacroSeriesExtended:
     """Fetch a World Bank indicator series for one country.
 
     ``series_id`` accepts ``<indicator>``, ``<indicator>:<ISO3>`` or
-    ``WB:<indicator>:<ISO3>``. Defaults to ``USA``.
+    ``WB:<indicator>:<ISO3>``. A bare indicator takes ``region``'s country.
     """
     if not series_id:
         raise ProviderError("World Bank get_series requires a non-empty series_id")
-    indicator, country = _parse_series_id(series_id)
+    indicator, country = _parse_series_id(series_id, region)
     client = _make_client()
     try:
         # wbgapi.data.fetch yields per-year observation rows.
@@ -191,14 +201,10 @@ def get_series(series_id: str) -> MacroSeriesExtended:
 
     title = indicator
     try:
-        # series.info returns an InfoStream; .table() / .items() may be available.
-        info = client.series.info(indicator)
-        if hasattr(info, "items") and callable(info.items):
-            items = list(info.items)
-            if items:
-                first = items[0]
-                # InfoRow shape: (id, name, ...). Prefer name when populated.
-                title = getattr(first, "value", indicator) or indicator
+        # series.info returns a Featureset whose ``items`` is a LIST of
+        # ``{"id", "value"}`` dicts (R15-DATA-085: the old ``callable`` guard
+        # never let this run); ``value`` is the human indicator name.
+        title = client.series.info(indicator).items[0].get("value") or indicator
     except Exception as exc:  # noqa: BLE001 — title fallback is benign
         _log.debug("wbgapi.series.info failed for %s: %s", indicator, exc)
 
@@ -220,17 +226,22 @@ def search(query: str, limit: int = 25) -> list[MacroSearchResult]:
     """Best-effort indicator search via wbgapi + curated featured set.
 
     ``wbgapi.series.list(q=query)`` returns matching indicators; we map them
-    through the contract. When the upstream call fails (network, etc.) we
-    fall back to substring-search over the curated featured catalog.
+    through the contract, and a query the upstream answers with no hits falls
+    back to substring-search over the curated featured catalog. An upstream
+    FAILURE raises :class:`ProviderError` (``kind="network"`` for a transport
+    error), like FRED and IMF — never curated rows dressed up as hits
+    (R15-DATA-086).
     """
     if not query:
         return []
     try:
         client = _make_client()
         rows = list(client.series.list(q=query))
-    except Exception as exc:  # noqa: BLE001 — fall back, not fatal
-        _log.debug("wbgapi.series.list fall back to curated set: %s", exc)
-        rows = []
+    except Exception as exc:  # noqa: BLE001 — every upstream failure is reported
+        import requests
+
+        kind = "network" if isinstance(exc, requests.RequestException) else None
+        raise ProviderError(f"World Bank search failed for {query!r}: {exc}", kind=kind) from exc
 
     matches: list[MacroSearchResult] = []
     seen: set[str] = set()

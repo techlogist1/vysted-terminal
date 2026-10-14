@@ -1,0 +1,17 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p075.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import asyncio, subprocess
+from services.search import extract
+U="dd3aabde-0754-45bf-a815-55e340801396.pdf"
+live="https://www.bseindia.com/xml-data/corpfiling/AttachLive/"+U
+his="https://www.bseindia.com/xml-data/corpfiling/AttachHis/"+U
+for u in (live,his):
+    print(u, subprocess.run(["curl","-s","-o","/dev/null","-m","30","-w","%{http_code}","-A","Mozilla/5.0","-e","https://www.bseindia.com/",u],capture_output=True,text=True).stdout)
+r=asyncio.run(extract.fetch_page(live,max_chars=400))
+print({k:(str(v)[:200]) for k,v in r.items()})
+--- output ---
+https://www.bseindia.com/xml-data/corpfiling/AttachLive/dd3aabde-0754-45bf-a815-55e340801396.pdf 404
+https://www.bseindia.com/xml-data/corpfiling/AttachHis/dd3aabde-0754-45bf-a815-55e340801396.pdf 200
+{'ok': 'True', 'title': '', 'content': 'The consolidated results are as follows:\n\nResolution No 1: Ordinary Business\n\nOrdinary Resolution: Adoption of the Audited Standalone & Consolidated financial\n\nstatements for the financial year ended ', 'truncated': 'True', 'chars': '355', 'pages_used': '[1, 2, 3, 4, 5]', 'page_count': '5', 'pages_empty': '2', 'url': 'https://www.bseindia.com/xml-data/corpfiling/AttachLive/dd3aabde-0754-45bf-a815-55e340801396.pdf', 'final_url': 'https://www.bseindia.com/xml-data/corpfiling/AttachLive/dd3aabde-0754-45bf-a815-55e340801396.pdf', 'content_type': 'application/pdf'}
+EXIT=0

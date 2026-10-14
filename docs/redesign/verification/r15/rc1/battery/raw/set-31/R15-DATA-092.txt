@@ -1,0 +1,8 @@
+=== DATA-092 source ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/region.ts:37:// R10 (E1): India-first default, mirroring the sidecar's `config._DEFAULT_REGION`
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/region.ts:39:export const DEFAULT_REGION: Region = "IN";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/region.ts:50:    REGIONS.find((r) => r.id === DEFAULT_REGION) ??
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/SettingsPanel.tsx:23:import { DEFAULT_REGION, type Region, REGIONS, regionConfig } from "@/lib/region";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/SettingsPanel.tsx:1427:            sidecar request — not just number formatting. Defaults to
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/SettingsPanel.tsx:1428:            DEFAULT_REGION (India), not REGIONS[0]. */}
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/SettingsPanel.tsx:1429:        <SettingRow label="Region" hint={`Defaults to ${regionConfig(DEFAULT_REGION).label}.`}>

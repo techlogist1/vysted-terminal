@@ -1,0 +1,4 @@
+GET /news/sources/status
+status=200
+---
+{"newsapi":"absent"}

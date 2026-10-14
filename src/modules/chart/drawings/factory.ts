@@ -69,7 +69,7 @@ export function pointsRequired(kind: DrawingKind): 1 | 2 | 3 {
   }
 }
 
-/** Default style for a freshly-created drawing — amber-400 solid 1px line. */
+/** Default style for a freshly-created drawing — neutral charcoal-300 solid 1px line. */
 export const DEFAULT_DRAWING_STYLE = {
   color: ACCENT_CORAL,
   lineWidth: 1,

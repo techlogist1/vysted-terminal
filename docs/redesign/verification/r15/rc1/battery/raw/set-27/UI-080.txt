@@ -1,0 +1,6 @@
+175:          (incl. synthetic `vysted://` structured-provenance legs) was cited, so
+10:  ExternalLink,
+208:      src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`}
+240:function SourceRow({
+269:          <ExternalLink className="text-charcoal-500 group-hover:text-charcoal-100 mt-0.5 size-3 shrink-0" />
+881:                <SourceRow

@@ -1,0 +1,3 @@
+CMD: curl -s -m 20 'http://127.0.0.1:52344/indicators/suggested?timeframe=1d&asset_class=crypto'
+---
+{"indicators":["ema:50","ema:200","vwap:week","rsi"]}

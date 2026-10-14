@@ -1,0 +1,7 @@
+after 2 user 429s: {'open': False, 'cooldown_remaining': 0.0, 'consecutive_throttles': 2.0, 'consecutive_opens': 0, 'opens_total': 0, 'throttles_total': 2.0}
+after 2436 warm-weight 429s: {'open': False, 'cooldown_remaining': 0.0, 'consecutive_throttles': 2.0, 'consecutive_opens': 0, 'opens_total': 0, 'throttles_total': 2.0}
+ct unchanged: True
+after 1 more user 429: {'open': True, 'cooldown_remaining': 66.48799752705963, 'consecutive_throttles': 0.0, 'consecutive_opens': 1, 'opens_total': 1, 'throttles_total': 3.0}
+1179:    _warm_follow_region()
+1361:_warm_universe: ScreenerUniverseId = "sp500"
+1364:def _warm_follow_region() -> None:

@@ -1,0 +1,12 @@
+[
+ {"cmd":"click","x":768,"y":598},
+ {"cmd":"wait","seconds":4},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/9368c62-02-packaged-layout-chart-brief-chat.png"},
+ {"cmd":"click","x":515,"y":148},
+ {"cmd":"wait","seconds":4},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/9368c62-03-packaged-layout-portfolio.png"},
+ {"cmd":"click","x":243,"y":56},
+ {"cmd":"wait","seconds":2},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/9368c62-04-packaged-open-panel-menu.png"},
+ {"cmd":"key","combo":"escape"}
+]

@@ -1,0 +1,61 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_08e7d19221bf478c8cd546ff0e2f107b", "name": "fundamentals", "input": {"__vysted_invalid_args__": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}}
+{"kind": "tool_result", "tool_call_id": "call_08e7d19221bf478c8cd546ff0e2f107b", "name": "fundamentals", "ok": false, "error": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}
+{"kind": "delta", "text": "It"}
+{"kind": "delta", "text": " looks"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "fund"}
+{"kind": "delta", "text": "amentals"}
+{"kind": "delta", "text": "`"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " requires"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": " argument"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " calling"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " again"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "tool_use", "tool_call_id": "call_5d8eb2cd62a94e03b6e297b80ba0dddf", "name": "fundamentals", "input": {"symbol": "HDFCBANK.NS"}}
+{"kind": "heartbeat"}
+{"kind": "tool_result", "tool_call_id": "call_5d8eb2cd62a94e03b6e297b80ba0dddf", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "H"}
+{"kind": "delta", "text": "DF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "16"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "07"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "134"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "044"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5919, "output_tokens": 29, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

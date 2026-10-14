@@ -1,0 +1,29 @@
+# R15-CROSS-PLATFORM-004 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n -A8 'const LAYOUT_MENU_LABELS' src/store/command-palette.ts; grep -n 'R15-CROSS-PLATFORM-004\|action:layout:' src/store/command-palette.ts; grep -n -A6 'export const MENU_PAYLOAD_TO_MODE' src/**/*.ts src/lib/*.ts 2>/dev/null | head -8; grep -n 'fn install_layout_menu\|install_layout_menu(app)' src-tauri/src/lib.rs; echo '$ vitest pins on action:layout rows'; grep -rn 'action:layout' src --include=*.test.* | head -3
+--- output ---
+102:const LAYOUT_MENU_LABELS: Readonly<Record<string, string>> = {
+103-  fundamental: "Layout: Fundamental",
+104-  technical: "Layout: Technical",
+105-  macro: "Layout: Macro",
+106-  "compare-desk": "Layout: Compare Desk",
+107-  default: "Layout: Reset to default",
+108-};
+109-
+110-/**
+89:// Layout-menu modes (R15-CROSS-PLATFORM-004) — cross-platform command route
+207:  // layouts the native macOS menu exposes (R15-CROSS-PLATFORM-004).
+210:      id: `action:layout:${payload}`,
+src/lib/layout-templates.ts:649:export const MENU_PAYLOAD_TO_MODE: Readonly<Record<string, LayoutMode>> = {
+src/lib/layout-templates.ts-650-  fundamental: "fundamental",
+src/lib/layout-templates.ts-651-  technical: "technical",
+src/lib/layout-templates.ts-652-  macro: "macro",
+src/lib/layout-templates.ts-653-  "compare-desk": "compare-desk",
+src/lib/layout-templates.ts-654-};
+src/lib/layout-templates.ts-655-
+--
+637:fn install_layout_menu(app: &tauri::App) -> tauri::Result<()> {
+767:            if let Err(err) = install_layout_menu(app) {
+$ vitest pins on action:layout rows
+
+EXIT=0 (0.1s)

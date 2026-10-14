@@ -1,0 +1,9 @@
+COMMAND(s):
+  see DATA-033-nan-probe.txt
+EXIT: 0
+OUTPUT:
+--- DATA-033-nan-probe.txt ---
+('nan_quote', "rejected: correctness gate: non-positive price nan for 'TEST' from 'test'")
+('inf_quote', "rejected: correctness gate: non-positive price inf for 'TEST' from 'test'")
+('nan_series', "rejected: correctness gate: non-positive last close nan for 'TEST' from 'test'")
+

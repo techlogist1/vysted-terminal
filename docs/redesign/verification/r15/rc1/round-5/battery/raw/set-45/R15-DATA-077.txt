@@ -1,0 +1,7 @@
+== live /data-sources: nse_direct/nse/bse lanes ==
+nse_direct ['IN'] ['ohlcv', 'quote']
+nse ['IN'] ['ohlcv', 'quote']
+bse ['IN'] ['ohlcv', 'quote']
+
+== marketplace.test.tsx pinned assertion ==
+121:  it("declares the three India keyless lanes with a stable id (matches the resolver)", () => {

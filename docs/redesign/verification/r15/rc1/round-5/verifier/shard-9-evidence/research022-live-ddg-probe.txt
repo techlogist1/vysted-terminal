@@ -1,0 +1,4 @@
+https://html.duckduckgo.com/html/ HTTP 000 bytes 0 err Recv failure: Connection reset by peer
+https://lite.duckduckgo.com/lite/ HTTP 202 bytes 14210 err 
+  56 anomaly-modal
+   1 bots use DuckDuckGo

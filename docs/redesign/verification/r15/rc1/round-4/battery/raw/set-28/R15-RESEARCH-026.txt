@@ -1,0 +1,3 @@
+NOT RUN: certified only via vitest (src/modules/research/brief-blocks.test.ts "an unknown currency is stated, never defaulted (R15-RESEARCH-026)", line ~344); this role's rules forbid running vitest/pytest suites and there is no in-process node runtime to execute TS logic without vitest.
+Attempted: checked node_modules/.bin for tsx/ts-node -> absent; confirmed test text via grep.
+Verdict: ci_pinned, naming src/modules/research/brief-blocks.test.ts:344 "an unknown currency is stated, never defaulted (R15-RESEARCH-026)" (plus :359 "an INR market cap reads exactly as Equity Overview renders it").

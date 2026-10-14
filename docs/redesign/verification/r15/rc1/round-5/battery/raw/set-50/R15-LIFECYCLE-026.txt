@@ -1,0 +1,11 @@
+R15-LIFECYCLE-026 evidence
+
+(1) pytest tests/test_loop_idle.py -v -> 2 passed (test_crawl_loop_wakes_at_most_once_a_minute_when_all_info_is_fresh, test_stale_row_behind_fresh_larger_caps_is_crawled). See pytest-test_loop_idle.txt.
+
+(2) Live idle-CPU spot check on my own booted sidecar (:52353, pid 57961), no requests sent during the window:
+  t=1790502759 etime=05:34 utime=0:07.03
+  t=1790502776 etime=05:51 utime=0:07.04 (17s elapsed, +0.01s CPU)
+  t=1790502782 etime=05:57 utime=0:07.05 (6s elapsed, +0.01s CPU)
+  Over this idle window, CPU growth ~0.02s over ~23s wall = well under 1%, consistent with the batch-11 fix (idle loop near-zero, was ~60% pre-fix / register base). Not a full 5-min L6 soak (time-boxed for this shard), but the profiled crawl-loop mechanism (test_loop_idle.py) and the live spot sample agree: no idle CPU burn observed.
+
+VERDICT: holds

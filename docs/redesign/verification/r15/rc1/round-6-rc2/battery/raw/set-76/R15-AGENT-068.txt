@@ -1,0 +1,5 @@
+# R15-AGENT-068 at ace7dd7: PYTHONPATH=. .venv/bin/python3 b14s76.py 068
+EXIT=0
+earnings_upcoming {'days': 'seven'} -> {"ok": false, "error": "days must be in [1, 60]"}
+earnings_upcoming {'days': 999} -> {"ok": false, "error": "days must be in [1, 60]"}
+earnings_upcoming {'days': None} -> {"ok": true, "window": {"start": "2026-10-03", "end": "2026-10-10"}, "count": 14, "events": [{"symbol": "LCCPROJECT.NS", "company_name": "LCC Projects Limited", "scheduled_date": "2026-10-05", "time_o

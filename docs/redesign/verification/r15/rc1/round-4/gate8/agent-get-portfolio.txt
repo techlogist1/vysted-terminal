@@ -1,0 +1,20 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  55.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_d278d87ed95d423397e1b87c904e632c", "name": "get_portfolio", "input": {}}
+[  56.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_d278d87ed95d423397e1b87c904e632c", "name": "get_portfolio", "ok": true, "error": null}
+[  63.1s] done: {"kind": "done", "usage": {"input_tokens": 3144, "output_tokens": 100, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Based on the portfolio data, you have two holdings:
+
+1. Apple (AAPL) - 8 shares
+	* Cost basis: $310 per share
+2. Tata Consultancy Services (TCS.NS) - 3 shares
+	* Cost basis: ₹2500 per share
+
+Please note that the total value of your portfolio is not marked-to-market, and you should open the Portfolio panel for live values to get an accurate representation of your holdings' current market values.
+
+=== ok · 63.1s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 99, 'done': 1} · usage in=3144 out=100 · est $0.00000 · llama3.1:8b

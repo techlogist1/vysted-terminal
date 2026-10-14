@@ -1,0 +1,14 @@
+# R15-DATA-101 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:51:13+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio, json
+from services import agent_tools as t
+t.register_v0_5_0_tools(); t.register_v0_6_0_tools()
+r=asyncio.run(t.invoke_tool('market_overview',{'region':'GLOBAL'}))
+print(json.dumps(r,default=str)[:400]); print('note:', r.get('note'))
+PY
+--- output ---
+{"ok": true, "region": "GLOBAL", "indices": [{"symbol": "^GSPC", "name": "S&P 500", "price": 7722.72021484375, "change": 56.27021484375018, "change_percent": 0.7339800669638513, "currency": "USD", "market_state": null, "provider": "yfinance"}, {"symbol": "^IXIC", "name": "Nasdaq Composite", "price": 27190.859375, "change": 319.26337499999863, "change_percent": 1.1881072304004519, "currency": "USD"
+note: no index set for region 'GLOBAL' — showing the US proxy benchmark
+
+EXIT=0 (2.9s)

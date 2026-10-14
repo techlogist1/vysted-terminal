@@ -1,0 +1,221 @@
+[
+ {
+  "idea_id": "designer-1",
+  "name": "Witnessed by default — the moat on the page people actually open",
+  "one_liner": "Expose the existing zero-token witness fan-out (ownership/growth/earnings-basis/52w/market-cap) as a read-only GET and render its conflicts inline in the overview fundamentals cells, so a keyless user sees Yahoo's 141x-wrong institutions figure next to the BSE filing's value instead of as plain fact.",
+  "on_floor_list": false,
+  "rides_on": [
+   "sidecar/services/research/fast.py:261-402 (snapshot_structured; witnesses attached at :376-402; only callers are LLM-started research: agent_tools/deep_research.py:750, research/deep.py:1035, research/iter.py:339,915)",
+   "sidecar/services/ownership_check.py:9-22 (141x case; never raises)",
+   "src/modules/equity-overview/EquityOverviewPanel.tsx:141-142 (Yahoo institutions row rendered directly), :226-243 (FundamentalValueCell)",
+   "src/modules/research/brief-blocks.tsx:129-176 (ConflictLine tones)",
+   "types/brief.ts:93-108 (BriefMetricConflict, conflict_kind)",
+   "sidecar/services/data_cache.py"
+  ],
+  "new_parts": [
+   "GET /fundamentals/{symbol}/witnessed returning derived.conflicts + witness legs",
+   "conflict slot in FundamentalValueCell (data_conflict amber tick inline; definitional on hover)",
+   "1-day per-symbol cache key"
+  ],
+  "jarvis_axis": [
+   "receipts",
+   "initiative"
+  ],
+  "size": "S",
+  "risk": "Bank/definitional conflicts fire on nearly every open and drown the signal; mitigated by inlining only data_conflict and moving definitional pairs to hover."
+ },
+ {
+  "idea_id": "designer-2",
+  "name": "Proof Open — the first minute is a demonstration, not a tour",
+  "one_liner": "A keyless first-run step before the key form: name a company, and in ~8 s a 'What we checked' card shows each witness as agrees / disagrees-here-are-both / couldn't-check-why, turning the product's accuracy claim into something a sceptic can verify.",
+  "on_floor_list": false,
+  "rides_on": [
+   "src/components/OnboardingFlow.tsx:58 (Step state machine), :224-290 (WelcomeStep copy), :250 ('It already works — no key')",
+   "designer-1 route",
+   "sidecar/routers/resolve.py:57",
+   "sidecar/services/identity_crosscheck.py",
+   "sidecar/models/fundamentals.py:19-43 (FieldMeta.reason)"
+  ],
+  "new_parts": [
+   "ProofStep before welcome; key paths move after it",
+   "'What we checked' card component (reused by designer-6)",
+   "smoke-test coverage of the witnessed route"
+  ],
+  "jarvis_axis": [
+   "receipts"
+  ],
+  "size": "S",
+  "risk": "An all-agree large cap makes the moment look empty, and a broken exchange lane shows 'couldn't check' on the showcase screen; mitigated by an explicit positive receipt and a suggested BSE-only example."
+ },
+ {
+  "idea_id": "designer-3",
+  "name": "Instant Cockpit — paint the last-known world, stamped with its age",
+  "one_liner": "Mirror the autosave layout and a bounded last-seen value map into the app-data dir via Rust so the cockpit paints in <200 ms before the sidecar binds, each cached figure visibly aged ('close 18 Sep') until it fades to live.",
+  "on_floor_list": false,
+  "rides_on": [
+   "src/lib/workspace.ts:374-376,494-533 (restore awaits getSidecarBaseUrl)",
+   "src/components/PanelHost.tsx:166",
+   "src/lib/sidecar-client.ts:114-138 (120 s probe)",
+   "src/lib/use-sidecar-retry.ts:6-10 (cold bind tens of seconds)",
+   "src-tauri/src/lib.rs:407-419 (get_app_data_dir, write_text_atomic)",
+   "src/components/DataBadges.tsx (StalenessBadge)",
+   "src/lib/use-flash-value.ts"
+  ],
+  "new_parts": [
+   "Rust read_text_in_app_data command with a two-name allow-list",
+   "layout mirror + last_seen.json written on the autosave debounce",
+   "'cached' freshness state; no tick-flash on cached-to-live",
+   "sidecar-wins reconcile with version stamp"
+  ],
+  "jarvis_axis": [
+   "watching",
+   "memory"
+  ],
+  "size": "M",
+  "risk": "A cached price read as live during market hours; the cached tone and date stamp must be unmistakable and never flash."
+ },
+ {
+  "idea_id": "designer-4",
+  "name": "The Figure, and the Why key — every number explains itself in place",
+  "one_liner": "A design-system <Fig> primitive replaces native title= tooltips with a focusable figure; pressing ? opens an in-cell lineage card (inputs, provider, as-of, basis, witness verdicts, filing link, copy-as-citation) with no LLM, and a second ? optionally adds one model line.",
+  "on_floor_list": true,
+  "rides_on": [
+   "src/lib/format.ts:65-210",
+   "src/components/DataTable.tsx:84-85,156-170 (title= path)",
+   "src/modules/equity-overview/EquityOverviewPanel.tsx:208-221 (fieldTitle)",
+   "sidecar/models/fundamentals.py:19-43 (FieldMeta, additive)",
+   "src/store/keybindings.ts:154-157",
+   "src/modules/research/brief-blocks.tsx (deriveMetrics)"
+  ],
+  "new_parts": [
+   "<Fig> component + lineage card",
+   "additive 'derivation' {op, inputs} on computed ratios",
+   "? binding scoped to a focused Fig",
+   "vitest that lists Figs without lineage"
+  ],
+  "jarvis_axis": [
+   "receipts"
+  ],
+  "size": "M",
+  "risk": "Lineage upkeep per new metric; undeclared lineage shows 'not recorded', which is honest but creates pressure to keep up."
+ },
+ {
+  "idea_id": "designer-5",
+  "name": "One number, one truth — no silent split-brain across panels",
+  "one_liner": "A client-side figure registry keyed by (symbol, metric, basis) that every <Fig> and every extracted brief claim registers into; when two open panels show different values beyond tolerance, both get a link glyph that explains the difference (e.g. a brief that predates JONJUA's bonus allotment).",
+  "on_floor_list": false,
+  "rides_on": [
+   "src/store/panel-context.ts:38-68 (bus pattern)",
+   "src/lib/brief-claims.ts:1-13 (deterministic claim extraction)",
+   "sidecar/services/company_narrative.py:49-50 (tolerances)",
+   "designer-4 <Fig>"
+  ],
+  "new_parts": [
+   "figure-registry store",
+   "pure tolerance comparator (price-class compares across as-of days only)",
+   "link glyph + sibling highlight"
+  ],
+  "jarvis_axis": [
+   "watching"
+  ],
+  "size": "S",
+  "risk": "False positives from timing skew between a live quote and a snapshot; price-class metrics compare only across different as-of days."
+ },
+ {
+  "idea_id": "designer-6",
+  "name": "Coverage strip — say what the app cannot see, per company",
+  "one_liner": "A 4-px segmented bar under the overview header (Price / Statements / Shareholding / Filings / Corporate actions / Estimates), each segment filled, partial or empty with a named reason and fallback, fed by existing per-leg status, FieldMeta counts and the unconsumed /system/provider-health circuit state.",
+  "on_floor_list": false,
+  "rides_on": [
+   "src/modules/equity-overview/EquityOverviewPanel.tsx (six-call fan-out, partial failure)",
+   "sidecar/routers/disclosures.py:44,74,95",
+   "sidecar/routers/system.py:203-211 (/system/provider-health, no frontend consumer)",
+   "sidecar/models/fundamentals.py:19-43"
+  ],
+  "new_parts": [
+   "coverage strip component",
+   "coverage(symbol) selector",
+   "expanded view reuses designer-2 card"
+  ],
+  "jarvis_axis": [
+   "initiative",
+   "receipts"
+  ],
+  "size": "S",
+  "risk": "It reads as a 'your data is bad' banner next to tools that hide gaps; kept to 4 px and quiet so labelled gaps make the full segments trustworthy."
+ },
+ {
+  "idea_id": "designer-7",
+  "name": "Ghost edits and ⌘Z — agent changes appear where they land, and every one can be undone",
+  "one_liner": "Pending agent mutations render as ghost rows/insertions inside the target panel (↵ accept, ⌫ reject), every applied change (incl. AUTO) pushes a pre-image onto an undo stack, and ⌘Z reverses the agent's last change to that panel, refusing with a reason if the user has since edited it.",
+  "on_floor_list": false,
+  "rides_on": [
+   "src/store/proposed-changes.ts:95-120 (enqueue, AUTO apply)",
+   "src/modules/chat/ProposedChangesReview.tsx:20-35 (pending-only list)",
+   "src/lib/host-actions.ts:583-865 (describe), :1176-1395 (apply: write_note, portfolio_*)",
+   "sidecar /portfolio/positions CRUD",
+   "census/world/agent-native-ux-COMPARE.md row W-3"
+  ],
+  "new_parts": [
+   "per-kind pre-image capture at accept",
+   "ghost renderers (watchlist, notes first)",
+   "bounded undo store + ⌘Z/⌘⇧Z via keymap",
+   "stale-target undo refusal"
+  ],
+  "jarvis_axis": [
+   "receipts",
+   "memory"
+  ],
+  "size": "M",
+  "risk": "Undo that clobbers a later user edit; refused with a stated reason when the target changed since apply."
+ },
+ {
+  "idea_id": "designer-8",
+  "name": "Earned autonomy — the agent asks less as it proves it does not need to",
+  "one_liner": "Replace the global ask/auto switch with per-kind autonomy plus a persisted accept/reject tally; after a clean record (e.g. 23/23 chart changes) the agent offers once to stop asking for that kind, downgrades on the first reject, and never offers for writes to the tracked portfolio.",
+  "on_floor_list": false,
+  "rides_on": [
+   "src/store/agent-autonomy.ts:23,37-40",
+   "src/store/proposed-changes.ts:118 (auto-apply predicate)",
+   "src/lib/host-actions.ts:583-865 (kind taxonomy)",
+   "src/lib/workspace.ts:234 (serializeWorkspace)",
+   "census COD-host-actions-proposed-changes-3 (per-kind allow-list fix)"
+  ],
+  "new_parts": [
+   "per-kind autonomy map",
+   "per-kind tally persisted in the workspace blob",
+   "one-time offer line + auto-downgrade",
+   "Settings autonomy ledger table"
+  ],
+  "jarvis_axis": [
+   "memory",
+   "initiative"
+  ],
+  "size": "S",
+  "risk": "It could feel like the product is pushing you towards less oversight; offered once per kind, a permanent 'don't ask', a visible ledger, and portfolio writes are permanently excluded."
+ },
+ {
+  "idea_id": "designer-9",
+  "name": "The turn receipt — one line that says what the answer cost and what it rests on",
+  "one_liner": "Under every agent turn, one clickable monospace line: tools · sources by origin · checks ok/disagree · tokens · $ (≥ while research is unmetered) · wall time · context n/10 turns, with the context segment warning before history silently drops.",
+  "on_floor_list": false,
+  "rides_on": [
+   "src/store/chat-history.ts:46-47,57,60 (usage, toolSteps, researchSteps)",
+   "src/modules/chat/ChatSidebar.tsx:749-753 (slice(-10)), :914-922 (usage captured, spendUsd: 0)",
+   "src/modules/chat/ResearchActivity.tsx:12-14",
+   "sidecar/services/budget_guard.py:57-84 (price_per_million)",
+   "src/modules/chat/AgentsRail.tsx:103-107"
+  ],
+  "new_parts": [
+   "TurnReceipt component",
+   "pure receiptFor(message)",
+   "context n/10 segment with pin/space action",
+   "priced foreground spend, ≥ prefix until COD-research-extraction-synthesis-2 lands"
+  ],
+  "jarvis_axis": [
+   "receipts"
+  ],
+  "size": "S",
+  "risk": "A precise but wrong dollar figure while research calls stay unmetered; rendered as a lower bound (≥) until metering is fixed."
+ }
+]

@@ -1,0 +1,12 @@
+### launch A (max_tokens=2000 — should breach on round 1)
+{"runId":"6a1b44d9aac04d0382f5a5feeffec9f4","run_id":"6a1b44d9aac04d0382f5a5feeffec9f4"}
+[HTTP 201]
+### launch B (to cancel)
+{"runId":"ebfddaf7eec046afaf0ff4d56daf80f0","run_id":"ebfddaf7eec046afaf0ff4d56daf80f0"}
+[HTTP 201]
+### launch C (no budget at all: cleared fields -> nulls)
+{"runId":"a69f42163aef4ec5a9b1a1ff7d02c203","run_id":"a69f42163aef4ec5a9b1a1ff7d02c203"}
+[HTTP 201]
+### launch unknown agent
+{"detail":"unknown agent: 'nope'"}
+[HTTP 404]

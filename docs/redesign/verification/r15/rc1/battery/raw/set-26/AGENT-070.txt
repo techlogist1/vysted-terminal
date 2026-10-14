@@ -1,0 +1,3 @@
+=== AGENT-070: _tool_timeout_seconds name-matched short-circuit ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/agent_runtime.py:824:def _tool_timeout_seconds(event: LLMToolUseEvent) -> float | None:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/agent_runtime.py:864:            timeout = _tool_timeout_seconds(event)

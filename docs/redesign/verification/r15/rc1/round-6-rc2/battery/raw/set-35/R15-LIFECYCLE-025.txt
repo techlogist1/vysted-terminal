@@ -1,0 +1,5 @@
+CMD: sqlite insert v0.8.0-era agent tools [price_data,macro,news]; GET /custom-agents; PUT same tools
+custom:macro-hawk ['price_data', 'macro', 'news']
+{"id":"custom:macro-hawk","name":"Macro Hawk","philosophy":"hawk","system_prompt":"Always check the macro series first","tools":["price_data","macro_series","news"],"default_provider":"ollama","default_model":null,"icon":null,"created_at":1,"updated_at":1790985864}
+PUT HTTP 200
+['price_data', 'macro_series', 'news']

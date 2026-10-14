@@ -1,0 +1,90 @@
+{
+ "orders": {
+  "place_order": {
+   "label": null,
+   "err": null,
+   "desc": {
+    "kind": "panel",
+    "title": "place order",
+    "before": "—",
+    "after": "Unknown action — can't apply"
+   },
+   "holdings": 0
+  },
+  "submit_order": {
+   "label": null,
+   "err": null,
+   "desc": {
+    "kind": "panel",
+    "title": "submit order",
+    "before": "—",
+    "after": "Unknown action — can't apply"
+   },
+   "holdings": 0
+  },
+  "buy": {
+   "label": null,
+   "err": null,
+   "desc": {
+    "kind": "panel",
+    "title": "buy",
+    "before": "—",
+    "after": "Unknown action — can't apply"
+   },
+   "holdings": 0
+  },
+  "execute_trade": {
+   "label": null,
+   "err": null,
+   "desc": {
+    "kind": "panel",
+    "title": "execute trade",
+    "before": "—",
+    "after": "Unknown action — can't apply"
+   },
+   "holdings": 0
+  },
+  "broker_place_order": {
+   "label": null,
+   "err": null,
+   "desc": {
+    "kind": "panel",
+    "title": "broker place order",
+    "before": "—",
+    "after": "Unknown action — can't apply"
+   },
+   "holdings": 0
+  },
+  "paper_trade": {
+   "label": null,
+   "err": null,
+   "desc": {
+    "kind": "panel",
+    "title": "paper trade",
+    "before": "—",
+    "after": "Unknown action — can't apply"
+   },
+   "holdings": 0
+  }
+ },
+ "stagedCall": {
+  "name": "portfolio_add_position",
+  "input": {
+   "symbol": "AAPL",
+   "quantity": 5,
+   "cost_basis": 180
+  }
+ },
+ "beforeAccept": [],
+ "label": "Added 5 AAPL @ ₹180 to the portfolio",
+ "persist": 200,
+ "afterAccept": [
+  [
+   "AAPL",
+   5,
+   180
+  ]
+ ],
+ "persistCleanup": 200,
+ "afterCleanup": []
+}

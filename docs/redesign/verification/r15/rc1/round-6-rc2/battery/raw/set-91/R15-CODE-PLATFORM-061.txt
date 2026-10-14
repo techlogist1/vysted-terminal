@@ -1,0 +1,4 @@
+CMD: node -e import newestSourceMtime over dir with dangling symlink (orig repro: ln -s /nonexistent services/dangling.py)
+newestSourceMtime= 1790989795488.9292
+isStale= true
+EXIT=0

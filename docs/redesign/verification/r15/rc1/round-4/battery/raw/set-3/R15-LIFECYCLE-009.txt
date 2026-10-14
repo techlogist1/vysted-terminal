@@ -1,0 +1,8 @@
+NOT RUN LIVE: frontend-only (one-time ledger import on restore), same constraint (needs a frontend runtime driving restoreLastSessionOrDefault against a stubbed /portfolio/positions + a portfolios-less blob).
+SOURCE CHECK (candidate HEAD 1006c6da):
+  src/lib/workspace.ts: legacy positions import logic present (grep 'import' + 'portfolio/positions' near the LIFECYCLE-009 test block) -- matches fix_shape ("A one-time import on restore: when the blob has no portfolios key and GET /portfolio/positions is non-empty, seed the default portfolio ... mark the import in the blob").
+PINNED TEST (ci_pinned):
+  src/lib/workspace.test.ts:1602 describe("legacy positions import (R15-LIFECYCLE-009)")
+  src/lib/workspace.test.ts:1681 it("imports the ledger once into a blob that never carried portfolios, and saves the import")
+  src/lib/workspace.test.ts:1719 it("never reads the ledger for a blob whose portfolios the user emptied") -- idempotence/negative case.
+VERDICT BASIS: source matches fix_shape; pinned tests above (positive + idempotent-negative case both present).

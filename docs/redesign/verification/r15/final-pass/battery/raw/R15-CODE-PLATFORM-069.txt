@@ -1,0 +1,8 @@
+# R15-CODE-PLATFORM-069 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'plugin node absent from the server list is not runnable' src/modules/node-editor/node-registry.test.ts; echo -n 'live /workflow/node-types example.* count: '; curl -s -m 20 "$H/workflow/node-types" | grep -o 'example\.' | wc -l
+--- output ---
+199:  it("plugin node absent from the server list is not runnable", () => {
+live /workflow/node-types example.* count:        0
+
+EXIT=0 (0.0s)

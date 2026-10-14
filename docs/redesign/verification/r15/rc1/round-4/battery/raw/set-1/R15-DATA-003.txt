@@ -1,0 +1,6 @@
+is_applicable('AMAL') -> False
+is_applicable('SMR') -> False
+is_applicable('AMAL.BO') -> True
+is_applicable('SMR.BO') -> True
+get_exchange_ownership('AMAL') -> None
+get_exchange_ownership('AMAL.BO') -> ExchangeOwnership(promoter_percent=71.35, institutions_percent=0.03, public_percent=28.65, as_of_quarter='2026-06-30', source='BSE', institutions_source='BSE', institutions_as_of='2026-06-30')

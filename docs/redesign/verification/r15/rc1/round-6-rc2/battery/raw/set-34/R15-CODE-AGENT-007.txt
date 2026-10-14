@@ -1,0 +1,8 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar; PYTHONPATH=. ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/ag7.py
+deepseek registry https://api.deepseek.com dispatch https://api.deepseek.com
+xai registry https://api.x.ai/v1 dispatch https://api.x.ai/v1
+openrouter registry https://openrouter.ai/api/v1 dispatch https://openrouter.ai/api/v1
+after edit deepseek https://edited.deepseek.example/v9
+after edit xai https://edited.x.example/v2
+EXIT=0

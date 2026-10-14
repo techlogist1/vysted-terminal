@@ -1,0 +1,888 @@
+"""Deep-research engine — the engine room behind the ONE ``research`` capability.
+
+This module is NO LONGER a registered agent tool. After the R4 research collapse
+(FR-115 / SC-028) there is exactly ONE user-facing + model-facing research
+capability — ``research`` (see :mod:`services.agent_tools.research`) — with depth
+as an INTERNAL escalation arg. R7 names the depths ``normal`` | ``deep`` |
+``ultra`` (legacy ``quick``/``heavy`` map onto them forever); the canonical
+profile table lives in :mod:`services.research.depth` — rounds, researcher
+fan-out, panel width, report cap, wall budget, coverage strictness, the finance
+``site:`` bias, and the ULTRA cross-check all scale from there. This module
+supplies the engine behind ``depth in {"deep", "ultra"}`` via
+:func:`run_deep_brief`; the ``research`` handler calls it directly. There is no
+second tool name, no second catalog capability, and no user-visible ``/deep``.
+
+R9 (Track A) adds the **Tier B research-model lane**
+(:func:`run_research_model_brief`): with ``researchTier == tier_b`` an
+internet-native research model via OpenRouter owns research at ALL depth stops
+regardless of the chat model — per-stop model dispatch
+(:func:`config.get_research_model_for`), citations mapped from OpenAI-style
+``url_citation`` annotations (+ the ``citations[]`` url-list fallback), the
+honest ``backend="research-model:<model-id>"`` id on the brief AND the live
+steps, and a generous per-stop wall clock (ULTRA can take minutes). The
+``research`` handler routes to it at the tool boundary; this module never
+self-selects it.
+
+Three per-run backends (tier_a):
+
+- **native** (default) — runs the built-in deep-research loop against the SAME
+  model the user is talking to (via :func:`config.get_llm_creds` + the one-shot
+  :func:`services.llm.oneshot.complete` seam), metered by a
+  :class:`~services.budget_guard.BudgetGuard`. No extra key, no extra cost.
+- **perplexity** — OPT-IN-PER-RUN, PAID. Only runs when the caller EXPLICITLY
+  passes ``backend="perplexity"`` AND the user has configured a Perplexity key;
+  it is NEVER auto-selected (the catalog default is ``native`` and the Settings
+  ContextVar only ever resolves to ``native``/``perplexity`` on an explicit user
+  opt-in). With no key it returns an honest "needs a key" message.
+- **sonar** — OPT-IN-PER-RUN, PAID (R7 Component 3): the SAME sonar family
+  routed through OpenRouter on the user's OpenRouter BYOK key
+  (:mod:`services.research.sonar`) — one key unlocks both hosted search and the
+  one-call research lane. Same never-auto-selected guarantee; the key rides the
+  request only (``config.get_openrouter_search_key()`` / explicit ``api_key``).
+
+One deep LOOP (S-9): :mod:`services.research.iter` is THE deep loop
+(``run_iter_research`` for ``deep``, ``run_heavy_research`` for ``heavy``);
+:mod:`services.research.deep` is its helper module. There is no second deep loop
+and no fallback loop: iter's abort→synthesize covers degradation, and an
+unexpected loop exception is an honest ``ok: False`` result
+(R15-CODE-RESEARCH-003).
+
+The research service is imported lazily inside the call so the module imports
+cleanly before the service lands and the tests can monkeypatch each seam in place.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:  # import-light: these types only ride annotations
+    from services.budget_guard import BudgetGuard
+    from services.research.depth import DepthProfile
+
+logger = logging.getLogger(__name__)
+
+#: Per-LLM-call wall-clock cap (seconds) for the research loop. An LLM adapter
+#: carries no per-stream timeout, so without this a slow "thinking" model could
+#: stall ONE plan/distill/reflect/synthesis call for minutes (the cause of the
+#: 8-minutes-unfinished bug). 60s is generous for a real completion yet bounds a
+#: hang; the per-ROUND guard in deep/iter is the authoritative wall enforcement,
+#: this is defense-in-depth at the single-call layer. On timeout the loop gets the
+#: partial text and degrades gracefully.
+_LLM_CALL_TIMEOUT_SECS = 60.0
+
+#: The local (Ollama) lane's per-call cap. A local 8B model on a laptop
+#: measured ~70 s per researcher turn (r2-deep-cgpower) and every
+#: distill/synthesis call hit the 60 s hosted cap, shipping the no-synthesis
+#: floor. 150 s gives a long local synthesis ~2x that measured turn while the
+#: research dispatch guard (deep 390 s / ultra 570 s) still bounds the run.
+_LOCAL_LLM_CALL_TIMEOUT_SECS = 150.0
+
+#: Providers that run on the user's own machine (the per-call cap scales up).
+_LOCAL_PROVIDERS = frozenset({"ollama"})
+
+#: Reserved wall (seconds) for the ULTRA cross-check round — carved OUT of the
+#: profile wall so the heavy panel can never starve the verification round.
+_CROSS_CHECK_RESERVE_SECS = 90
+
+_PERPLEXITY_NEEDS_KEY = (
+    "Perplexity deep research needs an API key (opt-in, paid). Add it in "
+    "Settings, or use the built-in deep research."
+)
+_SONAR_NEEDS_KEY = (
+    "The hosted Sonar research lane needs an OpenRouter API key (opt-in, paid). "
+    "Add it in Settings, or use the built-in deep research."
+)
+_RESEARCH_MODEL_NEEDS_KEY = (
+    "The hosted research model (Tier B) needs an OpenRouter API key. Add one in "
+    "Settings → Research, or switch back to Unlimited (Local). I won't invent "
+    "sources."
+)
+_NO_MODEL = "No model configured for deep research."
+
+
+def _clamp(value: Any, lo: int, hi: int, default: int) -> int:
+    """Coerce ``value`` to an int in ``[lo, hi]``, falling back to ``default``."""
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return default
+    return max(lo, min(hi, n))
+
+
+def _emit_backend_step(detail: str) -> None:
+    """Surface which deep-research ENGINE actually ran, as a live research step.
+
+    Rides the existing step-sink → ``research_step`` SSE channel (Track A) so the
+    activity surface shows an honest "running on X" line — never a silent engine
+    swap the user can't see. No-ops outside an agent invocation (no sink wired) and
+    never raises (a cosmetic line must not break a run). The ``engine`` kind renders
+    un-truncated in :file:`ResearchActivity.tsx`.
+    """
+    import config
+
+    sink = config.get_step_sink()
+    if sink is None:
+        return
+    from services.research.models import ResearchStep
+
+    try:
+        sink(ResearchStep(kind="engine", detail=detail))
+    except Exception:  # pragma: no cover — cosmetic; must never break a run
+        pass
+
+
+async def _run_perplexity(query: str, key: str | None) -> dict[str, Any]:
+    """Run the opt-in-per-run paid Perplexity backend, or honest-fail without a key.
+
+    NEVER auto-selects Perplexity — the caller already chose ``backend=perplexity``
+    explicitly per-run. Without a configured key, returns the "needs a key" message.
+    """
+    import config
+    from services.research import perplexity
+
+    api_key = key or None
+    if not api_key:
+        creds = config.get_llm_creds()
+        # Only reuse the active key if the user is actually on Perplexity.
+        if creds is not None and creds[0] == "perplexity":
+            api_key = creds[2]
+
+    if not perplexity.is_configured(api_key):
+        return {"ok": False, "message": _PERPLEXITY_NEEDS_KEY}
+
+    _emit_backend_step("Perplexity — sonar-deep-research (paid)")
+    backend = perplexity.PerplexityDeepBackend(api_key)
+    brief = await backend.research(query, region=config.get_region())
+    out = brief.to_dict()
+    out["ok"] = True
+    out.setdefault("cost_estimate_usd", perplexity.estimate_cost_usd(query))
+    out["backend"] = "perplexity"
+    return out
+
+
+async def _run_sonar(query: str, key: str | None, model: str | None = None) -> dict[str, Any]:
+    """Run the opt-in-per-run paid OpenRouter Sonar lane, or honest-fail without a key.
+
+    NEVER auto-selects — the caller already chose ``backend="sonar"`` explicitly
+    per-run (R7 Component 3). The OpenRouter key resolution order is: explicit
+    ``api_key`` arg → the per-request hosted-search key ContextVar → the active
+    LLM creds when the user is actually ON OpenRouter. Without any key it
+    returns the "needs a key" message; the key is never logged or echoed.
+    """
+    import config
+    from services.research import sonar
+
+    api_key = key or config.get_openrouter_search_key()
+    if not api_key:
+        creds = config.get_llm_creds()
+        # Only reuse the active key if the user is actually on OpenRouter.
+        if creds is not None and creds[0] == "openrouter":
+            api_key = creds[2]
+
+    if not sonar.is_configured(api_key):
+        return {"ok": False, "message": _SONAR_NEEDS_KEY}
+
+    resolved_model = sonar.resolve_model(model)
+    _emit_backend_step(f"Perplexity Sonar via OpenRouter — {resolved_model} (paid)")
+    backend = sonar.OpenRouterSonarBackend(api_key, model=resolved_model)
+    brief = await backend.research(query, region=config.get_region())
+    out = brief.to_dict()
+    out["ok"] = True
+    out.setdefault("cost_estimate_usd", sonar.estimate_cost_usd(query, resolved_model))
+    out["backend"] = "sonar"
+    return out
+
+
+def _stamp_source_floor(out: dict[str, Any]) -> None:
+    """Measure the brief's distinct cited sources against SC-016's floor
+    (R15-RESEARCH-042): the leg rides a bound instrument's ``structured`` bundle
+    (an unbound run has none) and, below the floor, the markdown states it."""
+    from services.research.depth import source_floor_leg
+
+    leg = source_floor_leg(s.get("url") for s in out.get("sources") or [] if isinstance(s, dict))
+    if out.get("structured"):
+        out["structured"] = {**out["structured"], "source_floor": leg}
+    note = leg.get("note")
+    markdown = out.get("markdown")
+    if note and isinstance(markdown, str) and markdown.strip():
+        out["markdown"] = f"{markdown.rstrip()}\n\n_Cited: {note}._"
+
+
+def _research_budget(profile: DepthProfile, rounds: int, wall: int) -> BudgetGuard:
+    """The run's :class:`BudgetGuard`: steps + wall scale with the fan-out, and
+    the token/spend ceilings come from the depth profile.
+
+    Budget scales with the angle fan-out so the panel stays inside one ceiling;
+    the ULTRA cross-check round's wall is carved OUT (R9, V14, third live skip:
+    under a shared pot the heavy panel always consumed it and the verification
+    round — ULTRA's point — skipped honestly every run). The cross-check gets its
+    own guard. A token/spend breach takes the loops' existing breach path
+    (abort→synthesize), because every research LLM call is metered into this
+    guard at the one ``llm_call`` seam (:func:`_run_native`).
+    """
+    from services.budget_guard import BudgetGuard
+
+    heavy = profile.is_panel
+    step_factor = profile.angles if heavy else 1
+    cross_reserve = _CROSS_CHECK_RESERVE_SECS if (heavy and profile.cross_check) else 0
+    return BudgetGuard(
+        max_steps=step_factor * rounds * (profile.researchers + 2)
+        + (2 if profile.cross_check else 0),
+        max_wall_seconds=max(60, wall - cross_reserve),
+        max_tokens=profile.max_tokens or None,
+        max_spend_usd=profile.max_spend_usd or None,
+    )
+
+
+def _brief_cost(budget: BudgetGuard) -> dict[str, Any]:
+    """The brief's ``cost`` from the run guard — ``None`` tokens/spend when no
+    provider call ever reported usage (UNKNOWN cost, never a "free" ``0``)."""
+    cost: dict[str, Any] = dict(budget.cost())
+    if not budget.measured:
+        cost["tokens"] = None
+        cost["spend_usd"] = None
+    cost["estimate"] = True
+    return cost
+
+
+async def _run_loop(
+    *,
+    profile: DepthProfile,
+    query: str,
+    llm_call: Any,
+    budget: BudgetGuard,
+    native_search: Any = None,
+) -> Any:
+    """Run THE one deep loop at the profile's knobs, returning a ``ResearchBrief``.
+
+    - ``profile.is_panel`` (ULTRA) → Heavy mode: an expert PANEL of parallel
+      iter explorers + a synthesis agent (test-time scaling), then the numeric
+      CROSS-CHECK verification round (:mod:`services.research.verify`) when the
+      profile asks for it.
+    - otherwise (DEEP) → the IterResearch loop: a central evolving report +
+      per-round workspace reconstruction (no context bloat).
+
+    Every knob — researcher fan-out, report cap, coverage strictness
+    (``min_web_domains``), the finance ``site:`` bias — comes from the ONE
+    depth table (:data:`services.research.depth.PROFILES`).
+
+    The iter/heavy loops are designed never to raise (budget breach →
+    abort→synthesize). An unexpected exception becomes the honest failure result
+    (:func:`_loop_failed`) — never a second, differently-behaving loop
+    (R15-CODE-RESEARCH-003).
+    """
+    import config
+    from services import agent_tools
+    from services.budget_guard import BudgetGuard
+    from services.research import iter as iter_research
+    from services.search.extract import visit_for_research
+
+    heavy = profile.is_panel
+    region = config.get_region()
+    on_step = config.get_step_sink()
+    common = {
+        "region": region,
+        "tool_call": agent_tools.invoke_tool,
+        "llm_call": llm_call,
+        "budget": budget,
+        # Forward each step LIVE to the runtime's step-sink (Track A) so the agent
+        # surface animates a "working" trace — including the parallel angle
+        # exploration in Heavy mode. ``None`` outside an agent invocation.
+        "on_step": on_step,
+        "max_researchers": profile.researchers,
+        # R7: each researcher reads the TOP web result's full page (bs4
+        # main-content extraction over the same impersonation-capable transport
+        # as the T1 engines); the loop fences it as untrusted before the prompt.
+        "visit": visit_for_research,
+        # R7 depth knobs (Component 4): report cap, coverage strictness, and the
+        # finance site: query bias all scale from the depth profile.
+        "report_char_cap": profile.report_char_cap or None,
+        "min_web_domains": profile.min_web_domains or 1,
+        "site_bias": profile.site_bias,
+    }
+    if heavy:
+        try:
+            brief = await iter_research.run_heavy_research(query, angles=profile.angles, **common)
+        except Exception as exc:  # heavy never raises by design
+            return _loop_failed("heavy", exc)
+        if isinstance(brief, dict):
+            # R10 (D37): needs-disambiguation pass-through — nothing to verify.
+            return brief
+        if profile.cross_check:
+            from services.research.verify import cross_check
+
+            brief = await cross_check(
+                brief,
+                region=region,
+                tool_call=agent_tools.invoke_tool,
+                llm_call=llm_call,
+                budget=BudgetGuard(max_steps=6, max_wall_seconds=_CROSS_CHECK_RESERVE_SECS),
+                on_step=on_step,
+                min_domains=max(2, profile.min_web_domains),
+                # R9 B4 (lead integration): the tier_a dual-channel cross-verify.
+                # ``None`` (no native-capable chat model, or tier_b which never
+                # reaches this lane) keeps the single-lane behavior byte-identical.
+                native_search=native_search,
+            )
+        return brief
+    try:
+        return await iter_research.run_iter_research(query, **common)
+    except Exception as exc:  # iter never raises by design
+        return _loop_failed("iter", exc)
+
+
+def _loop_failed(loop: str, exc: Exception) -> dict[str, Any]:
+    """The honest failure result for a deep loop that raised: ``ok: False`` with
+    the reason, which the tool boundary also stamps on the execution record."""
+    logger.exception("%s research loop raised", loop)
+    reason = f"the {loop} research loop failed: {type(exc).__name__}: {exc}"
+    return {
+        "ok": False,
+        "message": f"Deep research could not finish — {reason}.",
+        "execution_loop": loop,
+        "degraded_reason": reason,
+    }
+
+
+def _engine_label(provider: str, model: str, profile: DepthProfile) -> str:
+    """Honest engine line naming the loop that actually ran."""
+    if profile.is_panel:
+        label = f"Heavy mode ({profile.angles} parallel angles"
+        if profile.cross_check:
+            label += " + cross-check"
+        label += ")"
+        return f"Your active model — {provider}/{model} · {label}"
+    return f"Your active model — {provider}/{model} · IterResearch (evolving report)"
+
+
+async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int) -> dict[str, Any]:
+    """Run the built-in deep-research loop against the user's active model."""
+    import config
+    from services.llm import oneshot
+
+    creds = config.get_llm_creds()
+    if creds is None:
+        return {"ok": False, "message": _NO_MODEL}
+    provider, model, key = creds
+
+    _emit_backend_step(_engine_label(provider, model, profile))
+    budget = _research_budget(profile, rounds, wall)
+    from services.research import deep
+
+    per_call = (
+        _LOCAL_LLM_CALL_TIMEOUT_SECS if provider in _LOCAL_PROVIDERS else _LLM_CALL_TIMEOUT_SECS
+    )
+
+    async def llm_call(messages: list[dict[str, Any]]) -> str:
+        # THE one metering seam: every research LLM call (plan, distill,
+        # reflect, synthesis, citecheck, cross-check) folds its usage into the
+        # run guard here, so the token/spend ceilings see real cost.
+        text, usage = await oneshot.complete_with_usage(
+            provider, model, key, messages, timeout=per_call
+        )
+        budget.add_usage(usage, model, provider)
+        return text
+
+    # R9 B4 (lead integration): on this tier_a lane, a native-search-capable
+    # chat model compounds as a SECOND verification channel — the loop's
+    # cross-check round re-checks claims through both SearXNG retrieval and the
+    # model's own search (Track A detection truth + invocation channel, Track B
+    # dual-channel verdicts). tier_b never reaches this lane (research.py routes
+    # it to the hosted research model first), so no tier check is needed here.
+    from services.llm import native_search as native_search_mod
+
+    native_search = None
+    model_web_search = config.get_request_model_web_search()
+    if native_search_mod.native_search_available(provider, model_web_search, model):
+
+        async def native_search(prompt: str) -> dict[str, Any]:
+            return await native_search_mod.native_search_oneshot(
+                provider, model, key, prompt, model_web_search=model_web_search
+            )
+
+    # R9 gate 2: open the run-scoped search telemetry BEFORE the loop fans out
+    # researchers (child tasks share the dict object), so a keyless-floor
+    # retrieval anywhere in the run surfaces on the published brief.
+    telemetry = config.begin_search_telemetry()
+
+    # The loop's universal per-call cap follows this run's lane (child tasks
+    # copy the context, so every researcher/angle inherits it).
+    cap_token = deep.LLM_CALL_TIMEOUT.set(per_call)
+    try:
+        brief = await _run_loop(
+            profile=profile,
+            query=query,
+            llm_call=llm_call,
+            budget=budget,
+            native_search=native_search,
+        )
+    finally:
+        deep.LLM_CALL_TIMEOUT.reset(cap_token)
+    # The execution-loop hint (R10, D38): which loop ACTUALLY ran — Team
+    # RUNTIME builds the full ResearchExecution from it at the tool boundary.
+    loop_label = "heavy" if profile.is_panel else "iter"
+    if isinstance(brief, dict):
+        # R10 (D37): needs-disambiguation pass-through — zero web spend.
+        brief.setdefault("execution_loop", loop_label)
+        return brief
+    out = brief.to_dict()
+    out["ok"] = True
+    out["execution_loop"] = loop_label
+    # Re-read AFTER the loop: the ULTRA cross-check round runs after the panel
+    # stamped its cost, and its calls are metered into the same guard.
+    out["cost"] = _brief_cost(budget)
+    if deep.SYNTHESIS_TIMEOUT_NOTE in (out.get("note") or ""):
+        # For the execution record's degraded_reason (stamped at the tool boundary).
+        out["degraded_reason"] = deep.SYNTHESIS_TIMEOUT_REASON
+    # The honest backend id: "native" names the chat-model engine; when ANY
+    # retrieval in the run was served by the keyless floor the brief carries
+    # "keyless-fallback" instead — the UI's setup-Unlimited nudge keys on it.
+    # ...and ONLY when SearXNG never served this run — one flaked search on a
+    # working managed instance must not nudge the user to set up what runs.
+    out["backend"] = (
+        "keyless-fallback"
+        if telemetry.get("keyless_fallback_searches") and not telemetry.get("searxng_searches")
+        else "native"
+    )
+    # ``mode`` keeps the legacy loop naming the brief contract renders; ``depth``
+    # carries the R7 surface naming (normal/deep/ultra) for new consumers.
+    out["mode"] = "heavy" if profile.is_panel else "deep"
+    out["depth"] = profile.depth
+    _stamp_source_floor(out)
+    return out
+
+
+async def run_deep_brief(
+    query: str,
+    *,
+    depth: str = "deep",
+    rounds: Any = None,
+    wall_seconds: Any = None,
+    backend: str | None = None,
+    api_key: str | None = None,
+) -> dict[str, Any]:
+    """Run a budgeted deep/ultra research brief for ``query`` — the DEEP engine
+    behind the ONE ``research`` capability.
+
+    Args:
+        query: What to research (already validated/non-blank by the caller).
+        depth: ``"deep"`` (single-agent iter loop) or ``"ultra"`` (the expert
+            panel + cross-check). Legacy ``"heavy"`` maps to ultra; any other
+            value (including ``"normal"``/``"quick"`` — the fast pass belongs to
+            the ``research`` handler, not this engine) is treated as ``"deep"``.
+        rounds: Research rounds, clamped to ``[1, 5]``; ``None`` takes the depth
+            profile's default (deep 3, ultra 4).
+        wall_seconds: Wall-clock budget, clamped to ``[30, max(300, the
+            profile's wall)]``; ``None`` takes the depth profile's own wall
+            (``depth.PROFILES``).
+        backend: ``"native"`` (default), ``"perplexity"`` (opt-in-per-run,
+            paid), or ``"sonar"`` (opt-in-per-run, paid — the same sonar family
+            through OpenRouter on the user's OpenRouter key; R7 Component 3).
+            When ``None`` the user's Settings selection (Track 5) is read from
+            the ContextVar; it only ever resolves to native unless the user
+            explicitly opted into a paid lane for the run. NEVER auto-selects a
+            paid backend.
+        api_key: Optional key for the opt-in Perplexity/Sonar backends, when not
+            reused from the active credentials.
+
+    Returns the brief dict (``ok: True``) or ``{"ok": False, "message": ...}``.
+    """
+    from services.research import depth as depth_mod
+
+    profile = depth_mod.profile_for(depth)
+    if profile.loop == "fast":
+        # This engine serves the deep lanes only — a caller that reached it with
+        # a fast-pass depth gets the DEEP profile, never a silent ultra upgrade.
+        profile = depth_mod.PROFILES[depth_mod.DEPTH_DEEP]
+    rounds_i = _clamp(rounds, 1, 5, profile.rounds)
+    wall = _clamp(wall_seconds, 30, max(300, profile.wall_seconds), profile.wall_seconds)
+
+    # The user's Settings selection (Track 5) is authoritative when the caller does
+    # not pass an explicit backend. Defaults to native; Perplexity (opt-in-per-run,
+    # paid) is never auto-selected — the Settings ContextVar only ever holds
+    # "perplexity" after the user explicitly opted in for the run.
+    import config
+
+    resolved_backend = (
+        str(backend or config.get_deep_research_backend() or "native").strip().lower()
+    )
+
+    if resolved_backend == "perplexity":
+        out = await _run_perplexity(query, api_key)
+        if out.get("ok"):
+            # Execution-loop hint (R10, D38): a hosted one-call vendor lane.
+            out.setdefault("execution_loop", "research-model")
+        return out
+    if resolved_backend in ("sonar", "openrouter-sonar"):
+        out = await _run_sonar(query, api_key)
+        if out.get("ok"):
+            out.setdefault("execution_loop", "research-model")
+        return out
+    return await _run_native(query, profile, rounds_i, wall)
+
+
+# ---------------------------------------------------------------------------
+# Tier B — the hosted research-model lane (R9 Track A)
+# ---------------------------------------------------------------------------
+
+#: The honest backend-id prefix every Tier B brief and step carries —
+#: ``research-model:<openrouter-model-id>``. Team C's UI keys off it.
+RESEARCH_MODEL_BACKEND_PREFIX = "research-model:"
+
+#: Per-stop wall clocks (seconds) for the one-call research model. ULTRA on
+#: sonar-deep-research can take MINUTES — the brief mandates a generous (>=360s)
+#: ceiling; normal/deep are single search-grounded (reasoning) completions.
+_RESEARCH_MODEL_WALL_SECONDS: dict[str, float] = {
+    "normal": 120.0,
+    "deep": 300.0,
+    "ultra": 480.0,
+}
+
+#: Heartbeat cadence for the live progress steps while the one HTTP call runs —
+#: honest "still working" lines, since a vendor one-call lane exposes no
+#: internal stage events to stream.
+_RESEARCH_MODEL_HEARTBEAT_SECS = 20.0
+
+#: Coarse per-stop pre-run cost bands (USD) — ESTIMATES shown with the brief,
+#: never billed amounts (OpenRouter's pass-through metering is authoritative).
+#: normal ≈ one search-grounded completion; deep adds reasoning; ultra is the
+#: multi-step deep-research band (verified pricing in ``config``'s defaults).
+_RESEARCH_MODEL_COST_BANDS: dict[str, tuple[float, float, float]] = {
+    # (base, per_char, ceiling)
+    "normal": (0.01, 0.00001, 0.05),
+    "deep": (0.05, 0.00005, 0.15),
+    "ultra": (0.25, 0.00015, 0.40),
+}
+
+_RESEARCH_MODEL_PROVENANCE = "via hosted research model (OpenRouter)"
+
+
+def _research_model_stop(depth: str) -> str:
+    """Normalize a depth spelling to the per-stop key (normal/deep/ultra)."""
+    from services.research import depth as depth_mod
+
+    return depth_mod.normalize_depth(depth)
+
+
+def estimate_research_model_cost_usd(query: str, stop: str) -> float:
+    """Coarse per-run USD estimate for one Tier B call at ``stop`` — an
+    ESTIMATE flagged as such on the brief, never a billed amount."""
+    base, per_char, ceiling = _RESEARCH_MODEL_COST_BANDS.get(
+        stop, _RESEARCH_MODEL_COST_BANDS["normal"]
+    )
+    length = len((query or "").strip())
+    return round(min(base + length * per_char, ceiling), 4)
+
+
+def _research_model_http_error(status: int, model: str) -> str:
+    """Translate an OpenRouter HTTP status into a clean, key-free human message."""
+    if status == 404:
+        return (
+            f"The research model {model} is no longer available on OpenRouter; pick "
+            "another in Settings > Research."
+        )
+    if status in (401, 403):
+        return (
+            "OpenRouter rejected the request — check that your OpenRouter API "
+            "key is valid and active."
+        )
+    if status == 402:
+        return (
+            "OpenRouter reports insufficient credits for the research run — top "
+            "up your account to use the hosted research model."
+        )
+    if status == 429:
+        return "OpenRouter rate limit reached — slow down or check your plan's quota."
+    if status == 400:
+        return "OpenRouter could not process the research request (bad query or parameters)."
+    if status >= 500:
+        return "OpenRouter is temporarily unavailable (server error) — try again shortly."
+    return f"The hosted research model request failed with HTTP {status}."
+
+
+def _research_model_message(body: dict[str, Any]) -> dict[str, Any]:
+    """The first choice's message dict, or ``{}`` — never raises on a thin body."""
+    choices = body.get("choices")
+    if not isinstance(choices, list) or not choices:
+        return {}
+    first = choices[0]
+    if not isinstance(first, dict):
+        return {}
+    message = first.get("message")
+    return message if isinstance(message, dict) else {}
+
+
+def _research_model_sources(body: dict[str, Any]) -> list[Any]:
+    """Map citations to ``ResearchSource`` — annotations first, url-list fallback.
+
+    The PRIMARY path is the existing OpenAI ``url_citation`` normalizer over
+    ``choices[0].message.annotations`` (the same citation path every
+    OpenAI-shaped backend uses); the top-level / message-level ``citations[]``
+    plain-url list catches anything the annotations missed. Merged,
+    de-duplicated by url, order-preserved; ``domain`` is the bare host and the
+    research-model provenance rides ``provider``.
+    """
+    import httpx
+
+    from services.llm.native_search import normalize_openai
+    from services.research.models import ResearchSource
+
+    sources: list[Any] = []
+    seen: set[str] = set()
+
+    def _domain_of(url: str) -> str | None:
+        try:
+            host = httpx.URL(url).host
+        except (httpx.InvalidURL, ValueError, TypeError):
+            return None
+        if not host:
+            return None
+        return host[4:] if host.startswith("www.") else host
+
+    def _add(url: str, title: str = "", excerpt: str = "") -> None:
+        url = (url or "").strip()
+        if not url or url in seen:
+            return
+        seen.add(url)
+        host = _domain_of(url)
+        sources.append(
+            ResearchSource(
+                url=url,
+                title=(title or host or url).strip(),
+                excerpt=(excerpt or "").strip(),
+                domain=host,
+                provider=_RESEARCH_MODEL_PROVENANCE,
+            )
+        )
+
+    message = _research_model_message(body)
+    for record in normalize_openai(message.get("annotations")):
+        _add(record.get("url", ""), record.get("title", ""), record.get("excerpt", ""))
+    for container in (body, message):
+        citations = container.get("citations")
+        if isinstance(citations, list):
+            for entry in citations:
+                if isinstance(entry, str):
+                    _add(entry)
+    return sources
+
+
+def _make_step(kind: str, detail: str, status: str = "ok") -> Any:
+    """A :class:`ResearchStep` for the Tier B trace (collected + sunk live)."""
+    from services.research.models import ResearchStep
+
+    return ResearchStep(kind=kind, detail=detail, status=status)
+
+
+async def run_research_model_brief(
+    query: str,
+    *,
+    depth: str = "normal",
+    api_key: str | None = None,
+    model: str | None = None,
+) -> dict[str, Any]:
+    """Run ONE Tier B research call — the hosted research model owns this run.
+
+    Dispatches the per-stop model (``config.get_research_model_for``; an
+    explicit ``model`` arg wins — model-AGNOSTIC: any plausible OpenRouter slug
+    routes) via OpenRouter chat-completions on the user's BYOK key. The key
+    resolution order is: explicit ``api_key`` arg → the per-request
+    ``X-Vysted-Openrouter-Key`` ContextVar → the active LLM creds when the user
+    is actually ON OpenRouter. Without a key it returns the honest "needs a
+    key" message naming the unlock — never a silent demotion to another lane
+    (the key boundary, D25).
+
+    Streams progress honestly: an ``engine`` step naming
+    ``research-model:<model-id>`` up front, then heartbeat steps while the
+    (potentially minutes-long on ULTRA) call runs. The brief AND every step
+    carry the ``research-model:<model-id>`` backend id — evidence that research
+    routed to the research model regardless of the chat model. EVERY
+    ``ok: False`` return (a missing key, an HTTP error — 401 and 404 included —
+    an unreachable or unparseable reply, an empty brief) also emits an
+    ``engine`` step with ``status="error"`` carrying the same human message, so
+    the failure reaches the stream and the trace, not only the model.
+    """
+    import asyncio
+    import time
+
+    import httpx
+
+    import config
+    from services.search.base import SearchError
+
+    sink = config.get_step_sink()
+    steps: list[Any] = []
+
+    def _step(kind: str, detail: str, status: str = "ok") -> None:
+        step = _make_step(kind, detail, status)
+        steps.append(step)
+        if sink is not None:
+            try:
+                sink(step)
+            except Exception:  # pragma: no cover — cosmetic; never breaks a run
+                pass
+
+    def _fail(message: str) -> dict[str, Any]:
+        # The failure rides the stream as an error step, never only the model.
+        _step("engine", message, status="error")
+        return {"ok": False, "message": message}
+
+    key = (api_key or "").strip() or config.get_openrouter_search_key()
+    if not key:
+        creds = config.get_llm_creds()
+        # Only reuse the active key if the user is actually on OpenRouter.
+        if creds is not None and creds[0] == "openrouter":
+            key = creds[2]
+    if not key:
+        return _fail(_RESEARCH_MODEL_NEEDS_KEY)
+
+    text = (query or "").strip()
+    if not text:
+        return _fail("Research needs a query — tell me what to look into.")
+
+    stop = _research_model_stop(depth)
+    resolved_model = (model or "").strip() or config.get_research_model_for(stop)
+    backend_id = f"{RESEARCH_MODEL_BACKEND_PREFIX}{resolved_model}"
+    wall = _RESEARCH_MODEL_WALL_SECONDS.get(stop, _RESEARCH_MODEL_WALL_SECONDS["normal"])
+
+    # R10 (E1 §4): Tier B binds the SAME target Tier A binds, BEFORE any HTTP
+    # spend — the hosted model's prose can no longer be the only entity
+    # identity. A disambiguation returns the honest chooser with ZERO spend; a
+    # bound target pins the prompt and backs the brief's structured legs; None
+    # proceeds web-only with the no-instrument note.
+    from services import agent_tools
+    from services.research.fast import DEEP_SNAPSHOT_LEG_TIMEOUT_S, snapshot_structured
+    from services.research.target import (
+        NO_INSTRUMENT_NOTE,
+        ResearchDisambiguation,
+        resolve_target,
+        resolved_payload,
+    )
+
+    target = await resolve_target(agent_tools.invoke_tool, text, region=config.get_region())
+    if isinstance(target, ResearchDisambiguation):
+        out = target.payload(query=text)
+        out["execution_loop"] = "research-model"
+        return out
+
+    _step("engine", f"{backend_id} — hosted research model ({stop} stop, via OpenRouter)")
+
+    started = time.monotonic()
+
+    async def _heartbeat() -> None:
+        # Honest "still working" cadence — a vendor one-call lane exposes no
+        # internal stages, so elapsed time is the truthful progress signal
+        # (ULTRA on a deep-research model can legitimately take minutes).
+        while True:
+            await asyncio.sleep(_RESEARCH_MODEL_HEARTBEAT_SECS)
+            elapsed = int(time.monotonic() - started)
+            _step("engine", f"{backend_id} — still researching ({elapsed}s elapsed)")
+
+    # A bound target pins the prompt: every claim must concern this exact
+    # listed entity — the model can no longer drift to a same-name company.
+    prompt = text
+    if target is not None:
+        exchange = target.exchange or "Listed"
+        prompt = (
+            f"Research target: {target.name} ({exchange}: {target.symbol}). "
+            f"Every claim must concern this exact listed entity.\n\n{text}"
+        )
+
+    payload: dict[str, Any] = {
+        "model": resolved_model,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+    }
+    timeout = httpx.Timeout(wall, connect=10.0)
+
+    heartbeat = asyncio.create_task(_heartbeat())
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions", json=payload, headers=headers
+            )
+        response.raise_for_status()
+        body: dict[str, Any] = response.json()
+    except httpx.HTTPStatusError as exc:
+        return _fail(_research_model_http_error(exc.response.status_code, resolved_model))
+    except httpx.HTTPError:
+        return _fail("Could not reach OpenRouter — check your network.")
+    except ValueError:
+        return _fail("OpenRouter returned a response that could not be parsed.")
+    except SearchError as exc:  # defensive — keep the human message
+        return _fail(str(exc))
+    finally:
+        heartbeat.cancel()
+
+    content = _research_model_message(body).get("content")
+    markdown = content.strip() if isinstance(content, str) else ""
+    if not markdown:
+        return _fail("The hosted research model returned an empty brief.")
+
+    sources = _research_model_sources(body)
+    elapsed_total = int(time.monotonic() - started)
+    _step("synthesize", f"{backend_id} — brief synthesised ({elapsed_total}s)")
+
+    # A bound target backs the brief with the SAME structured snapshot the
+    # tier_a lanes gather (incl. the derived metric-semantics leg) — the Tier B
+    # brief carries a real symbol and provenance-tagged metric cards.
+    structured: dict[str, Any] = {}
+    symbol = ""
+    note: str | None = None
+    if target is not None:
+        snap = await snapshot_structured(
+            agent_tools.invoke_tool,
+            target.symbol,
+            region=config.get_region(),
+            listing_region=target.region,
+            canonical_name=target.name,
+            leg_timeout_s=DEEP_SNAPSHOT_LEG_TIMEOUT_S,
+        )
+        structured = {"resolved": resolved_payload(target), **snap}
+        symbol = target.symbol
+    else:
+        note = NO_INSTRUMENT_NOTE
+
+    from services.research.deep import is_web_search_source
+    from services.research.models import ResearchBrief
+
+    brief = ResearchBrief(
+        query=text,
+        symbol=symbol,
+        # ``mode`` keeps the legacy fast/deep naming the brief contract renders;
+        # ``depth`` (below) carries the per-stop truth for new consumers.
+        mode="fast" if stop == "normal" else "deep",
+        markdown=markdown,
+        sources=sources,
+        structured=structured,
+        steps=steps,
+        source_count=len(sources),
+        cost={
+            "tokens": None,
+            "spend_usd": estimate_research_model_cost_usd(text, stop),
+            "steps": None,
+            "estimate": True,
+            "provider": _RESEARCH_MODEL_PROVENANCE,
+        },
+        web_available=any(is_web_search_source(s) for s in sources),
+        note=note,
+    )
+    out = brief.to_dict()
+    out["ok"] = True
+    out["backend"] = backend_id
+    out["depth"] = stop
+    out["execution_loop"] = "research-model"
+    _stamp_source_floor(out)
+    return out
+
+
+__all__ = [
+    "RESEARCH_MODEL_BACKEND_PREFIX",
+    "estimate_research_model_cost_usd",
+    "run_deep_brief",
+    "run_research_model_brief",
+]

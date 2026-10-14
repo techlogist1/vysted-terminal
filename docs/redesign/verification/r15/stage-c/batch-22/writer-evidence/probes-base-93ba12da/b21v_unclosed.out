@@ -1,0 +1,4 @@
+u-tilde-unclosed "Output:\n\n~~~json\n{\"pe\": 31.7}\n"
+u-backtick-unclosed "Output:\n\n```json\n{\"pe\": 31.7}\n"
+u-backtick-unclosed-prose "Here:\n\n```\nSBIN.NS last close ₹812.40\n"
+u-backtick-closed-prose "The price_data tool returned no data for this in this turn.\n\n"

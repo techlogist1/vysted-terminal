@@ -1,0 +1,17 @@
+COMMAND: node --experimental-strip-types pui038.mts (candidate ace7dd76 src/lib/brief-ingest.ts, real module, node v24)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+console.log("UI-038 legacy sonar sec.gov ->", deriveSourceType({url:"https://www.sec.gov/Archives/edgar/data/1/x.htm",title:"10-K",excerpt:"",domain:"sec.gov (via Perplexity Sonar)"} as any));
+console.log("UI-038 reuters ->", deriveSourceType({url:"https://www.reuters.com/a",title:"t",excerpt:"",domain:"reuters.com (via Perplexity Sonar)"} as any));
+console.log("UI-038 random blog ->", deriveSourceType({url:"https://someblog.example/p",title:"t",excerpt:"",domain:"someblog.example (via Perplexity Sonar)"} as any));
+const md="Revenue grew 9% [47]. Margin fell [1].";
+console.log("UI-092 sanitized (2 sources):", JSON.stringify(sanitizeCitationMarkers(md,2)));
+console.log("UI-092 broken count:", countBrokenCitations(md,2));
+console.log("UI-092 zero-source [3] sanitized:", JSON.stringify(sanitizeCitationMarkers("claim [3].",0)), countBrokenCitations("claim [3].",0));
+--- output ---
+UI-038 legacy sonar sec.gov -> filing
+UI-038 reuters -> news
+UI-038 random blog -> web
+UI-092 sanitized (2 sources): "Revenue grew 9% [?]. Margin fell [1]."
+UI-092 broken count: 1
+UI-092 zero-source [3] sanitized: "claim [?]." 1

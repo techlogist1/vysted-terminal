@@ -1,0 +1,34 @@
+emerge count 572
+symbols_match INSPIRE INSPIRE-SM.NS True
+symbols_match inspire.ns INSPIRE-SM.NS True
+symbols_match SKP SKP-SM.NS True
+symbols_match RULKA RULKA-SM.NS True
+symbols_match SILKFLEX SILKFLEX-SM.NS True
+symbols_match THESL THESL-SM.NS True
+symbols_match INSPIRE INSPIRESM.NS False
+symbols_match SBIN SBINSM.NS False
+region IN
+get_fundamentals INSPIRE EXC ProviderError yfinance fundamentals rate-limited for 'INSPIRE': Too Many Requests. Rate limited. Try after a while.
+get_fundamentals SKP EXC ProviderError yfinance fundamentals rate-limited for 'SKP': Too Many Requests. Rate limited. Try after a while.
+get_fundamentals RULKA EXC ProviderError yfinance fundamentals rate-limited for 'RULKA': Too Many Requests. Rate limited. Try after a while.
+get_fundamentals SILKFLEX EXC ProviderError yfinance fundamentals rate-limited for 'SILKFLEX': Too Many Requests. Rate limited. Try after a while.
+== INSPIRE
+429 {'symbol': None, 'name': None, 'market_cap': None, 'pe_ratio': None, 'detail': 'The data provider is throttled right now — try again shortly.', 'code': 'rate_limited'}
+== SKP
+429 {'symbol': None, 'name': None, 'market_cap': None, 'pe_ratio': None, 'detail': 'The data provider is throttled right now — try again shortly.', 'code': 'rate_limited'}
+== RULKA
+429 {'symbol': None, 'name': None, 'market_cap': None, 'pe_ratio': None, 'detail': 'The data provider is throttled right now — try again shortly.', 'code': 'rate_limited'}
+== THESL
+429 {'symbol': None, 'name': None, 'market_cap': None, 'pe_ratio': None, 'detail': 'The data provider is throttled right now — try again shortly.', 'code': 'rate_limited'}
+ModuleNotFoundError: No module named 'models.data'
+pydantic_core._pydantic_core.ValidationError: 1 validation error for Fundamentals
+validate_fundamentals INSPIRE vs INSPIRE-SM.NS PASS
+validate_series INSPIRE PASS
+validate_fundamentals SKP vs SKP-SM.NS PASS
+validate_series SKP PASS
+validate_fundamentals RULKA vs RULKA-SM.NS PASS
+validate_series RULKA PASS
+validate_fundamentals THESL vs THESL-SM.NS PASS
+validate_series THESL PASS
+registry get_fundamentals SKP -> SKP-SM.NS fake
+registry get_fundamentals RULKA -> RULKA-SM.NS fake

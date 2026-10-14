@@ -1,0 +1,66 @@
+src/components/OnboardingFlow.tsx:9: *     broker for every model — guided, with rough cost shown.
+src/components/SettingsPanel.tsx:1423:        hint="Number formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses."
+src/lib/format.ts:278:  kite: "Kite",
+src/lib/market-session.ts:41:  /** True when the session is anything other than regular trading hours. */
+src/lib/market-session.ts:63:  // Regular trading hours — the only "live" session.
+src/modules/backtest/BacktestPanel.tsx:22: * result view that surfaces equity curve, drawdown, trade log, and
+src/modules/backtest/BacktestResultView.tsx:181:// Trade log table
+src/modules/backtest/BacktestResultView.tsx:187:  trades: BacktestTrade[];
+src/modules/backtest/BacktestResultView.tsx:190:function TradeTable({ trades }: TradeTableProps) {
+src/modules/backtest/BacktestResultView.tsx:195:    const list = [...trades];
+src/modules/backtest/BacktestResultView.tsx:209:  }, [trades, sortKey, direction]);
+src/modules/backtest/BacktestResultView.tsx:223:  if (trades.length === 0) {
+src/modules/backtest/BacktestResultView.tsx:228:        headline="No trades yet"
+src/modules/backtest/BacktestResultView.tsx:229:        hint="Fills appear here as the strategy trades."
+src/modules/backtest/BacktestResultView.tsx:239:        "max-h-64 overflow-x-auto overflow-y-auto" /* tokens-ok: trade-log scroll cap - layout, not rhythm */
+src/modules/backtest/BacktestResultView.tsx:307:          {sorted.map((trade) => {
+src/modules/backtest/BacktestResultView.tsx:308:            const pnl = trade.pnl ?? null;
+src/modules/backtest/BacktestResultView.tsx:312:                key={trade.id}
+src/modules/backtest/BacktestResultView.tsx:315:                <td className="text-charcoal-100 px-3 py-1 whitespace-nowrap">{trade.symbol}</td>
+src/modules/backtest/BacktestResultView.tsx:316:                <td className="text-charcoal-300 px-3 py-1 whitespace-nowrap">{trade.side}</td>
+src/modules/backtest/BacktestResultView.tsx:318:                  {trade.enteredAt.slice(0, 10)}
+src/modules/backtest/BacktestResultView.tsx:321:                  {trade.exitedAt ? trade.exitedAt.slice(0, 10) : "—"}
+src/modules/backtest/BacktestResultView.tsx:324:                  {trade.entryPrice.toFixed(2)}
+src/modules/backtest/BacktestResultView.tsx:327:                  {trade.exitPrice ? trade.exitPrice.toFixed(2) : "—"}
+src/modules/backtest/BacktestResultView.tsx:330:                  {trade.quantity.toLocaleString("en-US")}
+src/modules/backtest/BacktestResultView.tsx:390:              S {slice.sharpe.toFixed(2)} · {slice.trades}t
+src/modules/backtest/BacktestResultView.tsx:511:                Trades: <span className="text-charcoal-100">{metrics.tradeCount}</span>
+src/modules/backtest/BacktestResultView.tsx:566:      {/* Trade log */}
+src/modules/backtest/BacktestResultView.tsx:569:          Trades ({run.trades.filter((t) => t.exitedAt != null).length} closed,{" "}
+src/modules/backtest/BacktestResultView.tsx:570:          {run.trades.filter((t) => t.exitedAt == null).length} open)
+src/modules/backtest/BacktestResultView.tsx:572:        <TradeTable trades={run.trades} />
+src/modules/backtest/index.ts:9: * controls, and a result view with equity curve + drawdown + trade
+src/modules/earnings/EpsEstimateGrid.tsx:69:  // for a foreign reporter differs from the trading currency `currency`
+src/modules/earnings/EpsEstimateGrid.tsx:121:            // the trading currency the EPS section above uses.
+src/modules/equity-overview/EquityOverviewPanel.tsx:877:  // region/locale default. Fundamentals state the trading currency; the quote
+src/modules/equity-overview/metrics.ts:20:   *  from the trading currency for a foreign reporter (SIFY: USD ADR, INR books). */
+src/modules/portfolio/PortfolioPanel.tsx:157: * the workspace blob; there is no broker sync. P&L, weight, and concentration
+src/modules/portfolio/PortfolioPanel.tsx:1072:                    title={`Needs ${MIN_RISK_HISTORY_DAYS}+ overlapping trading days of price history`}
+src/modules/portfolio/PortfolioPanel.tsx:1120:                            title={`Computed over ${metrics.days} overlapping trading days`}
+src/modules/portfolio/index.ts:7: * (frontend store, persisted in the workspace blob; no broker sync), with P&L,
+src/modules/portfolio/metrics.ts:201:// Trading days across symbols rarely line up 1:1 (holidays, listing gaps), so
+src/modules/portfolio/metrics.ts:204:// down to the common trading days first.
+src/modules/portfolio/metrics.ts:206:/** Trading days of daily-return history a bucket needs before its risk
+src/modules/portfolio/metrics.ts:211:/** Trading days in a year, for annualizing a daily statistic. */
+src/modules/portfolio/metrics.ts:322:   *  return = Σ weight_i × return_i on each aligned trading day. */
+src/modules/portfolio/metrics.ts:334:  /** Aligned trading days the metrics were computed over. */
+src/modules/portfolio/metrics.ts:360: *  Σ weight_i × return_i on each aligned trading day. */
+src/modules/portfolio/metrics.ts:377: * aligned trading-day history. `null` when fewer than
+src/modules/research/brief-blocks.tsx:335:    // from the trading currency (C2: an ADR reporting in INR).
+src/modules/safety/DisclaimerFlow.tsx:28:const TOS_BODY = `Vysted Terminal is a data and analysis tool. It does not provide investment advice and is not a registered broker-dealer or investment adviser.
+src/modules/safety/DisclaimerFlow.tsx:32:- Vysted has no brokerage connection. It cannot place, route or simulate orders.
+src/modules/sec/InsiderTradingTable.tsx:135:      <div className="flex h-full flex-col" data-testid="insider-trading-table">
+src/modules/sec/InsiderTradingTable.tsx:147:    <div className="flex h-full flex-col" data-testid="insider-trading-table">
+src/modules/sec/InsiderTradingTable.tsx:159:            <option value="4">4 — trade</option>
+src/modules/sec/InsiderTradingTable.tsx:169:            Filing index only — the SEC feed lists these filings without per-trade detail (reporter,
+src/modules/sec/InsiderTradingTable.tsx:170:            direction, shares, price); open the filing for its trades.
+src/modules/sec/index.ts:9: * Company / Filings / Insider Trading tool surface:
+src/store/agent-autonomy.ts:15: * Vysted has no brokerage connection, so no host action can place, stage or
+src/store/agent-autonomy.ts:16: * simulate a trade in any mode; autonomy changes confirmation friction only.
+src/store/backtest.ts:62:  /** Trade log — populated from the final result on ``run-complete``. */
+src/store/backtest.ts:63:  trades: BacktestTrade[];
+src/store/backtest.ts:153:          trades: [],
+src/store/backtest.ts:228:                // Folded trade list from the result is authoritative.
+src/store/backtest.ts:229:                trades: event.result.trades,
+src/store/backtest.ts:323:          trades: result.trades,
+src/store/model-selection.ts:55:  // OpenRouter is a BROKER with a live, open-ended catalog (hundreds of models

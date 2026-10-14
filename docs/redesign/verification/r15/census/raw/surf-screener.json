@@ -1,0 +1,72 @@
+[
+ {
+  "raw_id": "SURF-SCREENER-1",
+  "title": "A run that evaluated nothing renders as 'No rows matched the criteria — loosen a threshold': partial=false and the empty state blames the user's filters",
+  "severity": "high",
+  "area": "ui",
+  "subsystem": "screener",
+  "repro": "Open the Screener (store default: sp500, P/E<20, mcap>1e11, sector=Technology) on a Yahoo-throttled IP (this machine's normal state) and click Run -> /screener/run/stream result {evaluated_count:0, skipped_count:506 (all rate_limited), partial:false, throttled:true} in 20 ms; the rendered panel reads '0 rows (0 evaluated, 506 skipped, 20 ms) … No rows matched the criteria. No stocks in this universe passed every filter. Loosen a threshold or reset to the defaults.' with a 'Reset filters' CTA that resets to the same screen, no PARTIAL badge, and a throttle line claiming 'showing cached/snapshot values' while showing none. Same for a custom list on an open circuit (runs 07/07b).",
+  "evidence": "surface/screener/runs.jsonl labels 01,16,07b; surface/screener/24b-store-panel-replay-tail.json S1 panelText; sidecar/services/screener.py:812 (partial = state.partial and bool(skip_details) - state.partial is set only by budget timeouts); src/modules/screener/ScreenerResultsTable.tsx:447-455; src/modules/screener/ScreenerPanel.tsx:407-431",
+  "notes": "Silent failure presented as a user error: 'partial' means 'budget cut', so a run where every symbol was skipped (open circuit, per-symbol path) is reported as complete, and the empty state's copy asserts evaluation happened ('passed every filter'). The user is steered to loosen filters that were never applied. With 7 of 8 presets and the default universe on sp500 (which has no store/seed rows on this install), this is the FIRST frame most owners see. Smallest fix: set partial (or a distinct 'unevaluated' state) whenever evaluated_count < total with non-budget skips, and have the table choose its empty state on evaluated_count === 0 ('Nothing could be screened — data provider throttled, retry in Ns') instead of the no-match copy; make the throttle line conditional on basis_counts actually containing snapshot/mixed rows."
+ },
+ {
+  "raw_id": "SURF-SCREENER-2",
+  "title": "Clicking a preset while the Nested editor or a formula is set silently runs the OLD tree and formula, and shows the result as the preset",
+  "severity": "high",
+  "area": "ui",
+  "subsystem": "screener",
+  "repro": "Real store + ScreenerPanel in jsdom against the live sidecar: set Nested mode with group (P/E<12 OR yield>4%) and formula 'pe < 12', click 'Founder-aligned (NSE)' -> request body = preset criteria + the old `group` + `formula: \"pe < 12\"`; server evaluates the old group (it supersedes criteria) AND the formula -> 3 rows (NTPC, ONGC, COALINDIA). The same preset from a clean store -> 18 rows (TCS, HINDUNILVR, SUNPHARMA…). After the click the builder still shows the old nested tree (advanced:true); nothing indicates the preset did not apply.",
+  "evidence": "surface/screener/24-store-panel-replay.json S4 (request + state_after) vs S5; src/modules/screener/ScreenerPresets.tsx:125-131 (setUniverse/setCriteria/setCombinator only); src/store/screener.ts:359-363 (pruned nested group supersedes criteria), :373 (formula always rides the request)",
+  "notes": "Hidden coupling between two editing modes: the preset writes only the flat list, but runScreener gives the nested tree precedence and AND-combines the formula. The user gets wrong rows labelled as a named, curated screen - a money-relevant misread (the preset's promise 'high promoter holding, sound balance sheet' is not what ran). Smallest fix: presets should go through the same reset applyFilters/resetCriteria uses (group:null, advanced:false, formula:'') before setCriteria, or build the request from the preset directly."
+ },
+ {
+  "raw_id": "SURF-SCREENER-3",
+  "title": "The screener stream's error frame is discarded: the server's message never reaches the panel, which shows 'Stream ended without a result frame' and 'loosen a criterion'",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "screener",
+  "repro": "Feed the real useScreenerStore the documented frame sequence from routers/screener.py (progress, then {\"event\":\"error\",\"message\":\"missing universe snapshot 'nifty50.json'\"}) -> store.error = 'Stream ended without a result frame'; rendered panel: banner 'Stream ended without a result frame' + table 'Could not load results — The screener run failed. Retry — if it persists, loosen a criterion or check the data engine.'",
+  "evidence": "surface/screener/24-store-panel-replay.json S6; src/store/screener.ts:495-510 (processFrame handles only 'progress' and 'result'), :558; sidecar/routers/screener.py:118-140 (emits event:error with a sanitized message by contract)",
+  "notes": "Contract drift between producer and consumer: the router's docstring says the error frame mirrors ScreenerErrorFrame in types/screener.ts, but the only consumer ignores that event. Every engine crash or ProviderError on the streaming path (the only path the panel uses) is reported as a transport glitch and the hint points the user at their criteria. Smallest fix: in processFrame, on frame.event === 'error' set status 'error' with String(frame.message) and stop reading."
+ },
+ {
+  "raw_id": "SURF-SCREENER-4",
+  "title": "The match count is the truncated page size: '200 rows' is shown when 1,000+ stocks matched, with no way to see the rest",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "screener",
+  "repro": "india-all, 0<P/E<40: limit 200 (what Run always sends) -> result_count 200; the identical screen with limit 1000 -> result_count 1000 (both evaluated 5,066). The header renders '200 rows (5066 evaluated, 90 skipped, …)'. screener-probe's warm-standing-sector at limit 10 vs 200 shows the same (10 vs 26).",
+  "evidence": "surface/screener/runs.jsonl labels 11,12; surface/screener-probe/warm-standing-sector-limit10.json vs warm-standing-sector.json; sidecar/services/screener.py:771 (rows = matched[:limit]), :821 (result_count=len(rows)); src/store/screener.ts:315 (limit = 200); src/modules/screener/ScreenerPanel.tsx:252; src/modules/screener/ScreenerResultsTable.tsx:426",
+  "notes": "A screener's first answer is 'how many names pass'. The wire has no total-matched field, so the UI cannot say 'showing 200 of 2,340', and no control raises the limit or pages. Sibling of COD-screener-3 (sort acts on the truncated page) but a separate defect: the COUNT is wrong even with no sort. Smallest fix: return matched_count = len(matched) alongside result_count and render 'N matched · showing top 200 by market cap' (+ a 'show more' that re-runs with a larger limit)."
+ },
+ {
+  "raw_id": "SURF-SCREENER-5",
+  "title": "Agent screen authoring fails on the default local lane: write_screener_filters criteria arrive as a JSON string, the host action applies nothing, and the model tells the user the filters were staged",
+  "severity": "high",
+  "area": "agent",
+  "subsystem": "screener / host-actions",
+  "repro": "Composer, llama3.1:8b, AUTO: 'Set up a screener on the NSE full market: P/E below 20, ROE above 15% and debt to equity under 0.5, then run it.' -> tool_use write_screener_filters {criteria: \"[{\\\"field\\\":\\\"pe_ratio\\\",…}]\" (a string), universe: 'nse-all'}; model text: 'I have dispatched the filters for your review in the panel.' Replayed through the real applyHostAction -> returns null; the store is unchanged (still the sp500 default).",
+  "evidence": "surface/screener/20-agent-screen-llama.jsonl, 20-agent-screen-llama.stdout.txt; surface/screener/21-agent-screen-replay.json captured.applyLabel=null; src/lib/host-actions.ts:407-413 (parseScreenerCriteria: !Array.isArray -> []), :1140-1147 (returns null when nothing parsed); surface/composer-chat/14-multiturn-t5-screen.* (the same stringified-array shape on screener_run)",
+  "notes": "Boundary validation that rejects instead of normalising a known, recurring model quirk: the default local 8B model stringifies array/object tool args (2 of 2 screener tool calls this session, composer-chat t5 too). The parser could JSON.parse a string that starts with '['/'{' before the Array check. Consequence: the agent-native 'screen for X' flow does nothing on a fresh install while the chat claims success (and on Ollama no ack can correct it - SURF-COMPOSER-CHAT-8). Smallest fix: coerce string criteria/group via JSON.parse in parseScreenerCriteria/parseScreenerGroup (and the same for other host actions' array args)."
+ },
+ {
+  "raw_id": "SURF-SCREENER-6",
+  "title": "write_screener_filters silently drops a malformed criterion and reports success for the rest - the user's ROE filter vanishes and the unfiltered screen runs",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "screener / host-actions",
+  "repro": "Same captured args with criteria as a real array: [{pe_ratio lt 20}, {roe gt {min:15,max:15}}, {debt_to_equity lt 0.5}] -> applyHostAction label 'Wrote 2 screener criteria — review and Run'; store criteria = pe_ratio + debt_to_equity only; a real run returns 200 rows (2,087 evaluated) with no ROE condition. The user asked for three filters; nothing says one was discarded.",
+  "evidence": "surface/screener/21-agent-screen-replay.json array_variant + array_variant_run; src/lib/host-actions.ts:358-373 (gt/lt with non-number value -> null, filtered out at :412)",
+  "notes": "Silent partial apply: the diff label counts what survived, not what was asked, so the review step cannot catch the loss. Consequence: the screen the user reviews and runs is looser than the one they described, with results that look plausible. Smallest fix: return the rejected leaves in the label ('Wrote 2 of 3 criteria — dropped roe: value must be a number (fraction, 0.15 = 15%)') and send that back as the tool result so the model can retry."
+ },
+ {
+  "raw_id": "SURF-SCREENER-7",
+  "title": "Custom universe matches the store by literal key: bare Indian tickers ('RELIANCE TCS') miss the warm .NS rows and are all skipped as rate-limited whenever the Yahoo circuit is open",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "screener",
+  "repro": "Circuit open: custom_symbols ['RELIANCE','TCS','INFY','HDFCBANK','COCHINSHIP'] -> 0 of 5 evaluated, 5 rate_limited, partial:false (panel: 'No rows matched'); the same five with '.NS' -> 5 of 5 served from the store in 10 ms. The rest of the app resolves the bare form (GET /quotes/RELIANCE -> nse_direct INR; GET /fundamentals/RELIANCE -> symbol RELIANCE.NS). The input's placeholder is 'AAPL MSFT NVDA'.",
+  "evidence": "surface/screener/runs.jsonl labels 07,07b vs 08 and 07c; sidecar/services/screener.py:205-211 (custom symbols used verbatim), :1147-1160 (cache lookup by that key), :515-517 (open circuit -> rate_limited without trying); src/modules/screener/ScreenerPanel.tsx:235",
+  "notes": "Inconsistent symbol identity across surfaces (the resolver canonicalises everywhere except the screener's custom path). Consequence: an Indian owner typing their own tickers the way every other panel accepts them gets nothing on a throttled IP even though the data is on disk, and a live fetch (6 s for 5 names) when the circuit is closed. Smallest fix: canonicalise custom_symbols through the same resolver /quotes uses (region-aware .NS/.BO) before the store lookup, and use an Indian placeholder when region is IN."
+ }
+]

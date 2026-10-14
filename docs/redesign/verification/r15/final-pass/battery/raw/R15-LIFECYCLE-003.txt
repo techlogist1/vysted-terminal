@@ -1,0 +1,7 @@
+# R15-LIFECYCLE-003 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:33+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -nE 'autosaves nothing during the launch restore' src/lib/workspace.test.ts
+--- output ---
+1489:  it("autosaves nothing during the launch restore; the first save after it carries the research space", async () => {
+
+EXIT=0 (0.0s)

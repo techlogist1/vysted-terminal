@@ -1,0 +1,10 @@
+# R15-DATA-112 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:33:44+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m 110 -X POST "$H/screener/run" -H 'content-type: application/json' -d '{"universe":"custom","custom_symbols":["MANIKA.NS","RELIANCE.NS","TCS.NS"],"criteria":[],"sort_by":"market_cap","sort_dir":"desc"}' | python3 -c "import sys,json;d=json.load(sys.stdin);print({k:d.get(k) for k in ('universe','evaluated_count','result_count','coverage','throttled')});[print(r.get('symbol'),r.get('market_cap'),r.get('currency')) for r in d.get('rows',[])]"
+--- output ---
+{'universe': 'custom', 'evaluated_count': 3, 'result_count': 3, 'coverage': 'screened 3 of 3 — 0 unavailable', 'throttled': False}
+RELIANCE.NS 15801867304960.0 INR
+TCS.NS 7507531530240.0 INR
+MANIKA.NS None INR
+
+EXIT=0 (2.7s)

@@ -1,0 +1,64 @@
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("@/lib/sidecar-client", () => ({
+  getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
+  sidecarGet: vi.fn(),
+  SidecarError: class extends Error {},
+}));
+vi.mock("@/lib/workspace", () => ({ autosaveLayout: vi.fn() }));
+
+import { sidecarGet } from "@/lib/sidecar-client";
+import { useSecStore } from "@/store/sec";
+import { useChatHistoryStore } from "@/store/chat-history";
+import { useAgentSpacesStore } from "@/store/agent-spaces";
+import { useWorkflowStore } from "@/store/workflow";
+
+function deferred<T>() { let res!: (v: T) => void; const p = new Promise<T>((r) => (res = r)); return { p, res }; }
+
+describe("R15 frontend-stores proofs", () => {
+  it("P1 SEC: a slower stale response flips activeIdentifier back", async () => {
+    const aapl = deferred<unknown>(); const msft = deferred<unknown>();
+    (sidecarGet as ReturnType<typeof vi.fn>).mockImplementation((_p: string, params: Record<string, string>) =>
+      params.symbol === "AAPL" ? aapl.p : msft.p);
+    const s = useSecStore.getState();
+    const a = s.loadFilings("AAPL");
+    useSecStore.getState().setActiveIdentifier("MSFT");
+    const m = useSecStore.getState().loadFilings("MSFT");
+    msft.res({ cik: "1", company_name: "MSFT", symbol: "MSFT", filings: [] }); await m;
+    expect(useSecStore.getState().activeIdentifier).toBe("MSFT");
+    aapl.res({ cik: "2", company_name: "AAPL", symbol: "AAPL", filings: [] }); await a;
+    console.log("P1 activeIdentifier after stale AAPL lands:", useSecStore.getState().activeIdentifier);
+    expect(useSecStore.getState().activeIdentifier).toBe("AAPL");
+  });
+
+  it("P2 agent-space switch mid-stream: reply dropped, archived copy stuck pending, streaming flag cleared", () => {
+    const chat = useChatHistoryStore.getState();
+    chat.appendUserMessage("research NVDA");
+    const id = chat.beginAssistantMessage({});
+    useChatHistoryStore.getState().appendAssistantDelta(id, "Partial ");
+    const firstSpace = useAgentSpacesStore.getState().activeId;
+    useAgentSpacesStore.getState().newSpace();
+    console.log("P2 streamingMessageId after switch:", useChatHistoryStore.getState().streamingMessageId);
+    expect(useChatHistoryStore.getState().streamingMessageId).toBeNull(); // composer unlocks: a 2nd send can start while run 1 streams
+    useChatHistoryStore.getState().appendAssistantDelta(id, "rest of the answer");
+    useChatHistoryStore.getState().finalizeAssistantMessage(id, null);
+    useAgentSpacesStore.getState().switchTo(firstSpace);
+    const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id)!;
+    console.log("P2 restored message:", JSON.stringify({ content: msg.content, pending: msg.pending }));
+    expect(msg.content).toBe("Partial ");
+    expect(msg.pending).toBe(true);
+  });
+
+  it("P3 drainNotifications drops an intent captured while the bridge awaited", () => {
+    const ws = useWorkflowStore.getState();
+    const mk = (nodeId: string) => ({ kind: "node-output" as const, runId: "r", nodeId, durationMs: 1,
+      outputs: { intent: "desktop-notification", notified: true, title: nodeId, message: "" } });
+    ws.appendEvent(mk("a"));
+    const snapshot = useWorkflowStore.getState().pendingNotifications; // bridge iterates this, awaits _sendOne
+    useWorkflowStore.getState().appendEvent(mk("b")); // arrives during the await
+    useWorkflowStore.getState().drainNotifications(); // bridge drains after sending the snapshot
+    console.log("P3 sent:", snapshot.map((i) => i.nodeId), "left pending:", useWorkflowStore.getState().pendingNotifications.length);
+    expect(snapshot.map((i) => i.nodeId)).toEqual(["a"]);
+    expect(useWorkflowStore.getState().pendingNotifications.length).toBe(0);
+  });
+});

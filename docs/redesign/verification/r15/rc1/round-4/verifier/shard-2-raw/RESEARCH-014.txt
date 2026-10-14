@@ -1,0 +1,6 @@
+R15-RESEARCH-014 @ 68d5573aff9a579af084dcbb124843f2aecff6e8
+cmd: cd <worktree>/sidecar && PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python scratchpad/vs2/r014_probe.py (stub llm whose oneshot finish_reason is the given value, through run_iter_research synthesis)
+'FinishReason.MAX_TOKENS' -> truncated note present: True | note: Stopped early to stay within the run's time, token or spend budget — coverage may be lighter than usual. The model hit its output limit while writing this synth
+'length' -> truncated note present: True | note: Stopped early to stay within the run's time, token or spend budget — coverage may be lighter than usual. The model hit its output limit while writing this synth
+'STOP' -> truncated note present: False | note: Stopped early to stay within the run's time, token or spend budget — coverage may be lighter than usual.
+fresh variant: Gemini enum-form 'FinishReason.MAX_TOKENS' (not the raw 'length'/'max_tokens' strings) also flagged. Verdict: HOLDS

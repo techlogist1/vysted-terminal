@@ -1,0 +1,7 @@
+ace7dd76 candidate venv, cwd sidecar
+COMMAND: strip_model_bibliography over the original r3-ultra-kaynes published markdown
+EXIT: 0
+OUTPUT:
+found original markdown: True
+before: [n] literals 19 True True
+after: removed 9 | [n] literals 0 | Merged Sources False | References False

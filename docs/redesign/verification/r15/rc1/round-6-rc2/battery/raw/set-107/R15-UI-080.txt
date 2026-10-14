@@ -1,0 +1,28 @@
+COMMAND: sed BriefPanel.tsx:240-246,285-300 (isProvenance branch) + grep pinned test BriefPanel.test.tsx:353 (render needs vitest, not run)
+EXIT: 0
+OUTPUT:
+/** Structured-provenance legs (`vysted://price|fundamentals|news/...`) are
+ *  synthetic citations into the metric grid, never a real external page —
+ *  they must never render as a clickable link or trigger a favicon lookup
+ *  for a scheme the browser can't resolve (R15-UI-080). */
+function isInternalProvenance(source: BriefSource): boolean {
+  return source.url.startsWith("vysted://");
+}
+            className="text-charcoal-100 group text-caption hover:text-charcoal-100 inline-flex items-start gap-1 leading-snug transition-colors"
+          >
+            <span className="min-w-0">{source.title || source.url}</span>
+            <ExternalLink className="text-charcoal-500 group-hover:text-charcoal-100 mt-0.5 size-3 shrink-0" />
+          </a>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <SourceTypeBadge type={sourceType} />
+          {isInternal ? (
+            <span
+              data-testid="source-provenance-chip"
+              className="text-charcoal-400 bg-charcoal-850 rounded-control text-micro max-w-full truncate px-1 py-px font-mono"
+            >
+              {source.provider ?? domain}
+            </span>
+          ) : (
+            <span className="text-charcoal-500 bg-charcoal-850 rounded-control text-micro max-w-full truncate px-1 py-px font-mono">
+353:  it("a vysted:// source renders a provenance chip, no external link, and no favicon lookup", () => {

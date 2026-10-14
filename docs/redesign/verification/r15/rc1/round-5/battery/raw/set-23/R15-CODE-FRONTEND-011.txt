@@ -1,0 +1,7 @@
+NO GUI in this run. Source inspection of src/lib/host-actions.ts:
+
+  export function describeHostAction(name, input) { return describeIntent(parseHostAction(name, input)); }   (line 1472-1474)
+  export function applyHostAction(name, input) { return applyIntent(parseHostAction(name, input)).label; }     (line 2036-2038)
+
+OBSERVED: describe and apply both call the SAME `parseHostAction(name, input)` to build one `HostIntent`, then hand it to `describeIntent`/`applyIntent` respectively -- a single parse feeds both paths, eliminating the register's "describeHostAction and applyHostAction parse every action's input independently" divergence (the P6/P7b proof scenarios: cost-basis-only update, close_panel alias).
+VERDICT: holds

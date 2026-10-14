@@ -1,89 +1,227 @@
-/* Vysted Terminal — design tokens. "Claude after dark" design system (Phase 10).
+/* Vysted -- design tokens. R6 "Pure Black" design language (faithful OpenCode dark).
  *
- * The aesthetic: a warm espresso near-black base (red-brown undertone, never
- * cold slate, never flat black) carrying a single coral/clay accent — Claude's
- * voice rebuilt as a terminal. Cream / warm-paper text, a humanist display
- * serif (Fraunces) over a precise data mono (JetBrains Mono), Bloomberg/JARVIS
- * information density expressed in Claude's restrained, warm language. NOT a
- * generic dark dashboard, NOT skeuomorphic — the Phase 9.5 amber-brass
- * chronograph (bezels, phosphor bloom, gauge ticks) is deliberately retired.
+ * The aesthetic: a PURE NEUTRAL grayscale ramp (R=G=B at every step -- a clean
+ * near-black, ZERO warm/brown cast, zero blue), modeled directly on OpenCode's
+ * default dark theme (a Radix-style 12-step neutral scale: #0a0a0a well ->
+ * #ededed text). The UI is essentially MONOCHROME: a single scarce accent
+ * (OpenCode's warm peach `#fab283`) is reserved for at most ONE rare spotlight
+ * role -- live agent activity -- and the only other saturated colors are the
+ * luminance-matched green/red kept strictly for P&L signal (data, never chrome).
+ * A flat field, no glow. Ground truth: docs/redesign/references/ + OpenCode dark.
  *
- * NOTE ON NAMES: token NAMES are kept from the retired INSTRUMENT system
- * (`charcoal`, `amber`, `brass`, `sage`, `lume`) so the 80+ files that reference
- * them as Tailwind classes re-skin with zero edits — only the VALUES changed.
- * The names are therefore historical, not literal: `amber-*` renders CORAL,
- * `brass-*`/`sage-*` render warm NEUTRALS, `charcoal-*` renders ESPRESSO. Read
- * the role column, not the name. See docs/DESIGN_SYSTEM.md.
+ * NOTE ON NAMES: token NAMES are kept from the retired systems (charcoal,
+ * amber, brass, sage, lume) so the ~92 files that reference them as
+ * Tailwind classes re-skin with ZERO edits -- only the VALUES changed. Names
+ * are historical, not literal:
+ *   charcoal-N   = PURE NEUTRAL gray ramp (R=G=B, #0a0a0a..#ededed)
+ *   amber-N      = the single scarce accent (OpenCode peach #fab283)
+ *   brass-N, sage-N = neutral-gray secondaries (aligned to the ramp)
+ *   lume         = neutral near-white (#f7f7f7)
+ * The canvas palette is mirrored in src/lib/chart-theme.ts -- change BOTH in
+ * lockstep or the chart drifts (FR-030). See docs/redesign/PRODUCT_DESIGN_DECISIONS.md.
  *
  * Defined as a Tailwind 4 @theme block so every token is also a utility class
- * (bg-charcoal-900, text-amber-400 [coral], font-serif [Fraunces], ...).
+ * (bg-charcoal-900, text-amber-400, font-serif [Inter], ...).
  * Semantic shadcn mapping + chrome primitives live in src/app/globals.css.
  */
 
 @theme {
-  /* --- Espresso base (name: charcoal) — warm red-brown near-blacks, graduated
-   * for elevation: 950 = deepest well, 800/700 = raised chrome, 100 = body text. */
-  --color-charcoal-950: #1a1512; /* deepest well — app/root bg */
-  --color-charcoal-925: #1f1916; /* header fascia, tab-strip bg */
-  --color-charcoal-900: #241d19; /* card / panel surface */
-  --color-charcoal-875: #29211d; /* popover / active tab */
-  --color-charcoal-850: #2e2521; /* raised inset (node bg) */
-  --color-charcoal-800: #352a25; /* secondary / muted surface */
-  --color-charcoal-700: #473a33; /* borders / inputs / dividers */
-  --color-charcoal-600: #5c4d44; /* strong border / disabled fg */
-  --color-charcoal-500: #796759; /* faint label / kbd chip text */
-  --color-charcoal-400: #998778; /* muted foreground */
-  --color-charcoal-300: #b8a698; /* secondary text */
-  --color-charcoal-200: #d6c8bb; /* bright secondary / chart text */
-  --color-charcoal-100: #ece3d9; /* foreground / warm-paper body text */
+  /* --- Pure neutral ramp (name: charcoal) -- R=G=B at every step (NO warm/brown
+   * cast, no blue), modeled on OpenCode's default dark theme 12-step scale.
+   * 950 = deepest well, 925/900 = chrome + panel, 700 = borders,
+   * 500 = tertiary text, 400 = secondary, 100 = primary body text. -------- */
+  --color-charcoal-950: #0a0a0a; /* app/root well -- pure neutral near-black */
+  --color-charcoal-925: #101010; /* header fascia, tab strip */
+  --color-charcoal-900: #161616; /* panel / card surface (the anchor) */
+  --color-charcoal-875: #1d1d1d; /* popover / active tab / hover surface */
+  --color-charcoal-850: #242424; /* raised inset -- input fill, node bg */
+  --color-charcoal-800: #2b2b2b; /* muted / secondary surface */
+  --color-charcoal-700: #353535; /* borders / inputs / dividers */
+  --color-charcoal-600: #484848; /* strong border / disabled fg */
+  --color-charcoal-500: #8a8a8a; /* TERTIARY text -- faint label, kbd, meta (neutral gray, clears WCAG AA on #0a0a0a) */
+  --color-charcoal-400: #a8a8a8; /* SECONDARY text -- muted foreground */
+  --color-charcoal-300: #cccccc; /* secondary-bright text */
+  --color-charcoal-200: #e2e2e2; /* bright secondary / chart text */
+  --color-charcoal-100: #ededed; /* PRIMARY text / foreground -- neutral near-white */
 
-  /* --- Coral / clay (name: amber) — the single Claude accent. One hue family
-   * (~33°) across states: 200 faint glow, 300 hover, 400 brand, 500 pressed,
-   * 600 deep border. #d97757 is the canonical Claude clay. --- */
-  --color-amber-200: #f0c4b4; /* faint highlight / glow fill / selection tint */
-  --color-amber-300: #e69e84; /* hover-bright accent, focus emphasis */
-  --color-amber-400: #d97757; /* BRAND / primary / default accent (coral) */
-  --color-amber-500: #c2603f; /* pressed/active, active-sash, node-selected */
-  --color-amber-600: #a44a30; /* deep border / dense accent on light fg */
+  /* --- The single scarce accent (name: amber) -- OpenCode's warm peach. Reserved
+   * for ONE rare spotlight role only: LIVE agent activity (stream cursor, running
+   * dot/bar, hud-active border, active-run counter). It is NOT chrome -- the
+   * dominant impression is monochrome. Five states light->dark: 200 faint tint,
+   * 300 hover-bright/accent text, 400 brand, 500 pressed, 600 deep border. */
+  --color-amber-200: #fddcc4; /* faint tint / selection fill */
+  --color-amber-300: #fcc9a6; /* hover-bright / accent text on dark */
+  --color-amber-400: #fab283; /* BRAND -- OpenCode dark primary accent (#fab283) */
+  --color-amber-500: #e89a68; /* pressed / active */
+  --color-amber-600: #b9744a; /* deep border / dense accent */
 
-  /* --- Warm neutral (name: brass) — no metal anymore; a quiet taupe for any
-   * stray legacy use + the .hud-label legend tone. --- */
-  --color-brass-200: #cbb6a6;
-  --color-brass-300: #a8917f; /* .hud-label legend text */
-  --color-brass-400: #85705f; /* hairline / scrollbar source tone */
-  --color-brass-500: #615245;
-  --color-brass-600: #473b31;
+  /* --- Neutral gray (name: brass) -- quiet secondary neutrals aligned to the
+   * neutral ramp. Stray legacy use, .hud-label legend, hairline source. */
+  --color-brass-200: #cfcfcf;
+  --color-brass-300: #a0a0a0; /* .hud-label legend text */
+  --color-brass-400: #454545; /* hairline / scrollbar source tone */
+  --color-brass-500: #363636;
+  --color-brass-600: #2e2e2e;
 
-  /* --- Warm cream (name: lume) — active-tab text, peak readouts, selection
-   * text. Warm paper-white, faintly pink-warm (never green). --- */
-  --color-lume: #f5f1ea;
+  /* --- Near-white (name: lume) -- active-tab text, peak readouts.
+   * Neutral near-white. -------------------------------------------------- */
+  --color-lume: #f7f7f7;
 
-  /* --- Muted clay (name: sage) — was a cool-green second accent; retired to a
-   * desaturated neutral so secondary data series never compete with coral. --- */
-  --color-sage-300: #c9b9ad;
-  --color-sage-400: #a8917f;
-  --color-sage-500: #85705f;
+  /* --- Neutral gray second (name: sage) -- secondary data series, never
+   * compete with the accent. Aligned to the neutral ramp. ----------------- */
+  --color-sage-300: #cfcfcf;
+  --color-sage-400: #a0a0a0;
+  --color-sage-500: #767676;
 
-  /* --- Signal colors — three distinguishable warm hues. Gains = warm moss
-   * green (135°); losses = brick red (28°, redder + darker + more saturated than
-   * coral so they never merge in dense tables); caution = amber-gold (70°). --- */
-  --color-positive: #7fa96a;
-  --color-positive-bright: #9fc97f;
-  --color-negative: #cf5b48;
-  --color-negative-bright: #e3705a;
-  --color-warning: #e0a458; /* caution: kill-switch armed, stale data, paper-vs-live */
+  /* --- Signal colors -- muted + luminance-matched so neither gain nor loss
+   * reads louder than the other in a P&L column. The ONLY saturated colors.
+   * Never used as background fills. --------------------------------------- */
+  --color-positive: #3fbf6f; /* muted green, luminance-matched -- gains */
+  --color-positive-bright: #4ade80; /* gain flash peak */
+  --color-negative: #e5544b; /* muted red, luminance-matched -- losses */
+  --color-negative-bright: #f87171; /* loss flash peak */
+  --color-warning: #e0a13a; /* DATA signal only -- stale/synthetic/paper/partial/
+    throttled market data (DataBadges, screener PARTIAL, EquityOverview stale/
+    flagged, brief source conflicts, portfolio quote-refresh failure). Never
+    infra/lifecycle/config -- see --color-caution (R15-UI-073). */
+  --color-caution: #e0a13a; /* INFRA/LIFECYCLE signal -- Docker/engine health,
+    plugin/run lifecycle (initializing/stopping/paused/budget), config nags
+    (no BYOK key, no tool-calling, keybinding conflict), generic form
+    validation. Same value as --color-warning today (no visual change); the
+    split is semantic so the two can diverge without a call-site hunt later. */
 
-  /* --- Typography — humanist display serif (Fraunces, opsz+SOFT axes) meets
-   * precise data mono. The --font-* inner vars are supplied by next/font in
-   * src/app/layout.tsx (Fraunces → --font-fraunces, mono → --font-jetbrains-mono). */
-  --font-serif: var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif;
+  /* --- Research depth heat (R9) -- the ONE designed color family beyond the
+   * scarce accent: white -> peach -> ember escalation for the composer send
+   * fill + active depth stop. ultra is hotter than amber-400 but firmly
+   * distinct from negative (#e5544b, reserved for losses). Use nowhere else
+   * without a DECISIONS entry (R9_DESIGN_SYSTEM.md sec4). ------------------ */
+  --color-depth-normal: #f7f7f7; /* NORMAL -- quiet near-white (lume) */
+  --color-depth-deep: #fab283; /* DEEP -- the brand peach (amber-400) */
+  --color-depth-ultra: #f08a4b; /* ULTRA -- ember, one step hotter */
+
+  /* --- Typography -- ONE monospace family (JetBrains Mono) across EVERY text
+   * role (VYSTED_DESIGN.md). @fontsource/jetbrains-mono self-hosts the face
+   * (imported in src/main.tsx); --font-jetbrains-mono is defined HERE so the
+   * three family slots plus every canvas component reading it via
+   * getComputedStyle resolve without a framework font loader. ALL THREE slots
+   * resolve to it, so even a stray `font-sans`/`font-serif` utility renders
+   * mono -- there is no second face. The slot NAMES (serif/sans) are
+   * historical. Numerics use tabular figures + slashed zero (globals.css). */
+  --font-jetbrains-mono: "JetBrains Mono";
+  --font-sans: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
+  --font-serif: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace;
 
-  /* --- Radius rhythm — crisp but warm (not hard-machined, not pillowy). --- */
-  --radius-panel: 0.5rem;
-  --radius-control: 0.375rem;
+  /* --- Type scale (R9 -- ONE modular ratio ~1.2, snapped to whole px, six
+   * rendered sizes: 11 / 13 / 16 / 19 / 23 / 28. Utility NAMES are kept so
+   * call sites re-skin by revalue (the R6 trick); caption/body/panel-title
+   * now share 13px and differ by weight/transform only -- hierarchy below
+   * 16px is weight + color, never size (R9_DESIGN_SYSTEM.md sec2). 12, 15,
+   * 18, 22 are dead sizes; the audit script rejects them. ----------------- */
+  --text-micro: 0.6875rem; /* 11px -- THE floor; uppercase eyebrows, provenance */
+  --text-caption: 0.8125rem; /* 13px -- data cells (tabular), chrome labels, chips */
+  --text-body: 0.8125rem; /* 13px -- dock prose, user chat, form labels */
+  --text-prose: 1rem; /* 16px -- wide reading panels ONLY (leading 1.6) */
+  --text-panel-title: 0.8125rem; /* 13px + weight 500 -- quiet Linear-grade titles */
+  --text-section: 1.1875rem; /* 19px -- section head */
+  --text-overview: 1.4375rem; /* 23px -- overview / brief head */
+  --text-hero: 1.75rem; /* 28px -- rare hero (first-run only) */
 
-  /* --- Motion — calm, confident easing (no mechanical-click overshoot). --- */
-  --ease-instrument: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-detent: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --font-weight-body: 400;
+  --font-weight-label: 500; /* emphasis / labels / panel-title / micro -- mono medium */
+  --font-weight-heading: 700; /* section + overview + hero heads -- mono bold */
+
+  --leading-dense: 1.35; /* table rows, code */
+  --leading-body: 1.5; /* body / captions */
+  --leading-heading: 1.3; /* panel-title / section */
+  --leading-display: 1.25; /* overview head */
+  --leading-hero: 1.2; /* hero */
+  --leading-prose: 1.6; /* reading briefs */
+
+  /* --- Spacing (R9) -- STANDARD Tailwind semantics restored: 1 unit = 4px
+   * via the default --spacing multiplier. The R4 numeric overrides that
+   * halved the convention for an arbitrary subset of steps (h-6=12px while
+   * h-7=28px and h-8=16px -- the root cause of the proportion disease) are
+   * DELETED; do not reintroduce numeric --spacing-N tokens.
+   * The rhythm law lives in R9_DESIGN_SYSTEM.md sec1: 8-pt grid, 4px
+   * half-step, 2px restricted to intra-control optical gaps. Allowed
+   * utility steps: 0.5* 1 2 3 4 5 6 7(controls) 8 10 12 16 20 24.
+   * scripts/audit-design-tokens.mjs enforces the set statically. ---------- */
+
+  /* --- Radius -- containers are SHARP rectangles (0px); only interactive
+   * elements soften to 4px (VYSTED_DESIGN.md). */
+  --radius-panel: 0; /* every container: panel, card, table, header, section */
+  --radius-control: 0.25rem; /* 4px -- button, input, toggle, pill, chip, popover, row */
+
+  /* --- Motion -- unified tiers (R4 sec5). DUR in motion.ts mirrors these in
+   * seconds; exits run ~30% faster than entrances. One vocabulary. --------- */
+  --duration-micro: 120ms; /* hover, toggle, button press, color flip, value-flash */
+  --duration-default: 180ms; /* dropdown, popover, tab switch, selection, palette open */
+  --duration-entrance: 240ms; /* panel mount, modal/sheet, sidebar slide */
+  --duration-exit: 160ms; /* exits ~30% faster than entrances (240 * 0.67) */
+  /* Legacy aliases -- kept so existing code that references them does not break */
+  --duration-instant: 120ms; /* was 100ms -- unified to micro tier */
+  --duration-fast: 160ms; /* exit tier */
+  --duration-base: 180ms; /* default tier */
+  --ease-enter: cubic-bezier(0.2, 0, 0, 1); /* decelerate, settle (arriving elements) */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1); /* accelerate away (leaving elements) */
+  --ease-shared: cubic-bezier(0.4, 0, 0.2, 1); /* elements that start+end on screen */
+  /* Legacy names -- kept so existing component references resolve */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1); /* mapped to enter easing */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1); /* mapped to shared easing */
+  --ease-instrument: cubic-bezier(0.2, 0, 0, 1); /* mapped to enter easing */
+  --ease-detent: cubic-bezier(0.4, 0, 0.2, 1); /* mapped to shared easing */
+}
+
+/* --- Tailwind 4 @utility -- named type-scale utilities -------------------- */
+@utility text-micro {
+  font-size: var(--text-micro);
+  line-height: var(--leading-heading);
+  font-weight: var(--font-weight-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@utility text-caption {
+  font-size: var(--text-caption);
+  line-height: var(--leading-body);
+}
+
+@utility text-body {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  font-weight: var(--font-weight-body);
+}
+
+/* Reading size for AI narratives, research briefs, and notes prose. The only
+   role at 16px; everything denser stays on text-body (13px) and below. */
+@utility text-prose {
+  font-size: var(--text-prose);
+  line-height: var(--leading-prose);
+  font-weight: var(--font-weight-body);
+}
+
+@utility text-panel-title {
+  font-size: var(--text-panel-title);
+  line-height: var(--leading-heading);
+  font-weight: var(--font-weight-label);
+}
+
+@utility text-section {
+  font-size: var(--text-section);
+  line-height: var(--leading-heading);
+  font-weight: var(--font-weight-heading);
+}
+
+@utility text-overview {
+  font-size: var(--text-overview);
+  line-height: var(--leading-display);
+  font-weight: var(--font-weight-heading);
+}
+
+@utility text-hero {
+  font-size: var(--text-hero);
+  line-height: var(--leading-hero);
+  font-weight: var(--font-weight-heading);
+  letter-spacing: -0.012em;
 }

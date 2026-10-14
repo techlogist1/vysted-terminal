@@ -1,0 +1,28 @@
+# R15-AGENT-053 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:06+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'carries a backtest AND a news publish\|caps a generic summary\|never duplicates chart' src/modules/chat/context-provider.test.ts; grep -n 'R15-AGENT-053' src/modules/chat/context-provider.ts src/modules/news/NewsFeedPanel.tsx src/modules/news/NewsFeedPanel.test.tsx | head; grep -n 'topHeadline\|focusedHeadline\|loadSymbolIntoChart' src/modules/news/NewsFeedPanel.tsx | head
+--- output ---
+250:  it("carries a backtest AND a news publish, each as a generic summary", () => {
+294:  it("caps a generic summary to 200 characters", () => {
+305:  it("never duplicates chart/watchlist/portfolio sources into otherPanels", () => {
+src/modules/chat/context-provider.ts:112: * (R15-AGENT-053). `summary` is a compact `key=value` projection of the
+src/modules/chat/context-provider.ts:133:  /** Every other published source's generic summary (R15-AGENT-053) — news,
+src/modules/chat/context-provider.ts:275:/** A generic per-source summary's cap (R15-AGENT-053) — compact enough that
+src/modules/chat/context-provider.ts:282: * payload shape with zero per-panel code (R15-AGENT-053) — a new publisher is
+src/modules/chat/context-provider.ts:294:      // R15-AGENT-053: an array of primitives (symbol lists, tag lists, …) is
+src/modules/chat/context-provider.ts:408:      // R15-AGENT-053: every other publisher (news, backtest, earnings,
+src/modules/news/NewsFeedPanel.tsx:141:        // Sibling of the anchor, not nested inside it (R15-AGENT-053): a
+src/modules/news/NewsFeedPanel.tsx:206:  // R15-AGENT-053: give the agent an actual headline, not just an opaque
+src/modules/news/NewsFeedPanel.test.tsx:212:  it("renders symbol chips as buttons outside the article anchor and loads the symbol on click (R15-AGENT-053)", async () => {
+src/modules/news/NewsFeedPanel.test.tsx:236:  it("publishes the top headline, and the hovered row's headline on mouseEnter (R15-AGENT-053)", async () => {
+9:import { loadSymbolIntoChart } from "@/lib/host-actions";
+151:              onClick={() => loadSymbolIntoChart(symbol)}
+209:  const focusedHeadline =
+213:  const topHeadline = state.status === "ready" ? (state.items[0]?.title ?? null) : null;
+222:        focusedHeadline,
+223:        topHeadline,
+230:    //   - `focusedHeadline`/`topHeadline` are derived primitives (or null)
+232:  }, [publishPanelContext, newsSymbols, focusedArticleId, focusedHeadline, topHeadline]);
+
+EXIT=0 (0.0s)

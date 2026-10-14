@@ -1,0 +1,9 @@
+Entry: R15-UI-052 (batch-9, W5-frontend-shell)
+Repro per register: first-run copy claims "web research run[s] right now" with no key, and "Nothing leaves this computer... fully private... offline" though tickers/search go to Yahoo/NSE/BSE/web search (pre-fix false claims).
+No GUI/no vitest available to this battery role -> ci_pinned.
+Pinned committed tests:
+  src/components/OnboardingFlow.test.tsx:34-50 comment + describe("OnboardingFlow welcome step (R15-UI-052)")
+  src/components/OnboardingBanner.test.tsx:57 it("does not claim nothing leaves the machine (R15-UI-052) — only keys do not")
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/components/OnboardingBanner.test.tsx:57:  it("does not claim nothing leaves the machine (R15-UI-052) — only keys do not", async () => {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/components/OnboardingFlow.test.tsx:34:// R15-UI-052: the welcome step used to claim "web research run[s] right now"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/src/components/OnboardingFlow.test.tsx:50:describe("OnboardingFlow welcome step (R15-UI-052)", () => {

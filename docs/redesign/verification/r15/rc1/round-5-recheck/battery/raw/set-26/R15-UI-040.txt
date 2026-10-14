@@ -1,0 +1,38 @@
+=== R15-UI-040 (source inspection + live wire-shape check, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd) ===
+Frontend client-store behavior (cancelDelegateRun / adoptSidecarRuns in src/lib/delegate-runs.ts)
+is not exercisable from this in-process sidecar probe (vitest suites are the heavy lane's per
+this role's scope). Certified via a committed regression test plus a source read cross-checked
+against a live GET /runs wire shape from this shard's own sidecar (:52340).
+
+grep -n "R15-UI-040" src/lib/delegate-runs.test.ts:
+168:// -- R15-UI-040: the sidecar, not the store, decides which runs exist --
+
+Two describe-block cases under that marker (src/lib/delegate-runs.test.ts, "delegate-runs -- sidecar truth"):
+  - "adopts a live sidecar run the store never saw (a webview reload), once" -- calls
+    adoptSidecarRuns() twice against a fetch stub returning one running + one done run;
+    asserts exactly one row adopted (dedup via store.bySidecarId), with provider/cost/status
+    mirrored from the wire.
+  - "a failed cancel leaves the run running with a retry message" -- cancelDelegateRun("run-4")
+    against a 500 response asserts {ok:false, error:"Cancel failed (HTTP 500) -- retry."} AND
+    that the run's local status stays "running" (never optimistically flipped); a second call
+    against a 200 flips it to "cancelled".
+
+Source read, src/lib/delegate-runs.ts:
+  - cancelDelegateRun (336-...) only marks local status "cancelled" AFTER sidecarRequest
+    resolves ok; sidecarRequest throws/returns an error on !response.ok, so a failed cancel
+    never touches local state.
+  - adoptSidecarRuns (fetchRuns -> for each live-status run the store doesn't already have via
+    bySidecarId(w.id), store.startRun(...) then store.updateRun(...)) -- adopts exactly the
+    runs GET /runs returns that the store hasn't seen, no duplicates on a second call.
+
+Live GET /runs on this shard's own sidecar (:52340) confirms the RunWire shape adoptSidecarRuns
+expects -- both snake_case and camelCase on the wire:
+CMD: curl -s http://127.0.0.1:52340/runs
+{"runs":[{"id":"...","agent_id":"copilot","agent_name":"Vysted Copilot","mode":"delegate",
+"status":"cancelled","cost":{"tokens":0,"spend_usd":0.0,"steps":0,"spendUsd":0.0},...,
+"agentId":"copilot","agentName":"Vysted Copilot","createdAt":...,"updatedAt":...}, ...]}
+-- both id and agent_id/agentId, cost.spend_usd/spendUsd, created_at/createdAt present.
+
+VERDICT: ci_pinned (src/lib/delegate-runs.test.ts, "delegate-runs -- sidecar truth" describe
+block, both R15-UI-040 cases) -- source + live wire-shape corroborate; the store-level
+assertions themselves were not re-executed (vitest is the heavy lane's).

@@ -1,0 +1,7 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ curl -s -m 100 '127.0.0.1:52340/disclosures/announcements?symbol=HDFCBANK&limit=40' | python3 -c "
+import sys,json,collections;d=json.load(sys.stdin);r=d.get('announcements',d.get('items',[]));print(len(r),collections.Counter(x.get('exchange') for x in r));
+k=collections.Counter((str(x.get('published_at') or x.get('date'))[:10]) for x in r);print(k.most_common(4))"
+exit=0
+40 Counter({'NSE': 33, 'BSE': 7})
+[('None', 40)]

@@ -1,0 +1,5 @@
+Code check (no GUI; static verification of the certified fix code at candidate sha):
+1. src/components/ConfirmButton.tsx exists (double-click-to-confirm pattern), used in: AgentBuilderPanel.tsx, WorkspaceDialog.tsx, SettingsPanel.tsx, PortfolioPanel.tsx, ScreenerPanel.tsx, MarketplacePanel.tsx (grep -l ConfirmButton across all 6 -> all 6 hit).
+2. SettingsPanel.tsx:445-453 handleRemove() wraps deleteSecret(keychain_delete) in try/catch, sets removeError from error.message -- the previously-unhandled-rejection path now surfaces a reason.
+3. batch-10 verifier's live evidence: 'ScreenerPanel.tsx:388 and MarketplacePanel.tsx:282 wrap delete/remove in ConfirmButton; vitest MarketplacePanel a single click on Remove does not remove the plugin; a second click confirms it.' Frontend-behavior assertion (double-click semantics, actual DOM interaction) requires vitest -- not run per role rules (heavy lane owns vitest/pytest).
+NOT RUN: vitest component behavior (double-click confirm timing, actual removeError render) -- role forbids running vitest suites; static code confirms the cited fix lines are present and unchanged.

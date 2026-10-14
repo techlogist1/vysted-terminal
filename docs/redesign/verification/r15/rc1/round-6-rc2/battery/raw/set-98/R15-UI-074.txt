@@ -1,0 +1,7 @@
+$ grep pinned test
+src/modules/research/brief-layout.test.tsx:28:  it("caps heading, prose and list blocks at max-w-prose but lets a table use the panel width", () => {
+src/modules/research/brief-layout.test.tsx:32:      return el?.closest(".max-w-prose") ?? null;
+src/modules/equity-overview/EquityOverviewPanel.tsx:404:        // Reading surface: capped line length (R9 §7 max-w-prose), never ~150ch.
+src/modules/equity-overview/EquityOverviewPanel.tsx:405:        <div data-testid="narrative-body" className="flex max-w-prose flex-col gap-3 px-3 py-3">
+src/modules/research/brief-blocks.tsx:1002:        // Reading blocks cap their line length (R9 §7 max-w-prose); tables and
+src/modules/research/brief-blocks.tsx:1007:          className={block.kind === "table" || block.kind === "code" ? undefined : "max-w-prose"}

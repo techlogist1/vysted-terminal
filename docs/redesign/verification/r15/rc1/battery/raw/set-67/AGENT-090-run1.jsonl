@@ -1,0 +1,124 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_6da7d7287edd4ea8ba5456597d40f0b1", "name": "financial_statements", "input": {"period": "quarterly", "statement": "cashflow", "symbol": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_6da7d7287edd4ea8ba5456597d40f0b1", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "delta", "text": "Based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " call"}
+{"kind": "delta", "text": " response"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " one"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "DR"}
+{"kind": "delta", "text": " represents"}
+{"kind": "delta", "text": " six"}
+{"kind": "delta", "text": " ordinary"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " use"}
+{"kind": "delta", "text": " another"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " since"}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " directly"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " fetching"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " quarterly"}
+{"kind": "delta", "text": " cash"}
+{"kind": "delta", "text": " flow"}
+{"kind": "delta", "text": " statement"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "tool_use", "tool_call_id": "call_1ace678649a244998c8a81b371bf9c73", "name": "financial_statements", "input": {"__vysted_invalid_args__": "invalid arguments for financial_statements: 'latest' is not one of ['annual', 'quarterly']; call again with valid args"}}
+{"kind": "tool_result", "tool_call_id": "call_1ace678649a244998c8a81b371bf9c73", "name": "financial_statements", "ok": false, "error": "invalid arguments for financial_statements: 'latest' is not one of ['annual', 'quarterly']; call again with valid args"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " calling"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " correct"}
+{"kind": "delta", "text": " parameters"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "tool_use", "tool_call_id": "call_00c2daf98feb441685f0dc74c8986409", "name": "financial_statements", "input": {"__vysted_invalid_args__": "invalid arguments for financial_statements: 'balance_sheet' is not one of ['income', 'balance', 'cashflow']; call again with valid args"}}
+{"kind": "tool_result", "tool_call_id": "call_00c2daf98feb441685f0dc74c8986409", "name": "financial_statements", "ok": false, "error": "invalid arguments for financial_statements: 'balance_sheet' is not one of ['income', 'balance', 'cashflow']; call again with valid args"}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " get"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " again"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "{\""}
+{"kind": "delta", "text": "name"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "financial"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "parameters"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " {\""}
+{"kind": "delta", "text": "period"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": "\":\""}
+{"kind": "delta", "text": "tt"}
+{"kind": "delta", "text": "m"}
+{"kind": "delta", "text": "\",\""}
+{"kind": "delta", "text": "symbol"}
+{"kind": "delta", "text": "\":\""}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "\"}}"}
+{"kind": "done", "usage": {"input_tokens": 3173, "output_tokens": 41, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

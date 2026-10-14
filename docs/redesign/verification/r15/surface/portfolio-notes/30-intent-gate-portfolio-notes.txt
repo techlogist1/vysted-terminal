@@ -1,0 +1,15 @@
+IntentResult(intent='read', confidence=0.35, signals=[], compound=False) | I bought 10 shares of INFY at 1500, track it in my portfolio
+IntentResult(intent='edit', confidence=0.95, signals=['\\badd\\b'], compound=False) | Add 10 INFY.NS at 1500 to my portfolio
+IntentResult(intent='read', confidence=0.35, signals=[], compound=False) | Put 25 HDFC Bank at 1600 in my paper portfolio
+IntentResult(intent='edit', confidence=0.95, signals=['\\bbuy(ing)?\\b'], compound=False) | Log a buy: 5 TCS @ 2500
+IntentResult(intent='edit', confidence=0.95, signals=['\\bremove\\b'], compound=False) | I sold my TCS, remove it from my portfolio
+IntentResult(intent='read', confidence=0.35, signals=[], compound=False) | Delete TCS from my portfolio
+IntentResult(intent='edit', confidence=0.95, signals=['\\bchange\\b'], compound=False) | Change my TCS position to 25 shares
+IntentResult(intent='read', confidence=0.35, signals=[], compound=False) | Update my RELIANCE cost basis to 1180
+IntentResult(intent='read', confidence=0.35, signals=[], compound=False) | My RELIANCE lot is actually 12 shares not 10
+IntentResult(intent='read', confidence=0.35, signals=[], compound=False) | Save a note on RELIANCE: capex guidance raised
+IntentResult(intent='read', confidence=0.35, signals=[], compound=False) | Append to my RELIANCE note that Jio IPO is H1
+IntentResult(intent='read', confidence=0.35, signals=[], compound=False) | Remember that HAL results are on 12 Nov
+IntentResult(intent='read', confidence=0.35, signals=[], compound=False) | Write this to my general notes: rates on hold
+IntentResult(intent='read', confidence=0.35, signals=[], compound=False) | Replace my TCS note with: exit below 2000
+IntentResult(intent='read', confidence=0.6, signals=['\\?\\s*$'], compound=False) | How is my portfolio doing?

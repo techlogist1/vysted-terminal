@@ -1,0 +1,3 @@
+=== R15-DATA-032: GET /earnings/INFY/estimates ===
+CMD: curl -s -m 30 http://127.0.0.1:52344/earnings/INFY/estimates
+{"symbol":"INFY.NS","fiscal_period":null,"eps_estimate_mean":19.61527,"eps_estimate_median":null,"eps_estimate_high":20.33,"eps_estimate_low":19.2,"eps_estimate_stddev":null,"estimate_analyst_count":8,"revenue_estimate_mean":491654926200.0,"revenue_estimate_median":null,"revenue_estimate_high":510007656000.0,"revenue_estimate_low":472000000000.0,"revenue_analyst_count":16,"currency":"INR","revenue_currency":"INR","provider":"yfinance","as_of":"2026-09-27T13:54:14.450777Z"}

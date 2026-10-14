@@ -1,0 +1,12 @@
+[
+  {
+    "key": "rc1-battery-21:1",
+    "kind": "environment",
+    "severity": "high",
+    "register_id": null,
+    "title": "Shared candidate scratch worktree's docs/ tree (5148 files) shows deleted on disk though HEAD's git tree is intact",
+    "repro": "git -C <candidate-worktree> status --short | grep -c '^ D' -> 5148, all under docs/ (docs/redesign/verification/ survives); git show HEAD:<any deleted docs path> still returns full content. sidecar/, src/, src-tauri/, styles/, types/ are untouched (0 deletions outside docs/).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/battery/set-45.md",
+    "suspected_files": []
+  }
+]

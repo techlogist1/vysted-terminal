@@ -1,0 +1,11 @@
+# R15-DOCS-007 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:46:44+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'charcoal + warm amber + sage' docs/BLUEPRINT.md; echo stale-palette-grep-exit=$?; grep -n -i 'dark-only\|light theme' docs/BLUEPRINT.md | head -4; grep -n -i 'UC2\|UC4' docs/BLUEPRINT.md | head -4; grep -n -i 'openbb-mcp.*\(degrade\|unavailable\|501\|fallback\)' docs/BLUEPRINT.md | head -4
+--- output ---
+stale-palette-grep-exit=1
+251:7. Theming engine (dark-only ships; light theme is deferred, see spec.md FR-030)
+661:Custom AI agent fine-tuned to research domain → workflow pulls SEC + sentiment → outputs to chart → workspace becomes reproducible dissertation methodology. (Same MCP-unavailable degrade as UC2 applies to the SEC pull.)
+655:Cmd+K → "Research XYZ" → AI Researcher pulls everything → chart + news in adjacent panels → backtest dividend strategy → save workspace. (If the openbb-mcp sidecar hasn't bound its port yet, data-heavy tools degrade to the yfinance fallback or a 501 rather than blocking the flow.)
+
+EXIT=0 (0.0s)

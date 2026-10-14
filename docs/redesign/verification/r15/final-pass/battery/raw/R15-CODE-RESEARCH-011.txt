@@ -1,0 +1,21 @@
+# R15-CODE-RESEARCH-011 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:53+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import inspect, typing
+from services.research import semantics as s
+for n,f in sorted(vars(s).items()):
+    if n.startswith('_') and n.endswith('_leg') and callable(f):
+        print(n, inspect.signature(f).return_annotation, '| params:', list(inspect.signature(f).parameters))
+PY
+grep -n 'for symmetry' "$C/sidecar/services/research/semantics.py"; echo "symmetry-discard grep exit=$? (1=none)"
+--- output ---
+_dividend_leg tuple[dict[str, Any], list[dict[str, Any]]] | params: ['fund', 'price', 'provider']
+_dividend_ttm_leg tuple[dict[str, Any], list[dict[str, Any]]] | params: ['fund', 'dps', 'provider']
+_earnings_quality_leg tuple[dict[str, Any], list[dict[str, Any]]] | params: ['fund', 'provider']
+_growth_leg tuple[dict[str, Any], list[dict[str, Any]]] | params: ['fund', 'provider']
+_market_cap_witness_leg tuple[dict[str, Any], list[dict[str, Any]]] | params: ['fund', 'price', 'provider']
+_ownership_leg tuple[dict[str, Any], list[dict[str, Any]]] | params: ['fund', 'provider']
+_range_leg tuple[dict[str, Any], list[dict[str, Any]]] | params: ['fund', 'provider']
+symmetry-discard grep exit=1 (1=none)
+
+EXIT=0 (0.5s)

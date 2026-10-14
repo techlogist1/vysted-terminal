@@ -1,0 +1,3 @@
+CMD: python3 -c 'from services.agent_tools.catalog import _RESEARCH_WALL_DESCRIPTION; print(_RESEARCH_WALL_DESCRIPTION)' (in sidecar venv)
+OUTPUT:
+30-360 seconds (deep/heavy only). Omit it: each depth sets its own budget (deep 180, heavy 360).

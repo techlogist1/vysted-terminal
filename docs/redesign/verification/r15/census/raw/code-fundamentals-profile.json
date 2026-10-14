@@ -1,0 +1,152 @@
+[
+  {
+    "raw_id": "COD-fundamentals-profile-1",
+    "title": "field_meta is optional on the contract and only one of six producers populates it",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "fundamentals-profile",
+    "repro": "design; verified at runtime: fundamentals_store.row_to_pair({'symbol':'CCC.NS','quote_price':100.0,...}) -> Fundamentals.field_meta is None",
+    "evidence": "sidecar/models/fundamentals.py:128, sidecar/services/fundamentals_store.py:531, sidecar/services/yfinance_provider.py:188, types/data.ts:155",
+    "notes": "Define errors out of existence + information hiding. The subsystem exists to make per-field provenance answerable, but `field_meta: dict[str, FieldMeta] | None = None` makes absence legal, so a consumer cannot distinguish 'this provider does no provenance' from 'this field has no provenance'. The ONLY producer in the tree is yfinance_provider._served_field_meta (grep over sidecar/services shows no other populating site); openbb_mcp_provider, bse_provider, the store path and the bhavcopy lane all emit None. Consequence: the entire India full-market screener serves values through fundamentals_store.row_to_pair with zero provenance while the type claims the contract is satisfied. Smallest fix: make field_meta non-optional and derive it in row_to_pair from the tier stamps the row already carries (seed_updated_at / v7_updated_at / info_updated_at, fundamentals_store.py:141-146); providers that cannot do better emit status='unavailable' instead of an absent map."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-2",
+    "title": "_migrate hardcodes three columns instead of deriving from _NUMERIC_FIELDS — the next numeric field crashes every existing install",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "fundamentals-profile",
+    "repro": "append 'ebitda_margin' to _NUMERIC_FIELDS + _V7_NUMERIC_FIELDS, open an EXISTING fundamentals_cache.db -> _connect() does not add the column (verified: PRAGMA table_info shows it absent) and upsert_v7 raises sqlite3.OperationalError: table fundamentals has no column named ebitda_margin. A fresh DB gets the column from _SCHEMA, so every test and every CI run passes.",
+    "evidence": "sidecar/services/fundamentals_store.py:176-182, sidecar/services/fundamentals_store.py:121-152, sidecar/services/fundamentals_store.py:67-95, sidecar/services/fundamentals_store.py:173-174",
+    "notes": "Information leakage: _SCHEMA is generated from _NUMERIC_FIELDS but _migrate iterates a hand-written 3-tuple (info_failed_at, seed_updated_at, eod_updated_at). CREATE TABLE IF NOT EXISTS is a no-op on an existing table — the module docstring at :173-174 says exactly that, then the code does not act on it. Fires on upgrade, on users, after CI is green; upsert_v7_batch (:359-364) has no per-row guard so the whole India sweep dies on the first write. Smallest fix: derive the expected column set from the same declaration that builds _SCHEMA and ALTER TABLE ADD COLUMN for every name PRAGMA table_info does not report; add one test that opens a DB created from a trimmed _NUMERIC_FIELDS."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-3",
+    "title": "ProviderError.kind is honoured on one route and dropped on four siblings — a throttle answers 429 or 502 depending on the URL",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "fundamentals-profile",
+    "repro": "with provider_registry raising ProviderError(..., kind='rate_limited'): GET /fundamentals/RELIANCE.NS -> 429; GET /fundamentals/RELIANCE.NS/income -> 502; /balance -> 502; /ratings -> 502 (verified with fastapi TestClient against create_app()).",
+    "evidence": "sidecar/routers/fundamentals.py:104-115, sidecar/app.py:312-315, sidecar/routers/fundamentals.py:180, sidecar/routers/fundamentals.py:186, sidecar/routers/fundamentals.py:192, sidecar/routers/fundamentals.py:198, sidecar/services/yfinance_provider.py:53-65",
+    "notes": "Pull complexity downward + consistency. The kind->HTTP map lives inline in get_fundamentals while app.py:312 already owns ProviderError->HTTP for the whole app and flattens everything to 502. The statement/ratings routes DO raise classified errors (yfinance_provider.py:424,437,448,463 all go through _provider_error, which sets kind='rate_limited'), so the classification is produced and then discarded at the boundary. Consequence on the exact D53 scenario (Yahoo-throttled Indian IP): the equity-overview panel opens all five endpoints, one tells the client to back off and four tell it the provider is permanently broken, so it retries into the throttle; per the CLAUDE.md CORS gotcha the user sees a CORS error. Smallest fix: move the kind->status map into app.py:312-315 and DELETE routers/fundamentals.py:104-115 plus the three redundant `except ProviderError -> 502` blocks at :219-220, :238-239, :257-258 (net deletion; every route in the sidecar gains the honest status)."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-4",
+    "title": "The agent tool discards ProviderError.kind then re-derives it by substring — real not_found errors report as provider_error",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "fundamentals-profile",
+    "repro": "ProviderError(\"Yahoo has no company record for 'KSE.NS'\", kind='not_found') -> _classify_reason('provider error: ...') returns 'provider_error' (verified). Same for ProviderError(\"yfinance returned a non-company (fund-id) record for '509470.BO'\", kind='not_found').",
+    "evidence": "sidecar/services/agent_tools/fundamentals.py:67-68, sidecar/services/agent_tools/fundamentals.py:44-51, sidecar/services/agent_tools/fundamentals.py:33-41, sidecar/services/yfinance_provider.py:334-342, sidecar/tests/test_fundamentals_tool.py:90-101",
+    "notes": "Different layer different abstraction: _fetch_once catches ProviderError and stringifies it (`f\"provider error: {exc}\"`), throwing away the structured .kind the provider layer already computed; _classify_reason then guesses it back from _NOT_FOUND_MARKERS/_RATE_LIMIT_MARKERS. Neither real not_found message contains any marker, so the closed R13 vocabulary documented at :24-31 is inverted: the model is told 'OUR feed's gap, the data may well exist' when the truth is 'this instrument does not exist', and it narrates the wrong cause. The guarding test constructs ProviderError('429 too many requests') with NO kind= — it only ever exercises the substring path, so the suite stays green. Smallest fix: add `kind: str | None` to _FetchResult, set it from exc.kind at :67, and demote _classify_reason to the un-kinded fallback."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-5",
+    "title": "The store column vocabulary is declared by hand in three modules; drift raises sqlite3.OperationalError mid-screen or silently under-exports the shipped seed pack",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "fundamentals-profile",
+    "repro": "prefilter(['AAA.NS'], [NumericThresholdCriterion(field='ebitda_margin', operator='gt', value=0.1)]) -> sqlite3.OperationalError: no such column: ebitda_margin, raised uncaught from inside _work (verified). The three lists are byte-identical today (27 names each) with nothing asserting it.",
+    "evidence": "sidecar/services/fundamentals_store.py:67-95, sidecar/services/screener_universes/regenerate_fundamentals_seed.py:33-61, sidecar/models/screener.py:58-93, sidecar/services/fundamentals_store.py:669-687, sidecar/services/fundamentals_store.py:740-749",
+    "notes": "Information leakage, three ways. (a) fundamentals_store._NUMERIC_FIELDS builds the SQL schema; (b) regenerate_fundamentals_seed._NUMERIC_FIELDS decides what the BUNDLED SEED PACK every fresh install seeds from actually contains — a field added to the store but not here under-exports silently, with no error anywhere; (c) models/screener.ScreenerNumericField is the criterion Literal, and _criterion_fails_sql uses `col = criterion.field` verbatim as a SQL identifier for string/set criteria with no allow-list, so a Literal-only addition turns into an uncaught OperationalError in the middle of a user's screen. Smallest fix: one owned declaration — derive ScreenerNumericField (Literal[*_NUMERIC_FIELDS, 'price', 'change_percent_1d', 'volume']) and the exporter list from the store's, and assert col is in the known column set before it reaches SQL."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-6",
+    "title": "row_to_pair renders unknown day-change as 0.0 and falls back to USD while ignoring the row's own currency column",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "fundamentals-profile",
+    "repro": "row_to_pair({'symbol':'CCC.NS','quote_price':100.0,'quote_change':None,'quote_change_percent':None,'quote_currency':None,'provider':'seed'}) -> Quote(change=0.0, change_percent=0.0, currency='USD') (verified)",
+    "evidence": "sidecar/services/fundamentals_store.py:550-553, sidecar/services/fundamentals_store.py:272, sidecar/services/screener.py:748, sidecar/models/market.py:22",
+    "notes": "'Unknown' coerced into an asserted value on a money-relevant surface. `change=row.get('quote_change') or 0.0` makes a genuinely unknown day-change render as a confident 'unchanged / 0.00%' in the screener results table (services/screener.py:748 is the consumer), and `currency=row.get('quote_currency') or 'USD'` ignores the row's OWN `currency` column, which seed_fundamentals populates with 'INR' (:272), on an India-first terminal. `or` also swallows a legitimate 0.0. Smallest fix: fall back to the row's `currency` column before the literal, and leave change/percent unset rather than 0.0 (widen Quote.change to float | None, or omit the quote when the change is unknown)."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-7",
+    "title": "The India boot seed runs twice, concurrently, from two unrelated code paths",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "fundamentals-profile",
+    "repro": "design; on an IN-region boot start_warm_fundamentals schedules _boot_seed() AND _sweep_loop runs seed_india_store() on its first cycle behind a local `seeded` flag. Nothing coordinates them.",
+    "evidence": "sidecar/services/fundamentals_warm.py:416-424, sidecar/services/fundamentals_warm.py:203-208, sidecar/services/fundamentals_warm.py:107-152",
+    "notes": "Temporal decomposition + duplicated truth. Every IN boot builds the 5k-symbol india-all row list and loads/decompresses the bundled seed pack TWICE, concurrently, with both calls contending fundamentals_store._lock. It is idempotent (NULL-fill only), so not wrong data — just doubled boot cost on the path whose whole justification is '<1 s, local-only' (:112-113), and a reader who cannot tell which path is authoritative. Smallest fix: delete the `seeded` flag and the seed call from _sweep_loop; start_warm_fundamentals already owns it."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-8",
+    "title": "The boot-seed task handle is discarded so shutdown cannot cancel it, and the leak test runs in the one region where the branch never fires",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "fundamentals-profile",
+    "repro": "design; loop.create_task(_boot_seed()) returns a handle that is never stored, so stop_warm_fundamentals (which cancels _sweep_task/_crawl_task/_bhavcopy_task) cannot reach it. test_start_stop_clean_no_leaked_tasks asserts 'no leaked tasks' but its own comment states 'Region defaults to US in tests', so the get_region()=='IN' branch that creates the task is never entered.",
+    "evidence": "sidecar/services/fundamentals_warm.py:416-424, sidecar/services/fundamentals_warm.py:433-444, sidecar/tests/test_fundamentals_warm.py:288-302",
+    "notes": "CLAUDE.md explicitly treats detached-task leaks as a standing hazard (run_manager.shutdown must stay in the lifespan finally, or detached tasks leak). Here the guard exists for three tasks and misses the fourth, and the test that would catch it is structurally blind to it — false assurance, not absent coverage. asyncio may also GC an unreferenced task mid-flight. Smallest fix: store it as _seed_task, include it in the cancel list at :436, and monkeypatch the region to 'IN' in the leak test."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-9",
+    "title": "Crawl cycle gathers without return_exceptions and writes to the store outside the per-symbol guard",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "fundamentals-profile",
+    "repro": "design; a sqlite failure in upsert_info (line 362, outside the try at 344-361) propagates out of _one, aborts asyncio.gather (line 366, no return_exceptions=True), discards the `fetched` count, and leaves the sibling coroutines' exceptions unretrieved.",
+    "evidence": "sidecar/services/fundamentals_warm.py:362, sidecar/services/fundamentals_warm.py:366, sidecar/services/fundamentals_warm.py:344-361",
+    "notes": "The per-symbol try carefully distinguishes a throttle from a genuine absence (:351-355) and shrugs off fetch failures — then the store write, the one call that can fail for an unrelated reason (see COD-fundamentals-profile-2), sits outside it. _crawl_loop catches the escape at :382 and logs at DEBUG, so the whole cycle silently reports fetched=0 and the operator sees a stalled crawler with no signal. Smallest fix: move the upsert inside the try and pass return_exceptions=True."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-10",
+    "title": "Three verbatim copies of the ratings cache-fetch-store block, each carrying an except clause the global handler already performs",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "fundamentals-profile",
+    "repro": "design",
+    "evidence": "sidecar/routers/fundamentals.py:206-222, sidecar/routers/fundamentals.py:225-241, sidecar/routers/fundamentals.py:244-260, sidecar/app.py:312-315",
+    "notes": "Repetition. Three 16-line blocks differing only in the cache-key suffix, the response model and the service function. Each ends with `except ProviderError: raise HTTPException(502)` — exactly what app.py:312-315 does unconditionally, so all three except clauses are dead code that additionally BLOCKS the kind-aware fix in COD-fundamentals-profile-3 from reaching these routes. No test asserts the three stay identical, so a cache-policy change is a 3x edit that can drift. Smallest fix: one `_cached(key, ttl, model, fetch)` helper, and delete the three except blocks."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-11",
+    "title": "The store's own freshness block omits the seed tier, so the screener reimplements it",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "fundamentals-profile",
+    "repro": "design; freshness() iterates only ('quote_updated_at','v7_updated_at','info_updated_at'), so a fresh install serving entirely seed-pack values (all three stamps NULL) returns {} — an empty honest-coverage block.",
+    "evidence": "sidecar/services/fundamentals_store.py:799-813, sidecar/services/fundamentals_store.py:145, sidecar/services/screener.py:625, sidecar/services/screener.py:806",
+    "notes": "Better together or better apart. seed_updated_at is written (fundamentals_store.py:286) and is a column (:145), but the module that owns 'the honest-coverage freshness block' does not report it; services/screener.py separately collects seed stamps (:625) and injects freshness['seed_as_of'] (:806). Two implementations of one concept, and the store's — the one any new consumer will reach for — is the incomplete one, silently claiming 'no freshness information' about data whose age is known. Smallest fix: add ('seed_updated_at','seed_as_of') to the loop at :805-809 and delete the screener's duplicate."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-12",
+    "title": "FieldMeta.status is a closed union in TypeScript and an unvalidated str in Pydantic",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "fundamentals-profile",
+    "repro": "design; FieldMeta(status='unavaliable') validates and serializes on the Python side; the TS consumer's switch over \"ok\"|\"withheld\"|\"unavailable\" believes itself exhaustive and silently falls through.",
+    "evidence": "sidecar/models/fundamentals.py:39, sidecar/models/fundamentals.py:23-33, types/data.ts:179",
+    "notes": "Define errors out of existence, and the CLAUDE.md hand-mirror gotcha (types/data.ts mirrors sidecar/models by hand) biting in KIND rather than in presence. The three legal values are enumerated in the docstring at :23-33 — an invariant held by a comment when the type could hold it, on the one field whose entire job is to be machine-readable. Smallest fix: status: Literal['ok','withheld','unavailable']."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-13",
+    "title": "growth_basis defaults to 'mrq_yoy' on every Fundamentals, including store rows whose growth came from a months-old seed pack",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "fundamentals-profile",
+    "repro": "fundamentals_store.row_to_pair(row) -> Fundamentals.growth_basis == 'mrq_yoy' even when revenue_growth was NULL-filled by seed_fundamentals from the bundled pack (verified)",
+    "evidence": "sidecar/models/fundamentals.py:102, sidecar/models/fundamentals.py:97-101, sidecar/services/fundamentals_store.py:531-539, sidecar/services/fundamentals_store.py:259-302",
+    "notes": "The docstring at :97-101 states 'Every surface rendering the growth fields must disclose this basis; a provider supplying a different basis must set this field accordingly' — and then the default supplies the disclosure for every provider that forgets, including the store path, which cannot know the basis of a seeded value. A defaulted provenance claim is indistinguishable from a verified one at the type level, which is precisely the failure this subsystem exists to prevent. Smallest fix: default growth_basis to None and have each producer set it explicitly; the yfinance provider is the only one that can honestly claim mrq_yoy."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-14",
+    "title": "The four throttle-prone fundamentals routes are uncached while their three siblings cache into an unbounded, never-evicting store",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "fundamentals-profile",
+    "repro": "design; /income /balance /cashflow /ratings hit the provider on every request with no cache; /ratings/history /ratings/price-target-history /ratings/individual cache at 6h into services.data_cache, which documents 'the row is NOT auto-evicted' and has no size ceiling.",
+    "evidence": "sidecar/routers/fundamentals.py:180, sidecar/routers/fundamentals.py:186, sidecar/routers/fundamentals.py:192, sidecar/routers/fundamentals.py:198, sidecar/routers/fundamentals.py:211, sidecar/services/data_cache.py:106, sidecar/services/data_cache.py:113-118",
+    "notes": "Two defects in one seam. (a) The uncached four are exactly the routes the equity-overview panel opens on every symbol change and exactly the routes that raise kind='rate_limited' (see COD-fundamentals-profile-3) — caching them on the same 6h TTL is the cheapest throttle relief available and the file already has the pattern. (b) data_cache grows monotonically: three rows per symbol ever viewed, no eviction, no bound, so data_cache.db is unbounded on disk for a local-first desktop app. data_cache also executes SQLite synchronously ON THE EVENT LOOP (:113-118, :144-151), where fundamentals_store carefully offloads every query via asyncio.to_thread — two SQLite disciplines inside one request path. Smallest fix: cache the four; add a row-count ceiling with oldest-updated_at eviction to data_cache.set."
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-15",
+    "title": "_canonicalize blocks the event loop and can raise from a path documented as never raising, where its router twin threads and guards the identical call",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "fundamentals-profile",
+    "repro": "design; a symbol_resolver.resolve exception propagates out of _canonicalize -> _fundamentals, so the tool raises instead of returning the {'ok': False, ...} its own contract promises.",
+    "evidence": "sidecar/services/agent_tools/fundamentals.py:119, sidecar/services/agent_tools/fundamentals.py:61, sidecar/routers/fundamentals.py:73-75",
+    "notes": "Consistency: routers/fundamentals.py:73 wraps the SAME call in asyncio.to_thread AND try/except with the comment 'a resolver failure must not break /fundamentals'; agent_tools/fundamentals.py:119 does neither. Two consequences: the resolver's bundled-master index work runs on the event loop inside an async tool (stalling every concurrent request for its duration), and _fetch_once's stated guarantee at :61 ('error captured (never raised)') is defeated by the very function that runs after it. Smallest fix: mirror the router — `await asyncio.to_thread(symbol_resolver.resolve, ...)` inside a try that returns an empty _Canonicalization on failure."
+  }
+]

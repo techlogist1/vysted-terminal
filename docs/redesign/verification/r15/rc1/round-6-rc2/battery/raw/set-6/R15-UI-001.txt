@@ -1,0 +1,13 @@
+candidate ace7dd76; entry's repro is a full TipTap editor interaction (agent write_note into the open note, keystroke, scope switch within 600 ms debounce); no non-suite probe reproduces it headless. Pinned tests (vitest, heavy lane): src/modules/notes/NotesPanel.test.tsx
+50:  it("shows an agent write_note into the open note, and the next keystroke keeps it", async () => {
+70:  it("a scope switch inside the debounce window saves each scope's own text", async () => {
+10: *   A user edit captures `{scope, md}` and a debounced flush writes exactly that
+11: *   scope (flushed early on scope switch and unmount, so a pending save never
+158:  const flush = useCallback(() => {
+176:  // A user edit (programmatic loads never emit one) → capture + debounce.
+186:      timerRef.current = setTimeout(flush, SAVE_DEBOUNCE_MS);
+192:  }, [editor, flush]);
+199:      flush(); // the previous scope's pending edit lands in the previous scope
+209:  }, [editor, scope, storeNote, flush]);
+211:  // Closing the panel inside the debounce window still saves the last burst.
+212:  useEffect(() => flush, [flush]);

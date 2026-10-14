@@ -1,0 +1,40 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  60.0s] heartbeat: {"kind": "heartbeat"}
+[  70.0s] heartbeat: {"kind": "heartbeat"}
+[  80.0s] heartbeat: {"kind": "heartbeat"}
+[  90.0s] heartbeat: {"kind": "heartbeat"}
+[ 100.0s] heartbeat: {"kind": "heartbeat"}
+[ 101.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_c5fa4a305dad406e993dc1e8de0a2fdd", "name": "fundamentals", "input": {"symbol": "WIPRO.NS"}}
+[ 109.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_c5fa4a305dad406e993dc1e8de0a2fdd", "name": "fundamentals", "ok": true, "error": null}
+[ 119.6s] heartbeat: {"kind": "heartbeat"}
+[ 129.6s] heartbeat: {"kind": "heartbeat"}
+[ 139.6s] heartbeat: {"kind": "heartbeat"}
+[ 149.6s] heartbeat: {"kind": "heartbeat"}
+[ 159.6s] heartbeat: {"kind": "heartbeat"}
+[ 169.6s] heartbeat: {"kind": "heartbeat"}
+[ 179.6s] heartbeat: {"kind": "heartbeat"}
+[ 189.6s] heartbeat: {"kind": "heartbeat"}
+[ 205.5s] done: {"kind": "done", "usage": {"input_tokens": 5893, "output_tokens": 162, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Based on the tool call response, I can answer your question about WIPRO.NS.
+
+Here are some key fundamentals of Wipro Limited (WIPRO.NS):
+
+* Market Cap: ₹162,271 cr
+* P/E Ratio: 13.0381565 (flagged as potential discrepancy with trailing EPS)
+* Forward PE: 11.800509
+* Price to Book: 2.094229
+* Dividend Yield: 0.0489
+* Earnings Per Share (EPS): ₹12.62
+* Beta: 0.393
+
+The tool call also provides information on revenue, net income, free cash flow, and shares outstanding.
+
+Please let me know if you have any further questions or if there's anything else I can help you with.
+
+=== ok · 205.5s · events {'heartbeat': 18, 'tool_use': 1, 'tool_result': 1, 'delta': 161, 'done': 1} · usage in=5893 out=162 · est $0.00000 · llama3.1:8b

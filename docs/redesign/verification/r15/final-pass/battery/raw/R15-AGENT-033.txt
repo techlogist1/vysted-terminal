@@ -1,0 +1,75 @@
+# R15-AGENT-033 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) — shared Ollama-lane run under /tmp/vysted-r15-ollama.lock, provider ollama llama3.1:8b, IN region
+
+$ sh /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/ollama_lock_run.sh   # runs /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/ollama_runs.py:
+#   (1) POST /agents/copilot/runs {prompt: write_note RELIANCE, budget:{max_tokens:1000}} then poll GET /runs/{id}
+#   (2) the same run with the default budget (control)
+#   (3) POST /agents/copilot/invoke autonomy=ask 'Pull up Bharat Dynamics on the chart and add the RSI indicator'
+[exit 0]
+lock acquired 17:37:12
+17:37:12 BUDGET1000 launch 201 717f62d436bd42568e3f7e056076aecf budget {'max_tokens': 1000}
+17:37:57 BUDGET1000 FINAL {"status": "error", "detail": "token ceiling 1000 reached (6457 used)", "cost": {"tokens": 6457, "spend_usd": 0.0, "steps": 1}, "budget": {"max_tokens": 1000, "max_spend_usd": 1.0, "max_wall_seconds": 600.0, "max_steps": 12}, "host_actions": [], "activity": [], "checkpoint_messages": 1}
+17:37:57 CONTROL-default-budget launch 201 4b75ac6bc1044930b361484704708724 budget {}
+17:38:03 CONTROL-default-budget FINAL {"status": "done", "detail": "completed", "cost": {"tokens": 8255, "spend_usd": 0.0, "steps": 2}, "budget": {"max_tokens": 120000, "max_spend_usd": 1.0, "max_wall_seconds": 600.0, "max_steps": 12}, "host_actions": [{"tool_call_id": "call_f7e049fac29a47ae9bccaf505d93d065", "name": "write_note", "input": {"scope": "RELIANCE", "text": "Check Q2 results date", "mode": "append"}}], "activity": [{"tool": "write_note", "status": "ok", "summary": "{\"ok\": true, \"status\": \"awaiting_user_review\", \"staged_for_review\": true, \"note\": \"Staged in the user's review queue \\u2014 applies ONLY after they accept it. Tell the user you proposed this change fo"}], "checkpoint_messages": 3}
+17:38:46 ASK kinds ['tool_use', 'tool_use', 'tool_result', 'tool_result', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta', 'delta']
+17:38:46 ASK ev {"kind": "tool_use", "tool_call_id": "call_af7422b16ad64f02b841dbc39416f20a", "name": "set_chart_symbol", "input": {"symbol": "BDL", "timeframe": "1d"}}
+17:38:46 ASK ev {"kind": "tool_use", "tool_call_id": "call_247382f37b554e62ba81ad50a0a56481", "name": "set_chart_indicators", "input": {"indicators": ["rsi"], "symbol": "BDL", "timeframe": "1d"}}
+17:38:46 ASK ev {"kind": "tool_result", "tool_call_id": "call_af7422b16ad64f02b841dbc39416f20a", "name": "set_chart_symbol", "ok": true, "error": null}
+17:38:46 ASK ev {"kind": "tool_result", "tool_call_id": "call_247382f37b554e62ba81ad50a0a56481", "name": "set_chart_indicators", "ok": true, "error": null}
+17:38:46 ASK ev {"kind": "research_step", "tool_call_id": "call_247382f37b554e62ba81ad50a0a56481", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: set_chart_symbol BDL; set_chart_indicators BDL. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+17:38:46 ASK ev {"kind": "done", "usage": {"input_tokens": 1890, "output_tokens": 125, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+17:38:46 ASK text I've proposed changes to the chart. Please review them in the terminal.
+
+Current Chart:
+Bharat Dynamics (BDL) on a 1-day timeframe with RSI indicator.
+ Brief:
+
+Bharat Dynamics Limited (BDL)
+ Current Price: ₹143.05
+ Market Cap: ₹5,444 cr
+ P/E Ratio: 24.53
+ Dividend Yield: 0.45%
+ 50-Day Moving Average: ₹134.23
+
+ Chart:
+ A 1-day candlestick chart of BDL with RSI indicator.
+
+Please let me know if you'd like to make any adjustments.
+EXIT=0
+import json,time,urllib.request,sys
+U='http://127.0.0.1:52861'
+def req(m,p,body=None,h=None):
+    r=urllib.request.Request(U+p,method=m,data=(json.dumps(body).encode() if body is not None else None),headers={'Content-Type':'application/json','X-Vysted-Region':'IN',**(h or {})})
+    with urllib.request.urlopen(r,timeout=600) as f: return f.status,f.read().decode()
+def log(*a): print(time.strftime('%H:%M:%S'),*a,flush=True)
+prompt="Write a note for RELIANCE that says 'check Q2 results date' using the write_note tool."
+def run_delegate(budget,label):
+    st,b=req('POST','/agents/copilot/runs',{'prompt':prompt,'provider':'ollama','model':'llama3.1:8b','budget':budget})
+    rid=json.loads(b)['run_id']; log(label,'launch',st,rid,'budget',budget)
+    started=False; t0=time.time()
+    while time.time()-t0<480:
+        st,b=req('GET',f'/runs/{rid}'); d=json.loads(b); s=d.get('status')
+        if s in ('planned','awaiting_approval','plan_ready','awaiting_start') and not started:
+            log(label,'status',s,'-> start'); req('POST',f'/runs/{rid}/start',{}); started=True
+        if s in ('done','error','cancelled','needs_input','failed'): break
+        time.sleep(3)
+    log(label,'FINAL',json.dumps({k:d.get(k) for k in ('status','detail','cost','budget','host_actions','activity','checkpoint_messages')},default=str)[:2500])
+run_delegate({'max_tokens':1000},'BUDGET1000')
+run_delegate({},'CONTROL-default-budget')
+# AGENT-033: ASK autonomy chart prompt via foreground invoke
+body={'prompt':'Pull up Bharat Dynamics on the chart and add the RSI indicator','provider':'ollama','model':'llama3.1:8b','mode':'agent','autonomy':'ask'}
+r=urllib.request.Request(U+'/agents/copilot/invoke',method='POST',data=json.dumps(body).encode(),headers={'Content-Type':'application/json','X-Vysted-Region':'IN'})
+ev=[]
+with urllib.request.urlopen(r,timeout=600) as f:
+    for line in f:
+        line=line.decode().strip()
+        if line.startswith('data:'):
+            try: e=json.loads(line[5:])
+            except Exception: continue
+            if e.get('kind') in ('heartbeat',): continue
+            ev.append(e)
+text=''.join(e.get('text','') for e in ev if e.get('kind')=='delta')
+log('ASK kinds',[e.get('kind') for e in ev][:80])
+for e in ev:
+    if e.get('kind') in ('tool_use','tool_result','research_step','error','done') or 'notice' in json.dumps(e):
+        log('ASK ev',json.dumps(e,default=str)[:500])
+log('ASK text',text[:1500])

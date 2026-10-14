@@ -1,19 +1,23 @@
 /**
- * Quant store tests — round-trips through the mocked sidecar POST path.
+ * Quant store tests — round-trips through the mocked sidecar verb.
  *
- * ``fetch`` is stubbed at the global level (Vitest jsdom env); the store
- * resolves its sidecar URL via ``getSidecarBaseUrl`` which is mocked
- * here. Each test verifies one of the four pricing slices end-to-end:
- * loading → ready (or → error).
+ * The store POSTs through the shared ``sidecarRequest`` (R15-CODE-FRONTEND-027),
+ * mocked at the module boundary; ``SidecarError`` stays real. Each test
+ * verifies one of the four pricing slices end-to-end: loading → ready (or →
+ * error).
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { SidecarError, sidecarRequest } from "@/lib/sidecar-client";
 
 import { resetQuantStoreForTests, useQuantStore } from "./quant";
 
-vi.mock("@/lib/sidecar-client", () => ({
-  getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
-}));
+vi.mock("@/lib/sidecar-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
+  return { ...actual, sidecarRequest: vi.fn() };
+});
 
 const baseOptionRequest = {
   exercise: "european" as const,
@@ -30,25 +34,16 @@ const baseOptionRequest = {
 
 beforeEach(() => {
   resetQuantStoreForTests();
+  vi.mocked(sidecarRequest).mockReset();
 });
 
-afterEach(() => {
-  vi.restoreAllMocks();
-});
-
-function mockFetchOnce(body: object, ok = true, status = 200): void {
-  const fetchMock = vi.fn().mockResolvedValue({
-    ok,
-    status,
-    statusText: ok ? "OK" : "Error",
-    json: async () => body,
-  });
-  vi.stubGlobal("fetch", fetchMock);
+function mockResult(body: object): void {
+  vi.mocked(sidecarRequest).mockResolvedValue(body);
 }
 
 describe("useQuantStore.priceOption", () => {
   it("loads → ready and stores the result", async () => {
-    mockFetchOnce({
+    mockResult({
       price: 5.5,
       greeks: { delta: 0.6, gamma: 0.02, vega: 30, theta: -5, rho: 12 },
       method: "black-scholes",
@@ -62,17 +57,28 @@ describe("useQuantStore.priceOption", () => {
     expect(useQuantStore.getState().optionError).toBeNull();
   });
 
+  it("POSTs the request through the shared verb", async () => {
+    mockResult({ price: 5.5, greeks: {}, method: "black-scholes", duration_ms: 1 });
+    await useQuantStore.getState().priceOption(baseOptionRequest);
+    expect(sidecarRequest).toHaveBeenCalledWith("POST", "/quant/option/price", {
+      body: baseOptionRequest,
+    });
+  });
+
   it("captures errors via store.error", async () => {
-    mockFetchOnce({ detail: "bad request" }, false, 400);
+    // sidecarRequest turns the 400 into SidecarError(400, <detail>): the
+    // store shows the server's sentence (it used to prefix "POST <path>
+    // failed (400):" — one error policy now, the status rides `.status`).
+    vi.mocked(sidecarRequest).mockRejectedValue(new SidecarError(400, "bad request"));
     await expect(useQuantStore.getState().priceOption(baseOptionRequest)).rejects.toThrow();
     expect(useQuantStore.getState().optionStatus).toBe("error");
-    expect(useQuantStore.getState().optionError).toContain("400");
+    expect(useQuantStore.getState().optionError).toBe("bad request");
   });
 });
 
 describe("useQuantStore.computeGreeks", () => {
   it("stores the greeks slice", async () => {
-    mockFetchOnce({
+    mockResult({
       greeks: { delta: 0.6, gamma: 0.02, vega: 30, theta: -5, rho: 12 },
       price: 5.5,
       duration_ms: 1.0,
@@ -94,7 +100,7 @@ describe("useQuantStore.computeGreeks", () => {
 
 describe("useQuantStore.priceBond", () => {
   it("stores the bond slice", async () => {
-    mockFetchOnce({
+    mockResult({
       clean_price: 1000,
       dirty_price: 1000,
       accrued_interest: 0,
@@ -119,7 +125,7 @@ describe("useQuantStore.priceBond", () => {
 
 describe("useQuantStore.bootstrapYieldCurve", () => {
   it("stores the curve slice", async () => {
-    mockFetchOnce({
+    mockResult({
       valuation_date: "2026-05-16",
       curve: [
         { date: "2026-06-16", tenor_years: 0.083, zero_rate: 0.041, discount_factor: 0.997 },
@@ -142,7 +148,7 @@ describe("useQuantStore.bootstrapYieldCurve", () => {
 
 describe("resetQuantStoreForTests", () => {
   it("resets every slice to idle", async () => {
-    mockFetchOnce({
+    mockResult({
       price: 5.5,
       greeks: { delta: 0.6, gamma: 0.02, vega: 30, theta: -5, rho: 12 },
       method: "black-scholes",

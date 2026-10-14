@@ -1,0 +1,9 @@
+import sys; sys.path.insert(0,".")
+from services.research import iter as it
+from services.research.models import ResearchSource, ResearchBrief
+a,b,c=(ResearchSource(url=f"https://ex.com/{k}",title=k,excerpt="") for k in "abc")
+a1=ResearchBrief(query="q",symbol="X",mode="deep",markdown="",sources=[a,b])
+a2=ResearchBrief(query="q",symbol="X",mode="deep",markdown="",sources=[c,a])
+merged=it._merge_sources([a1,a2])
+for md in ["x [1, 2] y.","x [1-2] y.","x [1–2] y.","x [New findings][1] y."]:
+    print(repr(md),"->",repr(it._remap_markers(md,a2.sources,merged)))

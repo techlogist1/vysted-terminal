@@ -1,0 +1,8 @@
+provider nse_direct failed for quote, falling through: nse_direct: '^NSEI' is not a known NSE instrument
+provider nse_direct failed for quote, falling through: nse_direct: '^BSESN' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: '^NSEI' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: '^BSESN' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: '^NSEI' is not a known BSE instrument
+provider bse failed for quote, falling through: bse: '^BSESN' is not a known BSE instrument
+{'ok': True, 'region': 'IN', 'headlines': [], 'headlines_error': 'news feed unavailable: all news sources failed'}
+indices sample: [{'symbol': '^NSEI', 'name': 'Nifty 50', 'price': 23140.5, 'change': 77.400390625, 'change_percent': 0.33560272442103684, 'currency': 'INR', 'market_state': None, 'provider': 'yfinance'}]

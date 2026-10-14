@@ -50,7 +50,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from datetime import UTC, datetime
 from typing import Any
 
@@ -69,7 +68,7 @@ from models.market import (
     OHLCVSeries,
     Quote,
 )
-from services import mcp_client
+from services import mcp_client, yfinance_provider
 from services.errors import ProviderError
 
 PROVIDER = "openbb-mcp"
@@ -106,12 +105,13 @@ _DEFAULT_PROVIDERS: dict[str, str] = {
     "macro": "fred",
 }
 
-# Cached availability flag. ``None`` = not yet probed.
-_AVAILABLE: bool | None = None
-
-# In-memory state mirroring the retired openbb_provider for test parity.
-_last_tool_call_ok: bool | None = None
-_last_error: str | None = None
+# Shared discovery/status/health-tracked-call shape (R15-CODE-AGENT-024).
+# openbb-mcp-server 1.4.0 serves the transport at ``/mcp`` (no trailing slash
+# — a trailing-slash GET gets a 307 to the canonical path); ``resolve_endpoint``
+# points directly at the canonical path so ``None`` means the Tauri core did
+# not set the env var (the registry treats that as "openbb-mcp not bundled"
+# and routes to yfinance).
+_subprocess = mcp_client.LocalMcpSubprocess("openbb-mcp", port_env=_PORT_ENV, host_env=_HOST_ENV)
 
 
 # ---------------------------------------------------------------------------
@@ -119,29 +119,9 @@ _last_error: str | None = None
 # ---------------------------------------------------------------------------
 
 
-def _resolve_endpoint() -> str | None:
-    """Return the Streamable-HTTP endpoint for the openbb-mcp child, or ``None``.
-
-    ``None`` means the Tauri core did not set the env var, which the
-    registry treats as "openbb-mcp not bundled" and routes to yfinance.
-    openbb-mcp-server 1.4.0 serves the transport at ``/mcp`` (no trailing
-    slash — a trailing-slash GET gets a 307 to the canonical path); the
-    MCP client follows redirects but pointing directly at the canonical
-    path skips a needless hop.
-    """
-    port = os.environ.get(_PORT_ENV)
-    if not port:
-        return None
-    host = os.environ.get(_HOST_ENV, "127.0.0.1")
-    return f"http://{host}:{port}/mcp"
-
-
 def is_available() -> bool:
     """Return whether the openbb-mcp subprocess is reachable in this build."""
-    global _AVAILABLE
-    if _AVAILABLE is None:
-        _AVAILABLE = _resolve_endpoint() is not None
-    return bool(_AVAILABLE)
+    return _subprocess.is_available()
 
 
 async def status() -> dict[str, Any]:
@@ -151,30 +131,12 @@ async def status() -> dict[str, Any]:
     at least once, and the last tool-call outcome — what the plugin manager
     UI needs to colour the openbb-mcp plugin chip.
     """
-    endpoint = _resolve_endpoint()
-    available = endpoint is not None
-    return {
-        "available": available,
-        "provider": PROVIDER,
-        "endpoint": endpoint,
-        "lastToolCallOk": _last_tool_call_ok,
-        "lastError": _last_error,
-    }
+    return await _subprocess.status(PROVIDER)
 
 
 # ---------------------------------------------------------------------------
 # Client + tool dispatch
 # ---------------------------------------------------------------------------
-
-
-async def _get_client() -> mcp_client.McpClient:
-    """Return the cached :class:`McpClient` for the openbb-mcp subprocess."""
-    endpoint = _resolve_endpoint()
-    if endpoint is None:
-        raise ProviderError(
-            "openbb-mcp subprocess is not running — VYSTED_OPENBB_MCP_PORT not set."
-        )
-    return await mcp_client.get_client("openbb-mcp", transport="http", endpoint=endpoint)
 
 
 def _decode_tool_result(result: dict[str, Any], tool_name: str) -> Any:
@@ -238,18 +200,7 @@ def _to_dict(item: Any) -> dict[str, Any]:
 
 async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
     """Invoke an openbb-mcp tool and return the decoded body."""
-    global _last_tool_call_ok, _last_error
-    client = await _get_client()
-    try:
-        raw = await client.call_tool(name, arguments)
-    except Exception as exc:
-        _last_tool_call_ok = False
-        _last_error = f"{type(exc).__name__}: {exc}"
-        raise ProviderError(f"openbb-mcp call {name!r} failed: {exc}") from exc
-    decoded = _decode_tool_result(raw, name)
-    _last_tool_call_ok = True
-    _last_error = None
-    return decoded
+    return await _subprocess.call_tool_json(name, arguments, decode=_decode_tool_result)
 
 
 # ---------------------------------------------------------------------------
@@ -258,8 +209,24 @@ async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
 
 
 def _normalize_symbol(symbol: str) -> str:
-    """Mirror yfinance's dot-ticker fix at the openbb-mcp seam."""
-    return symbol.replace(".", "-").upper()
+    """The Yahoo listing form of ``symbol``: the SAME mapping the yfinance
+    adapter uses (:func:`services.yfinance_provider._yahoo_symbol`).
+
+    Every openbb-mcp route here is backed by OpenBB's yfinance provider, which
+    answers a bare ticker with the US listing: a bare ``DAL`` came back as Delta
+    Air Lines' statements under Dynamic Archistructures' (BSE) name, and the old
+    dot-to-dash rule mangled ``RELIANCE.NS`` into ``RELIANCE-NS``. The listing
+    form is region-aware (``DAL.BO`` in an IN session, ``AMAL`` in a US one),
+    keeps an explicit ``.NS``/``.BO``, and still dashes a US class share
+    (``BRK.B`` -> ``BRK-B``). Results echo this listing form as their ``symbol``.
+    """
+    return yfinance_provider._yahoo_symbol(symbol)
+
+
+def _first_present(row: dict[str, Any], *keys: str) -> Any:
+    """The first of ``keys`` whose value is not ``None``. A real ``0`` (a ZIRP-era
+    policy rate, a halted day's volume) is data, never a miss (R15-DATA-084)."""
+    return next((row[key] for key in keys if row.get(key) is not None), None)
 
 
 def _coerce_float(value: Any) -> float | None:
@@ -318,7 +285,7 @@ async def get_quote(symbol: str) -> Quote:
         price=price,
         change=change or 0.0,
         change_percent=change_percent or 0.0,
-        volume=_coerce_float(row.get("volume") or row.get("exchange_volume")),
+        volume=_coerce_float(_first_present(row, "volume", "exchange_volume")),
         currency=str(row.get("currency") or "USD"),
         timestamp=_ensure_datetime(row.get("last_timestamp") or row.get("date")),
         provider=PROVIDER,
@@ -384,7 +351,15 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
     if not profile_row and not metric_row:
         raise ProviderError(f"openbb-mcp fundamentals returned no rows for {symbol!r}")
 
+    # OpenBB's equity_fundamental_metrics returns dividend_yield as a PERCENT
+    # (e.g. AAPL → 0.35 meaning 0.35%), but the Fundamentals contract stores it as
+    # a FRACTION (0.0035). The earlier "fraction already" assumption was wrong and
+    # surfaced as a ~100x-too-high yield. Normalise percent → fraction here. (After
+    # the screener-completeness fallback in provider_registry, most symbols are
+    # served by yfinance — already a fraction — but this keeps the rare openbb-only
+    # result honest.)
     raw_yield = _coerce_float(metric_row.get("dividend_yield"))
+    dividend_yield = raw_yield / 100.0 if raw_yield is not None else None
     return Fundamentals(
         symbol=normalized,
         name=profile_row.get("name") or profile_row.get("long_name"),
@@ -395,8 +370,8 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
         forward_pe=_coerce_float(metric_row.get("forward_pe")),
         peg_ratio=_coerce_float(metric_row.get("peg_ratio")),
         price_to_book=_coerce_float(metric_row.get("price_to_book")),
-        # OpenBB returns dividend_yield as a fraction already.
-        dividend_yield=raw_yield,
+        # Percent → fraction normalised above (the contract stores a fraction).
+        dividend_yield=dividend_yield,
         eps=_coerce_float(metric_row.get("eps") or metric_row.get("trailing_eps")),
         beta=_coerce_float(profile_row.get("beta") or metric_row.get("beta")),
         fifty_two_week_high=_coerce_float(
@@ -438,38 +413,41 @@ def _statement_lines(rows: list[dict[str, Any]]) -> tuple[list[str], list[Statem
 
 
 async def _financial_statement(
-    symbol: str, tool_name: str
+    symbol: str, tool_name: str, period: str = "annual"
 ) -> tuple[list[str], list[StatementLine]]:
-    """Fetch a financial-statement tool and pivot to (periods, lines)."""
+    """Fetch a financial-statement tool and pivot to (periods, lines).
+
+    ``period="quarterly"`` asks the tool for ``period="quarter"`` (OpenBB's
+    spelling); its rows are labelled by ISO ``period_ending`` either way."""
     normalized = _normalize_symbol(symbol)
-    decoded = await _call_tool(
-        tool_name,
-        {"symbol": normalized, "provider": _DEFAULT_PROVIDERS["income"]},
-    )
+    args = {"symbol": normalized, "provider": _DEFAULT_PROVIDERS["income"]}
+    if period == "quarterly":
+        args["period"] = "quarter"
+    decoded = await _call_tool(tool_name, args)
     rows = _result_rows(decoded)
     if not rows:
         raise ProviderError(f"openbb-mcp {tool_name!r} returned no rows for {symbol!r}")
     return _statement_lines(rows)
 
 
-async def get_income_statement(symbol: str) -> IncomeStatement:
+async def get_income_statement(symbol: str, period: str = "annual") -> IncomeStatement:
     """Return the income-statement excerpt for ``symbol`` via openbb-mcp."""
     normalized = _normalize_symbol(symbol)
-    periods, lines = await _financial_statement(symbol, "equity_fundamental_income")
+    periods, lines = await _financial_statement(symbol, "equity_fundamental_income", period)
     return IncomeStatement(symbol=normalized, periods=periods, lines=lines, provider=PROVIDER)
 
 
-async def get_balance_sheet(symbol: str) -> BalanceSheet:
+async def get_balance_sheet(symbol: str, period: str = "annual") -> BalanceSheet:
     """Return the balance-sheet excerpt for ``symbol`` via openbb-mcp."""
     normalized = _normalize_symbol(symbol)
-    periods, lines = await _financial_statement(symbol, "equity_fundamental_balance")
+    periods, lines = await _financial_statement(symbol, "equity_fundamental_balance", period)
     return BalanceSheet(symbol=normalized, periods=periods, lines=lines, provider=PROVIDER)
 
 
-async def get_cash_flow(symbol: str) -> CashFlowStatement:
+async def get_cash_flow(symbol: str, period: str = "annual") -> CashFlowStatement:
     """Return the cash-flow excerpt for ``symbol`` via openbb-mcp."""
     normalized = _normalize_symbol(symbol)
-    periods, lines = await _financial_statement(symbol, "equity_fundamental_cash")
+    periods, lines = await _financial_statement(symbol, "equity_fundamental_cash", period)
     return CashFlowStatement(symbol=normalized, periods=periods, lines=lines, provider=PROVIDER)
 
 
@@ -521,7 +499,7 @@ async def get_macro_series(series_id: str, provider: str | None = None) -> Macro
     observations: list[MacroObservation] = []
     for row in rows:
         date = row.get("date")
-        value = _coerce_float(row.get("value") or row.get(series_id))
+        value = _coerce_float(_first_present(row, "value", series_id))
         if date is None:
             continue
         observations.append(MacroObservation(date=_ensure_datetime(date), value=value))
@@ -542,7 +520,4 @@ async def get_macro_series(series_id: str, provider: str | None = None) -> Macro
 
 def _reset_for_tests() -> None:
     """Clear cached availability state — used only from the test suite."""
-    global _AVAILABLE, _last_tool_call_ok, _last_error
-    _AVAILABLE = None
-    _last_tool_call_ok = None
-    _last_error = None
+    _subprocess.reset_for_tests()

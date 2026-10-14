@@ -1,0 +1,6 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ echo 'sidecar log lines matching /screener warm|screener: warm/ after boot + one sp500 run (no-header region => IN default):'; grep -c -i 'screener warm' /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/bat2-sidecar.log; grep -n -i 'screener warm\|screener: warm' /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/bat2-sidecar.log | head -5; curl -s -m 5 localhost:52342/system/provider-health | head -c 300
+exit=0
+sidecar log lines matching /screener warm|screener: warm/ after boot + one sp500 run (no-header region => IN default):
+0
+{"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":0.0,"consecutive_opens":0,"opens_total":0,"throttles_total":0.0},"fallthroughs":[]}

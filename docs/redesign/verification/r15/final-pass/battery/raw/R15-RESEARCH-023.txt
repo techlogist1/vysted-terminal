@@ -1,0 +1,8 @@
+# R15-RESEARCH-023 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:46+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p023.py 2>&1 | grep -v Warning
+--- output ---
+([SearchResult(url='https://www.routemobile.com/investors', title='Route Mobile Q2 FY25 results', snippet='Consolidated revenue rose 9%. (c) 2025 Route Mobile Limited. All rights reserved.', published_at=None, source=None)], 0)
+challenge row: ([], 1)
+
+EXIT=0 (0.1s)

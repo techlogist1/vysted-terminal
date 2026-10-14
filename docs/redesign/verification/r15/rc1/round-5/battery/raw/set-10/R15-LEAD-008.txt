@@ -1,0 +1,27 @@
+xai grok-4: False
+186:def native_search_available(
+187-    provider_id: str,
+188-    model_web_search: str | None = None,
+189-    model: str | None = None,
+190-    *,
+191-    with_function_tools: bool = True,
+192-) -> bool:
+193-    """Decide whether THIS (provider, resolved-model) pair serves native search.
+194-
+195-    THE one detection truth (the agent runtime's injection gate and Team B's
+196-    tier_a cross-verify both read it, so the two surfaces can never disagree).
+197-    ``with_function_tools`` says whether the request also carries function
+198-    tools (an agent round does; the one-shot cross-verify call does not):
+199-
+200-    * the PROVIDER-level provider (anthropic) always qualifies — every
+201-      routable model rides the provider's own search;
+202-    * ``openai`` is per-MODEL: only its ``*-search-preview`` models take the
+203-      chat-completions ``web_search_options`` param (anything else 400s on a
+204-      ``web_search`` tool), so the rest keep the local search tool;
+205-    * ``groq`` is per-MODEL: only the Compound systems search;
+206-    * ``gemini`` is per-MODEL alongside function tools (Gemini 3 only); with no
+207-      function tools every Gemini model grounds on ``google_search``;
+208-    * ``openrouter`` is a broker, so native search is a per-MODEL property:
+209-      ``model_web_search`` is the resolved model's ``web_search`` capability
+210-      flag (threaded from the frontend's public catalog) — only ``"native"``
+211-      qualifies (``"plugin"`` is OpenRouter's billed web plugin, never

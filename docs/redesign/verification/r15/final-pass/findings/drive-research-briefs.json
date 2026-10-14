@@ -1,0 +1,63 @@
+[
+ {
+  "key": "drive-research-briefs:1",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "scenario": "drive:research-briefs FAST lifecycle",
+  "title": "A FAST brief tells the user 'No web-search backend configured — structured data only' when the keyless backend is configured and every engine is only cooling down (breaker-skipped engines leave the typed reason 'unreachable')",
+  "area": "research-search",
+  "repro": "Two research turns back to back on one sidecar (second during the first's searches): second FAST brief publishes note 'No web-search backend configured — structured data only', web_reason 'unreachable' while GET /search/status shows t1_keyless with ddg/brave/mojeek 'cooling down'. Deterministic: open all three keyless breakers -> KeylessSearchBackend.search raises SearchError reason=unreachable with message 'cooling down (45s)... Wait a moment and retry'.",
+  "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/final/F1-false-no-backend-note.md",
+  "suspected_files": [
+   "sidecar/services/search/keyless.py",
+   "sidecar/services/research/fast.py"
+  ]
+ },
+ {
+  "key": "drive-research-briefs:3",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "scenario": "drive:research-briefs ULTRA",
+  "title": "With the ULTRA slider one user turn fans out into N sequential full ULTRA heavy runs: the depth floor lifts every research call of the turn and nothing limits research calls per turn (4 calls -> ~19 min, ~$1.25, each brief replacing the last)",
+  "area": "research-search",
+  "repro": "turn.py --port 52344 --provider openai --model gpt-4o-mini --depth ultra --prompt 'Research Data Patterns (India) Limited — latest quarterly results, order book, valuation and peer comparison.' -> 4 research tool_use (depth quick) at 3.1s, each begins depth=ultra Heavy mode, sequential: publish at 288s ($0.32), 590s ($0.30), third started; client stopped at 604s.",
+  "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/final/F3-depth-floor-fanout.md",
+  "suspected_files": [
+   "sidecar/services/agent_tools/research.py",
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "drive-research-briefs:4",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "scenario": "drive:research-briefs FAST populated",
+  "title": "Cold-name FAST briefs ship with price and fundamentals dropped (fundamentals leg 9-16 s through the sidecar vs the 6 s FAST box; direct yfinance .info 0.5-1.2 s) and the panel says nothing about the dropped legs — only the web banner shows",
+  "area": "research-search",
+  "repro": "Quiet own sidecar :52344, ollama llama3.1:8b, slider normal: 'research Tata Elxsi' -> FAST, price + fundamentals 'timed out after 6s', note only 'Web search was rate-limited'; jsdom render shows 0 sources, no metric cards, no mention of the missing legs. Same on 02 (Sonata) and 04 (Mastek). GET /fundamentals/ZENSARTECH 15.8 s, /fundamentals/TATAELXSI 9.0 s own / 16.6 s shared; background fundamentals_warm sweep (~15 openbb-mcp calls/min from boot) is a suspected contender, causation not proven. Census KPIT FAST brief was populated.",
+  "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/final/05-normal-tataelxsi-llama-clean.stdout.txt",
+  "suspected_files": [
+   "sidecar/services/research/fast.py",
+   "sidecar/services/fundamentals_warm.py",
+   "src/modules/research/BriefPanel.tsx"
+  ],
+  "note": "Price half attached to R15-LEAD-128; fundamentals timeout + silent panel filed here."
+ },
+ {
+  "key": "drive-research-briefs:2",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "scenario": "drive:research-briefs populated/no-web",
+  "title": "Brief header reads 'web + structured data' directly above the 'Structured data only — no web sources found' banner on a filings-only brief (header keys any https row; the banner excludes filings) — residual named in R15-RESEARCH-041's refuter note",
+  "area": "ui-panels",
+  "repro": "Live DEEP Coforge (ollama) and ULTRA Data Patterns (gpt-4o-mini) briefs: web_available false, sources = NSE/BSE filing PDFs + vysted:// rows; jsdom render of <BriefPanel/> shows both 'web + structured data' and 'Structured data only — no web sources found'.",
+  "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/final/F2-header-web-badge-vs-banner.md",
+  "suspected_files": [
+   "src/modules/research/BriefPanel.tsx"
+  ]
+ }
+]

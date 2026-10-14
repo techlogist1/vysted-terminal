@@ -1,0 +1,10 @@
+# R15-RELEASE-010 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for u in https://vysted.com https://terminal.vysted.com; do echo -n "$u -> "; curl -s -o /dev/null -w '%{http_code}' --max-time 15 $u; echo " exit $?"; done; cd "$C"; grep -n -i 'domain structure' docs/BLUEPRINT.md | cut -c1-200
+--- output ---
+https://vysted.com -> 000 exit 6
+https://terminal.vysted.com -> 000 exit 6
+7:**Domain structure (planned, not yet resolved):** vysted.com (org) + terminal.vysted.com (product) — README.md is the install surface until these go live
+30:**Domain structure (planned, not yet resolved):**
+
+EXIT=0 (0.2s)

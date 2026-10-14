@@ -1,0 +1,8 @@
+=== call 1 (cold) ===
+{"symbol":"RELIANCE","exchange":"NSE","count":4,"announcements":[{"symbol":"RELIANCE","exchange":"NSE","headline":"Reliance Industries Limited has informed the Exchange about Credit Rating","category":"Credit Rating","attachment_url":"https://nsearchives.nseindia.com/corporate/PVIVINMA_25092026224843_SE.pdf","ts":"2026-09-25T22:49:03+05:30"},{"symbol":"RELIANCE","exchange":"NSE","headline":"This is further to the disclosure dated September 21, 2026 made by the Company. We wish to inform you thatcurl -s -m 30   0.00s user 0.00s system 0% cpu 3.692 total
+head -c 500  0.00s user 0.00s system 0% cpu 3.691 total
+
+=== call 2 (should be cached, same TTL window) ===
+{"symbol":"RELIANCE","exchange":"NSE","count":4,"announcements":[{"symbol":"RELIANCE","exchange":"NSE","headline":"Reliance Industries Limited has informed the Exchange about Credit Rating","category":"Credit Rating","attachment_url":"https://nsearchives.nseindia.com/corporate/PVIVINMA_25092026224843_SE.pdf","ts":"2026-09-25T22:49:03+05:30"},{"symbol":"RELIANCE","exchange":"NSE","headline":"This is further to the disclosure dated September 21, 2026 made by the Company. We wish to inform you thatcurl -s -m 30   0.00s user 0.00s system 63% cpu 0.011 total
+head -c 500  0.00s user 0.00s system 15% cpu 0.010 total
+

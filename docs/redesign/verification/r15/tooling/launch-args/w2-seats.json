@@ -1,0 +1,46 @@
+{
+ "tag": "w2-seats",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. THEN read the preamble of docs/redesign/verification/r15/tooling/PROMPT_wave2.md. A previous attempt at your task was killed by a usage wall: your evidence dir, raw file and a sidecar on your port may already exist - verify and continue, never restart.",
+ "stages": [
+  {
+   "label": "drive",
+   "model": "opus",
+   "prompt": "Your task spec is the {{spec}} section of docs/redesign/verification/r15/tooling/PROMPT_wave2.md. <task-id> = \"{{id}}\", <port> = {{port}}."
+  }
+ ],
+ "items": [
+  {
+   "id": "seat-retail",
+   "spec": "SEAT",
+   "port": 52211,
+   "model": "fable"
+  },
+  {
+   "id": "seat-microcap",
+   "spec": "SEAT",
+   "port": 52212,
+   "model": "fable"
+  },
+  {
+   "id": "seat-us",
+   "spec": "SEAT",
+   "port": 52213
+  },
+  {
+   "id": "seat-breaker",
+   "spec": "SEAT",
+   "port": 52214
+  },
+  {
+   "id": "seat-stranger",
+   "spec": "SEAT",
+   "port": 52215
+  },
+  {
+   "id": "inducer",
+   "spec": "INDUCER",
+   "port": 52216,
+   "model": "fable"
+  }
+ ]
+}

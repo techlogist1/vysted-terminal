@@ -1,0 +1,96 @@
+NOT RUN AS VITEST: battery role does not run vitest/pytest suites (heavy lane owns them); verdict ci_pinned.
+Verified the pinned test still exists in candidate 1006c6da: src/modules/portfolio/metrics.test.ts
+
+    expect(s.totalPnlPercent).toBe(0);
+    expect(Number.isFinite(s.totalPnlPercent)).toBe(true);
+    expect(s.byCurrency).toEqual([]);
+    expect(s.mixedCurrencies).toBe(false);
+  });
+
+  it("single-currency portfolio: one bucket, mixedCurrencies false (D57)", () => {
+    const positions = [pos("AAPL", 10, 100), pos("MSFT", 2, 300)];
+    const quotes = new Map([
+      ["AAPL", quote("AAPL", 150)],
+      ["MSFT", quote("MSFT", 400)],
+    ]);
+    const s = buildPortfolioSummary(positions, quotes);
+    expect(s.mixedCurrencies).toBe(false);
+    expect(s.byCurrency).toHaveLength(1);
+    expect(s.byCurrency[0]).toMatchObject({
+      currency: "USD",
+      marketValue: 1500 + 800,
+      pnl: 500 + 200,
+      resolvedCost: 1000 + 600,
+    });
+    // The single bucket IS the aggregate — the legacy totals stay honest.
+    expect(s.byCurrency[0].marketValue).toBe(s.totalMarketValue);
+    expect(s.byCurrency[0].pnl).toBe(s.totalPnl);
+    // R15-CODE-PLATFORM-053 (case the fix was not written against): a
+    // single-currency portfolio still gets a real numeric concentration.
+    expect(s.concentration).not.toBeNull();
+    expect(s.concentration).toBeCloseTo(1500 / (1500 + 800));
+  });
+
+  it("mixed-currency portfolio: per-currency subtotals, never a cross-currency sum (D57)", () => {
+    // RELIANCE quoted in INR, AAPL in USD — 50×1,293 = ₹64,650 and 10×120 = $1,200.
+    const positions = [pos("RELIANCE.NS", 50, 1200), pos("AAPL", 10, 100)];
+    const quotes = new Map([
+      ["RELIANCE.NS", quote("RELIANCE.NS", 1293, "INR")],
+      ["AAPL", quote("AAPL", 120, "USD")],
+    ]);
+    const s = buildPortfolioSummary(positions, quotes);
+    expect(s.mixedCurrencies).toBe(true);
+    expect(s.byCurrency).toHaveLength(2);
+    const inr = s.byCurrency.find((b) => b.currency === "INR");
+    const usd = s.byCurrency.find((b) => b.currency === "USD");
+    expect(inr).toMatchObject({ marketValue: 64_650, pnl: 64_650 - 60_000, resolvedCost: 60_000 });
+    expect(inr?.pnlPercent).toBeCloseTo(((64_650 - 60_000) / 60_000) * 100);
+    expect(usd).toMatchObject({ marketValue: 1_200, pnl: 200, resolvedCost: 1_000 });
+    expect(usd?.pnlPercent).toBeCloseTo(20);
+    // R15-DATA-042 / R15-CODE-PLATFORM-053: weight and concentration are a
+    // share of a cross-currency sum — the contract nulls them, not just the
+    // panel that reads it.
+    expect(s.concentration).toBeNull();
+    expect(s.rows.every((r) => r.weight === null)).toBe(true);
+  });
+
+  it("unresolved positions join no currency bucket; a blank quote currency buckets as ''", () => {
+    const positions = [pos("AAPL", 1, 100), pos("ZZZZ", 1, 100), pos("MYST", 1, 10)];
+    const quotes = new Map([
+
+source guard (metrics.ts):
+    pnlPercent: b.resolvedCost !== 0 ? (b.pnl / b.resolvedCost) * 100 : 0,
+  }));
+  const mixedCurrencies = byCurrency.length > 1;
+
+  // R15-DATA-042 / R15-CODE-PLATFORM-053: weight and concentration are a
+  // share of the SUMMED market value, which is fabricated (D57) once the
+  // resolved positions span more than one currency — null them in the
+  // CONTRACT, not just in the panel that happens to read it.
+  const rows: PositionRow[] = partials.map((row) => ({
+    ...row,
+    weight:
+      row.marketValue !== null && totalMarketValue !== 0 && !mixedCurrencies
+        ? row.marketValue / totalMarketValue
+        : null,
+  }));
+
+  // R15-UI-005: reduce only over positions with a RESOLVED weight — starting
+  // the max from 0 fabricated a real "0.0%" concentration when nothing
+  // resolved (no signal is not the same as no concentration).
+  const resolvedWeights = rows
+    .map((row) => row.weight)
+    .filter((weight): weight is number => weight !== null);
+  const concentration =
+    mixedCurrencies || resolvedWeights.length === 0 ? null : Math.max(...resolvedWeights);
+  const unresolvedCount = rows.filter((row) => row.quote === null).length;
+
+  return {
+    rows,
+    totalCost,
+    resolvedCost,
+    totalMarketValue,
+    totalPnl,
+    totalPnlPercent,
+    concentration,
+    unresolvedCount,

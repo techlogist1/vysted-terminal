@@ -1,0 +1,26 @@
+--- fresh case (LEAD-022): non-US foreign listings + US share-class dash quirk ---
+== BMW.DE ==
+{"detail":"Not Found"}
+== 005930.KS ==
+{"detail":"Not Found"}
+== NESN.SW ==
+{"detail":"Not Found"}
+== BHP.AX ==
+{"detail":"Not Found"}
+== BRK.B ==
+{"detail":"Not Found"}
+== BF.B ==
+{"detail":"Not Found"}
+== BMW.DE ==
+{"symbol":"BMW.DE","price":55.720001220703125,"change":-0.7399987792968759,"change_percent":-1.3106602538024723,"volume":1950393.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"EUR","market_state":null,"timestamp":"2026-09-25T15:38:27Z","provider":"yfinance","freshness":"eod"}
+== 005930.KS ==
+{"symbol":"005930.KS","price":285500.0,"change":9000.0,"change_percent":3.25497287522604,"volume":20864376.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"KRW","market_state":null,"timestamp":"2026-09-23T06:30:06Z","provider":"yfinance","freshness":"eod"}
+== NESN.SW ==
+{"symbol":"NESN.SW","price":77.16999816894531,"change":-0.5699996948242188,"change_percent":-0.7332129026078418,"volume":3037464.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"CHF","market_state":null,"timestamp":"2026-09-25T15:30:53Z","provider":"yfinance","freshness":"eod"}
+== BHP.AX ==
+{"symbol":"BHP.AX","price":60.720001220703125,"change":-0.2999992370605469,"change_percent":-0.49164083056373936,"volume":6511835.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"AUD","market_state":null,"timestamp":"2026-09-25T06:13:02Z","provider":"yfinance","freshness":"eod"}
+== BRK.B ==
+{"symbol":"BRK-B","price":505.4800109863281,"change":-0.21998901367186363,"change_percent":-0.04350188128769303,"volume":2992300.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:03Z","provider":"yfinance","freshness":"eod"}
+== BF.B ==
+{"symbol":"BF-B","price":26.15999984741211,"change":0.15999984741210938,"change_percent":0.6153840285081129,"volume":1504800.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:03Z","provider":"yfinance","freshness":"eod"}
+VERDICT: holds. All 6 fresh-case symbols from the batch-28 certification priced live and correctly: BMW.DE 55.72 EUR, 005930.KS 285500.0 KRW, NESN.SW 77.17 CHF, BHP.AX 60.72 AUD (none 'possibly delisted', none dash-rewritten), BRK.B correctly dash-rewrites to BRK-B 505.48 USD and BF.B to BF-B 26.16 USD (the intentional US share-class quirk, unaffected by the fix). Matches sidecar/services/yfinance_provider.py:216-260 _yahoo_symbol: foreign dotted suffixes (.DE/.KS/.SW/.AX) pass through unchanged; only a US-listed dashed form (BRK-B/BF-B) triggers the dash rewrite.

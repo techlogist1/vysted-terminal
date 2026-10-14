@@ -1,0 +1,12 @@
+# R15-RESEARCH-032 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:37+0530
+
+$ git merge-base --is-ancestor 68bb7aa4 HEAD && echo 'closure 68bb7aa4 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 68bb7aa4 NOT an ancestor'
+[exit 0] [0.02s]
+closure 68bb7aa4 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-RESEARCH-032\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/components/SettingsPanel.test.tsx:715:  // R15-RESEARCH-032: a failure keeps its reason, and the status is re-read.
+src/components/SettingsPanel.tsx:792: * (R15-RESEARCH-032). A failure keeps its reason (the sidecar's own sentence,
+

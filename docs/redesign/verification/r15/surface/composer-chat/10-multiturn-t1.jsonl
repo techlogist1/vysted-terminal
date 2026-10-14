@@ -1,0 +1,245 @@
+{"_meta": {"t0": 1790128142.329634, "status": 200, "request": {"prompt": "What does Cochin Shipyard do, and what's its current share price, P/E and market cap?", "context_snapshot": {"focused_source": "chart-1", "by_source": {"__terminal__": {"focusedPanel": "chart-1", "capturedAt": 0, "charts": [{"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}], "focusedChart": {"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}, "watchlist": {"symbols": ["KPITTECH", "BDL", "CAMS"], "selected": "KPITTECH"}, "portfolio": {"positionCount": 1, "totalValue": null, "activePortfolioName": "Main", "holdings": [{"id": "h1", "symbol": "BDL", "quantity": 10, "costBasis": 1450, "assetClass": "equity", "marketValue": null, "pnl": null}]}, "openPanels": ["chart", "watchlist", "brief"], "brief": {"phase": "empty"}, "viewport": {"width": 1920, "height": 1080}}}, "captured_at": 1790128142329}, "provider": "ollama", "model": "llama3.1:8b", "mode": "agent", "autonomy": "ask", "options": {"history": "<0 turns>", "deepResearchBackend": "auto", "research_depth": "normal"}}}}
+{"kind": "tool_use", "tool_call_id": "", "name": "research", "input": {"depth": "quick", "query": "Cochin Shipyard"}, "_t": 55.67}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin 472c0c1809c840168682ed596d7bf911 depth=normal query=Cochin Shipyard", "latency_ms": null, "status": "ok", "index": 1, "_t": 56.09}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolving \"Cochin Shipyard\"", "latency_ms": null, "status": "ok", "index": 2, "_t": 56.09}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 COCHINSHIP", "latency_ms": 314, "status": "ok", "index": 3, "_t": 56.09}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulling market data for COCHINSHIP", "latency_ms": null, "status": "ok", "index": 4, "_t": 56.09}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulled 4/4 data sources", "latency_ms": 20109, "status": "ok", "index": 5, "_t": 76.18}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "searching the web for Cochin Shipyard Limited", "latency_ms": null, "status": "ok", "index": 6, "_t": 76.18}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "6 web source(s)", "latency_ms": 7737, "status": "ok", "index": 7, "_t": 83.92}
+{"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 8, "_t": 83.92}
+{"kind": "tool_use", "tool_call_id": "__autobrief", "name": "publish_brief", "input": {"query": "Cochin Shipyard", "symbol": "COCHINSHIP", "mode": "fast", "depth": "quick", "execution": {"run_id": "472c0c1809c840168682ed596d7bf911", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790128198.063881, "finished_at": 1790128226.2405188, "degraded_reason": null}, "markdown": "", "sources": [{"url": "https://www.moneycontrol.com/india/stockpricequote/ship-building/cochinshipyard/CS", "title": "Cochin Shipyard Share Price, Cochin Shipyard Stock Price, Cochin Shipyard Ltd. Stock Price, Share Price, Live BSE/NSE, Cochin Shipyard Ltd. Bids Offers. Buy/Sell Cochin Shipyard Ltd. news & tips, & F&O Quotes, NSE/BSE Forecast News and Live Quotes - Moneycontrol.com", "excerpt": "", "domain": "web"}, {"url": "https://www.screener.in/company/COCHINSHIP/", "title": "Cochin Shipyard Ltd share price | About Cochin Shipyard | Key Insights - Screener", "excerpt": "", "domain": "web"}, {"url": "https://www.nseindia.com/get-quotes/equity?symbol=COCHINSHIP", "title": "Cochin Shipyard Limited Share Price Today, Stock Price, Live NSE News, Quotes, Tips \u2013 NSE India", "excerpt": "", "domain": "web"}, {"url": "https://www.google.com/finance/beta/quote/COCHINSHIP:NSE", "title": "Cochin Shipyard Ltd (COCHINSHIP) Stock Price & News - Google Finance", "excerpt": "", "domain": "web"}, {"url": "https://economictimes.indiatimes.com/cochin-shipyard-ltd/stocksupdate/companyid-4529.cms", "title": "Cochin Shipyard News - Cochin Shipyard Announcement, Latest News on Cochin Shipyard - The Economic Times", "excerpt": "", "domain": "web"}, {"url": "https://www.livemint.com/market/market-stats/stocks-cochin-shipyard-share-price-nse-bse-s0003401", "title": "Cochin Shipyard Share Price Today 15 Sep 2026: Live NSE/BSE Rates, Technical Analysis and Expert Forecasts", "excerpt": "", "domain": "web"}], "structured": {"price": {"ok": true, "provider": "nse_direct", "data": {"symbol": "COCHINSHIP", "price": 1388.9, "change": 3.900000000000091, "change_percent": 0.28158844765343616, "volume": 830403.0, "currency": "INR", "market_state": "CLOSED", "timestamp": "2026-09-22T00:00:00Z", "provider": "nse_direct", "freshness": null}}, "fundamentals": {"ok": true, "provider": "yfinance", "data": {"symbol": "COCHINSHIP.NS", "name": "Cochin Shipyard Limited", "sector": "Industrials", "industry": "Aerospace & Defense", "currency": "INR", "market_cap": 365392920576.0, "pe_ratio": 53.625484, "forward_pe": 31.071589, "peg_ratio": null, "price_to_book": 6.2215276, "price_to_sales": 7.239103, "ev_to_ebitda": 45.961, "book_value": 223.241, "dividend_yield": 0.008100000000000001, "dividend_per_share": 11.25, "eps": 25.9, "beta": 0.582, "fifty_two_week_high": 1977.0, "fifty_two_week_low": 1187.0, "fifty_two_week_change": -0.26912928, "roe": null, "roa": null, "gross_margin": 0.33388, "operating_margin": 0.14696, "profit_margin": 0.13479, "debt_to_equity": 0.28466, "current_ratio": null, "quick_ratio": null, "revenue_ttm": 50474889216.0, "net_income_ttm": 6803642880.0, "free_cash_flow": null, "shares_outstanding": 263080780.0, "revenue_growth": 0.024, "earnings_growth": -0.193, "growth_basis": "mrq_yoy", "held_percent_insiders": 0.63335, "held_percent_institutions": 0.11093, "dividend_per_share_ttm": 9.0, "revenue_growth_computed": 0.023974943542678664, "earnings_growth_computed": -0.19366146192703143, "growth_computed_quarters": {"mrq": "2026-06-30", "prior": "2025-06-30"}, "field_meta": {"name": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "sector": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "industry": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "currency": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "market_cap": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "pe_ratio": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "forward_pe": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "peg_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": "provider did not publish this field", "label": null}, "price_to_book": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "price_to_sales": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "ev_to_ebitda": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "book_value": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "dividend_yield": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "dividend_per_share": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "eps": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "beta": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "fifty_two_week_high": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "fifty_two_week_low": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "fifty_two_week_change": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "roe": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": "provider did not publish this field", "label": null}, "roa": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": "provider did not publish this field", "label": null}, "gross_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "operating_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "profit_margin": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "debt_to_equity": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "current_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": "provider did not publish this field", "label": null}, "quick_ratio": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": "provider did not publish this field", "label": null}, "revenue_ttm": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "net_income_ttm": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "free_cash_flow": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": "provider did not publish this field", "label": null}, "shares_outstanding": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "revenue_growth": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "earnings_growth": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "held_percent_insiders": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "held_percent_institutions": {"status": "ok", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": null, "label": null}, "identity_note": {"status": "unavailable", "provider": "yfinance", "as_of": "2026-09-23T01:50:01.729552+00:00", "reason": "provider did not publish this field", "label": null}, "dividend_per_share_ttm": {"status": "ok", "provider": "yfinance"}}, "provider": "yfinance", "identity_note": null, "ownership_exchange": {"promoter_percent": 67.91, "institutions_percent": 9.79, "public_percent": 32.09, "as_of_quarter": "2026-06-30", "source": "NSE"}, "earnings_quality": {"reported_net_income": 7167395000.0, "normalized_income": 7458779450.287588, "unusual_items": -406149000.0, "tax_effect": -114764549.712412, "one_off_net": -291384450.2875881, "distortion_fraction": 0.04065416379138977, "period": "2026-03-31"}, "range_52w_exchange": {"high": 1979.9, "low": 1187.0, "coverage_days": 365, "bars": 248, "source": "nse_direct"}, "market_cap_witness": {"shares_outstanding": 263080781.0, "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)", "scrip_code": "540678", "as_of": "2026-06-11"}}}, "derived": {"ok": true, "provider": "derived", "data": {"drawdown_from_high": {"value": 0.2974709155285786, "label": "Below 52-week high", "basis": "vs 52w high", "formula": "(52w high - price) / 52w high", "unit": "percent"}, "fifty_two_week_change": {"value": -0.26912928, "label": "52-week price change (Yahoo)", "basis": "trailing 52 weeks", "unit": "percent"}, "dividend_yield": {"value": 0.008099935200518396, "label": "Dividend yield", "basis": "fraction of price", "formula": "dividend per share / price", "unit": "percent"}, "dividend_per_share": {"value": 11.25, "label": "Dividend per share", "basis": "per share, INR", "unit": "currency"}, "dividend_per_share_ttm": {"value": 9.0, "label": "Dividend/share (trailing 12m paid)", "basis": "corporate-action history", "formula": "sum of dividends paid in the trailing 12 months", "unit": "currency"}, "revenue_growth": {"value": 0.024, "label": "Revenue growth", "basis": "quarterly YoY (MRQ)", "unit": "percent"}, "earnings_growth": {"value": -0.193, "label": "Earnings growth", "basis": "quarterly YoY (MRQ)", "unit": "percent"}, "promoter_percent_exchange": {"value": 0.6791, "label": "Promoter group (exchange filing)", "basis": "NSE shareholding filing, 2026-06-30", "unit": "percent"}, "institutions_percent_exchange": {"value": 0.0979, "label": "Institutional holding (exchange filing)", "basis": "NSE shareholding filing, 2026-06-30", "unit": "percent"}, "conflicts": [{"field": "dividend_per_share", "kind": "dividend_conflict", "conflict_kind": "data_conflict", "sources": [{"provider": "yfinance (dividendRate)", "value": 11.25}, {"provider": "derived (trailing-12m paid history)", "value": 9.0}], "note": "The provider's dividend per share (Yahoo dividendRate, 11.25) EXCEEDS the trailing-12-month dividends actually PAID (9) by more than 10% \u2014 the scalar may anticipate a declared-but-unpaid dividend or ride a forward/inflated basis; the paid history is the settled figure."}, {"field": "held_percent_insiders", "kind": "ownership_conflict", "conflict_kind": "data_conflict", "sources": [{"provider": "yfinance (heldPercentInsiders)", "value": 63.335, "basis": "insiders (provider roster; mixed as-of)"}, {"provider": "NSE shareholding filing", "value": 67.91, "basis": "promoter group as of 2026-06-30"}], "note": "The provider's heldPercentInsiders (63.33%) counts INSIDERS \u2014 a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates \u2014 while the NSE shareholding filing reports the strict PROMOTER GROUP at 67.91% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced."}]}}, "news": {"ok": true, "provider": "rss", "data": [], "note": "No on-entity news found for COCHINSHIP \u2014 128 item(s) returned by the news feed were off-entity/off-topic and dropped."}, "filings": {"ok": true, "provider": "nse+bse", "data": {"symbol": "COCHINSHIP", "exchange": null, "sources": ["NSE", "BSE"], "errors": {}, "count": 20, "announcements": [{"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Earnings Call Transcript", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/e06e8723-5411-4d65-bcb8-fb93356261ff.pdf", "ts": "2026-09-18T11:14:19.457000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Transcript", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_18092026110658_SE_Intimation_sd.pdf", "ts": "2026-09-18T11:07:19+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Agreements", "category": "Agreements", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_11092026213638_SE_Intimation_Sgd.pdf", "ts": "2026-09-11T21:37:21+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Updates on Joint Venture", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/8605bd8a-6fda-4be8-bf43-4078a8e3fe45.pdf", "ts": "2026-09-11T21:34:30.030000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Outcome", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a974d51f-53cc-4013-99bb-74a5e672a4db.pdf", "ts": "2026-09-10T17:03:26.297000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Link of Recording", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_10092026165613_SE_Intimation_sd.pdf", "ts": "2026-09-10T16:56:26+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Investor Presentation", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9be93d07-be78-44fc-a440-d534f28b3325.pdf", "ts": "2026-09-10T10:40:09.173000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Investor Presentation", "category": "Investor Presentation", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_10092026103615_SE_Intimation_sd.pdf", "ts": "2026-09-10T10:36:31+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange regarding 'Comments Of  The Board Of Directors Of The Company Pursuant To SEBI Master Circular Dated January 30, 2026'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_09092026115928_Board_Comments_Q1FY27_sd.pdf", "ts": "2026-09-09T11:59:44+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Comments Of The Board Of Directors Of The Company Pursuant To SEBI Master Circular Dated January 30, 2026", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/8321e8b6-86f3-4bc9-919f-39b325739188.pdf", "ts": "2026-09-09T11:57:45.383000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Board Meeting Outcome for CSL Board Approves The Proposal For Forming A Joint Venture With Drydocks World Dubai - FZCO (DDW)", "category": "Others", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0a171a52-44c4-41b2-8d99-ebe1fbefcf2f.pdf", "ts": "2026-09-09T11:33:23.057000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "CSL Board approves the proposal for forming a joint venture with Drydocks World Dubai   FZCO (DDW)", "category": "Outcome of Board Meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_09092026113101_SE_Intimation_Cov_Pag_BM_Outcome_sd.pdf", "ts": "2026-09-09T11:33:03+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/d13c1dd4-f8b6-4d15-962a-2eb7faae3cba.pdf", "ts": "2026-09-07T17:09:42.787000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Schedule of meet", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_07092026170256_SE_Intimation_sd.pdf", "ts": "2026-09-07T17:04:10+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/bd3e8721-556b-413f-987d-58181a52ac56.pdf", "ts": "2026-09-05T13:27:19.650000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange about Copy of Newspaper Publication", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_05092026132536_SE_Intimation_Sgd.pdf", "ts": "2026-09-05T13:25:48+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Intimation Of Record Date For Payment Of Final Dividend For FY 2025-26", "category": "Corp. Action", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/e06c6e32-e938-4a7d-b5bb-548b79673525.pdf", "ts": "2026-09-04T11:29:54.777000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "NSE", "headline": "Cochin Shipyard Limited has informed the Exchange that Record date for the purpose of Dividend  is 18-Sep-2026.", "category": "Record Date", "attachment_url": "https://nsearchives.nseindia.com/corporate/Aswi4739_04092026112457_SE_Intimation_Record_Date_Sgd.pdf", "ts": "2026-09-04T11:25:21+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Business Responsibility and Sustainability Reporting (BRSR)", "category": "Others", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/e63e7e8f-ea8b-4b50-8d53-1878b791a19c.pdf", "ts": "2026-09-04T11:12:47.807000+05:30"}, {"symbol": "COCHINSHIP", "exchange": "BSE", "headline": "Notice Of The 54Th AGM Of Cochin Shipyard Limited Scheduled On September 29, 2026.", "category": "AGM/EGM", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/840b86bf-33dc-4fb7-bb3c-30aba34cc749.pdf", "ts": "2026-09-04T11:05:47.440000+05:30"}]}}}, "cost": null, "web_available": true, "note": null, "web_reason": null, "backend": "keyless-fallback"}, "_t": 83.92}
+{"kind": "delta", "text": "C", "_t": 184.25}
+{"kind": "delta", "text": "och", "_t": 184.32}
+{"kind": "delta", "text": "in", "_t": 184.4}
+{"kind": "delta", "text": " Ship", "_t": 184.48}
+{"kind": "delta", "text": "yard", "_t": 184.55}
+{"kind": "delta", "text": " Limited", "_t": 184.62}
+{"kind": "delta", "text": " is", "_t": 184.7}
+{"kind": "delta", "text": " a", "_t": 184.77}
+{"kind": "delta", "text": " company", "_t": 184.85}
+{"kind": "delta", "text": " that", "_t": 184.93}
+{"kind": "delta", "text": " specializes", "_t": 185.0}
+{"kind": "delta", "text": " in", "_t": 185.08}
+{"kind": "delta", "text": " ship", "_t": 185.16}
+{"kind": "delta", "text": "building", "_t": 185.23}
+{"kind": "delta", "text": " and", "_t": 185.31}
+{"kind": "delta", "text": " allied", "_t": 185.38}
+{"kind": "delta", "text": " services", "_t": 185.46}
+{"kind": "delta", "text": ".", "_t": 185.54}
+{"kind": "delta", "text": " It", "_t": 185.62}
+{"kind": "delta", "text": " is", "_t": 185.69}
+{"kind": "delta", "text": " listed", "_t": 185.77}
+{"kind": "delta", "text": " on", "_t": 185.84}
+{"kind": "delta", "text": " the", "_t": 185.92}
+{"kind": "delta", "text": " N", "_t": 186.15}
+{"kind": "delta", "text": "SE", "_t": 186.15}
+{"kind": "delta", "text": " (", "_t": 186.15}
+{"kind": "delta", "text": "National", "_t": 186.22}
+{"kind": "delta", "text": " Stock", "_t": 186.44}
+{"kind": "delta", "text": " Exchange", "_t": 186.44}
+{"kind": "delta", "text": ")", "_t": 186.45}
+{"kind": "delta", "text": " with", "_t": 186.53}
+{"kind": "delta", "text": " the", "_t": 186.6}
+{"kind": "delta", "text": " symbol", "_t": 186.68}
+{"kind": "delta", "text": " CO", "_t": 186.76}
+{"kind": "delta", "text": "CH", "_t": 186.83}
+{"kind": "delta", "text": "IN", "_t": 186.91}
+{"kind": "delta", "text": "SHIP", "_t": 186.99}
+{"kind": "delta", "text": ".\n\n", "_t": 187.06}
+{"kind": "delta", "text": "The", "_t": 187.31}
+{"kind": "delta", "text": " current", "_t": 187.31}
+{"kind": "delta", "text": " share", "_t": 187.31}
+{"kind": "delta", "text": " price", "_t": 187.37}
+{"kind": "delta", "text": " of", "_t": 187.45}
+{"kind": "delta", "text": " Co", "_t": 187.52}
+{"kind": "delta", "text": "chin", "_t": 187.61}
+{"kind": "delta", "text": " Ship", "_t": 187.94}
+{"kind": "delta", "text": "yard", "_t": 187.94}
+{"kind": "delta", "text": " Limited", "_t": 187.94}
+{"kind": "delta", "text": " is", "_t": 187.94}
+{"kind": "delta", "text": " \u20b9", "_t": 187.99}
+{"kind": "delta", "text": "138", "_t": 188.07}
+{"kind": "delta", "text": "8", "_t": 188.14}
+{"kind": "delta", "text": ".", "_t": 188.22}
+{"kind": "delta", "text": "9", "_t": 188.29}
+{"kind": "delta", "text": ".\n\n", "_t": 188.37}
+{"kind": "delta", "text": "The", "_t": 188.45}
+{"kind": "delta", "text": " P", "_t": 188.53}
+{"kind": "delta", "text": "/E", "_t": 188.6}
+{"kind": "delta", "text": " ratio", "_t": 188.68}
+{"kind": "delta", "text": " of", "_t": 188.75}
+{"kind": "delta", "text": " Co", "_t": 188.83}
+{"kind": "delta", "text": "chin", "_t": 188.91}
+{"kind": "delta", "text": " Ship", "_t": 188.98}
+{"kind": "delta", "text": "yard", "_t": 189.06}
+{"kind": "delta", "text": " Limited", "_t": 189.15}
+{"kind": "delta", "text": " is", "_t": 189.22}
+{"kind": "delta", "text": " ", "_t": 189.29}
+{"kind": "delta", "text": "53", "_t": 189.36}
+{"kind": "delta", "text": ".", "_t": 189.44}
+{"kind": "delta", "text": "625", "_t": 189.51}
+{"kind": "delta", "text": "484", "_t": 189.59}
+{"kind": "delta", "text": ".\n\n", "_t": 189.67}
+{"kind": "delta", "text": "The", "_t": 189.91}
+{"kind": "delta", "text": " market", "_t": 189.91}
+{"kind": "delta", "text": " capital", "_t": 189.91}
+{"kind": "delta", "text": "ization", "_t": 189.98}
+{"kind": "delta", "text": " of", "_t": 190.06}
+{"kind": "delta", "text": " Co", "_t": 190.13}
+{"kind": "delta", "text": "chin", "_t": 190.21}
+{"kind": "delta", "text": " Ship", "_t": 190.29}
+{"kind": "delta", "text": "yard", "_t": 190.36}
+{"kind": "delta", "text": " Limited", "_t": 190.44}
+{"kind": "delta", "text": " is", "_t": 190.52}
+{"kind": "delta", "text": " \u20b9", "_t": 190.59}
+{"kind": "delta", "text": "365", "_t": 190.67}
+{"kind": "delta", "text": ",", "_t": 190.74}
+{"kind": "delta", "text": "392", "_t": 190.82}
+{"kind": "delta", "text": ",", "_t": 190.9}
+{"kind": "delta", "text": "920", "_t": 191.13}
+{"kind": "delta", "text": ",", "_t": 191.13}
+{"kind": "delta", "text": "576", "_t": 191.13}
+{"kind": "delta", "text": ".\n\n", "_t": 191.34}
+{"kind": "delta", "text": "These", "_t": 191.34}
+{"kind": "delta", "text": " figures", "_t": 191.35}
+{"kind": "delta", "text": " are", "_t": 191.43}
+{"kind": "delta", "text": " as", "_t": 191.51}
+{"kind": "delta", "text": " of", "_t": 191.58}
+{"kind": "delta", "text": " September", "_t": 191.66}
+{"kind": "delta", "text": " ", "_t": 191.73}
+{"kind": "delta", "text": "22", "_t": 191.82}
+{"kind": "delta", "text": "nd", "_t": 191.89}
+{"kind": "delta", "text": ",", "_t": 192.18}
+{"kind": "delta", "text": " ", "_t": 192.18}
+{"kind": "delta", "text": "202", "_t": 192.18}
+{"kind": "delta", "text": "6", "_t": 192.2}
+{"kind": "delta", "text": ",", "_t": 192.27}
+{"kind": "delta", "text": " and", "_t": 192.35}
+{"kind": "delta", "text": " may", "_t": 192.42}
+{"kind": "delta", "text": " have", "_t": 192.5}
+{"kind": "delta", "text": " changed", "_t": 192.58}
+{"kind": "delta", "text": " since", "_t": 192.66}
+{"kind": "delta", "text": " then", "_t": 192.73}
+{"kind": "delta", "text": ".", "_t": 192.81}
+{"kind": "delta", "text": " I", "_t": 192.89}
+{"kind": "delta", "text": " can", "_t": 192.96}
+{"kind": "delta", "text": " provide", "_t": 193.04}
+{"kind": "delta", "text": " more", "_t": 193.12}
+{"kind": "delta", "text": " information", "_t": 193.19}
+{"kind": "delta", "text": " if", "_t": 193.27}
+{"kind": "delta", "text": " needed", "_t": 193.34}
+{"kind": "delta", "text": ".\n\n", "_t": 193.42}
+{"kind": "delta", "text": "Additionally", "_t": 193.5}
+{"kind": "delta", "text": ",", "_t": 193.58}
+{"kind": "delta", "text": " Co", "_t": 193.66}
+{"kind": "delta", "text": "chin", "_t": 193.73}
+{"kind": "delta", "text": " Ship", "_t": 193.8}
+{"kind": "delta", "text": "yard", "_t": 193.89}
+{"kind": "delta", "text": " Limited", "_t": 193.96}
+{"kind": "delta", "text": " has", "_t": 194.03}
+{"kind": "delta", "text": " announced", "_t": 194.11}
+{"kind": "delta", "text": " its", "_t": 194.18}
+{"kind": "delta", "text": " quarterly", "_t": 194.26}
+{"kind": "delta", "text": " results", "_t": 194.34}
+{"kind": "delta", "text": ",", "_t": 194.41}
+{"kind": "delta", "text": " which", "_t": 194.49}
+{"kind": "delta", "text": " show", "_t": 194.57}
+{"kind": "delta", "text": " a", "_t": 194.65}
+{"kind": "delta", "text": " revenue", "_t": 194.72}
+{"kind": "delta", "text": " growth", "_t": 194.8}
+{"kind": "delta", "text": " of", "_t": 194.88}
+{"kind": "delta", "text": " ", "_t": 194.95}
+{"kind": "delta", "text": "0", "_t": 195.03}
+{"kind": "delta", "text": ".", "_t": 195.11}
+{"kind": "delta", "text": "024", "_t": 195.18}
+{"kind": "delta", "text": "%", "_t": 195.26}
+{"kind": "delta", "text": " and", "_t": 195.34}
+{"kind": "delta", "text": " an", "_t": 195.41}
+{"kind": "delta", "text": " earnings", "_t": 195.49}
+{"kind": "delta", "text": " growth", "_t": 195.57}
+{"kind": "delta", "text": " of", "_t": 195.64}
+{"kind": "delta", "text": " -", "_t": 195.72}
+{"kind": "delta", "text": "0", "_t": 195.8}
+{"kind": "delta", "text": ".", "_t": 195.87}
+{"kind": "delta", "text": "193", "_t": 195.95}
+{"kind": "delta", "text": "%.", "_t": 196.02}
+{"kind": "delta", "text": " The", "_t": 196.1}
+{"kind": "delta", "text": " company", "_t": 196.18}
+{"kind": "delta", "text": "'s", "_t": 196.26}
+{"kind": "delta", "text": " promoter", "_t": 196.33}
+{"kind": "delta", "text": " group", "_t": 196.41}
+{"kind": "delta", "text": " holds", "_t": 196.48}
+{"kind": "delta", "text": " ", "_t": 196.56}
+{"kind": "delta", "text": "67", "_t": 196.64}
+{"kind": "delta", "text": ".", "_t": 196.72}
+{"kind": "delta", "text": "91", "_t": 196.79}
+{"kind": "delta", "text": "%", "_t": 196.87}
+{"kind": "delta", "text": " of", "_t": 196.94}
+{"kind": "delta", "text": " the", "_t": 197.02}
+{"kind": "delta", "text": " shares", "_t": 197.1}
+{"kind": "delta", "text": ",", "_t": 197.17}
+{"kind": "delta", "text": " while", "_t": 197.25}
+{"kind": "delta", "text": " institutional", "_t": 197.33}
+{"kind": "delta", "text": " holding", "_t": 197.4}
+{"kind": "delta", "text": " is", "_t": 197.48}
+{"kind": "delta", "text": " at", "_t": 197.56}
+{"kind": "delta", "text": " ", "_t": 197.64}
+{"kind": "delta", "text": "9", "_t": 197.71}
+{"kind": "delta", "text": ".", "_t": 197.79}
+{"kind": "delta", "text": "79", "_t": 197.87}
+{"kind": "delta", "text": "%.\n\n", "_t": 197.94}
+{"kind": "delta", "text": "The", "_t": 198.02}
+{"kind": "delta", "text": " company", "_t": 198.1}
+{"kind": "delta", "text": "'s", "_t": 198.17}
+{"kind": "delta", "text": " latest", "_t": 198.25}
+{"kind": "delta", "text": " news", "_t": 198.33}
+{"kind": "delta", "text": " includes", "_t": 198.4}
+{"kind": "delta", "text": " announcements", "_t": 198.48}
+{"kind": "delta", "text": " under", "_t": 198.56}
+{"kind": "delta", "text": " Regulation", "_t": 198.66}
+{"kind": "delta", "text": " ", "_t": 198.74}
+{"kind": "delta", "text": "30", "_t": 198.83}
+{"kind": "delta", "text": " (", "_t": 199.05}
+{"kind": "delta", "text": "LO", "_t": 199.05}
+{"kind": "delta", "text": "DR", "_t": 199.05}
+{"kind": "delta", "text": ")", "_t": 199.12}
+{"kind": "delta", "text": " such", "_t": 199.2}
+{"kind": "delta", "text": " as", "_t": 199.44}
+{"kind": "delta", "text": " earnings", "_t": 199.44}
+{"kind": "delta", "text": " call", "_t": 199.44}
+{"kind": "delta", "text": " transcripts", "_t": 199.64}
+{"kind": "delta", "text": ",", "_t": 199.64}
+{"kind": "delta", "text": " investor", "_t": 199.85}
+{"kind": "delta", "text": " presentations", "_t": 199.85}
+{"kind": "delta", "text": ",", "_t": 199.85}
+{"kind": "delta", "text": " and", "_t": 199.91}
+{"kind": "delta", "text": " corporate", "_t": 199.99}
+{"kind": "delta", "text": " actions", "_t": 200.06}
+{"kind": "delta", "text": " like", "_t": 200.14}
+{"kind": "delta", "text": " dividend", "_t": 200.22}
+{"kind": "delta", "text": " payments", "_t": 200.29}
+{"kind": "delta", "text": ".\n\n", "_t": 200.37}
+{"kind": "delta", "text": "Please", "_t": 200.45}
+{"kind": "delta", "text": " let", "_t": 200.52}
+{"kind": "delta", "text": " me", "_t": 200.6}
+{"kind": "delta", "text": " know", "_t": 200.68}
+{"kind": "delta", "text": " if", "_t": 200.75}
+{"kind": "delta", "text": " you", "_t": 200.83}
+{"kind": "delta", "text": "'d", "_t": 200.91}
+{"kind": "delta", "text": " like", "_t": 200.99}
+{"kind": "delta", "text": " more", "_t": 201.06}
+{"kind": "delta", "text": " information", "_t": 201.14}
+{"kind": "delta", "text": " on", "_t": 201.22}
+{"kind": "delta", "text": " Co", "_t": 201.29}
+{"kind": "delta", "text": "chin", "_t": 201.37}
+{"kind": "delta", "text": " Ship", "_t": 201.44}
+{"kind": "delta", "text": "yard", "_t": 201.52}
+{"kind": "delta", "text": " Limited", "_t": 201.6}
+{"kind": "delta", "text": " or", "_t": 201.67}
+{"kind": "delta", "text": " its", "_t": 201.75}
+{"kind": "delta", "text": " financial", "_t": 201.83}
+{"kind": "delta", "text": "s", "_t": 201.91}
+{"kind": "delta", "text": ".", "_t": 201.98}
+{"kind": "done", "usage": {"input_tokens": 10103, "output_tokens": 233, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop", "_t": 202.06}
+{"_summary": {"status": "ok", "secs": 207.1, "kinds": {"tool_use": 2, "research_step": 8, "delta": 232, "done": 1}, "usage": {"input_tokens": 10103, "output_tokens": 233, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}}}

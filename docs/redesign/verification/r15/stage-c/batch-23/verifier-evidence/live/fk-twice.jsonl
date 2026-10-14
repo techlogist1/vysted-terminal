@@ -1,0 +1,80 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " just"}
+{"kind": "delta", "text": " look"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " context"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " already"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "443"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "85"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " up"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " previous"}
+{"kind": "delta", "text": " close"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "439"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "55"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "This"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " fetched"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " see"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " move"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2738, "output_tokens": 79, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,14 @@
+=== R15-AGENT-003 repro: capped-round yielded==dispatched, AUTO never yields capped tool ===
+candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, standalone asyncio script (not pytest), sidecar venv
+case1 yielded: ['call_2bdf79ecf07b4ad2a72489d8651da2b7', 'call_fc94fdf0267040b7a5b9b9aff1b5a840', 'call_90181a98c5f14b89a3e9f0fcf81b9138', 'call_fe91ab96c5234d63b208e1539e206fe9', 'call_2773ba227cf74a458f067b22b30a126b', 'call_c7bda4aa3e574979be9c4d63c3b1e531']
+case1 dispatched: ['call_2bdf79ecf07b4ad2a72489d8651da2b7', 'call_fc94fdf0267040b7a5b9b9aff1b5a840', 'call_90181a98c5f14b89a3e9f0fcf81b9138', 'call_fe91ab96c5234d63b208e1539e206fe9', 'call_2773ba227cf74a458f067b22b30a126b', 'call_c7bda4aa3e574979be9c4d63c3b1e531']
+case1 yielded==dispatched: True
+case1 len(dispatched)==MAX_TOOL_ROUNDS: True 6
+case1 last event is LLMDoneEvent: True
+case1 second-last is LLMDeltaEvent w/ text: True 'I stopped after 6 tool rounds without reaching a final answer. Ask me to continue, or narrow the request.'
+case1 capped last msg role: system
+case1 'do not call any more tools' in content: True
+case2 names: ['price_data', 'price_data', 'price_data', 'price_data', 'price_data', 'price_data']
+case2 'write_note' not in names: True
+case2 len match MAX_TOOL_ROUNDS: True
+exit: 0

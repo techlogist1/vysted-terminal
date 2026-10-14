@@ -1,0 +1,75 @@
+#!/bin/sh
+# vysted-head-guard — git `reference-transaction` hook.
+#
+# WHY: in multi-agent builds, teammate agents run in isolated worktrees, but the
+# Bash tool's cwd resets per call — so a teammate's first `git checkout`/`reset`
+# can run in the SHARED main checkout and flip the MAIN worktree's HEAD onto a
+# stale branch (this happened twice across R4 sessions, swept the lead's edits
+# off the visible tree). Prompt-advisory text didn't prevent it.
+#
+# WHAT: this hook deterministically ABORTS, in the 'prepared' phase, any ref
+# transaction that — IN THE MAIN WORKTREE ONLY — would move HEAD or the protected
+# branch off its fast-forward path (a checkout/switch to another branch, or a
+# hard-reset to a non-descendant). Normal forward work is untouched: commits and
+# --no-ff merges fast-forward/descend the old tip (allowed); fetches update
+# refs/remotes/* (allowed); linked teammate worktrees (git-dir != git-common-dir)
+# are never guarded, so teammates check out/reset freely in THEIR OWN worktree.
+#
+# Installed by scripts/install-head-guard.sh into .git/hooks/reference-transaction
+# (a single hook; does not touch the graphify post-checkout/post-commit hooks).
+# Override for an intentional branch switch / rebase / amend on the main worktree:
+#   rm "$(git rev-parse --git-common-dir)/hooks/reference-transaction"
+# (or temporarily move it aside). Protected branch is read from
+# "$(git rev-parse --git-common-dir)/vysted-protected-branch".
+
+[ "$1" = "prepared" ] || exit 0
+
+git_dir=$(git rev-parse --git-dir 2>/dev/null) || exit 0
+common_dir=$(git rev-parse --git-common-dir 2>/dev/null) || exit 0
+# Linked worktrees: git-dir is .git/worktrees/<name>, common-dir is .git. Only the
+# MAIN worktree has git-dir == common-dir. Guard the main worktree only.
+[ "$git_dir" = "$common_dir" ] || exit 0
+
+prot=$(cat "$common_dir/vysted-protected-branch" 2>/dev/null)
+[ -n "$prot" ] || exit 0   # not armed → no-op
+
+zero=0000000000000000000000000000000000000000
+
+# (1) GIT_REFLOG_ACTION catches a symref-only switch (`checkout`/`switch`/`checkout -b`)
+#     even when the commit doesn't move.
+case "${GIT_REFLOG_ACTION:-}" in
+  "checkout: moving from "*)
+    dest=${GIT_REFLOG_ACTION##* to }
+    if [ "$dest" != "$prot" ]; then
+      echo "vysted-head-guard: BLOCKED '$GIT_REFLOG_ACTION'." >&2
+      echo "  The main worktree HEAD is pinned to '$prot' so a stray (teammate) git op" >&2
+      echo "  cannot flip it onto another branch. Run such ops in their OWN worktree." >&2
+      echo "  Override: rm \"$common_dir/hooks/reference-transaction\"" >&2
+      exit 1
+    fi
+    ;;
+esac
+
+# (2) Non-fast-forward move of HEAD or the protected branch ref (a reset/checkout
+#     to a non-descendant — e.g. `reset --hard <stale>`, `checkout <ancestor>`).
+blocked=""
+while read -r old new ref; do
+  case "$ref" in
+    HEAD | "refs/heads/$prot")
+      [ "$old" = "$zero" ] && continue   # ref creation
+      [ "$old" = "$new" ] && continue    # no-op
+      if ! git merge-base --is-ancestor "$old" "$new" 2>/dev/null; then
+        blocked="$ref ($old -> $new)"
+      fi
+      ;;
+  esac
+done
+
+if [ -n "$blocked" ]; then
+  echo "vysted-head-guard: BLOCKED a non-fast-forward move of the main worktree: $blocked." >&2
+  echo "  '$prot' is pinned; a stray reset/checkout to a non-descendant is refused." >&2
+  echo "  Override: rm \"$common_dir/hooks/reference-transaction\"" >&2
+  exit 1
+fi
+
+exit 0

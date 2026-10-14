@@ -1,0 +1,5 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; scratch vitest b16-fe/probe/fe4.test.ts (real modules/stores/PluginRuntime; own config, not the repo suite), EXIT=0
+PROBE after configure-equivalent loadPlugin (idempotent) initialize calls: [{}]
+PROBE after reloadPlugin (what marketplace.configure now calls) initialize secrets per call: [{},{"k1":"v-k1","k2":"v-k2"}]
+source: marketplace.ts configure -> 243:      await runtime.reloadPlugin(row.discovered); 
+pinned: src/lib/plugin-runtime.test.ts 'loadPlugin is idempotent, while reloadPlugin re-runs initialize with fresh secrets' (exists: 1)

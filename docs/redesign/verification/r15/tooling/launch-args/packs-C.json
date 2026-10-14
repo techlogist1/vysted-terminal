@@ -1,0 +1,34 @@
+{
+ "tag": "packs-C",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly.",
+ "stages": [
+  {
+   "label": "pack",
+   "model": "opus",
+   "prompt": "Your task spec is the PACK section of docs/redesign/verification/r15/tooling/PROMPT_census.md, with <slot> = \"{{id}}\"."
+  }
+ ],
+ "items": [
+  {
+   "id": "P18"
+  },
+  {
+   "id": "P19"
+  },
+  {
+   "id": "P20"
+  },
+  {
+   "id": "S1"
+  },
+  {
+   "id": "S2"
+  },
+  {
+   "id": "S3"
+  },
+  {
+   "id": "S4"
+  }
+ ]
+}

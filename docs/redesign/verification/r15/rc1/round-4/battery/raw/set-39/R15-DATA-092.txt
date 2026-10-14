@@ -1,0 +1,22 @@
+=== DATA-092 live-ish source check ===
+37:// R10 (E1): India-first default, mirroring the sidecar's `config._DEFAULT_REGION`
+39:export const DEFAULT_REGION: Region = "IN";
+50:    REGIONS.find((r) => r.id === DEFAULT_REGION) ??
+
+461:        hint="Paste an API key to enable an AI provider. Keys are stored in your OS keychain — never on disk or sent anywhere but the provider you call."
+467:            hint="Drag a row (or use its arrows) to reorder. If a provider fails before it answers (a rejected key, no credit, unreachable), the next provider below it that has a key answers instead."
+659:      <GroupLabel label="Defaults" hint="The persona, provider, and model the copilot starts on." />
+663:          hint="The persona the chat starts on — applies now and at every launch."
+690:          hint="The provider the copilot uses when an agent has no preference."
+707:          hint={
+1244:          <ResearchModelRow key={stop} stop={stop} label={label} hint={hint} />
+1349:        hint="Two ways to run research: unlimited private local search with your chat model, or a hosted research model on your own OpenRouter key."
+1356:            hint="Heavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else stays remote."
+1423:        hint="Number formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses."
+
+VERDICT BASIS: SOURCE CONFIRMED (static, no runtime needed). region.ts:39 DEFAULT_REGION = "IN".
+SettingsPanel.tsx:1423 the section hint now reads "Number formatting, plus which market's symbol
+resolver, trading calendar, macro/news providers and screener universe the sidecar uses." and the
+Region row hint is `Defaults to ${regionConfig(DEFAULT_REGION).label}.` (derived, not hardcoded
+"United States"). Matches fix_shape exactly ("Derive the hint from DEFAULT_REGION, state what
+region controls, fall back to DEFAULT_REGION").

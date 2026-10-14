@@ -1,0 +1,13 @@
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+probe: pinned-test citation (no vitest/pytest suite execution per harness rule)
+
+=== sidecar/tests/test_research_verify.py ===
+203:def test_parse_verdict_reads_the_leading_verdict_word_not_the_reason() -> None:
+204:    """R15-RESEARCH-002: an UNVERIFIED reason routinely says "confirm", "support"
+215:def test_parse_verdict_reads_a_labelled_verdict_word() -> None:
+216:    """R15-RESEARCH-002 (rc1 refutation audit): a 'Verdict:'/'Answer:' label, a
+232:def test_a_verdict_word_followed_by_a_colon_is_the_verdict_not_a_label() -> None:
+233:    """R15-RESEARCH-002 review: the label skip must not swallow the verdict word
+241:def test_reflect_says_complete_class_pin_on_bracket_and_list_marker() -> None:
+242:    """Class pin (R15-RESEARCH-002): the same leading_token fix that unblocks
+

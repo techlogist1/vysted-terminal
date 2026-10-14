@@ -1,0 +1,6 @@
+== quote COCHINM
+{"symbol":"COCHINM","price":293.4,"change":-5.400000000000034,"change_percent":-1.807228915662662,"volume":3677.0,"open":295.0,"high":303.0,"low":293.0,"prev_close":298.8,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"bse","freshness":"eod"}
+== quote 513353.BO
+{"symbol":"COCHINM","price":293.4,"change":-5.400000000000034,"change_percent":-1.807228915662662,"volume":3677.0,"open":295.0,"high":303.0,"low":293.0,"prev_close":298.8,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"bse","freshness":"eod"}
+== quote COCHINM.BO
+{"symbol":"COCHINM","price":293.4,"change":-5.400000000000034,"change_percent":-1.807228915662662,"volume":3677.0,"open":295.0,"high":303.0,"low":293.0,"prev_close":298.8,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"bse","freshness":"eod"}

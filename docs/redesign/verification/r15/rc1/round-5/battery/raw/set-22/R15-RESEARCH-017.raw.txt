@@ -1,0 +1,16 @@
+heavy research loop raised
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/agent_tools/deep_research.py", line 296, in _run_loop
+    brief = await iter_research.run_heavy_research(query, angles=profile.angles, **common)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/rc1b15_research017.py", line 13, in raising
+    raise RuntimeError("b15 injected: heavy prologue gather_floor failed")
+RuntimeError: b15 injected: heavy prologue gather_floor failed
+profile.angles: 3 heavy? True
+RESULT TYPE: <class 'dict'>
+RESULT: {
+  "ok": false,
+  "message": "Deep research could not finish \u2014 the heavy research loop failed: RuntimeError: b15 injected: heavy prologue gather_floor failed.",
+  "execution_loop": "heavy",
+  "degraded_reason": "the heavy research loop failed: RuntimeError: b15 injected: heavy prologue gather_floor failed"
+}

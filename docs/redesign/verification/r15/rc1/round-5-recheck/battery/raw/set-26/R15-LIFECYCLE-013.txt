@@ -1,0 +1,13 @@
+=== R15-LIFECYCLE-013 (in-process fake-provider probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+Same run/evidence as R15-AGENT-035 (identical repro; both entries assert provider/model persistence across resume).
+
+{
+  "provider_after_resume": "openrouter",
+  "model_after_resume": "mistral-fake-model",
+  "get_provider_spy_calls": [
+    "openrouter",
+    "openrouter"
+  ],
+  "get_provider_called_openrouter_on_both": true,
+  "final_status": "done"
+}

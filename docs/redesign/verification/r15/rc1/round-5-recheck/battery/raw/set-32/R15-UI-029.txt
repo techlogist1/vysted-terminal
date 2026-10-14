@@ -1,0 +1,25 @@
+=== MacroSeriesPicker.test.tsx line 111 ===
+    render(
+      <MacroSeriesPicker
+        provider="fred"
+        onProviderChange={onProviderChange}
+        onSelect={() => undefined}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("macro-provider-ecb"));
+    expect(onProviderChange).toHaveBeenCalledWith("ecb");
+  });
+
+  it("shows the catalog failure with a Retry that reloads it (R15-UI-029)", async () => {
+    vi.mocked(sidecarGet).mockRejectedValueOnce(new Error("engine not up"));
+    render(
+      <MacroSeriesPicker
+        provider="fred"
+        onProviderChange={() => undefined}
+        onSelect={() => undefined}
+      />,
+    );
+    expect(await screen.findByText("Could not load featured series.")).toBeInTheDocument();
+=== macro.ts loadCatalog ===
+136:      // Recorded, not swallowed: the picker renders it with a Retry instead of
+137:      // a skeleton that never resolves (R15-UI-029).

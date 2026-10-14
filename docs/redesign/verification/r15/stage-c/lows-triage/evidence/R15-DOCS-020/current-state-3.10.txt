@@ -1,0 +1,25 @@
+  into the chat composer (BLUEPRINT Use Case 2, end-to-end unverified).
+- **Node Editor** — `@xyflow/react` 12.x; HTML5 DnD palette→canvas (why
+  `dragDropEnabled:false` is required); 10 built-in nodes unioned with plugin
+  nodes; config schema lives host-side (NodeSpec stays locked/serializable). A
+  **second workflow consumer** (`store/workflow.ts`) exists with a
+  desktop-notification-intent slice that has **no found dispatcher** — treat as
+  unwired.
+- **Agent Builder** — sidecar-backed custom-agent CRUD; `custom:` prefix
+  enforced.
+--- src/lib/desktop-notification.ts:72,105-115
+export function useDesktopNotificationBridge(): void {
+    };
+    // Flush whatever the store already has at mount.
+    if (selectPendingNotifications(useWorkflowStore.getState()).length > 0) {
+      void flush();
+    }
+    const unsubscribe = useWorkflowStore.subscribe((state, previous) => {
+      if (state.pendingNotifications === previous.pendingNotifications) return;
+      if (state.pendingNotifications.length > 0) {
+        void flush();
+      }
+    });
+--- src/app/page.tsx:10,36
+import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
+  useDesktopNotificationBridge();

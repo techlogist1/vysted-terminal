@@ -1,0 +1,36 @@
+COMMAND: grep first-run copy in OnboardingFlow.tsx / OnboardingBanner.tsx for the old false promises; pinned OnboardingFlow.test.tsx:51,61
+EXIT: 0
+OUTPUT:
+old phrases (expect none):
+src/components/OnboardingFlow.tsx:241:          Live quotes, charts, news and screeners run right now. Pick a path below to turn on the AI
+[grep exit 0]
+src/components/OnboardingBanner.tsx:69:              searches still go to public providers.
+src/components/OnboardingFlow.tsx:233:          market data and web searches go to public providers.
+src/components/OnboardingFlow.tsx:242:          agent (and its web research), or explore first.
+src/components/OnboardingFlow.tsx:690:              : "You're exploring keyless — data, charts, news and screeners all work. Add a model anytime from Settings to turn on the agent and its web research."}
+          <span className="hud-label leading-none">Welcome</span>
+        </div>
+        <h2 className="text-lume text-overview">An agent-native finance terminal</h2>
+        <p className="text-charcoal-300 text-caption font-mono leading-relaxed">
+          Local-first, bring-your-own-keys. Your keys, notes and portfolio stay on this machine —
+          market data and web searches go to public providers.
+        </p>
+      </div>
+
+      <div className="border-positive/25 bg-positive/5 flex items-start gap-3 rounded-none border px-4 py-3">
+        <Check className="text-positive mt-1 size-4 shrink-0" aria-hidden="true" />
+        <p className="text-charcoal-200 text-caption font-mono leading-relaxed">
+          <span className="text-positive font-medium">It already works — no key, no account.</span>{" "}
+          Live quotes, charts, news and screeners run right now. Pick a path below to turn on the AI
+          agent (and its web research), or explore first.
+        </p>
+      </div>
+            <p className="text-charcoal-200 text-caption min-w-0 flex-1 font-mono leading-snug">
+              Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant,
+              agents, and research tools. Keys stay in your OS keychain — market data and web
+              searches still go to public providers.
+            </p>
+51:  it("does not claim keyless web research, and states the real data-flow instead of 'nothing leaves this computer'", async () => {
+61:  it("the local-model path card does not claim 'fully private' / 'offline'", async () => {
+80:  it("shows an 'estimated' chip when the sidecar could not measure RAM", async () => {
+87:  it("shows no chip when RAM was measured", async () => {

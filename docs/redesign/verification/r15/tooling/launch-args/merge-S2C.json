@@ -1,0 +1,20 @@
+{
+ "tag": "merge-S2C",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_merge.md in full — including the 23 Sep register-bundler note appended under REFUTE-RAW (the verdict vocabulary actually on disk, and the surf-portfolio-notes/surf-settings-plugins no-refute gap) — before touching anything. Your bundle file and output file are given per-item below; if the output file already exists, verify it and finish it, never restart.",
+ "stages": [
+  {
+   "label": "merge",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Cluster {{id}}: bundle {{bundle_file}} → write {{out_file}}. Follow PROMPT_merge.md's MERGE section exactly (dedupe across raw sources, severity-rank, every entry with a repro, evidence, an owning subsystem, the raw ids it came from, and the operator's four named areas tagged: ui-panels, agent-chat, research-search, data-smallcaps); every raw id in the bundle must land in an entry or in a one-line rejection; return the RESULT object with count = entries written."
+  }
+ ],
+ "items": [
+  {
+   "id": "ui",
+   "bundle_file": "docs/redesign/verification/r15/census/merge-in/ui.json",
+   "out_file": "docs/redesign/verification/r15/census/merge/ui.json",
+   "count": 105
+  }
+ ]
+}

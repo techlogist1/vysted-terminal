@@ -1,0 +1,66 @@
+import sys
+from datetime import UTC, datetime
+sys.path.insert(0, ".")
+import pytest
+import config
+from models.fundamentals import Fundamentals
+from models.market import Quote
+from models.screener import ScreenerRequest, ScreenerUniverse
+from services import data_cache, fundamentals_store, provider_health, screener
+yfinance_provider = screener.yfinance_provider
+
+@pytest.fixture(autouse=True)
+def _iso(tmp_path):
+    data_cache.reset_for_tests(tmp_path / "c.db"); fundamentals_store.reset_for_tests(tmp_path / "f.db")
+    provider_health.reset_for_tests(); yield
+    data_cache.reset_for_tests(None); fundamentals_store.reset_for_tests(None)
+
+NAMES = {"HAL": ("Halliburton Company", "Hindustan Aeronautics Limited"), "CCL": ("Carnival Corporation", "CCL Products (India)"),
+         "IEX": ("IDEX Corporation", "Indian Energy Exchange"), "ACGL": ("Arch Capital", "Automobile Corporation of Goa"), "PTC": ("PTC Inc.", "PTC India")}
+
+def _fakes(monkeypatch, seen):
+    async def fund(symbol, region=None):
+        eff = region or config.get_region(); seen.append((symbol, eff))
+        us, ind = NAMES[symbol.split(".")[0]]
+        return Fundamentals(symbol=symbol if eff == "US" else symbol.split(".")[0] + ".NS", name=us if eff == "US" else ind,
+                            currency="USD" if eff == "US" else "INR", market_cap=1e10, roe=0.2, sector="X", provider="test")
+    def quote(symbol, asset_class="equity", region=None):
+        eff = region or config.get_region(); seen.append((symbol, eff))
+        return Quote(symbol=symbol, price=10.0, change=0.1, change_percent=1.0, volume=1.0, currency="USD" if eff == "US" else "INR",
+                     market_state="open", timestamp=datetime.now(tz=UTC), provider="test")
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fund)
+    monkeypatch.setattr("services.provider_registry.get_quote", quote)
+    async def batch(symbols, **_k): return ({}, {s: "not_found" for s in symbols})
+    monkeypatch.setattr(screener.yahoo_batch_provider, "fetch_quotes_batch", batch)
+
+@pytest.mark.asyncio
+async def test_sp500_five_namesakes_in_session_then_us(monkeypatch):
+    seen = []; _fakes(monkeypatch, seen)
+    syms = list(NAMES)
+    async def resolve(_u, _c=None): return ScreenerUniverse(id="sp500", label="sp500", symbols=syms, asset_class="equity")
+    monkeypatch.setattr(screener, "resolve_universe", resolve)
+    tok = config.set_request_region("IN")
+    try:
+        r = await screener.run_screener(ScreenerRequest(universe="sp500", criteria=[]))
+    finally:
+        config.reset_request_region(tok)
+    rows = [(x.symbol, x.name, x.currency) for x in r.rows]
+    stored = await fundamentals_store.fetch_rows(syms)
+    print("V9 L044 IN-session sp500 rows:", rows, "regions:", sorted({e for _, e in seen}), "coverage:", r.coverage)
+    print("V9 L044 store:", {k: (v.get("name"), v.get("currency")) for k, v in stored.items()})
+    assert all(c == "USD" for _, _, c in rows)
+
+@pytest.mark.asyncio
+async def test_custom_in_session_key(monkeypatch):
+    tok = config.set_request_region("IN")
+    try:
+        print("V9 L044 custom canonical under IN:", [yfinance_provider._yahoo_symbol(s) for s in ["HAL", "CCL", "IEX", "PTC", "ACGL"]])
+    finally:
+        config.reset_request_region(tok)
+
+@pytest.mark.asyncio
+async def test_store_guard_refuses_wrong_listing():
+    await screener._store_pair("PTC", (Fundamentals(symbol="PTC.NS", name="PTC India", currency="INR", market_cap=1e10, provider="test"), None))
+    rows = await fundamentals_store.fetch_rows(["PTC"])
+    print("V9 L044 guard: store row for key PTC after a PTC.NS pair:", {k: (v.get("name"), v.get("currency")) for k, v in rows.items()})
+    assert "PTC" not in rows or rows["PTC"].get("currency") != "INR", "store accepted a wrong-listing row under the bare key"

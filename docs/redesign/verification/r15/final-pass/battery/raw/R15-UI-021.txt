@@ -1,0 +1,14 @@
+# R15-UI-021 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:51+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'TEXT_ENTRY_SELECTOR' src/modules/chart/ChartPanel.tsx | head -3; grep -n 'R15-UI-021' src/modules/chart/ChartPanel.test.tsx | head -6
+--- output ---
+144:const TEXT_ENTRY_SELECTOR =
+821:          target.closest(TEXT_ENTRY_SELECTOR) ||
+977:  it("Backspace typed into a field outside the chart keeps the selected drawing (R15-UI-021)", async () => {
+1011:  it("a locked drawing survives Delete (R15-UI-021)", async () => {
+1035:  it("Delete with nothing focused still deletes (WebKit leaves a clicked chip unfocused; R15-UI-021)", async () => {
+1057:  it("a body-targeted Delete deletes only the chart whose selection was NOT cleared by an outside pointerdown (R15-UI-021)", async () => {
+1106:  it("a pointerdown outside every chart clears the selection, so a later Backspace on body deletes nothing (R15-UI-021)", async () => {
+
+EXIT=0 (0.0s)

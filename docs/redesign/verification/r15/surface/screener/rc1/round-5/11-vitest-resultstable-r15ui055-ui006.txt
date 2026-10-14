@@ -1,0 +1,20 @@
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand
+
+ ✓ src/modules/screener/ScreenerResultsTable.test.tsx > ScreenerResultsTable > shows an empty placeholder when there is no result 25ms
+ ✓ src/modules/screener/ScreenerResultsTable.test.tsx > ScreenerResultsTable > R15-UI-009: Export CSV saves through the Rust text writer, not a Blob download 100ms
+ ✓ src/modules/screener/ScreenerResultsTable.test.tsx > ScreenerResultsTable > renders the rows when a result is present 17ms
+ ✓ src/modules/screener/ScreenerResultsTable.test.tsx > ScreenerResultsTable > clicking a column header re-runs the sort server-side 33ms
+ ✓ src/modules/screener/ScreenerResultsTable.test.tsx > ScreenerResultsTable > money cells render in the ROW's currency, never the region's (D57 — V6) 16ms
+ ✓ src/modules/screener/ScreenerResultsTable.test.tsx > ScreenerResultsTable > a snapshot-basis row carries the quiet staleness marker + as-of (D52) 6ms
+ ✓ src/modules/screener/ScreenerResultsTable.test.tsx > ScreenerResultsTable > a mixed-basis row is marked 'mixed'; live/absent basis renders nothing (D52) 5ms
+ ✓ src/modules/screener/ScreenerResultsTable.test.tsx > ScreenerResultsTable > shows a loading placeholder while status === 'loading' 10ms
+ ✓ src/modules/screener/ScreenerResultsTable.test.tsx > ScreenerResultsTable > R15-DATA-043: money-column sort groups by currency, never interleaved 72ms
+ ✓ src/modules/screener/ScreenerResultsTable.test.tsx > ScreenerResultsTable > renders a friendly message when the result has zero rows 2ms
+ ✓ src/modules/screener/ScreenerResultsTable.test.tsx > ScreenerResultsTable > R15-UI-055: a run that evaluated nothing says so instead of blaming the filters 2ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  13:53:14
+   Duration  1.39s (transform 285ms, setup 50ms, import 579ms, tests 290ms, environment 365ms)
+

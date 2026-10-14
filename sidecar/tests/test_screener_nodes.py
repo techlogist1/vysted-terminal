@@ -10,15 +10,17 @@ import pytest
 
 from models.fundamentals import Fundamentals
 from models.market import Quote
-from services import data_cache, workflow_engine
+from services import data_cache, fundamentals_store, workflow_engine
 from services.workflow_nodes import screener_nodes
 
 
 @pytest.fixture(autouse=True)
 def _isolated_cache(tmp_path: Path) -> None:
     data_cache.reset_for_tests(tmp_path / "nodes_test_cache.db")
+    fundamentals_store.reset_for_tests(tmp_path / "fundamentals_test.db")
     yield
     data_cache.reset_for_tests(None)
+    fundamentals_store.reset_for_tests(None)
 
 
 def _make_fundamentals(symbol: str, **overrides: Any) -> Fundamentals:
@@ -51,8 +53,9 @@ def _make_quote(symbol: str) -> Quote:
 
 def test_register_adds_screener_query_to_workflow_engine() -> None:
     """``register()`` adds ``analysis.screener_query`` to the engine registry."""
-    # The conftest's TestClient build triggers ``register_v0_6_0_nodes`` which
-    # calls our register helper. Assert the node is in the registry.
+    # The conftest's TestClient build runs ``create_app`` ->
+    # ``workflow_nodes.register_all`` which calls our register helper. Assert the
+    # node is in the registry.
     assert "analysis.screener_query" in workflow_engine.registered_node_types()
 
 
@@ -87,6 +90,9 @@ async def test_screener_query_runs_from_config(monkeypatch: pytest.MonkeyPatch) 
 @pytest.mark.asyncio
 async def test_screener_query_inputs_override_config(monkeypatch: pytest.MonkeyPatch) -> None:
     """Upstream node outputs (inputs) take precedence over static config."""
+    # Fictional bare tickers: pin US so the region-aware custom-symbol
+    # canonicalisation (R15-DATA-093) keeps them literal.
+    monkeypatch.setenv("VYSTED_REGION", "US")
 
     async def fake_get_fundamentals(symbol: str) -> Fundamentals:
         return _make_fundamentals(symbol)

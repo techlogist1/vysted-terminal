@@ -1,0 +1,106 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.13, pytest-9.0.3, pluggy-1.6.0 -- /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar
+plugins: asyncio-1.3.0, platformdirs-4.12.0, anyio-4.15.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 84 items
+
+tests/test_mcp_client.py::test_get_client_caches_per_server_id PASSED    [  1%]
+tests/test_mcp_client.py::test_reset_clients_purges_cache PASSED         [  2%]
+tests/test_mcp_client.py::test_unknown_transport_raises_clean_error PASSED [  3%]
+tests/test_mcp_client.py::test_http_client_without_endpoint_raises PASSED [  4%]
+tests/test_mcp_client.py::test_stdio_client_without_command_raises PASSED [  5%]
+tests/test_mcp_client.py::test_call_tool_failure_drops_session_and_raises_provider_error[McpError] PASSED [  7%]
+tests/test_mcp_client.py::test_call_tool_failure_drops_session_and_raises_provider_error[ClosedResourceError] PASSED [  8%]
+tests/test_mcp_client.py::test_call_tool_failure_drops_session_and_raises_provider_error[ReadError] PASSED [  9%]
+tests/test_mcp_client.py::test_call_tool_failure_drops_session_and_raises_provider_error[transport-CancelledError] PASSED [ 10%]
+tests/test_mcp_client.py::test_outer_cancellation_still_cancels_the_call PASSED [ 11%]
+tests/test_mcp_client.py::test_open_against_a_closed_port_raises_provider_error PASSED [ 13%]
+tests/test_mcp_client.py::test_transport_death_does_not_cancel_the_task_that_opened_it PASSED [ 14%]
+tests/test_mcp_client.py::test_call_tool_maps_text_blocks_to_dicts PASSED [ 15%]
+tests/test_mcp_client.py::test_list_tools_returns_dicts PASSED           [ 16%]
+tests/test_openbb_mcp_provider.py::test_is_available_reads_env PASSED    [ 17%]
+tests/test_openbb_mcp_provider.py::test_status_returns_endpoint_when_available PASSED [ 19%]
+tests/test_openbb_mcp_provider.py::test_status_returns_unavailable_without_env PASSED [ 20%]
+tests/test_openbb_mcp_provider.py::test_normalize_symbol[BRK.B-BRK-B] PASSED [ 21%]
+tests/test_openbb_mcp_provider.py::test_normalize_symbol[BF.B-BF-B] PASSED [ 22%]
+tests/test_openbb_mcp_provider.py::test_normalize_symbol[aapl-AAPL] PASSED [ 23%]
+tests/test_openbb_mcp_provider.py::test_normalize_symbol[AAPL-AAPL] PASSED [ 25%]
+tests/test_openbb_mcp_provider.py::test_normalize_symbol[RELIANCE.NS-RELIANCE.NS] PASSED [ 26%]
+tests/test_openbb_mcp_provider.py::test_in_session_statement_asks_for_the_indian_listing[DAL-DAL.BO] PASSED [ 27%]
+tests/test_openbb_mcp_provider.py::test_in_session_statement_asks_for_the_indian_listing[CHTR-CHTR.BO] PASSED [ 28%]
+tests/test_openbb_mcp_provider.py::test_in_session_statement_asks_for_the_indian_listing[SAFE-SAFE.BO] PASSED [ 29%]
+tests/test_openbb_mcp_provider.py::test_in_session_statement_asks_for_the_indian_listing[CSL-CSL.BO] PASSED [ 30%]
+tests/test_openbb_mcp_provider.py::test_in_session_statement_asks_for_the_indian_listing[ICON-ICON.BO] PASSED [ 32%]
+tests/test_openbb_mcp_provider.py::test_in_session_statement_asks_for_the_indian_listing[AMAL-AMAL.NS] PASSED [ 33%]
+tests/test_openbb_mcp_provider.py::test_in_session_statement_asks_for_the_indian_listing[SMR-SMR.BO] PASSED [ 34%]
+tests/test_openbb_mcp_provider.py::test_in_session_statement_asks_for_the_indian_listing[TTC-TTC.BO] PASSED [ 35%]
+tests/test_openbb_mcp_provider.py::test_in_session_statement_asks_for_the_indian_listing[SUMAX-SUMAX-SM.NS] PASSED [ 36%]
+tests/test_openbb_mcp_provider.py::test_us_session_keeps_the_bare_us_ticker PASSED [ 38%]
+tests/test_openbb_mcp_provider.py::test_get_quote_normalises_symbol_and_maps_fields PASSED [ 39%]
+tests/test_openbb_mcp_provider.py::test_get_quote_raises_on_empty_results PASSED [ 40%]
+tests/test_openbb_mcp_provider.py::test_get_history_maps_bars PASSED     [ 41%]
+tests/test_openbb_mcp_provider.py::test_get_history_passes_iso_range_through PASSED [ 42%]
+tests/test_openbb_mcp_provider.py::test_get_fundamentals_combines_profile_and_metrics PASSED [ 44%]
+tests/test_openbb_mcp_provider.py::test_get_income_statement_pivots_periods PASSED [ 45%]
+tests/test_openbb_mcp_provider.py::test_get_balance_sheet_uses_balance_tool PASSED [ 46%]
+tests/test_openbb_mcp_provider.py::test_get_cash_flow_uses_cash_tool PASSED [ 47%]
+tests/test_openbb_mcp_provider.py::test_get_analyst_rating_maps_consensus_and_targets PASSED [ 48%]
+tests/test_openbb_mcp_provider.py::test_get_macro_series_maps_observations PASSED [ 50%]
+tests/test_openbb_mcp_provider.py::test_get_macro_series_keeps_a_real_zero_observation PASSED [ 51%]
+tests/test_openbb_mcp_provider.py::test_get_quote_keeps_a_real_zero_volume PASSED [ 52%]
+tests/test_openbb_mcp_provider.py::test_get_macro_series_accepts_provider_override PASSED [ 53%]
+tests/test_openbb_mcp_provider.py::test_mcp_tool_exception_translated_to_provider_error PASSED [ 54%]
+tests/test_openbb_mcp_provider.py::test_mcp_call_without_endpoint_raises PASSED [ 55%]
+tests/test_openbb_mcp_provider.py::test_registry_falls_back_to_yfinance_when_openbb_mcp_unavailable PASSED [ 57%]
+tests/test_openbb_mcp_provider.py::test_registry_uses_openbb_mcp_when_available PASSED [ 58%]
+tests/test_openbb_mcp_provider.py::test_dead_child_falls_through_and_reports_unavailable PASSED [ 59%]
+tests/test_sec_filings_provider.py::test_is_available_reads_env PASSED   [ 60%]
+tests/test_sec_filings_provider.py::test_status_returns_endpoint_when_available PASSED [ 61%]
+tests/test_sec_filings_provider.py::test_is_error_payload_marks_the_provider_down PASSED [ 63%]
+tests/test_sec_filings_provider.py::test_list_filings_invokes_correct_tool PASSED [ 64%]
+tests/test_sec_filings_provider.py::test_list_filings_cache_hit_skips_tool PASSED [ 65%]
+tests/test_sec_filings_provider.py::test_list_filings_zero_pads_numeric_cik PASSED [ 66%]
+tests/test_sec_filings_provider.py::test_list_filings_provider_error PASSED [ 67%]
+tests/test_sec_filings_provider.py::test_get_filing_assembles_detail PASSED [ 69%]
+tests/test_sec_filings_provider.py::test_get_filing_sections_with_the_real_form_type PASSED [ 70%]
+tests/test_sec_filings_provider.py::test_get_filing_raises_not_found_when_metadata_is_unavailable PASSED [ 71%]
+tests/test_sec_filings_provider.py::test_list_insider_transactions PASSED [ 72%]
+tests/test_sec_filings_provider.py::test_search_companies_matches_by_name PASSED [ 73%]
+tests/test_sec_filings_provider.py::test_search_companies_matches_case_insensitively PASSED [ 75%]
+tests/test_sec_filings_provider.py::test_search_companies_matches_by_name_substring PASSED [ 76%]
+tests/test_sec_filings_provider.py::test_search_companies_exact_ticker_ranks_first PASSED [ 77%]
+tests/test_sec_filings_provider.py::test_search_companies_empty_query_returns_no_fetch PASSED [ 78%]
+tests/test_sec_filings_provider.py::test_search_companies_caches_the_ticker_index PASSED [ 79%]
+tests/test_sec_filings_provider.py::test_search_companies_no_match_returns_empty PASSED [ 80%]
+tests/test_sec_filings_provider.py::test_dict_of_sections_parses_to_sections PASSED [ 82%]
+tests/test_sec_filings_provider.py::test_filing_level_form4_rows_are_listed PASSED [ 83%]
+tests/test_sec_filings_provider.py::test_unparseable_success_payload_raises_and_is_not_cached PASSED [ 84%]
+tests/test_sec_filings_provider.py::test_in_band_upstream_failure_raises PASSED [ 85%]
+tests/test_sec_filings_provider.py::test_foreign_private_issuer_forms_are_listed PASSED [ 86%]
+tests/test_sec_filings_provider.py::test_amendments_and_schedules_are_listed PASSED [ 88%]
+tests/test_sec_filings_provider.py::test_get_filing_resolves_a_10k_outside_the_unfiltered_window[10-K] PASSED [ 89%]
+tests/test_sec_filings_provider.py::test_get_filing_resolves_a_10k_outside_the_unfiltered_window[None] PASSED [ 90%]
+tests/test_sec_filings_provider.py::test_get_filing_resolves_a_deep_10q_too[10-Q] PASSED [ 91%]
+tests/test_sec_filings_provider.py::test_get_filing_resolves_a_deep_10q_too[None] PASSED [ 92%]
+tests/test_sec_filings_provider.py::test_sec_filing_content_tool_opens_with_a_small_window[None] PASSED [ 94%]
+tests/test_sec_filings_provider.py::test_sec_filing_content_tool_opens_with_a_small_window[10-K] PASSED [ 95%]
+tests/test_sec_filings_provider.py::test_get_filing_never_widens_past_what_the_upstream_serves PASSED [ 96%]
+tests/test_sec_filings_provider.py::test_get_filing_resolves_a_10k_beyond_the_unfiltered_ceiling_with_no_hint PASSED [ 97%]
+tests/test_sec_filings_provider.py::test_get_filing_resolves_a_10q_beyond_the_ceiling_after_the_10k_pass_misses PASSED [ 98%]
+tests/test_sec_filings_provider.py::test_get_filing_sections_forwards_the_form_type_hint PASSED [100%]
+
+=============================== warnings summary ===============================
+.venv/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/.venv/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/test_mcp_client.py::test_open_against_a_closed_port_raises_provider_error
+tests/test_openbb_mcp_provider.py::test_dead_child_falls_through_and_reports_unavailable
+tests/test_openbb_mcp_provider.py::test_dead_child_falls_through_and_reports_unavailable
+  /opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py:109: DeprecationWarning: Use `streamable_http_client` instead.
+    self.gen = func(*args, **kwds)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 84 passed, 4 warnings in 0.33s ========================

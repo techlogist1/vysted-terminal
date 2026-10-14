@@ -26,7 +26,6 @@ from models.macro_extended import (
 )
 from models.market import MacroSeries
 from services import provider_registry
-from services.errors import ProviderError
 from services.macro import macro_router as macro_dispatcher
 
 router = APIRouter(prefix="/macro", tags=["macro"])
@@ -49,10 +48,7 @@ async def search_macro_series(
     limit: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> list[MacroSearchResult]:
     """Search the dispatched provider's catalog. Phase 6."""
-    try:
-        return await macro_dispatcher.search(q, provider, limit=limit)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return await macro_dispatcher.search(q, provider, limit=limit)
 
 
 @router.get("/catalog", response_model=MacroCatalog)
@@ -61,13 +57,13 @@ async def get_macro_catalog(
     limit: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> MacroCatalog:
     """Return the curated featured catalog for the dispatched provider. Phase 6."""
-    try:
-        return await macro_dispatcher.get_catalog(provider, limit=limit)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return await macro_dispatcher.get_catalog(provider, limit=limit)
 
 
-@router.get("/{series_id}")
+# ``:path`` because IMF ids carry ``/`` (``IFS/A.US.NGDP_R_K_IX``) and Starlette
+# decodes ``%2F`` before matching; declared after /search and /catalog so those
+# still route (R15-UI-053).
+@router.get("/{series_id:path}")
 async def get_macro_series(
     series_id: str,
     provider: str | None = Query(default=None, description="Upstream macro provider id"),
@@ -78,27 +74,28 @@ async def get_macro_series(
     ``imf``, ``world-bank``), the response is a :class:`MacroSeriesExtended`
     with provider routing + caching via :mod:`services.macro.macro_router`.
 
-    When ``provider`` is not provided or is any other value, the legacy
-    Phase-1/3 ``provider_registry.get_macro_series`` path is used and the
-    response is the original :class:`MacroSeries` — kept for backwards
-    compatibility with any caller still on the v0.5.x contract.
-    """
-    if provider and provider.lower() in _V0_6_0_PROVIDERS:
-        try:
-            return await macro_dispatcher.get_series(series_id, provider.lower())
-        except ProviderError as exc:
-            # 502 keeps shape parity with the global ProviderError handler;
-            # an explicit translate here lets the search/catalog endpoints
-            # use the same status code.
-            raise HTTPException(status_code=502, detail=str(exc)) from exc
+    When ``provider`` is any other value, the legacy Phase-1/3
+    ``provider_registry.get_macro_series`` path is used and the response is
+    the original :class:`MacroSeries` — kept for backwards compatibility with
+    any caller still on the v0.5.x contract.
 
-    # Legacy path — Phase 1.A / Phase 3 openbb-mcp. A ProviderError here is an
+    ``provider`` is required (D-B10-2, R15-DATA-087): a series id's namespace
+    is provider-specific (FRED's ``DGS10`` means nothing to World Bank), so
+    silently picking a region default here served a 502 for the app's own
+    default series under region IN. A locale-sensible default stays available
+    via :func:`services.macro.macro_router.default_provider_for_region` for
+    discovery (catalog/search) callers; a series fetch names its provider.
+    """
+    if not provider:
+        raise HTTPException(status_code=422, detail="provider is required for a series id")
+    if provider.lower() in _V0_6_0_PROVIDERS:
+        return await macro_dispatcher.get_series(series_id, provider.lower())
+
+    # Legacy path — Phase 1.A / Phase 3 openbb-mcp, reached only for a provider
+    # literal outside the four v0.6.0 names. A ProviderError here is an
     # upstream-gateway failure (openbb-mcp / FRED rejected the call — e.g. a
     # missing FRED credential), so it is a 502 Bad Gateway, NOT a 501 Not
     # Implemented (the endpoint IS implemented). This unifies the status code
     # with the v0.6.0 dispatch path above and the search/catalog endpoints
     # (Phase 9.5 nit: FRED-no-key returned 501 instead of 502).
-    try:
-        return await provider_registry.get_macro_series(series_id, provider=provider)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return await provider_registry.get_macro_series(series_id, provider=provider)

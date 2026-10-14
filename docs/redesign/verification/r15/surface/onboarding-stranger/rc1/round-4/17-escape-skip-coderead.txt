@@ -1,0 +1,7 @@
+154:        onEscapeKeyDown={(e) => e.preventDefault()}
+155:        onPointerDownOutside={(e) => e.preventDefault()}
+156:        onInteractOutside={(e) => e.preventDefault()}
+385:          e.preventDefault();
+--- skip marker ---
+6: * in the OS keychain (`app-meta:onboarding-complete`) — the same durability the
+18:const ONBOARDING_ACCOUNT = KEYCHAIN_NAMESPACES.appMeta("onboarding-complete");

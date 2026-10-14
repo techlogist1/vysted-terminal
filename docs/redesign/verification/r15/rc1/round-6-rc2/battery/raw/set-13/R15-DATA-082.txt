@@ -1,0 +1,6 @@
+# in-process probe at ace7dd76 (sidecar venv, scratch data dir), script scratchpad/b19_set13.py 082
+# exit=0
+WARNING:services.provider_registry:provider ccxt failed for quote, falling through: ccxt ticker for binance:BTC/USDT carries no last or close price
+== no last/close: ProviderError: ccxt ticker for binance:BTC/USDT carries no last or close price
+WARNING:services.provider_registry:provider ccxt failed for quote, falling through: correctness gate: non-positive price 0.0 for 'BTC/USDT' from 'ccxt:binance'
+== last=0 close=0: CorrectnessError: correctness gate: non-positive price 0.0 for 'BTC/USDT' from 'ccxt:binance'

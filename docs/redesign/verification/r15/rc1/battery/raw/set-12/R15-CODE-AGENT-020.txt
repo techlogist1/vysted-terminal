@@ -1,0 +1,26 @@
+
+
+def get_provider(provider_id: LLMProviderId, base_url: str | None = None) -> LLMProvider:
+    """Resolve a provider id to a concrete adapter instance.
+
+    DeepSeek and xAI are dispatched to :class:`OpenAIProvider` with the
+    appropriate ``base_url`` baked in — they speak the OpenAI chat-completions
+    wire format end-to-end, so the SDK works as-is with the override.
+
+    :param provider_id: One of the seven BYOK provider ids.
+    :param base_url: Optional override; takes precedence over the dispatch
+        default (used to point Ollama at a remote host, for example).
+    :raises ValueError: When an unknown provider id is supplied.
+    """
+    if provider_id == "anthropic":
+        return AnthropicProvider(base_url=base_url)
+    if provider_id == "openai":
+        return OpenAIProvider(base_url=base_url)
+    if provider_id == "gemini":
+        return GeminiProvider()
+    if provider_id == "groq":
+        return GroqProvider()
+    if provider_id == "ollama":
+        return OllamaProvider(base_url=base_url)
+    if provider_id in ("deepseek", "xai", "openrouter"):
+        return OpenAIProvider(

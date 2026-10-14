@@ -1,0 +1,10 @@
+# R15-AGENT-071 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:11+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p22_071.py 2>&1 | grep -v Warning | head -40
+--- output ---
+preamble bytes 2160 host_action tools 19
+all catalog host_action ids named in preamble: True
+catalog ids named by hand in copilot.json: ['compare_symbols', 'fundamentals', 'news', 'market_overview', 'research', 'get_terminal_state', 'get_portfolio', 'set_chart_symbol', 'set_chart_indicators', 'arrange_layout', 'publish_brief']
+loaded copilot prompt has preamble: True
+
+EXIT=0 (1.4s)

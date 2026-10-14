@@ -1,0 +1,30 @@
+## sec.ts select* helpers
+291:export function selectFilings(
+297:  return useSecStore.getState().filingsByIdentifier[key] ?? EMPTY_FILINGS;
+301:export function selectFilingDetail(accession: string | null): FilingDetail | null {
+303:  return useSecStore.getState().filingDetailByAccession[accession] ?? null;
+307:export function selectInsider(
+313:  return useSecStore.getState().insiderByIdentifier[key] ?? EMPTY_INSIDER;
+## SecFilingsPanel void + useMemo
+15:import { useCallback, useMemo, useRef, useState } from "react";
+74:  const filings = useMemo(() => {
+75:    void filingsByIdentifier; // subscribe
+76:    return selectFilings(activeIdentifier, formFilter === "all" ? undefined : formFilter);
+87:      void loadFilings(symbol, formFilter === "all" ? undefined : formFilter);
+97:        void loadFilings(activeIdentifier, value === "all" ? undefined : value);
+185:              void loadFilings(activeIdentifier, formFilter === "all" ? undefined : formFilter)
+## InsiderTradingTable
+7: * Reads from `useSecStore.insiderByIdentifier`. XBRL-precise numeric fields
+12:import { useEffect, useMemo, useState } from "react";
+20:import { selectInsider, useSecStore } from "@/store/sec";
+99:  const loadInsider = useSecStore((s) => s.loadInsider);
+100:  const status = useSecStore((s) => s.insiderStatus);
+101:  const error = useSecStore((s) => s.insiderError);
+105:  const byIdentifier = useSecStore((s) => s.insiderByIdentifier);
+106:  const response = useMemo(() => {
+107:    void byIdentifier; // hooked above for subscription
+108:    const raw = selectInsider(identifier, form === "all" ? undefined : form);
+## git log
+e9f28770 fix(ui): cold-boot retry retries only a not-ready engine (R15-UI-015)
+b8e418ae fix(sec,earnings): drop a superseded response instead of committing it (R15-CODE-FRONTEND-017)
+7f72a7f7 fix(sec): get_filing resolves with the row's form hint, then the upstream's widest window (R15-LEAD-010)

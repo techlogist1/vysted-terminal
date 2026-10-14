@@ -1,0 +1,12 @@
+# R15-CODE-PLATFORM-043 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:04+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n '^PROVIDER' sidecar/services/macro/*_provider.py; grep -n 'MacroProvider = ' sidecar/models/macro_extended.py
+--- output ---
+sidecar/services/macro/ecb_provider.py:31:PROVIDER: MacroProvider = "ecb"
+sidecar/services/macro/fred_provider.py:49:PROVIDER: MacroProvider = "fred"
+sidecar/services/macro/imf_provider.py:35:PROVIDER: MacroProvider = "imf"
+sidecar/services/macro/world_bank_provider.py:39:PROVIDER: MacroProvider = "world-bank"
+27:MacroProvider = Literal["fred", "ecb", "imf", "world-bank"]
+
+EXIT=0 (0.0s)

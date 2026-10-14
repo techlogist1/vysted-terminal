@@ -1,0 +1,10 @@
+$ POST /screener/formula/validate min(pe < 5, roe) > 0.5
+{"ok":false,"error":"min() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+$ POST /screener/formula/validate abs(pe_ratio > 3) > 0.5
+{"ok":false,"error":"abs() needs a numeric argument, not a boolean expression — wrap the comparison on its own, or combine with 'and'/'or'","position":3,"fields":[]}
+$ POST /screener/formula/validate (pe_ratio < 15) + 1 > 1.5
+{"ok":false,"error":"a boolean expression can't be used in arithmetic — wrap the comparison on its own, or combine with 'and'/'or'","position":16,"fields":[]}
+$ POST /screener/formula/validate (pe > 10) + 1
+{"ok":false,"error":"a boolean expression can't be used in arithmetic — wrap the comparison on its own, or combine with 'and'/'or'","position":10,"fields":[]}
+$ POST /screener/formula/validate pe < 5 and roe > 0.1
+{"ok":true,"error":null,"position":null,"fields":["pe_ratio","roe"]}

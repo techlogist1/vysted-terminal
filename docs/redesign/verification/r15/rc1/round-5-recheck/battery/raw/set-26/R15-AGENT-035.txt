@@ -1,0 +1,13 @@
+=== R15-AGENT-035 (in-process fake-provider probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+CMD: launch_run(provider='openrouter', model='mistral-fake-model', budget=RunBudget(max_tokens=1000)); fake provider round1 emits a tool_use+2000-token done (breach, no dispatch); run errors; resume_run(run_id) with NO provider/model/api_key kwargs; spy on agent_runtime.get_provider(provider_id) calls.
+
+{
+  "provider_after_resume": "openrouter",
+  "model_after_resume": "mistral-fake-model",
+  "get_provider_spy_calls": [
+    "openrouter",
+    "openrouter"
+  ],
+  "get_provider_called_openrouter_on_both": true,
+  "final_status": "done"
+}

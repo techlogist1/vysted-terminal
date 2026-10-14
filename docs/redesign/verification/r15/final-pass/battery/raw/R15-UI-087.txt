@@ -1,0 +1,20 @@
+# R15-UI-087 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:43+0530
+
+$ git merge-base --is-ancestor 9985b00e HEAD && echo 'closure 9985b00e is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 9985b00e NOT an ancestor'
+[exit 0] [0.02s]
+closure 9985b00e is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-087\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.29s]
+src/components/SettingsPanel.test.tsx:287:  // R9 killed an UNREAD preference-order group; R15-UI-087 rebuilt it with its
+src/components/SettingsPanel.test.tsx:289:  it("the provider fallback order is live: the arrows reorder the rows and the store (R15-UI-087)", () => {
+src/components/CommandPalette.tsx:16: * Settings → Command palette (FR-038, R15-UI-087): `paletteShowRecents` turns
+src/components/SettingsPanel.tsx:83: * `verification/R9_DEFECT_CATALOGUE.md`. R15-UI-087 brought the provider order,
+src/components/PanelHost.test.tsx:147: * R15-UI-087 (FR-038): the "Start with" preference. The launch restore has
+src/components/CommandPalette.test.tsx:186:  // R15-UI-087 (FR-038): the two palette preferences change what it shows.
+src/components/PanelHost.tsx:93: * The "Start with" preference (FR-038, R15-UI-087): after the launch restore
+src/modules/chat/ChatSidebar.test.tsx:926:    // (R15-UI-087), so the error itself renders.
+src/modules/chat/ChatSidebar.test.tsx:1028:  // R15-UI-087 (FR-038, D-B11-7): a provider failure before any answer text
+src/store/settings.ts:27: * (R15-UI-087 rebuilt FR-038's preference depth WITH its consumers; the killed
+

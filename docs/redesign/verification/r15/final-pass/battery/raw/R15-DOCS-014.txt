@@ -1,0 +1,20 @@
+# R15-DOCS-014 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:26+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-DOCS-014\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+
+
+$ grep -n -i 'first-token\|first token' docs/CURRENT_STATE.md docs/archive/PHASE_8_PERF_BASELINE.md | cut -c1-240 | head -8
+[exit 0] [0.01s]
+docs/CURRENT_STATE.md:741:**BYOK first-token latency.** `docs/archive/PHASE_8_PERF_BASELINE.md`'s "Not
+docs/CURRENT_STATE.md:744:isolates a per-chunk streaming timestamp either, so a true first-token figure
+docs/CURRENT_STATE.md:746:round-trip call duration (request → final `done`, not first token) from
+docs/CURRENT_STATE.md:757:These are total-call, not first-token, numbers (no stream-chunk timestamps
+docs/archive/PHASE_8_PERF_BASELINE.md:126:## Agent first-token latency
+docs/archive/PHASE_8_PERF_BASELINE.md:198:| Agent first-token latency   | deferred      | Phase 9 with keychain             |
+

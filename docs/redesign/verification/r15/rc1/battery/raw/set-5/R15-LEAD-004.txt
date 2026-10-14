@@ -1,0 +1,13 @@
+$ curl -s http://127.0.0.1:52341/fundamentals/TCS  (field_meta.revenue_ttm.label)
+"consolidated, sum of 4 filed quarters to 2026-06-30" -- TCS now has 4 filed quarters (data
+has caught up since the original repro's 3-quarter provider gap); the reason field is null
+because there's no gap to report today, not because the mechanism is gone.
+
+$ curl -s http://127.0.0.1:52341/fundamentals/DHANBANK  (field_meta.revenue_ttm.label)
+"standalone, sum of 4 filed quarters to 2026-06-30" -- matches the certified evidence
+exactly ("DHANBANK, a quarterly filer, sums 4 filed quarters").
+
+$ curl -s http://127.0.0.1:52341/fundamentals/JONJUA
+field_meta.revenue_ttm/net_income_ttm/eps all null today (no TTM data currently computed
+for this micro-cap on this call) -- could not re-observe the "half-yearly" label live;
+DHANBANK's confirmation above is used as the entry's live evidence instead.

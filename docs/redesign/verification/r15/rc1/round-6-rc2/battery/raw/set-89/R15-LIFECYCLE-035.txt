@@ -1,0 +1,8 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: in-process searxng_manager: failed pull -> error; hand-started container (inspect running + port) -> refresh(); and running-but-unhealthy boundary
+searxng: docker pull exited 1: Error response from daemon: pull access denied
+after failed pull: state error
+hand-fixed container: state ready | reason None | last_error docker pull failed: Error response from  | ready_base_url http://127.0.0.1:8888
+running-but-unhealthy: state error | reason container started but never became healthy within 0s — check | ready_base_url None
+pinned tests: 745:async def test_hand_fixed_container_supersedes_a_sticky_error(tmp_path) -> None: 768:async def test_error_stays_sticky_while_the_container_is_not_serving(tmp_path) -> None:
+EXIT=0

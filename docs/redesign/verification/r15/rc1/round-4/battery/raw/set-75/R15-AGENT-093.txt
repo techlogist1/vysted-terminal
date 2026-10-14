@@ -1,0 +1,69 @@
+[
+  {
+    "label": "option_chain max_strikes '5'",
+    "tool": "option_chain",
+    "in": {
+      "symbol": "NIFTY",
+      "max_strikes": "5"
+    },
+    "out": {
+      "symbol": "NIFTY",
+      "max_strikes": 5
+    },
+    "sentinel": false
+  },
+  {
+    "label": "option_chain max_strikes '5.0'",
+    "tool": "option_chain",
+    "in": {
+      "symbol": "NIFTY",
+      "max_strikes": "5.0"
+    },
+    "out": {
+      "symbol": "NIFTY",
+      "max_strikes": 5
+    },
+    "sentinel": false
+  },
+  {
+    "label": "yield_curve_value nested tenor/rate strings",
+    "tool": "yield_curve_value",
+    "in": {
+      "valuation_date": "2026-09-27",
+      "sample_count": 5,
+      "instruments": [
+        {
+          "type": "deposit",
+          "tenor": 3,
+          "tenor_unit": "months",
+          "rate": 0.05
+        }
+      ]
+    },
+    "out": {
+      "valuation_date": "2026-09-27",
+      "sample_count": 5,
+      "instruments": [
+        {
+          "type": "deposit",
+          "tenor": 3,
+          "tenor_unit": "months",
+          "rate": 0.05
+        }
+      ]
+    },
+    "sentinel": false
+  },
+  {
+    "label": "option_chain max_strikes 'ten' (non-numeric)",
+    "tool": "option_chain",
+    "in": {
+      "symbol": "NIFTY",
+      "max_strikes": "ten"
+    },
+    "out": {
+      "__vysted_invalid_args__": "invalid arguments for option_chain: 'ten' is not of type 'integer'; call again with valid args"
+    },
+    "sentinel": true
+  }
+]

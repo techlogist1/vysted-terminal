@@ -1,0 +1,29 @@
+[
+    {
+        "enabled": false,
+        "granted_secret_ids": [
+            "newsapi-key"
+        ],
+        "installed": true,
+        "plugin_id": "vysted-news",
+        "settings": {
+            "maxItems": 40,
+            "sentiment": "on",
+            "sources": [
+                "reuters",
+                "wsj"
+            ]
+        }
+    },
+    {
+        "enabled": true,
+        "granted_secret_ids": [],
+        "installed": true,
+        "plugin_id": "yfinance",
+        "settings": {
+            "defaultExchange": "binance",
+            "refreshSeconds": 15,
+            "showVolume": true
+        }
+    }
+]

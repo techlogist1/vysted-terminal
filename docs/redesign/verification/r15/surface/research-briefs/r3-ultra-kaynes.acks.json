@@ -1,0 +1,8 @@
+[
+ {
+  "t": 643.2,
+  "tool": "publish_brief",
+  "tool_call_id": "__autobrief",
+  "ack_http": "200 {\"ok\":true}"
+ }
+]

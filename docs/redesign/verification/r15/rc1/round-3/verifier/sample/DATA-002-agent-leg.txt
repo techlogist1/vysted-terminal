@@ -1,0 +1,6 @@
+# worktree HEAD 5ff9be041180c1c316ad48ceb120a23549a7575a; session region of the seed profile:
+settings.region = IN
+## GET /fundamentals/DAL (bare, as the agent's fundamentals tool calls it)
+{'symbol': 'DAL.BO', 'name': 'Dynamic Archistructures Limited', 'currency': 'INR', 'pe_ratio': 5.6044946, 'market_cap': 249898800.0}
+## GET /resolve?q=DAL&region=US
+{'symbol': 'DAL', 'name': 'DELTA AIR LINES, INC.', 'exchange': 'US', 'region': 'US', 'yahoo_symbol': 'DAL'}

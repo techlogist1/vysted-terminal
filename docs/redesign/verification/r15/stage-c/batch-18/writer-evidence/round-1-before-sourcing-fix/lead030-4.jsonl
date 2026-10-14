@@ -1,0 +1,72 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_d531ec6f82f246069e9bb6aa6eef8968", "name": "financial_statements", "input": {"symbol": "SIFY", "statement": "income", "period": "quarterly"}}
+{"kind": "tool_result", "tool_call_id": "call_d531ec6f82f246069e9bb6aa6eef8968", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "According"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " statements"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " Total"}
+{"kind": "delta", "text": " Revenue"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Tr"}
+{"kind": "delta", "text": "ailing"}
+{"kind": "delta", "text": " Twelve"}
+{"kind": "delta", "text": " Months"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "111"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Note"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " result"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " Indian"}
+{"kind": "delta", "text": " Ru"}
+{"kind": "delta", "text": "pees"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "IN"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": " Tool"}
+{"kind": "delta", "text": " used"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": "_stat"}
+{"kind": "delta", "text": "ements"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " period"}
+{"kind": "delta", "text": "='"}
+{"kind": "delta", "text": "quarter"}
+{"kind": "delta", "text": "ly"}
+{"kind": "delta", "text": "'"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " statement"}
+{"kind": "delta", "text": "='"}
+{"kind": "delta", "text": "income"}
+{"kind": "delta", "text": "'."}
+{"kind": "done", "usage": {"input_tokens": 6876, "output_tokens": 66, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

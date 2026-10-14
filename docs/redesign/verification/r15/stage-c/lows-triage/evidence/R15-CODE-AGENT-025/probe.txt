@@ -1,0 +1,20 @@
+cmd: stub session call_tool -> CallToolResult(content=[], structuredContent={'x':1}, isError=False); McpClient.call_tool returns: {'isError': False, 'content': []}
+structuredContent present: False
+
+cmd: mcp.types.LATEST_PROTOCOL_VERSION = 2025-11-25 | CallToolResult fields = ['meta', 'content', 'structuredContent', 'isError']
+
+sidecar/services/mcp_client.py:243
+        return {"isError": bool(result.isError), "content": content}
+sidecar/services/sec_filings_provider.py:156-160
+    else:
+        # Fallback: structured content (FastMCP 3.x with output_schema).
+        decoded = result.get("structuredContent")
+        if not isinstance(decoded, dict):
+            raise ProviderError(f"sec-edgar-mcp tool {tool_name!r} returned no content")
+types/mcp.ts:74-79
+export interface McpToolCallResult {
+  /** Whether the tool reported an error. MCP spec keeps this on the response, not the transport. */
+  isError?: boolean;
+  /** Content blocks; text blocks are the primary form, but tools may emit other kinds. */
+  content: McpContentBlock[];
+}

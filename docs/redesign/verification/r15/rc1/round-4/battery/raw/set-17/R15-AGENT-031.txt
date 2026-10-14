@@ -1,0 +1,22 @@
+COMMAND (node, re-running the register's exact node -e style repro against the candidate's
+CURRENT matching function, sha 1006c6da): the old repro tested a prose DIVERGENCE_RE regex that
+no longer exists in src/modules/chat/message-notices.ts. The fix replaced it with a structural
+check keyed on step_kind (isRuntimeNotice(stepKind) => stepKind === "notice",
+message-notices.ts:68-70). Re-ran the three notice copies the register named plus a non-notice
+control:
+
+  node -e 'function isRuntimeNotice(stepKind){return stepKind==="notice";} ... '
+
+OUTPUT:
+{"kind":"notice","detail":"The panel kept the brief already on scre","matched":true}
+{"kind":"notice","detail":"The brief panel reported the publish fai","matched":true}
+{"kind":"notice","detail":"The brief panel did not confirm the publ","matched":true}
+{"kind":"engine","detail":"some unrelated telemetry step","matched":false}
+
+VERDICT: holds.
+All three publish-divergence notice copies now match (old regex missed 2 of 3); a non-notice
+step_kind correctly does not match. ChatSidebar.tsx:1056/1082 dispatch on isRuntimeNotice(step.stepKind)
+for both the visible chip AND the produced-output guard, sourced from the sidecar's step_kind=
+NOTICE_STEP_KIND on every notice frame (agent_runtime.py, confirmed live in R15-AGENT-031/033/040
+above emitting step_kind='notice'). The prose-as-contract defect class this entry and its live twin
+were filed under is eliminated structurally, not patched at the regex.

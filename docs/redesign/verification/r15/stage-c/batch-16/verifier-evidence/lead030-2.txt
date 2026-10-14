@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+The trailing twelve month revenue for Infosys (INFY) is USD 20.16B, as per the financial statements from March 31st, 2026.
+
+=== ok · 69.4s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 35, 'done': 1} · usage in=6732 out=36 · est $0.00000 · llama3.1:8b

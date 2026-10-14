@@ -1,0 +1,4 @@
+$ python3 -c bse_provider._marker_after_day / _bhavcopy_for with a temp cache dir
+same-day marker honoured? False (expect False/None)
+next-day marker honoured? '' (expect empty string "")
+real content day honoured regardless of mtime? True

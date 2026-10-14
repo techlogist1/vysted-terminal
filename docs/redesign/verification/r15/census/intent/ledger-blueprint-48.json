@@ -1,0 +1,482 @@
+[
+  {
+    "pid": "INT-BP-49",
+    "promise": "Python sidecar provides a backtest engine (vectorbt + backtrader patterns).",
+    "source": "\u00a73.1 (L86)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/backtest_engine.py:1-26, sidecar/services/backtest_strategies.py, sidecar/routers/backtest.py, sidecar/services/backtest_dsl.py",
+    "gap": "",
+    "decision_ref": "CHANGELOG.md:1041-1044 + docs/BLUEPRINT.md:522 (Tier-3: custom event-driven engine drawing on vectorbt/backtrader PATTERNS, neither at runtime)"
+  },
+  {
+    "pid": "INT-BP-50",
+    "promise": "Python sidecar provides AI agent orchestration (LangGraph).",
+    "source": "\u00a73.1 (L87)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "sidecar/services/agent_runtime.py:1229-1300 (invoke loop + tool rounds), sidecar/services/run_manager.py, sidecar/services/workflow_engine.py:189, sidecar/services/research/deep.py:4",
+    "gap": "Agent orchestration is delivered, but hand-rolled: LangGraph is absent from sidecar/requirements.txt and research/deep.py:4 only calls its loop 'LangGraph-style'. Unlike the vectorbt/backtrader swap (CHANGELOG.md:1041) no decision records the drop, so BLUEPRINT.md:86,122 still advertises a dependency the build does not have.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-51",
+    "promise": "Python sidecar provides ccxt for unified crypto WebSockets (Bybit, Binance, Kraken, Coinbase).",
+    "source": "\u00a73.1 (L88)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/ccxt_provider.py:23 (SUPPORTED_EXCHANGES = bybit/binance/kraken/coinbase), :109-118 (ccxt.pro watch_ticker), sidecar/routers/crypto.py:50-63",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-52",
+    "promise": "Python sidecar provides an MCP server for external AI tool access.",
+    "source": "\u00a73.1 (L89) / \u00a74 Infrastructure (L311)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/app.py:340-345 (app.mount('/mcp', mcp_server.get_streamable_http_app())), sidecar/services/mcp_server.py, sidecar/routers/mcp.py; docs/redesign/DECISIONS.md:135 (D80 smoke test: MCP ready, 36 tools)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-53",
+    "promise": "TypeScript/React layer handles all UI rendering.",
+    "source": "\u00a73.1 (L92)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/components/PanelHost.tsx (dockview host), src/modules/*/ (21 registered panels), src/app/page.tsx",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-54",
+    "promise": "TypeScript/React layer uses lightweight-charts for financial charting.",
+    "source": "\u00a73.1 (L93)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "package.json lightweight-charts 5.2.0; src/modules/chart/volume-profile-primitive.ts:21, src/modules/quant/YieldCurvePanel.tsx:34, src/modules/analyst-ratings/PriceTargetTimeline.tsx:12, src/lib/chart-theme.ts",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-55",
+    "promise": "TypeScript/React layer uses react-flow for the node editor.",
+    "source": "\u00a73.1 (L94)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "package.json @xyflow/react 12.10.2 (react-flow v12, renamed upstream); src/modules/node-editor/NodeEditorPanel.tsx:42, VystedNode.tsx:13, graph-state.ts:20",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-56",
+    "promise": "TypeScript/React layer uses Framer Motion for animations.",
+    "source": "\u00a73.1 (L95)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "package.json framer-motion 12.38.0; src/modules/chat/ChatSidebar.tsx:11, src/lib/motion.ts",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-57",
+    "promise": "TypeScript/React layer uses Zustand for state.",
+    "source": "\u00a73.1 (L96)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "package.json zustand 5.0.13; src/store/panel-context.ts:20,38, src/store/plugins.ts, src/store/workspace.ts",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-58",
+    "promise": "TypeScript/React layer uses Tailwind + shadcn/ui for the design system.",
+    "source": "\u00a73.1 (L97)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "package.json tailwindcss 4.3.0 + radix-ui 1.4.3; src/components/ui/button.tsx, src/components/ui/dialog.tsx, styles/tokens.css",
+    "gap": "shadcn/ui is present as two vendored primitives plus direct radix-ui usage rather than a broad shadcn surface; the R9 design system is out of scope to reopen (COMMON.md).",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-59",
+    "promise": "Tauri commands handle Rust <-> JS communication (system access).",
+    "source": "\u00a73.1 (L100)",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs:142,276,287,318,407 (generate_handler!), src-tauri/src/keychain.rs:298,315,331,347, src-tauri/src/kill_switch.rs:89, src-tauri/src/openbb_mcp.rs:50, src-tauri/src/sec_edgar_mcp.rs:49",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-60",
+    "promise": "HTTP localhost calls handle JS <-> Python sidecar communication (data + AI requests).",
+    "source": "\u00a73.1 (L101)",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/sidecar-client.ts (getSidecarBaseUrl + fetch against http://127.0.0.1:<port>), sidecar/main.py --host 127.0.0.1",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-61",
+    "promise": "WebSocket handles real-time JS <-> Python streaming.",
+    "source": "\u00a73.1 (L102)",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "sidecar/routers/crypto.py:50-63 (the only WebSocket route in the sidecar), src/lib/sidecar-client.ts:245-252 (openCryptoStream), src/modules/watchlist/WatchlistPanel.tsx:24,219-221 (POLL_INTERVAL_MS = 5_000)",
+    "gap": "The transport exists end to end but nothing consumes it: openCryptoStream has ZERO callers outside its own definition (grep over src/), and the watchlist - the one live-quote surface - polls REST every 5s instead. Chat streaming uses SSE-over-POST (src/modules/chat/streaming.ts:4), not WebSocket. No real-time push reaches any panel.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-62",
+    "promise": "MCP server (Python) handles external AI tool integration.",
+    "source": "\u00a73.1 (L103)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/app.py:340-345, sidecar/services/mcp_server.py (FastMCP Streamable-HTTP), sidecar/services/mcp_client.py (consuming external MCP servers), sidecar/tests/test_mcp_catalog_parity.py",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-63",
+    "promise": "Each plugin is a self-contained module implementing the VystedPlugin interface and declaring which capabilities it contributes.",
+    "source": "\u00a73.3 (L136)",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:216-255, plugins/openbb-mcp/index.ts:138-142, plugins/yfinance/index.ts:24-30, plugins/vysted-lenses/index.ts:23-24, plugins/brokers/*/index.ts, src/lib/plugin-runtime.ts",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-64",
+    "promise": "Capability negotiation means panels/commands/agents that a plugin doesn't provide are gracefully omitted.",
+    "source": "\u00a73.3 (L136)",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/plugin-runtime.ts:400-460 (callIfFlagged + collectDataSources/Panels/Commands/Agents/Nodes, each gated on its capability flag), src/lib/plugin-bootstrap.ts:135-146, src/lib/plugin-agents.ts:32-33",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-65",
+    "promise": "VystedPlugin interface declares identity: pluginId, pluginName, pluginType, version.",
+    "source": "\u00a73.3 (L141-144)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:219-225 (pluginId, pluginName, pluginType, version)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-66",
+    "promise": "VystedPlugin interface declares lifecycle methods: initialize, shutdown, healthCheck.",
+    "source": "\u00a73.3 (L146-149)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:228-230 (initialize/shutdown/healthCheck); src/lib/plugin-runtime.ts health polling (~:462+)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-67",
+    "promise": "VystedPlugin interface declares capabilities: contributesData, contributesPanels, contributesCommands, contributesAgents, contributesNodes, supportsControlPlane.",
+    "source": "\u00a73.3 (L152-159)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:59-66 (the six flags), :233",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-68",
+    "promise": "VystedPlugin interface supports data contribution via getDataSources().",
+    "source": "\u00a73.3 (L162)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "types/plugin.ts:236 + :76-87; src/lib/plugin-runtime.ts:419-425 (collectDataSources); src/store/plugins.ts:62,86; src/components/PluginManagerPanel.tsx:28,42; plugins/yfinance/index.ts:1-11",
+    "gap": "The getter and the aggregation exist, but nothing consumes the result beyond a COUNT in the plugin-manager header ('N data sources'). No host or sidecar path routes a data read to a plugin-contributed DataSource - yfinance/index.ts:1-11 states outright that 'the actual data flows through the sidecar's provider_registry' and the plugin is 'a thin declaration'. A third-party data plugin therefore cannot serve a single quote without editing the sidecar.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-69",
+    "promise": "VystedPlugin interface supports panel contribution via getPanels().",
+    "source": "\u00a73.3 (L165)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:239; src/lib/plugin-bootstrap.ts:135 + :175-185 (bridgePluginModule appends panels to the module registry), :188-200 (unbridge closes them)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-70",
+    "promise": "VystedPlugin interface supports command-bar (slash command) contribution via getCommands().",
+    "source": "\u00a73.3 (L168)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:242 + :118-133; src/lib/plugin-bootstrap.ts:136-139, :143-153 (commandHandlers wired to executeCommand)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-71",
+    "promise": "VystedPlugin interface supports AI agent contribution via getAgents().",
+    "source": "\u00a73.3 (L171)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:245 + :143-158; src/lib/plugin-agents.ts:5,32-33 ('genuinely RUNNABLE'); plugins/vysted-lenses/index.ts:23,73; src/store/plugins.ts:63",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-72",
+    "promise": "VystedPlugin interface supports node-editor contribution via getNodes().",
+    "source": "\u00a73.3 (L174)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:248 + :175-188; src/lib/plugin-runtime.ts:454-459; src/modules/node-editor/node-registry.ts:4-6,540-544 (source: 'built-in' | 'plugin'); src/store/plugins.ts:64",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-73",
+    "promise": "VystedPlugin interface supports real-time subscriptions via subscribe(channel, callback), if supported.",
+    "source": "\u00a73.3 (L177)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "types/plugin.ts:251 (subscribe?), :84 (DataSource.realtime); src/lib/plugin-runtime.ts (no caller), plugins/*/index.ts (no implementor)",
+    "gap": "Declared in the contract only. Grep over src/ finds no host call site for instance.subscribe(), and no bundled plugin implements it - so DataSource.realtime: true is an unreachable claim and a plugin has no way to push a tick into a panel.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-74",
+    "promise": "VystedPlugin interface supports a control plane via executeCommand(commandId, args), if supported.",
+    "source": "\u00a73.3 (L180)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:254 + :198-205 (CommandResult); src/lib/plugin-bootstrap.ts:143-153 (flag-gated, failures logged)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-75",
+    "promise": "Tradesa V2 plugin implements all six VystedPlugin capabilities.",
+    "source": "\u00a73.3 (L184)",
+    "kind": "capability",
+    "status": "dropped",
+    "evidence": "docs/redesign/DECISIONS.md:84 (D44); plugins/ contains brokers, example, openbb-mcp, vysted-lenses, vysted-news, yfinance - no tradesa dir",
+    "gap": "",
+    "decision_ref": "D44 - 'Tradesa V2 is removed completely (plugin dir, sidecar provider/router/model/tests, types, marketplace row, keychain namespace); the plugin SYSTEM survives and is re-proven post-strip.' Also on COMMON.md's out-of-scope list."
+  },
+  {
+    "pid": "INT-BP-76",
+    "promise": "OpenBB ODP wrap plugin implements only contributesData.",
+    "source": "\u00a73.3 (L184)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "plugins/openbb-mcp/index.ts:42-48 (contributesData: true, all five others false), plugins/openbb-mcp/openbb-mcp.test.ts:31-37 pins it",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-77",
+    "promise": "Future plugins pick whichever capabilities fit.",
+    "source": "\u00a73.3 (L184)",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "plugins/vysted-lenses/index.ts:23 (agents only), plugins/yfinance/index.ts:25-30 (data only), plugins/vysted-news/index.ts:27-31 (data only), plugins/brokers/kite/index.ts:48-52 (data + panels), plugins/example/index.ts:66-67",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-78",
+    "promise": "AI sandboxability has three layers: per-panel context, specialized workflow agents, and multi-agent orchestration via node editor.",
+    "source": "\u00a73.4 (L188)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "L2: sidecar/agents/*.json (13 first-party) + sidecar/services/agent_runtime.py. L3: src/modules/node-editor/node-registry.ts:110-118 (ai.agent_invoke) + sidecar/services/workflow_engine.py. L1: src/modules/chat/ChatSidebar.tsx (one shared dock) + src/store/panel-context.ts",
+    "gap": "Layers 2 and 3 exist as specified. Layer 1 exists in a different shape - one shared chat dock reading a panel-context bus - not 'an inline AI sidebar/chat per panel'. No decision in docs/redesign/DECISIONS.md or specs/001-agent-native-redesign/ records the reshape, so the blueprint's three-layer claim is still nominally outstanding.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-79",
+    "promise": "Every panel that benefits from AI has an inline AI sidebar/chat (Layer 1).",
+    "source": "\u00a73.4 (L190)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "src/modules/chat/ChatSidebar.tsx (the single chat surface); publishers: src/modules/chart/ChartPanel.tsx:886, watchlist/WatchlistPanel.tsx:178, news/NewsFeedPanel.tsx:188, portfolio/PortfolioPanel.tsx:226, equity-overview/EquityOverviewPanel.tsx:648, backtest/BacktestResultView.tsx:423; src/modules/research/BriefPanel.tsx:449 is the only in-panel agent affordance",
+    "gap": "There is no inline AI surface on any panel. 6 of 21 registered panels publish context at all; screener, macro, sec, earnings, analyst-ratings, quant, notes, marketplace, plugin-manager, broker-connect, node-editor and settings publish nothing, and only BriefPanel can hand anything to the agent from inside a panel.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-80",
+    "promise": "The Layer-1 AI agent knows the panel's context (current ticker, current chart timeframe, current portfolio).",
+    "source": "\u00a73.4 (L190)",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "src/modules/chat/context-provider.ts:216-280 (captureTerminalState), src/store/panel-context.ts:38-46, src/modules/chart/ChartPanel.tsx:886",
+    "gap": "The snapshot only branches on sources starting with 'chart' and the literals 'watchlist' and 'portfolio' (context-provider.ts:224-259). The news ('news'), equity-overview ('equity') and backtest ('backtest-panel') publishers land on the bus and are then DISCARDED - BacktestResultView.tsx:411-412 comments that it publishes 'so the chat sidebar's Strategy Critic invocation can pick up the focused run id', which the consumer never reads.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-81",
+    "promise": "Example behaviour: user opens an AAPL chart and the AI knows AAPL is the context.",
+    "source": "\u00a73.4 (L190)",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/modules/chart/ChartPanel.tsx:881-899 publishes {symbol, timeframe, activeIndicators}; src/modules/chat/context-provider.ts:226-238 maps it into TerminalState.charts; :277-278 focusedSymbol",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-82",
+    "promise": "12 pre-built agents ship at v1.0 (Layer 2).",
+    "source": "\u00a73.4 (L192)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/ - 13 first-party JSONs; GET http://127.0.0.1:52152/agents returns 13 (buffett, copilot, dalio, druckenmiller, graham, klarman, lynch, marks, munger, portfolio_advisor, researcher, soros, strategy_critic)",
+    "gap": "11 of the blueprint's 12 named entries ship as agents; the 12th ('Custom Agent Builder') ships as a panel, not an agent - plus copilot and strategy_critic beyond the list.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-83",
+    "promise": "Agent: Warren Buffett \u2014 value investing, business quality, margin of safety.",
+    "source": "\u00a73.4 (L196)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/buffett.json; GET /agents -> id 'buffett' name 'Warren Buffett'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-84",
+    "promise": "Agent: Benjamin Graham \u2014 deep value, Buffett's mentor framework.",
+    "source": "\u00a73.4 (L197)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/graham.json; GET /agents -> 'graham' / 'Benjamin Graham'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-85",
+    "promise": "Agent: Peter Lynch \u2014 growth at reasonable price (PEG).",
+    "source": "\u00a73.4 (L198)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/lynch.json; GET /agents -> 'lynch' / 'Peter Lynch'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-86",
+    "promise": "Agent: Charlie Munger \u2014 mental models, lattice thinking.",
+    "source": "\u00a73.4 (L199)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/munger.json; GET /agents -> 'munger' / 'Charlie Munger'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-87",
+    "promise": "Agent: Howard Marks \u2014 cycles, risk-first.",
+    "source": "\u00a73.4 (L200)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/marks.json; GET /agents -> 'marks' / 'Howard Marks'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-88",
+    "promise": "Agent: Seth Klarman \u2014 contrarian value, distressed.",
+    "source": "\u00a73.4 (L201)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/klarman.json; GET /agents -> 'klarman' / 'Seth Klarman'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-89",
+    "promise": "Agent: Ray Dalio \u2014 macro principles, all-weather.",
+    "source": "\u00a73.4 (L202)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/dalio.json; GET /agents -> 'dalio' / 'Ray Dalio'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-90",
+    "promise": "Agent: Stanley Druckenmiller \u2014 macro + concentrated bets.",
+    "source": "\u00a73.4 (L203)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/druckenmiller.json; GET /agents -> 'druckenmiller' / 'Stanley Druckenmiller'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-91",
+    "promise": "Agent: George Soros \u2014 reflexivity, macro speculation.",
+    "source": "\u00a73.4 (L204)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/soros.json; GET /agents -> 'soros' / 'George Soros'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-92",
+    "promise": "Agent: AI Researcher \u2014 general research workflow (the equity-researcher pattern).",
+    "source": "\u00a73.4 (L205)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/researcher.json; GET /agents -> 'researcher' / 'AI Researcher'; sidecar/services/research/",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-93",
+    "promise": "Agent: AI Portfolio Advisor \u2014 portfolio analysis + rebalancing suggestions.",
+    "source": "\u00a73.4 (L206)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/portfolio_advisor.json; GET /agents -> 'portfolio_advisor' / 'AI Portfolio Advisor'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-94",
+    "promise": "Agent: Custom Agent Builder \u2014 user-defined agents (UI for creating new ones).",
+    "source": "\u00a73.4 (L207)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/agent-builder/AgentBuilderPanel.tsx + form.tsx, src/modules/agent-builder/index.ts:24-40 (panel 'agent-builder' + command 'agent-builder.open'), sidecar/routers/custom_agents.py:32,51-103 (full CRUD), sidecar/models/custom_agent.py",
+    "gap": "Ships as a panel + CRUD surface rather than as a 13th agent entry - the capability the blueprint describes is present.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-95",
+    "promise": "Layer 3: users chain agents in visual workflows via multi-agent orchestration in the node editor.",
+    "source": "\u00a73.4 (L209)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "src/modules/node-editor/node-registry.ts:110-118 + :448-462 (ai.agent_invoke + its config form), sidecar/services/workflow_nodes/builtin.py:151-207, sidecar/services/workflow_nodes/__init__.py:50, sidecar/services/workflow_engine.py:189-320, sidecar/routers/workflow.py:38-79, src/modules/node-editor/NodeEditorPanel.tsx:386-391",
+    "gap": "The graph, the node type, chaining and the SSE run loop all exist, but an agent node cannot actually run: (a) the config form writes config.prompt while the handler reads config.get('prompt_template') (builtin.py:166-169), so the user's prompt is dropped and every node falls back to the bare '{context}' template; (b) NodeEditorPanel.tsx:389 POSTs {spec, mode} only - no api_key, no provider - and the sidecar has no credential store (config.py:163-166 is a per-request ContextVar; the VYSTED_<PROV>_API_KEY env read named in builtin.py:158 exists nowhere in the code), so invoke_agent gets api_key=None against an 'anthropic'/'openai' default provider, and builtin.py:200-207 converts the resulting LLMErrorEvent into the string '(no provider key configured)' returned as a SUCCESSFUL node output.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-96",
+    "promise": "Example workflow: AI Researcher pulls a thesis, AI Strategy Critic critiques it, and if score > 7 it alerts via Telegram, otherwise logs to a journal.",
+    "source": "\u00a73.4 (L209)",
+    "kind": "use-case",
+    "status": "partial",
+    "evidence": "Chain + condition: src/modules/node-editor/node-registry.ts:110-133 (ai.agent_invoke, logic.branch, logic.compare), sidecar/services/workflow_nodes/builtin.py:222+ (logic_branch with mode 'gt'). Outputs: node-registry.ts:135-149 (action.log, action.notify_desktop) - grep for 'telegram' over src/, sidecar/, plugins/, types/ returns nothing",
+    "gap": "The researcher -> critic -> score-threshold half of the example is buildable (subject to the INT-BP-95 blockers). The alerting half is not: there is no Telegram, webhook or any other out-of-app notification node - only a desktop notification that requires the app to be open and awake - and no journal/notes output node, so the 'otherwise logs to a journal' branch has nowhere to write but action.log's run transcript.",
+    "decision_ref": ""
+  }
+]

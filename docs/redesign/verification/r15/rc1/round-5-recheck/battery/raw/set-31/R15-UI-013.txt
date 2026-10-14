@@ -1,0 +1,6 @@
+=== openrouter no key ===
+{"ok":false,"reason":"not_configured","detail":"No API key is set for OpenRouter."}
+=== openai fake key ===
+{"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+=== ollama list ===
+{"models":[{"name":"qwen3:8b","model":"qwen3:8b","modified_at":"2026-09-23T04:12:46.829428968+05:30","size":5225388164,"digest":"500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41","details":{"parent_model":"","format":"gguf","family":"qwen3","families":["qwen3"],"parameter_size":"8.2B","quantization_level":"Q4_K_M"}},{"name":"qwen2.5:7b","model":"qwen2.5:7b","modified_at":"2026-05-30T20:37:24.567297304+05:30","size":4683087332,"digest":"845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e","details":{"parent_model":"","format":"gguf","family":"qwen2","families":["qwen2"],"parameter_size":"7.6B","quantization_level":"Q4_K_M"}},{"name":"llama3.1:8b","model":"llama3.1:8b","modified_at":"2026-05-29T19:24:57.334096723+05:30","size":4920753328,"digest":"46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e","details":{"parent_model":"","format":"gguf","family":"llama","families":["llama"],"parameter_size":"8.0B","quantization_level":"Q4_K_M"}}]}

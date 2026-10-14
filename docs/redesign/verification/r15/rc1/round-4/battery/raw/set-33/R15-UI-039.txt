@@ -1,0 +1,4 @@
+CMD: curl -s -m 20 'http://127.0.0.1:52344/resolve/autocomplete?q=GUJGAS'
+---
+{"query":"GUJGAS","region":"IN","candidates":[]}
+EXIT: 0

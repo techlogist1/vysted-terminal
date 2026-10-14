@@ -14,7 +14,26 @@
 
 import { create } from "zustand";
 
-import type { LLMProviderId, LLMUsage } from "../../types/ai";
+import type { LLMProviderId, LLMUsage, PlanStepView } from "../../types/ai";
+
+/**
+ * One live research-pipeline step (Track A) — the camelCase view of a sidecar
+ * ``research_step`` SSE event. Streamed WHILE a long research tool runs so the
+ * transcript can animate a "working" trace (plan → search → synthesize) instead
+ * of sitting silent for the whole multi-second round. UI-only, never persisted.
+ */
+export interface ResearchStepView {
+  /** plan | tool | search | compress | reflect | synthesize. */
+  stepKind: string;
+  /** A short human line describing what the step did. */
+  detail: string;
+  /** Wall-clock latency of the stage in ms, when measured. */
+  latencyMs?: number;
+  /** "ok" | "error" | "skipped". */
+  status: string;
+  /** Monotonic 1-based step counter within the run. */
+  index: number;
+}
 
 export interface ChatMessage {
   id: string;
@@ -26,20 +45,67 @@ export interface ChatMessage {
   modelId?: string | null;
   /** Token usage if the provider supplied it. */
   usage?: LLMUsage | null;
+  /** Estimated USD spend of the turn (R15-AGENT-082), parsed from the done
+   *  frame's `spend_usd`. `null`/absent means unknown (hidden in the footer);
+   *  `0` means the model is free (shown as "$0.00"). */
+  spendUsd?: number | null;
+  /** The lane's token window on the final `done`, when it has one — the
+   *  composer's context meter reads `usage` against it (R15-AGENT-040). */
+  contextWindow?: number | null;
   /** ``true`` while the message is still being streamed. */
   pending?: boolean;
+  /** ``true`` when the USER stopped the stream mid-flight — the partial
+   *  content stands and the transcript marks it quietly. Not an error. */
+  stopped?: boolean;
   /** Error string if streaming failed. */
   error?: string | null;
   /** Human-readable tool-use steps the copilot took (e.g. "Reading your
    *  portfolio…", "Pulling AAPL fundamentals…", "Opening chart"). UI-only. */
   toolSteps?: string[];
+  /** Live research-pipeline steps streamed during a research tool round (Track
+   *  A). The agent surface renders these as an animated "working" trace. */
+  researchSteps?: ResearchStepView[];
+  /** Epoch ms the first research step arrived — drives the live elapsed timer. */
+  researchStartedAt?: number;
+  /** The visible plan for a compound request (Track 6 #2), shown before the
+   *  steps execute. Advisory — staged host-actions ride the diff/accept gate. */
+  plan?: AgentPlanView;
+  /** Set when this turn published a research brief to the brief panel (Track 3).
+   *  The depth lives in the rendered brief, so the chat reply collapses to a
+   *  short summary (with a "show full analysis" toggle) instead of a wall of
+   *  markdown. */
+  briefPublished?: boolean;
+  /** Joined-rounds guard (R7 Track C): set when a non-delta event (tool step,
+   *  research step, plan, brief publish) lands on a message that already has
+   *  prose — the model's next round is a NEW paragraph, but the wire deltas
+   *  arrive without a separator ("…look.Set SPY…"). The next ``appendAssistantDelta``
+   *  consumes the flag and prepends a paragraph break when the existing content
+   *  doesn't already end with whitespace. UI-internal, never persisted. */
+  roundBoundaryPending?: boolean;
   createdAt: number;
+}
+
+/** A decomposed plan attached to an assistant message (Track 6 #2). */
+export interface AgentPlanView {
+  goal: string;
+  steps: PlanStepView[];
+  note?: string;
 }
 
 interface ChatHistoryState {
   messages: ChatMessage[];
   /** Id of the assistant message currently receiving deltas, or ``null``. */
   streamingMessageId: string | null;
+  /** Aborts the live stream; registered by the sender, cleared when it settles. */
+  liveAbort: (() => void) | null;
+  setLiveAbort: (abort: () => void) => void;
+  /**
+   * Stop the live stream (if any) and finalize its partial as ``stopped`` in
+   * the CURRENT transcript. Every transcript swap (agent tab, research space,
+   * clear) calls this first, so a reply never streams into a thread that is no
+   * longer on screen and no second run starts beside a live one.
+   */
+  stopLive: () => void;
   appendUserMessage: (content: string) => string;
   beginAssistantMessage: (params: {
     agentId?: string;
@@ -48,9 +114,32 @@ interface ChatHistoryState {
   }) => string;
   appendAssistantDelta: (id: string, text: string) => void;
   appendToolStep: (id: string, step: string) => void;
-  finalizeAssistantMessage: (id: string, usage?: LLMUsage | null) => void;
+  appendResearchStep: (id: string, step: ResearchStepView) => void;
+  setPlan: (id: string, plan: AgentPlanView) => void;
+  markBriefPublished: (id: string) => void;
+  finalizeAssistantMessage: (
+    id: string,
+    usage?: LLMUsage | null,
+    contextWindow?: number | null,
+    spendUsd?: number | null,
+  ) => void;
+  /** Finalize a stream the USER aborted (the composer's stop square): the
+   *  partial content stands, marked ``stopped`` — distinct from an error. */
+  stopAssistantMessage: (id: string) => void;
   failAssistantMessage: (id: string, error: string) => void;
+  /** Empty the transcript (stops a live stream first). */
   clear: () => void;
+  /** Replace the whole transcript (used to swap between agent spaces/threads);
+   *  stops a live stream first. */
+  loadMessages: (messages: ChatMessage[]) => void;
+}
+
+/** Mark the round boundary on a message that already streamed prose — any
+ *  non-delta event between model rounds means the next delta starts a new
+ *  paragraph (the joined-rounds fix). A message with no content yet (the
+ *  trace arrived before any prose) needs no break. */
+function _markRoundBoundary(message: ChatMessage): ChatMessage {
+  return message.content.length > 0 ? { ...message, roundBoundaryPending: true } : message;
 }
 
 function _uuid(): string {
@@ -63,9 +152,23 @@ function _uuid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
-export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
+/** The settle patch: the live stream is over once its message settles. */
+function _settled(state: ChatHistoryState, id: string): Partial<ChatHistoryState> {
+  return state.streamingMessageId === id ? { streamingMessageId: null, liveAbort: null } : {};
+}
+
+export const useChatHistoryStore = create<ChatHistoryState>((set, get) => ({
   messages: [],
   streamingMessageId: null,
+  liveAbort: null,
+  setLiveAbort: (abort) => set({ liveAbort: abort }),
+  stopLive: () => {
+    const { streamingMessageId, liveAbort } = get();
+    liveAbort?.();
+    if (streamingMessageId) {
+      get().stopAssistantMessage(streamingMessageId);
+    }
+  },
   appendUserMessage: (content) => {
     const id = _uuid();
     set((state) => ({
@@ -90,36 +193,145 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
         },
       ],
       streamingMessageId: id,
+      liveAbort: null,
     }));
     return id;
   },
   appendAssistantDelta: (id, text) =>
     set((state) => ({
-      messages: state.messages.map((message) =>
-        message.id === id ? { ...message, content: message.content + text } : message,
-      ),
+      messages: state.messages.map((message) => {
+        if (message.id !== id) {
+          return message;
+        }
+        // Joined-rounds fix: a non-delta event landed since the last prose, so
+        // this delta opens a NEW model round — insert the paragraph break the
+        // wire omits, unless the prose already ends with whitespace.
+        const needsBreak =
+          message.roundBoundaryPending === true &&
+          message.content.length > 0 &&
+          !/\s$/.test(message.content);
+        return {
+          ...message,
+          content: message.content + (needsBreak ? "\n\n" : "") + text,
+          roundBoundaryPending: false,
+        };
+      }),
     })),
   appendToolStep: (id, step) =>
     set((state) => ({
       messages: state.messages.map((message) =>
         message.id === id
-          ? { ...message, toolSteps: [...(message.toolSteps ?? []), step] }
+          ? { ..._markRoundBoundary(message), toolSteps: [...(message.toolSteps ?? []), step] }
           : message,
       ),
     })),
-  finalizeAssistantMessage: (id, usage) =>
+  appendResearchStep: (id, step) =>
     set((state) => ({
       messages: state.messages.map((message) =>
-        message.id === id ? { ...message, pending: false, usage: usage ?? null } : message,
+        message.id === id
+          ? {
+              ..._markRoundBoundary(message),
+              researchSteps: [...(message.researchSteps ?? []), step],
+              researchStartedAt: message.researchStartedAt ?? Date.now(),
+            }
+          : message,
       ),
-      streamingMessageId: state.streamingMessageId === id ? null : state.streamingMessageId,
+    })),
+  setPlan: (id, plan) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id ? { ..._markRoundBoundary(message), plan } : message,
+      ),
+    })),
+  markBriefPublished: (id) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id ? { ..._markRoundBoundary(message), briefPublished: true } : message,
+      ),
+    })),
+  finalizeAssistantMessage: (id, usage, contextWindow, spendUsd) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id
+          ? {
+              ...message,
+              pending: false,
+              usage: usage ?? null,
+              contextWindow: contextWindow ?? null,
+              spendUsd: spendUsd ?? null,
+            }
+          : message,
+      ),
+      ..._settled(state, id),
+    })),
+  stopAssistantMessage: (id) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id
+          ? { ...message, pending: false, stopped: true, usage: message.usage ?? null }
+          : message,
+      ),
+      ..._settled(state, id),
     })),
   failAssistantMessage: (id, error) =>
     set((state) => ({
       messages: state.messages.map((message) =>
         message.id === id ? { ...message, pending: false, error } : message,
       ),
-      streamingMessageId: state.streamingMessageId === id ? null : state.streamingMessageId,
+      ..._settled(state, id),
     })),
-  clear: () => set({ messages: [], streamingMessageId: null }),
+  clear: () => {
+    get().stopLive();
+    set({ messages: [], streamingMessageId: null, liveAbort: null });
+  },
+  loadMessages: (messages) => {
+    get().stopLive();
+    set({ messages, streamingMessageId: null, liveAbort: null });
+  },
 }));
+
+/** Characters of prior thread a send carries (R15-AGENT-040). The agent
+ *  runtime keeps the newest turns verbatim and folds the rest into a summary;
+ *  this only bounds the request itself. */
+export const HISTORY_CHAR_BUDGET = 60_000;
+
+/** An assistant turn's compact trailer: its tool steps and its failure, one
+ *  line each, so they survive into the runtime's summary of older turns. */
+function withTrailer(message: ChatMessage): string {
+  const lines: string[] = [];
+  if (message.toolSteps && message.toolSteps.length > 0) {
+    lines.push(`[tool steps: ${message.toolSteps.join("; ")}]`);
+  }
+  if (message.error) {
+    lines.push(`[failed: ${message.error.replace(/\s+/g, " ").trim()}]`);
+  }
+  return lines.length > 0
+    ? [message.content.trim(), ...lines].filter(Boolean).join("\n\n")
+    : message.content;
+}
+
+/** The thread a send carries as history: every user and assistant turn,
+ *  newest first into the character budget (the newest always goes), each
+ *  assistant turn with its trailer. Replaces the silent last-10 window. */
+export function historyForSend(
+  messages: ChatMessage[],
+): { role: "user" | "assistant"; content: string }[] {
+  const out: { role: "user" | "assistant"; content: string }[] = [];
+  let used = 0;
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const message = messages[i]!;
+    if (message.role !== "user" && message.role !== "assistant") {
+      continue;
+    }
+    const content = message.role === "assistant" ? withTrailer(message) : message.content;
+    if (!content) {
+      continue;
+    }
+    if (out.length > 0 && used + content.length > HISTORY_CHAR_BUDGET) {
+      break;
+    }
+    used += content.length;
+    out.push({ role: message.role, content });
+  }
+  return out.reverse();
+}

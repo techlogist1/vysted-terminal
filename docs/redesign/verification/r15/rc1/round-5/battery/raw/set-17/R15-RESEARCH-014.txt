@@ -1,0 +1,7 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Source re-check.
+sidecar/services/research/deep.py:
+  27: from services.llm.base import is_length_finish
+  201: return body, any(is_length_finish(r) for r in reasons)
+  1105-1162: _synthesis_llm returns (markdown, truncated); truncated propagates out of the deep-research pipeline.
+
+VERDICT: holds. The deep-research synthesis path now threads a `truncated` flag derived from `is_length_finish` on every reason collected, so a max_tokens-cut Anthropic (or any provider) synthesis is flagged rather than rendered as final/complete.

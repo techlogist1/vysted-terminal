@@ -1,0 +1,8 @@
+# R15-UI-050 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:34+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; echo '(GUI-certified entry; headless source probe only)'; grep -n 'min-h-8' src/modules/notes/NotesPanel.tsx | head -5; grep -n '"h-8' src/modules/notes/NotesPanel.tsx | head
+--- output ---
+(GUI-certified entry; headless source probe only)
+396:                "flex min-h-8 w-full flex-col items-start justify-center px-3 py-1 text-left transition-colors",
+
+EXIT=0 (0.0s)

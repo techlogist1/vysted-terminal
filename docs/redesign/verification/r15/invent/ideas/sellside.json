@@ -1,0 +1,235 @@
+[
+ {
+  "idea_id": "sellside-1",
+  "name": "The First-Hour Note",
+  "one_liner": "When a covered name files results, deterministically extract the SEBI comparative P&L grid from the results PDF with a mandatory lakh/crore unit-header witness, build a variance table against prior quarter, same quarter last year and the user's own model estimate with a page receipt per cell, and add three lines of number-gated prose before the concall starts.",
+  "on_floor_list": true,
+  "rides_on": [
+   "SUBSTRATE 'Covered-Name Feed' (forensic Tape / bloomberg-1 sweep narrowed: subcategory field on Announcement, sidecar/models/announcements.py:28-41, stop collapsing SUBCATNAME at sidecar/services/corporate_disclosures.py:166; AttachHis fallback for attachment_url built at :84; <=6-month paging vs 30-day page-1 window at :88,138,140)",
+   "sidecar/services/search/extract.py:436,65 (PDF lane, 60-page cap), :398 (honest scanned-pages note)",
+   "sidecar/services/company_narrative.py:209 (_verify_text number gate redacts unmatched numbers)",
+   "sidecar/services/market_cap_witness.py:140 (scale sanity bound)",
+   "sidecar/services/agent_tools/catalog.py:1177 (publish_brief) + src/modules/research/brief-blocks.tsx:443,549 (typed metric/table blocks)",
+   "sidecar/services/fundamentals_warm.py:403 + sidecar/app.py:130 (warm-loop cadence) + sidecar/services/agent_runtime.py:376 (terminal preamble on open)"
+  ],
+  "new_parts": [
+   "results-grid table locator + per-archetype row matcher with fixture per filer layout",
+   "unit-header parser that refuses to extract without a unit",
+   "results_flash read handler in the catalog",
+   "variance brief block type"
+  ],
+  "jarvis_axis": [
+   "watching",
+   "receipts",
+   "memory"
+  ],
+  "size": "M (S once the Covered-Name Feed exists)",
+  "risk": "Row-matcher maps 'Total income' onto 'Revenue from operations' on lenders or holding companies; mitigated by per-archetype line maps and an amber 'matched by similarity' state. SME half-yearly filers and scanned PDFs must degrade honestly."
+ },
+ {
+  "idea_id": "sellside-2",
+  "name": "The Living Model",
+  "one_liner": "A small per-company driver model (at most 30 lines, per-archetype template) stored locally, whose actuals are filled from filings with page receipts, whose estimate changes carry an append-only revision trail (reason + triggering filing), which the agent can read and propose edits to only through the diff gate, and which exports to xlsx with live formulas.",
+  "on_floor_list": false,
+  "rides_on": [
+   "SUBSTRATE 'Model Store' (new sidecar/services/model_store.py; sqlite lines/cells/revisions modelled on sidecar/services/portfolio_db.py:23-35; formulas in the no-eval grammar sidecar/services/screener_formula.py:1-16,117; agent edits staged through src/store/proposed-changes.ts:1-10)",
+   "sellside-1 extraction (actual cells with source_ref)",
+   "src/lib/export-artifact.ts:1-12 (Rust atomic-write export path, not the dead <a download> path of WLD-T-2)",
+   "src/modules/notes/notes-persistence.ts:1-10 (notes are free-form md; why a typed store is needed)",
+   "sidecar/services/agent_tools/catalog.py:1-24 (allow-list derivation so a model_read handler reaches custom agents)",
+   "census/world/perplexity-screener.md:194-195 (Screener's Excel model export is the switching cost, WORLD-RES-13)"
+  ],
+  "new_parts": [
+   "Model Store (lines/cells/revisions)",
+   "cell-reference extension to the formula grammar",
+   "model grid dockview panel",
+   "model_read read handler",
+   "model-edit host action staged in proposed-changes",
+   "xlsx writer"
+  ],
+  "jarvis_axis": [
+   "memory",
+   "initiative",
+   "receipts"
+  ],
+  "size": "M",
+  "risk": "Becomes a worse Excel nobody opens; mitigated by not competing on grid features: filings fill actuals, revisions carry reasons, the agent reads the model, and everything else exports to xlsx. The xlsx dependency adds to the sidecar footprint."
+ },
+ {
+  "idea_id": "sellside-3",
+  "name": "Guidance Haircut",
+  "one_liner": "Extract guided ranges with verbatim span, page and horizon phrase from every earnings-call transcript already in the BSE feed, resolve them deterministically against prints as HIT/MISS/PUSHED/DROPPED, and compute a per-management calibration factor (delivered / guided midpoint, shown with n) that can be applied to the model through the gate.",
+  "on_floor_list": true,
+  "rides_on": [
+   "SUBSTRATE 'Covered-Name Feed' (forensic Tape / bloomberg-1 sweep narrowed: subcategory field on Announcement, sidecar/models/announcements.py:28-41, stop collapsing SUBCATNAME at sidecar/services/corporate_disclosures.py:166; AttachHis fallback for attachment_url built at :84; <=6-month paging vs 30-day page-1 window at :88,138,140)",
+   "LIVE PROBE: BSE SUBCATNAME 'Earnings Call Transcript' present for 543652/540879/500182; full transcripts attached (Apollo 22pp, Hero 19pp) or cover letter with a line-wrapped URL (Fusion)",
+   "sidecar/services/search/extract.py:155 (is_public_http_url for the one-hop fetch)",
+   "SUBSTRATE 'Model Store' (new sidecar/services/model_store.py; sqlite lines/cells/revisions modelled on sidecar/services/portfolio_db.py:23-35; formulas in the no-eval grammar sidecar/services/screener_formula.py:1-16,117; agent edits staged through src/store/proposed-changes.ts:1-10)",
+   "sellside-1 (actual cells resolve guidance)"
+  ],
+  "new_parts": [
+   "guidance extractor prompt + deterministic verbatim-on-page check",
+   "closed horizon-phrase lexicon",
+   "resolver (HIT/MISS/PUSHED/DROPPED)",
+   "haircut computation with an n>=4 floor",
+   "apply-haircut proposed change"
+  ],
+  "jarvis_axis": [
+   "memory",
+   "receipts",
+   "initiative"
+  ],
+  "size": "M",
+  "risk": "An extraction invents a range management never gave; mitigated by the verbatim substring gate and user acceptance. Website-hosted transcripts rot and need local caching. Overlaps bloomberg-4, hn-sceptic-7 and OPP-4; the new parts are the calibration factor feeding a model and horizon drift."
+ },
+ {
+  "idea_id": "sellside-4",
+  "name": "Priced-In",
+  "one_liner": "A deterministic reverse DCF (or implied-ROE for lenders and holding companies) that states what growth and margin the current market cap implies at a user-visible cost of equity, set beside 5-year history, management guidance and the user's model, as a sensitivity grid that never outputs a target price or rating.",
+  "on_floor_list": false,
+  "rides_on": [
+   "sidecar/models/fundamentals.py:65,84,91,94 (market_cap, operating_margin, revenue_ttm, shares_outstanding)",
+   "sidecar/services/yfinance_provider.py:418-450 (annual statements for history)",
+   "sidecar/services/market_cap_witness.py:140 (Rs scale check before solving)",
+   "grep: zero dcf/implied_growth/discount_rate/wacc code in sidecar services/routers/models",
+   "sellside-2 (model column), sellside-3 (guidance column)"
+  ],
+  "new_parts": [
+   "reverse-DCF solver + implied-ROE variant by sector rule",
+   "priced_in read handler (catalog + MCP)",
+   "sensitivity-grid brief block",
+   "cost-of-equity Settings default"
+  ],
+  "jarvis_axis": [
+   "initiative",
+   "receipts"
+  ],
+  "size": "S",
+  "risk": "False precision, plus the look of regulated research (SEBI RA regs, seat knowledge unverified); mitigated by never emitting a price, rating or 'undervalued', and always showing the full grid rather than a single cell."
+ },
+ {
+  "idea_id": "sellside-5",
+  "name": "Between the Prints",
+  "one_liner": "A quarter-to-date nowcast from monthly dispatch releases, business updates and order-win filings. A user-accepted extraction spec per filer runs deterministically each month, and the result is compared to the model's quarter estimate as a 'required run-rate' bar, with order inflow summed onto the last stated order book for book-to-bill.",
+  "on_floor_list": false,
+  "rides_on": [
+   "SUBSTRATE 'Covered-Name Feed' (forensic Tape / bloomberg-1 sweep narrowed: subcategory field on Announcement, sidecar/models/announcements.py:28-41, stop collapsing SUBCATNAME at sidecar/services/corporate_disclosures.py:166; AttachHis fallback for attachment_url built at :84; <=6-month paging vs 30-day page-1 window at :88,138,140)",
+   "LIVE PROBE: Hero 1 Sep 2026 press release dispatch table (Total 568,398 vs 553,727); Apollo 7 Business/General Updates in 6 months; Apollo order book Rs1,224 cr standalone / Rs1,704 cr consolidated as of 8 Aug 2026 (transcript p.4)",
+   "SUBSTRATE 'Model Store' (new sidecar/services/model_store.py; sqlite lines/cells/revisions modelled on sidecar/services/portfolio_db.py:23-35; formulas in the no-eval grammar sidecar/services/screener_formula.py:1-16,117; agent edits staged through src/store/proposed-changes.ts:1-10)",
+   "sellside-6 typed edges (OEM -> supplier read-across)"
+  ],
+  "new_parts": [
+   "tallies table",
+   "schema-once extraction spec with a re-confirm state on shape change",
+   "Rs amount parser with unit witness; valueless orders recorded as events, never imputed",
+   "QTD / run-rate / required-rate card"
+  ],
+  "jarvis_axis": [
+   "watching",
+   "initiative",
+   "receipts"
+  ],
+  "size": "M",
+  "risk": "False read-across when a supplier's customer mix shifts; mitigated by user-owned edge weights shown on the card and no automatic model writes. Per-filer specs need about an hour a month of curation; many small caps file nothing between prints and must say so."
+ },
+ {
+  "idea_id": "sellside-6",
+  "name": "Peer Set and Read-Across",
+  "one_liner": "A user-owned typed value chain per covered name (peer/customer/supplier/parent/subsidiary). It drives a comps table on TTM and on the user's FY+1 with structured adjustment footnotes, and a read-across card quoting the relevant page whenever any node in the set files results, a transcript or a monthly update.",
+  "on_floor_list": false,
+  "rides_on": [
+   "sidecar/services/fundamentals_store.py:122-131 (sector/industry/sector_source columns to seed peers)",
+   "sidecar/services/agent_tools/catalog.py:199-213 (compare_symbols hard-capped at 2-4 instruments)",
+   "SUBSTRATE 'Covered-Name Feed' (forensic Tape / bloomberg-1 sweep narrowed: subcategory field on Announcement, sidecar/models/announcements.py:28-41, stop collapsing SUBCATNAME at sidecar/services/corporate_disclosures.py:166; AttachHis fallback for attachment_url built at :84; <=6-month paging vs 30-day page-1 window at :88,138,140)",
+   "SUBSTRATE 'Model Store' (new sidecar/services/model_store.py; sqlite lines/cells/revisions modelled on sidecar/services/portfolio_db.py:23-35; formulas in the no-eval grammar sidecar/services/screener_formula.py:1-16,117; agent edits staged through src/store/proposed-changes.ts:1-10)"
+  ],
+  "new_parts": [
+   "typed peer-edge table",
+   "peer_comps handler reading up to ~15 names from the local store",
+   "structured adjustment footnotes",
+   "read-across card with narrow quote-or-nothing LLM step and verbatim gate"
+  ],
+  "jarvis_axis": [
+   "watching",
+   "memory",
+   "receipts"
+  ],
+  "size": "M",
+  "risk": "Read-across noise; mitigated by firing only on typed edges (plain peers only on results) and filing silently when nothing relevant is found. Edges go stale, so there is an annual review prompt."
+ },
+ {
+  "idea_id": "sellside-7",
+  "name": "Dodge Ledger and Who's in the Room",
+  "one_liner": "Pair every analyst question with management's answer in each transcript, label answers ANSWERED/DEFLECTED by deterministic features, track repeat deflections across calls, write a pre-meeting question bank when an Analyst/Investor Meet intimation is filed, and chart the roster of institutional firms asking questions each quarter as a discovery or abandonment signal.",
+  "on_floor_list": false,
+  "rides_on": [
+   "SUBSTRATE 'Covered-Name Feed' (forensic Tape / bloomberg-1 sweep narrowed: subcategory field on Announcement, sidecar/models/announcements.py:28-41, stop collapsing SUBCATNAME at sidecar/services/corporate_disclosures.py:166; AttachHis fallback for attachment_url built at :84; <=6-month paging vs 30-day page-1 window at :88,138,140)",
+   "LIVE PROBE: Apollo 8 Aug 2026 call answer 'Please keep a watch on the stock.'; Apollo 14 Sep intimation naming Anand Rathi G-200 Summit 22 Sep 2026; Hero call analyst 'with Morgan Stanley'; 10-14 meet filings per name per 6 months",
+   "sidecar/services/agent_tools/catalog.py:1374 (write_note host action for the question bank)",
+   "census/world/fey-tijori-trendlyne.md:462-473 (Trendlyne ships per-call summary blobs only)"
+  ],
+  "new_parts": [
+   "transcript speaker-turn parser + moderator firm extraction with fixtures",
+   "firm alias list",
+   "answer-feature scorer (number/date/period/yes-no present)",
+   "call_participants roster table + sparkline",
+   "intimation parser (date, event, city, meeting type)"
+  ],
+  "jarvis_axis": [
+   "memory",
+   "initiative",
+   "receipts"
+  ],
+  "size": "M",
+  "risk": "Unfairly labelling a legitimate no-guidance answer as a dodge; mitigated by showing the rule and the verbatim Q&A, weighting the cross-call pattern over any single label, and letting the user dismiss a label with a reason."
+ },
+ {
+  "idea_id": "sellside-8",
+  "name": "Page One",
+  "one_liner": "Every brief opens with the three boxes a PM pays for: what changed since the last brief on this symbol, what is priced in, and one dated falsifier that resolves against a future filing. Background folds away, and a deterministic filler score (sentences with no number, entity or date) is shown and fed back once into the research loop.",
+  "on_floor_list": false,
+  "rides_on": [
+   "types/brief.ts:47,297 (BriefStructured / ResearchBriefData)",
+   "src/modules/research/brief-blocks.tsx:549 (parseBodyBlocks for sentence scoring)",
+   "sellside-4 (box 2), sellside-1 (falsifier resolution)"
+  ],
+  "new_parts": [
+   "per-symbol last-brief file for the delta box",
+   "falsifier field on the brief contract (additive, not Tier-1)",
+   "filler scorer",
+   "three-box renderer"
+  ],
+  "jarvis_axis": [
+   "initiative",
+   "memory"
+  ],
+  "size": "S",
+  "risk": "A crude filler metric punishes useful qualitative context; mitigated because it demotes and reports but never deletes. Unresolvable falsifiers must expire honestly."
+ },
+ {
+  "idea_id": "sellside-9",
+  "name": "Proceeds Ledger",
+  "one_liner": "Parse the quarterly Monitoring Agency Reports and Reg 32 deviation statements that small caps already file into a per-issue ledger (object, promised, deployed, deviation, agency comments), flag stalled or reallocated objects, and link capex objects to the model's capex line and guided commissioning dates.",
+  "on_floor_list": false,
+  "rides_on": [
+   "SUBSTRATE 'Covered-Name Feed' (forensic Tape / bloomberg-1 sweep narrowed: subcategory field on Announcement, sidecar/models/announcements.py:28-41, stop collapsing SUBCATNAME at sidecar/services/corporate_disclosures.py:166; AttachHis fallback for attachment_url built at :84; <=6-month paging vs 30-day page-1 window at :88,138,140)",
+   "LIVE PROBE: Fusion and Apollo each filed Monitoring Agency Report + Reg 32 statement in May and Aug 2026; Fusion Aug report 12pp fully extractable",
+   "sidecar/services/search/extract.py:436 (PDF lane)",
+   "SUBSTRATE 'Model Store' (new sidecar/services/model_store.py; sqlite lines/cells/revisions modelled on sidecar/services/portfolio_db.py:23-35; formulas in the no-eval grammar sidecar/services/screener_formula.py:1-16,117; agent edits staged through src/store/proposed-changes.ts:1-10)"
+  ],
+  "new_parts": [
+   "monitoring-agency / Reg 32 table parsers with fixtures",
+   "proceeds table",
+   "offer-document objects extraction (LLM-assisted, user-accepted, once per issue)",
+   "cumulative-monotonic check",
+   "stalled-object card"
+  ],
+  "jarvis_axis": [
+   "watching",
+   "memory",
+   "receipts"
+  ],
+  "size": "S-M",
+  "risk": "Mis-reading cumulative against quarterly deployment columns; mitigated by a monotonicity check that blocks the row. Sub-threshold issues (e.g. Sumax, Rs53.4 cr) have no monitoring agency and must say so rather than look empty."
+ }
+]

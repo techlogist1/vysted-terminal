@@ -1,0 +1,69 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ sed -n 126,185p sidecar/services/llm/ollama.py; sed -n 240,246p sidecar/tests/test_llm_ollama.py
+exit=0
+        if isinstance(parsed, dict):
+            return parsed
+    return invalid_tool_args("arguments were not a JSON object", str(arguments))
+
+
+class OllamaProvider(LLMProvider):
+    """Ollama local-server adapter."""
+
+    def __init__(self, base_url: str | None = None) -> None:
+        self._base_url = base_url
+
+    def context_window(self, model: str) -> int | None:  # noqa: ARG002
+        """Every request runs at ``num_ctx``; past it Ollama drops the prompt's head."""
+        return DEFAULT_NUM_CTX
+
+    def _client(self) -> ollama.AsyncClient:
+        # The SDK keyword is ``host``, not ``base_url``; its default timeout is
+        # none at all, so a wedged local server would hold the chat forever.
+        return ollama.AsyncClient(host=self._base_url, timeout=client_timeout(LOCAL_IDLE_TIMEOUT_S))
+
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,  # noqa: ARG002 — Ollama is BYOK-free.
+        **kwargs: Any,
+    ) -> AsyncIterator[LLMStreamEvent]:
+        tool_ids = kwargs.pop("tool_ids", None)
+        client = self._client()
+        api_messages = _to_api_messages(messages)
+
+        # Always set num_ctx — Ollama's baked-in per-model default (4096 for
+        # every model we've seen) truncates before the prompt is fully read
+        # once tool schemas are attached. Merge rather than overwrite so an
+        # explicit caller-supplied options dict still wins on a conflicting key.
+        request_options = dict(kwargs.pop("options", None) or {})
+        request_options.setdefault("num_ctx", DEFAULT_NUM_CTX)
+        kwargs["options"] = request_options
+
+        tools: list[dict[str, Any]] | None = None
+        if tool_ids:
+            from services.agent_tools.schemas import openai_tools
+
+            built = openai_tools(tool_ids)
+            if built:
+                # Ollama accepts OpenAI-style tool definitions on recent
+                # models. Older/local models don't — keep the list to one side
+                # so we can retry without it if the tools path fails.
+                tools = built
+
+        # Open the stream. ``client.chat(stream=True)`` sends nothing when
+        # awaited: a daemon/HTTP error (500, model without tool support) surfaces
+        # while iterating and is humanized below. The only failure here is the
+        # SDK rejecting a tool schema client-side (``Tool.model_validate``); the
+        # round then answers without tools and says so (R15-AGENT-076).
+        stream = None
+        # Tool names actually sent this round: the only names a leaked
+        # text-JSON call may be rescued for.
+        offered: set[str] = set()
+        try:
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """R15-AGENT-076: a tool schema the SDK rejects client-side (its own
+    ``Tool.model_validate``) drops tools for the round with a logged warning and
+    a notice event, never silently."""
+    from ollama._client import _copy_tools

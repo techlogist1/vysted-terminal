@@ -1,0 +1,21 @@
+# R15-AGENT-011 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:33:00Z, sidecar :52348
+# kind=py
+# command:
+#   import asyncio, json
+#   from services import agent_runtime as ar, backtest_strategies
+#   backtest_strategies.register_all()
+#   from services.agent_tools.run_custom_backtest import _run_custom_backtest
+#   from models.llm import LLMToolUseEvent
+#   async def main():
+#       r=await _run_custom_backtest({'entry':'sma(20) > sma(50)','exit':'rsi(14) > 70','symbols':['SPY'],'start_date':'2025-10-01','end_date':'2026-09-30'})
+#       print('ok',r.get('ok'),'runId',r.get('runId'),r.get('error'))
+#       tc=LLMToolUseEvent(tool_call_id='t1',name='run_custom_backtest',input={})
+#       ev=ar._auto_open_backtest_event(tc,json.dumps(r))
+#       print('synthetic event:', (ev.name, ev.input, ev.tool_call_id) if ev else None)
+#       print('failed run ->', ar._auto_open_backtest_event(tc,json.dumps({'ok':False})))
+#   asyncio.run(main())
+# output:
+ok True runId 61328108-b489-4b60-8e80-e7ba3f680869 None
+synthetic event: ('open_panel', {'panel': 'backtest', 'run_id': '61328108-b489-4b60-8e80-e7ba3f680869'}, 'auto-backtest-t1')
+failed run -> None
+# exit=0

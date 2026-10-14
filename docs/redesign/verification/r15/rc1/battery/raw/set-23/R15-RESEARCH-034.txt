@@ -1,0 +1,44 @@
+=== R15-RESEARCH-034: _reflect_says_complete ===
+272:def coverage_floor_met(
+390:def _reflect_says_complete(text: str) -> bool:
+1196:    "coverage_floor_met",
+
+#: Negations that turn an affirmative reflect phrase into a gap statement.
+_REFLECT_NEGATION = re.compile(r"\b(?:not|no|never)\b|n't\b")
+
+
+def _reflect_says_complete(text: str) -> bool:
+    """Does a reflect completion declare coverage met?
+
+    The prompt asks for a leading COMPLETE or GAPS word, read by
+    :func:`leading_token`. A reply that does not lead with either falls back to
+    a conservative scan: an explicit "no gaps" counts as complete, any gap
+    marker or negation ("not covered yet") does not, and otherwise only a
+    whole-word complete/sufficient/done does. Ambiguity returns False so the
+    loop keeps going (bounded by the budget) rather than calling a thin run done.
+    """
+    head = leading_token(text)
+    if head == "COMPLETE":
+        return True
+    if head in ("GAPS", "GAP", "INCOMPLETE"):
+        return False
+    low = re.sub(r"\bno (?:remaining |further |more )?gaps?\b", "complete", text.lower())
+    if not low.strip():
+        return False
+    gap_markers = ("gap", "missing", "incomplete", "not enough", "more research")
+    if any(g in low for g in gap_markers) or _REFLECT_NEGATION.search(low):
+        return False
+    return re.search(r"\b(?:complete|sufficient|done)\b", low) is not None
+
+
+class _Findings:
+    """Mutable accumulator threaded through the loop.
+
+    Holds the running findings text (for compress/synthesize), the web citations
+    gathered (the ``[n]`` sources), the structured provenance seen, the coverage
+    flags, and the run's RAW-EVIDENCE store (R9 B3): the full extracted page
+    text per visited URL, kept in-memory for the run so the citation spot-audit
+--- python repro ---
+Price action is not covered yet -> False
+COMPLETE. No gaps remain. -> True
+GAPS: price action missing -> False

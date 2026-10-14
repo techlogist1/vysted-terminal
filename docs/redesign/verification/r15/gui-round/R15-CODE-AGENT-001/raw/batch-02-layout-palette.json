@@ -1,0 +1,19 @@
+[
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/9368c62-05-packaged-after-escape.png"},
+ {"cmd":"click","x":502,"y":728},
+ {"cmd":"wait","seconds":3},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/9368c62-06-packaged-layout-chart-brief.png"},
+ {"cmd":"click","x":515,"y":148},
+ {"cmd":"wait","seconds":5},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/9368c62-07-packaged-layout-portfolio.png"},
+ {"cmd":"click","x":243,"y":56},
+ {"cmd":"wait","seconds":2},
+ {"cmd":"type","text":"Open News Feed"},
+ {"cmd":"wait","seconds":1},
+ {"cmd":"key","combo":"down"},
+ {"cmd":"wait","seconds":1},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/9368c62-08-packaged-palette-open-news.png"},
+ {"cmd":"key","combo":"return"},
+ {"cmd":"wait","seconds":8},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/9368c62-09-packaged-news-panel.png"}
+]

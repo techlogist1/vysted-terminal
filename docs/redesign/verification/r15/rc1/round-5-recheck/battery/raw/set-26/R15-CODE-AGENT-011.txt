@@ -1,0 +1,11 @@
+=== R15-CODE-AGENT-011 (in-process fake-provider probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+CMD: fake provider round1 emits ask_user tool_use (pauses); answer_run(run_id, 'MSFT please'); round2 dispatches resolve_symbol(MSFT); round3 final text.
+
+{
+  "status_paused": "paused",
+  "question": "Which ticker would you like a price for?",
+  "status_after_answer": "done",
+  "dispatched_tool_activity": [
+    "resolve_symbol"
+  ]
+}

@@ -1,0 +1,7 @@
+# R15-LEAD-023 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:08+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b11_023.py 2>&1 | grep -v Warning
+--- output ---
+ProviderError Yahoo returned a price with no trade time
+
+EXIT=0 (0.6s)

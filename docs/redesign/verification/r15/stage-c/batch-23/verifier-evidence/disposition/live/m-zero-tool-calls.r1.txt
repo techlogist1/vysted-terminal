@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  38.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_9f7e67f45bf04235a40e79ab19763391", "name": "portfolio_add_position", "input": {"symbol": "INFY", "asset_class": "equity", "cost_basis": 1500, "note": "", "purchased_at": "2026-09-25", "quantity": 7}}
+[  38.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_9f7e67f45bf04235a40e79ab19763391", "name": "portfolio_add_position", "ok": true, "error": null}
+[  41.9s] research_step: {"kind": "research_step", "tool_call_id": "call_9f7e67f45bf04235a40e79ab19763391", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position INFY. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  41.9s] done: {"kind": "done", "usage": {"input_tokens": 2972, "output_tokens": 45, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The total cost of adding 7 INFY at ₹1,500 to your portfolio is ₹10,500. I've proposed this change for your review. Please confirm it in the proposal bar to complete the addition.
+
+=== ok · 41.9s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 46, 'research_step': 1, 'done': 1} · usage in=2972 out=45 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,17 @@
+CMD: grep -n export const SIDECAR_SPECS scripts/sidecar-specs.mjs | head; wc -l scripts/sidecar-specs.mjs
+6:// the smoke-test freshness gate all read SIDECAR_SPECS, so adding a sidecar is a
+27:export const BINARIES_DIR = join(ROOT, "src-tauri", "binaries");
+180:export const SIDECAR_SPECS = SPECS.map((spec) => ({
+190:export function targetTriple() {
+197:export function binaryPath(name, triple) {
+206:export function assertAllFresh(triple = targetTriple()) {
+207:  for (const spec of SIDECAR_SPECS) {
+215:export function pyinstallerCommand(spec) {
+235:export function buildSidecar(spec, { force = false } = {}) {
+     313 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/scripts/sidecar-specs.mjs
+
+CMD: wc -l scripts/ensure-sidecar.mjs scripts/ensure-openbb-mcp-sidecar.mjs scripts/ensure-sec-edgar-mcp-sidecar.mjs
+      14 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/scripts/ensure-sidecar.mjs
+      16 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/scripts/ensure-openbb-mcp-sidecar.mjs
+      15 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/scripts/ensure-sec-edgar-mcp-sidecar.mjs
+      45 total

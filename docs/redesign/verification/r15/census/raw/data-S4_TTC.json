@@ -1,0 +1,102 @@
+[
+ {
+  "raw_id": "DAT-S4-1",
+  "title": "Income statement, balance sheet and cash flow for BSE:TTC (Toss The Coin Ltd) are The Toro Company's (NYSE:TTC) real financials, not the Indian company's -- a live ticker collision, not a hypothetical",
+  "severity": "critical",
+  "area": "data",
+  "subsystem": "S4_TTC",
+  "repro": "GET http://127.0.0.1:52152/fundamentals/TTC/income (also /balance, /cashflow) -> periods 2021-10-31..2025-10-31, total_revenue 4.51-4.58 BILLION, net_income 316-443 MILLION, ordinary_shares_number ~98-104 million, provider 'openbb-mcp'. Compare fundamentals/TTC/income's own sibling call, /fundamentals/TTC (top-level), symbol 'TTC.BO', revenue_ttm 146,963,008 (INR 14.7cr) -- the correct Toss The Coin figure, fetched via yfinance fallback. Re-run live on 2026-09-23: identical wrong-company figures returned, confirming this is current, not a repaired stale snapshot.",
+  "evidence": "docs/redesign/verification/r15/battery/collected/S4_TTC.json:547-936 (income), :937-1718 (balance), :1719-2320 (cashflow); docs/redesign/verification/r15/battery/packs/S4_TTC.json:379,387 (real FY26 sales 14.67cr / net profit 2.70cr) and :428-437 (traps.near_miss_us_ticker_collision, which predicted exactly this failure mode as the battery's highest-severity risk for this name)",
+  "notes": "Mechanism: the app's quote/fundamentals routes (ccxt/yfinance, provider health tag 'openbb-mcp (yfinance fallback)') append the exchange suffix (TTC.BO) and correctly disambiguate; the income/balance/cashflow statement routes call openbb-mcp with a bare 'TTC' and no ISIN/exchange qualifier, and openbb-mcp's backend defaults an unqualified US-format ticker to the NYSE-listed Toro Company. Toro's FYE (Oct-31) and share count (~98-104M) are both internally consistent with the returned data, confirming the source, not a units/currency artefact. Fix shape: every openbb-mcp financial-statement call for a non-US symbol must pass the ISIN or an explicit BSE/NSE-qualified identifier (the same resolver already used correctly by /resolve and /quotes must gate every downstream fundamentals sub-route, not just the top-level one); absent that, these three endpoints must refuse rather than silently return a same-ticker foreign company's numbers labelled as the Indian one. Any panel or agent tool that reads per-period revenue/profit/balance-sheet line items for an Indian small-cap sharing a ticker with a US company is exposed to this today."
+ },
+ {
+  "raw_id": "DAT-S4-2",
+  "title": "TTC's promoter/institutional shareholding self-contradicts by 16+ points between the app's own two shareholding sources",
+  "severity": "high",
+  "area": "data",
+  "subsystem": "S4_TTC",
+  "repro": "GET http://127.0.0.1:52152/fundamentals/TTC -> held_percent_insiders 0.75197 (75.2%), held_percent_institutions 0.04571 (4.57%), for the same company. GET http://127.0.0.1:52152/disclosures/shareholding?symbol=TTC -> latest row (quarter_end 2026-03-31) promoter_percent 58.67, institutions_percent 5.83. Both sourced from the same 19-Sep collection.",
+  "evidence": "docs/redesign/verification/r15/battery/collected/S4_TTC.json:279-280 (fundamentals, yfinance) vs :2353-2357 (disclosures/shareholding, BSE XBRL); docs/redesign/verification/r15/battery/packs/S4_TTC.json:332-336 (outside truth: promoter 58.67%, matching the BSE-XBRL route, confirming the yfinance route is the outlier)",
+  "notes": "Same class of bug as the P8_NAPEROL battery finding (DAT-P8-4): two internal data sources for the same conceptual field disagree, and the outside-truth check identifies the BSE-XBRL-sourced disclosures/shareholding route (58.67%) as correct and the yfinance-sourced fundamentals route (75.2%) as wrong. COMMON.md/PROMPT_data_s2.md calls promoter holding + pledge 'the single most gameable number in an Indian small-cap' -- a 16.5pp gap between two panels of the same app on that exact number is a trust-breaking inconsistency a diligent user would notice immediately. Fix shape: either drop yfinance's held_percent_insiders/institutions fields for Indian symbols entirely (BSE XBRL is the authoritative source and the app already fetches it) or reconcile/flag the disagreement rather than surfacing both unlabelled."
+ },
+ {
+  "raw_id": "DAT-S4-3",
+  "title": "Results/filing-calendar route hard-502s for TTC (BSE-only SME, no NSE listing)",
+  "severity": "high",
+  "area": "data",
+  "subsystem": "S4_TTC",
+  "repro": "GET http://127.0.0.1:52152/disclosures/results?symbol=TTC -> HTTP 502, {\"detail\": \"nse_direct: 'TTC' is not a known NSE instrument\"}",
+  "evidence": "docs/redesign/verification/r15/battery/collected/S4_TTC.json:2445-2456",
+  "notes": "Same failure class as DAT-P4-4/P6-3/P8-2 in this battery: a results-calendar lookup routes unconditionally through an NSE-specific resolver, which hard-errors for any symbol that (correctly) has no NSE listing -- true for essentially the entire BSE-SME universe, a large fraction of India's ~2,000 SME-listed names. TTC's own manifest entry and pack both independently confirm 'BSE-only, no NSE symbol'; the route should recognise that and fall back to a BSE-native results lookup (or degrade gracefully) instead of 502ing. This is now confirmed on 4 separate battery names (P4, P6, P8, S4) -- strong evidence this is systemic across the BSE-only population, not a one-off."
+ },
+ {
+  "raw_id": "DAT-S4-4",
+  "title": "Announcements feed returns only 2 items total for TTC despite a real disclosure history of 66+ filings in the trailing ~27 months, missing even a 5-week-old Reg 30 filing",
+  "severity": "high",
+  "area": "data",
+  "subsystem": "S4_TTC",
+  "repro": "GET http://127.0.0.1:52152/disclosures/announcements?symbol=TTC&limit=25 -> {\"count\": 2, \"announcements\": [2026-09-12 Scrutinizer's Report, 2026-09-11 Outcome of AGM]}. The pack independently fetched BSE's own AnnSubCategoryGetData index across 3 chained 12-month windows for the same scrip and found 66 announcements, including a 2026-08-15 'Announcement under Regulation 30 (LODR) - Newspaper Publication' that sits inside the same recent window as the 2 the app does return.",
+  "evidence": "docs/redesign/verification/r15/battery/collected/S4_TTC.json:2409-2444; docs/redesign/verification/r15/battery/packs/S4_TTC.json:403-419 (last_3_announcements + all_announcements_since_listing_sample.count_in_fetched_windows: 66)",
+  "notes": "An announcements feed that surfaces 2 of a company's last 66+ disclosures with a limit=25 request is not a coverage gap at the margins, it is close to non-functional for this listing -- a user relying on this feed for the 'the numbers look wrong, what changed' workflow would see almost nothing. Given DAT-S4-3 shows the same BSE-only-listing population also breaks the results-calendar route, this and DAT-S4-3 together suggest the app's BSE-SME data coverage generally, not just this one endpoint, needs a dedicated audit across the whole BSE-SME slice of the battery."
+ },
+ {
+  "raw_id": "DAT-S4-5",
+  "title": "dividend_per_share_ttm (trailing-12-month dividends paid) is null despite a reliable, singly-sourced world value",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "S4_TTC",
+  "repro": "GET http://127.0.0.1:52152/fundamentals/TTC -> dividend_per_share_ttm: null",
+  "evidence": "docs/redesign/verification/r15/battery/collected/S4_TTC.json:281; docs/redesign/verification/r15/battery/packs/S4_TTC.json:303-310 (paid_trailing_12m_per_share = INR 5.00, from BSE's own CorporateAction API, one payment inside the trailing-12-month window)",
+  "notes": "The app already models this exact concept as its own field (distinct from the plain dividend_per_share, which lands on the FY-total definition by coincidence -- see the diff file's dividend.fy26_full_year_declared_per_share row) but never populates it. The source data needed (BSE CorporateAction payment dates) is the same data the app's own disclosures layer already fetches for other purposes."
+ },
+ {
+  "raw_id": "DAT-S4-6",
+  "title": "ROCE is entirely absent from the app's fundamentals model despite a reliably known, singly-sourced world value",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "S4_TTC",
+  "repro": "GET http://127.0.0.1:52152/fundamentals/TTC -> no 'roce' key anywhere in the response (roe and roa are present, roce is not)",
+  "evidence": "docs/redesign/verification/r15/battery/collected/S4_TTC.json:239-541 (full fundamentals schema, no roce field); docs/redesign/verification/r15/battery/packs/S4_TTC.json:222-227 (roce 27.0%, screener.in top-ratio block)",
+  "notes": "ROCE is one of the PACK spec's mandatory core fields (identity/price/.../roce/debt_to_equity/...) precisely because it is a standard, widely-tracked Indian-equity ratio; its total absence from the schema (not null, simply not a field) means no amount of upstream data quality can ever surface it to a user."
+ },
+ {
+  "raw_id": "DAT-S4-7",
+  "title": "FII holding shows null for TTC's latest quarter in the app's own BSE-XBRL shareholding endpoint, though the same endpoint carries real values for earlier quarters and the true figure is a confirmed 0.00%",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "S4_TTC",
+  "repro": "GET http://127.0.0.1:52152/disclosures/shareholding?symbol=TTC -> Mar-2026 row: fii_percent: null; Mar-2025 row (same endpoint, same symbol): fii_percent: 0.48",
+  "evidence": "docs/redesign/verification/r15/battery/collected/S4_TTC.json:2353-2401; docs/redesign/verification/r15/battery/packs/S4_TTC.json:333 (screener's own quarter-by-quarter FII series: 2.19% Dec-2024 -> 0.48% Mar-2025 -> 0.00% Sep-2025 -> 0.00% Mar-2026, an explicit decline to a real, reported zero, not an unreported field)",
+  "notes": "The endpoint demonstrably CAN carry a real FII value (it does for the Mar-2025 row) so this null is not a structural 'FII is never tracked' gap -- it is a per-quarter parsing/mapping gap that happens to land on the most recent, most-viewed quarter. A naive consumer cannot distinguish this null from 'not disclosed' when the true state is 'disclosed as exactly zero'."
+ },
+ {
+  "raw_id": "DAT-S4-8",
+  "title": "former_name is blank for TTC despite a well-documented, sourced former name from its pre-IPO private-to-public conversion",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "S4_TTC",
+  "repro": "GET http://127.0.0.1:52152/resolve?q=TTC (and q=Toss+The+Coin+Ltd, q=544303) -> resolved.former_name: null in all three",
+  "evidence": "docs/redesign/verification/r15/battery/collected/S4_TTC.json:30,58,101,127,140,153,166,195,209; docs/redesign/verification/r15/battery/packs/S4_TTC.json:18-24 (former_names: 'Toss the Coin Private Limited', sourced from the FY26 Annual Report's covering letter)",
+  "notes": "Same class of gap as DAT-P8-6 in this battery (NAPEROL/former National Peroxide Ltd). Former-name coverage matters specifically for entity-extraction and news-matching workflows, which are already flagged as fragile for this exact name (pack traps.sentence_shaped_legal_name) -- a resolver that also lacks the former name has one fewer anchor to catch mentions under the pre-conversion name."
+ },
+ {
+  "raw_id": "DAT-S4-9",
+  "title": "face_value is not exposed anywhere in the app's fundamentals model despite a reliable, dual-sourced world value",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "S4_TTC",
+  "repro": "GET http://127.0.0.1:52152/fundamentals/TTC -> no 'face_value' key anywhere in the response",
+  "evidence": "docs/redesign/verification/r15/battery/collected/S4_TTC.json:239-541 (full fundamentals schema); docs/redesign/verification/r15/battery/packs/S4_TTC.json:284-290 (face_value INR 10.0, corroborated identically by both BSE's ComHeader API and screener.in)",
+  "notes": "Face value is a basic, load-bearing field for Indian equities (it anchors interpretation of EPS/book-value/dividend per share and signals whether a stock has ever undergone a face-value split); its total absence, not just a null, means it cannot be added by better upstream data alone without a schema change."
+ },
+ {
+  "raw_id": "DAT-S4-10",
+  "title": "52-week high/low values are correct but the app exposes no per-leg as-of date, only a generic fetch timestamp -- for a stock whose high and low are 9 months apart with an active, ongoing drawdown",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "S4_TTC",
+  "repro": "GET http://127.0.0.1:52152/fundamentals/TTC -> fifty_two_week_high: 445.0, fifty_two_week_low: 135.0, field_meta.fifty_two_week_high.as_of and field_meta.fifty_two_week_low.as_of both = 2026-09-19T10:02:53Z (the fetch time, identical for both legs)",
+  "evidence": "docs/redesign/verification/r15/battery/collected/S4_TTC.json:261-262,398-418; docs/redesign/verification/r15/battery/packs/S4_TTC.json:177-182 (high dated 2025-12-12, low dated 2026-09-07 -- 9 months apart) and :182 (the pack's own note: the stock is down 63% from a 9-month-old high and only 21% above a low set 15 days before collection, an active drawdown a dateless bracket cannot distinguish from a stale historical peak)",
+  "notes": "The values themselves match the outside truth exactly (see diff file); this finding is specifically about the missing per-value as-of granularity that PROMPT_data_s2.md's subtle tier explicitly mandates checking ('a 52w high/low pair is often stale in one leg and fresh in the other'). Fix shape: the underlying BSE HighLow API the pack used already carries a date per leg; threading those two dates through to field_meta (rather than the blanket fetch timestamp) is a schema-compatible addition, not a new data source."
+ }
+]

@@ -1,0 +1,400 @@
+{
+  "slot": "P15",
+  "symbol": "SUMAX",
+  "diffed_at": "2026-09-23",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P15_SUMAX.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P15_SUMAX.json",
+  "subtle_tier_covered": true,
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "resolve candidate: 'SUMAX ENGINEERING LIMITED' (symbol SUMAX-SM, confidence 0.6, needs_disambiguation=true, never auto-confirmed) vs /fundamentals.name: 'SEI Short Duration Municipal F (STET)' (a different, unrelated entity)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Sumax Engineering Limited",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "mismatch",
+      "note": "collected/P15_SUMAX.json:24 (correct candidate name, unconfirmed) vs :156 (wrong-entity name under the same symbol). Filed as DAT-P15-2."
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "no rename found (pack collector flags its own 'conversion date' as a likely aggregator artifact, confidence: low)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price",
+      "status": "no source truth",
+      "note": "Pack itself distrusts this value (packs/P15_SUMAX.json:19, 'confidence: low ... treat as an aggregator artifact, not truth'); not a clean outside fact to diff against."
+    },
+    {
+      "field": "identity.isin",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack world_gap (packs/P15_SUMAX.json:522-527): ISIN 'certainly exists' but unreached from any of 13 attempted sources. Both sides blank; not a finding."
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "match",
+      "note": "SUMAX is NSE Emerge only, no BSE listing exists (packs/P15_SUMAX.json:529-533, manifest.json bse_code: null). App correctly shows null on both resolve candidates (collected/P15_SUMAX.json:30-31)."
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": "SUMAX-SM (resolve candidate, confidence 0.6, unconfirmed)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "SUMAX",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "match",
+      "note": "Base symbol agrees; the '-SM' suffix is consistent with the known SME/Emerge board, not a conflicting value. collected/P15_SUMAX.json:23-24."
+    },
+    {
+      "field": "identity.nse_series",
+      "app_value": "implied only by the '-SM' suffix on the candidate symbol; no explicit series field anywhere in the payload",
+      "app_as_of": "2026-09-19",
+      "outside_value": "SME (NSE Emerge); exact series letter (SM vs ST) unresolved",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "no source truth",
+      "note": "Pack world_gap (packs/P15_SUMAX.json:535-539): series letter not confirmed by any outside source either. Not comparable to a hard fact."
+    },
+    {
+      "field": "identity.board",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "SME (NSE Emerge)",
+      "outside_as_of": "2026-09-02",
+      "outside_source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+      "status": "app blank",
+      "note": "No board/segment field anywhere in resolve or fundamentals payloads. Folded into DAT-P15-2."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "Consumer Discretionary > Automobile and Auto Components > Auto Components > Auto Components & Equipments",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:157 sector:null (under the wrong-entity fundamentals record). Folded into DAT-P15-2."
+    },
+    {
+      "field": "identity.industry",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "Auto Components & Equipments",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:158 industry:null. Folded into DAT-P15-2."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "2026-09-02",
+      "outside_as_of": "2026-09-02",
+      "outside_source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+      "status": "app blank",
+      "note": "No listing_date field anywhere in resolve or fundamentals payloads. Folded into DAT-P15-2."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 114.50,
+      "outside_as_of": "2026-09-18T16:01:00+05:30",
+      "outside_source_url": "https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price",
+      "status": "app blank",
+      "note": "GET /quotes/SUMAX?asset_class=equity -> HTTP 502, \"yfinance quote failed for 'SUMAX': 'PriceHistory' object has no attribute '_dividends'\" (collected/P15_SUMAX.json:139-149). Filed as DAT-P15-1."
+    },
+    {
+      "field": "market_cap",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 217.81,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:160 market_cap:null. Folded into DAT-P15-2."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 19.6,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:161 pe_ratio:null. Pack itself flags 19.6 as unreconciled against EPS (packs/P15_SUMAX.json:165), so this is not a 'clean' outside value, but a source_url exists -> blank is still gap-worthy at lower confidence. Folded into DAT-P15-2, noted as lower-confidence."
+    },
+    {
+      "field": "pb",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 2.17,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/sumax-engineering-ltd",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:164 price_to_book:null. Folded into DAT-P15-2."
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 20.2,
+      "outside_as_of": "FY2026 (ended 2026-03-31)",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:175 roe:null. Folded into DAT-P15-2."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 25.2,
+      "outside_as_of": "FY2026 (ended 2026-03-31)",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "No 'roce' key exists anywhere in the /fundamentals response schema (collected/P15_SUMAX.json:154-199) -- a capability gap, not a per-record blank. Folded into DAT-P15-2."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.21,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/sumax-engineering-ltd",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:180 debt_to_equity:null; outside value cross-checked independently against Screener's Mar-2026 balance sheet (packs/P15_SUMAX.json:197). Folded into DAT-P15-2."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 147.69,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:183 revenue_ttm:null. Folded into DAT-P15-2."
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 12.76,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:184 net_income_ttm:null. Folded into DAT-P15-2."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 1.07,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:187 revenue_growth:null, :193 revenue_growth_computed:null. Folded into DAT-P15-2."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 8.66,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:170 eps:null. Pack flags this series as internally incoherent (packs/P15_SUMAX.json:239) so treat as lower-confidence, still sourced. Folded into DAT-P15-2."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 55.17,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/sumax-engineering-ltd",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:167 book_value:null. Folded into DAT-P15-2."
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 10.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "No 'face_value' key exists anywhere in resolve or fundamentals schema (collected/P15_SUMAX.json:11-199). Filed separately as DAT-P15-4 (systemic schema gap, same as observed for other slots)."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack world_gap (packs/P15_SUMAX.json:547-551): 'does-not-exist' (never declared a dividend as a listed entity), not merely unreached. Not a finding."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:192 dividend_per_share_ttm:null. Outside value is a real, sourced 0 (implied by 0.00% yield on both Screener and Groww). Folded into DAT-P15-2."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:168 dividend_yield:null. Same underlying gap as dividend.paid_trailing_12m_per_share -- folded into DAT-P15-2."
+    },
+    {
+      "field": "week52.high",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 132.75,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/sumax-engineering-ltd",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:172 fifty_two_week_high:null. Pack itself flags this range as a mislabelled since-listing window (packs/P15_SUMAX.json:314), a labelling caveat, not a reason to discount the value diff. Folded into DAT-P15-2."
+    },
+    {
+      "field": "week52.low",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 101.20,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/sumax-engineering-ltd",
+      "status": "app blank",
+      "note": "collected/P15_SUMAX.json:173 fifty_two_week_low:null. Folded into DAT-P15-2."
+    },
+    {
+      "field": "week52.dates (high and low)",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack world_gap (packs/P15_SUMAX.json:553-557): per-leg dates unreached from any of the 3 reachable sources. Both sides blank; not a finding."
+    },
+    {
+      "field": "shareholding.quarter",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "Sep 2026 (Screener) / 'Aug 26' (Groww, INDmoney -- identical percentages, disputed label; pack cites Screener as primary)",
+      "outside_as_of": "2026-09",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "GET /disclosures/shareholding?symbol=SUMAX -> HTTP 502, \"disclosures: 'SUMAX' is not a known NSE/BSE instrument\" (collected/P15_SUMAX.json:272-283). Filed as DAT-P15-3."
+    },
+    {
+      "field": "shareholding.promoter_pct",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 69.67,
+      "outside_as_of": "2026-09 (label disputed)",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "Same 502 as shareholding.quarter. This is the single most gameable Indian small-cap figure (COMMON.md/PROMPT_data_s2.md subtle-tier mandate) and it is wholly unavailable. Folded into DAT-P15-3."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 2.10,
+      "outside_as_of": "2026-09 (label disputed)",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "Same 502. Folded into DAT-P15-3."
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 9.59,
+      "outside_as_of": "2026-09 (label disputed)",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "Same 502. Folded into DAT-P15-3."
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 18.63,
+      "outside_as_of": "2026-09 (label disputed)",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "Same 502. Folded into DAT-P15-3."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack world_gap (packs/P15_SUMAX.json:541-545): 'does-not-exist-yet' -- no pledge disclosure appears on any reachable source for this 17-day-old listing; the pack explicitly warns not to substitute 0.00%. App shows null too. Not a finding despite the 502 on the underlying route (both sides are honestly empty for this specific sub-field)."
+    },
+    {
+      "field": "corporate_actions_2026 / last_3_announcements",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "3 recent NSE-filed items (2026-09-09 to 2026-09-11): Automechanika Frankfurt press release, AGM book-closure notice, 32nd AGM paper ad",
+      "outside_as_of": "2026-09-11",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "GET /disclosures/announcements?symbol=SUMAX&limit=25 -> HTTP 502, \"disclosures: 'SUMAX' is not a known NSE/BSE instrument\" (collected/P15_SUMAX.json:284-295). Filed as DAT-P15-3."
+    },
+    {
+      "field": "latest_results",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "Q1 FY2027 (ended 2026-06-30): revenue INR 35.68 crore, PAT INR 3.50 crore, filed 2026-09-08",
+      "outside_as_of": "2026-09-08",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "app blank",
+      "note": "GET /disclosures/results?symbol=SUMAX -> HTTP 502, \"nse_direct: 'SUMAX' is not a known NSE instrument\" (collected/P15_SUMAX.json:296-307). Folded into DAT-P15-3."
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack explicitly leaves this null/unasserted (packs/P15_SUMAX.json:453-459); app has no such concept in schema either. Not a finding."
+    },
+    {
+      "field": "resolve(company name search)",
+      "app_value": "for query 'Sumax Engineering Ltd', returns SIX unrelated candidates (SMT Engineering, DMR Engineering, Misquita Engineering, Duncan Engineering, Shayona Engineering, Ajax Engineering) -- Sumax Engineering itself does not appear anywhere in the candidate list",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Sumax Engineering Limited is the correct, unique match for its own legal name",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "mismatch",
+      "note": "collected/P15_SUMAX.json:42-131. Contrast with the bare-symbol query 'SUMAX' (collected/P15_SUMAX.json:11-41), which DOES surface the correct candidate. Filed as DAT-P15-5."
+    }
+  ]
+}

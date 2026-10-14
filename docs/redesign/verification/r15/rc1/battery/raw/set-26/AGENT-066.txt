@@ -1,0 +1,5 @@
+=== AGENT-066: run_custom_backtest readOnlyHint vs write ===
+1107:            "run_custom_backtest",
+1246:                            "For panel=backtest: the run id a run_custom_backtest "
+48:            read_only=True,
+49:            kind="read_handler",

@@ -1,0 +1,22 @@
+CMD: curl -s http://127.0.0.1:52363/earnings/<SYM>/estimates for WIT, PDD, NVO, TSM, AAPL, BIDU, INFY.NS, BABA (own sidecar, candidate 9bc600ec, seed data dir)
+--- WIT ---
+{'revenue_estimate_mean': 244747656810.0, 'currency': 'USD', 'revenue_currency': 'INR', 'eps_estimate_mean': 0.035}
+--- PDD ---
+{'revenue_estimate_mean': 115643262410.0, 'currency': 'CNY', 'revenue_currency': 'CNY', 'eps_estimate_mean': 18.84143}
+--- NVO ---
+{'revenue_estimate_mean': 72894182410.0, 'currency': 'DKK', 'revenue_currency': 'DKK', 'eps_estimate_mean': 5.0045}
+--- TSM ---
+{'revenue_estimate_mean': 1454935426950.0, 'currency': 'USD', 'revenue_currency': 'TWD', 'eps_estimate_mean': 4.4614}
+--- AAPL ---
+{'revenue_estimate_mean': 113624521680.0, 'currency': 'USD', 'revenue_currency': 'USD', 'eps_estimate_mean': 1.98124}
+--- BIDU ---
+{'revenue_estimate_mean': 30533122050.0, 'currency': None, 'revenue_currency': 'CNY', 'eps_estimate_mean': 8.1987}
+--- INFY.NS ---
+{'revenue_estimate_mean': 491654926200.0, 'currency': 'INR', 'revenue_currency': 'INR', 'eps_estimate_mean': 19.61527}
+--- BABA (no region header: my probe artifact — resolves to the IN-listed 'Baba Arts Limited', BABA.BO, an unrelated small-cap; all-null because that issuer has no analyst estimates. Retried with the region header the register/batch-28 fresh case implies) ---
+{'symbol': None, 'revenue_estimate_mean': None, 'currency': None, 'revenue_currency': None, 'eps_estimate_mean': None}
+--- BABA (X-Vysted-Region: US) ---
+{'symbol': 'BABA', 'revenue_estimate_mean': 270509152339.0, 'currency': 'CNY', 'revenue_currency': 'CNY', 'eps_estimate_mean': 10.86398}
+
+Register repro (WIT): revenue_estimate_mean served with currency labelled USD despite being INR-sized. Live now: WIT revenue_currency='INR' (a distinct field from the trading/EPS 'currency': USD), so the INR-sized revenue is honestly labelled instead of mislabelled USD. Full fresh-case set from batch-28 reproduces exactly under the region the fix expects: PDD CNY, NVO DKK, TSM USD (EPS)/TWD (revenue), AAPL USD, INFY.NS INR, BIDU currency null (revenue_currency CNY), BABA CNY under X-Vysted-Region:US.
+VERDICT: holds

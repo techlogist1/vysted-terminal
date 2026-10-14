@@ -1,0 +1,47 @@
+sidecar/services/llm/oneshot.py:70-77,106 and :144-151
+async def complete_with_usage(
+    provider: str,
+    model: str,
+    api_key: str | None,
+    messages: list[dict[str, Any]],
+    *,
+    timeout: float | None = None,
+) -> tuple[str, LLMUsage | None]:
+        adapter = get_provider(provider)  # type: ignore[arg-type]
+        stream = adapter.stream_chat(
+async def complete(
+    provider: str,
+    model: str,
+    api_key: str | None,
+    messages: list[dict[str, Any]],
+    *,
+    timeout: float | None = None,
+) -> str:
+
+sidecar/services/llm/native_search.py:275
+        adapter = get_provider(provider_id)  # type: ignore[arg-type]
+        stream = adapter.stream_chat(
+
+sidecar/services/llm/openai.py:528-545 (repair via oneshot)
+        from services.llm import oneshot
+
+        prompt = (
+            "A previous tool call to the function "
+            f"`{tool_name}` had invalid arguments.\n\n"
+            f"JSON Schema for the arguments:\n{json.dumps(schema)}\n\n"
+            f"The arguments you sent:\n{raw_args}\n\n"
+            f"The validation error:\n{error}\n\n"
+            "Reply with ONLY a single valid JSON object for the arguments — no "
+            "prose, no code fence, no explanation. It must satisfy the schema."
+        )
+        try:
+            reply, repair_usage = await oneshot.complete_with_usage(
+                self._provider_id,
+                model,
+                api_key,
+                [{"role": "user", "content": prompt}],
+                timeout=_REPAIR_TIMEOUT_S,
+
+sidecar/services/agent_runtime.py:1955
+    adapter = get_provider(provider_id)
+cmd: grep -n base_url sidecar/services/agent_runtime.py => (empty)

@@ -1,0 +1,8 @@
+# R15-DATA-115 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:06:58+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in AMAL.BO AMAL.NS; do echo -n "/history/$s?range=1y: "; curl -s -m 100 "$H/history/$s?range=1y" | python3 -c "import sys,json;d=json.load(sys.stdin);b=d.get('bars') or [];print('provider',d.get('provider'),len(b),'bars from',(b[0].get('timestamp') or b[0].get('time')) if b else None)"; done
+--- output ---
+/history/AMAL.BO?range=1y: provider bse 255 bars from 2025-09-18T00:00:00Z
+/history/AMAL.NS?range=1y: provider nse_direct 33 bars from 2026-08-17T00:00:00Z
+
+EXIT=0 (5.8s)

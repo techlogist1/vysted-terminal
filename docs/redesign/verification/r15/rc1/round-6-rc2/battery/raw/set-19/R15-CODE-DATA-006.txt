@@ -1,0 +1,17 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ grep -n 'const finish\|finish(' src/store/screener.ts | head -20; grep -n 'superseded\|R15-CODE-DATA-006' src/store/screener.test.ts | head -5
+exit=0
+42:// `finish()`, which no-ops once another run (or cancelRun) owns the slot.
+408:    function finish(patch: Partial<ScreenerState>): boolean {
+453:          finish({ status: "idle" });
+456:        return finish({ lastResult: result, status: "ready", error: null }) ? result : null;
+458:        finish(
+479:        finish({ status: "idle" });
+499:      finish({
+512:      finish({ status: "error", error: "Stream body was empty" });
+599:        finish({
+609:      finish({ status: "idle" });
+613:      finish({ status: "error", error: serverError });
+617:      finish({ status: "error", error: "Stream ended without a result frame" });
+621:    return finish({ lastResult: result, status: "ready", error: null }) ? result : null;
+308:    it("R15-CODE-DATA-006: run A's late unary fallback does not touch run B's result or status", async () => {

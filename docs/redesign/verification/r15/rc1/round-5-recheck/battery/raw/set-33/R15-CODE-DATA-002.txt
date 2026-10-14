@@ -1,0 +1,4 @@
+first call infosys: 292.8832079633139 ms
+second call infosys (should be memoized/fast): 0.09116600267589092 ms
+third call infosys: 0.07770804222673178 ms
+_scan_names cache_info: CacheInfo(hits=2, misses=1, maxsize=256, currsize=1)

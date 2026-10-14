@@ -1,0 +1,4 @@
+[   0.0s] error: {"kind": "error", "message": "The provider closed the stream before the answer finished.", "action": "Retry, or switch the composer to a different model.", "detail": "no finish reason from junk-truncated", "code": "truncated"}
+[   0.0s] done: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+=== ASSISTANT TEXT ===
+

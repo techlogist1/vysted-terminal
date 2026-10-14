@@ -1,0 +1,6 @@
+sp500-region HAL -> ('HAL', 'Halliburton Company', 'USD')
+sp500-region CCL -> ('CCL', 'Carnival Corporation Ltd.', 'USD')
+sp500-region IEX -> ('IEX', 'IDEX Corporation', 'USD')
+sp500-region ACGL -> ('ACGL', 'Arch Capital Group Ltd.', 'USD')
+sp500-region PTC -> ('PTC', 'PTC Inc.', 'USD')
+custom(None)->session IN PTC -> ('PTC.NS', 'PTC India Limited', 'INR')

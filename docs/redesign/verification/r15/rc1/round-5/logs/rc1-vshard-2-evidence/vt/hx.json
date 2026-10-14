@@ -1,0 +1,447 @@
+{
+ "f009": {
+  "r1": {
+   "diffBefore": "Saved screens: unchanged",
+   "diffAfter": "Saved screens: +\"Quality growth\" (3 criteria)",
+   "outcome": "applied",
+   "detail": null,
+   "preImage": {
+    "kind": "screen",
+    "name": "Quality growth",
+    "screen": null
+   }
+  },
+  "saved1": {
+   "name": "Quality growth",
+   "universe": "nifty50",
+   "criteria": [
+    {
+     "field": "roe",
+     "operator": "gt",
+     "value": 0.15
+    },
+    {
+     "field": "pe_ratio",
+     "operator": "lt",
+     "value": 25
+    },
+    {
+     "field": "revenue_growth",
+     "operator": "gt",
+     "value": 0.1
+    }
+   ],
+   "group": {
+    "combinator": "and",
+    "criteria": [
+     {
+      "field": "roe",
+      "operator": "gt",
+      "value": 0.15
+     },
+     {
+      "combinator": "or",
+      "criteria": [
+       {
+        "field": "pe_ratio",
+        "operator": "lt",
+        "value": 25
+       },
+       {
+        "field": "revenue_growth",
+        "operator": "gt",
+        "value": 0.1
+       }
+      ]
+     }
+    ]
+   },
+   "formula": "debt_to_equity < 1",
+   "combinator": "and"
+  },
+  "draftBefore": {
+   "criteria": [
+    {
+     "field": "dividend_yield",
+     "operator": "gt",
+     "value": 0.03
+    }
+   ],
+   "formula": "roe > 0.2",
+   "universe": "nifty50"
+  },
+  "draftAfter": {
+   "criteria": [
+    {
+     "field": "roe",
+     "operator": "gt",
+     "value": 0.15
+    },
+    {
+     "field": "pe_ratio",
+     "operator": "lt",
+     "value": 25
+    },
+    {
+     "field": "revenue_growth",
+     "operator": "gt",
+     "value": 0.1
+    }
+   ],
+   "formula": "debt_to_equity < 1",
+   "universe": "nifty50",
+   "group": {
+    "combinator": "and",
+    "criteria": [
+     {
+      "field": "roe",
+      "operator": "gt",
+      "value": 0.15
+     },
+     {
+      "combinator": "or",
+      "criteria": [
+       {
+        "field": "pe_ratio",
+        "operator": "lt",
+        "value": 25
+       },
+       {
+        "field": "revenue_growth",
+        "operator": "gt",
+        "value": 0.1
+       }
+      ]
+     }
+    ]
+   },
+   "advanced": true
+  },
+  "r2": {
+   "diffBefore": "Saved screens: unchanged",
+   "diffAfter": "Saved screens: +\"quality growth\" (1 criterion)",
+   "outcome": "applied",
+   "detail": null,
+   "preImage": {
+    "kind": "screen",
+    "name": "quality growth",
+    "screen": null
+   }
+  },
+  "r3": {
+   "diffBefore": "Saved screens: \"Quality growth\" exists",
+   "diffAfter": "Saved screens: \"Quality growth\" replaced (1 criterion)",
+   "outcome": "applied",
+   "detail": null,
+   "preImage": {
+    "kind": "screen",
+    "name": "Quality growth",
+    "screen": {
+     "name": "Quality growth",
+     "universe": "nifty50",
+     "criteria": [
+      {
+       "field": "roe",
+       "operator": "gt",
+       "value": 0.15
+      },
+      {
+       "field": "pe_ratio",
+       "operator": "lt",
+       "value": 25
+      },
+      {
+       "field": "revenue_growth",
+       "operator": "gt",
+       "value": 0.1
+      }
+     ],
+     "group": {
+      "combinator": "and",
+      "criteria": [
+       {
+        "field": "roe",
+        "operator": "gt",
+        "value": 0.15
+       },
+       {
+        "combinator": "or",
+        "criteria": [
+         {
+          "field": "pe_ratio",
+          "operator": "lt",
+          "value": 25
+         },
+         {
+          "field": "revenue_growth",
+          "operator": "gt",
+          "value": 0.1
+         }
+        ]
+       }
+      ]
+     },
+     "formula": "debt_to_equity < 1",
+     "combinator": "and"
+    }
+   }
+  },
+  "names": [
+   "quality growth",
+   "Quality growth"
+  ],
+  "saved3": {
+   "name": "Quality growth",
+   "universe": "nifty50",
+   "criteria": [
+    {
+     "field": "pe_ratio",
+     "operator": "lt",
+     "value": 9
+    }
+   ],
+   "group": null,
+   "combinator": "and"
+  },
+  "undo": "Restored the saved screen \"Quality growth\"",
+  "savedUndo": {
+   "name": "Quality growth",
+   "universe": "nifty50",
+   "criteria": [
+    {
+     "field": "roe",
+     "operator": "gt",
+     "value": 0.15
+    },
+    {
+     "field": "pe_ratio",
+     "operator": "lt",
+     "value": 25
+    },
+    {
+     "field": "revenue_growth",
+     "operator": "gt",
+     "value": 0.1
+    }
+   ],
+   "group": {
+    "combinator": "and",
+    "criteria": [
+     {
+      "field": "roe",
+      "operator": "gt",
+      "value": 0.15
+     },
+     {
+      "combinator": "or",
+      "criteria": [
+       {
+        "field": "pe_ratio",
+        "operator": "lt",
+        "value": 25
+       },
+       {
+        "field": "revenue_growth",
+        "operator": "gt",
+        "value": 0.1
+       }
+      ]
+     }
+    ]
+   },
+   "formula": "debt_to_equity < 1",
+   "combinator": "and"
+  },
+  "draftAfterUndo": {
+   "criteria": [
+    {
+     "field": "pe_ratio",
+     "operator": "lt",
+     "value": 9
+    }
+   ],
+   "formula": "",
+   "universe": "nifty50"
+  }
+ },
+ "f010": {
+  "a": {
+   "diffBefore": "Screener: 3 criteria",
+   "diffAfter": "Screener: 3 criteria (nested AND/OR) · nifty50 — runs on apply",
+   "outcome": "applied",
+   "detail": null,
+   "preImage": null
+  },
+  "callsA": 1,
+  "b": {
+   "diffBefore": "Screener: 3 criteria",
+   "diffAfter": "Screener: 1 criterion — review then Run",
+   "outcome": "applied",
+   "detail": null,
+   "preImage": null
+  },
+  "callsB": 1,
+  "c": {
+   "diffBefore": "Screener: 1 criterion",
+   "diffAfter": "Screener: no well-formed criteria; dropped nope: unknown operator \"??\" — can't apply",
+   "outcome": "failed",
+   "detail": "no well-formed screener criteria; dropped nope: unknown operator \"??\"",
+   "preImage": null
+  },
+  "callsC": 1,
+  "d": {
+   "diffBefore": "Screener: 1 criterion",
+   "diffAfter": "Screener: 0 criteria · formula — runs on apply",
+   "outcome": "applied",
+   "detail": null,
+   "preImage": null
+  },
+  "callsD": 2,
+  "seen": [
+   {
+    "group": {
+     "combinator": "or",
+     "criteria": [
+      {
+       "field": "roe",
+       "operator": "gt",
+       "value": 0.2
+      },
+      {
+       "combinator": "and",
+       "criteria": [
+        {
+         "field": "pe_ratio",
+         "operator": "lt",
+         "value": 10
+        },
+        {
+         "field": "dividend_yield",
+         "operator": "gt",
+         "value": 0.04
+        }
+       ]
+      }
+     ]
+    },
+    "advanced": true,
+    "formula": "",
+    "universe": "nifty50"
+   },
+   {
+    "group": null,
+    "advanced": false,
+    "formula": "roe > 0.3",
+    "universe": "nifty50"
+   }
+  ]
+ },
+ "f011": {
+  "update_cost_only_lot2": {
+   "diffBefore": "HDFCBANK (lot 2 of 2): ×3 @ ₹1,650",
+   "diffAfter": "HDFCBANK: ×3 @ ₹1,720",
+   "outcome": "applied",
+   "detail": null,
+   "preImage": {
+    "kind": "holding",
+    "portfolioId": "P1",
+    "holding": {
+     "id": "h-2",
+     "symbol": "HDFCBANK",
+     "quantity": 3,
+     "costBasis": 1650,
+     "assetClass": "equity"
+    },
+    "index": 1
+   }
+  },
+  "lot2_after": [
+   {
+    "id": "h-1",
+    "symbol": "HDFCBANK",
+    "quantity": 7,
+    "costBasis": 1500,
+    "assetClass": "equity"
+   },
+   {
+    "id": "h-2",
+    "symbol": "HDFCBANK",
+    "quantity": 3,
+    "costBasis": 1720,
+    "assetClass": "equity"
+   }
+  ],
+  "update_qty_only": {
+   "diffBefore": "HDFCBANK (lot 1 of 2): ×7 @ ₹1,500",
+   "diffAfter": "HDFCBANK: ×9 @ ₹1,500",
+   "outcome": "applied",
+   "detail": null,
+   "preImage": {
+    "kind": "holding",
+    "portfolioId": "P1",
+    "holding": {
+     "id": "h-1",
+     "symbol": "HDFCBANK",
+     "quantity": 7,
+     "costBasis": 1500,
+     "assetClass": "equity"
+    },
+    "index": 0
+   }
+  },
+  "update_target_gone": {
+   "outcome": "failed",
+   "detail": "that HDFCBANK lot is no longer in the portfolio"
+  },
+  "close_screener_not_open": {
+   "diffBefore": "Screener panel: not open",
+   "diffAfter": "Screener panel: already closed",
+   "outcome": "applied",
+   "detail": null,
+   "preImage": null
+  },
+  "close_screener_open": {
+   "diffBefore": "Screener panel: open",
+   "diffAfter": "Screener panel: closed",
+   "outcome": "applied",
+   "detail": null,
+   "preImage": null,
+   "closeCalls": 1
+  },
+  "open_chart_already_open": {
+   "diffBefore": "Chart panel: open",
+   "diffAfter": "Chart panel: open",
+   "outcome": "applied",
+   "detail": null,
+   "preImage": null
+  },
+  "open_unknown": {
+   "diffBefore": "Warp Drive panel: not open",
+   "diffAfter": "Warp Drive: unknown panel — can't apply",
+   "outcome": "failed",
+   "detail": "unknown panel \"warp-drive\"",
+   "preImage": null
+  },
+  "set_region_EU": {
+   "diffBefore": "Region: IN",
+   "diffAfter": "Region: \"EU\" is not a region — can't apply",
+   "outcome": "failed",
+   "detail": "\"EU\" is not a region",
+   "preImage": null
+  },
+  "set_region_blank": {
+   "diffBefore": "Region: IN",
+   "diffAfter": "Region: \"\" is not a region — can't apply",
+   "outcome": "failed",
+   "detail": "\"\" is not a region",
+   "preImage": null
+  },
+  "region_unchanged": true,
+  "unknown_action": {
+   "kind": "panel",
+   "title": "teleport user",
+   "before": "—",
+   "after": "Unknown action — can't apply"
+  }
+ }
+}

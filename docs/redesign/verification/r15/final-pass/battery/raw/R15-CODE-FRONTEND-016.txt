@@ -1,0 +1,27 @@
+# R15-CODE-FRONTEND-016 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:36+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$PATH; cd "$C"; node --experimental-strip-types --no-warnings $B/sc/kb2.mts 2>&1 | head -30; grep -n 'registerAction("changes.acceptAll"' src -r | head -2
+--- output ---
+default ids: 13
+palette.open [⌘K] -> palette.open
+agent.mode.agent [⌥1] -> agent.mode.agent
+agent.mode.delegate [⌥2] -> agent.mode.delegate
+agent.toggle [⌘B] -> agent.toggle
+changes.acceptAll [⌘↵] -> changes.acceptAll
+changes.rejectAll [⌘⌫] -> changes.rejectAll
+platform.save-workspace [⌘S] -> platform.save-workspace
+platform.load-workspace [⌘O] -> platform.load-workspace
+platform.open-settings [⌘,] -> platform.open-settings
+chart.open [⌘1] -> chart.open
+watchlist.open [⌘2] -> watchlist.open
+news.open [⌘3] -> news.open
+portfolio.open [⌘4] -> portfolio.open
+unresolved/mismatched defaults: []
+after remap palette.open=mod+p: Cmd+K -> undefined; Cmd+P -> palette.open
+changes remap present: changes.acceptAll,changes.rejectAll
+mod+b vs Cmd+Shift+B matchesEvent: false
+setOverrides merge w/ bogus: overrides={"changes.acceptAll":"mod+shift+a"}
+regions: DEFAULT_REGION=IN regionConfig(IN).label=India
+src/modules/chat/ChatSidebar.tsx:586:    const unregisterAccept = registerAction("changes.acceptAll", () => {
+
+EXIT=0 (0.2s)

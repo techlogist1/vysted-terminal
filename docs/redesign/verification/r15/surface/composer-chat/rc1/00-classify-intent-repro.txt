@@ -1,0 +1,12 @@
+Repro: sidecar/services/planner.classify_intent on the census's exact turn-4/turn-5 prompts,
+run in-process against the RC1 candidate source (sha 4097dac4).
+
+  Write a note on Cochin Shipyard: valuation looks stretched at ~54x trailing P/E; revisit after Q2 results. -> edit ['\bnotes?\b', '\bwrite\b']
+  screen for defence stocks P/E < 40 -> edit ['\bscreen\b']
+  Save this screen as my defence watchlist -> edit ['\bsave\b', '\bscreen\b', '\bwatchlist\b']
+  Jot down that BEL looks cheap -> edit ['\bjot\b']
+
+Census (23 Sep): all four classified "read" -> write_note/write_screener_filters stripped from
+the tool set before the call (SURF-COMPOSER-CHAT-5 / R15-AGENT-019). RC1: all four now classify
+"edit" (mutates=True) -> the write tools stay in the offered set. sidecar/services/planner.py
+_EDIT_SIGNALS now carries notes?/jot/write/save/screen/filters explicitly citing R15-AGENT-019.

@@ -1,0 +1,62 @@
+import json, sys
+sys.path.insert(0, '.')
+sys.path.insert(0, 'tests')
+from services import agent_runtime as ar
+from services.llm.base import LLMToolUseEvent  # noqa
+import test_agent_runtime as t
+from services.agent_tools import catalog
+print("=== AGENT-094")
+rows = [
+  {'pattern':'custom','panels':['chart','news']},
+  {'pattern':'custom','panels':[{'panel':'news','direction':'right','reference':'chart'}]},
+  {'pattern':'custom','panels':'["chart","news"]'},
+  {'pattern':'custom','panels':['watchlist',{'panel':'chart','direction':'below','reference':'watchlist'},'news']},
+  {'pattern':'custom','panels':'[{"panel":"brief","direction":"right","reference":"chart"}, "chart"]'},
+]
+for inp in rows:
+    ev = LLMToolUseEvent(tool_call_id='x', name='arrange_layout', input=json.loads(json.dumps(inp)))
+    try:
+        ar._normalise_tool_args(ev); print('OK', json.dumps(inp)[:90], '->', json.dumps(ev.input)[:160])
+    except Exception as e:
+        print('RAISE', type(e).__name__, e, json.dumps(inp)[:90])
+# catalog walk: every schema with a list-valued type anywhere
+def walk(s, path, out):
+    if isinstance(s, dict):
+        if isinstance(s.get('type'), list): out.append(path)
+        for k, v in s.items(): walk(v, path+'.'+k, out)
+    elif isinstance(s, list):
+        for i, v in enumerate(s): walk(v, path+f'[{i}]', out)
+found=[]
+caps = catalog.CAPABILITIES if hasattr(catalog,'CAPABILITIES') else None
+from services.agent_tools.schemas import TOOL_SCHEMAS
+for name, sc in (TOOL_SCHEMAS.items() if isinstance(TOOL_SCHEMAS, dict) else enumerate(TOOL_SCHEMAS)):
+    walk(sc, str(name), found)
+# every list-typed sub-schema: _coerce must not raise on assorted values
+for name, sc in (TOOL_SCHEMAS.items() if isinstance(TOOL_SCHEMAS, dict) else enumerate(TOOL_SCHEMAS)):
+    for v in ['x', '5', [1,'a'], {'a':1}, None, 3.0]:
+        try: ar._coerce(v, sc.get('input_schema', sc) if isinstance(sc, dict) else sc)
+        except Exception as e: print('COERCE RAISE', name, v, e)
+print('list-typed schema paths:', found)
+print("=== AGENT-095")
+dep = json.dumps(t._SIFY_FUNDAMENTALS_WITH_DEPOSITARY); bare = json.dumps(t._SIFY_FUNDAMENTALS)
+cases = [
+ 'According to the SEC 20-F cover page filed on 2026-06-26, one SIFY ADR represents six equity shares. ',
+ 'As of June 26, 2026, each SIFY ADS represents 6 equity shares. ',
+ 'Per the 20-F filed 06/26/2026, each SIFY ADS represents six equity shares. ',
+ "On 26 June 2026 Sify's 20-F stated that each ADS represents 6 equity shares. ",
+ # fresh shapes
+ 'Per the 20-F filed 26-Jun-2026, each SIFY ADS represents six equity shares. ',
+ 'Per the filing dated 26-JUN-2026, each SIFY ADS represents 6 equity shares. ',
+ 'Per the 20-F filed Jun. 26th 2026, each SIFY ADS represents six equity shares. ',
+ 'The 20-F (26.06.2026) says each SIFY ADS represents six equity shares. ',
+ 'Filed 2026/6/26: one SIFY ADS = 6 equity shares. ',
+ 'On Friday, June 26 each SIFY ADS represented six equity shares. ',
+ 'Filed 26 Jun, each SIFY ADS represents six equity shares. ',
+]
+for s in cases:
+    kd = ar._guard_ratio_claims(s, [dep]); kb = ar._guard_ratio_claims(s, [bare])
+    print(('KEPT ' if kd == s else 'REPLACED ') + '| dep | ' + s.strip(), '| counts', sorted(ar._share_counts(s)))
+    print(('   bare: replaced' if kb != s else '   bare: KEPT (fabrication passes!)'))
+fab = ['As of 2026-06-26 each SIFY ADS represents 5 equity shares. ', 'Per the 20-F filed 26-Jun-2026, each SIFY ADS represents 4 equity shares. ']
+for s in fab:
+    print(('still replaced' if ar._guard_ratio_claims(s,[dep]) != s else 'FAB KEPT') + ' | fabrication | ' + s.strip())

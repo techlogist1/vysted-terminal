@@ -1,0 +1,100 @@
+=== units.ts (source of truth) ===
+import { currencyAffix } from "@/lib/format";
+
+import type { Greeks } from "../../../types/quant";
+
+/** Display currencies for the option panels, the Bond pricer's set (R15-DATA-100).
+ *  A display label only: the pricing request stays currency-free. */
+export const DISPLAY_CURRENCIES = ["USD", "INR", "EUR", "GBP", "JPY"] as const;
+
+export interface MarketGreek {
+  value: number;
+  unit: string | null;
+}
+
+/** QuantLib returns vega and rho per unit rate (1.00 = a full 100-point move)
+ *  and theta per year. A desk reads vega/rho per 1-point move and theta per
+ *  calendar day (R15-UI-028, R15-UI-051). */
+export function toMarketUnits({ vega, theta, rho }: Pick<Greeks, "vega" | "theta" | "rho">): {
+  vega: MarketGreek;
+  theta: MarketGreek;
+  rho: MarketGreek;
+} {
+  return {
+    vega: { value: vega / 100, unit: "per 1 vol pt" },
+    theta: { value: theta / 365, unit: "per day" },
+    rho: { value: rho / 100, unit: "per 1%" },
+  };
+}
+
+/** One greek as a panel shows it: vega/theta/rho in market units, the rest as served. */
+export function greekForDisplay(greeks: Greeks, key: keyof Greeks): MarketGreek {
+  if (key === "vega" || key === "theta" || key === "rho") return toMarketUnits(greeks)[key];
+  return { value: greeks[key], unit: null };
+}
+
+/** An option price at pricer precision (4 dp) with the display currency's symbol. */
+export function formatOptionPrice(value: number, currency: string): string {
+  const { prefix, suffix } = currencyAffix(currency);
+  return `${prefix}${value.toFixed(4)}${suffix}`;
+}
+=== GreeksDashboard.tsx usage ===
+40:import { DISPLAY_CURRENCIES, formatOptionPrice, greekForDisplay } from "./units";
+74: *  never a fabricated per-unit P&L scaling. */
+85:  { key: "rho", glyph: "ρ", name: "Rho", read: "∂V/∂r — sensitivity to the risk-free rate" },
+92:  unit: string | null;
+108:    format: (r) => (r.unit ? `${r.value.toFixed(4)} ${r.unit}` : r.value.toFixed(4)),
+126:  unit,
+132:  unit: string | null;
+144:      {unit && <span className="text-charcoal-500 text-micro">{unit}</span>}
+245:        ...greekForDisplay(lastResult.greeks, g.key),
+446:                  {...greekForDisplay(lastResult.greeks, g.key)}
+=== OptionPricerPanel.tsx usage ===
+46:import { DISPLAY_CURRENCIES, formatOptionPrice, greekForDisplay } from "./units";
+53:  { key: "rho", label: "ρ Rho" },
+103:/** A horizontal segmented radiogroup — one bordered unit, hairline-divided. */
+152: *  for thirds of the rail (the three engine names). One bordered unit. */
+201: *  with its unit beneath when it has one. */
+205:  unit,
+210:  unit?: string | null;
+220:      {unit && <span className="text-charcoal-500 text-micro">{unit}</span>}
+632:                  const shown = greekForDisplay(greeks, key);
+638:                      unit={shown.unit}
+=== units.test.ts ===
+import { describe, expect, it } from "vitest";
+
+import { formatOptionPrice, greekForDisplay, toMarketUnits } from "./units";
+
+describe("toMarketUnits (R15-UI-028, R15-UI-051)", () => {
+  it("reads vega per 1 vol point and theta per calendar day", () => {
+    const { vega, theta } = toMarketUnits({ vega: 30, theta: -5, rho: 12 });
+    expect(vega).toEqual({ value: 0.3, unit: "per 1 vol pt" });
+    expect(theta.value).toBeCloseTo(-5 / 365, 12);
+    expect(theta.unit).toBe("per day");
+  });
+
+  it("reads rho per 1% rate move (R15-UI-028 residual: rho was still unlabelled)", () => {
+    const { rho } = toMarketUnits({ vega: 30, theta: -5, rho: 13.5565 });
+    expect(rho.value).toBeCloseTo(0.1356, 4);
+    expect(rho.unit).toBe("per 1%");
+  });
+
+  it("leaves delta and gamma as served", () => {
+    const greeks = { delta: 0.55, gamma: 0.02, vega: 30, theta: -5, rho: 12 };
+    expect(greekForDisplay(greeks, "delta")).toEqual({ value: 0.55, unit: null });
+    expect(greekForDisplay(greeks, "gamma")).toEqual({ value: 0.02, unit: null });
+    expect(greekForDisplay(greeks, "vega").value).toBeCloseTo(0.3, 12);
+  });
+
+  it("converts rho through greekForDisplay the same as vega/theta", () => {
+    const greeks = { delta: 0.55, gamma: 0.02, vega: 30, theta: -5, rho: 13.5565 };
+    const shown = greekForDisplay(greeks, "rho");
+    expect(shown.value).toBeCloseTo(0.1356, 4);
+    expect(shown.unit).toBe("per 1%");
+  });
+
+  it("formats a price at 4 dp with the display currency's symbol", () => {
+    expect(formatOptionPrice(8.42, "USD")).toBe("$8.4200");
+    expect(formatOptionPrice(8.42, "INR")).toBe("₹8.4200");
+  });
+});

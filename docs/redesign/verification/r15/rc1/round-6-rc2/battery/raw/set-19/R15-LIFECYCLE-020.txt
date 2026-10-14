@@ -1,0 +1,50 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ sed -n 1340,1375p sidecar/services/screener.py; grep -n 'warm' sidecar/app.py | head; tail -n 20 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/bat2-sidecar.log | grep -i warm; curl -s localhost:52342/system/provider-health | head -c 400
+exit=0
+        logger.warning("screener: per-symbol fan-out hit the wall at %d/%d", done, total)
+
+
+# ---------------------------------------------------------------------------
+# Warm-universe precompute worker (R4 / FR-126)
+# ---------------------------------------------------------------------------
+
+_warm_task: asyncio.Task[None] | None = None
+#: The armed loop's interval — ``None`` until :func:`start_warm_precompute`.
+_warm_interval: float | None = None
+#: The universe the loop warms: the last screener run's region default.
+_warm_universe: ScreenerUniverseId = "sp500"
+
+
+def _warm_follow_region() -> None:
+    """Point the armed warm loop at the current request region's default
+    universe, starting the loop on the first run (R15-LIFECYCLE-020)."""
+    global _warm_task, _warm_universe
+    if _warm_interval is None:
+        return
+    _warm_universe = default_universe_for_region()
+    if _warm_task is None or _warm_task.done():
+        _warm_task = asyncio.get_running_loop().create_task(_warm_loop(_warm_interval))
+
+
+async def _warm_once() -> bool:
+    """Pre-warm one batch cycle over the warm universe into the store.
+
+    Returns ``True`` when the cycle was RATE-LIMITED (≥ ``_WARM_THROTTLE_RATIO``
+    of warmed symbols came back ``rate_limited``) — the loop's backoff signal."""
+    try:
+        universe = await resolve_universe(_warm_universe)
+    except ProviderError as exc:
+        logger.debug("screener warm: cannot resolve %s: %s", _warm_universe, exc)
+        return False
+    symbols = list(universe.symbols)
+58:    fundamentals_warm,
+124:    # upgrade may carry a provider fix). Before any warm task can read it.
+128:        # Kick off the screener's warm-universe precompute (R4 / FR-126). It spawns
+130:        # sidecar boot the Tauri core waits on; the loop pre-warms the S&P 500 batch
+131:        # so warm screens are sub-second. Cancelled + awaited in the finally below.
+132:        screener_service.start_warm_precompute()
+133:        # The region-aware India fundamentals warming (boot seed + 15-min v7
+135:        fundamentals_warm.start_warm_fundamentals()
+145:        searxng_manager.manager.warm_detect()
+153:            # Cancel + await the warm-precompute task and close the batch provider's
+{"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":0.0,"consecutive_opens":0,"opens_total":0,"throttles_total":0.0},"fallthroughs":[]}

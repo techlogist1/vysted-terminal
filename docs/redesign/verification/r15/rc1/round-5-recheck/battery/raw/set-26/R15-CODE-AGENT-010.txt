@@ -1,0 +1,11 @@
+=== R15-CODE-AGENT-010 (in-process fake-provider probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+CMD: in-process run_manager.launch_run (one-shot fake provider) -> done; then cancel_run/resume_run/answer_run on the done run; start_run('unknown-run-id-xyz').
+
+{
+  "status_after_done": "done",
+  "cancel_on_done": "RunStateError: run 'd9d3ee2299e94bb2b969870bd3537084' is done; it cannot become cancelled",
+  "resume_on_done": "RunStateError: run 'd9d3ee2299e94bb2b969870bd3537084' is done; it cannot become running",
+  "answer_on_done": "RunStateError: run 'd9d3ee2299e94bb2b969870bd3537084' is done; it cannot become running",
+  "status_unchanged_after_rejected_ops": true,
+  "unknown_run_start": "RunNotFound: unknown run: 'unknown-run-id-xyz'"
+}

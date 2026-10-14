@@ -1,0 +1,42 @@
+## README.md:176-190
+contract and example plugin are separately licensed under
+[Apache-2.0](./LICENSE-APACHE).
+
+## Status
+
+Phases 0–10 merged to `main` (data layer, charting, AI copilot, node editor + backtest,
+agent-write safety, macro/research/QuantLib, integrations hub). The
+agent-native redesign is being specified; build follows operator review. See
+[`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) and [`docs/BLUEPRINT.md`](./docs/BLUEPRINT.md).
+## grep -n 'being specified' README.md
+183:agent-native redesign is being specified; build follows operator review. See
+## docs/CURRENT_STATE.md:50-60
+> - **§3.7 MCP "11 hand-maintained tools" → PROJECTED from the catalog** (26
+>   tools; same names/schemas as the internal copilot; `readOnlyHint` from
+>   `read_only`; standing SC-004 parity audit). A `news` tool now serves both
+>   surfaces.
+> - **§3.4 "manifest↔instance + `requiredHostVersion` checks documented but not
+>   implemented" → IMPLEMENTED** (rejected at load, surfaced); **`PluginConfig`
+>   secret resolution** is now keychain-backed (FR-054/SC-015).
+> - **§1 "`shell:allow-open` probably denied" → GRANTED.**
+> - **§2 boot-path `.expect()` panics → HARDENED** (port-0 sentinel + temp-dir
+>   fallback; the app no longer panics with no window).
+> - **§4 "shipped default routes to absent Ollama" → GATED**: a keyless provider
+## grep -rn P1_P3_BUILD_REPORT docs README.md (excl local/brief)
+docs/CURRENT_STATE.md:71:> Full per-FR/SC accounting + gate results: **`docs/redesign/P1_P3_BUILD_REPORT.md`**.
+docs/redesign/verification/vysted-r15-register.json:14533:   "title": "README Status paragraph says the agent-native redesign 'is being specified; build follows operator review' though P1-P3 shipped, and CURRENT_STATE.md:56 links a P1_P3_BUILD_REPORT.md that no longer exists",
+docs/redesign/verification/vysted-r15-register.json:14541:   "repro": "Read README.md:180-185 -> spec-only phase claim; docs/CURRENT_STATE.md:53-57 records P1-P3 shipped; docs/redesign/P1_P3_BUILD_REPORT.md is absent at HEAD (added 60770cd, removed d3d9456) yet linked at CURRENT_STATE.md:56.",
+docs/redesign/verification/vysted-r15-register.md:962:| R15-DOCS-023 | low | docs | scripts-build | README Status paragraph says the agent-native redesign 'is being specified; build follows operator review' though P1-P3 shipped, and CURRENT_STATE.md:56 links a P1_P3_BUILD_REPORT.md that no longer exists | open | INT-pdd-readme-135-1 |
+docs/redesign/verification/r15/census/PROMISE_LEDGER.md:327:- **INT-PD-136** [PARTIAL] Phases 0-10 (data layer, charting, AI copilot, node editor + backtest, broker read-only + §6.5 safety, macro/research/QuantLib, integrations hub) are merged to main; the agent-native redesign is being specified and its build follows operator review. Gap: The literal text still matches the README, but the claim itself is stale: the redesign has moved well past the specification stage across branches 001-agent-native-redesign through the current 004-r4-experience-rebuild (this branch), with P1-P3 shipped (docs/redesign/P1_P3_BUILD_REPORT.md) and an R15 verification census in flight. The README's own Status paragraph was never updated to reflect that build (not just spec) is underway.
+docs/redesign/verification/r15/census/merge-in/docs.json:267:  "evidence": "README.md:180-185; docs/redesign/P1_P3_BUILD_REPORT.md (P1-P3 already shipped); docs/CURRENT_STATE.md §0/§0.5 (foundation + P1-P3 deltas)",
+docs/redesign/verification/r15/census/merge-in/docs.json:273:   "reason": "README.md:180-185 still reads 'The agent-native redesign is being specified; build follows operator review', while docs/CURRENT_STATE.md:53-57 records P1-P3 as shipped and the repo is on 004-r4-experience-rebuild. Holds as stated. One cited evidence path is dead: docs/redesign/P1_P3_BUILD_REPORT.md does not exist at HEAD (git log shows it was added in 60770cd and removed by d3d9456's public-release cleanup), and CURRENT_STATE.md:56 still links to it, so that doc has a dead link too."
+docs/redesign/verification/r15/census/refute/intent-pdd-readme-135.json:6:    "reason": "README.md:180-185 still reads 'The agent-native redesign is being specified; build follows operator review', while docs/CURRENT_STATE.md:53-57 records P1-P3 as shipped and the repo is on 004-r4-experience-rebuild. Holds as stated. One cited evidence path is dead: docs/redesign/P1_P3_BUILD_REPORT.md does not exist at HEAD (git log shows it was added in 60770cd and removed by d3d9456's public-release cleanup), and CURRENT_STATE.md:56 still links to it, so that doc has a dead link too.",
+docs/redesign/verification/r15/census/refute/intent-pdd-readme-135.json:8:    "evidence_checked": "Read README Status section and CURRENT_STATE §0.5 header at HEAD 38919fd; checked that the P1_P3_BUILD_REPORT.md path exists (it does not) and ran git log on it. Docs-only claim, so no stack repro was needed.",
+docs/redesign/verification/r15/census/merge/docs.json:511:   "title": "README Status paragraph says the agent-native redesign 'is being specified; build follows operator review' though P1-P3 shipped, and CURRENT_STATE.md:56 links a P1_P3_BUILD_REPORT.md that no longer exists",
+docs/redesign/verification/r15/census/merge/docs.json:519:   "repro": "Read README.md:180-185 -> spec-only phase claim; docs/CURRENT_STATE.md:53-57 records P1-P3 shipped; docs/redesign/P1_P3_BUILD_REPORT.md is absent at HEAD (added 60770cd, removed d3d9456) yet linked at CURRENT_STATE.md:56.",
+docs/redesign/verification/r15/census/intent/ledger-spec-45.json:188:    "evidence": "docs/CURRENT_STATE.md:53-76 ('0.5 Agent-native redesign \u2014 P1-P3 shipped', with P1 US1-US4, P2 US5-US7/US10, P3 US8/US9 each itemised as landed) and docs/redesign/P1_P3_BUILD_REPORT.md (referenced there as the full per-FR/SC accounting).",
+docs/redesign/verification/r15/census/intent/ledger-pdd-readme-135.json:9:    "gap": "The literal text still matches the README, but the claim itself is stale: the redesign has moved well past the specification stage across branches 001-agent-native-redesign through the current 004-r4-experience-rebuild (this branch), with P1-P3 shipped (docs/redesign/P1_P3_BUILD_REPORT.md) and an R15 verification census in flight. The README's own Status paragraph was never updated to reflect that build (not just spec) is underway.",
+docs/redesign/verification/r15/census/raw/intent-pdd-readme-135.json:9:    "evidence": "README.md:180-185; docs/redesign/P1_P3_BUILD_REPORT.md (P1-P3 already shipped); docs/CURRENT_STATE.md §0/§0.5 (foundation + P1-P3 deltas)",
+## file exists?
+ls: docs/redesign/P1_P3_BUILD_REPORT.md: No such file or directory
+rc=0

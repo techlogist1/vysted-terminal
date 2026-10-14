@@ -1,0 +1,120 @@
+[
+ {
+  "key": "rc1-vshard-2:1",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-064",
+  "title": "30m/intraday lookback never clamped to Yahoo's 60-day cap: explicit range or node-editor default period 1y gives an empty series, and IN is labelled in_eod_only",
+  "repro": "curl '127.0.0.1:52602/history/RELIANCE.NS?timeframe=30m&range=3mo' -> bars [] provider none reason in_eod_only (default 30m -> 286 yfinance bars); /workflow/run data.fetch_history RELIANCE.NS interval 30m period 1y -> node-error 'correctness gate: empty series'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py",
+   "sidecar/routers/history.py",
+   "sidecar/services/workflow_nodes/builtin.py",
+   "src/modules/node-editor/node-registry.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:2",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-066",
+  "title": "nse_direct throttle still sleeps on executor threads: a cold IN batch stalls unrelated to_thread routes about 19x",
+  "repro": "cold 20-name /quotes batch (21-23 s) while timing cached /quotes/IBM: 0.35-0.41 s idle -> 6.99 s / 7.64 s",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+  "suspected_files": [
+   "sidecar/services/nse_provider.py",
+   "sidecar/routers/quotes.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-AGENT-053",
+  "title": "News symbol chips are still dead text inside the article link; news snapshot carries no headlines; bond/yield/option-chain panels publish nothing",
+  "repro": "src/modules/news/NewsFeedPanel.tsx:138-148 renders <span>{symbol}</span> inside <a href=item.url>; payload at :199-205 is {watchedSymbols, focusedArticleId}",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+  "suspected_files": [
+   "src/modules/news/NewsFeedPanel.tsx",
+   "src/modules/quant/BondPricerPanel.tsx",
+   "src/modules/quant/YieldCurvePanel.tsx",
+   "src/modules/quant/OptionChainPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:4",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-PLATFORM-018",
+  "title": "Quant workflow nodes reject the engine's generic per-node timeout_seconds (extra_forbidden)",
+  "repro": "POST /workflow/run quant.price_option config incl. timeout_seconds:110 -> node-error 'timeout_seconds Extra inputs are not permitted'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+  "suspected_files": [
+   "sidecar/services/workflow_nodes/quant_nodes.py",
+   "sidecar/services/workflow_engine.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:5",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-PLATFORM-020",
+  "title": "GET /workflow/saved/{id} and POST /schedules return 500 for a malformed saved row (version mismatch returns 409)",
+  "repro": "insert a row with an extra key or broken JSON into workflows.db; GET /workflow/saved/bad-extra -> 500, bad-json -> 500, bad-v2 -> 409",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+  "suspected_files": [
+   "sidecar/routers/workflow.py",
+   "sidecar/services/workflow_store.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-052",
+  "title": "Screener and Earnings still publish under literal bus keys that differ from their dockview ids",
+  "repro": "ScreenerPanel.tsx:216 source 'screener' vs layout id 'screener-panel'; EarningsCalendarPanel.tsx:178 'earnings' vs id 'earnings-calendar'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+  "suspected_files": [
+   "src/modules/screener/ScreenerPanel.tsx",
+   "src/modules/earnings/EarningsCalendarPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-017",
+  "title": "Generic-token-only legal-name queries still return unrelated fuzzy 'X Engineering Limited' candidates at 0.80-0.88 when the live rung finds nothing",
+  "repro": "GET /resolve?q=Zyphor Gas Engineering Limited -> AZAD/JASH/PATELENG; q=Axiom Gas Engineering Limited (NSE-SME listed 25-Sep-26) -> AIAENG 0.8846",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+  "suspected_files": [
+   "sidecar/services/symbol_resolver.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-049",
+  "title": "Register marks AGENT-049 blocked_tier4 but the candidate implements and pins the fix",
+  "repro": "grep R15-AGENT-049 sidecar -> counting/pricing/cap code; pytest test_native_search/test_budget_guard/test_runtime_phases -k native/search/budget -> 58 passed",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+  "suspected_files": [
+   "docs/redesign/verification/vysted-r15-register.json"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:9",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-PLATFORM-022",
+  "title": "Stale vi.mock of @/modules/portfolio/api with functions that module does not export",
+  "repro": "src/modules/panel-context-publishers.test.tsx:87-93 mocks fetchPositions/createPosition/updatePosition/deletePosition; api.ts exports none of them",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+  "suspected_files": [
+   "src/modules/panel-context-publishers.test.tsx"
+  ]
+ }
+]

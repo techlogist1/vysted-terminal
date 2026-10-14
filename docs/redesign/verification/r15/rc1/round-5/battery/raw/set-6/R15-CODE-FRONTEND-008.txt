@@ -1,0 +1,44 @@
+R15-AGENT-080 / R15-CODE-FRONTEND-008 -- AUTO autonomy auto-apply whitelist
+Source: types/proposed-change.ts:33-45 AUTO_APPLIED_KINDS = [panel, chart, watchlist]; autoApplies(kind) reads it (whitelist, not the old kind!=='order' blacklist).
+38:export const AUTO_APPLIED_KINDS: readonly ProposedChangeKind[] = [
+44:export function autoApplies(kind: ProposedChangeKind): boolean {
+45:  return (AUTO_APPLIED_KINDS as readonly ProposedChangeKind[]).includes(kind);
+
+Copy derived from the same predicate: src/modules/chat/ComposerPlusMenu.tsx:32-37
+/** The AUTO hint, rendered from the one `autoApplies` predicate so the copy
+ *  names exactly which kinds skip review and which still wait. */
+export function autoApplyHint(): string {
+  const instant = PROPOSED_CHANGE_KINDS.filter(autoApplies).map((k) => KIND_WORD[k]);
+  const staged = PROPOSED_CHANGE_KINDS.filter((k) => !autoApplies(k)).map((k) => KIND_WORD[k]);
+  const text = `${wordList(instant)} changes apply instantly; ${wordList(staged)} changes wait for review`;
+
+Pinned vitest src/store/proposed-changes.test.ts:139 'AUTO mode keeps data-write and settings changes pending and acks them staged' -- unmodified, matches register repro (portfolio_delete_position/write_note/set_region/save_screen stay pending + staged ack; set_chart_symbol applies).
+  it("AUTO mode keeps data-write and settings changes pending and acks them staged", async () => {
+    useAgentAutonomyStore.getState().setAutonomy("auto");
+    enqueue("portfolio_delete_position", { symbol: "RELIANCE" });
+    enqueue("write_note", { scope: "NVDA", text: "x" });
+    enqueue("set_region", { region: "US" });
+    // Not in the list the gate was written against: another data-write kind.
+    enqueue("save_screen", { name: "Value" });
+    enqueue("set_chart_symbol", { symbol: "NVDA" });
+    await Promise.resolve(); // flush the void accept() microtask
+    expect(applyHostActionMock).toHaveBeenCalledTimes(1);
+    expect(applyHostActionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "set_chart_symbol", symbol: "NVDA" }),
+    );
+    const pending = useProposedChangesStore.getState().pending();
+    expect(pending.map((c) => c.action.name)).toEqual([
+      "portfolio_delete_position",
+      "write_note",
+      "set_region",
+      "save_screen",
+    ]);
+    for (const c of pending) {
+      expect(ackHostActionMock).toHaveBeenCalledWith(
+        c.toolCallId,
+        "staged",
+        expect.objectContaining({ action: c.action.name }),
+      );
+    }
+    expect(ackHostActionMock).not.toHaveBeenCalledWith(
+      "tc-set_chart_symbol",

@@ -1,0 +1,24 @@
+
+V9 elapsed=8.01s web.available=False web.reason=timeout note='Web search did not answer within 8s — structured data only'
+.
+V9 elapsed=20.00s web.available=True web.reason=None note=None
+F
+V9 elapsed=8.00s web.available=False web.reason=timeout note='Web search did not answer within 8s — structured data only'
+.
+=================================== FAILURES ===================================
+______________________ test_fresh_web_only_path_web_stall ______________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10a97e9e0>
+
+    def test_fresh_web_only_path_web_stall(monkeypatch):
+        """No instrument resolves -> the web-only branch; web_search stalls 20 s."""
+        _stub_offline_crosschecks(monkeypatch)
+        el, b = _run(_Slow(["web_search"], resolve_ok=False), q="some unlisted startup outlook")
+>       assert el < 15, f"web-only NORMAL path held {el:.1f}s by an un-boxed web round"
+E       AssertionError: web-only NORMAL path held 20.0s by an un-boxed web round
+E       assert 20.00388799997745 < 15
+
+../../v9-r027/test_v9_r027.py:32: AssertionError
+=========================== short test summary info ============================
+FAILED ../../v9-r027/test_v9_r027.py::test_fresh_web_only_path_web_stall - As...
+1 failed, 2 passed in 36.75s

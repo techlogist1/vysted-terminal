@@ -1,0 +1,15 @@
+sidecar/services/witness.py:19:def is_india_listing(listing: object) -> bool:
+sidecar/services/witness.py:24:def is_block_error(exc: BaseException) -> bool:
+sidecar/services/dividend_actions.py:60:def is_applicable(symbol: str) -> bool:
+sidecar/services/earnings_quality.py:123:def is_applicable(symbol: str) -> bool:
+sidecar/services/research/relevance.py:602:def is_india_target(target: ResearchTarget | None) -> bool:
+
+Follow-up: market_cap_witness.py, ownership_check.py, research/range_check.py each now
+`from services.witness import is_india_listing` and alias `is_applicable = is_india_listing`
+(identity, not a re-copy). dividend_actions.py's is_applicable also calls the shared
+is_india_listing internally (imported from services.witness). research/disclosures.py imports
+is_india_target from research/relevance.py (single copy). is_block_error similarly shared via
+services.witness in ownership_check.py + range_check.py.
+Verdict: HOLDS -- the 3 byte-identical copies the refuter confirmed (market_cap_witness,
+ownership_check, range_check) now alias one shared services/witness.py function; a re-copy
+would break the `is_applicable is is_india_listing` identity, matching the fix_shape's own test intent.

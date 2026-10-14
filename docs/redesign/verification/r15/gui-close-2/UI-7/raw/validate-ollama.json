@@ -1,0 +1,1 @@
+{"ok":false,"reason":"unreachable","detail":"Ollama is not running. Start Ollama (open the app or run `ollama serve`), then try again."}

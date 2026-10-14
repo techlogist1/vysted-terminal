@@ -1,0 +1,13 @@
+# R15-CODE-AGENT-019 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:27+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+echo '$ POST /llm/keys/validate openai base_url=http://127.0.0.1:9/v1 (fake key)'; curl -s -m 60 -w '\nHTTP=%{http_code}\n' -X POST "$H/llm/keys/validate" -H 'content-type: application/json' -d '{"provider":"openai","api_key":"sk-dummy","base_url":"http://127.0.0.1:9/v1"}'
+echo '-- anthropic'; curl -s -m 60 -w '\nHTTP=%{http_code}\n' -X POST "$H/llm/keys/validate" -H 'content-type: application/json' -d '{"provider":"anthropic","api_key":"sk-ant-dummy","base_url":"http://127.0.0.1:9"}'
+--- output ---
+$ POST /llm/keys/validate openai base_url=http://127.0.0.1:9/v1 (fake key)
+{"ok":false,"reason":"unreachable","detail":"Could not reach OpenAI — check your network. Check your internet connection and try again."}
+HTTP=200
+-- anthropic
+{"ok":false,"reason":"unreachable","detail":"Could not reach Anthropic — check your network. Check your internet connection and try again."}
+HTTP=200
+
+EXIT=0 (1.4s)

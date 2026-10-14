@@ -1,0 +1,11 @@
+# R15-AGENT-093 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:24+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/t093.py 2>&1 | grep -v Warning
+--- output ---
+option_chain max_strikes "10" -> {'symbol': 'AAPL', 'max_strikes': 10}
+sec_filings_list limit "5" -> {'symbol': 'AAPL', 'limit': 5}
+corporate_announcements limit "100" -> {'symbol': 'RELIANCE', 'limit': 100}
+limit "abc" (must be rejected) -> {'__vysted_invalid_args__': "invalid arguments for corporate_announcements: 'abc' is not of type 'integer'; call again with valid args"}
+numeric params probed across read capabilities: 10 failed to coerce: [('macro_search', 'limit', {'__vysted_invalid_args__': "invalid arguments for macro_search: 'X' is not one of ['fred', 'ecb', 'imf', 'world-bank']; call again with valid args"})]
+
+EXIT=0 (1.3s)

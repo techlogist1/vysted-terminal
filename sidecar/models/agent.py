@@ -11,7 +11,7 @@ surface (invocation requests, snapshots, results).
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -81,6 +81,19 @@ class AgentInvocationRequest(BaseModel):
     api_key: str | None = None
     #: Provider-specific overrides.
     options: dict[str, Any] = Field(default_factory=dict)
+    #: Agent mode. The JARVIS-sprint collapse (Track B) makes ``agent`` the
+    #: primary surface: the runtime INFERS read vs edit/build from the prompt
+    #: (``classify_intent``) and applies the read-only tool gate iff the intent is
+    #: a read — so the safety line of the old ``ask`` survives without a picker.
+    #: ``delegate`` stays distinct (BudgetGuard). The legacy ``ask``/``edit``/
+    #: ``build`` values are accepted for back-compat: ``ask`` is read-only, the
+    #: others pass the full tool set (no trading path exists).
+    mode: Literal["agent", "ask", "edit", "build", "delegate"] = "ask"
+    #: Autonomy axis (Claude-Code-style), ORTHOGONAL to ``mode``: ``auto`` means
+    #: host-actions apply immediately (the agent narrates them in past tense);
+    #: ``ask`` (or omitted) means they stage in the review queue. No trading path
+    #: exists in either mode.
+    autonomy: Literal["ask", "auto"] | None = None
 
 
 class AgentInvocationResult(BaseModel):

@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_0c0580cb7e674d4eb777386788801c3b", "name": "price_data", "input": {"range": "1d", "timeframe": "1d", "symbol": "TCS.NS"}}
+[  30.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_0c0580cb7e674d4eb777386788801c3b", "name": "price_data", "ok": true, "error": null}
+[  40.1s] heartbeat: {"kind": "heartbeat"}
+[  50.1s] heartbeat: {"kind": "heartbeat"}
+[  60.1s] heartbeat: {"kind": "heartbeat"}
+[  61.5s] done: {"kind": "done", "usage": {"input_tokens": 7029, "output_tokens": 16, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of TCS.NS is ₹2082.0.
+
+=== ok · 61.5s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 15, 'done': 1} · usage in=7029 out=16 · est $0.00000 · llama3.1:8b

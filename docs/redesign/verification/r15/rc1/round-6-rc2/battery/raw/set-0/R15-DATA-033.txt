@@ -1,0 +1,8 @@
+$ PYTHONPATH=sidecar venv python p033.py (NaN/inf quote + NaN/inf last close through correctness_gate)
+nan quote rejected: CorrectnessError correctness gate: non-positive price nan for 'TEST' from 'x'
+inf quote rejected: CorrectnessError correctness gate: non-positive price inf for 'TEST' from 'x'
+['symbol', 'timeframe', 'bars', 'provider', 'freshness', 'reason', 'partial', 'coverage_start']
+nan series rejected: CorrectnessError correctness gate: non-positive last close nan for 'TEST' from 'x'
+inf series rejected: CorrectnessError correctness gate: non-positive last close inf for 'TEST' from 'x'
+inf series rejected: CorrectnessError correctness gate: non-positive last close inf for 'TEST' from 'x'
+exit=0

@@ -1,0 +1,27 @@
+# R15-CODE-PLATFORM-027 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:39:43Z, sidecar :52348
+# kind=sh
+# command:
+#   export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$HOME/.cargo/bin:$PATH
+#   echo "--- real tree"; node scripts/audit-design-tokens.mjs | tail -2; echo "exit=${PIPESTATUS[0]}"
+#   echo "--- empty/nonexistent scan root"; node scripts/audit-design-tokens.mjs does-not-exist 2>&1 | tail -2; echo "exit=${PIPESTATUS[0]}"
+#   echo "--- ROOT source"; grep -n "const ROOT" scripts/audit-design-tokens.mjs; grep -n "import.meta.url).pathname" scripts/*.mjs || echo "no URL.pathname ROOT left in scripts/"
+#   echo "--- fixture violating dir via relative path (outside repo tree, in a tmp dir)"
+#   D=$(mktemp -d); mkdir -p $D/src; printf 'export const A = () => <div className="gap-1.5 text-[12px]" />;\n' > $D/src/x.tsx
+#   REL=$(python3 -c "import os,sys;print(os.path.relpath('$D/src', '$PWD'))"); node scripts/audit-design-tokens.mjs "$REL" 2>&1 | tail -4; echo "exit=${PIPESTATUS[0]}"; rm -rf $D
+# output:
+--- real tree
+design-token audit clean (392 files)
+exit=0
+--- empty/nonexistent scan root
+design-token audit scanned 0 files under does-not-exist; refusing to report clean
+exit=1
+--- ROOT source
+30:const ROOT = resolve(import.meta.dirname, "..");
+no URL.pathname ROOT left in scripts/
+--- fixture violating dir via relative path (outside repo tree, in a tmp dir)
+— per-file —
+   2  ../../../../../../../var/folders/1s/3bgs17xd07z839yf5kj6mc3m0000gn/T/tmp.2sZzRT218C/src/x.tsx
+
+2 violation(s) of R9_DESIGN_SYSTEM.md
+exit=1
+# exit=0

@@ -1,0 +1,18 @@
+COMMAND (in-process, candidate sidecar venv, sha 1006c6da): called
+services.agent_runtime._staged_actions_notice directly with the register's exact repro shape
+(set_chart_symbol BDL staged, i.e. a host action whose tool result was "awaiting_user_review"):
+
+  cd <cand>/sidecar && ./.venv/bin/python3 -c "... ar._staged_actions_notice([...])"
+
+OUTPUT:
+kind='research_step' tool_call_id='c1' tool='host_action' step_kind='notice' detail='Staged for your review, not applied yet: set_chart_symbol BDL. Accept it below to apply.' latency_ms=None status='ok' index=0
+
+empty case: None
+
+VERDICT: holds.
+turn.staged_actions is appended whenever a host tool result carries status="awaiting_user_review"
+(agent_runtime.py:3174-3175) and _finish_turn/_finish_unterminated both call
+_end_of_turn_notices(autonomy, ..., turn.staged_actions) which emits this exact deterministic
+notice (agent_runtime.py:1463-1489, 2985-2986, 3017-3018) -- matches batch-5's certification
+("Autonomy ASK emits the notice 'Staged for your review, not applied yet: set_chart_symbol BDL'").
+An empty staged list correctly yields no notice, matching "AUTO emits none".

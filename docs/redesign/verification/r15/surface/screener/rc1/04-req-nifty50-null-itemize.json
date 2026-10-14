@@ -1,0 +1,1 @@
+{"universe":"nifty50","criteria":[{"field":"pe_ratio","operator":"lt","value":15}],"limit":200,"sort_by":"market_cap","sort_dir":"desc"}

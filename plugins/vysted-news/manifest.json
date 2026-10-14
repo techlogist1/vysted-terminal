@@ -1,0 +1,9 @@
+{
+  "id": "vysted-news",
+  "version": "1.0.0",
+  "name": "Market News (RSS + optional NewsAPI)",
+  "entry": "index.ts",
+  "requiredHostVersion": "0.8.0",
+  "description": "Sentiment-scored market news. Works keyless over RSS; supply a BYOK NewsAPI key to add NewsAPI breadth. Pre-installed.",
+  "author": "Vysted"
+}

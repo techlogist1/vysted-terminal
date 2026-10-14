@@ -1,0 +1,6 @@
+RAW rc1-battery-12 @ ace7dd76 live :52352
+$ curl "127.0.0.1:52352/disclosures/shareholding?symbol=CSL.NS" -H X-Vysted-Region: IN  (http=200)
+count 49 patterns 49 unique quarter_end 49
+dups: []
+2026-08-20 occurrences: 1
+first 6 quarter_end: ['2026-08-20', '2026-06-30', '2026-03-31', '2025-12-31', '2025-09-30', '2025-06-30']

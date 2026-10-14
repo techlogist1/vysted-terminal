@@ -1,0 +1,6 @@
+HEAD 68d5573aff9a579af084dcbb124843f2aecff6e8
+cmd: cd <candidate> && sidecar/.venv/bin/python scratchpad/rc1-verifier-r4/ratio_sim.py
+WHOLE (one delta):       "The ADR-to-ordinary-share ratio is not available from this session's sources."
+SPLIT after 'equals ':   "The ADR-to-ordinary-share ratio is not available from this session's sources. 6 ordinary shares, per the 20-F."
+SPLIT token-like:        "The ADR-to-ordinary-share ratio is not available from this session's sources. 6 ordinary shares, per the 20-F."
+_seg_at('One ADR of SIFY equals ',0).closed = True

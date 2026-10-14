@@ -1,0 +1,35 @@
+# R15-CODE-PLATFORM-018: 100k-step binomial via workflow while polling /health
+health 0.001973s 200
+health 0.001338s 200
+health 0.001073s 200
+health 0.001172s 200
+health 0.001219s 200
+health 0.001191s 200
+health 0.001070s 200
+health 0.001233s 200
+health 0.001278s 200
+health 0.001457s 200
+health 0.001094s 200
+health 0.001148s 200
+--- run output
+# R15-CODE-PLATFORM-018 (cont.)
+100k-step run (max steps): health stayed ~1-2ms for 12 polls over 48s+ and 2.0ms at 95s; curl timed out at 110s with node still running (no node-end):
+data: {"kind":"run-start","runId":"e4593fab-e3ac-4b66-9865-8df908d4c644","startedAt":1790986637630}
+
+data: {"kind":"node-start","runId":"e4593fab-e3ac-4b66-9865-8df908d4c644","nodeId":"q","nodeType":"quant.price_option","startedAt":1790986637630}
+
+Sat Oct  3 05:49:07 IST 2026
+--- 20k-step run, health polling
+health 0.001340s
+health 0.001516s
+health 0.001861s
+health 0.001364s
+health 0.001144s
+health 0.001146s
+health 0.001009s
+health 0.001365s
+--- 20k-step run completed through the workflow engine, health 1.1ms during/after:
+data: {"kind":"run-start","runId":"0f042e2e-7f68-42b7-8484-780f92f48e6d","startedAt":1790986862424}
+data: {"kind":"node-start","runId":"0f042e2e-7f68-42b7-8484-780f92f48e6d","nodeId":"q","nodeType":"quant.price_option","startedAt":1790986862424}
+data: {"kind":"node-output","runId":"0f042e2e-7f68-42b7-8484-780f92f48e6d","nodeId":"q","outputs":{"result":{"price":10.450480455837951,"greeks":{"delta":0.6368289322734,"gamma":0.018762810744335095,"vega":37.52281014974059,"theta":-6.41418278744902,"rho":53.23034693751971},"method":"binomial","monte_carlo_std_error":null,"duration_ms":6331.619792035781}},"durationMs":6332.564459}
+data: {"kind":"run-complete","runId":"0f042e2e-7f68-42b7-8484-780f92f48e6d","durationMs":6332.86075}

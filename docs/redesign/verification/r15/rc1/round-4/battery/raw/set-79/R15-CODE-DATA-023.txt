@@ -1,0 +1,6 @@
+=== grep for stale counts ===
+(exit code above, empty = no stale strings found)
+=== live universe counts via in-process call ===
+nse-all 3506
+bse-all 5042
+india-all 5891

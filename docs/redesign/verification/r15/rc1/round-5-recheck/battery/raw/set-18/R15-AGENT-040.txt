@@ -1,0 +1,9 @@
+CMD: in-process _coerce_history with a synthetic 7-exchange (14-message) conversation, turn 1 carrying the constraint 'I only care about FY26 guidance vs delivery for BDL, ignore the chart' (the entry's own repro shape)
+total_raw_messages: 14
+folded_count: 6
+_HISTORY_VERBATIM_MESSAGES: 8
+first_message_role: user
+first_message_head: Earlier in this conversation (older turns, summarised):
+turn1_constraint_present_in_summary: True
+recent_message_count: 8
+last_message: so does that hold up?

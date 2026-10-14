@@ -1,0 +1,8 @@
+COMMAND: python3 probe_platform030.py (in-process, candidate venv) — register's literal repro: flat close of 100, buy 10 on bar 2, sell -100 (oversell) on bar 5
+EXIT: 0
+OUTPUT:
+final equity: 99998.00 (expected ~99998.00, fees only)
+trades: [('buy', 10.0, -1.9999999999998863)]
+positions remaining: n/a
+phantom cash from the oversold 90 shares (should be ~0): 0.00
+PASS: sell larger than held position is clamped to the held quantity; no phantom cash

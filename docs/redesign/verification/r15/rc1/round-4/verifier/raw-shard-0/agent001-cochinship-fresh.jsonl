@@ -1,0 +1,50 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_6e2796acd27848c5b3d2d73a6aafbb96", "name": "fundamentals", "input": {"symbol": "COCHINSHIP.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_6e2796acd27848c5b3d2d73a6aafbb96", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "C"}
+{"kind": "delta", "text": "och"}
+{"kind": "delta", "text": "in"}
+{"kind": "delta", "text": " Ship"}
+{"kind": "delta", "text": "yard"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " dividend"}
+{"kind": "delta", "text": " yield"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "008"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "024"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " earnings"}
+{"kind": "delta", "text": " growth"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "194"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "36"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "226"}
+{"kind": "delta", "text": " cro"}
+{"kind": "delta", "text": "res"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5852, "output_tokens": 43, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

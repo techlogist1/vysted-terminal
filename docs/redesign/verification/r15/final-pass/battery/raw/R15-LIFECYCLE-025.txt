@@ -1,0 +1,23 @@
+# R15-LIFECYCLE-025 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:05:29+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+DB=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-2/custom_agents.db
+sqlite3 "$DB" "DELETE FROM custom_agents WHERE id='custom:fb2-hawk'; INSERT INTO custom_agents VALUES('custom:fb2-hawk','FB2 Hawk','hawk','Always check the macro series first','[\"price_data\",\"macro\",\"news\"]','ollama',NULL,NULL,1,1);"
+echo "stored: $(sqlite3 "$DB" "select tools_json from custom_agents where id='custom:fb2-hawk'")"
+echo -n "GET: "; curl -s -m 20 "$H/custom-agents" | python3 -c "import sys,json;d=json.load(sys.stdin);d=d.get('agents',d) if isinstance(d,dict) else d;print([a['tools'] for a in d if a['id']=='custom:fb2-hawk'])"
+echo -n "PUT same tools: "; curl -s -m 20 -X PUT "$H/custom-agents/custom:fb2-hawk" -H 'content-type: application/json' -d '{"id":"custom:fb2-hawk","name":"FB2 Hawk","philosophy":"hawk","system_prompt":"Always check the macro series first","tools":["price_data","macro","news"],"default_provider":"ollama"}' -w ' HTTP=%{http_code}\n' | cut -c1-300
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import os
+os.environ['VYSTED_DATA_DIR']='/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-2'
+from services.agent_tools.schemas import TOOL_SCHEMAS
+from services.agent_tools import catalog
+ok,unk=catalog.resolve_tool_ids(['price_data','macro','news']); print('resolve_tool_ids ->',ok,'unknown',unk)
+PY
+curl -s -m 20 -X DELETE "$H/custom-agents/custom:fb2-hawk" -w 'DELETE %{http_code}\n'
+--- output ---
+stored: ["price_data","macro","news"]
+GET: [['price_data', 'macro', 'news']]
+PUT same tools: {"id":"custom:fb2-hawk","name":"FB2 Hawk","philosophy":"hawk","system_prompt":"Always check the macro series first","tools":["price_data","macro_series","news"],"default_provider":"ollama","default_model":null,"icon":null,"created_at":1,"updated_at":1791029129} HTTP=200
+resolve_tool_ids -> ['price_data', 'macro_series', 'news'] unknown []
+DELETE 204
+
+EXIT=0 (0.4s)

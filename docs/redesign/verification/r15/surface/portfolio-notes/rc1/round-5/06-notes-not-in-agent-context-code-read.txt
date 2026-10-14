@@ -1,0 +1,4 @@
+CMD: grep -n 'useNotesStore' src/modules/chat/context-provider.ts src/components/ChatSidebar.tsx
+15:import { useNotesStore } from "@/store/notes";
+321:  const { general, bySymbol } = useNotesStore.getState();
+(no output above = no reference found = notes still never reach agent context, consistent with census N4)

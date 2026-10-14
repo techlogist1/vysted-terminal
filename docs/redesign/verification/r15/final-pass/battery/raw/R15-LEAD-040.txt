@@ -1,0 +1,20 @@
+# R15-LEAD-040 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:26+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio, time
+from services import symbol_resolver as sr
+def slow_resolve(q, region):
+    time.sleep(1.5); return None
+sr.resolve=slow_resolve
+async def main():
+    jobs=[asyncio.create_task(sr.resolve_async(f"cold{i}","IN")) for i in range(12)]
+    await asyncio.sleep(0.05)
+    t=time.monotonic(); await asyncio.to_thread(lambda: None); waited=time.monotonic()-t
+    await asyncio.gather(*jobs, return_exceptions=True)
+    print("unrelated to_thread waited %.2fs while 12 concurrent cold resolve_async (each 1.5 s blocking) ran on the resolver pool" % waited)
+asyncio.run(main())
+PY
+--- output ---
+unrelated to_thread waited 0.00s while 12 concurrent cold resolve_async (each 1.5 s blocking) ran on the resolver pool
+
+EXIT=0 (4.7s)

@@ -81,10 +81,59 @@ describe("InsiderTradingTable", () => {
   it("colours acquired and disposed differently (via class assertion)", async () => {
     const { container } = render(<InsiderTradingTable identifier="AAPL" />);
     await waitFor(() => screen.getByTestId("insider-row-0000320193-24-001000-0001214156"));
-    const disposed = container.querySelector(".text-rose-300");
-    const acquired = container.querySelector(".text-emerald-300");
+    const disposed = container.querySelector(".text-negative");
+    const acquired = container.querySelector(".text-positive");
     expect(disposed).not.toBeNull();
     expect(acquired).not.toBeNull();
+  });
+
+  it("renders filing-level rows with the null glyph (no fabricated green) and shows the note", async () => {
+    const mixed: InsiderTransactionsResponse = {
+      cik: "0000320193",
+      issuer_name: "Apple Inc.",
+      transactions: [
+        {
+          accession: "0000320193-24-002000",
+          reporter_name: "",
+          reporter_cik: "0001999999",
+          issuer_cik: "0000320193",
+          issuer_name: "Apple Inc.",
+          issuer_symbol: "AAPL",
+          form_type: "4",
+          transaction_date: "2024-12-05",
+          direction: null,
+          shares: null,
+          price_per_share: null,
+          transaction_value: null,
+          transaction_code: "",
+          reporter_title: null,
+        },
+        ...FIXTURE.transactions,
+      ],
+    };
+    vi.spyOn(sidecarClient, "sidecarGet").mockResolvedValue(mixed);
+
+    const { container } = render(<InsiderTradingTable identifier="AAPL" />);
+    const filingRow = await waitFor(() =>
+      screen.getByTestId("insider-row-0000320193-24-002000-0001999999"),
+    );
+
+    // Neutral glyph, not a fabricated positive/negative colour, in the filing-level row.
+    expect(filingRow.querySelector(".text-positive")).toBeNull();
+    expect(filingRow.querySelector(".text-negative")).toBeNull();
+    expect(filingRow.textContent).toContain("—");
+
+    // Real per-trade rows keep their colours.
+    expect(container.querySelector(".text-negative")).not.toBeNull();
+    expect(container.querySelector(".text-positive")).not.toBeNull();
+
+    expect(screen.getByTestId("insider-filing-level-note")).toBeInTheDocument();
+  });
+
+  it("does not show the filing-level note when every row has per-trade detail", async () => {
+    render(<InsiderTradingTable identifier="AAPL" />);
+    await waitFor(() => screen.getByTestId("insider-row-0000320193-24-001000-0001214156"));
+    expect(screen.queryByTestId("insider-filing-level-note")).toBeNull();
   });
 
   it("changing the form filter re-fetches", async () => {

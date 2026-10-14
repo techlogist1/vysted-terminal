@@ -1,0 +1,22 @@
+[
+ {
+  "key": "rc1-drive-composer-chat:1",
+  "kind": "environment",
+  "severity": "low",
+  "register_id": null,
+  "title": "OpenRouter default free slug (inclusionai/ling-3.0-flash-vl:free) 404s upstream as 'unavailable for free' as of this round",
+  "repro": "vy.py invoke copilot ... --provider openrouter (no --model, i.e. vy.py's FREE_DEFAULT) --port 52320 -> HTTP-level 404 from OpenRouter itself ('This model is unavailable for free. The paid version is available now - use this slug instead: inclusionai/ling-3.0-flash-vl'), surfaced by the app as a clean humanized error frame (code model_not_..., action 'Choose a different model in Settings'), not a stack trace or CORS-masked 500.",
+  "evidence_file": "docs/redesign/verification/r15/surface/composer-chat/rc1/round-5/01-hostaction-watchlist-add.stdout.txt",
+  "suspected_files": []
+ },
+ {
+  "key": "rc1-drive-composer-chat:2",
+  "kind": "environment",
+  "severity": "low",
+  "register_id": null,
+  "title": "OpenRouter free slug nvidia/nemotron-3-super-120b-a12b:free returned a transient 5xx mid-turn (upstream Nvidia backend overloaded)",
+  "repro": "vy.py invoke copilot 'Build me a screen ... Then switch the layout to the fundamental view.' --provider openrouter --model nvidia/nemotron-3-super-120b-a12b:free --port 52320: first tool call (write_screener_filters) staged fine, then the next model round errored with code provider_5xx / 'OpenRouter returned a server error' / detail 'Upstream error from Nvidia: Service temporarily overloaded'. Humanized correctly; retried with a narrower prompt and it succeeded (06-hostaction-arrange-fundamental.*).",
+  "evidence_file": "docs/redesign/verification/r15/surface/composer-chat/rc1/round-5/05-hostaction-screen-arrange.stdout.txt",
+  "suspected_files": []
+ }
+]

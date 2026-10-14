@@ -1,0 +1,5 @@
+# R15-CODE-FRONTEND-019 probe: workspaces dir chmod 555 -> 507
+{"detail":"Could not write the workspace: Permission denied"} [507]
+{"status":"saved","name":"b6ro"} [after restore 200]
+--- frontend half (source check)
+1159:      throw await sidecarFailure("Autosave failed", response);

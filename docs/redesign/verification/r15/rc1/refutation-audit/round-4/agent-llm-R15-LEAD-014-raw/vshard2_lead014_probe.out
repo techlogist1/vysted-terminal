@@ -1,0 +1,16 @@
+tools with properties: 54
+full/fenced schema echo accepted: 0 []
+placeholder echo {prop: <type-name>} accepted: 20
+    analyst_history {"symbol": "string"}
+    analyst_individual {"symbol": "string"}
+    ask_user {"question": "string"}
+    backtest_summary {"run_id": "string"}
+    close_panel {"panel": "string"}
+    corporate_actions {"symbol": "string"}
+    earnings_call_transcript {"symbol": "string", "quarter": "string"}
+    earnings_estimates {"symbol": "string"}
+    earnings_history {"symbol": "string"}
+    focus_panel {"panel": "string"}
+    fundamentals {"symbol": "string"}
+    open_company_overview {"symbol": "string", "highlight": "string"}
+properties-only echo accepted: 0

@@ -1,0 +1,17 @@
+# live published briefs (candidate 81fbfe91, own sidecar :52337): every bracket token in publish_brief.markdown
+=== 1-deep-bdl-4omini publish#1 sources=8 md_chars=2105 tokens=10
+  distinct: ['[1]', '[6]', '[7]', '[8]']
+  NOT an in-range [n]: []
+  note: 
+=== 2-ultra-kaynes-4omini publish#1 sources=13 md_chars=3973 tokens=19
+  distinct: ['[11]', '[12]', '[13]', '[2]', '[3]', '[5]', '[NSE filing, August 2026; 2]', '[NSE filing, August 2026]']
+  NOT an in-range [n]: ['[NSE filing, August 2026]', '[NSE filing, August 2026]', '[NSE filing, August 2026; 2]']
+  note: 
+=== 2-ultra-kaynes-4omini publish#2 sources=8 md_chars=4542 tokens=16
+  distinct: ['[2]', '[6]', '[7]']
+  NOT an in-range [n]: []
+  note: 
+=== 3-deep-cochin-llama publish#1 sources=7 md_chars=1301 tokens=11
+  distinct: ['[1]', '[5]', '[6]', '[7]', '[]']
+  NOT an in-range [n]: ['[]']
+  note: 

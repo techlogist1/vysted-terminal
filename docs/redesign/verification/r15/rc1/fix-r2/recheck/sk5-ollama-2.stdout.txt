@@ -1,0 +1,14 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_a1eb20cad94b453799561ef7ae728f76", "name": "financial_statements", "input": {"statement": "cashflow", "period": "quarterly", "symbol": "SIFY"}}
+[  30.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_749ccaf78017473c8fb1f8e514678b4d", "name": "fundamentals", "input": {"symbol": "SIFY"}}
+[  47.0s] heartbeat: {"kind": "heartbeat"}
+[  57.0s] heartbeat: {"kind": "heartbeat"}
+[  59.5s] done: {"kind": "done", "usage": {"input_tokens": 5794, "output_tokens": 24, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+SIFY ADR represents 1 ordinary share.
+
+SIFY's TTM revenue is ₹4,651 cr.
+
+=== ok · 59.5s · events {'heartbeat': 4, 'tool_use': 2, 'delta': 23, 'done': 1} · usage in=5794 out=24 · est $0.00000 · llama3.1:8b

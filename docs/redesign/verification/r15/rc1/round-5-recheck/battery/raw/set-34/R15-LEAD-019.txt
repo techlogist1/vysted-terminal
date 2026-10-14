@@ -1,0 +1,3 @@
+CMD: ./.venv/bin/python3 -c "import sys; sys.path.insert(0,'.'); from services.budget_guard import price_per_million; print(price_per_million('openrouter','nvidia/nemotron-3-super-120b-a12b:free')); print(price_per_million('openrouter','anthropic/claude-3.5-sonnet'))"
+unlisted :free slug rate: 0.0
+DEFAULT_RATE_PER_M: 5.0

@@ -1,0 +1,26 @@
+{
+ "tag": "intent-S2F",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_offmachine_s2.md section 1 (INTENT chunks) in full before touching anything.",
+ "stages": [
+  {
+   "label": "chunk",
+   "model": "sonnet",
+   "effort": "high",
+   "prompt": "Your task spec is PROMPT_offmachine_s2.md section 1, with <source> = \"{{source}}\", <start> = {{start}}, <end> = {{end}}. A prior attempt may have left CENSUS/intent/ledger-{{id}}.json partial - verify and continue."
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Raw file: docs/redesign/verification/r15/census/raw/intent-{{id}}.json. Output: docs/redesign/verification/r15/census/refute/intent-{{id}}.json. Follow PROMPT_refute.md exactly; if the raw file has 0 findings, write an empty array and return count 0."
+  }
+ ],
+ "items": [
+  {"id": "blueprint-288", "source": "blueprint", "start": 288, "end": 333},
+  {"id": "deferred-42", "source": "deferred", "start": 42, "end": 84},
+  {"id": "spec-0", "source": "spec", "start": 0, "end": 45},
+  {"id": "spec-45", "source": "spec", "start": 45, "end": 90},
+  {"id": "spec-90", "source": "spec", "start": 90, "end": 135},
+  {"id": "spec-180", "source": "spec", "start": 180, "end": 221}
+ ]
+}

@@ -1,0 +1,7 @@
+# rc1-battery-22 raw R15-AGENT-073 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ cd sidecar && PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/p22_073.py
+spec ollama qwen2.5:7b
+anthropic override no model -> claude-opus-4-8 | registry claude-opus-4-8
+ollama same provider -> qwen2.5:7b
+unknown prov -> ValueError no default model for provider 'nosuchprov'; pass a model
+EXIT=0

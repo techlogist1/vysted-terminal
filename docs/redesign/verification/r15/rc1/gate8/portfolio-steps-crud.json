@@ -1,0 +1,368 @@
+[
+  {
+    "name": "restore seed blob",
+    "ok": true,
+    "detail": {
+      "holdings": [],
+      "watchlist": [
+        {
+          "symbol": "SPY",
+          "assetClass": "equity"
+        },
+        {
+          "symbol": "QQQ",
+          "assetClass": "equity"
+        },
+        {
+          "symbol": "BTC/USDT",
+          "assetClass": "crypto"
+        },
+        {
+          "symbol": "ETH/USDT",
+          "assetClass": "crypto"
+        },
+        {
+          "symbol": "NVDA",
+          "assetClass": "equity"
+        },
+        {
+          "symbol": "AAPL",
+          "assetClass": "equity"
+        }
+      ]
+    }
+  },
+  {
+    "name": "add 3 holdings (NSE, US, one with a note)",
+    "ok": true,
+    "detail": {
+      "ids": [
+        "h-ffb6f3b9-48eb-45d6-9805-b4fff7a37e6a",
+        "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
+        "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231"
+      ],
+      "holdings": [
+        {
+          "id": "h-ffb6f3b9-48eb-45d6-9805-b4fff7a37e6a",
+          "symbol": "RELIANCE",
+          "quantity": 10,
+          "costBasis": 1100,
+          "assetClass": "equity"
+        },
+        {
+          "id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
+          "symbol": "AAPL",
+          "quantity": 5,
+          "costBasis": 180,
+          "assetClass": "equity"
+        },
+        {
+          "id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231",
+          "symbol": "INFY",
+          "quantity": 20,
+          "costBasis": 1500,
+          "assetClass": "equity",
+          "note": "Core IT holding, review after Q2 results"
+        }
+      ]
+    }
+  },
+  {
+    "name": "read back via blob + slice restore",
+    "ok": true,
+    "detail": {
+      "blob": [
+        {
+          "id": "h-ffb6f3b9-48eb-45d6-9805-b4fff7a37e6a",
+          "symbol": "RELIANCE",
+          "quantity": 10,
+          "costBasis": 1100,
+          "assetClass": "equity"
+        },
+        {
+          "id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
+          "symbol": "AAPL",
+          "quantity": 5,
+          "costBasis": 180,
+          "assetClass": "equity"
+        },
+        {
+          "id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231",
+          "symbol": "INFY",
+          "quantity": 20,
+          "costBasis": 1500,
+          "assetClass": "equity",
+          "note": "Core IT holding, review after Q2 results"
+        }
+      ]
+    }
+  },
+  {
+    "name": "P&L recomputed from /quotes matches the panel",
+    "ok": true,
+    "detail": [
+      {
+        "symbol": "RELIANCE",
+        "price": 1226,
+        "currency": "INR",
+        "qty": 10,
+        "cost": 1100,
+        "recomputed": {
+          "mv": 12260,
+          "pnl": 1260
+        },
+        "panel": {
+          "mv": 12260,
+          "pnl": 1260
+        },
+        "match": true
+      },
+      {
+        "symbol": "AAPL",
+        "price": 341.07,
+        "currency": "USD",
+        "qty": 5,
+        "cost": 180,
+        "recomputed": {
+          "mv": 1705.35,
+          "pnl": 805.3499999999999
+        },
+        "panel": {
+          "mv": 1705.35,
+          "pnl": 805.3499999999999
+        },
+        "match": true
+      },
+      {
+        "symbol": "INFY",
+        "price": 1000.2,
+        "currency": "INR",
+        "qty": 20,
+        "cost": 1500,
+        "recomputed": {
+          "mv": 20004,
+          "pnl": -9996
+        },
+        "panel": {
+          "mv": 20004,
+          "pnl": -9996
+        },
+        "match": true
+      }
+    ]
+  },
+  {
+    "name": "CSV export (panel handler): columns vs holdings",
+    "ok": true,
+    "detail": {
+      "filename": "vysted-portfolio-portfolio.csv",
+      "header": [
+        "Symbol",
+        "Quantity",
+        "Cost basis",
+        "Asset class",
+        "Currency",
+        "Price",
+        "Market value",
+        "P&L",
+        "P&L %",
+        "Weight %",
+        "Note"
+      ],
+      "csvCheck": [
+        {
+          "symbol": "RELIANCE",
+          "row": [
+            "RELIANCE",
+            "10",
+            "1100",
+            "equity",
+            "INR",
+            "1226",
+            "12260",
+            "1260",
+            "11.454545454545455",
+            "",
+            ""
+          ],
+          "ok": true
+        },
+        {
+          "symbol": "AAPL",
+          "row": [
+            "AAPL",
+            "5",
+            "180",
+            "equity",
+            "USD",
+            "341.07",
+            "1705.35",
+            "805.3499999999999",
+            "89.48333333333332",
+            "",
+            ""
+          ],
+          "ok": true
+        },
+        {
+          "symbol": "INFY",
+          "row": [
+            "INFY",
+            "20",
+            "1500",
+            "equity",
+            "INR",
+            "1000.2",
+            "20004",
+            "-9996",
+            "-33.32",
+            "",
+            "Core IT holding, review after Q2 results"
+          ],
+          "ok": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "update AAPL (8 @ 190 + note) and delete RELIANCE, read back",
+    "ok": true,
+    "detail": [
+      {
+        "id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
+        "symbol": "AAPL",
+        "quantity": 8,
+        "costBasis": 190,
+        "assetClass": "equity",
+        "note": "added on dip"
+      },
+      {
+        "id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231",
+        "symbol": "INFY",
+        "quantity": 20,
+        "costBasis": 1500,
+        "assetClass": "equity",
+        "note": "Core IT holding, review after Q2 results"
+      }
+    ]
+  },
+  {
+    "name": "notes CRUD (create, read, update, delete) via blob",
+    "ok": true,
+    "detail": {
+      "n1": {
+        "general": "gate8 thesis: IT services",
+        "bySymbol": {
+          "INFY": "watch deal wins"
+        },
+        "focusSymbol": ""
+      },
+      "n2": {
+        "general": "gate8 thesis: IT services",
+        "bySymbol": {
+          "INFY": "watch deal wins and attrition"
+        },
+        "focusSymbol": ""
+      },
+      "n3": {
+        "general": "",
+        "bySymbol": {
+          "INFY": ""
+        },
+        "focusSymbol": ""
+      }
+    }
+  },
+  {
+    "name": "watchlist CRUD (add RELIANCE, read, remove QQQ, read) via blob",
+    "ok": true,
+    "detail": {
+      "w1": [
+        {
+          "symbol": "SPY",
+          "assetClass": "equity"
+        },
+        {
+          "symbol": "QQQ",
+          "assetClass": "equity"
+        },
+        {
+          "symbol": "BTC/USDT",
+          "assetClass": "crypto"
+        },
+        {
+          "symbol": "ETH/USDT",
+          "assetClass": "crypto"
+        },
+        {
+          "symbol": "NVDA",
+          "assetClass": "equity"
+        },
+        {
+          "symbol": "AAPL",
+          "assetClass": "equity"
+        },
+        {
+          "symbol": "RELIANCE",
+          "assetClass": "equity"
+        }
+      ],
+      "w2": [
+        {
+          "symbol": "SPY",
+          "assetClass": "equity"
+        },
+        {
+          "symbol": "BTC/USDT",
+          "assetClass": "crypto"
+        },
+        {
+          "symbol": "ETH/USDT",
+          "assetClass": "crypto"
+        },
+        {
+          "symbol": "NVDA",
+          "assetClass": "equity"
+        },
+        {
+          "symbol": "AAPL",
+          "assetClass": "equity"
+        },
+        {
+          "symbol": "RELIANCE",
+          "assetClass": "equity"
+        }
+      ]
+    }
+  },
+  {
+    "name": "capture agent context (__terminal__.portfolio)",
+    "ok": true,
+    "detail": {
+      "positionCount": 2,
+      "totalValue": null,
+      "activePortfolioId": "default",
+      "activePortfolioName": "Portfolio",
+      "holdings": [
+        {
+          "id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
+          "symbol": "AAPL",
+          "quantity": 8,
+          "costBasis": 190,
+          "assetClass": "equity",
+          "marketValue": null,
+          "pnl": null
+        },
+        {
+          "id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231",
+          "symbol": "INFY",
+          "quantity": 20,
+          "costBasis": 1500,
+          "assetClass": "equity",
+          "marketValue": null,
+          "pnl": null
+        }
+      ]
+    }
+  }
+]

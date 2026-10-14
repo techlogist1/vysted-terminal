@@ -1,0 +1,8 @@
+# LIFECYCLE-013 fresh keyless case: run launched provider=openai model=gpt-4o-mini (no key) -> error; resume -> must stay openai (not the agent default)
+== POST /runs/54ab58aec9db415dbf885a586190ff4a/resume
+{"resumed":true}
+HTTP 200
+status error provider openai model gpt-4o-mini detail No OpenAI API key is set — add it in Settings. cost {'tokens': 0, 'spend_usd': 0.0, 'steps': 0, 'spendUsd': 0.0}
+== POST /runs/54ab58aec9db415dbf885a586190ff4a/answer (not paused)
+{"detail":"run '54ab58aec9db415dbf885a586190ff4a' is error; it cannot become running"}
+HTTP 409

@@ -1,0 +1,4 @@
+call1 result [] calls so far 1
+call2 (cached) result [] calls so far 1
+call3 (post-TTL) result [] calls so far 2
+PASS expected 2 calls (initial + post-TTL), got 2

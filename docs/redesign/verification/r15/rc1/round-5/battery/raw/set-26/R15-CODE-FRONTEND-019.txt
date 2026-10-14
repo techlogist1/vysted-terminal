@@ -1,0 +1,4 @@
+CMD: chmod 555 workspaces dir; POST /workspace {name:'b9v-ws',workspace:{}}
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+{"detail":"Could not write the workspace: Permission denied"}
+HTTP_STATUS:507

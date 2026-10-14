@@ -1,0 +1,6 @@
+direct ddg FAIL SearchError keyless web search (DuckDuckGo) is rate-limiting right now — wait a moment and retry, or add an Exa  0.2
+direct brave ok 8 1.2
+direct mojeek ok 0 1.0
+chain ok keyless:brave 8 3.9
+variant ddg-hang chain ok keyless:brave 8 7.0
+variant all-hang FAIL(expected) keyless web search has no engine available right now — DuckDuckGo: cooling down (44s); Brave: unreachable; Mojeek: unreachable. Wait a moment and retry, or add an Exa key / local SearXNG for a dedicat 12.0

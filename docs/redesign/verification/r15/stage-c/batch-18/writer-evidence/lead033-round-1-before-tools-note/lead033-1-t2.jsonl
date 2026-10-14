@@ -1,0 +1,81 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_13069a6ca0d44e0d8650eaf3e3be7434", "name": "price_data", "input": {"asset_class": "equity", "range": "1y", "symbol": "AAPL", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_13069a6ca0d44e0d8650eaf3e3be7434", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " gave"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " figure"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "`."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " exact"}
+{"kind": "delta", "text": " response"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "{\""}
+{"kind": "delta", "text": "ok"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " true"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "symbol"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "time"}
+{"kind": "delta", "text": "frame"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "d"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "provider"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "y"}
+{"kind": "delta", "text": "finance"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "quote"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " {\""}
+{"kind": "delta", "text": "symbol"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "market"}
+{"kind": "delta", "text": "_cap"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "493"}
+{"kind": "delta", "text": "011"}
+{"kind": "delta", "text": "900"}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "}}"}
+{"kind": "done", "usage": {"input_tokens": 6528, "output_tokens": 73, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

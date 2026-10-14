@@ -1,0 +1,186 @@
+=== R15-RESEARCH-029: brief-ingest.ts CITE_MARKER_RE + iter.py merge prompt ===
+396:const CITE_MARKER_RE = /\[(\d{1,3})\](?!\()/g;
+410:  return markdown.replace(CITE_MARKER_RE, (whole, digits: string) => {
+419:  for (const m of markdown.matchAll(CITE_MARKER_RE)) {
+--- context ---
+396:const CITE_MARKER_RE = /\[(\d{1,3})\](?!\()/g;
+410:  return markdown.replace(CITE_MARKER_RE, (whole, digits: string) => {
+419:  for (const m of markdown.matchAll(CITE_MARKER_RE)) {
+--- iter.py merge prompt / RENUMBER ---
+        "target": target,
+        "bound": True,
+        "snapshot": snapshot,
+        "evidence": evidence,
+        # The panel audits the MERGED brief once — per-angle audits would spend
+        # three extra LLM calls on intermediate reports the synthesist rewrites.
+        "citecheck": False,
+    }
+    explorers = [
+        run_iter_research(
+            f"{query} — focus: {angle}",
+            budget=budget,  # shared: the panel stays inside one ceiling
+            on_step=_angle_sink(on_step, i, angle),
+            **explorer_knobs,
+        )
+        for i, angle in enumerate(angle_list)
+    ]
+    briefs = await asyncio.gather(*explorers, return_exceptions=True)
+    good = [b for b in briefs if isinstance(b, ResearchBrief)]
+    for i, (angle, b) in enumerate(zip(angle_list, briefs, strict=True)):
+        if isinstance(b, BaseException):
+            _log.warning("heavy research explorer %d (%s) crashed", i + 1, angle, exc_info=b)
+            crash_step = ResearchStep(
+                "plan",
+                f"explorer angle {i + 1} ({angle[:48]}) failed: {type(b).__name__}: {b}",
+                status="error",
+            )
+            steps.append(crash_step)
+            await _emit(on_step, crash_step)
+
+    if not good:
+        # Every explorer failed (should not happen — iter never raises). Degrade to
+        # a single iter run rather than returning nothing. This run publishes
+        # directly, so it audits its own citations.
+        return await run_iter_research(
+            query,
+            budget=budget,
+            on_step=on_step,
+            **{**explorer_knobs, "citecheck": True},
+        )
+
+=== RENUMBER / merge prompt ===
+=== citation check / strip out-of-range ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/research/citecheck.py:8:     must fall in ``1..len(sources)``; out-of-range markers are STRIPPED and
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/research/citecheck.py:317:        f"stripped {removed} out-of-range marker(s), "
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/research/citecheck.py:326:                f"citation check: {stripped}; "
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/research/citecheck.py:351:            f"citation check: {stripped}; audited {len(claims)} claim(s), softened {softened}",
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/research/iter.py:1198:    # Citation integrity over the MERGED brief: out-of-range [n] markers are
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/sidecar/services/research/finance.py:405:    past a citation check aimed at numbers — so corporate actions get their
+"""Citation integrity for research briefs (R8).
+
+The live failure this kills: a synthesized brief cited ``[47]`` where only 21
+sources existed, and pointed numeric claims at sources that do not support
+them (a TMB Bank PDF cited as Route's earnings transcript). Two passes:
+
+  1. **Structural** (always, deterministic, free): every inline ``[n]`` marker
+     must fall in ``1..len(sources)``; out-of-range markers are STRIPPED and
+     the prose tidied — a dead chip never renders. Model-authored source lists
+     ("Merged Sources", "References:") and literal ``[n] k`` markers are
+     removed first: the numbered rail is the only bibliography.
+  2. **Bounded LLM spot-audit** (one ``llm_call``, only when ≥15s of wall
+     budget remains): up to :data:`MAX_AUDIT_CLAIMS` numeric/dated claims are
+     checked against the sources they cite. R9 B3: when the run's RAW-EVIDENCE
+     store carries the cited source's FULL extracted page text, the audit
+     judges against that text (capped at :data:`EVIDENCE_AUDIT_CHARS` chars)
+     instead of the two-line title/excerpt — a figure that lives deep in a
+     filing no longer reads as unsupported, and a mis-attributed figure no
+     longer hides behind a vague excerpt. An UNSUPPORTED verdict removes the
+     claim's citations and softens the sentence DETERMINISTICALLY ("… (not
+     confirmed in this run)"). The parse is conservative: an unparseable/empty
+     verdict changes nothing — the audit may only ever remove unsupported
+     confidence, never add it.
+
+Skipping the audit is a DEV step on the trace, never a user-facing note.
+"""
+
+from __future__ import annotations
+
+import re
+import time
+from typing import Any
+
+from services.budget_guard import BudgetGuard
+from services.research.deep import LLMCall, OnStep, _emit, _safe_llm
+from services.research.models import ResearchSource, ResearchStep
+
+#: Inline citation marker — ``[n]`` not followed by ``(`` (a markdown link).
+MARKER_RE = re.compile(r"\[(\d{1,3})\](?!\()")
+
+#: At most this many numeric/dated claims ride the ONE audit call.
+MAX_AUDIT_CLAIMS = 8
+
+#: The audit runs only when at least this much wall budget remains.
+MIN_AUDIT_WALL_SECS = 15.0
+
+#: How much of a cited source's FULL extracted text rides the audit prompt
+#: (per source, shown once even when several claims cite it).
+EVIDENCE_AUDIT_CHARS = 1200
+
+#: Budget labels for the audit's step accounting.
+_CHECK_MODEL = "research-citecheck"
+_CHECK_PROVIDER = "research"
+
+#: The deterministic softener appended to an unsupported claim.
+SOFTENER = " (not confirmed in this run)"
+
+_VERDICT_LINE_RE = re.compile(r"^\s*(\d{1,2})\s*[:\-—.]\s*(SUPPORTED|UNSUPPORTED)\b", re.I | re.M)
+
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
+10:     ("Merged Sources", "References:") and literal ``[n] k`` markers are
+72:#: A heading/label line opening a model-authored bibliography ("### Sources",
+73:#: "**Merged Sources**", "References:"), compared after stripping markdown.
+95:    """Remove model-authored source lists and ``[n]``-literal markers.
+98:    model wrote itself ("Merged Sources", "References:") numbers items its own
+#: A heading/label line opening a model-authored bibliography ("### Sources",
+#: "**Merged Sources**", "References:"), compared after stripping markdown.
+_BIBLIOGRAPHY_HEADING_RE = re.compile(
+    r"^(?:merged |cited )?(?:sources|references|bibliography|works cited)(?: used)?$"
+)
+
+#: A setext heading underline directly below the bibliography label.
+_SETEXT_RULE_RE = re.compile(r"^\s*[-=]{3,}\s*$")
+
+#: One bibliography entry: a bullet, "1.", "[3] …" or the model's "[n] 1. …".
+_ENTRY_RE = re.compile(r"^\s*(?:[-*•+]\s+|\d{1,3}[.)]\s+|\[(?:n|\d{1,3})\](?:\s*\d{1,3}[.)]?)?\s+)")
+
+#: A literal "[n]" marker (with the model's own number after it) — it resolves
+#: to nothing on the source rail.
+_N_LITERAL_RE = re.compile(r"\[n\]\s*\d{0,3}", re.I)
+
+
+def _is_bibliography_heading(line: str) -> bool:
+    label = line.strip().lstrip("#").strip(" *_:").lower()
+    return _BIBLIOGRAPHY_HEADING_RE.match(label) is not None
+
+
+def strip_model_bibliography(markdown: str) -> tuple[str, int]:
+    """Remove model-authored source lists and ``[n]``-literal markers.
+
+    The brief's numbered source rail is the ONLY bibliography: a list the
+    model wrote itself ("Merged Sources", "References:") numbers items its own
+    way and never resolves to the rail. A section runs from its label through
+    an optional one-line intro and its list entries, and ends at the next
+    heading or the first prose line after the entries. Returns
+    ``(cleaned_markdown, removed_count)`` — sections plus literal markers.
+    """
+    lines = markdown.splitlines()
+    out: list[str] = []
+    removed = 0
+    i = 0
+    while i < len(lines):
+        if not _is_bibliography_heading(lines[i]):
+            out.append(lines[i])
+            i += 1
+            continue
+        removed += 1
+        i += 1
+        if i < len(lines) and _SETEXT_RULE_RE.match(lines[i]):
+            i += 1
+        listed = intro = False
+        while i < len(lines):
+            line = lines[i]
+            if line.lstrip().startswith("#"):
+63:def _tidy(text: str) -> str:
+89:def _is_bibliography_heading(line: str) -> bool:
+94:def strip_model_bibliography(markdown: str) -> tuple[str, int]:
+136:def strip_invalid_markers(markdown: str, source_count: int) -> tuple[str, int]:
+159:def _claim_sentences(
+205:def soften_sentence(sentence: str) -> str:
+216:def _audit_prompt(
+269:def _parse_verdicts(text: str) -> dict[int, bool]:
+277:def _remaining_wall(budget: BudgetGuard | None) -> float | None:
+283:async def ensure_citation_integrity(
+['Any', 'BudgetGuard', 'EVIDENCE_AUDIT_CHARS', 'LLMCall', 'MARKER_RE', 'MAX_AUDIT_CLAIMS', 'MIN_AUDIT_WALL_SECS', 'OnStep', 'ResearchSource', 'ResearchStep', 'SOFTENER', 'annotations', 'ensure_citation_integrity', 're', 'soften_sentence', 'strip_invalid_markers', 'strip_model_bibliography', 'time']
+=== after strip_model_bibliography ===
+'Earnings growth: -0.4% '
+removed count: 3

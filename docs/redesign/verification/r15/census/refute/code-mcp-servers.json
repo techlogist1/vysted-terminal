@@ -1,0 +1,119 @@
+[
+  {
+    "raw_id": "COD-mcp-servers-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Real and reproduced live: /mcp answers a cross-origin preflight and an initialize from Origin https://evil.example with access-control-allow-origin: * and a full handshake. Correction on scope and mechanism: the wildcard CORS is the app-wide CORSMiddleware (allow_origins=['*'], allow_methods=['*']) covering every REST route, so /mcp is not a special case and the fix belongs at the app level (Origin allow-list for tauri://localhost + dev origins), not only on the /mcp mount; and Origin validation defends against browser pages only, not the 'any local process' case the notes also claim (local processes send no Origin).",
+    "evidence": "sidecar/app.py:301-307, sidecar/app.py:345, sidecar/routers/mcp.py:13-14, sidecar/services/mcp_server.py:392-396",
+    "evidence_checked": "Opened app.py CORS block + /mcp mount, routers/mcp.py, mcp_server.get_streamable_http_app; re-ran both repro curls against :52152.",
+    "repro_check": "curl -i -X OPTIONS :52152/mcp/ -H 'Origin: https://evil.example' ... -> 200 access-control-allow-origin: *; curl -X POST :52152/mcp/ (initialize, Origin evil) -> 200 SSE with serverInfo vysted 3.2.4 and access-control-allow-origin: *. Browser-side reachability (Chrome local-network-access prompt) not checked."
+  },
+  {
+    "raw_id": "COD-mcp-servers-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The except tuple (TimeoutError, McpError, OSError) is narrower than the docstring promises, but the headline consequence is disproved by a real kill/restart experiment: when the MCP server dies the SDK surfaces the in-flight call as McpError (60 s read timeout / CONNECTION_CLOSED), which IS caught, the session is dropped, and after the server restarts the next call succeeds - no 'cached until app restart'. The real defect is different: a dead child costs a full 60 s stall on the first call, and the call after that raised asyncio.CancelledError ('Cancelled via cancel scope' from the dead transport's task group) which escapes _call_tool's `except Exception` as a non-ProviderError, so the registry does not fall through to yfinance for that request.",
+    "evidence": "sidecar/services/mcp_client.py:15-19, sidecar/services/mcp_client.py:114-116, sidecar/services/mcp_client.py:158, sidecar/services/mcp_client.py:182, sidecar/services/openbb_mcp_provider.py:243-248, sidecar/.venv/lib/python3.13/site-packages/mcp/shared/session.py:445-458, sidecar/.venv/lib/python3.13/site-packages/mcp/client/streamable_http.py:334-358",
+    "evidence_checked": "Read McpClient, the provider's _call_tool, and the installed mcp 1.27.1 transport/session error paths; ran the real McpClient against a local FastMCP server I started, killed and restarted (each call in its own task, as FastAPI requests are).",
+    "repro_check": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/refute-mcp/drive2.py: 1-live OK; 2-dead McpError 'Timed out ... 60.0 seconds' session dropped (60.0 s); 3-dead-again CancelledError session None; 4-restarted OK; 5-restarted OK. (Same-task variant drive.py: every call CancelledError - an artefact of reusing the opener task, not production.)"
+  },
+  {
+    "raw_id": "COD-mcp-servers-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The swallow-to-empty is real (list_agents/list_workflows/list_runs map any httpx.HTTPError to an empty list), but the trigger is mis-stated: in production bind_app is always called so the tools use the in-process ASGITransport and the 127.0.0.1:0 fallback is unreachable; the actual path is a 5xx from the in-process route -> raise_for_status HTTPStatusError (an HTTPError) -> confident empty list. The three bare raise_for_status sites do not escape as raw transport errors either - FastMCP/lowlevel server convert a raising tool into an isError=True result. A rare in-process 5xx is a medium, not high, silent degradation.",
+    "evidence": "sidecar/services/mcp_server.py:168-180, sidecar/services/mcp_server.py:297-313, sidecar/services/mcp_server.py:350-364, sidecar/services/mcp_server.py:85-94, sidecar/app.py:345-349, sidecar/.venv/lib/python3.13/site-packages/mcp/server/lowlevel/server.py:583-584",
+    "evidence_checked": "Opened the three tools, _internal_client, bind_app call site in create_app, and the SDK's call-tool exception handler.",
+    "repro_check": "Code-level: force GET /agents to 500 in-process -> list_agents returns {'agents': []}; not run live (non-GET tools/call needs vy.py and a way to break the route)."
+  },
+  {
+    "raw_id": "COD-mcp-servers-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds as stated: _call_tool's try wraps only client.call_tool; _decode_tool_result raises ProviderError on isError / non-JSON / no content before either flag assignment, so lastToolCallOk keeps its previous True and lastError stays None. Same shape in sec_filings_provider (isError and no-content paths). Live corroboration: after an Indian income request that openbb-mcp cannot serve (answered by yfinance), /openbb-mcp/status still reads lastToolCallOk true, lastError null.",
+    "evidence": "sidecar/services/openbb_mcp_provider.py:180-201, sidecar/services/openbb_mcp_provider.py:239-252, sidecar/services/sec_filings_provider.py:132-172, sidecar/routers/mcp.py:44-53",
+    "evidence_checked": "Opened both providers' _decode_tool_result/_call_tool and the status route; GET :52152/fundamentals/TATAELXSI.NS/income then GET :52152/openbb-mcp/status.",
+    "repro_check": "curl :52152/fundamentals/TATAELXSI.NS/income -> 200 provider yfinance; curl :52152/openbb-mcp/status -> lastToolCallOk true, lastError null."
+  },
+  {
+    "raw_id": "COD-mcp-servers-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Duplication is real (discovery, is_available, status, _get_client, _call_tool and the health-flag pair are copied), but not 'verbatim with two env names changed': sec treats port '0' as unavailable and openbb does not, and the two _decode_tool_result functions diverge (sec returns raw text on non-JSON and has a structuredContent branch; openbb raises). It is a maintainability refactor (~60 LOC per copy), with only two consumers today; low.",
+    "evidence": "sidecar/services/openbb_mcp_provider.py:122-252, sidecar/services/sec_filings_provider.py:83-172, sidecar/services/mcp_client.py:153-206",
+    "evidence_checked": "Read both provider blocks side by side and McpClient.",
+    "repro_check": "design; side-by-side read of the two files shows the divergences at sec_filings_provider.py:90 and :148-155 vs openbb_mcp_provider.py:133 and :197-201."
+  },
+  {
+    "raw_id": "COD-mcp-servers-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "McpClient.call_tool does drop structuredContent, so sec_filings_provider's structuredContent fallback is dead code. The claimed consequence (a ProviderError/502 on delivered data from output_schema tools) does not follow: both the SDK FastMCP (convert_result returns unstructured AND structured content) and jlowin fastmcp (ToolResult(content=..., structured_content=...)) always emit a text block alongside structured output, which the text branch decodes first. Latent dead code, low.",
+    "evidence": "sidecar/services/mcp_client.py:189-206, sidecar/services/sec_filings_provider.py:142-156, sidecar/.venv/lib/python3.13/site-packages/mcp/server/fastmcp/utilities/func_metadata.py:98-123, sidecar/.venv/lib/python3.13/site-packages/fastmcp/tools/base.py:121, sidecar/sec_edgar_mcp_subprocess/requirements.txt:14",
+    "evidence_checked": "Opened McpClient.call_tool, sec decode, and the installed SDK/fastmcp result-conversion code.",
+    "repro_check": "Code-level: a FastMCP tool returning a dict yields content=[TextContent(json)] + structuredContent, so sec decode returns via the text branch; only a non-FastMCP server returning empty content would hit the dead branch."
+  },
+  {
+    "raw_id": "COD-mcp-servers-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Drift is real and reproduced: /mcp/status reports the hardcoded 2025-06-18 while initialize negotiates 2025-11-25. Correction: types/mcp.ts is not a third answer - it says 2025-11-25, matching the live server - and no frontend/plugin code reads protocolVersion (grep src/ plugins/ empty), so no consumer makes a wrong compatibility call today; low.",
+    "evidence": "sidecar/services/mcp_server.py:58, sidecar/services/mcp_server.py:400-402, sidecar/routers/mcp.py:40, types/mcp.ts:7, types/mcp.ts:103-104",
+    "evidence_checked": "Opened constant, protocol_version(), status route, types/mcp.ts; grep for protocolVersion consumers; live curls against :52152.",
+    "repro_check": "curl :52152/mcp/status -> protocolVersion 2025-06-18; POST :52152/mcp/ initialize(2025-11-25) -> result.protocolVersion 2025-11-25."
+  },
+  {
+    "raw_id": "COD-mcp-servers-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: `_coerce_float(row.get('value') or row.get(series_id))` turns a 0.0 observation into None (series_id key normally absent), and the health payload confirms macro_series is served by openbb-mcp. The :321 volume `or` has the same zero-drop shape; :305 is harmless in practice (a 0 price is not a real print).",
+    "evidence": "sidecar/services/openbb_mcp_provider.py:529-535, sidecar/services/openbb_mcp_provider.py:305, sidecar/services/openbb_mcp_provider.py:321, sidecar/services/openbb_mcp_provider.py:265-271",
+    "evidence_checked": "Opened get_macro_series, get_quote and _coerce_float; /health on :52152 shows macro_series -> openbb-mcp.",
+    "repro_check": "Code-level: 0.0 or None -> None -> _coerce_float(None) -> None; observation (date, None) emitted."
+  },
+  {
+    "raw_id": "COD-mcp-servers-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Mechanism confirmed: _normalize_symbol('RELIANCE.NS') -> 'RELIANCE-NS', and openbb-mcp (rank 10, no region) precedes yfinance (50) for IN fundamentals/statements/ratings since the IN providers serve quote/ohlcv only. But the fallthrough is correct and cheap: a live IN income request returned 200 from yfinance in 0.76 s end to end, so the cost is one wasted sub-second round-trip, not a data or availability defect; the mangled-symbol-in-model point applies only when openbb succeeds (US class shares). Low.",
+    "evidence": "sidecar/services/openbb_mcp_provider.py:260-262, sidecar/services/openbb_mcp_provider.py:396-397, sidecar/services/provider_registry.py:128-142, sidecar/services/provider_registry.py:305-317, sidecar/services/provider_registry.py:370-435",
+    "evidence_checked": "Opened normalizer, registry declarations/_candidates/_resolve_async; ran the normalizer in the venv; timed GET :52152/fundamentals/TATAELXSI.NS/income.",
+    "repro_check": "python -c _normalize_symbol('RELIANCE.NS') -> RELIANCE-NS; curl :52152/fundamentals/TATAELXSI.NS/income -> 200, provider yfinance, real 0.76 s."
+  },
+  {
+    "raw_id": "COD-mcp-servers-10",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The race cannot occur under asyncio: _open assigns _session and bumps _generation with no await between them, and _ensure_session reads the pair in one expression with no await after the lock is released, so no sibling coroutine can interleave a torn (session, generation) read; close() re-checks the generation under the lock, and McpClient is never driven from another thread or loop (no asyncio.run / run_coroutine_threadsafe in services/routers/agents). The assert can never fire (either the session was non-None, or _open set it or raised).",
+    "evidence": "sidecar/services/mcp_client.py:121-132, sidecar/services/mcp_client.py:134-151",
+    "evidence_checked": "Read _open/_ensure_session/close; grepped services/, routers/, agents/ for cross-thread event-loop use (none).",
+    "repro_check": "Code-level: no suspension point exists between the two attribute writes or the two attribute reads; cooperative scheduling makes both atomic."
+  },
+  {
+    "raw_id": "COD-mcp-servers-11",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: the hand-written invoke_agent MCP tool publishes api_key as a tool input and forwards it in the POST body to /agents/{id}/invoke (AgentInvocationRequest.api_key), so the only way an external MCP client can supply a BYOK key is through the third-party model's context/transcript. No active leak without a human pasting a key, as the finding itself says.",
+    "evidence": "sidecar/services/mcp_server.py:182-197, sidecar/models/agent.py:70-81, sidecar/routers/agents.py:85-100",
+    "evidence_checked": "Opened the MCP tool, the invoke request model and the invoke route.",
+    "repro_check": "Code-level; tools/list on :52152 would show api_key in invoke_agent's inputSchema (POST, not run)."
+  },
+  {
+    "raw_id": "COD-mcp-servers-12",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The two threads only touch the environment through std::env::set_var/remove_var, and std's own env functions are mutually synchronised: the std docs define the unsafety as other threads reading/writing the environment 'through functions or global variables other than the ones in this module'. The spawn threads' other env-adjacent work does not go through libc getenv (wait_for_port connects to ('127.0.0.1', port), a literal IP parse with no DNS lookup). The remaining hazard (a C library in another Tauri/webview thread calling getenv) is generic to any set_var after setup starts and is not removed by the proposed fix. I could not open the std source itself (network reset); this rests on the published std contract.",
+    "evidence": "src-tauri/src/lib.rs:470-485, src-tauri/src/openbb_mcp.rs:95-96, src-tauri/src/sec_edgar_mcp.rs:95-96, src-tauri/src/lib.rs:46-55, https://doc.rust-lang.org/std/env/fn.set_var.html ('you must ensure that there are no other threads concurrently writing or reading the environment through functions or global variables other than the ones in this module')",
+    "evidence_checked": "Opened the parallel spawn block, both set_var/remove_var sites, wait_for_port_timeout; read the std set_var Safety section.",
+    "repro_check": "Docs + code: both writers use std::env (mutually locked); no libc env reader identified on either spawn thread."
+  },
+  {
+    "raw_id": "COD-mcp-servers-13",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real for the catalog-projected tools (the majority): _make_catalog_tool turns every failure into a successful {'ok': False, 'error': ...} result. Correction: 'nothing ever sets isError' is too strong - the hand-written tools that raise (list_workspaces, get_workspace, save_workflow via bare raise_for_status) do produce isError=True through the MCP server's exception handler, so the server mixes both conventions rather than never using the flag.",
+    "evidence": "sidecar/services/mcp_server.py:116-122, sidecar/services/mcp_server.py:240-254, sidecar/services/mcp_server.py:331-336, sidecar/.venv/lib/python3.13/site-packages/mcp/server/lowlevel/server.py:467-472, sidecar/.venv/lib/python3.13/site-packages/mcp/server/lowlevel/server.py:583-584, sidecar/services/openbb_mcp_provider.py:187",
+    "evidence_checked": "Opened the catalog handler, the raising hand-written tools, and the SDK call-tool error path.",
+    "repro_check": "Code-level; a tools/call of get_workspace with a bogus id would return isError=true (POST, not run)."
+  }
+]

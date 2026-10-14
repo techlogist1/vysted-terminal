@@ -1,0 +1,62 @@
+[
+  {
+    "raw_id": "DAT-P16-1",
+    "title": "CREST fundamentals promoter/insider holding (77.2%) contradicts outside truth AND the app's own shareholding-disclosure endpoint (both 69.84%)",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P16_CREST",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/CREST -> held_percent_insiders=0.77203006 (77.2%); GET http://127.0.0.1:52152/disclosures/shareholding?symbol=CREST -> latest row (quarter_end 2026-06-30) promoter_percent=69.84. Same app, same stock, same underlying quarter, two endpoints disagree by 7.4 points; screener.in (https://www.screener.in/company/511413/, fetched 2026-09-23) corroborates the disclosures endpoint's 69.84%.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P16_CREST.json (fundamentals.body.held_percent_insiders vs disclosures/shareholding latest row); docs/redesign/verification/r15/battery/packs/P16_CREST.json shareholding.promoter_pct=69.84",
+    "notes": "Promoter/pledge percentage is called out by the collector's own spec as 'the single most gameable number in an Indian small-cap.' yfinance's held_percent_insiders is evidently computed on a different (and here wrong-looking) basis than the exchange-filed shareholding pattern the app's own dedicated endpoint already gets right. Smallest fix: stop surfacing fundamentals.held_percent_insiders as promoter holding in any UI/agent context and source promoter_pct exclusively from disclosures/shareholding, or reconcile/flag the discrepancy at read time."
+  },
+  {
+    "raw_id": "DAT-P16-2",
+    "title": "CREST fundamentals silently serves consolidated-basis ratios with no standalone/consolidated indicator field",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P16_CREST",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/CREST -> pe_ratio=31.50, revenue_ttm=1264018048, net_income_ttm=329852000, eps=11.61, price_to_book=0.791 all reconcile to Crest Ventures' CONSOLIDATED figures (screener.in /company/511413/consolidated/, stockanalysis.com), not standalone (P/E ~47-49x standalone vs ~31x consolidated, a 1.5x swing) - and no field in the response names which basis was used.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P16_CREST.json calls.fundamentals.body (no basis/consolidation key in the schema); docs/redesign/verification/r15/battery/packs/P16_CREST.json consolidated_vs_standalone note",
+    "notes": "For any issuer where standalone and consolidated diverge materially (real-estate/NBFC SPV structures are common in Indian small/mid-caps), a user or agent reading /fundamentals has no way to know which basis they're looking at, and a downstream diff or agent claim built on this field will silently be wrong for the other basis. Smallest fix: add an explicit consolidation/basis field to the fundamentals response (and ideally expose both bases when the provider has them, the way screener does with two URLs)."
+  },
+  {
+    "raw_id": "DAT-P16-3",
+    "title": "CREST fundamentals has no trailing-12m PAID dividend figure, only the declared per-share value",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P16_CREST",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/CREST -> dividend_per_share=1.0 (declared) but dividend_per_share_ttm=null. Outside truth (api.bseindia.com/.../DefaultData, fetched 2026-09-23) derives a paid_trailing_12m figure of INR2.00 (or INR1.00 under an alternate boundary reading) from BSE's own ex-date history.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P16_CREST.json calls.fundamentals.body.dividend_per_share_ttm=null; docs/redesign/verification/r15/battery/packs/P16_CREST.json dividend.paid_trailing_12m_per_share",
+    "notes": "Declared and paid dividend are materially different facts and the app only exposes the former. Not a false value, but a silent gap on a field the spec calls out by name as a mandatory subtle-tier check. Smallest fix: derive a trailing-12m paid figure from the same corporate-actions/ex-date feed disclosures/shareholding already draws on, with the boundary convention stated explicitly (avoids the same ambiguity the pack flags)."
+  },
+  {
+    "raw_id": "DAT-P16-4",
+    "title": "CREST fundamentals has no usable ROE/ROCE despite both being available from primary/aggregator sources",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P16_CREST",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/CREST -> roe=null (field_meta reason: 'provider did not publish this field'); response has no roce key at all. screener.in (fetched 2026-09-23) states standalone ROE 3.51% (BSE header: 2.11%), consolidated ROE 3.75%, standalone ROCE 5.54%, consolidated ROCE 5.67%.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P16_CREST.json calls.fundamentals.body.roe and field_meta.roe; docs/redesign/verification/r15/battery/packs/P16_CREST.json roe, roce",
+    "notes": "Two of the PACK spec's core valuation-quality fields are entirely unavailable from the app's own data surface for this name even though multiple live outside sources carry values (with their own noted disagreement, which is itself useful signal the app currently can't show at all). Smallest fix: fall back to a screener-grade aggregator or derive ROE/ROCE from the balance-sheet/income lines the app already fetches (net income / equity, EBIT / capital employed) when the primary provider (yfinance) doesn't publish them."
+  },
+  {
+    "raw_id": "DAT-P16-5",
+    "title": "CREST shareholding DII% returns null instead of the world's determinable 0%",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P16_CREST",
+    "repro": "GET http://127.0.0.1:52152/disclosures/shareholding?symbol=CREST -> latest row dii_percent=null (institutions_percent equals fii_percent exactly, i.e. DII contribution is dropped rather than zeroed). screener.in's yearly shareholding table (fetched 2026-09-23) states DIIs=0.00% explicitly for every year Mar2023 through Jun2026.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P16_CREST.json calls.shareholding.body.patterns[0].dii_percent; docs/redesign/verification/r15/battery/packs/P16_CREST.json shareholding.dii_pct",
+    "notes": "Low individual stakes (the true value is 0%, not a materially different nonzero figure) but the mandatory shareholding subtle-tier check names dii_pct explicitly, and a null where the world has a determinable value is indistinguishable in the UI from 'not fetched' vs 'genuinely zero' - a real, if minor, honesty gap. Smallest fix: normalize an omitted DII row in the source XBRL/pattern to 0.0 rather than null when the split is otherwise complete (promoter+fii+public+trusts already sum to ~100%)."
+  },
+  {
+    "raw_id": "DAT-P16-6",
+    "title": "CREST fundamentals is missing face value and board/SME classification entirely",
+    "severity": "low",
+    "area": "data",
+    "subsystem": "P16_CREST",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/CREST -> no face_value/par-value key anywhere in the response; no board/mainboard-vs-SME key either. Outside truth: BSE ComHeadernew (fetched 2026-09-23) gives face value INR10.0 and Grp_Index='B' (mainboard).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P16_CREST.json calls.fundamentals.body (both keys absent from schema); docs/redesign/verification/r15/battery/packs/P16_CREST.json identity.face_value, identity.board",
+    "notes": "Static, rarely-wrong reference fields; absence doesn't mislead but is a real completeness gap against the PACK spec's identity field list. Smallest fix: source both from the same BSE ComHeadernew/instrument-master call the resolver already uses for ISIN/bse_code."
+  }
+]

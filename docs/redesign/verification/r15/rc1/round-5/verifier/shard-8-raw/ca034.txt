@@ -1,0 +1,9 @@
+list_workspaces {} is_error= False {"workspaces": ["Desk 2 (vshard8)", "__autosave__", "vshard8-ws"]}
+get_workspace {'workspace_id': 'vshard8-ws'} is_error= False {"version": 1, "k": "a"}
+get_workspace {'workspace_id': 'Desk 2 (vshard8)'} is_error= False {"version": 2}
+get_workspace {'workspace_id': 'missing-xyz'} is_error= False {"ok": false, "error": "GET /workspace/missing-xyz failed: Client error '404 Not Found' for url 'http://127.0.0.1:52608/workspace/missing-xyz'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404"}
+hand-written-ish: ['screener_run', 'run_custom_backtest', 'list_agents', 'invoke_agent', 'list_workspaces', 'get_workspace', 'run_workflow', 'list_workflows', 'save_workflow', 'list_runs']
+list_agents is_error= False {"agents": [{"id": "buffett", "name": "Warren Buffett", "philosophy": "Value investing with a wide-moat lens \u2014 wonderful businesses at fair prices, held forever.", "tools": ["price_data", "fundam
+list_workspaces is_error= False {"workspaces": ["Desk 2 (vshard8)", "__autosave__", "vshard8-ws"]}
+list_workflows is_error= False {"workflows": [], "unreadable": []}
+list_runs is_error= False {"runs": [{"id": "260684a4133345b395efaa65554bc2f8", "agent_id": "copilot", "agent_name": "Vysted Copilot", "mode": "delegate", "status": "cancelled", "cost": {"tokens": 0, "spend_usd": 0.0, "steps": 

@@ -1,0 +1,7 @@
+$ curl -s -m 60 -w ' [http %{http_code} %{time_total}s]' /quotes/ICON.BO /quotes/ICONIKSPEV.BO
+--- /quotes/ICON.BO
+{"symbol":"ICON","price":63.25,"change":0.25,"change_percent":0.3968253968253968,"volume":2400.0,"open":63.25,"high":63.25,"low":63.25,"prev_close":63.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"bse","freshness":"eod"} [http 200 1.367754s]
+
+--- /quotes/ICONIKSPEV.BO
+{"symbol":"ICONIKSPEV","price":31.98,"change":-1.6799999999999962,"change_percent":-4.991087344028509,"volume":7934.0,"open":33.66,"high":33.66,"low":31.98,"prev_close":33.66,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"bse","freshness":"eod"} [http 200 1.591324s]
+

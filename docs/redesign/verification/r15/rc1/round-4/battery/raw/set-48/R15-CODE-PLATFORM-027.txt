@@ -1,0 +1,5 @@
+node scripts/audit-design-tokens.mjs (fresh run, macOS, candidate repo)
+design-token audit clean (373 files)
+EXIT:0
+--- ROOT resolution check (resolve, not new URL().pathname) ---
+25:const ROOT = resolve(import.meta.dirname, "..");

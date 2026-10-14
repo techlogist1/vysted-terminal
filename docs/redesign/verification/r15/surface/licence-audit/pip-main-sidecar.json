@@ -1,0 +1,1320 @@
+{
+ "requirements": "sidecar/requirements.txt",
+ "closure_size": 145,
+ "not_installed": [],
+ "packages": [
+  {
+   "name": "aeventkit",
+   "version": "2.1.0",
+   "license_expression": null,
+   "license": "BSD",
+   "classifiers": [
+    "OSI Approved :: BSD License",
+    "Other/Proprietary License"
+   ],
+   "home": "https://github.com/ib-api-reloaded/eventkit"
+  },
+  {
+   "name": "aiodns",
+   "version": "4.0.4",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "repository, https://github.com/aio-libs/aiodns.git"
+  },
+  {
+   "name": "aiofile",
+   "version": "3.11.1",
+   "license_expression": "Apache-2.0",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Homepage, https://github.com/mosquito/aiofile"
+  },
+  {
+   "name": "aiohappyeyeballs",
+   "version": "2.6.2",
+   "license_expression": null,
+   "license": "PSF-2.0",
+   "classifiers": [
+    "OSI Approved :: Python Software Foundation License"
+   ],
+   "home": "Bug Tracker, https://github.com/aio-libs/aiohappyeyeballs/issues"
+  },
+  {
+   "name": "aiohttp",
+   "version": "3.13.5",
+   "license_expression": null,
+   "license": "Apache-2.0 AND MIT",
+   "classifiers": [],
+   "home": "Homepage, https://github.com/aio-libs/aiohttp"
+  },
+  {
+   "name": "aiosignal",
+   "version": "1.4.0",
+   "license_expression": null,
+   "license": "Apache 2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "https://github.com/aio-libs/aiosignal"
+  },
+  {
+   "name": "alpaca-py",
+   "version": "0.42.0",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Documentation, https://alpaca.markets/docs/python-sdk/"
+  },
+  {
+   "name": "annotated-doc",
+   "version": "0.0.4",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/fastapi/annotated-doc"
+  },
+  {
+   "name": "annotated-types",
+   "version": "0.7.0",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/annotated-types/annotated-types"
+  },
+  {
+   "name": "anthropic",
+   "version": "0.100.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/anthropics/anthropic-sdk-python"
+  },
+  {
+   "name": "anyio",
+   "version": "4.13.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://anyio.readthedocs.io/en/latest/"
+  },
+  {
+   "name": "appdirs",
+   "version": "1.4.4",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "http://github.com/ActiveState/appdirs"
+  },
+  {
+   "name": "attrs",
+   "version": "26.1.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://www.attrs.org/"
+  },
+  {
+   "name": "Authlib",
+   "version": "1.7.2",
+   "license_expression": null,
+   "license": "BSD-3-Clause",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "Documentation, https://docs.authlib.org/"
+  },
+  {
+   "name": "autobahn",
+   "version": "19.11.2",
+   "license_expression": null,
+   "license": "MIT License",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "http://crossbar.io/autobahn"
+  },
+  {
+   "name": "Automat",
+   "version": "25.4.16",
+   "license_expression": null,
+   "license": "Copyright (c) 2014",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Documentation, https://automat.readthedocs.io/"
+  },
+  {
+   "name": "beartype",
+   "version": "0.22.9",
+   "license_expression": null,
+   "license": "MIT License",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Docs, https://beartype.readthedocs.io"
+  },
+  {
+   "name": "beautifulsoup4",
+   "version": "4.14.3",
+   "license_expression": null,
+   "license": "MIT License",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Download, https://www.crummy.com/software/BeautifulSoup/bs4/download/"
+  },
+  {
+   "name": "brotli",
+   "version": "1.2.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [],
+   "home": "https://github.com/google/brotli"
+  },
+  {
+   "name": "cachetools",
+   "version": "6.2.6",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/tkem/cachetools/"
+  },
+  {
+   "name": "caio",
+   "version": "0.9.25",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [],
+   "home": "Source Code, https://github.com/mosquito/caio/"
+  },
+  {
+   "name": "ccxt",
+   "version": "4.5.53",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://ccxt.com"
+  },
+  {
+   "name": "certifi",
+   "version": "2026.5.20",
+   "license_expression": null,
+   "license": "MPL-2.0",
+   "classifiers": [
+    "OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+   ],
+   "home": "https://github.com/certifi/python-certifi"
+  },
+  {
+   "name": "cffi",
+   "version": "2.0.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://cffi.readthedocs.io/"
+  },
+  {
+   "name": "charset-normalizer",
+   "version": "3.4.7",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [],
+   "home": "Changelog, https://github.com/jawah/charset_normalizer/blob/master/CHANGELOG.md"
+  },
+  {
+   "name": "click",
+   "version": "8.4.0",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Changes, https://click.palletsprojects.com/page/changes/"
+  },
+  {
+   "name": "coincurve",
+   "version": "21.0.0",
+   "license_expression": "MIT OR Apache-2.0",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: Apache Software License",
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://ofek.dev/coincurve/"
+  },
+  {
+   "name": "constantly",
+   "version": "23.10.4",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/twisted/constantly"
+  },
+  {
+   "name": "cryptography",
+   "version": "48.0.0",
+   "license_expression": "Apache-2.0 OR BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "changelog, https://cryptography.io/en/latest/changelog/"
+  },
+  {
+   "name": "curl_cffi",
+   "version": "0.15.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "repository, https://github.com/lexiforest/curl_cffi"
+  },
+  {
+   "name": "cyclopts",
+   "version": "4.15.0",
+   "license_expression": "Apache-2.0",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Homepage, https://github.com/BrianPugh/cyclopts"
+  },
+  {
+   "name": "dhanhq",
+   "version": "2.1.0",
+   "license_expression": null,
+   "license": "MIT LICENSE",
+   "classifiers": [],
+   "home": "https://dhanhq.co/"
+  },
+  {
+   "name": "distro",
+   "version": "1.9.0",
+   "license_expression": null,
+   "license": "Apache License, Version 2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "https://github.com/python-distro/distro"
+  },
+  {
+   "name": "dnspython",
+   "version": "2.8.0",
+   "license_expression": null,
+   "license": "ISC",
+   "classifiers": [
+    "OSI Approved :: ISC License (ISCL)"
+   ],
+   "home": "homepage, https://www.dnspython.org"
+  },
+  {
+   "name": "docstring_parser",
+   "version": "0.18.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "homepage, https://github.com/rr-/docstring_parser"
+  },
+  {
+   "name": "ecbdata",
+   "version": "0.1.1",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://github.com/LucaMingarelli/ecbdata"
+  },
+  {
+   "name": "email-validator",
+   "version": "2.3.0",
+   "license_expression": null,
+   "license": "Unlicense",
+   "classifiers": [
+    "OSI Approved :: The Unlicense (Unlicense)"
+   ],
+   "home": "https://github.com/JoshData/python-email-validator"
+  },
+  {
+   "name": "exceptiongroup",
+   "version": "1.3.1",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Changelog, https://github.com/agronholm/exceptiongroup/blob/main/CHANGES.rst"
+  },
+  {
+   "name": "fastapi",
+   "version": "0.136.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/fastapi/fastapi"
+  },
+  {
+   "name": "fastmcp",
+   "version": "3.2.4",
+   "license_expression": "Apache-2.0",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Homepage, https://gofastmcp.com"
+  },
+  {
+   "name": "feedparser",
+   "version": "6.0.12",
+   "license_expression": null,
+   "license": "BSD-2-Clause",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "https://github.com/kurtmckee/feedparser"
+  },
+  {
+   "name": "fredapi",
+   "version": "0.5.2",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [],
+   "home": "https://github.com/mortada/fredapi"
+  },
+  {
+   "name": "frozendict",
+   "version": "2.4.7",
+   "license_expression": null,
+   "license": "LGPL v3",
+   "classifiers": [
+    "OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)"
+   ],
+   "home": "https://github.com/Marco-Sulla/python-frozendict"
+  },
+  {
+   "name": "frozenlist",
+   "version": "1.8.0",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [],
+   "home": "https://github.com/aio-libs/frozenlist"
+  },
+  {
+   "name": "google-auth",
+   "version": "2.53.0",
+   "license_expression": null,
+   "license": "Apache 2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "https://github.com/googleapis/google-auth-library-python"
+  },
+  {
+   "name": "google-genai",
+   "version": "2.5.0",
+   "license_expression": "Apache-2.0",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/googleapis/python-genai"
+  },
+  {
+   "name": "griffelib",
+   "version": "2.0.2",
+   "license_expression": "ISC",
+   "license": null,
+   "classifiers": [],
+   "home": null
+  },
+  {
+   "name": "groq",
+   "version": "1.1.1",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Homepage, https://github.com/groq/groq-python"
+  },
+  {
+   "name": "h11",
+   "version": "0.16.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://github.com/python-hyper/h11"
+  },
+  {
+   "name": "httpcore",
+   "version": "1.0.9",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "Documentation, https://www.encode.io/httpcore"
+  },
+  {
+   "name": "httptools",
+   "version": "0.7.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/MagicStack/httptools"
+  },
+  {
+   "name": "httpx",
+   "version": "0.28.1",
+   "license_expression": null,
+   "license": "BSD-3-Clause",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "Changelog, https://github.com/encode/httpx/blob/master/CHANGELOG.md"
+  },
+  {
+   "name": "httpx-sse",
+   "version": "0.4.3",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [],
+   "home": "Homepage, https://github.com/florimondmanca/httpx-sse"
+  },
+  {
+   "name": "hyperlink",
+   "version": "21.0.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://github.com/python-hyper/hyperlink"
+  },
+  {
+   "name": "ib_async",
+   "version": "2.1.0",
+   "license_expression": null,
+   "license": "BSD",
+   "classifiers": [
+    "Other/Proprietary License"
+   ],
+   "home": "Bug Tracker, https://github.com/ib-api-reloaded/ib_async/issues"
+  },
+  {
+   "name": "idna",
+   "version": "3.15",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Changelog, https://github.com/kjd/idna/blob/master/HISTORY.md"
+  },
+  {
+   "name": "Incremental",
+   "version": "24.11.0",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/twisted/incremental"
+  },
+  {
+   "name": "jaraco.classes",
+   "version": "3.4.0",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://github.com/jaraco/jaraco.classes"
+  },
+  {
+   "name": "jaraco.context",
+   "version": "6.1.2",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Source, https://github.com/jaraco/jaraco.context"
+  },
+  {
+   "name": "jaraco.functools",
+   "version": "4.5.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Source, https://github.com/jaraco/jaraco.functools"
+  },
+  {
+   "name": "jiter",
+   "version": "0.15.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "https://github.com/pydantic/jiter/"
+  },
+  {
+   "name": "joserfc",
+   "version": "1.6.5",
+   "license_expression": null,
+   "license": "BSD-3-Clause",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "Documentation, https://jose.authlib.org/"
+  },
+  {
+   "name": "jsonref",
+   "version": "1.1.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [],
+   "home": "documentation, https://jsonref.readthedocs.io/en/latest/"
+  },
+  {
+   "name": "jsonschema",
+   "version": "4.26.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/python-jsonschema/jsonschema"
+  },
+  {
+   "name": "jsonschema-path",
+   "version": "0.5.0",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Repository, https://github.com/p1c2u/jsonschema-path"
+  },
+  {
+   "name": "jsonschema-specifications",
+   "version": "2025.9.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://jsonschema-specifications.readthedocs.io/"
+  },
+  {
+   "name": "jugaad-data",
+   "version": "0.33.1",
+   "license_expression": null,
+   "license": "YOLO",
+   "classifiers": [],
+   "home": "Homepage, https://marketsetup.in/documentation/jugaad-data/"
+  },
+  {
+   "name": "keyring",
+   "version": "25.7.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Source, https://github.com/jaraco/keyring"
+  },
+  {
+   "name": "kiteconnect",
+   "version": "5.2.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://kite.trade"
+  },
+  {
+   "name": "lxml",
+   "version": "6.1.1",
+   "license_expression": null,
+   "license": "BSD-3-Clause",
+   "classifiers": [],
+   "home": "https://lxml.de/"
+  },
+  {
+   "name": "markdown-it-py",
+   "version": "4.2.0",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Documentation, https://markdown-it-py.readthedocs.io"
+  },
+  {
+   "name": "mcp",
+   "version": "1.27.1",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://modelcontextprotocol.io"
+  },
+  {
+   "name": "mdurl",
+   "version": "0.1.2",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/executablebooks/mdurl"
+  },
+  {
+   "name": "more-itertools",
+   "version": "11.0.2",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://more-itertools.readthedocs.io/en/stable/"
+  },
+  {
+   "name": "msgpack",
+   "version": "1.1.2",
+   "license_expression": "Apache-2.0",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://msgpack.org/"
+  },
+  {
+   "name": "multidict",
+   "version": "6.7.1",
+   "license_expression": null,
+   "license": "Apache License 2.0",
+   "classifiers": [],
+   "home": "https://github.com/aio-libs/multidict"
+  },
+  {
+   "name": "multitasking",
+   "version": "0.0.13",
+   "license_expression": null,
+   "license": "Apache",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "https://github.com/ranaroussi/multitasking"
+  },
+  {
+   "name": "nest-asyncio",
+   "version": "1.6.0",
+   "license_expression": null,
+   "license": "BSD",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "https://github.com/erdewit/nest_asyncio"
+  },
+  {
+   "name": "numpy",
+   "version": "2.4.4",
+   "license_expression": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+   "license": null,
+   "classifiers": [],
+   "home": "homepage, https://numpy.org"
+  },
+  {
+   "name": "oandapyV20",
+   "version": "0.7.2",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "http://github.com/hootnot/oanda-api-v20"
+  },
+  {
+   "name": "ollama",
+   "version": "0.6.2",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "homepage, https://ollama.com"
+  },
+  {
+   "name": "openai",
+   "version": "2.36.0",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Homepage, https://github.com/openai/openai-python"
+  },
+  {
+   "name": "openapi-pydantic",
+   "version": "0.5.1",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://github.com/mike-oakley/openapi-pydantic"
+  },
+  {
+   "name": "opentelemetry-api",
+   "version": "1.42.1",
+   "license_expression": "Apache-2.0",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/open-telemetry/opentelemetry-python/tree/main/opentelemetry-api"
+  },
+  {
+   "name": "packaging",
+   "version": "26.2",
+   "license_expression": "Apache-2.0 OR BSD-2-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://packaging.pypa.io/"
+  },
+  {
+   "name": "pandas",
+   "version": "3.0.3",
+   "license_expression": null,
+   "license": "BSD 3-Clause License",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "homepage, https://pandas.pydata.org"
+  },
+  {
+   "name": "pathable",
+   "version": "0.6.0",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Repository, https://github.com/p1c2u/pathable"
+  },
+  {
+   "name": "peewee",
+   "version": "4.0.6",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [],
+   "home": "Repository, https://github.com/coleifer/peewee"
+  },
+  {
+   "name": "platformdirs",
+   "version": "4.9.6",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Changelog, https://platformdirs.readthedocs.io/en/latest/changelog.html"
+  },
+  {
+   "name": "propcache",
+   "version": "0.5.2",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "https://github.com/aio-libs/propcache"
+  },
+  {
+   "name": "protobuf",
+   "version": "7.35.0",
+   "license_expression": null,
+   "license": "3-Clause BSD License",
+   "classifiers": [],
+   "home": "https://developers.google.com/protocol-buffers/"
+  },
+  {
+   "name": "py-key-value-aio",
+   "version": "0.4.4",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": null
+  },
+  {
+   "name": "pyasn1",
+   "version": "0.6.3",
+   "license_expression": null,
+   "license": "BSD-2-Clause",
+   "classifiers": [],
+   "home": "Homepage, https://github.com/pyasn1/pyasn1"
+  },
+  {
+   "name": "pyasn1_modules",
+   "version": "0.4.2",
+   "license_expression": null,
+   "license": "BSD",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "https://github.com/pyasn1/pyasn1-modules"
+  },
+  {
+   "name": "pycares",
+   "version": "5.0.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, http://github.com/saghul/pycares"
+  },
+  {
+   "name": "pycparser",
+   "version": "3.0",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/eliben/pycparser"
+  },
+  {
+   "name": "pydantic",
+   "version": "2.13.4",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/pydantic/pydantic"
+  },
+  {
+   "name": "pydantic_core",
+   "version": "2.46.4",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "https://github.com/pydantic/pydantic"
+  },
+  {
+   "name": "pydantic-settings",
+   "version": "2.14.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/pydantic/pydantic-settings"
+  },
+  {
+   "name": "Pygments",
+   "version": "2.20.0",
+   "license_expression": "BSD-2-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://pygments.org"
+  },
+  {
+   "name": "PyJWT",
+   "version": "2.12.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/jpadilla/pyjwt"
+  },
+  {
+   "name": "pyOpenSSL",
+   "version": "26.2.0",
+   "license_expression": null,
+   "license": "Apache License, Version 2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "https://pyopenssl.org/"
+  },
+  {
+   "name": "pypdf",
+   "version": "6.13.1",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Bug Reports, https://github.com/py-pdf/pypdf/issues"
+  },
+  {
+   "name": "pyperclip",
+   "version": "1.11.0",
+   "license_expression": null,
+   "license": "BSD",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "Homepage, https://github.com/asweigart/pyperclip"
+  },
+  {
+   "name": "python-dateutil",
+   "version": "2.9.0.post0",
+   "license_expression": null,
+   "license": "Dual License",
+   "classifiers": [
+    "OSI Approved :: BSD License",
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "https://github.com/dateutil/dateutil"
+  },
+  {
+   "name": "python-dotenv",
+   "version": "1.2.2",
+   "license_expression": null,
+   "license": "BSD-3-Clause",
+   "classifiers": [],
+   "home": "Source, https://github.com/theskumar/python-dotenv"
+  },
+  {
+   "name": "python-multipart",
+   "version": "0.0.29",
+   "license_expression": "Apache-2.0",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Homepage, https://github.com/Kludex/python-multipart"
+  },
+  {
+   "name": "pytz",
+   "version": "2026.2",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "http://pythonhosted.org/pytz"
+  },
+  {
+   "name": "PyYAML",
+   "version": "6.0.3",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://pyyaml.org/"
+  },
+  {
+   "name": "QuantLib",
+   "version": "1.42.1",
+   "license_expression": null,
+   "license": "BSD-3-Clause",
+   "classifiers": [],
+   "home": "https://www.quantlib.org"
+  },
+  {
+   "name": "referencing",
+   "version": "0.37.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://referencing.readthedocs.io/"
+  },
+  {
+   "name": "requests",
+   "version": "2.34.2",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Documentation, https://requests.readthedocs.io"
+  },
+  {
+   "name": "rich",
+   "version": "14.3.4",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Documentation, https://rich.readthedocs.io/en/latest/"
+  },
+  {
+   "name": "rich-rst",
+   "version": "2.0.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Bug Tracker, https://github.com/wasi-master/rich-rst/issues"
+  },
+  {
+   "name": "rpds-py",
+   "version": "0.30.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://rpds.readthedocs.io/"
+  },
+  {
+   "name": "sdmx1",
+   "version": "2.26.0",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Homepage, https://github.com/khaeru/sdmx"
+  },
+  {
+   "name": "service-identity",
+   "version": "24.2.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Documentation, https://service-identity.readthedocs.io/"
+  },
+  {
+   "name": "setuptools",
+   "version": "82.0.1",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Source, https://github.com/pypa/setuptools"
+  },
+  {
+   "name": "sgmllib3k",
+   "version": "1.0.0",
+   "license_expression": null,
+   "license": "BSD License",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "http://hg.hardcoded.net/sgmllib"
+  },
+  {
+   "name": "six",
+   "version": "1.17.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://github.com/benjaminp/six"
+  },
+  {
+   "name": "smartapi-python",
+   "version": "1.5.5",
+   "license_expression": null,
+   "license": null,
+   "classifiers": [],
+   "home": "https://github.com/angelbroking-github/smartapi-python"
+  },
+  {
+   "name": "sniffio",
+   "version": "1.3.1",
+   "license_expression": null,
+   "license": "MIT OR Apache-2.0",
+   "classifiers": [
+    "OSI Approved :: MIT License",
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "Homepage, https://github.com/python-trio/sniffio"
+  },
+  {
+   "name": "soupsieve",
+   "version": "2.8.3",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Homepage, https://github.com/facelessuser/soupsieve"
+  },
+  {
+   "name": "sse-starlette",
+   "version": "3.4.4",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/sysid/sse-starlette"
+  },
+  {
+   "name": "sseclient-py",
+   "version": "1.9.0",
+   "license_expression": null,
+   "license": "Apache Software License v2",
+   "classifiers": [],
+   "home": null
+  },
+  {
+   "name": "starlette",
+   "version": "1.0.0",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/Kludex/starlette"
+  },
+  {
+   "name": "tabulate",
+   "version": "0.10.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/astanin/python-tabulate"
+  },
+  {
+   "name": "tenacity",
+   "version": "9.1.4",
+   "license_expression": null,
+   "license": "Apache 2.0",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "https://github.com/jd/tenacity"
+  },
+  {
+   "name": "tqdm",
+   "version": "4.67.3",
+   "license_expression": null,
+   "license": "MPL-2.0 AND MIT",
+   "classifiers": [],
+   "home": "homepage, https://tqdm.github.io"
+  },
+  {
+   "name": "Twisted",
+   "version": "26.4.0",
+   "license_expression": null,
+   "license": "MIT License",
+   "classifiers": [],
+   "home": "Changelog, https://github.com/twisted/twisted/blob/HEAD/NEWS.rst"
+  },
+  {
+   "name": "txaio",
+   "version": "25.12.2",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://txaio.readthedocs.io/"
+  },
+  {
+   "name": "typing_extensions",
+   "version": "4.15.0",
+   "license_expression": "PSF-2.0",
+   "license": null,
+   "classifiers": [],
+   "home": "Bug Tracker, https://github.com/python/typing_extensions/issues"
+  },
+  {
+   "name": "typing-inspection",
+   "version": "0.4.2",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Homepage, https://github.com/pydantic/typing-inspection"
+  },
+  {
+   "name": "tzdata",
+   "version": "2025.3",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [],
+   "home": "https://github.com/python/tzdata"
+  },
+  {
+   "name": "uncalled-for",
+   "version": "0.3.2",
+   "license_expression": null,
+   "license": "# Released under MIT License",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "Repository, https://github.com/chrisguidry/uncalled-for"
+  },
+  {
+   "name": "urllib3",
+   "version": "2.7.0",
+   "license_expression": "MIT",
+   "license": null,
+   "classifiers": [],
+   "home": "Changelog, https://github.com/urllib3/urllib3/blob/main/CHANGES.rst"
+  },
+  {
+   "name": "uvicorn",
+   "version": "0.46.0",
+   "license_expression": "BSD-3-Clause",
+   "license": null,
+   "classifiers": [],
+   "home": "Changelog, https://uvicorn.dev/release-notes"
+  },
+  {
+   "name": "uvloop",
+   "version": "0.22.1",
+   "license_expression": null,
+   "license": "MIT License",
+   "classifiers": [
+    "OSI Approved :: Apache Software License",
+    "OSI Approved :: MIT License"
+   ],
+   "home": "github, https://github.com/MagicStack/uvloop"
+  },
+  {
+   "name": "vaderSentiment",
+   "version": "3.3.2",
+   "license_expression": null,
+   "license": "MIT License",
+   "classifiers": [],
+   "home": "https://github.com/cjhutto/vaderSentiment"
+  },
+  {
+   "name": "watchfiles",
+   "version": "1.2.0",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [
+    "OSI Approved :: MIT License"
+   ],
+   "home": "https://github.com/samuelcolvin/watchfiles"
+  },
+  {
+   "name": "wbgapi",
+   "version": "1.0.14",
+   "license_expression": null,
+   "license": "MIT",
+   "classifiers": [],
+   "home": "https://github.com/tgherzog/wbgapi"
+  },
+  {
+   "name": "websockets",
+   "version": "15.0.1",
+   "license_expression": null,
+   "license": "BSD-3-Clause",
+   "classifiers": [
+    "OSI Approved :: BSD License"
+   ],
+   "home": "Homepage, https://github.com/python-websockets/websockets"
+  },
+  {
+   "name": "yarl",
+   "version": "1.24.2",
+   "license_expression": null,
+   "license": "Apache-2.0",
+   "classifiers": [],
+   "home": "https://github.com/aio-libs/yarl"
+  },
+  {
+   "name": "yfinance",
+   "version": "1.3.0",
+   "license_expression": null,
+   "license": "Apache",
+   "classifiers": [
+    "OSI Approved :: Apache Software License"
+   ],
+   "home": "https://github.com/ranaroussi/yfinance"
+  },
+  {
+   "name": "zope.interface",
+   "version": "8.4",
+   "license_expression": "ZPL-2.1",
+   "license": null,
+   "classifiers": [],
+   "home": "Documentation, https://zopeinterface.readthedocs.io"
+  }
+ ]
+}

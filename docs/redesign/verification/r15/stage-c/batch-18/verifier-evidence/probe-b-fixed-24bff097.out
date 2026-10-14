@@ -1,0 +1,7 @@
+FAIL [TRUE] x-news-data-shows: "The news tool returned no data for this in this turn.\n"
+PASS [TRUE] x-research-shows: "Research shows Apple's services margin is 70%, per Reuters.\n"
+PASS [TRUE] x-news-outlets-report: "News outlets report AAPL rose 3% to $190.\n"
+PASS [TRUE] x-according-to-fundamentals-analysis: "According to fundamentals analysts, fair value is $210; the price is $190.\n"
+PASS [FAB] x-fab-according-news-tool: "The news tool returned no data for this in this turn.\n"
+PASS [FAB] x-fab-per-backtick-news: "The news tool returned no data for this in this turn.\n"
+BAD 1

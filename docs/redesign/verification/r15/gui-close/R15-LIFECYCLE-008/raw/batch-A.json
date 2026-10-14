@@ -1,0 +1,568 @@
+[
+{
+"cmd": "click",
+"x": 769,
+"y": 598
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close/R15-LIFECYCLE-008/1fddb2b-02-after-terms.png"
+},
+{
+"cmd": "click",
+"x": 502,
+"y": 728
+},
+{
+"cmd": "wait",
+"seconds": 2
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close/R15-LIFECYCLE-008/1fddb2b-03-after-onboarding.png"
+},
+{
+"cmd": "key",
+"combo": "cmd+,"
+},
+{
+"cmd": "wait",
+"seconds": 4
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close/R15-LIFECYCLE-008/1fddb2b-04-settings-open.png"
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.4
+},
+{
+"cmd": "wait",
+"seconds": 1.5
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close/R15-LIFECYCLE-008/1fddb2b-05-settings-bottom.png"
+},
+{
+"cmd": "click",
+"x": 582,
+"y": 452
+},
+{
+"cmd": "wait",
+"seconds": 3
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close/R15-LIFECYCLE-008/1fddb2b-06-after-first-copy-diagnostics-click.png"
+},
+{
+"cmd": "click",
+"x": 582,
+"y": 467
+},
+{
+"cmd": "wait",
+"seconds": 3
+},
+{
+"cmd": "click",
+"x": 582,
+"y": 482
+},
+{
+"cmd": "wait",
+"seconds": 3
+},
+{
+"cmd": "click",
+"x": 582,
+"y": 497
+},
+{
+"cmd": "wait",
+"seconds": 3
+},
+{
+"cmd": "click",
+"x": 582,
+"y": 512
+},
+{
+"cmd": "wait",
+"seconds": 3
+},
+{
+"cmd": "click",
+"x": 582,
+"y": 527
+},
+{
+"cmd": "wait",
+"seconds": 3
+},
+{
+"cmd": "click",
+"x": 582,
+"y": 542
+},
+{
+"cmd": "wait",
+"seconds": 3
+},
+{
+"cmd": "click",
+"x": 582,
+"y": 557
+},
+{
+"cmd": "wait",
+"seconds": 3
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close/R15-LIFECYCLE-008/1fddb2b-07-after-click-sweep.png"
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "click",
+"x": 720,
+"y": 805
+},
+{
+"cmd": "wait",
+"seconds": 0.5
+},
+{
+"cmd": "wait",
+"seconds": 1
+},
+{
+"cmd": "capture",
+"out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close/R15-LIFECYCLE-008/1fddb2b-08-status-line.png"
+}
+]

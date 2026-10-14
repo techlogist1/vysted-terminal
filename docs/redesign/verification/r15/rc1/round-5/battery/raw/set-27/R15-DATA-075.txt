@@ -1,0 +1,5 @@
+candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98 in-process repro via /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/.venv/bin/python3, cwd=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar
+=== R15-DATA-075 ===
+CMD: fetch_page('https://www.bseindia.com/xml-data/corpfiling/AttachLive/000000_stale_test.pdf') [live BSE AttachLive host, expect retry+backoff+AttachHis fallback per _fetch_bse_pdf]
+OUTPUT: ok=False error='HTTP 404'
+

@@ -1,0 +1,17 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_a2babefa0e1d40a7b12322ce65302052", "name": "fundamentals", "input": {"__vysted_invalid_args__": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}}
+[  43.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_eb8ef7af552a44fc96dd9ce4e17979bb", "name": "fundamentals", "input": {"__vysted_invalid_args__": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}}
+[  47.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_3189649be98442f9ac2ace8d5ffd6315", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+[  47.4s] tool_result: {"kind": "tool_result", "tool_call_id": "call_a2babefa0e1d40a7b12322ce65302052", "name": "fundamentals", "ok": false, "error": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}
+[  47.4s] tool_result: {"kind": "tool_result", "tool_call_id": "call_eb8ef7af552a44fc96dd9ce4e17979bb", "name": "fundamentals", "ok": false, "error": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}
+[  51.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_3189649be98442f9ac2ace8d5ffd6315", "name": "fundamentals", "ok": true, "error": null}
+[  61.7s] heartbeat: {"kind": "heartbeat"}
+[  71.7s] heartbeat: {"kind": "heartbeat"}
+[  76.0s] done: {"kind": "done", "usage": {"input_tokens": 6055, "output_tokens": 24, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Apple's P/E ratio is 38.955067 and its market cap is USD 4.96T.
+
+=== ok · 76.0s · events {'heartbeat': 5, 'tool_use': 3, 'tool_result': 3, 'delta': 23, 'done': 1} · usage in=6055 out=24 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,9 @@
+ENTRY: R15-UI-017 -- ci_pinned
+605:    await waitFor(() => expect(screen.getByText(/No API key for anthropic/i)).toBeInTheDocument());
+615:    await waitFor(() => expect(screen.getByText(/No API key for anthropic/i)).toBeInTheDocument());
+--- source still gates before appendUser ---
+398:  const appendUser = useChatHistoryStore((state) => state.appendUserMessage);
+818:            `No API key for ${providerLabel}. Add one in Settings → AI Providers (or /key set ${provider}).`,
+862:      appendUser(prompt);
+1119:            // (the thread within its character budget, captured above BEFORE appendUser,
+1164:      appendUser,

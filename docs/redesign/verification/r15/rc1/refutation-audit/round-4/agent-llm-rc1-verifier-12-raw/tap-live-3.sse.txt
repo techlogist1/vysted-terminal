@@ -1,0 +1,136 @@
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "tool_use", "tool_call_id": "call_5c3ecdd5fd884be88756213c87a85556", "name": "portfolio_delete_position", "input": {"position_id": "<delete position id>"}}
+
+data: {"kind": "tool_result", "tool_call_id": "call_5c3ecdd5fd884be88756213c87a85556", "name": "portfolio_delete_position", "ok": true, "error": null}
+
+data: {"kind": "delta", "text": "You"}
+
+data: {"kind": "delta", "text": " asked"}
+
+data: {"kind": "delta", "text": " me"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " delete"}
+
+data: {"kind": "delta", "text": " T"}
+
+data: {"kind": "delta", "text": "CS"}
+
+data: {"kind": "delta", "text": " from"}
+
+data: {"kind": "delta", "text": " your"}
+
+data: {"kind": "delta", "text": " portfolio"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "The"}
+
+data: {"kind": "delta", "text": " action"}
+
+data: {"kind": "delta", "text": " has"}
+
+data: {"kind": "delta", "text": " been"}
+
+data: {"kind": "delta", "text": " dispatched"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " panel"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " and"}
+
+data: {"kind": "delta", "text": " you"}
+
+data: {"kind": "delta", "text": " can"}
+
+data: {"kind": "delta", "text": " verify"}
+
+data: {"kind": "delta", "text": " its"}
+
+data: {"kind": "delta", "text": " status"}
+
+data: {"kind": "delta", "text": " by"}
+
+data: {"kind": "delta", "text": " checking"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " panel"}
+
+data: {"kind": "delta", "text": " state"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "Once"}
+
+data: {"kind": "delta", "text": " confirmed"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " deletion"}
+
+data: {"kind": "delta", "text": " should"}
+
+data: {"kind": "delta", "text": " be"}
+
+data: {"kind": "delta", "text": " processed"}
+
+data: {"kind": "delta", "text": ".\n\n"}
+
+data: {"kind": "delta", "text": "Note"}
+
+data: {"kind": "delta", "text": ":"}
+
+data: {"kind": "delta", "text": " Please"}
+
+data: {"kind": "delta", "text": " check"}
+
+data: {"kind": "delta", "text": " your"}
+
+data: {"kind": "delta", "text": " portfolio"}
+
+data: {"kind": "delta", "text": " for"}
+
+data: {"kind": "delta", "text": " any"}
+
+data: {"kind": "delta", "text": " further"}
+
+data: {"kind": "delta", "text": " actions"}
+
+data: {"kind": "delta", "text": " or"}
+
+data: {"kind": "delta", "text": " confirm"}
+
+data: {"kind": "delta", "text": "ations"}
+
+data: {"kind": "delta", "text": " needed"}
+
+data: {"kind": "delta", "text": " after"}
+
+data: {"kind": "delta", "text": " this"}
+
+data: {"kind": "delta", "text": " request"}
+
+data: {"kind": "delta", "text": " is"}
+
+data: {"kind": "delta", "text": " processed"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "done", "usage": {"input_tokens": 2865, "output_tokens": 62, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

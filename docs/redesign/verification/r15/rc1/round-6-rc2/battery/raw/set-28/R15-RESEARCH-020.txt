@@ -1,0 +1,17 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p020.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import asyncio, httpx
+from services.search.searxng import SearxngBackend
+from services.search import ddg, searxng
+rows=[{"url":f"https://ex{i}.com/p","title":f"t{i}","content":"c"} for i in range(40)]
+def h(req): return httpx.Response(200,json={"results":rows})
+async def main():
+    async with httpx.AsyncClient(transport=httpx.MockTransport(h)) as c:
+        b=SearxngBackend("http://127.0.0.1:1",client=c)
+        r=await b.search("q",options={"numResults":3,"category":"general","region":"IN"})
+        print("results",len(r.results),"citations",len(r.citations))
+asyncio.run(main())
+--- output ---
+results 3 citations 3
+EXIT=0

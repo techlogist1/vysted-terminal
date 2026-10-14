@@ -1,0 +1,94 @@
+sha: 68d5573aff9a579af084dcbb124843f2aecff6e8 (read-only copy of worktree src at scratchpad/vs2/fe)
+$ ./node_modules/.bin/vitest run src/store/VS2D006.test.ts
+
+describe("vshard-2 fresh cases (R15-CODE-DATA-006)", () => {
+  it("fresh: run A's STREAM result frame lands after run B finished -> B's result/status untouched", async () => {
+    const RESULT_A: ScreenerResult = { ...RESULT_SAMPLE, universe: "nifty50", rows: [] };
+    const encoder = new TextEncoder();
+    let pushA!: () => void;
+    const streamA = new ReadableStream({
+      start(c) {
+        c.enqueue(encoder.encode(`data: ${JSON.stringify({ event: "progress", phase: "sweep", done: 1, total: 9, detail: "a" })}\n\n`));
+        pushA = () => {
+          c.enqueue(encoder.encode(`data: ${JSON.stringify({ event: "result", ...RESULT_A })}\n\n`));
+          c.close();
+        };
+      },
+    });
+    let calls = 0;
+    vi.spyOn(globalThis, "fetch").mockImplementation(async () => {
+      calls++;
+      if (calls === 1) return new Response(streamA, { status: 200, headers: { "Content-Type": "text/event-stream" } });
+      return makeStreamResponse(RESULT_SAMPLE);
+    });
+    const runA = useScreenerStore.getState().runScreener();
+    await vi.waitFor(() => expect(calls).toBe(1));
+    await useScreenerStore.getState().runScreener();
+    pushA();
+    expect(await runA).toBeNull();
+    expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
+    expect(useScreenerStore.getState().status).toBe("ready");
+    expect(useScreenerStore.getState().progress).toBeNull();
+  });
+
+  it("adjacent probe: a run rejected by the formula pre-flight while run A is in flight — does A's late result overwrite the formula error?", async () => {
+    let resolveA!: (r: Response) => void;
+    const pending = new Promise<Response>((r) => (resolveA = r));
+    vi.spyOn(globalThis, "fetch").mockImplementation(async () => pending);
+    const runA = useScreenerStore.getState().runScreener();
+    await vi.waitFor(() => expect(useScreenerStore.getState().status).toBe("loading"));
+    useScreenerStore.getState().setFormula("pe < (");
+    await useScreenerStore.getState().runScreener();
+    const afterPreflight = { status: useScreenerStore.getState().status, error: useScreenerStore.getState().error };
+    resolveA(makeStreamResponse(RESULT_SAMPLE));
+    await runA;
+    const final = { status: useScreenerStore.getState().status, error: useScreenerStore.getState().error, hasResult: useScreenerStore.getState().lastResult !== null };
+    expect({ afterPreflight, final }).toEqual({ afterPreflight, final: { ...afterPreflight, hasResult: false } });
+  });
+});
+--- output
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs2/fe
+
+ ❯ src/store/VS2D006.test.ts (2 tests | 1 failed) 64ms
+     × adjacent probe: a run rejected by the formula pre-flight while run A is in flight — does A's late result overwrite the formula error? 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/store/VS2D006.test.ts > vshard-2 fresh cases (R15-CODE-DATA-006) > adjacent probe: a run rejected by the formula pre-flight while run A is in flight — does A's late result overwrite the formula error?
+AssertionError: expected { afterPreflight: { …(2) }, …(1) } to deeply equal { afterPreflight: { …(2) }, …(1) }
+
+- Expected
++ Received
+
+@@ -2,10 +2,10 @@
+    "afterPreflight": {
+      "error": "Formula: unexpected end of formula (col 7)",
+      "status": "error",
+    },
+    "final": {
+-     "error": "Formula: unexpected end of formula (col 7)",
+-     "hasResult": false,
+-     "status": "error",
++     "error": null,
++     "hasResult": true,
++     "status": "ready",
+    },
+  }
+
+ ❯ src/store/VS2D006.test.ts:164:39
+    162|     await runA;
+    163|     const final = { status: useScreenerStore.getState().status, error:…
+    164|     expect({ afterPreflight, final }).toEqual({ afterPreflight, final:…
+       |                                       ^
+    165|   });
+    166| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  05:26:46
+   Duration  847ms (transform 58ms, setup 82ms, import 52ms, tests 64ms, environment 531ms)
+

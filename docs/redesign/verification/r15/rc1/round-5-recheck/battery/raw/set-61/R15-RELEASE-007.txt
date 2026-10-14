@@ -1,0 +1,23 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+method: repo file reads + direct script run on the candidate worktree (not
+via pnpm ci-local, which the heavy lane owns).
+
+grep -n audit-design package.json:
+  10:    "lint": "eslint . && node scripts/audit-design-tokens.mjs",
+grep -rn audit-design .github/workflows/: no direct hit, but lint.yml runs
+  "pnpm lint" which now chains the audit — matches the fix_shape's "no
+  workflow edit" instruction.
+package.json ci-local (line 20) runs "pnpm lint" as its 3rd step, so the
+audit is on the ci-local path too.
+
+cmd: cd <candidate>; node scripts/audit-design-tokens.mjs
+output: "design-token audit clean (373 files)"
+EXIT=0
+
+observed: the audit is wired into package.json's lint script (and therefore
+into ci-local and the lint workflow) — no longer "runs in no script, gate or
+workflow" as the entry originally found. The tree is currently clean (0
+off-grid hits), consistent with batch-12's fix that also cleaned up the
+pre-existing violations found by the not-certified batch-11 attempt.
+
+verdict: holds

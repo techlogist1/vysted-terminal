@@ -1,0 +1,8 @@
+# R15-DATA-066: batch1 (cold) wall=86s, batch2 (warm) wall=0s, full count in -warm-count.txt (20 quotes, nse_direct, eod)
+R15-DATA-066-batch1.txt:# wall_seconds=86 count=       5
+R15-DATA-066-batch2.txt:# wall_seconds=0 count=       5
+# warm re-run, 20 NIFTY names, full count (ace7dd76 :52359)
+real 0.00
+user 0.00
+sys 0.00
+20 quotes; ['ASIANPAINT.NS', 'AXISBANK.NS', 'BHARTIARTL.NS', 'HDFCBANK.NS', 'HINDUNILVR.NS'] providers ['nse_direct'] freshness ['eod']

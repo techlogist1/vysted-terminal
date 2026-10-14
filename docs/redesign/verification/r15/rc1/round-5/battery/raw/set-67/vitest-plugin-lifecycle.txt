@@ -1,0 +1,1914 @@
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand
+
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — lifecycle > discover transitions a plugin to `discovered` 2ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — lifecycle > discover is idempotent — re-discovery returns the existing record 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — lifecycle > loadPlugin runs initialize and transitions to `active` 1ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — lifecycle > loadPlugin captures init errors and transitions to `error` 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — lifecycle > loadPlugin honours a persisted disabled config (no initialize) 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — lifecycle > loadPlugin persists a default config the first time it runs 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — lifecycle > loadPlugin is idempotent, while reloadPlugin re-runs initialize with fresh secrets 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — lifecycle > unloadPlugin runs shutdown and transitions to `stopped` 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — lifecycle > unloadPlugin captures shutdown errors and transitions to `error` 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — lifecycle > unloadPlugin returns undefined for unknown ids 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — capability negotiation > only calls getDataSources when contributesData is true 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — capability negotiation > calls getDataSources when contributesData is true 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — capability negotiation > calls getCommands only when contributesCommands is true 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — capability negotiation > calls getPanels only when contributesPanels is true 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — capability negotiation > flag set with missing getter emits an `errored` event but does not throw 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — capability negotiation > inactive plugins contribute nothing 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — health checks > appends each healthCheck sample to the rolling history 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — health checks > rolls history off the oldest end at HEALTH_HISTORY_LIMIT samples 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — health checks > emits `health-changed` only when the latest sample's status differs 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — health checks > a healthCheck that throws transitions the plugin to `error` 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — events > emits discovered → loaded → started → stopped across the lifecycle 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — events > listener errors do not break runtime state 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — events > subscribe returns an unsubscribe function 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — config wiring > hands initialize() the resolved data dir, sidecar URL, host version, secrets 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — compatibility validation (FR-054 / SC-015) > rejects a manifest id that does not match the instance pluginId 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — compatibility validation (FR-054 / SC-015) > rejects a manifest version that does not match the instance version 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — compatibility validation (FR-054 / SC-015) > rejects a plugin whose requiredHostVersion the host does not satisfy 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — compatibility validation (FR-054 / SC-015) > loads a compatible plugin (host satisfies requiredHostVersion) 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — compatibility validation (FR-054 / SC-015) > an incompatible plugin contributes nothing (no silent load) 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — compatibility validation (FR-054 / SC-015) > emits an `errored` event when a plugin is rejected at load 0ms
+ ✓ src/lib/plugin-runtime.test.ts > hostSatisfies (semver host-compat check) > is true when host == required 0ms
+ ✓ src/lib/plugin-runtime.test.ts > hostSatisfies (semver host-compat check) > is true when host > required 0ms
+ ✓ src/lib/plugin-runtime.test.ts > hostSatisfies (semver host-compat check) > is false when host < required 0ms
+ ✓ src/lib/plugin-runtime.test.ts > hostSatisfies (semver host-compat check) > ignores pre-release / build metadata 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — enable/disable own persistence and the host bridge > disablePlugin persists enabled:false and detaches the plugin's contributions 0ms
+ ✓ src/lib/plugin-runtime.test.ts > PluginRuntime — the one never-persisted default (R15-CODE-PLATFORM-013) > a patch or load of a never-seen plugin uses defaultEnabled, never a hard-coded true 0ms
+stdout | src/lib/workspace.test.ts > workspace serialization > migrates pre-R9 searchSettings blobs into the two-tier vocabulary on restore
+[search-settings] migrated hosted/Exa research selection demoted to Unlimited (Local): no OpenRouter key is configured (legacy-blob migration).
+
+stderr | src/lib/workspace.test.ts > restoreLastSessionOrDefault — boot-crash guards > re-bases on a clean grid when the restore fetch fails
+[workspace] session restore failed; using default layout. Error: Load failed
+    at /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.test.ts:1196:15
+    at Mock (file:///private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/node_modules/.pnpm/@vitest+spy@4.1.6/node_modules/@vitest/spy/dist/index.js:332:34)
+    at restoreSession (/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.ts:977:28)
+    at Module.restoreLastSessionOrDefault (/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.ts:951:21)
+    at /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.test.ts:1200:22
+    at file:///private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/node_modules/.pnpm/@vitest+runner@4.1.6/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+stderr | src/lib/workspace.test.ts > restoreLastSessionOrDefault — boot-crash guards > re-bases on a clean grid when the restore fetch fails
+[workspace] could not read the legacy portfolio ledger. Error: Load failed
+    at /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.test.ts:1196:15
+    at Mock (file:///private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/node_modules/.pnpm/@vitest+spy@4.1.6/node_modules/@vitest/spy/dist/index.js:332:34)
+    at fetchLegacyPositions (/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/modules/portfolio/api.ts:70:26)
+    at importLegacyPositions (/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.ts:1014:22)
+    at restoreSession (/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.ts:998:61)
+    at Module.restoreLastSessionOrDefault (/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.ts:951:21)
+    at /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.test.ts:1200:22
+    at file:///private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/node_modules/.pnpm/@vitest+runner@4.1.6/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+ ✓ src/lib/workspace.test.ts > workspace serialization > serializeWorkspace captures the layout, enabled map, drawings, default provider, and watchlist 2ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > round-trips keybinding overrides and the settings bundle (FR-037/038/039) 2ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > a v0 blob (no schemaVersion) restores and re-serializes at the current version (R15-LIFECYCLE-024) 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > the watchlist round-trip keeps a picked listing's region; older and unknown regions restore region-less (R15-DATA-002) 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > a blob from a newer build restores as it is, never downgraded (R15-LIFECYCLE-024) 1ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > deserializeWorkspace tolerates an older blob with no keybindings/settings 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > migrates pre-R9 searchSettings blobs into the two-tier vocabulary on restore 1ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > an R9-era blob restores its researchTier + models verbatim — never rerouted 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > round-trips the agent mode, dock geometry, and model overrides (FR-003/004) 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > round-trips a maximized agent dock with its restore width; an older blob restores un-maximized (R15-UI-084) 1ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > keeps a current-blob live-catalog model override the static list can't know 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > drops a legacy model override with no trust marker (llama3.1:8b shadowing fix) 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > drops a model override from a pre-current trust version (the R3 v2->v3 bump) 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > deserializeWorkspace restores a persisted watchlist 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > round-trips: serialize then deserialize restores the layout and enabled map 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > never persists plugin:* flags, and a blob with plugin:x=false keeps an enabled plugin on (R15-CODE-PLATFORM-013) 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > serializeWorkspace throws when the dockview layout is not ready 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > saveWorkspace POSTs the serialized workspace to the sidecar 1ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > createResearchSpace builds a per-stock cockpit and saves it under 'Research: TICKER' 1ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > opening a research space mid-stream stops the reply and parks it, stopped, under the chat tab (R15-CODE-FRONTEND-002) 1ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > createResearchSpace rejects an empty ticker 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > a failed research-space save puts the cockpit back and surfaces the sidecar's reason (R15-CODE-FRONTEND-004) 1ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > loading a named workspace never rolls back portfolios or notes (R15-CODE-FRONTEND-001) 1ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > loadWorkspace fetches from the sidecar and applies the workspace 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > saveWorkspace rejects an empty name 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > round-trips chart drawings through workspace JSON (Phase 2) 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > round-trips each chart panel's view and adopts an older blob's drawings (R15-UI-020) 0ms
+ ✓ src/lib/workspace.test.ts > workspace serialization > loadWorkspace without chartDrawings clears any pre-existing drawings 0ms
+ ✓ src/lib/workspace.test.ts > research-space typed field + per-space memory (S-19) > detects a research space by the TYPED researchSymbol field, not the name 0ms
+ ✓ src/lib/workspace.test.ts > research-space typed field + per-space memory (S-19) > BACK-COMPAT: an OLD prefix-only blob (no field) still resolves the symbol 0ms
+ ✓ src/lib/workspace.test.ts > research-space typed field + per-space memory (S-19) > a literal 'Research: ' with a blank suffix is NOT a research space 0ms
+ ✓ src/lib/workspace.test.ts > research-space typed field + per-space memory (S-19) > isResearchSpace / researchSymbolOf prefer the field, fall back to the prefix 0ms
+ ✓ src/lib/workspace.test.ts > research-space typed field + per-space memory (S-19) > serializeWorkspace emits the typed field while IN a research space 0ms
+ ✓ src/lib/workspace.test.ts > research-space typed field + per-space memory (S-19) > AUTOSAVE path: memory keys by the canonical space name, not the file name 0ms
+ ✓ src/lib/workspace.test.ts > research-space typed field + per-space memory (S-19) > persists a research space's chat transcript and restores it on re-entry 0ms
+ ✓ src/lib/workspace.test.ts > research-space typed field + per-space memory (S-19) > switching from one research space to another swaps their transcripts 0ms
+ ✓ src/lib/workspace.test.ts > restoreLastSessionOrDefault — boot-crash guards > skips to default (no mutation) when the api was replaced during the fetch 0ms
+ ✓ src/lib/workspace.test.ts > restoreLastSessionOrDefault — boot-crash guards > skips to a clean default when the saved layout references an unregistered component 0ms
+ ✓ src/lib/workspace.test.ts > restoreLastSessionOrDefault — boot-crash guards > restores holdings, notes and watchlist even when the saved layout has an unregistered panel (R15-LIFECYCLE-002) 0ms
+ ✓ src/lib/workspace.test.ts > restoreLastSessionOrDefault — boot-crash guards > loadWorkspace falls back to the default layout when no saved panel is registered, leaving the notes alone 0ms
+ ✓ src/lib/workspace.test.ts > restoreLastSessionOrDefault — boot-crash guards > strips an unregistered panel from the saved layout and restores the rest, with every data slice and no autosave (R15-LIFECYCLE-002) 2ms
+ ✓ src/lib/workspace.test.ts > restoreLastSessionOrDefault — boot-crash guards > re-bases on a clean grid when the restore fetch fails 4ms
+ ✓ src/lib/workspace.test.ts > workspace restore archives the brief (R10 D39) > a restored blob's brief lands archived('restored') — never as current 0ms
+ ✓ src/lib/workspace.test.ts > workspace restore archives the brief (R10 D39) > an OLDER blob's brief (no execution record) restores fine — archived too 0ms
+ ✓ src/lib/workspace.test.ts > persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018) > shows a not-saving error after 3 failed autosaves in a row and clears it on success (R15-CODE-FRONTEND-019) 2ms
+ ✓ src/lib/workspace.test.ts > persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018) > hides the reserved __autosave__ slot and refuses reserved names (R15-UI-046) 1ms
+ ✓ src/lib/workspace.test.ts > persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018) > autosaves nothing during the launch restore; the first save after it carries the research space 1ms
+ ✓ src/lib/workspace.test.ts > persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018) > every declared blob key is written by a registered slice, and each slice's change autosaves 7ms
+ ✓ src/lib/workspace.test.ts > persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018) > a setter that rejects its input schedules no autosave 1ms
+ ✓ src/lib/workspace.test.ts > persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018) > saved screens survive serialize, a fresh store and deserialize 0ms
+ ✓ src/lib/workspace.test.ts > legacy positions import (R15-LIFECYCLE-009) > imports the ledger once into a blob that never carried portfolios, and saves the import 1ms
+ ✓ src/lib/workspace.test.ts > legacy positions import (R15-LIFECYCLE-009) > never reads the ledger for a blob whose portfolios the user emptied 0ms
+ ✓ src/store/workspace.test.ts > layout name helpers > the autosave slot is a reserved name 1ms
+ ✓ src/store/workspace.test.ts > layout name helpers > user layout names are not reserved 0ms
+ ✓ src/store/workspace.test.ts > layout name helpers > treats any double-underscore-prefixed name as reserved/internal 0ms
+ ✓ src/store/workspace.test.ts > openPanel chart dedup (singleton) > a second openPanel('chart') reuses the SAME literal-id panel, never mints a duplicate 1ms
+ ✓ src/store/workspace.test.ts > the two resets stay distinct (R15-AGENT-056) > resetToDefaultLayout (Settings / menu) is the factory reset: drawings and module choices go 1ms
+ ✓ src/store/workspace.test.ts > the two resets stay distinct (R15-AGENT-056) > resetLayout only re-arranges the panels 0ms
+ ✓ src/store/workspace.test.ts > the two resets stay distinct (R15-AGENT-056) > resetToDefaultLayout keeps lifecycle-owned plugin:* flags (R15-CODE-PLATFORM-013) 0ms
+ ✓ src/store/modules.test.ts > modules store > registers modules and enables them all 1ms
+ ✓ src/store/modules.test.ts > modules store > disabling a module drops its panels and commands 1ms
+ ✓ src/store/modules.test.ts > modules store > findPanel locates a panel spec by id 0ms
+ ✓ src/store/modules.test.ts > modules store > findPanel still resolves panels of disabled modules 0ms
+ ✓ src/store/modules.test.ts > modules store > setEnabledMap replaces the whole enabled map 0ms
+ ✓ src/store/modules.test.ts > modules store > setEnabledMap keeps the live plugin:* flags and ignores incoming ones (R15-CODE-PLATFORM-013) 0ms
+ ✓ src/store/modules.test.ts > modules store > appendModules adds new modules and preserves the existing enabled map 0ms
+ ✓ src/store/modules.test.ts > modules store > appendModules deduplicates against the existing registry 0ms
+ ✓ src/store/modules.test.ts > modules store > appendModules into an empty registry adds modules and enables them 0ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > lists every registered module
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > lists every registered module
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > lists every registered module
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DefaultsGroup inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > toggling a module updates the modules store
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > toggling a module updates the modules store
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > toggling a module updates the modules store
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > toggling a bridged plugin module routes through the marketplace lifecycle, not setModuleEnabled directly
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > toggling a bridged plugin module routes through the marketplace lifecycle, not setModuleEnabled directly
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > lists every registered module 162ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > toggling a module updates the modules store 67ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > toggling a bridged plugin module routes through the marketplace lifecycle, not setModuleEnabled directly
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the platform module toggle is not user-disableable
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the platform module toggle is not user-disableable
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the platform module toggle is not user-disableable
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > renders a keybinding with its formatted combo
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > renders a keybinding with its formatted combo
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > toggling a bridged plugin module routes through the marketplace lifecycle, not setModuleEnabled directly 57ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > the platform module toggle is not user-disableable 49ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > renders a keybinding with its formatted combo
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > keeps every keybinding row's label column flex-1 so the cluster never wraps on copy length (D2)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > keeps every keybinding row's label column flex-1 so the cluster never wraps on copy length (D2)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > keeps every keybinding row's label column flex-1 so the cluster never wraps on copy length (D2)
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > recording a key remaps the binding via setBinding, collapsing the platform-primary modifier to mod
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > recording a key remaps the binding via setBinding, collapsing the platform-primary modifier to mod
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > renders a keybinding with its formatted combo 53ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > keeps every keybinding row's label column flex-1 so the cluster never wraps on copy length (D2) 40ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > recording a key remaps the binding via setBinding, collapsing the platform-primary modifier to mod
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > recording Cmd+K on macOS records mod+k and is caught as a real conflict with the mod+k default (R15-UI-027)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > recording Cmd+K on macOS records mod+k and is caught as a real conflict with the mod+k default (R15-UI-027)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > recording Cmd+K on macOS records mod+k and is caught as a real conflict with the mod+k default (R15-UI-027)
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > surfaces a user-created conflict when two actions share a combo
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > surfaces a user-created conflict when two actions share a combo
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > recording a key remaps the binding via setBinding, collapsing the platform-primary modifier to mod 95ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > recording Cmd+K on macOS records mod+k and is caught as a real conflict with the mod+k default (R15-UI-027) 88ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > surfaces a user-created conflict when two actions share a combo
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the provider fallback order is live: the arrows reorder the rows and the store (R15-UI-087)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the provider fallback order is live: the arrows reorder the rows and the store (R15-UI-087)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the provider fallback order is live: the arrows reorder the rows and the store (R15-UI-087)
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the dead Interface section is gone — no region, no nav chip, no knobs (R9 kill)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the dead Interface section is gone — no region, no nav chip, no knobs (R9 kill)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > surfaces a user-created conflict when two actions share a combo 153ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > the provider fallback order is live: the arrows reorder the rows and the store (R15-UI-087) 84ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the dead Interface section is gone — no region, no nav chip, no knobs (R9 kill)
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > picking a default agent applies it to the active chat lens
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > picking a default agent applies it to the active chat lens
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > picking a default agent applies it to the active chat lens
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > export produces a bundle without secret values
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > export produces a bundle without secret values
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > the dead Interface section is gone — no region, no nav chip, no knobs (R9 kill) 71ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > picking a default agent applies it to the active chat lens 37ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the export section states secrets are not exported
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the export section states secrets are not exported
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+Not implemented: navigation to another Document
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > export produces a bundle without secret values 71ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > the export section states secrets are not exported 40ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > a file recognising nothing (an empty object) reports an error, not success 87ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > another app's JSON ({theme:'dark'}) reports an error, not success 86ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > a bundle lacking region preserves the CURRENT region instead of resetting it 82ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > keybindingOverrides with a bogus action id merges instead of wiping the existing remap 76ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > round-trips search settings, default provider/model and module toggles 74ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > an import cannot flip a lifecycle-owned plugin:* flag; its non-plugin toggles still apply (R15-CODE-PLATFORM-013) 72ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > R15-UI-058: search-settings setAll preserves the CURRENT searxngUrl when a later bundle omits it 0ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > Region & locale states the actual default and what region controls (R15-DATA-092)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > Region & locale states the actual default and what region controls (R15-DATA-092)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > Region & locale states the actual default and what region controls (R15-DATA-092)
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > groups the page into named sections with a jump nav
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > groups the page into named sections with a jump nav
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > groups the page into named sections with a jump nav
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the legacy Web search section is gone — no section, no nav chip, no docker snippet
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the legacy Web search section is gone — no section, no nav chip, no docker snippet
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > an unrecognised defaultProviderId is rejected (no such provider) 70ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Region & locale states the actual default and what region controls (R15-DATA-092) 24ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > groups the page into named sections with a jump nav 31ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the legacy Web search section is gone — no section, no nav chip, no docker snippet
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > labels OpenRouter plainly — never as a broker
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > labels OpenRouter plainly — never as a broker
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > labels OpenRouter plainly — never as a broker
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > every surviving setting control is still reachable
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > every surviving setting control is still reachable
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > the legacy Web search section is gone — no section, no nav chip, no docker snippet 50ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > labels OpenRouter plainly — never as a broker 26ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > every surviving setting control is still reachable
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > renders exactly two tier cards as radios, Unlimited (Local) selected by default
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > renders exactly two tier cards as radios, Unlimited (Local) selected by default
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > renders exactly two tier cards as radios, Unlimited (Local) selected by default
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > selecting a tier updates the search-settings store
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > selecting a tier updates the search-settings store
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > selecting a tier updates the search-settings store
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the three-tier surface is gone — no keyless tier, no BYOK scraper, no Exa (R9 kill)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the three-tier surface is gone — no keyless tier, no BYOK scraper, no Exa (R9 kill)
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > every surviving setting control is still reachable 102ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > renders exactly two tier cards as radios, Unlimited (Local) selected by default 25ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > selecting a tier updates the search-settings store 29ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the three-tier surface is gone — no keyless tier, no BYOK scraper, no Exa (R9 kill)
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > the three-tier surface is gone — no keyless tier, no BYOK scraper, no Exa (R9 kill) 47ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > searxngChipMeta speaks the designed chip vocabulary for every state 0ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier A not_installed_docker: honest chip + copy + plain-text install hint (no link), no action 83ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier A docker_present_not_setup: 'Not set up' chip + ONE [Set up] action 94ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier A pulling: progress chip + sidecar detail, no action while transitional 103ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier A ready: green chip + health line + [Stop]; the fallback note disappears 96ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier A error: reason + [Retry] 92ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier A degraded: warning chip + engines-blocked reason + [Stop] (R15-RESEARCH-028) 92ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier A [Set up] POSTs /search/searxng/setup and renders the returned pulling state 152ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier A [Stop] POSTs /search/searxng/teardown and renders the post-teardown state 200ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier A shows the honest fallback note whenever the instance is not ready 44ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier A degrades honestly when the sidecar is unreachable 49ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > a status 500 shows the sidecar's reason, not 'not connected' 58ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > the tab turning visible re-reads the status, so a stale 'Ready' follows the container 73ms
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the custom SearXNG URL lives behind the Advanced disclosure and writes the store
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchModelControls inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the custom SearXNG URL lives behind the Advanced disclosure and writes the store
+An update to ProvidersSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to LayoutsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to SearxngManagedFlow inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ResearchSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/SettingsPanel.test.tsx > SettingsPanel > the custom SearXNG URL lives behind the Advanced disclosure and writes the store
+An update to DefaultsGroup inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > a failed [Set up] shows why instead of nothing 169ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > the custom SearXNG URL lives behind the Advanced disclosure and writes the store 53ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier B without a key shows the key CTA — never dead model selects 98ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier B with a key shows key presence (never the value) + three per-stop rows 93ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Tier B per-stop rows render the verified pricing hints from the shared constant 77ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > swapping a per-stop model writes the store; live-verified prices render unflagged 69ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > a persisted custom slug stays selectable (never silently deselected) 71ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > a static option absent from the live catalog is badged unavailable 68ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > a persisted selection absent from the live catalog is badged, not rewritten 45ms
+ ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > Copy diagnostics previews the redacted bundle before anything is copied 189ms
+
+ Test Files  5 passed (5)
+      Tests  157 passed (157)
+   Start at  15:22:47
+   Duration  7.22s (transform 2.08s, setup 523ms, import 5.27s, tests 4.07s, environment 3.97s)
+

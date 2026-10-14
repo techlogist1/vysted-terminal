@@ -1,0 +1,22 @@
+CMD: grep -n 'evaluated_count\|Nothing could be screened\|throttled' /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerResultsTable.tsx
+467:        hint="The screener run failed. Retry — if it persists, loosen a criterion or check the data engine."
+504:          (<span className="tabular-nums">{result.evaluated_count}</span> evaluated
+535:        {result.evaluated_count === 0 ? (
+539:            headline="Nothing could be screened"
+541:              result.throttled
+542:                ? "The data provider is throttled; retry in a moment."
+---ScreenerPanel.tsx---
+182:  // tail collapsed into "other") so a user can tell "throttled, retry" from
+477:          {lastResult.throttled &&
+--- find test files ---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerPanel.test.tsx
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerResultsTable.test.tsx
+--- grep in those files ---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerPanel.test.tsx:91:  throttled: true,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerPanel.test.tsx:313:  it("throttled=true renders the honest throttle notice (D53)", async () => {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerPanel.test.tsx:325:  it("R15-UI-055: throttled with no stale/snapshot rows shown claims no cached values", async () => {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerPanel.test.tsx:345:  it("throttled absent/false renders no throttle notice", async () => {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerResultsTable.test.tsx:345:        throttled: true,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerResultsTable.test.tsx:350:    expect(screen.getByText("Nothing could be screened")).toBeInTheDocument();
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/src/modules/screener/ScreenerResultsTable.test.tsx:351:    expect(screen.getByText(/data provider is throttled; retry in a moment/)).toBeInTheDocument();
+VERDICT: ci_pinned — behaviour only verifiable via vitest (heavy lane owns test runs), naming: src/modules/screener/ScreenerResultsTable.test.tsx:345-351 (evaluated_count===0 -> 'Nothing could be screened' + throttled copy) and src/modules/screener/ScreenerPanel.test.tsx:325 'R15-UI-055: throttled with no stale/snapshot rows shown claims no cached values'. Code path confirmed present at ScreenerResultsTable.tsx:535-542 (result.evaluated_count === 0 branch -> headline 'Nothing could be screened', throttled copy).

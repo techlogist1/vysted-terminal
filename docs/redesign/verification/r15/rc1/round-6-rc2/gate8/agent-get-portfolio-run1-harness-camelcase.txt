@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  50.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_80b19b7f902849608ecb092853f0ff40", "name": "get_portfolio", "input": {}}
+[  50.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_80b19b7f902849608ecb092853f0ff40", "name": "get_portfolio", "ok": true, "error": null}
+[  53.1s] done: {"kind": "done", "usage": {"input_tokens": 1661, "output_tokens": 48, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+It seems like you don't have any holdings in your portfolio yet.
+
+However, I'd like to suggest that we create a watchlist or add some positions to track later. Would you like me to propose some stocks for our research?
+
+=== ok · 53.1s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 48, 'done': 1} · usage in=1661 out=48 · est $0.00000 · llama3.1:8b
+EXIT=0

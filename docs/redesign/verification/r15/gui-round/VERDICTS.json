@@ -1,0 +1,16 @@
+{
+  "sha": "d38b5d1a2487bd52fe8a7e741a3a5266e3206611",
+  "certified": [],
+  "needs_gui": [
+    "R15-LIFECYCLE-008",
+    "R15-UI-022"
+  ],
+  "not_certified": [
+    {
+      "id": "R15-LIFECYCLE-001",
+      "reason": "Captures d38b5d1-33 (chat) and -34 (Portfolio) show generic \"not responding\"/\"Couldn't refresh live quotes\" copy after the sidecar kill, not the required \"The data engine stopped (...)\". Check 2: /health arrived after the MCP binds on both idle launches (107 s, 98 s). Check 3's panels name no reason."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": []
+}

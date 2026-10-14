@@ -1,0 +1,10 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: GET /sec/filings/0000320193-25-000079?identifier=AAPL (the /sections sub-route is gone: 404 -> {"detail":"Not Found"}); GET /sec/insider/AAPL?limit=50; GET /sec/insider/NVDA?limit=50&form=4
+== d38_detail EXIT 0
+sections [('Business', 10000), ('Risk Factors', 10000)] total_chars 20000
+== d38_ins EXIT 0
+transactions 16
+[{"accession": "0001140361-26-038307", "reporter_name": "", "reporter_cik": "", "issuer_cik": "0000320193", "issuer_name": "Apple Inc.", "issuer_symbol": null, "form_type": "4", "transaction_date": "2026-10-01", "direction": null, "shares": null, "price_per_share": null, "transaction_value": null, "transaction_code": "", "reporter_title": null}, {"accession": "0001140361-26-038028", "reporter_name": "", "reporter_cik": "", "issuer_cik": "0000320193", "issuer_name": "Apple Inc.", "issuer_symbol": null, "form_type": "4", "transaction_date": "2026-09-29", "direction": null, "shares": null, "price_per_share": null, "transaction_value": null, "transaction_code": "", "reporter_title": null}]
+== d38_ins2 EXIT 0
+transactions 16
+[{"accession": "0001696841-26-000014", "reporter_name": "", "reporter_cik": "", "issuer_cik": "0001045810", "issuer_name": "NVIDIA CORP", "issuer_symbol": null, "form_type": "4", "transaction_date": "2026-09-23", "direction": null, "shares": null, "price_per_share": null, "transaction_value": null, "transaction_code": "", "reporter_title": null}, {"accession": "0001199039-26-000016", "reporter_name": "", "reporter_cik": "", "issuer_cik": "0001045810", "issuer_name": "NVIDIA CORP", "issuer_symbol": null, "form_type": "4", "transaction_date": "2026-09-22", "direction": null, "shares": null, "price_per_share": null, "transaction_value": null, "transaction_code": "", "reporter_title": null}]

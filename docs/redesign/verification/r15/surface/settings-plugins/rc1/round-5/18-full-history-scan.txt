@@ -1,0 +1,1 @@
+CMD: git log --oneline main..HEAD -- src/components/SettingsPanel.tsx src/components/MarketplacePanel.tsx src/components/PluginManagerPanel.tsx sidecar/routers/llm.py sidecar/routers/news.py sidecar/services/workspace_store.py src/store/marketplace.ts src/lib/plugin-bootstrap.ts src/store/workspace.ts src/store/modules.ts

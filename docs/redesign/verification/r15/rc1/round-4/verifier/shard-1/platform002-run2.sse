@@ -1,0 +1,32 @@
+data: {"kind":"run-start","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","startedAt":1790466581042}
+
+data: {"kind":"node-start","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"q","nodeType":"data.fetch_quote","startedAt":1790466581042}
+
+data: {"kind":"node-output","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"q","outputs":{"quote":{"symbol":"MSFT","price":516.1699829101562,"change":20.38628291015624,"change_percent":4.111930850117952,"volume":38154200.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:01Z","provider":"yfinance","freshness":null}},"durationMs":627.125542}
+
+data: {"kind":"node-start","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"jc","nodeType":"transform.json_path","startedAt":1790466581669}
+
+data: {"kind":"node-output","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"jc","outputs":{"extracted":20.38628291015624},"durationMs":0.028417}
+
+data: {"kind":"node-start","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"jp","nodeType":"transform.json_path","startedAt":1790466581669}
+
+data: {"kind":"node-output","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"jp","outputs":{"extracted":516.1699829101562},"durationMs":0.00775}
+
+data: {"kind":"node-start","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"cmp","nodeType":"logic.compare","startedAt":1790466581670}
+
+data: {"kind":"node-output","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"cmp","outputs":{"result":true},"durationMs":0.041416}
+
+data: {"kind":"node-start","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"cmp2","nodeType":"logic.compare","startedAt":1790466581670}
+
+data: {"kind":"node-output","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"cmp2","outputs":{"result":false},"durationMs":0.015792}
+
+data: {"kind":"node-start","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"br","nodeType":"logic.branch","startedAt":1790466581670}
+
+data: {"kind":"node-output","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"br","outputs":{"false_path":false},"durationMs":0.013125}
+
+data: {"kind":"node-start","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"lg","nodeType":"action.log","startedAt":1790466581670}
+
+data: {"kind":"node-output","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","nodeId":"lg","outputs":{"logged":true,"level":"info","message":"False"},"durationMs":0.130916}
+
+data: {"kind":"run-complete","runId":"1112dfaf-ecdf-4153-94fd-9bbe9d2942ca","durationMs":628.13525}
+

@@ -1,0 +1,9 @@
+# 2026-09-26 17:40:53 after G8-2/G8-3 and the portfolio round trip
+rc1-data-rc1-verifier/workflows.db: schedules workflows 
+rc1-data-rc1-verifier/custom_agents.db: custom_agents 
+rc1-data-rc1-verifier/portfolio.db: positions 
+rc1-data-rc1-verifier/delegate_runs.db: runs 
+rc1-data-rc1-verifier/plugins.db: plugin_configs 
+rc1-data-rc1-verifier/data_cache.db: cache meta 
+rc1-data-rc1-verifier/fundamentals_cache.db: fundamentals 
+positions rows (legacy ledger): 0

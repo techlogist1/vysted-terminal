@@ -1,0 +1,7 @@
+# R15-UI-007 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'R15-UI-007' src --include=*.test.* | cut -c1-200
+--- output ---
+src/modules/screener/ScreenerPresets.test.tsx:33:  it("R15-UI-007: a preset resets a nested group + formula, not just criteria", () => {
+
+EXIT=0 (0.0s)

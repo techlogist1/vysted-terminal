@@ -1,0 +1,6 @@
+full text: 'The ADR-to-ordinary-share ratio is 4:1.\n\n{"name": "price_data", "parameters": {"symbol'
+release cut point: 41
+released portion: 'The ADR-to-ordinary-share ratio is 4:1.\n\n'
+held-back portion (must NOT be spliced onto released text): '{"name": "price_data", "parameters": {"symbol'
+unit: 0 41 closed= True text= 'The ADR-to-ordinary-share ratio is 4:1.\n\n'
+unit: 41 86 closed= False text= '{"name": "price_data", "parameters": {"symbol'

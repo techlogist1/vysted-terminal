@@ -1,0 +1,12 @@
+# R15-DATA-081 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:05:04+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for p in "quotes/BTC%2FUSDT?asset_class=crypto" "quotes/ETH%2FUSDT?asset_class=crypto"; do echo -n "$p: "; curl -s -m 60 -w ' HTTP=%{http_code}' "$H/$p" | cut -c1-220; echo; done
+echo -n "history ETH/USDT: "; curl -s -m 60 "$H/history/ETH%2FUSDT?asset_class=crypto" | python3 -c "import sys,json;d=json.load(sys.stdin);print(len(d.get('bars') or []),'bars provider',d.get('provider'))"
+--- output ---
+quotes/BTC%2FUSDT?asset_class=crypto: {"symbol":"BTC/USDT","price":84695.99,"change":-1682.02,"change_percent":-1.947,"volume":18039.13807,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-10-03T12
+
+quotes/ETH%2FUSDT?asset_class=crypto: {"symbol":"ETH/USDT","price":2684.73,"change":-60.72,"change_percent":-2.212,"volume":283284.6489,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-10-03T12:05
+
+history ETH/USDT: 365 bars provider ccxt:binance
+
+EXIT=0 (8.9s)

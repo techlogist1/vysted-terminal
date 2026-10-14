@@ -1,0 +1,17 @@
+=== git show HEAD:docs/BLUEPRINT.md around fs export claim ===
+77:- File system access — custom atomic-write commands (`write_text_atomic`,
+78:  `write_bytes_atomic`), not the `tauri-plugin-fs` capability (R15-CODE-PLATFORM-024:
+=== disk check: src-tauri/src/lib.rs (src-tauri/ is intact) ===
+391:fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+416:/// strategy as `write_text_atomic`). The WKWebView/Chromium webview blocks the
+422:fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {
+513:            write_text_atomic,
+514:            write_bytes_atomic,
+=== capabilities/default.json ===
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capability for the Vysted Terminal main window.",
+  "windows": ["main"],
+  "permissions": ["core:default", "notification:default", "shell:allow-open"]
+}

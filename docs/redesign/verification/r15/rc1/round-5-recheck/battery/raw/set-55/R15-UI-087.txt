@@ -1,0 +1,41 @@
+CMD: grep -n "R15-UI-087" across frontend test files (candidate 949c3c9f); supplementary backend
+check for the failure-code taxonomy the fallback keys on (sidecar/services/errors.py).
+src/store/settings.test.ts:199:  it("R15-UI-087: provider order, start layout and palette options round-trip; garbled values keep the current ones", () => {
+src/store/llm-providers.test.ts:42:describe("orderedProviders (R15-UI-087)", () => {
+src/components/CommandPalette.test.tsx:186:  // R15-UI-087 (FR-038): the two palette preferences change what it shows.
+src/components/PanelHost.test.tsx:55: * R15-UI-087 (FR-038): the "Start with" preference. The launch restore has
+src/modules/chat/ChatSidebar.test.tsx:836:    // (R15-UI-087), so the error itself renders.
+src/modules/chat/ChatSidebar.test.tsx:888:  // R15-UI-087 (FR-038, D-B11-7): a provider failure before any answer text
+src/components/SettingsPanel.test.tsx:278:  // R9 killed an UNREAD preference-order group; R15-UI-087 rebuilt it with its
+src/components/SettingsPanel.test.tsx:280:  it("the provider fallback order is live: the arrows reorder the rows and the store (R15-UI-087)", () => {
+--- excerpt: llm-providers.test.ts:42-49 (orderedProviders puts preference first) ---
+describe("orderedProviders (R15-UI-087)", () => {
+  it("puts the preference order first and keeps unnamed providers in catalog order", () => {
+    const ids = orderedProviders(DEFAULT_PROVIDERS, ["groq", "anthropic"]).map((p) => p.id);
+    const rest = DEFAULT_PROVIDERS.map((p) => p.id).filter(
+      (id) => id !== "groq" && id !== "anthropic",
+    );
+    expect(ids).toEqual(["groq", "anthropic", ...rest]);
+  });
+--- backend check: grep failure-code taxonomy in sidecar/services/errors.py ---
+26:ProviderErrorKind = Literal["rate_limited", "not_found", "network"]
+42:      - ``"network"`` — the upstream could not be reached (connection refused,
+96:    "network": (
+98:        "network",
+137:            return "network"
+198:    code: str | None  # machine tag: "provider_402", "network", "auth", ...
+254:        "auth",
+270:        "auth",
+278:        "insufficient_credit",
+325:        "ollama_not_running",
+430:                code="provider_402",
+436:            code="provider_402",
+444:            code="auth",
+469:            code="provider_5xx",
+490:                    code="ollama_not_running",
+496:                code="network",
+505:                code="network",
+518:        if any(kw in cls_name for kw in ("authentication", "auth", "unauthorized", "forbidden")):
+523:                code="auth",
+546:                    code="provider_402",
+552:                code="provider_402",

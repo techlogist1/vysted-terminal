@@ -1,0 +1,92 @@
+[
+ {
+  "id": "safety-disclaimer-flow",
+  "area": "onboarding",
+  "surface": "First-launch ToS / disclaimer flow",
+  "entry": "src/modules/safety/DisclaimerFlow.tsx:29-34 (TOS_BODY), :37+ (FirstLaunchTosDialog)",
+  "states": ["first-launch-unacked", "acked", "keychain-denied", "content"],
+  "drive": "browser+api",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/rc1/drives/onboarding-stranger.md #4, #8; sidecar :52326 clean-profile boot",
+  "state_scores": {
+   "first-launch-unacked": "ok (unchanged from census)",
+   "acked": "ok (unchanged; keychain_set flow unchanged)",
+   "keychain-denied (extra state)": "still broken, no regression - register R15-UI-044 blocked_tier4, confirmed live via code read (src/store/safety.ts:20-22,39-42 no try/catch)",
+   "content": "FIXED - TOS_BODY rewritten: no trading/broker/kill-switch language; carries data-may-be-wrong + AI-can-be-wrong + PolyForm Strict/commercial licence text (register R15-UI-041 not_a_defect post-D81, confirmed live)"
+  }
+ },
+ {
+  "id": "onboarding-flow",
+  "area": "onboarding",
+  "surface": "First-run onboarding wizard",
+  "entry": "src/components/OnboardingFlow.tsx",
+  "states": ["welcome", "cloud", "local", "done"],
+  "drive": "browser+api",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/rc1/drives/onboarding-stranger.md #1, #3, #7; docs/redesign/verification/r15/surface/onboarding-stranger/rc1/K02-fake-openrouter-key.txt",
+  "state_scores": {
+   "welcome": "FIXED - copy no longer claims keyless web research (register R15-UI-052, confirmed live: OnboardingFlow.tsx:237-243)",
+   "cloud": "FIXED - fake OpenRouter key now validated against an auth-required endpoint and correctly rejected (register R15-UI-008, confirmed live: ok:false reason:invalid)",
+   "local": "ok, unchanged (hardware-fit fits/does-not-fit reachable, same as census; daemon-down/pull-flow still NOT TESTED - shared Ollama never stopped, a real pull is state-changing)",
+   "done": "ok, unchanged (marker + copy-per-path)"
+  }
+ },
+ {
+  "id": "onboarding-banner",
+  "area": "onboarding",
+  "surface": "First-run 'add your AI key' banner",
+  "entry": "src/components/OnboardingBanner.tsx",
+  "states": ["hidden", "shown"],
+  "drive": "browser+api",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/rc1/drives/onboarding-stranger.md #6; live /llm/keys/validate ollama+qwen3:8b -> ok:true",
+  "state_scores": {
+   "shown(no key)": "ok, unchanged",
+   "hidden(hasAnyKey)": "ok, unchanged",
+   "after local-model setup": "FIXED - defaultLaneNotReady now derives from a real readiness probe (useKeylessReadiness), confirmed live: ollama+qwen3:8b probe -> ok:true (register R15-UI-019)",
+   "copy": "FIXED - 'nothing leaves this machine' replaced with 'market data and web searches still go to public providers' (register R15-UI-052)"
+  }
+ },
+ {
+  "id": "hardware-fit-check",
+  "area": "onboarding",
+  "surface": "Local-model hardware-fit scoring",
+  "entry": "src/lib/hardware-fit.ts; sidecar GET /system/hardware",
+  "states": ["fits", "marginal", "does-not-fit"],
+  "drive": "api",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/rc1/drives/onboarding-stranger.md (hardware-fit sweep, unchanged from census)",
+  "state_scores": {
+   "fits": "ok, unchanged (3 installed models green)",
+   "does-not-fit": "ok, unchanged (referenceCandidates red)",
+   "marginal": "NOT TESTED - unreachable on this 16 GB M1 Pro, same as census"
+  }
+ },
+ {
+  "id": "x-keyless-first-message",
+  "area": "onboarding",
+  "surface": "(extra) stranger's first composer turn, keyless default lane",
+  "entry": "src/modules/chat/ChatSidebar.tsx:829-836 (model_not_pulled routing)",
+  "drive": "api",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/A1-keyless-zomato-rc1.stdout.txt; live /llm/keys/validate ollama+llama3.1:70b-not-pulled-xyz -> model_not_pulled",
+  "state_scores": {
+   "ollama up, default model present, renamed-symbol question": "partial - resolver now correct (ETERNAL), but the model called market_overview (found nothing), then fabricated a fenced 'Tool call: price_data(...)' + a fake JSON result (price 164.4, market cap) and answered 'As per the live data...' - a real, offered tool name used in a wholly invented call/result never sent through the tool-call protocol (SURF-ONBOARDING-STRANGER-RC1-1)",
+   "ollama up, model absent": "FIXED - now opens the real onboarding local/download step with a specific detail string, not the dead 'pick another model' message (register R15-AGENT-028)"
+  }
+ },
+ {
+  "id": "x-first-cockpit-data",
+  "area": "onboarding",
+  "surface": "(extra) first-launch cockpit data, keyless, clean profile",
+  "entry": "src/store/chart-drawings.ts:50; src/store/symbols.ts:30-36; src/lib/region.ts:37",
+  "drive": "api",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/rc1/drives/onboarding-stranger.md #2, #5, #9",
+  "state_scores": {
+   "renamed stock by old name": "FIXED - zomato/ZOMATO/'Zomato Ltd' all resolve cleanly to ETERNAL with rename metadata, no disambiguation misfire (register R15-DATA-018)",
+   "quotes for retired ticker symbol": "IMPROVED (not separately register-tracked) - ZOMATO.NS now a clean 404 not_found, no yfinance internals leak",
+   "default symbols vs IN region": "still open, no regression (register R15-UI-076) - chart SPY, watchlist SPY/QQQ/BTC/ETH/NVDA/AAPL, region IN"
+  }
+ }
+]

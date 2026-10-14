@@ -1,0 +1,9 @@
+# R15-UI-013 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:51+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for b in '{"provider":"openrouter","api_key":""}' '{"provider":"openai","api_key":"sk-fake-0000000000000000000000"}' '{"provider":"openai","api_key":"sk-fake-000000","base_url":"http://127.0.0.1:9/v1"}'; do echo -n "\$ POST /llm/keys/validate $(echo $b | sed 's/sk-fake[-0-9]*/<fake>/'): "; curl -s -m 60 -X POST "$H/llm/keys/validate" -H 'content-type: application/json' -d "$b"; echo; done
+--- output ---
+$ POST /llm/keys/validate {"provider":"openrouter","api_key":""}: {"ok":false,"reason":"not_configured","detail":"No API key is set for OpenRouter."}
+$ POST /llm/keys/validate {"provider":"openai","api_key":"<fake>"}: {"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+$ POST /llm/keys/validate {"provider":"openai","api_key":"<fake>","base_url":"http://127.0.0.1:9/v1"}: {"ok":false,"reason":"unreachable","detail":"Could not reach OpenAI — check your network. Check your internet connection and try again."}
+
+EXIT=0 (1.1s)

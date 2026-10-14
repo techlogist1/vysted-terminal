@@ -1,0 +1,14 @@
+=== R15-LIFECYCLE-023: main.tsx onCaughtError/onUncaughtError + PanelHost.tsx PanelErrorBoundary ===
+31:ReactDOM.createRoot(document.getElementById("root")!, {
+32:  onCaughtError: logRenderError("caught"),
+33:  onUncaughtError: logRenderError("uncaught"),
+34-}).render(
+35-  <React.StrictMode>
+36-    <Page />
+37-  </React.StrictMode>,
+38-);
+--- PanelHost.tsx PanelErrorBoundary ---
+121:class PanelErrorBoundary extends Component<
+138:        <p className="text-charcoal-100 text-body">This panel crashed.</p>
+171:          <PanelErrorBoundary>
+173:          </PanelErrorBoundary>

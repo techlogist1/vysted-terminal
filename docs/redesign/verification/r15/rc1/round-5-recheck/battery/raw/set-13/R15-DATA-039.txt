@@ -1,0 +1,20 @@
+Probe: live GET /sec/filings on own sidecar (:52352, real SEC EDGAR data — outside world) for
+the register's own repro symbol (INFY, foreign private issuer) and the batch-4 fresh case (AAPL).
+
+Command 1:
+  curl -s "http://127.0.0.1:52352/sec/filings?symbol=INFY"
+Output: 40 rows. Form breakdown: 6-K 16, 3 10, 4 8, 3/A 2, F-6 POS 1, F-6EF 1, 20-F 1, 144 1.
+
+Command 2 (fresh case):
+  curl -s "http://127.0.0.1:52352/sec/filings?symbol=AAPL"
+Output: 40 rows. Form breakdown: 4 21, 144 8, 8-K 3, 3 2, 10-Q 2, 8-K/A 1, SD 1,
+SCHEDULE 13G 1, SCHEDULE 13G/A 1.
+
+Exit: 0 (both)
+
+Verdict basis: INFY (a Form 20-F/6-K-only foreign private issuer) previously returned
+filings: [] silently (the old 7-form Literal mapped only 10-K/10-Q/8-K/DEF 14A/3/4/5, dropping
+everything else with no count). Now INFY lists 40 rows including 20-F and 16 6-K rows, matching
+batch-4's certification verbatim ("/sec/filings?symbol=INFY lists 40 rows (6-K 16, 20-F 1, 3/A,
+F-6 …)"). AAPL now surfaces form types the old Literal dropped (8-K/A, SD, SCHEDULE 13G/A),
+matching the cert's fresh case ("AAPL's list carries 144, 8-K/A, SD and SCHEDULE 13G/A rows").

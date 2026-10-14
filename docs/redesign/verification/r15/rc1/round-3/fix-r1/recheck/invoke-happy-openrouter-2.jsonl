@@ -1,0 +1,41 @@
+{"kind": "thinking", "text": "We"}
+{"kind": "thinking", "text": " need to answer in"}
+{"kind": "thinking", "text": " one sentence: what"}
+{"kind": "thinking", "text": " does a P/E"}
+{"kind": "thinking", "text": " ratio measure? Provide"}
+{"kind": "thinking", "text": " concise"}
+{"kind": "thinking", "text": " definition"}
+{"kind": "thinking", "text": ":"}
+{"kind": "thinking", "text": " price-to"}
+{"kind": "thinking", "text": "-earnings ratio"}
+{"kind": "thinking", "text": " measures the price"}
+{"kind": "thinking", "text": " investors"}
+{"kind": "thinking", "text": " are willing to pay"}
+{"kind": "thinking", "text": " per ru"}
+{"kind": "thinking", "text": "pee"}
+{"kind": "thinking", "text": " ("}
+{"kind": "thinking", "text": "or dollar) of"}
+{"kind": "thinking", "text": " earnings, indicating"}
+{"kind": "thinking", "text": " market's"}
+{"kind": "thinking", "text": " valuation of earnings"}
+{"kind": "thinking", "text": "."}
+{"kind": "thinking", "text": " Should"}
+{"kind": "thinking", "text": " we fetch any"}
+{"kind": "thinking", "text": " data? Not"}
+{"kind": "thinking", "text": " needed as"}
+{"kind": "thinking", "text": " it's a definition"}
+{"kind": "thinking", "text": ". No"}
+{"kind": "thinking", "text": " tool"}
+{"kind": "thinking", "text": " needed. Provide"}
+{"kind": "thinking", "text": " one"}
+{"kind": "thinking", "text": " sentence.\n\n"}
+{"kind": "delta", "text": "A P/E ratio"}
+{"kind": "delta", "text": " measures how much investors"}
+{"kind": "delta", "text": " are paying"}
+{"kind": "delta", "text": " for each unit of"}
+{"kind": "delta", "text": " a company's"}
+{"kind": "delta", "text": " earnings, reflecting"}
+{"kind": "delta", "text": " the market\u2019s"}
+{"kind": "delta", "text": " valuation of its profitability"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 11279, "output_tokens": 105, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.0}

@@ -1,0 +1,12 @@
+{
+  "lane": "ollama",
+  "model": "llama3.1:8b",
+  "k": 1,
+  "scenarios": 1,
+  "pass_hat_k": 0.0,
+  "pass_hat_1": 0.0,
+  "per_scenario": {
+    "price-reliance": 0.0
+  },
+  "incomplete": []
+}

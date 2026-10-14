@@ -1,0 +1,10 @@
+# probe at ace7dd76 (candidate worktree /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand)
+$ grep -n 'on_wait\|thread::sleep\|spawn_blocking\|async fn keychain_migrate\|fn on_wait_called_before_sleep\|MIGRATE_SELF_DISMISS' src-tauri/src/keychain.rs
+244:    const MIGRATE_SELF_DISMISS_WAIT_SECS: u64 = 140;
+268:                std::thread::sleep(std::time::Duration::from_secs(secs));
+320:                MIGRATE_SELF_DISMISS_WAIT_SECS
+322:            wait(MIGRATE_SELF_DISMISS_WAIT_SECS);
+386:pub async fn keychain_migrate(
+395:        // in the R9 verification rounds). A `spawn_blocking` background thread
+526:        fn on_wait_called_before_sleep() {
+EXIT=0

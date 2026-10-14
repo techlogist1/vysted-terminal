@@ -1,0 +1,5 @@
+mode=none elapsed=17.9s ok=False backend=None rows=0 first=None
+mode=ddg elapsed=18.3s ok=False backend=None rows=0 first=None
+mode=ddg+brave elapsed=21.8s ok=False backend=None rows=0 first=None
+mode=brave_ok elapsed=10.6s ok=True backend=keyless-fallback rows=3
+mode=mojeek_ok elapsed=19.4s ok=True backend=keyless-fallback rows=3

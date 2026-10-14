@@ -1,0 +1,56 @@
+)
+_NO_MODEL = "No model configured for deep research."
+
+
+def _clamp(value: Any, lo: int, hi: int, default: int) -> int:
+    """Coerce ``value`` to an int in ``[lo, hi]``, falling back to ``default``."""
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return default
+    return max(lo, min(hi, n))
+    from services.research import depth as depth_mod
+
+    profile = depth_mod.profile_for(depth)
+    if profile.loop == "fast":
+        # This engine serves the deep lanes only — a caller that reached it with
+        # a fast-pass depth gets the DEEP profile, never a silent ultra upgrade.
+        profile = depth_mod.PROFILES[depth_mod.DEPTH_DEEP]
+    rounds_i = _clamp(rounds, 1, 5, profile.rounds)
+    wall = _clamp(wall_seconds, 30, max(300, profile.wall_seconds), profile.wall_seconds)
+
+    # The user's Settings selection (Track 5) is authoritative when the caller does
+    # not pass an explicit backend. Defaults to native; Perplexity (opt-in-per-run,
+    # paid) is never auto-selected — the Settings ContextVar only ever holds
+    # "perplexity" after the user explicitly opted in for the run.
+    import config
+
+--- catalog.py schema description for deep research wall_seconds ---
+151-#: advertise a ceiling below a profile's own wall (R15-CODE-RESEARCH-001).
+152-_RESEARCH_WALL_DESCRIPTION = (
+153:    f"30-{max(300, *(p.wall_seconds for p in PROFILES.values()))} seconds "
+154-    "(deep/heavy only). Omit it: each depth sets its own budget (deep "
+155:    f"{PROFILES[DEPTH_DEEP].wall_seconds}, heavy {PROFILES[DEPTH_ULTRA].wall_seconds})."
+156-)
+157-_MACRO_PROVIDERS = ["fred", "ecb", "imf", "world-bank"]
+--
+491-                        "description": "1-5 (deep/heavy only).",
+492-                    },
+493:                    "wall_seconds": {
+494-                        "type": "integer",
+495-                        "description": _RESEARCH_WALL_DESCRIPTION,
+--
+1857-    and per-invocation reads are in-memory, both exempt. ``research`` declares
+1858-    no budget here: the runtime computes its outer guard from the call's own
+1859:    ``wall_seconds``/depth args.
+1860-    """
+1861-    cap = CAPABILITY_CATALOG.get(tool_id)
+--- depth.py PROFILES ---
+101:    wall_seconds: int
+128:        wall_seconds=0,
+149:        wall_seconds=180,
+169:        wall_seconds=360,
+--- live clamp check ---
+ultra profile wall_seconds: 360
+clamp(360, 30, max(300,ultra.wall_seconds), ultra.wall_seconds) = 360
+deep profile wall_seconds: 180

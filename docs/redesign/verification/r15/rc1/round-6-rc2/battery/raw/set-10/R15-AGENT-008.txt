@@ -1,0 +1,24 @@
+# R15-AGENT-008 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:27:27Z, sidecar :52348
+# kind=py
+# command:
+#   import json
+#   from services import agent_runtime as ar
+#   from services.agent_tools.schemas import openai_tools
+#   from models.llm import LLMMessage
+#   spec = ar.get_agent('copilot')
+#   full = list(spec.tools)
+#   print('full tools', len(full), 'schema chars', len(json.dumps(openai_tools(full))))
+#   print([a for a in dir(spec) if not a.startswith('_')][:30])
+#   sysmsg = LLMMessage(role='system', content=getattr(spec,'system_prompt','x'*10964))
+#   print('system chars', len(sysmsg.content))
+#   for prompt in ['Screen nse-all for stocks with P/E under 15 and tell me the top names', 'hello']:
+#       msgs=[sysmsg, LLMMessage(role='user', content=prompt)]
+#       sub = ar._window_tool_subset(full, msgs, 16384)
+#       print(repr(prompt[:40]), '->', len(sub), 'tools; schema chars', len(json.dumps(openai_tools(sub))), '; screener_run in subset:', 'screener_run' in sub, '; est tokens', ar._estimate_tokens(msgs, sub))
+# output:
+full tools 55 schema chars 41643
+['construct', 'copy', 'default_model', 'default_provider', 'dict', 'from_orm', 'icon', 'id', 'json', 'model_computed_fields', 'model_config', 'model_construct', 'model_copy', 'model_dump', 'model_dump_json', 'model_extra', 'model_fields', 'model_fields_set', 'model_json_schema', 'model_parametrized_name', 'model_post_init', 'model_rebuild', 'model_validate', 'model_validate_json', 'model_validate_strings', 'name', 'parse_file', 'parse_obj', 'parse_raw', 'philosophy']
+system chars 6502
+'Screen nse-all for stocks with P/E under' -> 32 tools; schema chars 27163 ; screener_run in subset: True ; est tokens 8433
+'hello' -> 29 tools; schema chars 22132 ; screener_run in subset: False ; est tokens 7159
+# exit=0

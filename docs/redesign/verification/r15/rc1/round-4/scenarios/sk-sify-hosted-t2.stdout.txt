@@ -1,0 +1,9 @@
+
+=== ASSISTANT TEXT ===
+The ADR-to-ordinary-share ratio is not available from this session's sources. This detail might not be publicly disclosed in the recent SEC documents for SIFY Technologies Ltd. 
+
+The ADR-to-ordinary-share ratio is not available from this session's sources. 5 or The ADR-to-ordinary-share ratio is not available from this session's sources. 
+
+If you're looking for this specific data, I recommend checking the investor relations section of their website or financial reports. Would you like help with anything else?
+
+=== ok · 5.7s · events {'tool_use': 3, 'tool_result': 3, 'delta': 56, 'done': 1} · usage in=9052 out=112 · est $0.00143 · gpt-4o-mini

@@ -1,0 +1,19 @@
+-- sp500.json header + count --
+type: <class 'dict'>
+keys: ['id', 'label', 'asset_class', 'snapshot_date', 'source', 'symbols']
+snapshot metadata: {'id': 'sp500', 'label': 'S&P 500', 'asset_class': 'equity', 'snapshot_date': '2026-09-24', 'source': "Curated full-index snapshot of S&P 500 constituents in Yahoo Finance symbol format (class shares dashed, e.g. BRK-B, BF-B). A point-in-time membership snapshot, not a live feed; snapshot_date marks the curation point. Index membership drifts ~20-25 names/year — refresh on a rebalance. Count tracks the index's ~500-503 names (multi-class issuers like GOOGL/GOOG and FOXA/FOX appear as separate listings)."}
+total symbols: 503
+delisted names still present (should be empty): []
+previously-missing names still absent (should be empty): []
+CMD: GET /screener/universe?universe=sp500
+
+HTTP_CODE:422
+keys: ['detail']
+count: 1
+BXP present: False
+NVR present: False
+UDR present: False
+WBA present (should be false): False
+ANSS present (should be false): False
+HES present (should be false): False
+JNPR present (should be false): False

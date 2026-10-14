@@ -1,0 +1,40 @@
+{
+ "symbol": "531613",
+ "kind": null,
+ "count": 2,
+ "deals": [
+  {
+   "symbol": "531613",
+   "kind": "bulk",
+   "date": "2025-01-13",
+   "party": "STRESSED ASSETS STABILIZATION FUND",
+   "side": "sell",
+   "quantity": 500000.0,
+   "price": 1.74,
+   "value": 870000.0,
+   "percent_after": null,
+   "exchange": "BSE",
+   "source_url": null
+  },
+  {
+   "symbol": "531613",
+   "kind": "bulk",
+   "date": "2005-06-14",
+   "party": "INDIA MANFUND MAURITIUS L",
+   "side": "sell",
+   "quantity": 301469.0,
+   "price": 19.21,
+   "value": 5791219.49,
+   "percent_after": null,
+   "exchange": "BSE",
+   "source_url": null
+  }
+ ],
+ "sources": [
+  "BSE bulk",
+  "BSE block"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": null
+}

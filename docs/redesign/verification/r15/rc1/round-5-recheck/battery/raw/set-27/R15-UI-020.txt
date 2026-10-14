@@ -1,0 +1,19 @@
+Per-role rule: "Never run vitest or pytest suites (the heavy lane owns them): an
+entry certified only through a pinned test -> verdict ci_pinned naming the
+test." Not executed here; verified by reading the source instead.
+
+Pinned test confirmed present in the candidate at 949c3c9f:
+  src/store/chart-drawings.test.ts:62-77
+  it("returns a panel's drawings only for the symbol/timeframe they were made
+     on (R15-UI-020)", ...)
+  -- adds a RELIANCE.NS drawing + a RELIANCE.NS/1h drawing on the same panel
+     id "chart"; asserts drawingsFor(all, "TCS.NS", "1d") === [] and each
+     symbol/timeframe pair returns only its own drawing.
+
+Store implementation confirms drawings are keyed by (panelId, symbol,
+timeframe) via drawingsFor(), not by panelId alone -- matches the batch-7
+certification ("R15-UI-020: certified (vitest-executed)... a RELIANCE
+drawing is not shown [on TCS], and it appears once RELIANCE.NS loads").
+
+VERDICT: ci_pinned (src/store/chart-drawings.test.ts:62 "returns a panel's
+drawings only for the symbol/timeframe they were made on (R15-UI-020)").

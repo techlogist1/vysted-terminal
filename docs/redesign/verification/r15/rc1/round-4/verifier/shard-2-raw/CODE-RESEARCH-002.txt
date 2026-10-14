@@ -1,0 +1,6 @@
+R15-CODE-RESEARCH-002 @ 68d5573aff9a579af084dcbb124843f2aecff6e8
+cmd: cd <worktree>/sidecar && PYTHONPATH=. PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python scratchpad/vs2/research_probe.py (snapshot_structured with every cross-check gate/fetcher replaced by raising sync / raising async / hanging callables)
+returned keys ['derived', 'fundamentals', 'price'] price.ok True fund.ok True
+injected hits ['async', 'sync', 'async', 'async', 'sync', 'slow', 'async']
+error steps ['dividend TTM cross-check failed — dropped', 'growth cross-check failed — dropped', 'ownership cross-check failed — dropped', 'declared dividend cross-check failed — dropped', 'earnings quality cross-check failed — dropped', 'market-cap witness cross-check failed — dropped', '52-week range cross-check timed out after 2s — dropped']
+=> all 3 legs returned, each broken cross-check dropped with an error step. Verdict: HOLDS

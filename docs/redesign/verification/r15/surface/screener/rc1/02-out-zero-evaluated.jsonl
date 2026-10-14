@@ -1,0 +1,8 @@
+data: {"event": "progress", "phase": "universe", "done": 1, "total": 1, "detail": "Custom: 3 symbols"}
+
+data: {"event": "progress", "phase": "sweep", "done": 3, "total": 3, "detail": "fetching 3/3"}
+
+data: {"event": "progress", "phase": "evaluate", "done": 1, "total": 1, "detail": "evaluating 3 candidates"}
+
+data: {"event": "result", "universe": "custom", "evaluated_count": 0, "skipped_count": 3, "skip_details": [{"symbol": "ZQXVWK.NS", "reason": "rate_limited"}, {"symbol": "NOPEXX.NS", "reason": "rate_limited"}, {"symbol": "FAKESYM.NS", "reason": "rate_limited"}], "result_count": 0, "matched_count": 0, "rows": [], "duration_ms": 2.112749993102625, "partial": true, "coverage": "screened 0 of 3 \u2014 3 unavailable", "freshness": null, "basis_counts": null, "throttled": true}
+

@@ -1,0 +1,45 @@
+{
+ "symbol": "ZEAL",
+ "count": 3,
+ "actions": [
+  {
+   "symbol": "ZEAL",
+   "kind": "dividend",
+   "purpose": "DIVIDEND - RS 1.50 PER SHARE",
+   "ratio": null,
+   "amount_per_share": 1.5,
+   "ex_date": "2026-09-11",
+   "record_date": "2026-09-11",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "ZEAL",
+   "kind": "dividend",
+   "purpose": "INTERIM DIVIDEND - RE 1 PER SHARE",
+   "ratio": null,
+   "amount_per_share": null,
+   "ex_date": "2023-12-22",
+   "record_date": "2023-12-22",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "ZEAL",
+   "kind": "other",
+   "purpose": "ANNUAL GENERAL MEETING",
+   "ratio": null,
+   "amount_per_share": null,
+   "ex_date": "2023-09-22",
+   "record_date": null,
+   "payment_date": null,
+   "exchange": "NSE"
+  }
+ ],
+ "sources": [
+  "NSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": "BSE ZEAL is a different company; only the NSE feed is served"
+}

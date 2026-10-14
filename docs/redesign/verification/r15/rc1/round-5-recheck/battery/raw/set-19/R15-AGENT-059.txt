@@ -1,0 +1,8 @@
+COMMAND: python3 probe_agent059_012.py (in-process, candidate venv) — mcp_server._get_list against a stub 500 server on :52398 (VYSTED_SIDECAR_INTERNAL_BASE_URL override)
+EXIT: 0
+OUTPUT:
+=== R15-AGENT-059: list_agents/list_workflows/list_runs against a 500 upstream ===
+  _get_list('/agents', 'agents') -> {'ok': False, 'error': "GET /agents failed: Server error '500 Internal Server Error' for url 'http://127.0.0.1:52398/agents'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"}
+  _get_list('/workflow/saved', 'workflows') -> {'ok': False, 'error': "GET /workflow/saved failed: Server error '500 Internal Server Error' for url 'http://127.0.0.1:52398/workflow/saved'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"}
+  _get_list('/runs', 'runs') -> {'ok': False, 'error': "GET /runs failed: Server error '500 Internal Server Error' for url 'http://127.0.0.1:52398/runs'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"}
+  PASS: all three report ok:false on a 500, none silently returns an empty list

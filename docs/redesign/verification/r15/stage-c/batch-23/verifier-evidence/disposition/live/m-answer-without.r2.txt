@@ -1,0 +1,9 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  38.5s] done: {"kind": "done", "usage": {"input_tokens": 7483, "output_tokens": 64, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+{"name": "portfolio_update_position", "parameters": {"asset_class": "equity", "cost_basis": None, "note": None, "purchased_at": None, "position_id": "TCS (sold 5 shares)", "quantity": -5, "symbol": "TCS"}}
+
+=== ok · 38.5s · events {'heartbeat': 3, 'delta': 1, 'done': 1} · usage in=7483 out=64 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,39 @@
+PROBE: R15-UI-007 (preset click resets nested group + formula)
+vitest is barred for this role (stall rule: never run vitest/pytest suites).
+Certification is a jsdom component test: src/modules/screener/ScreenerPresets.test.tsx:33
+("R15-UI-007: a preset resets a nested group + formula, not just criteria").
+Static trace of the deterministic (no I/O) click-handler code that test exercises,
+against the candidate worktree at 1006c6da694ede5776c3dabbd27b305aeb56b5ad:
+
+src/modules/screener/ScreenerPresets.tsx:127-137
+  // R15-UI-007: `applyFilters` resets the nested group + advanced flag +
+  // formula (like `resetCriteria`) as well as the criteria/universe/
+  // combinator ...
+  applyFilters({
+    ...
+    group: null,
+    ...
+    formula: "",
+    ...
+  });
+
+src/store/screener.ts applyFilters (around line 343-355):
+  applyFilters: ({ criteria, group, universe, formula }) =>
+    set((state) => ({
+      criteria,
+      group: group ?? null,
+      advanced: hasNestedGroup(group ?? null),
+      combinator: group && group.combinator === "or" && !hasNestedGroup(group) ? "or" : "and",
+      universe: universe ?? state.universe,
+      universeChosen: state.universeChosen || universe !== undefined,
+      ...(formula !== undefined ? { formula } : {}),
+    })),
+
+Since the preset click passes group: null and formula: "" explicitly, applyFilters
+sets group=null, advanced=false, formula="" -- matching the pinned test's assertions
+(state.group === null, state.advanced === false, state.formula === "", state.combinator === "and").
+Source matches the certified fix at this sha.
+
+VERDICT: ci_pinned (src/modules/screener/ScreenerPresets.test.tsx:33) -- only fully
+provable by the jsdom render+click test, barred under the stall rule; static trace of
+the deterministic state-transition code it exercises is consistent with the certified fix.

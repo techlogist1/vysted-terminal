@@ -1,0 +1,13 @@
+# R15-CODE-PLATFORM-035 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+for p in _default_bar_loader _encode_event_dict 'kept for parity' 'no longer reachable' 'or _default'; do echo "$p: $(grep -c "$p" sidecar/services/backtest_engine.py sidecar/routers/backtest.py sidecar/services/backtest_strategies.py | tr '\n' ' ')"; done; grep -n 'bar_loader: BarLoader' sidecar/services/backtest_engine.py
+--- output ---
+_default_bar_loader: sidecar/services/backtest_engine.py:0 sidecar/routers/backtest.py:0 sidecar/services/backtest_strategies.py:0 
+_encode_event_dict: sidecar/services/backtest_engine.py:0 sidecar/routers/backtest.py:0 sidecar/services/backtest_strategies.py:0 
+kept for parity: sidecar/services/backtest_engine.py:0 sidecar/routers/backtest.py:0 sidecar/services/backtest_strategies.py:0 
+no longer reachable: sidecar/services/backtest_engine.py:0 sidecar/routers/backtest.py:0 sidecar/services/backtest_strategies.py:0 
+or _default: sidecar/services/backtest_engine.py:0 sidecar/routers/backtest.py:0 sidecar/services/backtest_strategies.py:0 
+445:    bar_loader: BarLoader,
+
+EXIT=0 (0.0s)

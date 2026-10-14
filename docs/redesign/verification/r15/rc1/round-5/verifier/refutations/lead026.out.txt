@@ -1,0 +1,8 @@
+== ZZZZNOTREAL
+{'symbol': 'ZZZZNOTREAL', 'timeframe': '1d', 'bars': 0, 'provider': 'none', 'freshness': None, 'reason': 'unknown_symbol', 'partial': False, 'coverage_start': None}
+== QQZZFAKE.NS
+{'symbol': 'QQZZFAKE.NS', 'timeframe': '1d', 'bars': 0, 'provider': 'none', 'freshness': None, 'reason': None, 'partial': False, 'coverage_start': None}
+== QQZZFAKE.BO
+{'symbol': 'QQZZFAKE.BO', 'timeframe': '1d', 'bars': 0, 'provider': 'none', 'freshness': None, 'reason': None, 'partial': False, 'coverage_start': None}
+== RELIANC.NS
+{'symbol': 'RELIANC.NS', 'timeframe': '1d', 'bars': 0, 'provider': 'none', 'freshness': None, 'reason': None, 'partial': False, 'coverage_start': None}

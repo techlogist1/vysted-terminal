@@ -1,0 +1,547 @@
+{
+  "collected_at": "2026-09-19",
+  "slot": "P16",
+  "symbol": "CREST",
+  "status": "complete-with-recorded-gaps",
+  "collector_notes": "Pack built live on 2026-09-23 (session-2 addendum), not on the nominal 2026-09-19 census date; collected_at is kept at the battery-wide 2026-09-19 convention per every other pack in this directory, and every field below carries its own real as_of/fetched_at so the skew is auditable. Crest Ventures earns its hostile_traits label in full: it is BOTH an NBFC (financial-services taxonomy) AND a real-estate developer carrying projects on its own balance sheet, and standalone vs consolidated figures diverge hard (P/E 46-49 standalone vs 29-31 consolidated; ROE 2.1-3.5% standalone vs 3.75% consolidated; book value INR415 standalone vs INR459 consolidated) - a pipeline that silently picks one basis will show a materially different company. THREE independent live sources (screener.in, api.bseindia.com's own ComHeadernew feed, stockanalysis.com) disagree with each other on P/E, EPS-TTM, ROE, PB, day's high/low and 52-week high for the SAME instrument on the SAME day - each is individually legitimate (different EPS-TTM windows / rounding / live vs delayed feed), so these are recorded as multi-source disagreements, not as one side being wrong. bseindia.com's public HTML pages 403 automated fetchers as documented in COMMON.md, but api.bseindia.com's JSON endpoints (DefaultData, ComHeadernew, getScripHeaderData, AnnSubCategoryGetData) all answered with a browser UA + bseindia.com Referer, and several confirm first-party facts (ISIN, exact dividend ex-dates, exact results-filing timestamp) that screener.in only implies.",
+  "identity": {
+    "legal_name": {
+      "value": "Crest Ventures Limited",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/511413/",
+      "corroboration": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?scripcode=511413 Cmpname.FullN = 'Crest Ventures Ltd'",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "former_names": {
+      "value": null,
+      "world_gap": "No rename found in any source read (screener 'About', BSE header, stockanalysis profile). Incorporated 1982 under this apparent name per screener; not independently confirmed against the MCA master data or a first incorporation certificate, which were not fetched.",
+      "as_of": "2026-09-22"
+    },
+    "isin": {
+      "value": "INE559D01011",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "note": "First-party BSE feed. Matches the value already recorded in BATTERY/manifest.json master_presence.bse for this slot.",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "bse_code": {
+      "value": "511413",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "nse_symbol": {
+      "value": "CREST",
+      "as_of": "2026-09-22",
+      "source_url": "https://stockanalysis.com/quote/nse/CREST/",
+      "note": "nseindia.com itself 403s automated fetchers (get-quotes redirect + api/quote-equity both blocked in this session); NSE symbol corroborated via a third-party aggregator only, not confirmed first-party.",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "board": {
+      "value": "mainboard",
+      "exchanges": "BSE (group B) + NSE",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "note": "BSE Grp_Index = 'B'. Not SME.",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "sector": {
+      "value": "Financials",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/511413/",
+      "disagreement": "BSE's own header classifies it 'Financial Services' / industry 'Non Banking Financial Company (NBFC)'; stockanalysis.com labels industry 'Financial Conglomerates', sector 'Financials'. All three agree in substance (financials) but the exact taxonomy string differs across sources, and NONE of them surface 'real estate' even though screener's own business description and the manifest's hostile_traits both foreground the real-estate book.",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "industry": {
+      "value": "Non Banking Financial Company (NBFC) / Investment and Credit Company",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "corroboration": "screener.in: 'Systematically Important Non Deposit Taking Non-Banking Finance Company... classified as an Investment and Credit Company'",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "business_description": {
+      "value": "Incorporated in 1982, Crest Ventures Ltd is in the business of real estate and related services, financial services and investment and credit. It is a Systemically Important Non-Deposit-Taking NBFC / Investment and Credit Company that provides loans and invests mainly in real-estate projects and the financial-services sector, mostly via SPVs or JV partnerships, but also carries certain real-estate projects on its own balance sheet ('own book') with a track record of exiting them on completion.",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/511413/",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "incorporated": {
+      "value": "1982",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/511413/",
+      "corroboration": "stockanalysis.com profile: Founded 1982",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "listing_date": {
+      "value": null,
+      "world_gap": "Not found on screener.in, stockanalysis.com or the BSE JSON endpoints tried. bseindia.com's own HTML corporate-info page (which typically publishes this) 403s automated fetchers per COMMON.md, and no JSON endpoint tried in this session surfaces it.",
+      "as_of": "2026-09-22"
+    },
+    "employees": {
+      "value": 206,
+      "as_of": "2026-09-22",
+      "source_url": "https://stockanalysis.com/quote/nse/CREST/",
+      "note": "Third-party aggregator figure only; not cross-checked against an annual report headcount disclosure.",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    }
+  },
+  "price": {
+    "last_close": {
+      "value": 364.0,
+      "unit": "INR",
+      "date": "2026-09-22",
+      "exchange": "NSE (implied - screener/stockanalysis default to NSE pricing for dual-listed names)",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/511413/",
+      "corroboration": "stockanalysis.com/quote/nse/CREST/ also shows 364.00, -3.05 (-0.83%), 'Sep 22, 2026, 3:29 PM IST'",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "bse_last_traded_price": {
+      "value": 362.5,
+      "unit": "INR",
+      "date": "2026-09-22",
+      "timestamp_shown": "22 Sep 26 | 16:00",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?scripcode=511413",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "bse_vs_nse_spread": {
+      "value": 1.5,
+      "unit": "INR",
+      "pct": 0.41,
+      "as_of": "2026-09-22",
+      "note": "genuine, measured same-day spread: NSE/screener close 364.00 vs BSE's own LTP feed 362.50 for the same instrument on the same session - a pipeline that reads only one exchange's feed and labels it 'the price' silently drops this.",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?scripcode=511413 ; https://www.screener.in/company/511413/"
+    },
+    "change_pct": {
+      "value_nse_side": -0.83,
+      "value_bse_side": -0.78,
+      "unit": "percent",
+      "date": "2026-09-22",
+      "note": "screener shows -0.91%; stockanalysis shows -0.83% (-3.05 on 367.05 prev close); BSE header computes -0.78% (-2.85 on 365.35 prev close). Three sources, three slightly different prev-close bases, three slightly different percentages, same trading day.",
+      "source_url": "https://www.screener.in/company/511413/ ; https://stockanalysis.com/quote/nse/CREST/ ; https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?scripcode=511413",
+      "fetched_at": "2026-09-23T00:36:57Z"
+    },
+    "day_range": {
+      "screener_stockanalysis": {
+        "low": 362.0,
+        "high": 385.0,
+        "source_url": "https://stockanalysis.com/quote/nse/CREST/"
+      },
+      "bse_comheader": {
+        "low": 361.05,
+        "high": 385.9,
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?scripcode=511413"
+      },
+      "bse_stockreachgraph": {
+        "low": 360,
+        "high": 390,
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=511413"
+      },
+      "date": "2026-09-22",
+      "note": "Three feeds for the SAME session - two of them (comheader, stockreachgraph) are BOTH BSE's own API - give three different day-range pairs. Likely explained by intraday-snapshot vs end-of-day settle timing, but no source states which; recorded as a disagreement, not resolved.",
+      "as_of": "2026-09-22"
+    }
+  },
+  "market_cap": {
+    "value": 1035,
+    "unit": "INR crore",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/511413/",
+    "note": "Identical on both the standalone and consolidated screener pages (share count/price based, not P&L based, so it does not move with the standalone/consolidated toggle).",
+    "disagreements": [
+      {
+        "value": 1025,
+        "unit": "INR crore (10.25B INR)",
+        "source_url": "https://stockanalysis.com/quote/nse/CREST/",
+        "note": "shown alongside a '-4.5%' change annotation whose base period is unstated"
+      }
+    ],
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "pe_ttm": {
+    "standalone": {
+      "screener_value": 49.4,
+      "screener_source_url": "https://www.screener.in/company/511413/",
+      "bse_value": 46.03,
+      "bse_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "note": "BSE's own ComHeadernew feed reports EPS 7.88 / PE 46.03 standalone; screener's standalone TTM P&L table computes EPS 7.36 / implied PE ~49.4 off a 364 close. Different EPS-TTM windows and/or a slightly different LTP snapshot (364 vs BSE's 362.50) produce two 'standalone P/E' numbers for the same day."
+    },
+    "consolidated": {
+      "screener_value": 31.4,
+      "screener_source_url": "https://www.screener.in/company/511413/consolidated/",
+      "stockanalysis_value": 31.06,
+      "stockanalysis_source_url": "https://stockanalysis.com/quote/nse/CREST/",
+      "bse_value": 29.42,
+      "bse_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "note": "Three sources, three consolidated P/E values within a ~7% band (29.4-31.4) - close enough to look 'confirmed' at a glance but not identical."
+    },
+    "standalone_vs_consolidated_gap": "49.4 (standalone) vs 31.4 (screener consolidated) - a 1.57x difference driven by the real-estate SPV/JV consolidation picking up profit the standalone book does not show. This is the manifest's hostile_trait made concrete.",
+    "as_of": "2026-09-22",
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "pb": {
+    "standalone": {
+      "value": 0.88,
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/511413/",
+      "derivation": "screener 'Pros' text: 'Stock is trading at 0.88 times its book value' (364 / Book Value INR415)",
+      "disagreement": {
+        "value": 0.97,
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+        "note": "BSE's own PB field for the standalone/EQ header reads 0.97, not 0.88."
+      }
+    },
+    "consolidated": {
+      "value": null,
+      "gap": "screener's consolidated summary card shows Book Value INR459 but does not print a PB multiple directly (implied ~0.79 = 364/459, not screener-stated); BSE's ConPB field is null in the feed.",
+      "as_of": "2026-09-22"
+    },
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "roe": {
+    "standalone": {
+      "screener_value_pct": 3.51,
+      "screener_source_url": "https://www.screener.in/company/511413/",
+      "bse_value_pct": 2.11,
+      "bse_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "note": "1.4x apart for what both sources label plain 'ROE' on the same standalone basis, same day. screener's own 5-year table separately states 'Last Year: 4%' ROE, a THIRD nearby figure."
+    },
+    "consolidated": {
+      "value_pct": 3.75,
+      "source_url": "https://www.screener.in/company/511413/consolidated/",
+      "note": "BSE's ConROE field is null in the feed, so no cross-check available for the consolidated side."
+    },
+    "as_of": "2026-09-22",
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "roce": {
+    "standalone": {
+      "value_pct": 5.54,
+      "source_url": "https://www.screener.in/company/511413/"
+    },
+    "consolidated": {
+      "value_pct": 5.67,
+      "source_url": "https://www.screener.in/company/511413/consolidated/"
+    },
+    "as_of": "2026-09-22",
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "debt_to_equity": {
+    "standalone": {
+      "value": 0.17,
+      "unit": "ratio",
+      "as_of": "FY2026 (year ended 2026-03-31)",
+      "derivation": "Borrowing INR204cr / (Equity Capital INR28cr + Reserves INR1,152cr = INR1,180cr) from the standalone annual balance-sheet table.",
+      "source_url": "https://www.screener.in/company/511413/#balance-sheet"
+    },
+    "consolidated": {
+      "value": 0.22,
+      "unit": "ratio",
+      "as_of": "FY2026 (year ended 2026-03-31)",
+      "derivation": "Borrowing INR282cr / (Equity Capital INR28cr + Reserves INR1,279cr = INR1,307cr) from the consolidated annual balance-sheet table.",
+      "source_url": "https://www.screener.in/company/511413/consolidated/#balance-sheet"
+    },
+    "note": "Screener does not print a D/E ratio directly on the summary card for this name; both values above are derived from the raw balance-sheet line items, not lifted pre-computed, so treat as a derived figure rather than a quoted one.",
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "revenue_ttm": {
+    "standalone": {
+      "value": 87,
+      "unit": "INR crore",
+      "basis": "TTM column, standalone P&L table",
+      "source_url": "https://www.screener.in/company/511413/#profit-loss"
+    },
+    "consolidated": {
+      "value": 126,
+      "unit": "INR crore",
+      "basis": "sum of last 4 reported consolidated quarters (30.36+34.55+32.15+29.66 from the quarterly table) matches stockanalysis's stated 1.26B",
+      "source_url": "https://www.screener.in/company/511413/consolidated/#quarters",
+      "corroboration": "https://stockanalysis.com/quote/nse/CREST/ Revenue (ttm) 1.26B, -33.6%"
+    },
+    "as_of": "2026-09-22 (latest quarter in TTM window: Jun 2026)",
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "net_profit_ttm": {
+    "standalone": {
+      "value": 21,
+      "unit": "INR crore",
+      "source_url": "https://www.screener.in/company/511413/#profit-loss"
+    },
+    "consolidated": {
+      "value": 33,
+      "unit": "INR crore",
+      "note": "screener's consolidated quarterly table sums to ~33cr for the last 4 quarters (4+10+9+11); stockanalysis states 329.85M (32.985cr) for the same TTM window.",
+      "source_url": "https://www.screener.in/company/511413/consolidated/#quarters",
+      "corroboration": "https://stockanalysis.com/quote/nse/CREST/ Net Income 329.85M, -49.0%"
+    },
+    "as_of": "2026-09-22 (latest quarter in TTM window: Jun 2026)",
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "revenue_growth_yoy": {
+    "value_pct": -41,
+    "basis": "standalone, TTM-over-TTM, per screener's 'Compounded Sales Growth: TTM: -41%'",
+    "consolidated_note": "stockanalysis states 'revenue was 1.59 billion, a decrease of -22.13%' for FY2026 vs FY2025 on an annual (not TTM) basis - a different window from screener's TTM figure, so the two percentages are not directly comparable even though both are nominally 'revenue growth'.",
+    "context": "The decline is a base-effect artifact, not an operating collapse: standalone Mar-2023 revenue was an outlier INR816cr (a one-off, per the annual P&L table) against which every subsequent TTM/YoY comparison now reads as a steep fall.",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/511413/#profit-loss",
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "eps_ttm": {
+    "standalone": {
+      "screener_value": 7.36,
+      "bse_value": 7.88,
+      "source_url": "https://www.screener.in/company/511413/#profit-loss",
+      "bse_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413"
+    },
+    "consolidated": {
+      "screener_derived_value": 11.6,
+      "bse_value": 12.32,
+      "stockanalysis_value": 11.6,
+      "note": "screener does not print consolidated TTM EPS directly; 11.60 is the sum of the last 4 quarterly consolidated EPS figures (1.31+3.37+2.93+3.99) and matches stockanalysis's stated 'EPS 11.60' exactly. BSE's ConEPS field reads 12.32, ~6% higher.",
+      "source_url": "https://www.screener.in/company/511413/consolidated/#quarters",
+      "corroboration_url": "https://stockanalysis.com/quote/nse/CREST/"
+    },
+    "as_of": "2026-09-22",
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "book_value_per_share": {
+    "standalone": {
+      "value": 415,
+      "unit": "INR",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/511413/"
+    },
+    "consolidated": {
+      "value": 459,
+      "unit": "INR",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/511413/consolidated/"
+    },
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR",
+    "as_of": "2026-09-22",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+    "corroboration": "screener.in Face Value card also shows INR10.0",
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "dividend": {
+    "last_declared_per_share": {
+      "value": 1.0,
+      "unit": "INR",
+      "record_date": "2026-08-14",
+      "ex_date": "2026-08-14",
+      "purpose": "Final Dividend - Rs. - 1.0000",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/DefaultData/w?scripcode=511413",
+      "note": "First-party BSE corporate-actions feed gives Ex_date and RD_Date as the SAME date (14 Aug 2026); payment_date is present as a field in the feed but returned blank for every row, so the actual credit date is a recorded gap, not zero."
+    },
+    "paid_trailing_12m_per_share": {
+      "value": 2.0,
+      "unit": "INR",
+      "derivation": "Proxy sum of BSE-recorded dividend ex-dates falling in the trailing 12 months from 2026-09-23: INR1.00 (ex-date 2026-09-23, borderline - exactly one year back) + INR1.00 (ex-date 2026-08-14). This is a DERIVED proxy, not a stated 'paid' figure, because the BSE feed's payment_date field is blank for every entry - see the gap above. If the 2025-09-23 dividend is instead counted as just outside the trailing-12m window, paid_trailing_12m_per_share would read INR1.00, not INR2.00 - a boundary case worth flagging on its own.",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/DefaultData/w?scripcode=511413"
+    },
+    "yield_pct": {
+      "value": 0.27,
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/511413/",
+      "corroboration": "stockanalysis.com: 'Dividend 1.00 (0.27%)'"
+    },
+    "history": [
+      {
+        "purpose": "Final Dividend - Rs. - 1.0000",
+        "ex_date": "2026-08-14",
+        "record_date": "2026-08-14"
+      },
+      {
+        "purpose": "Final Dividend - Rs. - 1.0000",
+        "ex_date": "2025-09-23",
+        "record_date": "2025-09-23"
+      },
+      {
+        "purpose": "Final Dividend - Rs. - 1.0000",
+        "ex_date": "2024-08-23",
+        "record_date": "2024-08-23"
+      }
+    ],
+    "history_source_url": "https://api.bseindia.com/BseIndiaAPI/api/DefaultData/w?scripcode=511413",
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "week52": {
+    "high": {
+      "screener_value": 430,
+      "screener_source_url": "https://www.screener.in/company/511413/",
+      "stockanalysis_value": 418.0,
+      "stockanalysis_source_url": "https://stockanalysis.com/quote/nse/CREST/",
+      "note": "A genuine, non-trivial (INR12, ~2.9%) disagreement on the 52-week HIGH between two live aggregators reading the same instrument.",
+      "as_of": "2026-09-22"
+    },
+    "low": {
+      "screener_value": 298,
+      "screener_source_url": "https://www.screener.in/company/511413/",
+      "stockanalysis_value": 298.15,
+      "stockanalysis_source_url": "https://stockanalysis.com/quote/nse/CREST/",
+      "note": "The LOW leg agrees to within rounding (298 vs 298.15) even though the HIGH leg does not - exactly the 'one leg stale, one leg fresh' pattern PROMPT_data_s2.md calls out by name.",
+      "as_of": "2026-09-22"
+    },
+    "fetched_at": "2026-09-23T00:36:57Z"
+  },
+  "shareholding": {
+    "quarter": "Jun 2026",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/511413/",
+    "promoter_pct": 69.84,
+    "fii_pct": 1.71,
+    "dii_pct": {
+      "value": 0.0,
+      "note": "screener's quarterly shareholding table (Sep2023-Jun2026 window) shows only Promoters / FIIs / Public / Others rows for the recent quarters - no separate DII row - implying DII holding rounds to 0%; the longer yearly table (which DOES carry a DIIs row back to Mar2017) shows DIIs at 0.00% for every year from Mar2023 through Mar2026 and Jun2026, consistent with the quarterly table's omission."
+    },
+    "public_pct": 27.81,
+    "others_pct": 0.64,
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "world_gap": "Not found. screener.in's shareholding-pattern table (both quarterly and yearly views) carries no separate 'Pledged' sub-line for this stock, in any quarter shown - screener typically only renders that row when non-zero pledge exists at some point in the series, so this is consistent with (but does not independently confirm) a nil-pledge history. Every BSE JSON endpoint guessed for a dedicated shareholding-pattern/pledge feed (Shareholding/w, ShareHoldingDetails/w, ShareholdingPatternnew/w, ShpEndDate/w, CorpactShareholdingPattern/w) 302-redirected rather than returning data in this session, so no first-party pledge confirmation was obtained.",
+      "as_of": "2026-09-22"
+    },
+    "no_of_shareholders": 8651,
+    "shareholder_count_source_url": "https://www.screener.in/company/511413/"
+  },
+  "corporate_actions_2026": [
+    {
+      "type": "Final Dividend",
+      "value": "INR1.00 per share",
+      "ex_date": "2026-08-14",
+      "record_date": "2026-08-14",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/DefaultData/w?scripcode=511413"
+    }
+  ],
+  "corporate_actions_2026_note": "No bonus, split, buyback or rights issue found dated in 2026 across the sources read (the only rights issue on record is from 2016). The 44th AGM (2026-08-22) approved the FY2026 dividend and routine business per its outcome announcement; it is a governance event, not itself a distinct corporate action line in the BSE corpact feed.",
+  "latest_results": {
+    "quarter": "Q1 FY2026-27 (quarter ended 2026-06-30)",
+    "filing_date": "2026-08-13",
+    "filing_time": "18:48:50 IST",
+    "headline": "Un-Audited Financial Results (Standalone And Consolidated) For The Quarter Ended June 30, 2026",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?strCat=Result&strScrip=511413",
+    "fetched_at": "2026-09-23T00:36:57Z",
+    "note": "First-party filing timestamp, not inferred from the P&L table's column header alone."
+  },
+  "last_3_announcements": [
+    {
+      "date": "2026-09-03",
+      "headline": "Minutes Of The 44th Annual General Meeting Of The Company",
+      "category": "AGM/EGM",
+      "url": "https://www.bseindia.com/stock-share-price/crest-ventures-ltd/crest/511413/"
+    },
+    {
+      "date": "2026-08-25",
+      "headline": "Shareholder Meeting / Postal Ballot - Scrutinizer's Report",
+      "url": "https://www.bseindia.com/stock-share-price/crest-ventures-ltd/crest/511413/"
+    },
+    {
+      "date": "2026-08-22",
+      "headline": "Shareholder Meeting / Postal Ballot - Outcome of AGM (44th AGM held 2026-08-22; voted on dividend, accounts and related-party transactions)",
+      "url": "https://www.bseindia.com/stock-share-price/crest-ventures-ltd/crest/511413/"
+    }
+  ],
+  "last_3_announcements_source_url": "https://www.screener.in/company/511413/",
+  "credit_ratings": [
+    {
+      "agency": "CARE",
+      "type": "Rating update",
+      "date": "2025-12-11"
+    },
+    {
+      "agency": "CARE",
+      "type": "Rating update",
+      "date": "2025-04-07"
+    },
+    {
+      "agency": "CARE",
+      "type": "Rating update",
+      "date": "2024-06-07"
+    }
+  ],
+  "credit_ratings_note": "screener lists the rating-update EVENT dates and agency only, not the rating grade/outlook itself - the grade was not on the fetched page and is a recorded gap, not a value.",
+  "credit_ratings_source_url": "https://www.screener.in/company/511413/",
+  "consolidated_vs_standalone": {
+    "note": "This is the single most load-bearing fact in the pack. Crest Ventures reports BOTH standalone and consolidated financials (screener.in serves them as two distinct URLs, /company/511413/ vs /company/511413/consolidated/, with no default indicated in the page itself), and they diverge materially: consolidated revenue TTM (~INR126cr) is ~1.45x standalone (~INR87cr); consolidated net profit TTM (~INR33cr) is ~1.57x standalone (~INR21cr); consolidated P/E (~29-31x) is roughly two-thirds of standalone P/E (~46-49x); consolidated book value (INR459) exceeds standalone (INR415) by ~11%. The gap is exactly what the manifest's hostile_traits predicts: the SPV/JV real-estate structure shows up in the consolidated numbers and is largely invisible standalone. Any in-app value for this symbol MUST be diffed against the matching basis (standalone vs consolidated), never against 'whichever screener page loaded first' - a diff that mixes bases will manufacture a false mismatch on almost every P&L-derived ratio.",
+    "source_urls": [
+      "https://www.screener.in/company/511413/",
+      "https://www.screener.in/company/511413/consolidated/"
+    ]
+  },
+  "traps": [
+    "Common-English-word ticker: 'CREST' collides with ordinary-language usage in any keyword-based resolver or search index far more than a typical alphanumeric-looking ticker.",
+    "Standalone vs consolidated is not a footnote here, it is a ~1.5x swing on P/E, revenue, net profit and book value simultaneously - see consolidated_vs_standalone above.",
+    "Three independently-legitimate live sources (screener.in, api.bseindia.com's own header feed, stockanalysis.com) disagree with each other on P/E, EPS-TTM, ROE, PB, day's high/low and even the 52-week HIGH for the identical instrument on the identical trading day - a pipeline that trusts any single source as ground truth will silently pick a number the other two sources contradict.",
+    "BSE's OWN two live JSON endpoints (getScripHeaderData vs StockReachGraph) disagree with each other on the SAME day's high/low (385.90/361.05 vs 390/360) - 'first-party' does not mean 'internally consistent'.",
+    "Standalone TTM revenue growth reads as a dramatic -41% YoY collapse, but is a base-effect artifact of an outlier Mar-2023 one-off (INR816cr standalone revenue that year vs a normal INR20-160cr range every other year) - a naive 'revenue fell 41%, flag as risk' rule would misread ordinary mean-reversion as a business collapse.",
+    "The trailing-12-month declared-dividend figure is boundary-sensitive: the 2025-09-23 ex-date dividend sits exactly one year before today's fetch (2026-09-23), so 'paid_trailing_12m_per_share' is either INR2.00 or INR1.00 depending on an inclusive/exclusive boundary choice that no source makes explicit.",
+    "bseindia.com's HTML pages 403 automated fetchers (per COMMON.md) but api.bseindia.com's JSON API does not - a naive scraper that gives up after the HTML 403 will wrongly conclude BSE data is unreachable for this name, when a browser-UA + bseindia.com-Referer JSON call succeeds and is in fact the MOST first-party source used in this pack.",
+    "Pledge data appears to be a genuine absence (no promoter pledge disclosed in screener's shareholding table across the entire fetched history back to Mar 2017) rather than a missing field - but this pack could not independently confirm that with a dedicated BSE pledge feed (every guessed endpoint name redirected), so 'nil pledge' here is an inference from an omission, not a confirmed zero."
+  ],
+  "world_gaps": [
+    "listing_date: genuinely not surfaced by any source tried (screener, stockanalysis, BSE JSON, Wikipedia not checked for this name) - most likely retrievable only from bseindia.com's HTML corporate-info page, which 403s automated fetchers.",
+    "former_names / any historical rename: no evidence either way was found; absence of a mention is weak evidence of absence, not proof.",
+    "pledged_pct_of_promoter: see traps above - inferred nil from an omitted table row, not confirmed via a dedicated pledge disclosure.",
+    "dividend payment_date (as opposed to record/ex-date): BSE's DefaultData feed carries the field but returns it blank for every historical entry for this scrip.",
+    "credit rating GRADE/outlook (only the rating-update EVENT DATES were retrievable from screener; the grade itself requires the CARE rating letter/PDF, not fetched).",
+    "promoter names / promoter group composition: not fetched in this pass (screener's shareholding table is click-to-expand per line-item per its own UI text; the collapsed percentages only were captured)."
+  ],
+  "sources_actually_read": [
+    "https://www.screener.in/company/511413/",
+    "https://www.screener.in/company/511413/consolidated/",
+    "https://stockanalysis.com/quote/nse/CREST/",
+    "https://api.bseindia.com/BseIndiaAPI/api/DefaultData/w?scripcode=511413",
+    "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+    "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?scripcode=511413",
+    "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=511413",
+    "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?strCat=Result&strScrip=511413",
+    "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?strCat=Company%20Update&strScrip=511413",
+    "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?strCat=-1&strScrip=511413",
+    "https://api.bseindia.com/BseIndiaAPI/api/AnnualReport/w?scripcode=511413"
+  ],
+  "sources_attempted_and_failed": [
+    {
+      "url": "https://www.bseindia.com/stock-share-price/crest-ventures-ltd/crest/511413/",
+      "result": "HTML page not fetched directly (per COMMON.md, bseindia.com HTML 403s automated fetchers); used the api.bseindia.com JSON endpoints instead, which succeeded."
+    },
+    {
+      "url": "https://www.nseindia.com/get-quotes/equity?symbol=CREST",
+      "result": "HTTP 302 on the warm-up GET"
+    },
+    {
+      "url": "https://www.nseindia.com/api/quote-equity?symbol=CREST",
+      "result": "HTTP 403 even after a cookie warm-up request"
+    },
+    {
+      "url": "https://stockanalysis.com/quote/bse/511413/",
+      "result": "HTTP 404 - stockanalysis.com does not resolve this name by BSE code, only by NSE symbol"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/CorpactShareholdingPattern/w?Scripcode=511413",
+      "result": "HTTP 302 redirect to a generic BSE error page"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/Shareholding/w?flag=P&scripcode=511413",
+      "result": "HTTP 302 redirect - endpoint name guessed, did not resolve"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/ShareHoldingDetails/w?scripcode=511413&type=SHP",
+      "result": "HTTP 302 redirect - endpoint name guessed, did not resolve"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/ShareholdingPatternnew/w?scripcode=511413&qtrid=0",
+      "result": "HTTP 302 redirect - endpoint name guessed, did not resolve"
+    },
+    {
+      "url": "https://api.bseindia.com/BseIndiaAPI/api/ShpEndDate/w?Scripcode=511413",
+      "result": "HTTP 302 redirect - endpoint name guessed, did not resolve"
+    }
+  ]
+}

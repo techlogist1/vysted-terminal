@@ -1,0 +1,39 @@
+  it("AUTO mode applies a UI/chart/watchlist change on enqueue, no manual accept", async () => {
+    useAgentAutonomyStore.getState().setAutonomy("auto");
+    enqueue("set_chart_symbol", { symbol: "NVDA" });
+    await Promise.resolve(); // flush the void accept() microtask
+    expect(applyHostActionMock).toHaveBeenCalledTimes(1);
+    expect(applyHostActionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "set_chart_symbol", symbol: "NVDA" }),
+    );
+    expect(useProposedChangesStore.getState().changes[0].status).toBe("accepted");
+  });
+
+  it("AUTO mode keeps data-write and settings changes pending and acks them staged", async () => {
+    useAgentAutonomyStore.getState().setAutonomy("auto");
+    enqueue("portfolio_delete_position", { symbol: "RELIANCE" });
+    enqueue("write_note", { scope: "NVDA", text: "x" });
+    enqueue("set_region", { region: "US" });
+    // Not in the list the gate was written against: another data-write kind.
+    enqueue("save_screen", { name: "Value" });
+    enqueue("set_chart_symbol", { symbol: "NVDA" });
+    await Promise.resolve(); // flush the void accept() microtask
+    expect(applyHostActionMock).toHaveBeenCalledTimes(1);
+    expect(applyHostActionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "set_chart_symbol", symbol: "NVDA" }),
+    );
+    const pending = useProposedChangesStore.getState().pending();
+    expect(pending.map((c) => c.action.name)).toEqual([
+      "portfolio_delete_position",
+      "write_note",
+      "set_region",
+      "save_screen",
+    ]);
+    for (const c of pending) {
+      expect(ackHostActionMock).toHaveBeenCalledWith(
+        c.toolCallId,
+        "staged",
+        expect.objectContaining({ action: c.action.name }),
+      );
+    }
+    expect(ackHostActionMock).not.toHaveBeenCalledWith(

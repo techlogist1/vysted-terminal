@@ -1,0 +1,10 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Source re-check.
+sidecar/services/agent_runtime.py:
+  559: _HISTORY_VERBATIM_MESSAGES = 8
+  563: _HISTORY_SUMMARY_HEAD = "Earlier in this conversation (older turns, summarised):"
+  580-605: fold logic — messages beyond the verbatim window are folded into one summary turn
+  instead of the old `[-10:]` hard truncation.
+src/modules/chat/ChatSidebar.tsx:1524: "older turns summarised" marker component, cites R15-AGENT-040.
+
+VERDICT: holds. History compaction is now a state-shaped summary (with a visible marker) instead
+of silent FIFO truncation at 10 messages.

@@ -1,0 +1,12 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: in-process stub client: ok call then isError call via openbb_mcp_provider._call_tool / sec_filings_provider._call_tool, then status()
+--- output
+services.openbb_mcp_provider call1 ok
+services.openbb_mcp_provider status after ok: {'available': True, 'provider': 'openbb-mcp', 'endpoint': 'http://127.0.0.1:52379/mcp', 'lastToolCallOk': True, 'lastError': None}
+services.openbb_mcp_provider call2 raised ProviderError openbb-mcp tool 'x' reported error: [{'type': 'text', 'text': 'upstream 500'}]
+services.openbb_mcp_provider status after isError: {'available': False, 'provider': 'openbb-mcp', 'endpoint': 'http://127.0.0.1:52379/mcp', 'lastToolCallOk': False, 'lastError': "ProviderError: openbb-mcp tool 'x' reported error: [{'type': 'text', 'text': 'upstream 500'}]"}
+services.sec_filings_provider call1 ok
+services.sec_filings_provider status after ok: {'available': True, 'provider': 'sec-edgar-mcp', 'endpoint': 'http://127.0.0.1:52378/mcp', 'lastToolCallOk': True, 'lastError': None}
+services.sec_filings_provider call2 raised ProviderError sec-edgar-mcp tool 'x' reported error: [{'type': 'text', 'text': 'upstream 500'}
+services.sec_filings_provider status after isError: {'available': False, 'provider': 'sec-edgar-mcp', 'endpoint': 'http://127.0.0.1:52378/mcp', 'lastToolCallOk': False, 'lastError': "ProviderError: sec-edgar-mcp tool 'x' reported error: [{'type': 'text', 'text': 'upstream 500'}]"}
+EXIT=0

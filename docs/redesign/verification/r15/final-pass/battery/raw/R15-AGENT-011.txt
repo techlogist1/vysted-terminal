@@ -1,0 +1,28 @@
+# R15-AGENT-011 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:13:58+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn "backtest/runs" src/store/backtest.ts | head -3; grep -n '_auto_open_backtest_event' sidecar/services/agent_runtime.py | head -3
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio, json
+from services import agent_runtime as ar, backtest_strategies
+backtest_strategies.register_all()
+from services.agent_tools.run_custom_backtest import _run_custom_backtest
+from models.llm import LLMToolUseEvent
+async def main():
+    r=await _run_custom_backtest({'entry':'sma(20) > sma(50)','exit':'rsi(14) > 70','symbols':['SPY'],'start_date':'2025-10-01','end_date':'2026-09-30'})
+    print('ok',r.get('ok'),'runId',r.get('runId'),r.get('error'))
+    tc=LLMToolUseEvent(tool_call_id='t1',name='run_custom_backtest',input={})
+    ev=ar._auto_open_backtest_event(tc,json.dumps(r))
+    print('synthetic event:', (ev.name, ev.input, ev.tool_call_id) if ev else None)
+    print('failed run ->', ar._auto_open_backtest_event(tc,json.dumps({'ok':False})))
+asyncio.run(main())
+PY
+--- output ---
+src/store/backtest.ts:95:   * from `GET /backtest/runs/{runId}` as a complete run and make it active.
+src/store/backtest.ts:313:    const result = await sidecarGet<BacktestResult>(`/backtest/runs/${encodeURIComponent(runId)}`);
+1259:def _auto_open_backtest_event(
+3267:            auto_open = _auto_open_backtest_event(tool_call, result_str)
+ok True runId 8c818375-ee88-4ff3-801f-9702f5402fc3 None
+synthetic event: ('open_panel', {'panel': 'backtest', 'run_id': '8c818375-ee88-4ff3-801f-9702f5402fc3'}, 'auto-backtest-t1')
+failed run -> None
+
+EXIT=0 (3.3s)

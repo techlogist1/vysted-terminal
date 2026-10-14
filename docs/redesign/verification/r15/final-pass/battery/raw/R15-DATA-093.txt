@@ -1,0 +1,11 @@
+# R15-DATA-093 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:26:30+0530
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: IN' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-8309071354323256790.json 'http://127.0.0.1:52861/screener/run' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);rows=d.get('rows') or d.get('results') or [];print({k:v for k,v in d.items() if not isinstance(v,list)});print('rows',len(rows));print([ (r.get('symbol'),r.get('pe_ratio'),r.get('market_cap')) for r in rows[:8]]);print('skip reasons',__import__('collections').Counter(s.get('reason') for s in d.get('skipped',[]) ));print(t[i:])"
+[exit 0] [0.03s]
+{'universe': 'custom', 'evaluated_count': 5, 'skipped_count': 0, 'result_count': 5, 'matched_count': 5, 'duration_ms': 2.341874991543591, 'partial': False, 'coverage': 'screened 5 of 5 — 0 unavailable', 'freshness': {'quotes_as_of': 1791027941.540939, 'valuation_as_of': 1791027941.5409222, 'deep_as_of': 1790978278.5330958}, 'basis_counts': {'live': 5}, 'throttled': True}
+rows 5
+[('RELIANCE.NS', 21.142494, 15801867304960.0), ('HDFCBANK.NS', 15.774278, 11119805595648.0), ('TCS.NS', 15.08323, 7507531530240.0), ('INFY.NS', 13.298214, 4192105660416.0), ('COCHINSHIP.NS', 49.74874, 338584961024.0)]
+skip reasons Counter()
+
+[http 200 0.003728s]
+

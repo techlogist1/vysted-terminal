@@ -1,0 +1,326 @@
+{
+  "defaults": {
+    "chart": "^NSEI",
+    "watchlist": [
+      "^NSEI",
+      "RELIANCE.NS",
+      "TCS.NS",
+      "HDFCBANK.NS"
+    ],
+    "defaultProvider": "ollama",
+    "ollamaModel": "qwen2.5:7b"
+  },
+  "T1_first_boot": {
+    "text": "Welcome to VystedPlease review the terms before you start.Vysted Terminal is a data and analysis tool. It does not provide investment advice and is not a registered broker-dealer or investment adviser. By continuing you acknowledge: - Vysted has no brokerage connection. It cannot place, route or simulate orders. - Market data may be delayed, incomplete or wrong. Check anything you rely on against the source. - AI-generated analysis can be wrong. You remain solely responsible for your own decisions. - Vysted Terminal is source-available under PolyForm Strict 1.0.0 (noncommercial use) or a commercial license — see LICENSING.md.I understand — continue",
+    "tos": true,
+    "onboarding": false,
+    "banner": false,
+    "kc": [],
+    "meta": {},
+    "opened": [],
+    "defaultProvider": "ollama",
+    "fetches": [
+      "GET /health -> 200",
+      "POST /llm/keys/validate -> 200 {\"ok\":true,\"reason\":null,\"detail\":null} req={\"provider\":\"ollama\",\"api_key\":null,\"model\":\"qwen2.5:7b\"}"
+    ]
+  },
+  "T2_after_accept": {
+    "text": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.WelcomeAn agent-native finance terminalLocal-first, bring-your-own-keys. Your keys, notes and portfolio stay on this machine — market data and web searches go to public providers.It already works — no key, no account. Live quotes, charts, news and screeners run right now. Pick a path below to turn on the AI agent (and its web research), or explore first.Connect a modelmost powerPaste one OpenRouter key to unlock every top model (Claude, GPT, Gemini, DeepSeek, Kimi…) for the agent and deep research. Pay-as-you-go — a research run costs cents.Add a key →Run it locallyprivate & freeNo key, no cost — set up a model that runs entirely on your machine. Slower and less powerful than the cloud, and it still reaches out for market data and web searches, but the model itself is yours.Set up local AI →Skip — I'll explore first →You can change this anytime in Settings",
+    "tos": false,
+    "onboarding": true,
+    "banner": false,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {},
+    "opened": [],
+    "defaultProvider": "ollama"
+  },
+  "T3_after_escape": {
+    "text": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.WelcomeAn agent-native finance terminalLocal-first, bring-your-own-keys. Your keys, notes and portfolio stay on this machine — market data and web searches go to public providers.It already works — no key, no account. Live quotes, charts, news and screeners run right now. Pick a path below to turn on the AI agent (and its web research), or explore first.Connect a modelmost powerPaste one OpenRouter key to unlock every top model (Claude, GPT, Gemini, DeepSeek, Kimi…) for the agent and deep research. Pay-as-you-go — a research run costs cents.Add a key →Run it locallyprivate & freeNo key, no cost — set up a model that runs entirely on your machine. Slower and less powerful than the cloud, and it still reaches out for market data and web searches, but the model itself is yours.Set up local AI →Skip — I'll explore first →You can change this anytime in Settings",
+    "tos": false,
+    "onboarding": true,
+    "banner": false,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {},
+    "opened": [],
+    "defaultProvider": "ollama"
+  },
+  "T4_cloud": {
+    "stepText": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Connect OpenRouterOpenRouter is one key for every model — Claude, GPT, Gemini, DeepSeek, Kimi and more. Create a key, add a few dollars of credit, and the agent + deep research light up. A typical research run costs only a few cents.Get a key — openrouter.ai/keysStored in your OS keychain — never written to disk by Vysted.Save & continue →",
+    "saveDisabledEmpty": true,
+    "saveDisabledWhitespace": true,
+    "fakeKey": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Connect OpenRouterOpenRouter is one key for every model — Claude, GPT, Gemini, DeepSeek, Kimi and more. Create a key, add a few dollars of credit, and the agent + deep research light up. A typical research run costs only a few cents.Get a key — openrouter.ai/keysThat key wasn't accepted by OpenRouter. Check it and try again.Stored in your OS keychain — never written to disk by Vysted.Save & continue →",
+    "fakeKeyTrailing": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Connect OpenRouterOpenRouter is one key for every model — Claude, GPT, Gemini, DeepSeek, Kimi and more. Create a key, add a few dollars of credit, and the agent + deep research light up. A typical research run costs only a few cents.Get a key — openrouter.ai/keysThat key wasn't accepted by OpenRouter. Check it and try again.Stored in your OS keychain — never written to disk by Vysted.Save & continue →",
+    "kcAfter": [
+      "app-meta:first-launch-terms"
+    ],
+    "providerAfter": "ollama",
+    "fetches": [
+      "GET /health -> 200",
+      "POST /llm/keys/validate -> 200 {\"ok\":true,\"reason\":null,\"detail\":null} req={\"provider\":\"ollama\",\"api_key\":null,\"model\":\"qwen2.5:7b\"}",
+      "POST /llm/keys/validate -> 200 {\"ok\":false,\"reason\":\"invalid\",\"detail\":\"OpenRouter rejected this key.\"} req={\"provider\":\"openrouter\",\"api_key\":\"<fake>\",\"model\":null}",
+      "POST /llm/keys/validate -> 200 {\"ok\":false,\"reason\":\"invalid\",\"detail\":\"OpenRouter rejected this key.\"} req={\"provider\":\"openrouter\",\"api_key\":\"<fake>\",\"model\":null}"
+    ],
+    "opened": [
+      "https://openrouter.ai/keys"
+    ]
+  },
+  "T5_local": {
+    "text": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Run a local modelApple M1 Pro · 16 GB RAM · Apple Siliconqwen3:8bruns locally · ~7.8 GBfits with headroom (7.8 GiB of 10.6 GiB GPU budget) — enable locally. Use qwen3:8b",
+    "tos": false,
+    "onboarding": true,
+    "banner": false,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {},
+    "opened": [
+      "https://openrouter.ai/keys"
+    ],
+    "defaultProvider": "ollama",
+    "loadingText": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Run a local model Detecting your hardware…",
+    "fetches": [
+      "GET /system/local-model-recommendation -> 200",
+      "GET /system/ollama/status -> 200"
+    ]
+  },
+  "T5_done": {
+    "text": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Run a local modelApple M1 Pro · 16 GB RAM · Apple Siliconqwen3:8bruns locally · ~7.8 GBfits with headroom (7.8 GiB of 10.6 GiB GPU budget) — enable locally. Use qwen3:8b",
+    "tos": false,
+    "onboarding": true,
+    "banner": false,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {},
+    "opened": [
+      "https://openrouter.ai/keys"
+    ],
+    "defaultProvider": "ollama",
+    "model": "qwen2.5:7b"
+  },
+  "T5_closed": {
+    "text": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Run a local modelApple M1 Pro · 16 GB RAM · Apple Siliconqwen3:8bruns locally · ~7.8 GBfits with headroom (7.8 GiB of 10.6 GiB GPU budget) — enable locally. Use qwen3:8b",
+    "tos": false,
+    "onboarding": true,
+    "banner": false,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {},
+    "opened": [
+      "https://openrouter.ai/keys"
+    ],
+    "defaultProvider": "ollama"
+  },
+  "T6_relaunch": {
+    "text": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.WelcomeAn agent-native finance terminalLocal-first, bring-your-own-keys. Your keys, notes and portfolio stay on this machine — market data and web searches go to public providers.It already works — no key, no account. Live quotes, charts, news and screeners run right now. Pick a path below to turn on the AI agent (and its web research), or explore first.Connect a modelmost powerPaste one OpenRouter key to unlock every top model (Claude, GPT, Gemini, DeepSeek, Kimi…) for the agent and deep research. Pay-as-you-go — a research run costs cents.Add a key →Run it locallyprivate & freeNo key, no cost — set up a model that runs entirely on your machine. Slower and less powerful than the cloud, and it still reaches out for market data and web searches, but the model itself is yours.Set up local AI →Skip — I'll explore first →You can change this anytime in Settings",
+    "tos": false,
+    "onboarding": true,
+    "banner": false,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {},
+    "opened": [
+      "https://openrouter.ai/keys"
+    ],
+    "defaultProvider": "ollama",
+    "fetches": [
+      "POST /llm/keys/validate -> 200 {\"ok\":true,\"reason\":null,\"detail\":null} req={\"provider\":\"ollama\",\"api_key\":null,\"model\":\"qwen2.5:7b\"}"
+    ]
+  },
+  "T7_cta_local": {
+    "text": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Run a local model Detecting your hardware…",
+    "tos": false,
+    "onboarding": true,
+    "banner": false,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {},
+    "opened": [
+      "https://openrouter.ai/keys"
+    ],
+    "defaultProvider": "ollama"
+  },
+  "T8_skip": {
+    "text": "",
+    "tos": false,
+    "onboarding": false,
+    "banner": false,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {
+      "onboarding-complete": "skip"
+    },
+    "opened": [],
+    "defaultProvider": "ollama"
+  },
+  "T9_banner_not_pulled": {
+    "text": "Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant, agents, and research tools. Keys stay in your OS keychain — market data and web searches still go to public providers.Set up a provider →",
+    "tos": false,
+    "onboarding": false,
+    "banner": true,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {
+      "onboarding-complete": "skip"
+    },
+    "opened": [],
+    "defaultProvider": "ollama",
+    "fetches": [
+      "POST /llm/keys/validate -> 200 {\"ok\":false,\"reason\":\"model_not_pulled\",\"detail\":\"llama3.1:70b-not-pulled-xyz is not downloaded in Ollama (local) yet.\"} req={\"provider\":\"ollama\",\"api_key\":null,\"model\":\"llama3.1:70b-not-pulled-xyz\"}"
+    ]
+  },
+  "T9_banner_dismissed": {
+    "text": "",
+    "tos": false,
+    "onboarding": false,
+    "banner": false,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {
+      "onboarding-complete": "skip",
+      "onboarding-banner-dismissed": "dismissed"
+    },
+    "opened": [],
+    "defaultProvider": "ollama"
+  },
+  "T10_ollama_down_stub": {
+    "text": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Run a local modelApple M1 Pro · 16 GB RAM · Apple Siliconqwen3:8bruns locally · ~7.8 GBfits with headroom (7.8 GiB of 10.6 GiB GPU budget) — enable locally.Local models run through Ollama, a free open-source runner. Install it, start it, then come back:Download Ollama — ollama.com/downloador: brew install ollamaI've installed it — re-check →",
+    "tos": false,
+    "onboarding": true,
+    "banner": false,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {
+      "onboarding-complete": "skip",
+      "onboarding-banner-dismissed": "dismissed"
+    },
+    "opened": [],
+    "defaultProvider": "ollama",
+    "fetches": [
+      "POST /llm/keys/validate -> 200 {\"ok\":false,\"reason\":\"model_not_pulled\",\"detail\":\"llama3.1:70b-not-pulled-xyz is not downloaded in Ollama (local) yet.\"} req={\"provider\":\"ollama\",\"api_key\":null,\"model\":\"llama3.1:70b-not-pulled-xyz\"}",
+      "POST /llm/keys/validate -> 200 {\"ok\":true,\"reason\":null,\"detail\":null} req={\"provider\":\"ollama\",\"api_key\":null,\"model\":\"qwen3:8b\"}",
+      "GET /system/ollama/status -> STUB running:false",
+      "GET /system/local-model-recommendation -> 200"
+    ]
+  },
+  "T10_recheck_up": {
+    "text": "Welcome to VystedSet up Vysted: connect a cloud model with one key, or run a local model — or explore first; the terminal already works with no key.Run a local modelApple M1 Pro · 16 GB RAM · Apple Siliconqwen3:8bruns locally · ~7.8 GBfits with headroom (7.8 GiB of 10.6 GiB GPU budget) — enable locally. Use qwen3:8b",
+    "tos": false,
+    "onboarding": true,
+    "banner": false,
+    "kc": [
+      "app-meta:first-launch-terms"
+    ],
+    "meta": {
+      "onboarding-complete": "skip",
+      "onboarding-banner-dismissed": "dismissed"
+    },
+    "opened": [],
+    "defaultProvider": "ollama"
+  },
+  "T11_keychain_denied": {
+    "text": "",
+    "tos": false,
+    "onboarding": false,
+    "banner": false,
+    "kc": [],
+    "meta": {},
+    "opened": [],
+    "defaultProvider": "ollama",
+    "unhandled": [
+      "Error: User interaction is not allowed."
+    ]
+  },
+  "invokeLog": [
+    "keychain_get llm-provider:anthropic",
+    "keychain_get llm-provider:openai",
+    "keychain_get llm-provider:gemini",
+    "keychain_get llm-provider:groq",
+    "keychain_get llm-provider:ollama",
+    "keychain_get llm-provider:deepseek",
+    "keychain_get llm-provider:xai",
+    "keychain_get llm-provider:openrouter",
+    "app_meta_get onboarding-banner-dismissed",
+    "keychain_get app-meta:first-launch-terms",
+    "app_meta_get onboarding-complete",
+    "keychain_get app-meta:onboarding-banner-dismissed",
+    "keychain_get app-meta:onboarding-complete",
+    "keychain_set app-meta:first-launch-terms",
+    "keychain_get llm-provider:anthropic",
+    "keychain_get llm-provider:openai",
+    "keychain_get llm-provider:gemini",
+    "keychain_get llm-provider:groq",
+    "keychain_get llm-provider:ollama",
+    "keychain_get llm-provider:deepseek",
+    "keychain_get llm-provider:xai",
+    "keychain_get llm-provider:openrouter",
+    "app_meta_get onboarding-banner-dismissed",
+    "keychain_get app-meta:first-launch-terms",
+    "app_meta_get onboarding-complete",
+    "keychain_get app-meta:onboarding-banner-dismissed",
+    "keychain_get app-meta:onboarding-complete",
+    "keychain_get llm-provider:anthropic",
+    "keychain_get llm-provider:openai",
+    "keychain_get llm-provider:gemini",
+    "keychain_get llm-provider:groq",
+    "keychain_get llm-provider:ollama",
+    "keychain_get llm-provider:deepseek",
+    "keychain_get llm-provider:xai",
+    "keychain_get llm-provider:openrouter",
+    "app_meta_get onboarding-banner-dismissed",
+    "keychain_get app-meta:first-launch-terms",
+    "app_meta_get onboarding-complete",
+    "keychain_get app-meta:onboarding-banner-dismissed",
+    "keychain_get app-meta:onboarding-complete",
+    "keychain_set app-meta:first-launch-terms",
+    "app_meta_set onboarding-complete",
+    "keychain_get llm-provider:anthropic",
+    "keychain_get llm-provider:openai",
+    "keychain_get llm-provider:gemini",
+    "keychain_get llm-provider:groq",
+    "keychain_get llm-provider:ollama",
+    "keychain_get llm-provider:deepseek",
+    "keychain_get llm-provider:xai",
+    "keychain_get llm-provider:openrouter",
+    "app_meta_get onboarding-banner-dismissed",
+    "keychain_get app-meta:first-launch-terms",
+    "app_meta_get onboarding-complete",
+    "keychain_get app-meta:onboarding-banner-dismissed",
+    "app_meta_set onboarding-banner-dismissed",
+    "keychain_get llm-provider:anthropic",
+    "keychain_get llm-provider:openai",
+    "keychain_get llm-provider:gemini",
+    "keychain_get llm-provider:groq",
+    "keychain_get llm-provider:ollama",
+    "keychain_get llm-provider:deepseek",
+    "keychain_get llm-provider:xai",
+    "keychain_get llm-provider:openrouter",
+    "app_meta_get onboarding-banner-dismissed",
+    "keychain_get app-meta:first-launch-terms",
+    "app_meta_get onboarding-complete",
+    "keychain_get llm-provider:anthropic",
+    "keychain_get llm-provider:openai",
+    "keychain_get llm-provider:gemini",
+    "keychain_get llm-provider:groq",
+    "keychain_get llm-provider:ollama",
+    "keychain_get llm-provider:deepseek",
+    "keychain_get llm-provider:xai",
+    "keychain_get llm-provider:openrouter",
+    "app_meta_get onboarding-banner-dismissed",
+    "keychain_get app-meta:first-launch-terms",
+    "app_meta_get onboarding-complete",
+    "keychain_get app-meta:onboarding-banner-dismissed",
+    "keychain_get app-meta:onboarding-complete"
+  ]
+}

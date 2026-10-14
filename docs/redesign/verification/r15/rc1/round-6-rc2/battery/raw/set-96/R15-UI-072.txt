@@ -1,0 +1,8 @@
+# R15-UI-072 at ace7dd76 (pinned test existence + source check; vitest not run, heavy lane owns)
+$ grep -n -F 'R15-UI-072' src/modules/chat/ModelControl.test.tsx
+30:  it("R15-UI-072: the trigger contains a chevron icon", () => {
+exit=0
+$ grep -n -F 'Chevron' src/modules/chat/ModelControl.tsx
+4:import { ChevronDown, Cpu, RefreshCw } from "lucide-react";
+178:        <ChevronDown
+exit=0

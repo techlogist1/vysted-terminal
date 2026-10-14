@@ -1,0 +1,63 @@
+{
+  "mountFetches": [
+    "GET /health -> 200",
+    "GET /runs -> 200",
+    "GET /llm/providers -> 200",
+    "GET /custom-agents -> 200",
+    "GET /agents -> 200",
+    "GET /llm/models?provider=ollama&base_url=http%3A%2F%2F127.0.0.1%3A11434 -> 200"
+  ],
+  "mountText": "Chat 1Ask anything about what you’re viewingI read the terminal — your portfolio, a chart, a screen — and can drive it.Try thisResearch $NVDACompare AAPL vs MSFTScan today's moversSummarize my portfolio P&LMode Agent · lens Vysted CopilotNormalDeepUltraQwen2.5 7B",
+  "providers": [
+    "anthropic:true",
+    "openai:true",
+    "gemini:true",
+    "groq:true",
+    "ollama:false",
+    "deepseek:true",
+    "xai:true",
+    "openrouter:true"
+  ],
+  "defaultProvider": "ollama",
+  "catalogOllama": [
+    "llama3.1:8b",
+    "qwen2.5:7b",
+    "qwen3:8b"
+  ],
+  "buttons": [
+    "Chat 1",
+    "New chat space",
+    "Research $NVDA",
+    "Compare AAPL vs MSFT",
+    "Scan today's movers",
+    "Summarize my portfolio P&L",
+    "Insert context, switch persona, or set modes",
+    "Normal research depth",
+    "Deep research depth",
+    "Ultra research depth",
+    "Model — Ollama (local) · qwen2.5:7b",
+    "Send message"
+  ],
+  "depthText": "NormalDeepUltra",
+  "depthSeq": [
+    "normal",
+    "normal",
+    "deep",
+    "ultra"
+  ],
+  "mentionPickerText": "",
+  "mentionAllText": "@chartChartPin the chart panel's current symbol + timeframe as context.surface@newsNewsPin the latest news feed as context.surface@filingsFilingsPin the SEC/regulatory filings surface as context.surface@terminalTerminalPin the whole terminal workspace state as context.surface@watchlistWatchlistScope the question to your tracked symbols.scope@portfolioPortfolioScope the question to your active portfolio's holdings.scope@analystAnalystAnswer as a fundamental analyst.agent@quantQuantAnswer as a quantitative analyst.agent",
+  "slashText": "/research<q>ResearchResearch a question or ticker — go deeper from the brief once it lands./compare<a> <b>CompareCompare two tickers or entities side by side./chart<ticker> [tf]ChartLoad a ticker into the chart panel at an optional timeframe./screener<nl>ScreenerScreen the universe with a natural-language filter./watch<ticker>WatchAdd a ticker to the watchlist./portfolioPortfolioOpen the portfolio panel./layout<name>LayoutSwitch to a named workspace layout./export[fmt]ExportExport the current view or conversation./sourcesSourcesShow the sources behind the latest answer./clearClearClear the current conversation.",
+  "slashFilteredText": "/screener<nl>ScreenerScreen the universe with a natural-language filter.",
+  "plusLabel": "Insert context, switch persona, or set modes",
+  "plusMenuText": "PersonaVysted CopilotAutonomyASKEvery change waits for your reviewAUTOChart, panel and watchlist changes apply instantly; data and settings changes wait for reviewModeAgent (⌥1)Describe what you want — JARVIS infers whether to read, edit, or build.Delegate (⌥2)An autonomous, budget-bounded background task that hands off to the cockpit.Context@chartChart@newsNews@filingsFilings@terminalTerminalScope@watchlistWatchlist@portfolioPortfolioRoute to@analystAnalyst@quantQuant/Slash commands…",
+  "chipsText": "Research $NVDACompare AAPL vs MSFTScan today's moversSummarize my portfolio P&L",
+  "composerAfterChip": "",
+  "queueApi": [
+    "queue",
+    "queuePrompt",
+    "consumePrompt",
+    "removePrompt",
+    "clearQueue"
+  ]
+}

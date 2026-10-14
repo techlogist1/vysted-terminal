@@ -1,0 +1,16 @@
+== A repro name-first leak (sify-1 chunking)
+ tool_calls=[('fundamentals', {'symbol': 'SIFY'})]
+ streamed_text="The ADR-to-ordinary-share ratio is not available from this session's sources."
+
+== B fresh type-first leak
+ tool_calls=[('fundamentals', {'symbol': 'SIFY'})]
+ streamed_text='{"type": "function", "name": "fundamentals", "parameters": {"symbol": "SIFY"}}The ADR-to-ordinary-share ratio is not available from this session\'s sources.'
+
+== C fresh type-first leak after prose
+ tool_calls=[('fundamentals', {'symbol': 'SIFY'})]
+ streamed_text='Let me check. {"type": "function", "name": "fundamentals", "parameters": {"symbol": "SIFY"}}The ADR-to-ordinary-share ratio is not available from this session\'s sources.'
+
+== D fresh type-first leak, no guard (plain prose)
+ tool_calls=[('fundamentals', {'symbol': 'SIFY'})]
+ streamed_text='{"type": "function", "name": "fundamentals", "parameters": {"symbol": "SIFY"}}Sify is an Indian ICT company.'
+

@@ -1,0 +1,25 @@
+# R15-LIFECYCLE-035 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:35+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import sys, asyncio, tempfile, pathlib
+sys.path.insert(0,'tests')
+import unittest.mock as um; sys.modules.setdefault('pytest', um.MagicMock())
+import test_searxng_manager as T
+from services.searxng_manager import STATE_READY, DEFAULT_HOST_PORT
+async def go():
+    fake, mgr = await T._failed_pull_manager(pathlib.Path(tempfile.mkdtemp()))
+    print("after failed pull:", mgr.state, "| last_error:", str(mgr.last_error)[:80])
+    fake.set("inspect", 0, "running\n"); fake.set("port", 0, f"127.0.0.1:{DEFAULT_HOST_PORT}\n")
+    p = await mgr.refresh()
+    print("hand-fixed container: state", p["state"], "| reason", p["reason"], "| last_error kept:", "pull access denied" in str(p["last_error"]), "| ready_base_url", mgr.ready_base_url())
+asyncio.run(go())
+PY
+grep -n "def test_hand_fixed_container_supersedes_a_sticky_error\|def test_error_stays_sticky_while_the_container_is_not_serving" "$C/sidecar/tests/test_searxng_manager.py"
+--- output ---
+searxng: docker pull exited 1: Error response from daemon: pull access denied
+after failed pull: error | last_error: docker pull failed: Error response from daemon: pull access denied
+hand-fixed container: state ready | reason None | last_error kept: True | ready_base_url http://127.0.0.1:8888
+745:async def test_hand_fixed_container_supersedes_a_sticky_error(tmp_path) -> None:
+768:async def test_error_stays_sticky_while_the_container_is_not_serving(tmp_path) -> None:
+
+EXIT=0 (0.2s)

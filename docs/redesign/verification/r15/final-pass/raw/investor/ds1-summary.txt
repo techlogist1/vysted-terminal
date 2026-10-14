@@ -1,0 +1,64 @@
+DAL IN | resolve DAL BSE Dynamic Archistructures Ltd disamb False
+   quote 49.88 INR bse 2025-03-12T00:00:00Z
+   fund ('DAL.BO', 'Dynamic Archistructures Limite', 'INR', 249898800.0, 99700000.0, None)
+   income ('DAL.BO', None, {'2025-03-31': 37418000.0, '2026-03-31': 20668000.0})
+DAL US | resolve DAL US DELTA AIR LINES, INC. disamb False
+   quote 84.08999633789062 USD yfinance 2026-10-02T20:00:02Z
+   fund ('DAL', 'Delta Air Lines, Inc.', 'USD', 55299518464.0, 68287000576.0, None)
+   income ('DAL', None, {'2024-12-31': 51716000000.0, '2025-12-31': 52668000000.0})
+CHTR IN | resolve CHTR BSE Chatterbox Technologies Ltd disamb False
+   quote 33.01 INR bse 2026-10-01T00:00:00Z
+   fund ('CHTR.BO', 'Chatterbox Technologies Limite', 'INR', 466745408.0, 842217984.0, None)
+   income ('CHTR.BO', None, {'2025-03-31': 591258000.0, '2026-03-31': 842218000.0})
+CHTR US | resolve CHTR US CHARTER COMMUNICATIONS, INC. / disamb False
+   quote 109.29000091552734 USD yfinance 2026-10-02T20:00:01Z
+   fund ('CHTR', 'Charter Communications, Inc.', 'USD', 14203066368.0, 54395998208.0, None)
+   income ('CHTR', None, {'2024-12-31': 52043000000.0, '2025-12-31': 51363000000.0})
+SAFE IN | resolve SAFE BSE Sodhani Academy of Fintech Ena disamb False
+   quote 138.0 INR bse 2026-09-30T00:00:00Z
+   fund ('SAFE.BO', 'Sodhani Academy of Fintech Ena', 'INR', 785910016.0, 36488000.0, None)
+   income ('SAFE.BO', None, {'2025-03-31': 35484000.0, '2026-03-31': 36488000.0})
+SAFE US | resolve SAFE US Safehold Inc. disamb False
+   quote 12.0600004196167 USD yfinance 2026-10-02T20:00:02Z
+   fund ('SAFE', 'Safehold Inc.', 'USD', 854044352.0, 436414016.0, None)
+   income ('SAFE', None, {'2024-12-31': 344793000.0, '2025-12-31': 369376000.0})
+CSL IN | resolve CSL BSE Continental Securities Ltd disamb False
+   quote 21.97 INR bse 2026-10-01T00:00:00Z
+   fund ('CSL.BO', 'Continental Securities Limited', 'INR', 697613376.0, 42240000.0, None)
+   income ('CSL.BO', None, {'2025-03-31': 27486000.0, '2026-03-31': 39403000.0})
+CSL US | resolve CSL US CARLISLE COMPANIES INC disamb False
+   quote 329.3399963378906 USD yfinance 2026-10-02T20:00:02Z
+   fund ('CSL', 'Carlisle Companies Incorporate', 'USD', 13079451648.0, 5096999936.0, None)
+   income ('CSL', None, {'2024-12-31': 5003600000.0, '2025-12-31': 5019900000.0})
+ICON IN | resolve ICON BSE Icon Facilitators Ltd disamb False
+   quote 63.25 INR bse 2026-10-01T00:00:00Z
+   fund ('ICON.BO', 'Icon Facilitators Limited', 'INR', 497119712.0, 642427008.0, None)
+   income ('ICON.BO', None, {'2025-03-31': 580639000.0, '2026-03-31': 642427000.0})
+ICON US | resolve ICON US Icon Energy Corp disamb False
+   quote 0.9700000286102295 USD yfinance 2026-10-02T20:00:00Z
+   fund ('ICON', 'Icon Energy Corp.', 'USD', 3513178.0, 15541000.0, None)
+   income ('ICON', None, {'2024-12-31': 5309000.0, '2025-12-31': 11256000.0})
+AMAL IN | resolve AMAL NSE Amal Limited disamb False
+   quote 702.4 INR nse_direct 2026-10-01T00:00:00Z
+   fund ('AMAL.NS', 'Amal Ltd', 'INR', None, 2888717056.0, None)
+   income ('AMAL.NS', None, {'2025-03-31': 1348431000.0, '2026-03-31': 2393708000.0})
+AMAL US | resolve AMAL US Amalgamated Financial Corp. disamb False
+   quote 48.189998626708984 USD yfinance 2026-10-02T20:00:01Z
+   fund ('AMAL', 'Amalgamated Financial Corp.', 'USD', 1440888064.0, 333856992.0, None)
+   income ('AMAL', None, {'2024-12-31': 316476000.0, '2025-12-31': 330457000.0})
+SMR IN | resolve SMR BSE SMR Jewels Ltd disamb False
+   quote 93.05 INR bse 2026-10-01T00:00:00Z
+   fund ('SMR.BO', 'SMR Jewels Limited', 'INR', 1735730944.0, 4323665920.0, None)
+   income ('SMR.BO', None, {'2024-03-31': 1244698000.0, '2025-03-31': 2632469000.0})
+SMR US | resolve SMR US NUSCALE POWER Corp disamb False
+   quote 7.75 USD yfinance 2026-10-02T20:00:02Z
+   fund ('SMR', 'NuScale Power Corporation', 'USD', 3180518912.0, 10690000.0, None)
+   income ('SMR', None, {'2024-12-31': 37045000.0, '2025-12-31': 31479000.0})
+TTC IN | resolve TTC BSE Toss The Coin Ltd disamb False
+   quote 163.0 INR bse 2026-10-01T00:00:00Z
+   fund ('TTC.BO', 'Toss the Coin Limited', 'INR', 308070016.0, 146963008.0, None)
+   income ('TTC.BO', None, {'2025-03-31': 86486000.0, '2026-03-31': 146963000.0})
+TTC US | resolve TTC US TORO CO disamb False
+   quote 98.63999938964844 USD yfinance 2026-10-02T20:00:02Z
+   fund ('TTC', 'The Toro Company', 'USD', 9337594880.0, 4752999936.0, None)
+   income ('TTC', None, {'2024-10-31': 4583800000.0, '2025-10-31': 4510400000.0})

@@ -1,0 +1,170 @@
+[
+ {
+  "id": "composer-mount",
+  "census": "partial",
+  "final": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (02-mount-controls.json (real ChatSidebar vs :52840: /health,/runs,/llm/providers,/custom-agents,/agents,/llm/models 200; controls row present) + 03-pure-logic.json#collapse (icons<=300, compact 360, full>=420); stop morph seen in 25/27-stop-midstream. ResizeObserver paint at real dock widths = NEEDS-GUI.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "composer-depth-control",
+  "census": "ok",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (02-mount-controls.json (Normal/Deep/Ultra clicks normal->normal->deep->ultra); 27-stop-midstream-b.events.jsonl request options.research_depth=deep -> 'IterResearch (evolving report)' engine step.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "composer-model-control",
+  "census": "ok",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (02-mount-controls.json (button 'Ollama (local) \u00b7 qwen2.5:7b' = deliberate default); 20/21-err-*-openai (no-key / bad-key states carry auth copy).)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "composer-plus-menu",
+  "census": "ok",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (02-mount-controls.json (Persona roster, Autonomy ASK/AUTO with hint, Mode Agent/Delegate, Context/Scope/Route to sections).)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "composer-mention-picker",
+  "census": "ok",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (05-mention-slash-dom.json, 07-mention-typed-dom.json (typed '@ana' -> @analyst, Enter accepts 'is it cheap @analyst '), 06-resolve-mention-direct.json; 03-pure-logic.json#mentions prefixes.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "composer-slash-picker",
+  "census": "partial",
+  "final": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (05-mention-slash-dom.json (10 commands, '/sc' -> /screener, accept '/screener ', Esc dismisses) + 03-pure-logic.json#slashTemplates; 18-t5-screen-auto: the 'screen for \u2026' expansion reaches screener_run but llama3.1:8b sent the criteria array as a string (Python None inside) -> runtime rejected with 'call again with valid args', model did not retry and pasted a pseudo write_screener_filters call as code; screener store unchanged; fail-safe 'returned no data' note inserted. Model weakness, not filed.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "composer-send-stop-button",
+  "census": "broken",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (27-stop-midstream-b.events.jsonl (deep research tool_use at 4.8 s, stop clicked at 75.0 s via the real 'Stop the in-flight run' button, onError aborted at 77.6 s; message stopped:true, pending:false) + 26-stop-midstream-watch.txt (no /api/chat, research search or MCP research line in the sidecar log from 16:20:42 through 16:22:43, ~80 s past the stop; census saw ~3 min of continued work). Run a (25-*) stopped before the first model round. R15-AGENT-002 holds.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "composer-queue",
+  "census": "ok",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (03-pure-logic.json#queue (FIFO head 'first', rest ['third']).)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "chat-agents-rail",
+  "census": "partial",
+  "final": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (30-delegate-default.json (rail '\u25cfVysted Copilot Delegate 6,524 tok \u00b7 $0.0000' + activity row while running; cleared on done), 31-delegate-cancel.json (running -> cancelled 'cancelled by user'), 32-delegate-breach.json (error row 'step ceiling 1 reached (1 taken)'). Paused answer-box not driven: code now carries an ask_user -> status 'paused' path (run_manager.py:308-332) but no live run chose ask_user.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "chat-empty-state",
+  "census": "partial",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (02-mount-controls.json (empty-state copy + 4 suggestion chips rendered against live sidecar).)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "chat-suggestion-chips",
+  "census": "partial",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (02-mount-controls.json: a chip click now SENDS via sendToAgent (census: filled the composer) -> one POST /agents/copilot/invoke observed. Behaviour change, intended.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "chat-error-row",
+  "census": "ok",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (20-err-nokey-openai.* ('No OpenAI API key is set \u2014 add it in Settings.', code auth), 21-err-badkey-openai.* ('The OpenAI API key was rejected \u2014 check it in Settings.', code auth).)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "chat-message-notices",
+  "census": "broken",
+  "final": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (23-ask-chart.json notices ('Staged for your review, not applied yet: set_chart_symbol BDL.NS; set_chart_indicators BDL.NS. Accept it below to apply.'), 22-t6-arrange-auto.json step \"Couldn't apply: \u2026 the layout has not mounted\", 15-t3 steps 'Applied: Add \u2026' with real acks. kept_previous copy not re-driven.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "chat-plan-view",
+  "census": "ok",
+  "final": "ok (carried)",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (Not re-driven: census used gpt-4o-mini for a compound plan; no keyless lane produces agent_plan reliably and no spend was needed for the delta. Carried from census 18-plan-compound-4omini.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "chat-research-activity",
+  "census": "ok",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (24-persona-munger.events.jsonl (research engine/plan/tool/search/synthesize steps in order, cross-check timeouts reported as error steps), 27-stop-midstream-b (IterResearch steps), 03-pure-logic.json#elapsed.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "chat-budget-config",
+  "census": "partial",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (30-delegate-default.json budgetEditorText 'Budget tokens $ secs steps \u2014 first breach aborts the run'; defaults 120000/1/600/12 travel to the sidecar run; 32-delegate-breach.json max_steps 1 aborts at 1 step with stated reason + checkpoint (1 message). Token-overshoot / all-null budget cases not re-driven.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "agent-mode-toggle",
+  "census": "ok",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (10..27 agent-mode SSE turns; 30/31 delegate mode via the composer (POST /agents/copilot/runs, 'Delegated to a background run' chat row, answer lands in chat on done).)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "agent-autonomy-ask-auto",
+  "census": "partial",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (23-ask-chart (ASK: both chart actions staged pending, model says 'I've proposed the changes \u2026 for your review' \u2014 the R15-AGENT-033 narration is now honest) vs 15-t3 (AUTO: watchlist applied, acks POSTed, read back +COCHINSHIP +MDL) and 16-t4 (AUTO: write_note still staged as a data write, narrated 'staged and awaiting your review').)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "agent-persona-picker",
+  "census": "partial",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (24-persona-munger (agentId munger on llama3.1:8b: research tool ok, mcap 33,858 cr / EPS 25.86 / beta 0.582 / 52w high 1890 all match the auto-brief payload; census had zero tool calls + ungrounded figures). Reply concatenates two answers after an errored open_panel call \u2014 model polish, not filed.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "agent-command-bus",
+  "census": "partial",
+  "final": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (01-existing-unit-tests.log (bus tests pass). In-memory hand-off, nothing new to drive.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "agent-runs-store",
+  "census": "partial",
+  "final": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (30/31/32 delegate (running/done/cancelled/error with cost, GET /runs/{id} read back). paused not reached live (see chat-agents-rail).)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "llm-chat-streaming",
+  "census": "ok",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (every *.events.jsonl here: real transport, delta/tool_use/tool_result/research_step/done frames, no transport errors; 25/27 abort path surfaces 'This operation was aborted' and finalises the message.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "chat-markdown-render",
+  "census": "partial",
+  "final": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (03-pure-logic.json#markdown (106 real t1 deltas, 0 open-fence frames). 18-t5 and 23-ask-chart: the model writes pseudo tool calls / fabricated chart blocks inside code fences \u2014 renders as code, no raw tool JSON leak seen this pass.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ },
+ {
+  "id": "context-provider-badge",
+  "census": "ok",
+  "final": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/final/ (10-t1 request context_snapshot; 12-t2 'it' resolved from history to the Cochin conversation; 24 request carries __terminal__ snapshot.)",
+  "driven_by": "final-drive-composer-chat (claude-opus-5-5)"
+ }
+]

@@ -1,0 +1,4 @@
+claimed 09:24:18 by surf-S2D onboarding-stranger agent (claude-opus-5-5[1m]), port 52223. Rationale: failure-inducer already claimed+live (09:20, :52224); onboarding-stranger had no dir/raw/sidecar at 09:24.
+done 09:49:27 - drive+refute complete, sidecar :52223 + MCP :53223/:53233 stopped (sleeps 37790/37781/37784 killed)
+verified 09:54:05 by continuation agent (claude-opus-5-5[1m]): raw 6 / refute 6 parity, COVERAGE 6 rows all terminal, spot-checked OS-1/3/6 cited code; no sidecar booted, nothing rewritten
+verified 09:54:31 by continuation agent (claude-opus-5-5[1m]): raw/refute parity + verdict fields OK, COVERAGE rows all terminal, own ports free; spot-checked catalog.py:313, chat-history.ts:213-219, openai.py:785-830; nothing rewritten

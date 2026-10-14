@@ -1,0 +1,13 @@
+Static source check of candidate src/lib/host-actions.ts:1579-1667 (case "arrange_layout"):
+the default/unknown-pattern fallthrough now calls ws.resetLayout() (NOT resetToDefaultLayout()),
+with an inline comment: "The agent's default/unknown arrange is layout-only: a cosmetic tool must
+never delete drawings or re-enable modules (R15-AGENT-056); the factory reset stays the explicit
+Settings/menu action." Result string: "Reset the panel arrangement to the default (drawings and
+modules kept)". This matches batch-8 VERDICTS.md exactly (both default and an unrecognised pattern
+kept the drawing and {news:false, screener:false}).
+Pinned test: src/store/workspace.test.ts describe("the two resets stay distinct (R15-AGENT-056)")
+  - "resetToDefaultLayout (Settings/menu) is the factory reset: drawings and module choices go"
+  - "resetLayout only re-arranges the panels"
+Also src/lib/host-actions.test.ts exercises applyHostAction("arrange_layout", {pattern:"default"}).
+Not rerun here (vitest suites owned by the heavy lane per task rules).
+VERDICT: ci_pinned (src/store/workspace.test.ts, src/lib/host-actions.test.ts)

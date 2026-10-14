@@ -1,0 +1,83 @@
+[
+  {
+    "raw_id": "DAT-S2-1",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Confirmed on a fresh re-run. /fundamentals/SMR/income, /balance and /cashflow still serve NuScale Power's US statements (FY2025-12-31 total_revenue 31,479,000, cash 836,417,000, CFO net loss -664,462,000) under provider openbb-mcp, while /resolve?q=SMR binds SMR Jewels Ltd (BSE 544774, yahoo_symbol SMR.BO) and /fundamentals/SMR serves SMR.BO. The mechanism is sharper than 're-resolve': the statement accessors run the openbb-mcp lane first with validate=None and no accept gate, and openbb-mcp carries no region scope. So the bare ticker's US Yahoo statements win before the yfinance lane that would map SMR to SMR.BO is ever tried. /fundamentals escapes only because it has a correctness gate and a screener-completeness acceptor. The Equity Overview renders all three tables beside the correct INR header (api.ts loadEquityOverview -> StatementTable), so wrong-entity money data is shown as true with no warning. This is the same defect as the admitted-critical DAT-P2-1, P3-1, P4-1, P5-1, P6-1 and P9-1.",
+    "evidence": "sidecar/services/provider_registry.py:127-140 (openbb-mcp declaration, no region), :495-513 (statement accessors pass validate=None, no accept), :473-492 (fundamentals has gate + acceptor), :371-445 (_resolve_async first-valid-wins); sidecar/services/openbb_mcp_provider.py:463-480 (bare symbol straight to the openbb statement tools); sidecar/routers/fundamentals.py:177-192; src/modules/equity-overview/api.ts:100-108; src/modules/equity-overview/EquityOverviewPanel.tsx:1111-1113",
+    "evidence_checked": "Opened the registry, the openbb provider, the router and the panel/api consumer. Re-ran all three statement routes and /resolve?q=SMR against :52152 on 2026-09-23T01:34Z.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/SMR/income (and /balance, /cashflow) -> provider openbb-mcp, periods 2025-12-31..2021-12-31, total_revenue 2025=31479000.0 (NuScale USD). /resolve?q=SMR -> resolved SMR Jewels Ltd BSE, yahoo_symbol SMR.BO, with NuScale as the second candidate."
+  },
+  {
+    "raw_id": "DAT-S2-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The blank is real, but the stated mechanism is wrong. BSE's own shareholding index DOES list SMR's one pattern: qtr '04 Jun 2026', filed 2026-06-08, XbrlFile 544774_86202616343_SHP.xml. This is the pre-listing, IPO-time SHP, which BSE dates to the day. bse_provider._shp_quarter_end parses only 'Month YYYY'. It returns None for the three-token '04 Jun 2026' (verified in the sidecar venv), and corporate_disclosures._bse_shareholding then silently skips a row with no quarter_end. The service goes on to report 'every applicable lane was reachable but carried no pattern' as an honest-looking count=0. That is not a filing-venue gap. It is a parser that drops the day-dated listing-time SHP, which is the only pattern every fresh IPO has. Severity stays high. Besides the agent disclosure tool, the research ownership_check that would challenge yfinance's 78.56% 'insiders' with the exchange promoter figure (65.74% per the pack) has no witness, so the unchallenged number stands. Also, count=0 falsely asserts that no pattern exists. Fix: accept 'DD Mon YYYY' in _shp_quarter_end, or fall back to filing_date, and never drop a row with a filed XBRL.",
+    "evidence": "sidecar/services/bse_provider.py:613-651 (get_shareholding builds quarter_end from qtr), :865-880 (_shp_quarter_end: len(parts)!=2 -> None); sidecar/services/corporate_disclosures.py:452-462 (_bse_shareholding skips non-date quarter_end), :366-416 (count=0 'honest empty' return at :415-416); sidecar/services/agent_tools/disclosure_tools.py, sidecar/services/ownership_check.py (consumers); https://api.bseindia.com/BseIndiaAPI/api/SHPQNewFormat/w?scripcode=544774 (fetched_at 2026-09-23T01:34:55Z: Table[0] qtr '04 Jun 2026', filing_date_time '2026-06-08T16:34:05.267', XbrlFile '544774_86202616343_SHP.xml')",
+    "evidence_checked": "Opened the shareholding service, the BSE provider lane and its quarter parser. Re-ran the repro against :52152 (SMR and SMR.BO both give count 0). Fetched BSE's SHP index for 544774 once. Called _shp_quarter_end directly in the sidecar venv.",
+    "repro_check": "sidecar/.venv/bin/python3 -c \"from services import bse_provider as b; print(b._shp_quarter_end('04 Jun 2026'), b._shp_quarter_end('June 2026'))\" -> None 2026-06-30. curl -s '127.0.0.1:52152/disclosures/shareholding?symbol=SMR' -> {\"symbol\":\"SMR\",\"count\":0,\"patterns\":[]}."
+  },
+  {
+    "raw_id": "DAT-S2-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Confirmed: get_results_calendar calls only nse_provider.get_results_calendar, with no exchange gate and no BSE lane, and the router maps the ProviderError to a 502 carrying 'nse_direct: 'SMR' is not a known NSE instrument'. Every BSE-only name fails this way. Severity drops from high to medium, consistent with DAT-P7-2 and DAT-P8-2. No frontend code calls /disclosures/results. The one in-product consumer, research fetch_results_calendar, soft-fails to {ok:false, error:'results calendar unavailable: ...'} and never raises. The route serves board-meeting dates, not results figures. So this is a real gap with an unhelpful 502, not a broken core flow.",
+    "evidence": "sidecar/services/corporate_disclosures.py:335-358 (NSE-only), sidecar/routers/disclosures.py:74-92 (ProviderError -> 502), sidecar/services/research/disclosures.py:185-203 (soft-fail consumer); grep of src/ for 'disclosures/results' -> no caller",
+    "evidence_checked": "Opened the service, router and research wrapper. Grepped the frontend for callers. Re-ran the repro against :52152.",
+    "repro_check": "curl -s -w ' HTTP %{http_code}' '127.0.0.1:52152/disclosures/results?symbol=SMR' at 2026-09-23T01:36:17Z -> {\"detail\":\"nse_direct: 'SMR' is not a known NSE instrument\"} HTTP 502."
+  },
+  {
+    "raw_id": "DAT-S2-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The value is wrong, and the mechanism is now pinned down. eps=5.58 is yfinance info['trailingEps'], passed straight through and stamped status 'ok'. It equals SMR.BO's FY2025 (year to 2025-03-31) Basic EPS exactly: 104,123,000 / 18,653,743 = 5.5819. Yahoo has not ingested FY2026: its annual statements stop at 2025-03-31. Meanwhile netIncomeToCommon (247,484,992) in the same payload is FY2026. So the headline EPS is a full fiscal year stale, not 'differently scoped'. P/E (17.0 on 19 Sep, 17.47 on 23 Sep) is Yahoo's trailingPE on that stale EPS, about 2.4-3x the outside 5.6-7.2x (reported EPS 16.89) and the app's own 13.27. The correctness gate only checks that pe x eps sits inside the 52-week band (95 does), so the stale pair passes. Unlike DAT-P3-2 and DAT-P6-2, this is no weighted-vs-period-end basis difference: no reading of FY2026 gives 5.58. High stands: a wrong valuation input shown as true.",
+    "evidence": "sidecar/services/yfinance_provider.py:366 (pe_ratio=trailingPE), :375 (eps=trailingEps), :188-213 (_served_field_meta stamps any non-null 'ok'); sidecar/services/correctness_gate.py:179-191 (_implied_price pe x eps band check only); docs/redesign/verification/r15/battery/collected/S2_SMR.json:250,259,273,275; docs/redesign/verification/r15/battery/packs/S2_SMR.json eps_ttm (16.89) / pe_ttm",
+    "evidence_checked": "Opened the yfinance mapping, the field_meta stamping and the correctness gate. Re-fetched /fundamentals/SMR from :52152 on 2026-09-23T01:36Z (eps 5.58, pe 17.47). Ran yfinance for SMR.BO in the sidecar venv to identify where 5.58 comes from.",
+    "repro_check": "sidecar/.venv/bin/python3 -c \"import yfinance as yf; t=yf.Ticker('SMR.BO'); print(t.info['trailingEps'], t.info['netIncomeToCommon'], t.income_stmt.loc[['Basic EPS','Net Income']])\" -> 5.58, 247484992, Basic EPS 2025-03-31 5.581882 / Net Income 104123000 (no FY2026 column)."
+  },
+  {
+    "raw_id": "DAT-S2-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. ROCE is not modelled anywhere: no field in the Fundamentals model, no mapping in the yfinance or openbb providers, nothing in the frontend or shared types. The fresh /fundamentals/SMR payload has no roce key. The outside value exists (71.5%, screener) and is part of the screener-parity benchmark. Medium stands, consistent with DAT-P7-4 and DAT-P1-4. One note on the fix shape: the balance-sheet ingredients the finding proposes to compute from are, for this symbol, NuScale's (DAT-S2-1). A computed ROCE is only safe once the statement routes bind the right entity.",
+    "evidence": "sidecar/models/fundamentals.py:60-111 (field list, no roce); sidecar/services/yfinance_provider.py:358-400 (mapping, no roce); grep -rni roce sidecar/services sidecar/models sidecar/routers src types -> no matches",
+    "evidence_checked": "Grepped sidecar, src and types and opened the model and mapping. Re-fetched /fundamentals/SMR from :52152 on 2026-09-23T01:36Z.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/SMR | python3 -c \"import json,sys; print('roce' in json.load(sys.stdin))\" -> False."
+  },
+  {
+    "raw_id": "DAT-S2-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The blank is real: Yahoo publishes no revenueGrowth for SMR.BO. But it is a labelled gap, not a silent one: field_meta.revenue_growth is 'unavailable' with the reason 'provider did not publish this field'. The finding's premise that the app 'already holds both years' revenue' is also wrong. The yfinance statements for SMR.BO stop at FY2025 (2025-03-31) and carry one quarter, so a computed fallback would give FY2025-over-FY2024 growth, not the pack's FY2026 64.3%. The /income route serves NuScale (DAT-S2-1). The research derived leg (revenue_growth_computed) needs consecutive quarters that this half-yearly SME filer does not have on Yahoo. Low, consistent with the labelled-gap rulings DAT-P8-5 and DAT-P8-6.",
+    "evidence": "sidecar/services/yfinance_provider.py:395 (revenue_growth=revenueGrowth), :185-213 (unavailable stamp with _NULL_FIELD_REASON); sidecar/services/research/fast.py:386-390 (computed growth needs a yoy result); docs/redesign/verification/r15/battery/collected/S2_SMR.json:276,503-509",
+    "evidence_checked": "Opened the mapping, the field_meta stamping and the research derived leg. Re-fetched /fundamentals/SMR from :52152 on 2026-09-23T01:36Z. Ran yfinance income_stmt and quarterly_income_stmt for SMR.BO.",
+    "repro_check": "curl /fundamentals/SMR -> revenue_growth null, field_meta.revenue_growth {status:'unavailable', reason:'provider did not publish this field'}. yf.Ticker('SMR.BO').income_stmt columns -> 2025-03-31, 2024-03-31, 2023-03-31 only; quarterly -> 2025-06-30 only."
+  },
+  {
+    "raw_id": "DAT-S2-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The gap is real: the outside value is a clean 0 (no dividend ever, per the pack's screener and BSE CorporateAction rows), and /fundamentals shows null. The central claim, that 'no data' and 'never paid' look identical, does not hold as stated. dividend_yield carries field_meta 'unavailable' with a stated reason, which is a labelled unknown. dividend_per_share_ttm is a deliberately derived field that /fundamentals does not compute (_DERIVED_FIELDS, so it has no field_meta; the finding's claim of field_meta on both is wrong). The research path computes it and can affirm a labelled zero ('no dividends paid (trailing 12m)') via _apply_dividend_ttm. Low, the same ruling as DAT-P7-5.",
+    "evidence": "sidecar/services/yfinance_provider.py:173-180 (_DERIVED_FIELDS incl. dividend_per_share_ttm), :343-351 (yield), :374; sidecar/services/research/fast.py:205-231 (affirmed_zero -> 0.0 with label); docs/redesign/verification/r15/battery/collected/S2_SMR.json:257-258,281,370-383",
+    "evidence_checked": "Opened the provider field_meta logic and the research dividend-TTM threading. Re-fetched /fundamentals/SMR from :52152 on 2026-09-23T01:36Z (dividend_per_share_ttm null with no field_meta entry, dividend_yield null and 'unavailable').",
+    "repro_check": "curl /fundamentals/SMR -> dividend_yield null (field_meta 'unavailable', 'provider did not publish this field'), dividend_per_share_ttm null, field_meta has no dividend_per_share_ttm key."
+  },
+  {
+    "raw_id": "DAT-S2-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Holds: no listing-date field exists on the resolve payload or the Fundamentals model. fifty_two_week_high/low (115.0/75.85, correct) carry only the fetch timestamp. The Equity Overview header prints them as '52w low-high', and the panel labels fifty_two_week_change '1Y change' (-10.0% on 23 Sep), which for a 14-week-old listing is really a since-listing change. Two corrections. First, the date is one mapping away rather than needing a new exchange feed: yfinance info already carries firstTradeDateMilliseconds=1780890300000 (2026-06-08, matching the pack's listing_date), and the provider ignores it. Second, the research 52w witness already refuses to recompute a range from under 300 days of history. Severity drops to low, the same ruling as DAT-P1-5 (a 44-day-old listing, values correct, no per-leg date): the values are right, and the only defect is the label/caveat.",
+    "evidence": "sidecar/models/fundamentals.py:77-79; sidecar/services/yfinance_provider.py:377-378 (52w straight from info, no firstTradeDate mapping); sidecar/routers/resolve.py:27-43 (no listing-date key); src/modules/equity-overview/EquityOverviewPanel.tsx:135 ('1Y change'), :1024-1030 ('52w' header); sidecar/services/research/range_check.py:76-83 (300-day/180-bar coverage floor)",
+    "evidence_checked": "Opened the model, the provider mapping, the resolve payload, the panel labels and the research range check. Re-fetched /fundamentals/SMR from :52152 on 2026-09-23T01:36Z. Read yfinance info for SMR.BO in the sidecar venv.",
+    "repro_check": "yf.Ticker('SMR.BO').info['firstTradeDateMilliseconds'] -> 1780890300000 (= 2026-06-08T03:45Z). grep -rni 'listing_date|firstTradeDate' sidecar/services sidecar/models sidecar/routers src types -> no matches."
+  },
+  {
+    "raw_id": "DAT-S2-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: the resolve and fundamentals payloads carry no board/SME or face-value field. The mechanism and fix shape are wrong. The board fact is already in the app's bundled BSE master: the SMR row is ['544774','SMR','SMR Jewels Ltd','MT',...], where group MT marks SME trade-for-trade. The resolver reads that group column and discards it (_group) at every use, and the resolve payload has no board key. So the fix is to project a field the resolver already loads, not to ingest ComHeader (which, per DAT-P16-6, is used only by the offline sector-regeneration script). The face_value leg alone would be low (DAT-P7-6, DAT-P16-6). Medium holds here for the board leg: for an SME name with a 2,000-share lot and trade-for-trade settlement, a missing SME label hides a decision-relevant risk, which is the case DAT-P13-1 said should be scored higher.",
+    "evidence": "sidecar/services/resolver_masters/bse_instruments.json:2352 (SMR row, group 'MT'); sidecar/services/symbol_resolver.py:282-301 (group read), :338, :484, :750, :956 (_group discarded); sidecar/routers/resolve.py:27-43 (no board/face_value key); sidecar/models/fundamentals.py:60-111 (no face_value)",
+    "evidence_checked": "Opened the resolver master loader and its call sites, the resolve payload and the fundamentals model. Grepped the bundled BSE master. Re-ran /resolve?q=SMR on :52152 (no board or face_value key).",
+    "repro_check": "grep -n '\"SMR\"' sidecar/services/resolver_masters/bse_instruments.json -> [\"544774\", \"SMR\", \"SMR Jewels Ltd\", \"MT\", \"INE11XK01017\", \"Active\"]. curl '127.0.0.1:52152/resolve?q=SMR' -> resolved keys symbol,name,exchange,region,asset_class,yahoo_symbol,confidence,isin,bse_code,industry,former_name (no board)."
+  }
+]

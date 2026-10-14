@@ -1,0 +1,11 @@
+# R15-CODE-RESEARCH-004 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -rnE 'locale_domains|preferredDomains|detect_searxng|KNOWN_BACKENDS|breaker_status|untrusted_context_message' --include=*.py sidecar/ | grep -v '/.venv/' | cut -c1-200
+--- output ---
+sidecar/tests/test_web_search.py:191:    # (services.search.searxng.detect_searxng was deleted, R15-CODE-RESEARCH-004);
+sidecar/tests/test_search_exports.py:4:(``locale_domains``, ``KNOWN_BACKENDS``, ``detect_searxng``, ``breaker_status``,
+sidecar/tests/test_search_exports.py:5:``untrusted_context_message``, ``SearchResponse.metadata``) that was exported
+sidecar/services/search/base.py:138:    ``options`` — e.g. ``preferredDomains``/``maxResults``/``region``) into a
+
+EXIT=0 (17.0s)

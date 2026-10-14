@@ -1,0 +1,11 @@
+# R15-RESEARCH-009 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:33:30Z, sidecar :52348
+# kind=sh
+# command:
+#   cd $C/sidecar; export PYTHONPATH=.
+#   ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b8_r009.py 2>&1 | grep -v -i "warning\|np.datetime"
+# output:
+profiles deep: 600000 3.0 ultra: 1800000 9.0
+elapsed_s 196
+execution {"run_id": "d48ad212ab7e488a94a819fb8e3293e2", "requested_depth": "deep", "loop": "iter", "backend": "native", "started_at": 1790987610.521136, "finished_at": 1790987806.5329962, "degraded_reason": null}
+cost (result): {"tokens": 10655, "spend_usd": 0.0, "steps": 4, "estimate": true} | brief.cost: {"tokens": 10655, "spend_usd": 0.0, "steps": 4, "estimate": true}
+# exit=0

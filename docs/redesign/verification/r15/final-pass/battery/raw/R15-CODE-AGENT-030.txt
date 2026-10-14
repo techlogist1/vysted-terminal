@@ -1,0 +1,16 @@
+# R15-CODE-AGENT-030 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C/sidecar"; python3 - <<'PY'
+import re
+for f in ['openai','groq','gemini','anthropic']:
+    s=open(f'services/llm/{f}.py').read()
+    n=len(re.findall(r'except\s+\(?\s*ProviderError[^:]*:\s*\n\s*raise\s*\n',s))
+    print(f, 'no-op ProviderError re-raise handlers:', n)
+PY
+--- output ---
+openai no-op ProviderError re-raise handlers: 0
+groq no-op ProviderError re-raise handlers: 0
+gemini no-op ProviderError re-raise handlers: 0
+anthropic no-op ProviderError re-raise handlers: 0
+
+EXIT=0 (0.0s)

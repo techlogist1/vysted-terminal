@@ -1,0 +1,53 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_7ebb69895c1d40b09d2d979b6c72735a", "name": "price_data", "input": {"range": "1y", "symbol": "ELCIDIN.NS", "timeframe": "1d", "asset_class": "equity"}}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "52"}
+{"kind": "delta", "text": "-week"}
+{"kind": "delta", "text": " low"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " E"}
+{"kind": "delta", "text": "LC"}
+{"kind": "delta", "text": "ID"}
+{"kind": "delta", "text": "IN"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "106"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "505"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "104"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "830"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "675"}
+{"kind": "delta", "text": " below"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "52"}
+{"kind": "delta", "text": "-week"}
+{"kind": "delta", "text": " low"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6854, "output_tokens": 43, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

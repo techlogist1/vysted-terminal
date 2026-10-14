@@ -1,0 +1,6 @@
+# probe at ace7dd76 (candidate worktree), run 05:55:38
+$ grep -rn 'R15-UI-020' src --include=*.test.ts --include=*.test.tsx | head -6
+src/lib/workspace.test.ts:767:  it("round-trips each chart panel's view and adopts an older blob's drawings (R15-UI-020)", () => {
+src/modules/chart/ChartPanel.test.tsx:298:  it("a persisted per-panel view still wins over the settings default (R15-UI-020)", async () => {
+src/modules/chart/ChartPanel.test.tsx:945:  it("opens on its persisted view and shows only that chart's drawings (R15-UI-020)", async () => {
+src/store/chart-drawings.test.ts:68:  it("returns a panel's drawings only for the symbol/timeframe they were made on (R15-UI-020)", () => {

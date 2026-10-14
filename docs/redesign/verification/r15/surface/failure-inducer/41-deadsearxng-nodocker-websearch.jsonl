@@ -1,0 +1,79 @@
+{"kind": "tool_use", "tool_call_id": "", "name": "web_search", "input": {"category": "news", "num_results": 5, "query": "Kaynes Technology India latest news"}}
+{"kind": "delta", "text": "Since"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " web"}
+{"kind": "delta", "text": " search"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " timed"}
+{"kind": "delta", "text": " out"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " will"}
+{"kind": "delta", "text": " suggest"}
+{"kind": "delta", "text": " revis"}
+{"kind": "delta", "text": "ing"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " query"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " focus"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " aspect"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Kay"}
+{"kind": "delta", "text": "nes"}
+{"kind": "delta", "text": " Technology"}
+{"kind": "delta", "text": " India"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " re"}
+{"kind": "delta", "text": "phrase"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " query"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " again"}
+{"kind": "delta", "text": "?"}
+{"kind": "delta", "text": " For"}
+{"kind": "delta", "text": " example"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " could"}
+{"kind": "delta", "text": " search"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "Kay"}
+{"kind": "delta", "text": "nes"}
+{"kind": "delta", "text": " Technology"}
+{"kind": "delta", "text": " India"}
+{"kind": "delta", "text": " earnings"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "Kay"}
+{"kind": "delta", "text": "nes"}
+{"kind": "delta", "text": " Technology"}
+{"kind": "delta", "text": " India"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " update"}
+{"kind": "delta", "text": "\"."}
+{"kind": "delta", "text": " Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": " how"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " proceed"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2711, "output_tokens": 78, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}

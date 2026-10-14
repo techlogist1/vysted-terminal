@@ -1,0 +1,60 @@
+=== R15-CODE-PLATFORM-004 probe (candidate 1006c6da) ===
+--- probe 1: _is_truthy over all four falsy strings + four truthy strings ---
+import asyncio, sys
+sys.path.insert(0, ".")
+from services.workflow_nodes import builtin
+
+async def main():
+    for v in ["false", "no", "0", "off", "true", "yes", "1", "on"]:
+        r = await builtin.logic_branch({"value": v}, {})
+        print(v, "->", r)
+
+asyncio.run(main())
+OUTPUT:
+false -> {'true_path': SKIP, 'false_path': 'false'}
+no -> {'true_path': SKIP, 'false_path': 'no'}
+0 -> {'true_path': SKIP, 'false_path': '0'}
+off -> {'true_path': SKIP, 'false_path': 'off'}
+true -> {'true_path': 'true', 'false_path': SKIP}
+yes -> {'true_path': 'yes', 'false_path': SKIP}
+1 -> {'true_path': '1', 'false_path': SKIP}
+on -> {'true_path': 'on', 'false_path': SKIP}
+
+--- probe 2: engine-level, notify wired to the un-taken false_path when value=true ---
+import asyncio, sys
+sys.path.insert(0, ".")
+from services import workflow_nodes
+from services import workflow_engine
+from models.workflow import WorkflowSpec, WorkflowNode, WorkflowEdge
+
+workflow_nodes.register_all()
+
+def node(nid, t, cfg=None):
+    return WorkflowNode(id=nid, type=t, position={"x":0.0,"y":0.0}, config=cfg or {})
+
+def edge(eid, src, tgt, sp, tp):
+    return WorkflowEdge(id=eid, sourceNode=src, sourcePort=sp, targetNode=tgt, targetPort=tp)
+
+spec = WorkflowSpec(
+    id="wf-probe-004", name="probe", version=1, updatedAt=0,
+    nodes=[
+        node("branch", "logic.branch"),
+        node("notify", "action.notify_desktop"),
+    ],
+    edges=[
+        edge("e1", "branch", "notify", "false_path", "message"),
+    ],
+)
+
+async def main():
+    result = await workflow_engine.run_workflow(spec, inputs={"value": "true"})
+    by_id = {n.node_id: n for n in result.nodes}
+    print("branch status:", by_id["branch"].status, "outputs:", by_id["branch"].outputs)
+    print("notify status:", by_id["notify"].status)
+
+asyncio.run(main())
+OUTPUT:
+branch status: ok outputs: {'true_path': 'true'}
+notify status: skipped
+
+VERDICT: holds. _FALSY_STRINGS set is honored (false/no/0/off route false_path); engine SKIP sentinel makes the un-taken node status=skipped, not ok.

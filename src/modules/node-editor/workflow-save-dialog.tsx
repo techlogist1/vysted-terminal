@@ -17,7 +17,7 @@
  * remounts the body with a fresh `key`).
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -60,26 +60,40 @@ function WorkflowSaveDialogBody({
 
   const canSubmit = name.trim().length > 0 && !saving;
 
+  // Close on Escape — this is a hand-rolled modal (no Radix), so wire the
+  // keyboard dismissal explicitly while it's mounted.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <div
       data-testid="workflow-save-dialog"
       role="dialog"
       aria-modal="true"
       aria-labelledby="workflow-save-dialog-title"
-      className="bg-charcoal-950/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+      onClick={onClose}
+      className="bg-charcoal-950/60 fixed inset-0 z-50 flex items-center justify-center"
     >
       <form
+        onClick={(event) => event.stopPropagation()}
         onSubmit={(event) => {
           event.preventDefault();
           if (!canSubmit) return;
           onSubmit({ name: name.trim(), description: description.trim() });
         }}
-        className="bg-charcoal-900 border-charcoal-700 flex w-[420px] flex-col gap-3 rounded-md border p-4"
+        className="bg-charcoal-900 border-charcoal-700 flex w-[420px] flex-col gap-3 rounded-none border p-4"
       >
         <header className="flex items-baseline justify-between">
           <h2
             id="workflow-save-dialog-title"
-            className="text-charcoal-100 font-mono text-sm tracking-wide uppercase"
+            className="text-charcoal-100 text-panel-title font-mono tracking-wide uppercase"
           >
             {mode === "create" ? "Save workflow" : "Update workflow"}
           </h2>
@@ -87,24 +101,24 @@ function WorkflowSaveDialogBody({
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="text-charcoal-400 font-mono text-sm hover:text-amber-400"
+            className="text-charcoal-400 text-body hover:text-charcoal-100 font-mono"
           >
             ×
           </button>
         </header>
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[10px] uppercase">Name</span>
+          <span className="text-charcoal-400 text-micro font-mono uppercase">Name</span>
           <input
             aria-label="Workflow name"
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Research: AAPL daily"
             autoFocus
-            className="bg-charcoal-800 text-charcoal-100 h-8 rounded-md px-2 font-mono text-sm outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-body focus:ring-charcoal-500 h-8 border px-2 font-mono outline-none focus:ring-1"
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 font-mono text-[10px] uppercase">
+          <span className="text-charcoal-400 text-micro font-mono uppercase">
             Description (optional)
           </span>
           <textarea
@@ -113,11 +127,11 @@ function WorkflowSaveDialogBody({
             onChange={(event) => setDescription(event.target.value)}
             placeholder="Fetch quote + history; compute RSI; run researcher; log."
             rows={3}
-            className="bg-charcoal-800 text-charcoal-100 min-h-[3rem] resize-y rounded-md p-2 font-mono text-xs leading-relaxed outline-none focus:ring-1 focus:ring-amber-400"
+            className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption focus:ring-charcoal-500 min-h-12 resize-y p-2 font-mono leading-relaxed outline-none focus:ring-1"
           />
         </label>
         {error !== null && error !== undefined && (
-          <p className="text-negative font-mono text-[10px]">{error}</p>
+          <p className="text-negative text-micro font-mono">{error}</p>
         )}
         <div className="flex items-center justify-end gap-2 pt-1">
           <Button type="button" size="sm" variant="ghost" onClick={onClose}>

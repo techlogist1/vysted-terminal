@@ -1,0 +1,26 @@
+[
+ {
+  "key": "rc1-fix-r1-recheck:1",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "A Yahoo FX pair symbol (EURUSD=X) gets the .NS suffix under the IN session region and 404s not_found on /quotes",
+  "repro": "Own sidecar :52336 at 68d5573a (seed data, region IN): curl http://127.0.0.1:52336/quotes/EURUSD%3DX -> 404 not_found; sidecar log shows yfinance asked for '$EURUSD=X.NS: possibly delisted'. Same 404 on the shared :52152, so it predates fix-r1 and is outside rc1-drive-failure-inducer:1/:2 (the fix's alphabet rule did not fire; the YFTickerMissingError class did). Pre-existing, not a fix-r1 regression.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/fix-r1/recheck/failure-inducer-controls.txt",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py"
+  ]
+ },
+ {
+  "key": "rc1-fix-r1-recheck:2",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-046",
+  "title": "Copilot's after-research reply template ('Built you a brief on NVDA \u2014 it's at the top of the cockpit') is unconditional on review mode, so the local model can still narrate a staged auto-brief as published (the runtime staged notice does fire)",
+  "repro": "Own sidecar :52336 at 68d5573a, vy.py invoke copilot 'research KPIT Technologies' --provider ollama --model llama3.1:8b (default ask autonomy): the model calls only research, the runtime autobrief is staged, and the notice 'Staged for your review, not applied yet: publish_brief KPITTECH' fires. The model still replies 'Built you a brief on KPIT Technologies \u2014 it's at the top of the cockpit\u2026'. The local model gave the 'proposed' reply in 1 of 2 research-only runs; the hosted gpt-4o-mini did in 2 of 2.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/fix-r1/recheck/b14-kpit-local.jsonl",
+  "suspected_files": [
+   "sidecar/agents/copilot.json"
+  ]
+ }
+]

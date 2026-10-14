@@ -1,0 +1,4 @@
+GET /sec/filings/0000000000-00-000000?identifier=AAPL
+status=404
+---
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}

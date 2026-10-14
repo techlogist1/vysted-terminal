@@ -1,0 +1,39 @@
+{
+ "/fundamentals/IDEA": [
+  429,
+  {
+   "detail": "The data provider is throttled right now \u2014 try again shortly.",
+   "code": "rate_limited",
+   "action": "Wait a minute, then retry."
+  }
+ ],
+ "/quotes/IDEA": [
+  200,
+  {
+   "symbol": "IDEA",
+   "price": 12.64,
+   "change": -0.3099999999999987,
+   "change_percent": -2.393822393822384,
+   "volume": 612490273.0,
+   "open": 12.95,
+   "high": 13.14,
+   "low": 12.5,
+   "prev_close": 12.95,
+   "currency": "INR",
+   "market_state": "CLOSED",
+   "timestamp": "2026-10-01T00:00:00Z",
+   "provider": "nse_direct",
+   "freshness": "eod"
+  }
+ ],
+ "/fundamentals/IDEA/income": [
+  200,
+  {
+   "symbol": "IDEA.NS",
+   "periods": [],
+   "lines": [],
+   "provider": "yfinance",
+   "gaps": []
+  }
+ ]
+}

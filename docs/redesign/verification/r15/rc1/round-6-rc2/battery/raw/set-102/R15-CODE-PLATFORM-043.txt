@@ -1,0 +1,8 @@
+$ grep PROVIDER constants
+sidecar/services/macro/fred_provider.py:49:PROVIDER: MacroProvider = "fred"
+sidecar/services/macro/imf_provider.py:35:PROVIDER: MacroProvider = "imf"
+sidecar/services/macro/world_bank_provider.py:39:PROVIDER: MacroProvider = "world-bank"
+sidecar/services/macro/ecb_provider.py:31:PROVIDER: MacroProvider = "ecb"
+27:MacroProvider = Literal["fred", "ecb", "imf", "world-bank"]
+67:    provider: MacroProvider
+85:    provider: MacroProvider

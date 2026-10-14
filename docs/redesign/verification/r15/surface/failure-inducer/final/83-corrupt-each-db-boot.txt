@@ -1,0 +1,10 @@
+data_cache.db corrupt -> boot FAILED  | sqlite3.DatabaseError: file is not a database 2026-10-03 17:09:07,225 ERROR uvicorn.error: Application startup failed. Exiting. 
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fi-final/corrupt-each.sh: line 4: 96766 Done                    sleep 40
+     96767 Abort trap: 6           | env VYSTED_OPENBB_MCP_PORT=52801 VYSTED_SEC_EDGAR_MCP_PORT=52802 ./.venv/bin/python3 main.py --host 127.0.0.1 --port 52847 --data-dir "$D" > $LOG 2>&1
+fundamentals_cache.db corrupt -> boot UP 200 agents; 200 plugins; 404 workflows; 200 runs; 200 quote | 
+custom_agents.db corrupt -> boot UP 200 agents; 200 plugins; 404 workflows; 200 runs; 200 quote | 
+delegate_runs.db corrupt -> boot UP 200 agents; 200 plugins; 404 workflows; 500 runs; 200 quote | sqlite3.DatabaseError: file is not a database 
+plugins.db corrupt -> boot UP 200 agents; 500 plugins; 404 workflows; 200 runs; 200 quote | sqlite3.DatabaseError: file is not a database 
+workflows.db corrupt -> boot UP 200 agents; 200 plugins; 404 workflows; 200 runs; 200 quote | sqlite3.DatabaseError: file is not a database 
+portfolio.db corrupt -> boot UP 200 agents; 200 plugins; 404 workflows; 200 runs; 200 quote | 
+ALLDONE

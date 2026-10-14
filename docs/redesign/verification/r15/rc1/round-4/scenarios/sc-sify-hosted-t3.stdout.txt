@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+The ADR-to-ordinary-share ratio is not available from this session's sources. Typically, this information is disclosed in the company’s annual reports or filings, but I couldn't access any recent filings for Sify Technologies Ltd. You might want to check their official investor relations page or recent reports for the most accurate figure.
+
+=== ok · 4.6s · events {'tool_use': 2, 'tool_result': 2, 'delta': 49, 'done': 1} · usage in=9042 out=67 · est $0.00140 · gpt-4o-mini

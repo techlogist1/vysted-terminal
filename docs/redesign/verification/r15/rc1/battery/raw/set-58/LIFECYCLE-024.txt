@@ -1,0 +1,9 @@
+=== BEFORE endpoint hits (from earlier investigation) ===
+custom_agents=1 data_cache=1 delegate_runs=1 fundamentals_cache=1 workflows=1 (already lazily migrated by earlier verification calls)
+plugins=0 portfolio=0 (not yet touched)
+
+=== AFTER hitting /portfolio/positions and /plugins ===
+portfolio.db user_version=1
+plugins.db user_version=1
+
+=== schema_version.py + store wiring ===

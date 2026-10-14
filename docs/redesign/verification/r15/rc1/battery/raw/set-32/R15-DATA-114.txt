@@ -1,0 +1,48 @@
+=== DATA-114 live (3x) ===
+-- attempt 1 --
+{"symbol":"NIFTY","expiry":"2026-09-29","expiries":["2026-09-29","2026-10-06","2026-10-13","2026-10-19","2026-10-27","2026-11-03","2026-11-23","2026-12-29","2027-03-30","2027-06-29","2027-12-28","2028-06-27","2028-12-26","2029-06-26","2029-12-24","2030-06-25","2030-12-31","2031-06-24"],"underlying_p
+-- attempt 2 --
+{"symbol":"NIFTY","expiry":"2026-09-29","expiries":["2026-09-29","2026-10-06","2026-10-13","2026-10-19","2026-10-27","2026-11-03","2026-11-23","2026-12-29","2027-03-30","2027-06-29","2027-12-28","2028-06-27","2028-12-26","2029-06-26","2029-12-24","2030-06-25","2030-12-31","2031-06-24"],"underlying_p
+-- attempt 3 --
+{"symbol":"NIFTY","expiry":"2026-09-29","expiries":["2026-09-29","2026-10-06","2026-10-13","2026-10-19","2026-10-27","2026-11-03","2026-11-23","2026-12-29","2027-03-30","2027-06-29","2027-12-28","2028-06-27","2028-12-26","2029-06-26","2029-12-24","2030-06-25","2030-12-31","2031-06-24"],"underlying_p
+    try:
+        resp = await nse_bhavcopy._throttled_get(_FO_URL.format(ymd=day.strftime("%Y%m%d")))
+    except httpx.HTTPError as exc:
+        logger.warning("option_chain: F&O bhavcopy request failed for %s (%s)", day, exc)
+        return "failed", None
+    if resp.status_code == 404:
+        return "missing", None
+    if resp.status_code != 200:
+        logger.warning("option_chain: HTTP %s for the %s F&O bhavcopy", resp.status_code, day)
+        return "failed", None
+    rows = parse_fo_bhavcopy(nse_bhavcopy._decode_body(resp.content))
+    if not rows:
+        logger.warning("option_chain: %s F&O bhavcopy parsed to zero option rows", day)
+        return "failed", None
+    return "ok", rows
+
+
+async def fetch_latest_fo(max_lookback_days: int = 7) -> FoBhavcopy | None:
+    """The newest published NSE F&O bhavcopy, or ``None`` when it cannot be fetched.
+
+    Weekends are skipped without a request; a 404 walks back a day (cached as a
+    holiday only for a past non-trading day, never today, whose file lands
+    after the close); a blocked or failed older day stops the walk.
+
+    TODAY's probe (404 — not yet published — or a transport/HTTP failure) is
+    cached briefly (:data:`_PROBE_TTL_SECONDS`) so a burst of requests only
+    hits NSE once, and a *failed* (not merely missing) today-probe does not
+    abort the walk: it serves the newest already-cached day instead, and
+    stops making further network calls for older days too — a transient
+    upstream failure should not shadow a good cached day, but it also
+    shouldn't be treated as a green light to keep probing a broken upstream
+    (R15-DATA-114).
+    """
+    today = nse_bhavcopy._ist_today()
+    upstream_down = False
+    for offset in range(max_lookback_days + 1):
+        day = today - timedelta(days=offset)
+        if day.weekday() >= 5:
+            continue
+        cached = await data_cache.get(_cache_key(day), _CACHE_TTL_SECONDS)
+        if isinstance(cached, dict) and cached.get("rows"):

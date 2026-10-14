@@ -1,0 +1,9 @@
+=== R15-AGENT-034 (in-process fake-provider probe, candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, sidecar :52340) ===
+CMD: run_manager.launch_run(..., budget=RunBudget()) (all fields None/omitted) -> runs_store.get_run(run_id).budget
+
+{
+  "max_spend_usd": 1.0,
+  "max_tokens": 120000,
+  "max_steps": 12,
+  "max_wall_seconds": 600.0
+}

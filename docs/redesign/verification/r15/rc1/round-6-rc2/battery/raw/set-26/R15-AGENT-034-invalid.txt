@@ -1,0 +1,10 @@
+CMD: POST /agents/copilot/runs with invalid budgets (no model reached)
+budget={"max_steps":0}
+{"detail":[{"type":"greater_than","loc":["body","budget","max_steps"],"msg":"Input should be greater than 0","input":0,"ctx":{"gt":0}}]}
+HTTP 422
+budget={"max_spend_usd":-1}
+{"detail":[{"type":"greater_than","loc":["body","budget","max_spend_usd"],"msg":"Input should be greater than 0","input":-1,"ctx":{"gt":0.0}}]}
+HTTP 422
+budget={"max_wall_seconds":0}
+{"detail":[{"type":"greater_than","loc":["body","budget","max_wall_seconds"],"msg":"Input should be greater than 0","input":0,"ctx":{"gt":0.0}}]}
+HTTP 422

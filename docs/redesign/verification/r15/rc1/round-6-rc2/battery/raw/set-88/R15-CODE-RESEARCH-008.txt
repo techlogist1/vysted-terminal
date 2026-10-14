@@ -1,0 +1,17 @@
+# ace7dd76 in-process, MockTransport statuses against both hosted lanes (offline)
+$ python /tmp/b5_008.py
+401 perplexity -> Perplexity rejected the request — check that your Perplexity API key is valid and active.
+401 sonar -> OpenRouter rejected the request — check that your OpenRouter API key is valid and active.
+402 perplexity -> Perplexity reports insufficient credits for the research run — top up your account to use the hosted research lane.
+402 sonar -> OpenRouter reports insufficient credits for the research run — top up your account to use the hosted research lane.
+403 perplexity -> Perplexity rejected the request — check that your Perplexity API key is valid and active.
+403 sonar -> OpenRouter rejected the request — check that your OpenRouter API key is valid and active.
+429 perplexity -> Perplexity rate limit reached — slow down or check your plan's quota.
+429 sonar -> OpenRouter rate limit reached — slow down or check your plan's quota.
+400 perplexity -> Perplexity could not process the research request (bad query or parameters).
+400 sonar -> OpenRouter could not process the research request (bad query or parameters).
+500 perplexity -> Perplexity is temporarily unavailable (server error) — try again shortly.
+500 sonar -> OpenRouter is temporarily unavailable (server error) — try again shortly.
+503 perplexity -> Perplexity is temporarily unavailable (server error) — try again shortly.
+503 sonar -> OpenRouter is temporarily unavailable (server error) — try again shortly.
+EXIT=0

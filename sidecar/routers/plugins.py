@@ -41,6 +41,7 @@ def save_plugin_config(plugin_id: str, payload: PluginConfigUpdate) -> PluginCon
     full = PluginConfigPayload(
         plugin_id=plugin_id,
         enabled=payload.enabled,
+        installed=payload.installed,
         settings=payload.settings,
         granted_secret_ids=payload.granted_secret_ids,
     )

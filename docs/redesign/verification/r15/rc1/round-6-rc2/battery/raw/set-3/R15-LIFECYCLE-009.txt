@@ -1,0 +1,5 @@
+COMMAND: curl localhost:52355/portfolio/positions (sidecar half of repro) + test-existence grep (frontend half)
+[] HTTP=200
+1689:describe("legacy positions import (R15-LIFECYCLE-009)", () => {
+1768:  it("imports the ledger once into a blob that never carried portfolios, and saves the import", async () => {
+EXIT: 0

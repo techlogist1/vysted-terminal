@@ -1,0 +1,46 @@
+-- ScreenerPresets.tsx apply logic --
+127:    // R15-UI-007: `applyFilters` resets the nested group + advanced flag +
+128:    // formula (like `resetCriteria`) as well as the criteria/universe/
+130:    // formula draft previously left BOTH riding along (the group takes
+131:    // precedence over criteria, and the formula still ANDs in), so the run
+135:      group: null,
+137:      formula: "",
+---
+-- store screener.ts setCriteria/resetCriteria/applyPreset --
+48:function pruneGroup(group: CriterionGroup): CriterionGroup | null {
+61:function hasNestedGroup(group: CriterionGroup | null): boolean {
+116:        // unexpected shape (e.g. `group: "junk"`) is silently dropped to null
+118:        let group: CriterionGroup | null | undefined;
+142:          ...(typeof s.formula === "string" && s.formula ? { formula: s.formula } : {}),
+169:  group: CriterionGroup | null;
+171:  advanced: boolean;
+176:  formula: string;
+214:  setCriteria: (criteria: ScreenerCriterion[]) => void;
+217:  resetCriteria: () => void;
+222:  setGroup: (group: CriterionGroup | null) => void;
+223:  setAdvanced: (advanced: boolean) => void;
+224:  setFormula: (formula: string) => void;
+302:  group: null,
+303:  advanced: false,
+304:  formula: "",
+326:  setCriteria: (criteria) => set({ criteria }),
+327:  resetCriteria: () =>
+328:    set({ criteria: DEFAULT_CRITERIA, group: null, advanced: false, formula: "" }),
+352:      group: group ?? null,
+353:      advanced: hasNestedGroup(group ?? null),
+379:      group: editTree,
+422:    let group: CriterionGroup | undefined;
+439:      ...(trimmedFormula ? { formula: trimmedFormula } : {}),
+676:      group: group ?? null,
+677:      formula: formula || undefined,
+704:      group: screen.group ?? null,
+705:      formula: screen.formula ?? "",
+707:      advanced: hasNestedGroup(screen.group ?? null),
+718:      group: null,
+719:      advanced: false,
+720:      formula: "",
+-- test files for UI-007 preset reset --
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/store/screener.test.ts:475:    it("applyFilters writes a nested group + flips to advanced mode", () => {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/store/screener.test.ts:476:      useScreenerStore.getState().applyFilters({
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/store/screener.test.ts:494:    it("applyFilters: a FLAT group supersedes the caller's flat criteria — runScreener must send the group's leaves, not the stale list (R15-AGENT-096)", () => {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/store/screener.test.ts:495:      useScreenerStore.getState().applyFilters({

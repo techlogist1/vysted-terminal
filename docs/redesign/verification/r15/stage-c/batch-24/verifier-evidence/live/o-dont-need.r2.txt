@@ -1,0 +1,14 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  38.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_e7fb44aef13d430aa1f15b043d615b54", "name": "price_data", "input": {"symbol": "ITC.NS"}}
+[  41.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_e7fb44aef13d430aa1f15b043d615b54", "name": "price_data", "ok": true, "error": null}
+[  51.0s] heartbeat: {"kind": "heartbeat"}
+[  61.0s] heartbeat: {"kind": "heartbeat"}
+[  71.0s] heartbeat: {"kind": "heartbeat"}
+[  73.7s] done: {"kind": "done", "usage": {"input_tokens": 6822, "output_tokens": 30, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of ITC.NS is ₹269.0, as per the data available up to September 25, 2026.
+
+=== ok · 73.7s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 29, 'done': 1} · usage in=6822 out=30 · est $0.00000 · llama3.1:8b

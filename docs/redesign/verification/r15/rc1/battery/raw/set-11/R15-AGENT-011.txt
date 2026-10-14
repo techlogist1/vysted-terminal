@@ -1,0 +1,78 @@
+describe("open_panel backtest run_id (R15-AGENT-011)", () => {
+  const RESULT = {
+    runId: "bt-1",
+    strategyId: "sma_cross",
+    request: {
+      strategyId: "sma_cross",
+      params: {},
+      symbols: ["SPY"],
+      startDate: "2024-01-01",
+      endDate: "2024-12-31",
+      initialCapital: 100_000,
+    },
+    metrics: {},
+    trades: [],
+    equityCurve: [],
+    startedAt: 1_710_000_000_000,
+    durationMs: 250,
+  };
+
+  beforeEach(() => {
+    useBacktestStore.getState().__resetForTests();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel: vi.fn() } as never);
+    sidecarGetMock.mockReset();
+  });
+
+  it("loads the agent's run as complete and makes it the active run", async () => {
+    sidecarGetMock.mockResolvedValueOnce(RESULT);
+    const label = await applyHostActionAsync("open_panel", { panel: "backtest", run_id: "bt-1" });
+    expect(label).toBe("Opened Backtest");
+    expect(sidecarGetMock).toHaveBeenCalledWith("/backtest/runs/bt-1");
+    const state = useBacktestStore.getState();
+    expect(state.activeRunId).toBe("bt-1");
+    expect(state.runs["bt-1"]).toMatchObject({ status: "complete", result: RESULT });
+    expect(describeHostAction("open_panel", { panel: "backtest", run_id: "bt-1" }).title).toBe(
+      "Open Backtest — run bt-1",
+    );
+  });
+
+  it("a run the sidecar does not hold is an honest failure, not an empty panel", async () => {
+    sidecarGetMock.mockRejectedValueOnce(new Error("404 unknown run_id"));
+    expect(
+      await applyHostActionAsync("open_panel", { panel: "backtest", run_id: "gone" }),
+    ).toBeNull();
+    expect(useBacktestStore.getState().activeRunId).toBeNull();
+Code path confirmed present, not weakened (see full excerpt above):
+host-actions.ts:2007-2016 applyIntentAsync open_panel branch calls useBacktestStore.getState().loadRun(intent.runId), fails honestly on reject
+ */
+export async function applyIntentAsync(intent: HostIntent): Promise<ApplyResult> {
+  if (intent.name === "open_panel" && intent.runId) {
+    // An agent-started backtest: load its run into the backtest store (made
+    // active) before opening the panel; a run the sidecar no longer holds
+    // is an honest failure, never an empty panel narrated as opened.
+    try {
+      await useBacktestStore.getState().loadRun(intent.runId);
+    } catch {
+      return fail(`the backtest run ${intent.runId} is no longer available`);
+    }
+  }
+store/backtest.ts:331-347 loadRun implementation, calls sidecarGet(/backtest/runs/{id})
+  loadRun: async (runId) => {
+    const result = await sidecarGet<BacktestResult>(`/backtest/runs/${encodeURIComponent(runId)}`);
+    set((state) => ({
+      runs: {
+        ...state.runs,
+        [runId]: {
+          runId,
+          request: result.request,
+          status: "complete",
+          barsProcessed: 0,
+          totalBars: PENDING_TOTAL_BARS,
+          trades: result.trades,
+          result,
+          error: null,
+          startedAt: result.startedAt,
+          finishedAt: result.startedAt + result.durationMs,
+        },
+      },
+      activeRunId: runId,

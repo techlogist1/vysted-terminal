@@ -1,0 +1,34 @@
+Probe: in-process, the register's own repro — a stub McpClient session whose call_tool raises
+each of anyio.ClosedResourceError / anyio.BrokenResourceError / httpx.ReadError, then
+await c.call_tool('t', {}). Plus a second script checking a genuine outer task.cancel() still
+propagates CancelledError (not swallowed into ProviderError).
+
+Command 1:
+  cd <cand>/sidecar && .venv/bin/python3 /tmp/probe_codeagent002.py
+
+Exit: 0
+Output:
+ClosedResourceError -> ProviderError raised: MCP server 't' call_tool(t) failed: ClosedResourceError('boom'); session dropped? True
+BrokenResourceError -> ProviderError raised: MCP server 't' call_tool(t) failed: BrokenResourceError('boom'); session dropped? True
+ReadError -> ProviderError raised: MCP server 't' call_tool(t) failed: ReadError('boom'); session dropped? True
+
+Command 2:
+  cd <cand>/sidecar && .venv/bin/python3 /tmp/probe_codeagent002b.py
+
+Exit: 0
+Output:
+genuine outer cancellation propagated as CancelledError (correct)
+
+Source check: sidecar/services/mcp_client.py:200 and :217 now catch
+`except (Exception, asyncio.CancelledError) as exc:` (was a narrower except-tuple, per the
+register, that let anyio.ClosedResourceError/BrokenResourceError/EndOfStream and
+httpx.ConnectError/ReadError/RemoteProtocolError escape raw since none is an OSError subclass).
+:183-187 (_failed) re-raises a genuine outer CancelledError untouched
+(`if isinstance(exc, asyncio.CancelledError) and task.cancelling(): raise exc`) before wrapping
+anything else as ProviderError.
+
+Verdict basis: all three exception types the register named now raise ProviderError and drop
+the session (session dropped? True), exactly reversing the pre-fix "session dropped? False" for
+all three shown in the register entry. Matches batch-4's certification ("now raises
+ProviderError with the session dropped; base re-raises each raw with the session kept. A genuine
+outer task.cancel() still propagates CancelledError.").

@@ -1,0 +1,8 @@
+$ GET /history/ZZQXNOTASYM, /history/QQZZFAKE.NS, /history/SPY
+-- ZZQXNOTASYM
+{"symbol":"ZZQXNOTASYM","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":"unknown_symbol","partial":false,"coverage_start":null} [http 200]
+-- QQZZFAKE.NS
+{"symbol":"QQZZFAKE.NS","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":null,"partial":false,"coverage_start":null} [http 200]
+-- SPY
+{"symbol":"SPY","timeframe":"1d","bars":[{"timestamp":"2025-10-03T00:00:00-04:00","open":662.838842966907,"high":665.5001336306916,"low":661.0283585893458,"close":662.0671997070312,"volume":70494400.0},{"timestamp":"2025-10-06T00:00:00-04:00","open":664.451431246289,"high":665.3319462864663,"low":66
+

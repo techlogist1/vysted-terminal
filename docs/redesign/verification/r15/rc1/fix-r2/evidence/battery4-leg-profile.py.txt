@@ -1,0 +1,77 @@
+import asyncio, sys, time, json, logging
+sys.path.insert(0, ".")
+from services import nse_provider
+calls = []
+_orig = nse_provider._get_json
+def traced(path, params, referer):
+    t = time.perf_counter()
+    try:
+        return _orig(path, params, referer)
+    finally:
+        calls.append((round(t - T0, 2), round(time.perf_counter() - t, 2), path))
+nse_provider._get_json = traced
+_ens = nse_provider._SessionHolder.ensure
+def ens(self):
+    cold = self._session is None
+    t = time.perf_counter(); s = _ens(self)
+    if cold: calls.append((round(t - T0, 2), round(time.perf_counter() - t, 2), "WARMUP"))
+    return s
+nse_provider._SessionHolder.ensure = ens
+from services import agent_tools
+from services.agent_tools import register_v0_5_0_tools
+register_v0_5_0_tools()
+mode, sym = sys.argv[1], sys.argv[2]
+async def main():
+    global T0
+    T0 = time.perf_counter()
+    if mode == "price":
+        r = await agent_tools.invoke_tool("price_data", {"symbol": sym})
+        out = {"ok": r.get("ok")}
+    elif mode == "quote":
+        from services import provider_registry
+        q = await asyncio.to_thread(provider_registry.get_quote, sym, "equity")
+        out = {"ok": True, "provider": q.provider}
+    elif mode == "fund":
+        r = await agent_tools.invoke_tool("fundamentals", {"symbol": sym})
+        out = {"ok": r.get("ok"), "err": r.get("error")}
+    elif mode == "gather":
+        a, b = await asyncio.gather(agent_tools.invoke_tool("price_data", {"symbol": sym}), agent_tools.invoke_tool("fundamentals", {"symbol": sym}))
+        out = {"ok": [a.get("ok"), b.get("ok")]}
+    elif mode == "warmsnap":
+        from services import provider_registry
+        from services.research.fast import snapshot_structured
+        for w in ("ITC", "WIPRO", "HCLTECH"):
+            await asyncio.to_thread(provider_registry.get_quote, w, "equity")
+        calls.append((round(time.perf_counter() - T0, 2), 0, "=== WARM DONE ==="))
+        t = time.perf_counter()
+        r = await snapshot_structured(agent_tools.invoke_tool, sym, region="IN")
+        out = {"snap_secs": round(time.perf_counter() - t, 1), "price_ok": r["price"]["ok"], "fund_ok": r["fundamentals"]["ok"], "pe": r["price"].get("error"), "fe": r["fundamentals"].get("error")}
+    elif mode == "fundprof":
+        from services import provider_registry, correctness_gate
+        import services.yfinance_provider as yp, services.openbb_mcp_provider as op
+        tm = {}
+        def wrap(mod, name):
+            f = getattr(mod, name)
+            if asyncio.iscoroutinefunction(f):
+                async def g(*a, **k):
+                    t = time.perf_counter()
+                    try: return await f(*a, **k)
+                    finally: tm.setdefault(mod.__name__ + "." + name, []).append((round(t - T0, 2), round(time.perf_counter() - t, 2)))
+            else:
+                def g(*a, **k):
+                    t = time.perf_counter()
+                    try: return f(*a, **k)
+                    finally: tm.setdefault(mod.__name__ + "." + name, []).append((round(t - T0, 2), round(time.perf_counter() - t, 2)))
+            setattr(mod, name, g)
+        wrap(yp, "get_fundamentals"); wrap(op, "get_fundamentals"); wrap(correctness_gate, "apply_exchange_financials")
+        from services.agent_tools import fundamentals as ft
+        wrap(ft, "_canonicalize"); wrap(ft, "_fetch_once")
+        r = await agent_tools.invoke_tool("fundamentals", {"symbol": sym})
+        out = {"ok": r.get("ok"), "timings": tm}
+    elif mode == "snap":
+        from services.research.fast import snapshot_structured
+        r = await snapshot_structured(agent_tools.invoke_tool, sym, region="IN")
+        out = {"price_ok": r["price"]["ok"], "fund_ok": r["fundamentals"]["ok"], "pe": r["price"].get("error"), "fe": r["fundamentals"].get("error")}
+    out.update(mode=mode, sym=sym, secs=round(time.perf_counter() - T0, 1), nse_calls=calls)
+    print(json.dumps(out))
+asyncio.run(main())

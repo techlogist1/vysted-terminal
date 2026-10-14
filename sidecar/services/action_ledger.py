@@ -1,0 +1,117 @@
+"""In-memory ack ledger for dispatched host actions (R10, E3.3).
+
+The autonomy=auto loop used to synthesize "applied … past tense" tool results
+BEFORE the frontend ran ``applyHostAction`` — whose D33 shrink guard can keep
+the OLD brief — so the agent truthfully reported a publish that never landed.
+The fix is a read-back: the frontend POSTs ``/agents/actions/ack`` after it
+applies (or declines) each host action, keyed by the streamed ``tool_call_id``;
+the runtime checks this ledger at end-of-stream and emits an honest divergence
+notice when a publish was never confirmed or the panel kept the previous brief.
+
+Process-memory only (the ack is a per-stream read-back, not durable state);
+entries expire after :data:`TTL_SECONDS` so an abandoned stream never leaks.
+No secrets ever ride this ledger.
+"""
+
+from __future__ import annotations
+
+import threading
+import time
+from typing import Any
+
+#: How long an ack stays readable. A stream's end-of-stream check happens
+#: seconds after the apply; 10 minutes covers even a very long multi-round
+#: turn with margin.
+TTL_SECONDS = 600.0
+
+#: The statuses the frontend may report for one applied host action.
+#: ``staged`` (D-B3-2, contract C1) is NON-terminal: an AUTO-session change that
+#: waits in the review queue. A later terminal ack replaces it; it never
+#: replaces a terminal ack (the two POSTs can arrive out of order).
+KNOWN_STATUSES = ("applied", "kept_previous", "failed", "staged")
+_NON_TERMINAL = frozenset({"staged"})
+
+# tool_call_id -> (expires_at_monotonic, entry)
+_LEDGER: dict[str, tuple[float, dict[str, Any]]] = {}
+# The ack route is a sync FastAPI handler (threadpool) while the runtime's
+# end-of-stream divergence check reads the ledger from the event loop — two
+# threads. This lock serializes every _LEDGER access so a concurrent ack POST
+# can never change the dict mid-iteration in _prune (the R10-review race). The
+# critical sections are microsecond dict ops, so blocking the loop is a non-event.
+_LOCK = threading.Lock()
+
+
+def _prune_locked(now: float) -> None:
+    """Drop expired entries. Caller MUST hold :data:`_LOCK` (non-reentrant)."""
+    expired = [cid for cid, (expires, _) in _LEDGER.items() if expires <= now]
+    for cid in expired:
+        _LEDGER.pop(cid, None)
+
+
+def record(
+    tool_call_id: str,
+    status: str,
+    brief_meta: dict[str, Any] | None = None,
+    detail: dict[str, Any] | None = None,
+) -> None:
+    """Record the frontend's ack for one host-action ``tool_call_id``.
+
+    ``status`` is one of :data:`KNOWN_STATUSES`; an unknown spelling is stored
+    verbatim (the reader treats anything that is not ``applied`` as a
+    divergence to surface — honest by default).
+
+    ``brief_meta`` is the applied-brief identity ({run_id, created_at, symbol,
+    source_count}) for a ``publish_brief`` ack (R10, E3.3). ``detail`` is the
+    generic host-action descriptor ({action, symbol/panel}) the read-back now
+    carries for EVERY host action (R13 JARVIS): the in-loop grounded tool-result
+    names WHAT resolved so the model's next narration tracks the real outcome,
+    not the optimistic dispatch. Both are optional and additive.
+    """
+    now = time.monotonic()
+    with _LOCK:
+        _prune_locked(now)
+        existing = _LEDGER.get(tool_call_id)
+        if (
+            status in _NON_TERMINAL
+            and existing is not None
+            and existing[1]["status"] not in _NON_TERMINAL
+        ):
+            return
+        _LEDGER[tool_call_id] = (
+            now + TTL_SECONDS,
+            {
+                "status": status,
+                "brief": dict(brief_meta) if brief_meta else None,
+                "detail": dict(detail) if detail else None,
+                "recorded_at": time.time(),
+            },
+        )
+
+
+def get(tool_call_id: str) -> dict[str, Any] | None:
+    """Return the recorded ack entry for ``tool_call_id``, or ``None``."""
+    now = time.monotonic()
+    with _LOCK:
+        _prune_locked(now)
+        found = _LEDGER.get(tool_call_id)
+    return found[1] if found else None
+
+
+def take(tool_call_id: str) -> dict[str, Any] | None:
+    """Return and remove the ack for ``tool_call_id``: an ack grounds one result,
+    once, so it can never confirm a later call that reuses the id (R15-AGENT-046).
+    """
+    now = time.monotonic()
+    with _LOCK:
+        _prune_locked(now)
+        found = _LEDGER.pop(tool_call_id, None)
+    return found[1] if found else None
+
+
+def reset_for_tests() -> None:
+    """Drop every entry (test isolation)."""
+    with _LOCK:
+        _LEDGER.clear()
+
+
+__all__ = ["KNOWN_STATUSES", "TTL_SECONDS", "get", "record", "reset_for_tests", "take"]

@@ -1,0 +1,10 @@
+COMMAND: python3 probe_lead003.py (in-process, candidate venv) — data_cache.ensure_build() across a simulated pre-fix(0.7.9)->post-fix(0.8.0) upgrade, plus a same-version reboot
+EXIT: 0
+OUTPUT:
+after pre-fix write: cache size=1
+meta.build before upgrade: 0.7.9
+ensure_build('0.8.0') cleared=True
+after upgrade boot: cache size=0
+meta.build after upgrade: 0.8.0
+ensure_build('0.8.0') again (same version) cleared=False, size=1
+PASS: cache cleared on build change, retained on same-version boot

@@ -1,0 +1,104 @@
+{
+ "universe": "sp500",
+ "evaluated_count": 498,
+ "skipped_count": 5,
+ "skip_details": [
+  {
+   "symbol": "BXP",
+   "reason": "rate_limited"
+  },
+  {
+   "symbol": "ECHO",
+   "reason": "rate_limited"
+  },
+  {
+   "symbol": "NVR",
+   "reason": "rate_limited"
+  },
+  {
+   "symbol": "UDR",
+   "reason": "rate_limited"
+  },
+  {
+   "symbol": "VMRK",
+   "reason": "rate_limited"
+  }
+ ],
+ "result_count": 498,
+ "matched_count": 498,
+ "rows": [
+  {
+   "symbol": "NVDA",
+   "name": "NVIDIA Corporation",
+   "sector": "Technology",
+   "industry": "Semiconductors",
+   "market_cap": 5442492170240.0,
+   "pe_ratio": 28.494312,
+   "forward_pe": 14.371952,
+   "peg_ratio": 0.4862,
+   "price_to_book": 23.767796,
+   "dividend_yield": 0.0044,
+   "roe": 1.17211,
+   "debt_to_equity": 0.16971,
+   "price": null,
+   "change_percent_1d": null,
+   "volume": null,
+   "matched_criteria": [],
+   "currency": "USD",
+   "data_basis": "snapshot",
+   "data_as_of": 1790192207.0981498
+  },
+  {
+   "symbol": "AAPL",
+   "name": "Apple Inc.",
+   "sector": "Technology",
+   "industry": "Consumer Electronics",
+   "market_cap": 4911671017472.0,
+   "pe_ratio": 38.550976,
+   "forward_pe": 35.207287,
+   "peg_ratio": 2.728,
+   "price_to_book": 45.7269,
+   "dividend_yield": 0.0032,
+   "roe": 1.4875101,
+   "debt_to_equity": 0.78445,
+   "price": null,
+   "change_percent_1d": null,
+   "volume": null,
+   "matched_criteria": [],
+   "currency": "USD",
+   "data_basis": "snapshot",
+   "data_as_of": 1790192206.301636
+  },
+  {
+   "symbol": "GOOGL",
+   "name": "Alphabet Inc.",
+   "sector": "Communication Services",
+   "industry": "Internet Content & Information",
+   "market_cap": 4146253791232.0,
+   "pe_ratio": 16.993732,
+   "forward_pe": 22.781075,
+   "peg_ratio": 1.2549,
+   "price_to_book": 6.6611323,
+   "dividend_yield": 0.0025,
+   "roe": 0.48676,
+   "debt_to_equity": 0.18859,
+   "price": null,
+   "change_percent_1d": null,
+   "volume": null,
+   "matched_criteria": [],
+   "currency": "USD",
+   "data_basis": "snapshot",
+   "data_as_of": 1790192207.613313
+  }
+ ],
+ "duration_ms": 59.51912500313483,
+ "partial": true,
+ "coverage": "screened 498 of 503 \u2014 5 unavailable \u00b7 498 rows on stale/snapshot basis (oldest 2026-09-23)",
+ "freshness": {
+  "seed_as_of": 1790192206.301636
+ },
+ "basis_counts": {
+  "snapshot": 498
+ },
+ "throttled": true
+}

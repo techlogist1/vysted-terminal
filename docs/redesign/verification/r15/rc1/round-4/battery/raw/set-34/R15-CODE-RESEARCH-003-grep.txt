@@ -1,0 +1,6 @@
+44:(``run_iter_research`` for ``deep``, ``run_heavy_research`` for ``heavy``);
+239:async def _run_loop(
+296:            brief = await iter_research.run_heavy_research(query, angles=profile.angles, **common)
+320:        return await iter_research.run_iter_research(query, **common)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/services/research/deep.py:8:The single-pass ``run_deep_research`` loop that used to live here was removed
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/services/research/deep.py:8:The single-pass ``run_deep_research`` loop that used to live here was removed

@@ -1,0 +1,50 @@
+{
+ "query": "",
+ "symbol": "SAKSOFT",
+ "mode": "FAST",
+ "depth": "quick",
+ "markdown": "# Saksoft Limited (SAKSOFT) \u2014 Research Brief\n\n## Overview\nSaksoft is a mid-cap Indian IT services company (\\u20b91,767 Cr market cap) focused on digital transformation, data engineering, and application management. The stock has corrected ~44% from its 52-week high and now trades at attractive multiples.\n\n## Q4 FY26 Financials (Mar 2026)\n| Metric | Q4 FY26 | YoY Change |\n|--------|---------|-----------|\n| Revenue from ops | \\u20b9256.2 Cr | +4% |\n| Net profit | \\u20b936 Cr | +20% |\n| PAT margin | 14.4% | \u2014 |\n| EBITDA margin | 18.2% | \u2014 |\n\nFull-year FY26 revenue: **\\u20b91,007 Cr** (+14% YoY).\n\n## Valuation\n| Metric | Value |\n|--------|-------|\n| Share price (NSE) | \\u20b9142.28 |\n| P/E (TTM) | **13.6x** |\n| Forward P/E | **4.0x** |\n| P/B | 2.27x |\n| EV/EBITDA | 8.6x |\n| Dividend yield | ~0.7% |\n| Price/ Sales | 1.75x |\n\n## Key Fundamentals\n- **ROE**: 19.1% \u2014 strong return on equity\n- **Debt/Equity**: 0.06 (virtually debt-free)\n- **Current ratio**: 2.17 (healthy liquidity)\n- **Beta**: 0.36 (low volatility)\n- **FCF**: \\u20b985 Cr TTM\n- **Promoter holding**: 72.5%\n\n## Dividend\nTotal FY26: **\\u20b91.00/share** (\\u20b90.45 interim + \\u20b90.55 final, subject to approval).\n\n## The Bull Case\n- Extremely cheap on forward P/E (\\u20b94.0x) \u2014 the market is pricing a sharp earnings decline that may not materialise.\n- Zero net debt, strong FCF generation.\n- 44% off 52-week high offers a significant margin of safety.\n- ROE > 19% at 13.6x trailing P/E is a classic Graham-style value setup.\n\n## Risks / Data Gaps\n- Revenue growth moderated to 4% in Q4 \u2014 management didn't provide explicit FY27 guidance.\n- Revenue breakdown by geography/service line and client concentration data not available in reviewed filings.\n- Recent management change (V.V.R. Babu ceased) \u2014 impact unclear.\n\n## Sources\n[1] NSE filing \u2014 Q4 FY26 results (25-May-2026)\n[2] Earnings call transcript (2-Jun-2026)\n[3] Yahoo Finance fundamentals snapshot\n[4] NSE direct price data (10-Jun-2026)\n",
+ "sources": [],
+ "sourceCount": 0,
+ "webAvailable": true,
+ "structured": {
+  "resolved": {
+   "ok": true,
+   "query": "SAKSOFT.NS Saksoft Limited",
+   "resolved": {
+    "symbol": "SAKSOFT",
+    "name": "Saksoft Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "SAKSOFT.NS"
+   }
+  },
+  "price": {
+   "ok": true,
+   "provider": "nse_direct",
+   "data": {
+    "symbol": "SAKSOFT",
+    "price": 142.28,
+    "change_percent": 1.07,
+    "volume": 193697,
+    "currency": "INR",
+    "market_state": "REGULAR"
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "yfinance",
+   "data": {
+    "symbol": "SAKSOFT.NS",
+    "pe_ratio": 13.56,
+    "market_cap": 17669933056,
+    "forward_pe": 4.05,
+    "roe": 0.19065,
+    "debt_to_equity": 0.05607,
+    "dividend_yield": 0.0069
+   }
+  }
+ },
+ "createdAt": 1781171815410
+}

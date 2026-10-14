@@ -1,0 +1,5 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9
+cmd: ./.venv/bin/python -c 'from services.macro import fred_provider as f; f._coerce_freq("SA"), f._coerce_freq("BW"), f._coerce_freq("Q")'
+=> quarterly | weekly | quarterly
+code: sidecar/services/macro/fred_provider.py:159-167 _FREQ_MAP {'w':'weekly','bw':'weekly','q':'quarterly','sa':'quarterly'}; :207 _FREQ_MAP.get(raw.lower())
+code: sidecar/models/macro_extended.py:30-37 MacroFrequency includes 'other' (unused by the map)

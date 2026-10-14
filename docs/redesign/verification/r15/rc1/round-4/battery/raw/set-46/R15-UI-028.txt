@@ -1,0 +1,5 @@
+CMD: POST http://127.0.0.1:52351/quant/option/greeks {payoff:call,spot:220,strike:220,r:0.05,q:0.005,vol:0.28,val:2026-03-27,exp:2026-09-27}
+EXIT: 0, HTTP 200
+{"greeks":{"delta":0.583,"gamma":0.0089,"vega":60.758,"theta":-21.658,"rho":54.706},"price":19.753}
+
+Code check: src/modules/quant/units.ts toMarketUnits() = {vega: vega/100 unit "per 1 vol pt", theta: theta/365 unit "per day", rho: rho/100 unit "per 1%"}; GreeksDashboard.tsx:245 and :446 both call greekForDisplay(lastResult.greeks, g.key) which routes vega/theta/rho through toMarketUnits. Backend still serves raw QuantLib units (60.758/yr, -21.658/yr) unlabelled at the wire; frontend converts+labels before display. Matches certified fix shape (divides by 100/365, not the false 'divides by 100' claim in the old backend comment).

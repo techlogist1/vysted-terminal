@@ -1,0 +1,4 @@
+# probe at ace7dd76 (candidate worktree), run 05:55:38
+$ grep -rn 'R15-UI-023' src --include=*.test.tsx | head -6
+src/modules/chart/ChartPanel.test.tsx:432:  it("a failed /indicators after a symbol change leaves no overlay of the old symbol (R15-UI-023)", async () => {
+src/modules/chart/ChartPanel.test.tsx:453:  it("does not draw indicators before their own symbol's candles land (R15-UI-023)", async () => {

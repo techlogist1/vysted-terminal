@@ -1,0 +1,84 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_15a5854a56134be18828bf8aaf7ab9b6", "name": "corporate_announcements", "input": {"symbol": "AMAL LTD"}}
+{"kind": "tool_result", "tool_call_id": "call_15a5854a56134be18828bf8aaf7ab9b6", "name": "corporate_announcements", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " corporate"}
+{"kind": "delta", "text": " announcement"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Am"}
+{"kind": "delta", "text": "al"}
+{"kind": "delta", "text": " Ltd"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " our"}
+{"kind": "delta", "text": " feed"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "As"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " part"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " N"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": "/B"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": " exchange"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " cannot"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " Indian"}
+{"kind": "delta", "text": " exchange"}
+{"kind": "delta", "text": " disclosures"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Regarding"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " question"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " insider"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " since"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " un"}
+{"kind": "delta", "text": "verified"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " us"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " no"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " our"}
+{"kind": "delta", "text": " tools"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " recommend"}
+{"kind": "delta", "text": " treating"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " claim"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " un"}
+{"kind": "delta", "text": "verified"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 1832, "output_tokens": 77, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

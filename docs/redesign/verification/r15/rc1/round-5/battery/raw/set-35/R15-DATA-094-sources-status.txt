@@ -1,0 +1,2 @@
+{"newsapi":"unauthorized"}0
+0 occurrences of the fake key in sidecar.log confirms no key leakage

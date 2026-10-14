@@ -1,0 +1,7 @@
+CMD: curl -sS -m 20 -H 'X-Vysted-Region: IN' 'http://127.0.0.1:52362/history/%5ENSEI'
+bars: 247 reason: None
+CMD: curl -sS -m 20 -H 'X-Vysted-Region: IN' 'http://127.0.0.1:52362/history/%5EBSESN'
+bars: 247 reason: None
+CMD: curl -sS -m 20 -H 'X-Vysted-Region: IN' 'http://127.0.0.1:52362/history/%5ENSEBANK'
+bars: 247 reason: None
+EXIT: 0

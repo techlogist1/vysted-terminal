@@ -1,0 +1,6 @@
+cmd: python3 scripts/r15/vy.py invoke copilot 'What is the capital of France?' --provider ollama --model llama3.1:8b --mode agent --autonomy auto --port 52341 --timeout 60 (under ollama lock)
+exit: 0
+output:
+done frame: {"kind":"done","usage":{"input_tokens":3108,"output_tokens":27,...},"finish_reason":"stop","context_window":16384,"spend_usd":0.0}
+spend_usd field present and numeric (0.0 on ollama, matching batch-10's certified figure exactly). Frontend consumer confirmed unchanged: src/modules/chat/streaming.ts:495 "spendUsd: typeof payload.spend_usd === 'number' ? payload.spend_usd : undefined".
+verdict: holds

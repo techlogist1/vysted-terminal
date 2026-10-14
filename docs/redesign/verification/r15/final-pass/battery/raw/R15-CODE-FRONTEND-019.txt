@@ -1,0 +1,16 @@
+# R15-CODE-FRONTEND-019 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:16:39+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+W=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-2/workspaces
+echo "my scratch data dir workspaces: $W"; chmod 555 "$W"
+curl -s -m10 -w ' [%{http_code}]\n' -X POST "$H/workspace" -H 'content-type: application/json' -d '{"name":"fb2-019","workspace":{"version":1}}'
+chmod 755 "$W"
+curl -s -m10 -w ' [after restore %{http_code}]\n' -X POST "$H/workspace" -H 'content-type: application/json' -d '{"name":"fb2-019","workspace":{"version":1}}'
+cd "$C"; grep -n '"Autosave failed"' src/lib/workspace.ts; grep -n "Autosave failed" src/lib/workspace.test.ts | head -3
+--- output ---
+my scratch data dir workspaces: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-2/workspaces
+{"detail":"Could not write the workspace: Permission denied"} [507]
+{"status":"saved","name":"fb2-019"} [after restore 200]
+1159:      throw await sidecarFailure("Autosave failed", response);
+1444:      "Autosave failed (HTTP 507: Could not write the workspace: Disk full).",
+
+EXIT=0 (0.0s)

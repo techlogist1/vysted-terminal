@@ -1,0 +1,9 @@
+$ grep pinned test + code (basisLine/skipBreakdown/freshnessLine calls)
+148:  const freshnessLine = useMemo((): string | null => {
+162:  const basisLine = useMemo((): string | null => {
+187:  const skipBreakdown = useMemo((): string | null => {
+489:          {basisLine && (
+491:              {basisLine}
+495:          {skipBreakdown && (
+497:              {skipBreakdown}
+500:          {freshnessLine && <div className="text-muted-foreground text-micro">{freshnessLine}</div>}

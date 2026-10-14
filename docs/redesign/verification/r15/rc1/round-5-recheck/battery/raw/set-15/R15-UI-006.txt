@@ -1,0 +1,12 @@
+=== R15-UI-006 probe ===
+--- POST /screener/run india-all pe(0,40) sort=pe_ratio asc limit=200 ---
+{
+    "universe": "india-all",
+    "evaluated_count": 4281,
+    "skipped_count": 1610,
+    "skip_details": [
+result_count/matched_count/rows:
+result_count 200 matched_count 3046
+n rows 200 first pe 0.0005003513 last pe 5.2574253
+HTTP:200 time:0.373538
+limit=1000 -> result_count 1000 matched_count 3046

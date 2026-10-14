@@ -1,0 +1,20 @@
+# rc1-battery-22 raw R15-CODE-DATA-014 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ sed -n 70,80p src/modules/sec/SecFilingsPanel.tsx; grep -n 'void filingsByIdentifier' src/modules/sec/SecFilingsPanel.tsx; echo '--- store select helpers'; grep -n 'getState()' src/store/sec.ts | head; grep -n "R15-CODE-DATA-014" src/modules/sec/SecFilingsPanel.test.tsx | cut -c1-200
+  // (and re-arms on reconnect) so a panel mounted before the sidecar was ready
+  // self-heals. `loadFilings` swallows its error into store state — re-throw the
+  // kept original error so the hook retries only a not-ready engine.
+  const loadDefault = useCallback(async () => {
+    if (userInteractedRef.current) {
+      return;
+    }
+    setActiveIdentifier("AAPL");
+    await loadFilings("AAPL", undefined);
+    if (useSecStore.getState().filingsStatus === "error") {
+      throw useSecStore.getState().filingsCause;
+--- store select helpers
+318:// These read via getState() and do NOT subscribe — call sites must not use
+331:  return useSecStore.getState().filingsByIdentifier[key] ?? EMPTY_FILINGS;
+337:  return useSecStore.getState().filingDetailByAccession[accession] ?? null;
+347:  return useSecStore.getState().insiderByIdentifier[key] ?? EMPTY_INSIDER;
+82:  it("R15-CODE-DATA-014: a filingsByIdentifier update after mount re-renders the row count", async () => {
+EXIT=0

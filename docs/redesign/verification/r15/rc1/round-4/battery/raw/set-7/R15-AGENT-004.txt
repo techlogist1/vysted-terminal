@@ -1,0 +1,5 @@
+CMD: sidecar/.venv/bin/python3 battery13_agent004.py (in-process, real anthropic SDK + httpx.MockTransport replaying SSE, candidate 1006c6da)
+EXIT: 0
+kinds: ['tool_use', 'done']
+tool_use name='get_quote' input={'symbol': 'RELIANCE.NS'}
+PASS AGENT-004: tool_use carries the accumulated streamed input, not {}

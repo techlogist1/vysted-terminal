@@ -1,0 +1,11 @@
+# rc1-gate8 log (gate round 3)
+- 2026-09-26 21:12:08 start; candidate HEAD 01d6920a verified
+- 2026-09-26 21:12:28 own sidecar :52310 from candidate source, data dir scratchpad/rc1-round-3-data-rc1-gate8 (copy of seed); sleep pid 66410, worker 66411; MCP ports 52153/52154 (shared, read-only)
+- 2026-09-26 21:14:07 (a) 111 routes, 2 hits; (b) catalog/schemas/known=56, registered=33, MCP in-proc=40 == live :52310 40; (c) pytest 8 passed
+- 2026-09-26 21:16:36 (d) grep done: src 111/sidecar 255/src-tauri 3/plugins 0/docs 70985 lines, 0 product-surface; Settings has no trading setting; terms quoted. Starting (e)
+- 2026-09-26 21:21:28 (e) phase A (scratch vitest driving the real PortfolioPanel + stores against :52310) PASSED: add x3 / P&L matches curl quotes / CSV 11 cols x 3 rows / update / delete / notes CRUD / watchlist CRUD all read back from __autosave__. Next: agent get_portfolio + gated add on llama3.1:8b
+- 2026-09-26 21:24:49 agent get_portfolio (llama3.1:8b, 63s) ok, payload == ledger; AAPL shown in ₹ (open R15-AGENT-091). Gated add under ask: staged, ledger unchanged, accept -> applied, readback has MSFT 4@480. Review card says '@ ₹480' for a $480 US lot (region sign) -> new_defect low. Order-attempt probe running.
+- 2026-09-26 21:27:58 order-attempt probe (--autonomy auto): model refused the trade in text, called portfolio_add_position {AAPL,10,cost 0,note 'market order'}; frontend staged it even under AUTO (data-write not auto-applied); rejected; ledger unchanged. Concurrence note under R15-LEAD-035.
+- 2026-09-26 21:27:58 fail-closed: propose_order accept -> failed (unknown action); no-price add -> failed; reject -> rejected; ledger unchanged.
+- 2026-09-26 21:27:58 wrote GATE8.md, gate8.json, findings/rc1-gate8.json (1 new_defect low). Stopped own sidecar (kill sleep pid 66410). Verdict PASS.
+- Note: one unlocked metadata GET :11434/api/tags (no inference) before taking the lock; all 3 model calls ran under the lock with trap release.

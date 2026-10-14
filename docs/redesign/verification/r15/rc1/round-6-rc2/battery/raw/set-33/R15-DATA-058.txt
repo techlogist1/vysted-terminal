@@ -1,0 +1,12 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: curl -s 'localhost:52344/resolve?q=Sify+Technologies+Ltd+%28ADR%29' | python3 -c 'import sys,json;d=json.load(sys.stdin);print(d["needs_disambiguation"]);[print(c["symbol"],c["exchange"],c["confidence"]) for c in d["candidates"]]'; curl -s 'localhost:52344/resolve?q=SIFY' | python3 -c 'import sys,json;d=json.load(sys.stdin)["resolved"];print(d["symbol"],d["confidence"])'
+True
+ASMTEC BSE 0.8
+ODYSSEY BSE 0.7755
+IKOMA BSE 0.766
+EMIAC BSE 0.766
+RELICTEC BSE 0.766
+SIFY US 0.913
+SIFY 1.0
+
+exit=0

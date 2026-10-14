@@ -1,0 +1,503 @@
+{
+  "slot": "P6",
+  "symbol": "ICON",
+  "diffed_at": "2026-09-23",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P6_ICON.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P6_ICON.json",
+  "subtle_tier_covered": true,
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Icon Facilitators Ltd (resolve endpoint) / \"Icon Facilitators Limited\" (fundamentals endpoint)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Icon Facilitators Ltd",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "definitional difference",
+      "note": "App resolver matches pack exactly; app's own /fundamentals endpoint independently renders the spelled-out 'Limited' instead of 'Ltd' -- an in-app cross-endpoint naming inconsistency, not an outside mismatch (Ltd vs Limited is the same legal entity, no outside filing was reachable to arbitrate the statutory form)."
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match"
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE0Y0E01012",
+      "app_as_of": "2026-09-19",
+      "outside_value": "INE0Y0E01012",
+      "outside_as_of": "2026-06-09",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack's own isin field has no independent source_url (value came only from the app's bundled bse_instruments.json master) -- pack collector explicitly flags this as circular. Cannot score."
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "544426",
+      "app_as_of": "2026-09-19",
+      "outside_value": "544426",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match"
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "match",
+      "note": "Both sides confirm no NSE listing. App's /disclosures/results?symbol=ICON call independently corroborates this by 502ing with 'nse_direct: ICON is not a known NSE instrument' (collected.json:2160)."
+    },
+    {
+      "field": "identity.board",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "SME (BSE SME)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "app blank",
+      "note": "Pack sourced 'SME' (screener + app's own bundled MT group code) with a noted conflict (ipowatch.in labels it 'BSE Mainboard'). None of the collected sidecar responses (resolve/quote/fundamentals) surface a board/segment classification field at all."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Industrials / Specialty Business Services (yfinance GICS-style)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Facility management services",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "status": "definitional difference",
+      "note": "Different classification schemes (yfinance's generic GICS-like sector/industry vs Indian aggregators' free-text 'Facility Management' label) -- not comparable as a same-definition value."
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Specialty Business Services",
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack found no standard industry code on any reachable source (world_gaps.no_standard_industry_code) -- no outside value to diff against."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "2025-07-01 (tentative/scheduled)",
+      "outside_as_of": "2025-07-01",
+      "outside_source_url": "https://ipowatch.in/icon-facilitators-ipo/",
+      "status": "app blank",
+      "note": "No listing_date field observed in any collected call."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 64.15,
+      "app_as_of": "2026-09-18",
+      "outside_value": 64.2,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match",
+      "note": "App's 64.15 matches Groww/INDmoney's LTP exactly; screener's 64.2 is the same value rounded to 1dp."
+    },
+    {
+      "field": "price.previous_close (derived from change)",
+      "app_value": 65.0,
+      "app_as_of": "2026-09-18",
+      "outside_value": 65.0,
+      "outside_as_of": "2026-09-17",
+      "outside_source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "status": "match"
+    },
+    {
+      "field": "price.change_pct",
+      "app_value": -1.307692307692299,
+      "app_as_of": "2026-09-18",
+      "outside_value": -1.31,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "status": "match"
+    },
+    {
+      "field": "price.day_range (open/high/low)",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": {
+        "open": 65.0,
+        "high": 65.49,
+        "low": 63.5
+      },
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "status": "app blank",
+      "note": "/quotes/ICON does not return open/high/low fields at all."
+    },
+    {
+      "field": "price.volume",
+      "app_value": null,
+      "app_as_of": "2026-09-18",
+      "outside_value": 9600,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "status": "app blank",
+      "note": "Outside value triple-corroborated (screener/Groww/INDmoney all print 9,600 shares). App's /quotes/ICON returns volume: null despite the quote otherwise being fully populated for this same date. FILED as DAT-P6-6."
+    },
+    {
+      "field": "price.circuit_limits",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": {
+        "upper": 76.98,
+        "lower": 51.32
+      },
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "status": "app blank",
+      "note": "Not returned by /quotes/ICON. (Pack itself flags the outside source's own circuit math as computed off LTP not previous close -- not a clean value to hold the app to even if it were present.)"
+    },
+    {
+      "field": "price.beta_ltm",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.68,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price",
+      "status": "app blank",
+      "note": "fundamentals.beta is null with field_meta status 'unavailable' / 'provider did not publish this field' (collected.json:391-397). Single outside source only, but it does carry a source_url. FILED as DAT-P6-9."
+    },
+    {
+      "field": "market_cap",
+      "app_value": 50.4193344,
+      "app_as_of": "2026-09-19",
+      "outside_value": 50.42,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.indmoney.com/stocks/icon-facilitators-ltd-share-price",
+      "status": "match",
+      "note": "App: 504,193,344 / 1e7 = INR 50.4193 crore, matches INDmoney's 50.42 (and screener's 50.4, Groww's ~51) to within outside-source disagreement band."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 10.638474,
+      "app_as_of": "2026-09-19",
+      "outside_value": 11.4,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "mismatch",
+      "note": "App 10.64x vs screener 11.4x / Groww 11.55x (both close to each other, disagreeing with app by ~7-8%). Same definition (TTM P/E on the same FY26 EPS), same as-of period -- a genuine mismatch, and it is the direct arithmetic consequence of the eps_ttm mismatch below (64.15 / 6.03 = 10.64 vs the correct 64.15 / 5.62-5.63 = 11.4-11.55). FILED as DAT-P6-4."
+    },
+    {
+      "field": "pb",
+      "app_value": 1.4076008,
+      "app_as_of": "2026-09-19",
+      "outside_value": 1.43,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://groww.in/stocks/icon-facilitators-ltd",
+      "status": "match",
+      "note": "App's 1.4076 matches screener's own cross-check derivation (book value 45.6 / price 64.2 = 1.41) almost exactly; Groww's 1.43 is itself the outlier among the outside sources."
+    },
+    {
+      "field": "roe",
+      "app_value": 0.17668,
+      "app_as_of": "2026-09-19",
+      "outside_value": 17.9,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "definitional difference",
+      "note": "App 17.67% vs screener 17.9% -- a 0.23pp gap plausibly explained by average-equity vs point-in-time-equity denominator convention (a known cross-vendor ROE computation difference), not a clear same-definition error. Not filed."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 23.3,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "app blank",
+      "note": "The /fundamentals/ICON payload has no roce field anywhere in its schema (only roe/roa/margins are present -- confirmed by reading the full body, collected.json:239-538). FILED as DAT-P6-5."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": 0.01604,
+      "app_as_of": "2026-03-31",
+      "outside_value": 0.016,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match"
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": 64.2427008,
+      "app_as_of": "2026-09-19",
+      "outside_value": 64.22,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match",
+      "note": "App's 64.2427 crore matches INDmoney's 64.24 almost exactly and screener's 64.22 within 0.03%. Also cross-checked: correctly built from the two FY26 half-years (29.79+34.45=64.24), not a 4-period double-count -- the half-yearly periodicity trap does NOT appear to have bitten this TTM figure."
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": 4.3538,
+      "app_as_of": "2026-09-19",
+      "outside_value": 4.42,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match",
+      "note": "App's 4.3538 crore matches INDmoney's 4.35 almost exactly and screener's own internal half-year sum (1.47+2.89=4.36) closely; it diverges from screener's headline annual line (4.42) but that line already disagrees with screener's own half-year sum, so app's figure falls within the outside-source disagreement band."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": 0.151,
+      "app_as_of": "2026-09-19",
+      "outside_value": 10.61,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "definitional difference",
+      "note": "App's field_meta labels this growth_basis: 'mrq_yoy' (most-recent-half vs same-half-prior-year: 34.45/29.9-1=15.2%, matching app's 15.1% almost exactly). Pack's 10.61% is full FY26-vs-FY25 annual sales growth. Different, both legitimate, bases -- not a same-definition mismatch."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 6.03,
+      "app_as_of": "2026-09-19",
+      "outside_value": 5.62,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "mismatch",
+      "note": "App 6.03 vs screener 5.62 / Groww 5.63 (the two independent outside sources agree closely with each other, disagreeing with the app by ~7%). Same definition (FY26 TTM EPS), same as-of period. Also internally inconsistent with the app's own numbers on the same payload: net_income_ttm 43,538,000 / shares_outstanding 7,859,600 = 5.54, which matches neither the app's own displayed eps (6.03) nor the outside value. FILED as DAT-P6-2 (root cause of the pe_ttm mismatch above)."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 45.574,
+      "app_as_of": "2026-09-19",
+      "outside_value": 45.6,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match",
+      "note": "Matches Groww's own cross-check derivation (45.57) almost exactly."
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 10,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "app blank",
+      "note": "No face_value field observed in any collected call. Low practical impact (already correctly reflected in the per-share figures that do match) -- noted, not filed."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "match",
+      "note": "Both null. Pack's null is a confirmed does_not_exist (0.00% payout every year FY22-26), app's null carries field_meta reason 'provider did not publish this field' -- different REASON codes but the same displayed value, so not filed as a value mismatch. See paid_trailing_12m_per_share and yield below where the app's null diverges from a confirmed non-null outside value."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "app blank",
+      "note": "Outside truth is a confirmed true zero (screener: Dividend Payout % 0.00% every year FY22-FY26, i.e. this is a real, sourced value, not an unknown). App's dividend_per_share_ttm is null with field_meta 'unavailable / provider did not publish this field' -- the app loses the confirmed-zero signal and instead shows an unknown. FILED as DAT-P6-7."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "app blank",
+      "note": "Outside value 0.00% triple-corroborated (screener/Groww/INDmoney). App's dividend_yield is null ('provider did not publish this field'). Same confirmed-zero-shown-as-unknown defect as paid_trailing_12m_per_share. FILED as DAT-P6-8."
+    },
+    {
+      "field": "week52.high",
+      "app_value": 85.0,
+      "app_as_of": "2026-09-19",
+      "outside_value": 85.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match"
+    },
+    {
+      "field": "week52.low",
+      "app_value": 38.05,
+      "app_as_of": "2026-09-19",
+      "outside_value": 38.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match",
+      "note": "App's 38.05 matches the 2-source majority (Groww + INDmoney both print 38.05) rather than screener's outlier 38.0."
+    },
+    {
+      "field": "shareholding.quarter (as-of)",
+      "app_value": "2026-03-31 (latest), 2025-09-30 (prior)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Mar 2026 (2026-03-31, latest), Sep 2025 (2025-09-30, prior)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match",
+      "note": "App correctly surfaces both half-yearly disclosure periods with the same as-of dates as the pack. Both sides also agree this is a half-year cadence, not quarterly."
+    },
+    {
+      "field": "shareholding.promoter_pct (Mar 2026)",
+      "app_value": 70.75,
+      "app_as_of": "2026-03-31",
+      "outside_value": 70.75,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.promoter_pct (Sep 2025, prior)",
+      "app_value": 70.09,
+      "app_as_of": "2025-09-30",
+      "outside_value": 70.09,
+      "outside_as_of": "2025-09-30",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": 0.0,
+      "app_as_of": "2026-03-31",
+      "outside_value": null,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": null,
+      "status": "match",
+      "note": "Pack records this as does_not_exist (no source_url; screener/Groww/INDmoney render no FII row at all) and warns the differ not to score a 0.0 against it. INDEPENDENTLY VERIFIED for this task by fetching the app's own cited primary source directly: https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/544426_134202615531_SP.html (fetched 2026-09-23) -- the BSE SHP-I XBRL filing DOES carry an 'Institutions (Foreign)' category (FPI Cat I/II, FDI, Foreign VC etc.) and every one of those line items is tagged 0. So FII genuinely = 0.00% at the primary source; the pack's 'no FII line exists' conclusion is an aggregator-rendering artifact (screener/Groww/INDmoney apparently suppress zero-value rows), not a fact about the underlying filing. The app's fii_percent: 0.0 (sourced directly from the same BSE XBRL, collected.json:2042) is therefore CORRECT, not a mismatch. Not filed -- recorded here so the register doesn't misread this as an app defect."
+    },
+    {
+      "field": "shareholding.dii_pct (both periods)",
+      "app_value": {
+        "2026-03-31": 0.27,
+        "2025-09-30": 0.27
+      },
+      "app_as_of": "2026-09-19",
+      "outside_value": {
+        "2026-03-31": 0.27,
+        "2025-09-30": 0.27
+      },
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": 28.98,
+      "app_as_of": "2026-03-31",
+      "outside_value": 28.97,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match",
+      "note": "App's public_non_institutional_percent (28.98) matches Groww/INDmoney's 28.98 exactly and screener's 28.97 to within rounding. (The app's separate public_percent field, 29.25%, is a differently-defined 'incl. institutions' figure and is not the comparable one -- not a mismatch, just two app fields with two definitions.)"
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack itself has no source (world_gaps.pledge_not_disclosed, explicitly 'Unknown, NOT zero') and the app returns no pledge field either -- nothing to score."
+    },
+    {
+      "field": "shareholding.no_of_shareholders",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 808,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "app blank",
+      "note": "Not part of the 24 mandatory fields; noted for completeness, not filed."
+    },
+    {
+      "field": "corporate_actions_2026.postal_ballot",
+      "app_value": "2026-09-07 (Scrutinizer's Report + Outcome, both same GUIDs as pack)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "resolution_passed_date 2026-09-03, outcome_filed_date 2026-09-07",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match",
+      "note": "App's announcements list (collected.json:2088-2111) carries both postal-ballot filings dated 2026-09-07 with the identical PDF GUIDs (8f71db28... and d4f0f448...) as the pack's last_3_announcements."
+    },
+    {
+      "field": "corporate_actions_2026.agm_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "2026-09-28",
+      "outside_as_of": null,
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "app blank",
+      "note": "App has no distinct 'next AGM date' field; only the AGM-notice filing date (2026-09-02) is inferable from the announcements headline. Minor completeness gap, not filed."
+    },
+    {
+      "field": "last_3_announcements[0].headline",
+      "app_value": "Shareholder Meeting / Postal Ballot-Scrutinizer\\\"s Report (literal broken quote, collected.json:2091)",
+      "app_as_of": "2026-09-07",
+      "outside_value": "Shareholder Meeting / Postal Ballot-Scrutinizer's Report",
+      "outside_as_of": "2026-09-07",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "mismatch",
+      "note": "Same filing (identical PDF GUID, identical date), but the app's headline text contains a literal double-quote character where an apostrophe belongs -- a text-corruption/encoding defect, not a paraphrase. FILED as DAT-P6-10."
+    },
+    {
+      "field": "last_3_announcements[1].headline+date",
+      "app_value": "Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot, 2026-09-07",
+      "app_as_of": "2026-09-07",
+      "outside_value": "Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot, 2026-09-07",
+      "outside_as_of": "2026-09-07",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "match"
+    },
+    {
+      "field": "last_3_announcements[2].url_guid",
+      "app_value": "7a8713d4-be8e-4086-b5e7-21482ffd7900",
+      "app_as_of": "2026-09-03",
+      "outside_value": "7c8713d4-be8e-4086-b5e7-21482ffd7900",
+      "outside_as_of": "2026-09-03",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "no source truth",
+      "note": "Headline and date match exactly ('Announcement under Regulation 30 (LODR)-Newspaper Publication', 2026-09-03) but the PDF GUID differs by one hex character (7a87 vs 7c87). The pack's own collector explicitly disclaims this specific detail ('URL as printed by screener. PDF NOT opened - bseindia.com returned HTTP 403'), i.e. the pack never independently verified this GUID -- it is screener's own rendering, unconfirmed. The app's GUID was fetched directly from BSE ('source': 'BSE' in the announcements call). Given the pack's own caveat, this reads as a likely aggregator-side transcription artifact rather than an app defect; not filed."
+    },
+    {
+      "field": "latest_results",
+      "app_value": "ENDPOINT FAILURE: /disclosures/results?symbol=ICON -> HTTP 502 'nse_direct: ICON is not a known NSE instrument' (collected.json:2155-2166)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "H2 FY26 (six months ended 2026-03-31): sales 34.45cr, net profit 2.89cr, eps 3.68, opm 12.02% (plus 3 prior half-years back to Sep 2024)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/544426/",
+      "status": "app blank",
+      "note": "The results-calendar route appears to be NSE-only under the hood and fails outright (with a misleading error attributing the failure to NSE, not to 'this scrip has no NSE listing / try BSE') for a legitimately-listed, BSE-only, actively-reporting SME stock whose half-yearly results genuinely exist and are readable from an aggregator. FILED as DAT-P6-3."
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "standalone (assumed, NOT verified)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack's own value has no source_url (it is the collector's own inference from an empty /consolidated/ screener page, explicitly flagged unverified) and no comparable app field was collected."
+    },
+    {
+      "field": "fundamentals.income/balance/cashflow statements (bonus, non-pack field)",
+      "app_value": "See notes -- share counts, EPS series and fiscal year-ends inconsistent with Icon Facilitators Ltd",
+      "app_as_of": "2026-09-19",
+      "outside_value": "N/A (not a pack field; cross-checked against pack's own income-history figures instead)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": null,
+      "status": "mismatch",
+      "note": "The sidecar's /fundamentals/ICON/income, /balance and /cashflow calls (provider 'openbb-mcp', collected.json:547-2007) return statements for what appears to be a DIFFERENT company than Icon Facilitators Ltd: (a) periods end 2025-12-31 / 2024-12-31 / etc. (calendar year-end), while Icon Facilitators is an India BSE filer with a March fiscal year-end and half-yearly (not annual) disclosure (pack: 'half_yearly_not_quarterly' trap); (b) weighted_average_basic_shares_outstanding runs 6,152 / 7,250 / 3,903 / 397,776 across 2022-2025 (collected.json:786-793), which does not match Icon Facilitators' actual share history (10,000 pre-IPO -> 78,59,600 post-IPO per pack's own eps_series_not_restated_1000x trap); (c) net_income for 2025 and 2024 is NEGATIVE (-4,197,000 and -210,000, collected.json:716-717,825-826), while Icon Facilitators was profitable in every year FY22-FY26 per the pack (net profit 0.94/1.92/1.76/4.47/4.42 INR crore). This is consistent with the pack's own traps.three_way_in_app_ticker_collision warning that 'ICON' also resolves inside the app's own us_instruments.json master to a different company ('Icon Energy Corp'). By contrast, the /fundamentals/ICON top-level payload (yfinance-sourced) IS correctly scoped to the Indian entity (market cap, shares outstanding, revenue_ttm, book_value all reconcile to Icon Facilitators' real numbers) -- so this looks like a provider-routing bug specific to the openbb-mcp-backed statement endpoints, not the resolver itself. FILED as DAT-P6-1 (critical)."
+    }
+  ]
+}

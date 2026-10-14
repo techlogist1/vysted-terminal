@@ -1,0 +1,11 @@
+# R15-AGENT-009 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:49:05+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+export S=$B/inproc-data; bash $B/sc/b8_009.sh 2>&1 | grep -v Warning | tail -5
+--- output ---
+  return np.datetime64(dt)
+provider nse_direct failed for quote, falling through: nse_direct: no EOD data for 'BLUEWATER'
+  return np.datetime64(dt)
+ok True tool payload bytes 25044 has skip_details False skip_summary {'missing_field:roe': 1212, 'timeout': 12, 'no_data': 220, 'not_found': 93} n skip_examples 5 rows 50
+HTTP-shape ledger rows (unchanged for panel): 1537 bytes 102452
+
+EXIT=0 (234.4s)

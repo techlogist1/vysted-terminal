@@ -1,0 +1,1 @@
+R15-DATA-039: pytest tests/test_sec_filings_provider.py -k 'foreign_private_issuer or amendments_and_schedules' -> both PASSED (test_foreign_private_issuer_forms_are_listed, test_amendments_and_schedules_are_listed). See pytest-mcp-sec.txt.

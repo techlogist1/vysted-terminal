@@ -1,0 +1,11 @@
+# R15-UI-006 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:25:40+0530
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: IN' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-533854803832609289.json 'http://127.0.0.1:52861/screener/run' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');d=json.loads(t[:i]);rows=d.get('rows') or d.get('results') or [];print({k:v for k,v in d.items() if not isinstance(v,list)});print('rows',len(rows));print([ (r.get('symbol'),r.get('pe_ratio'),r.get('market_cap')) for r in rows[:8]]);print('skip reasons',__import__('collections').Counter(s.get('reason') for s in d.get('skipped',[]) ));print(t[i:])"
+[exit 0] [49.74s]
+{'universe': 'india-all', 'evaluated_count': 4235, 'skipped_count': 1656, 'result_count': 200, 'matched_count': 3059, 'duration_ms': 49706.02937496733, 'partial': True, 'coverage': 'screened 4,235 of 5,891 — 1,656 unavailable · 130 rows on stale/snapshot basis (oldest 2026-10-03)', 'freshness': {'quotes_as_of': 1791027941.540939, 'valuation_as_of': 1791027941.5409222, 'deep_as_of': 1783624378.982935}, 'basis_counts': {'live': 70, 'mixed': 130}, 'throttled': True}
+rows 200
+[('PRITI.NS', 0.00048731675, 439324544.0), ('ZSOUTGAS.BO', 0.028834065, 562500.0), ('SATCH.BO', 0.03994101, 473954304.0), ('VIKSHEN.BO', 0.049805257, 2557500.0), ('SUPREMEINF.NS', 0.076360606, 6435182080.0), ('PURITY.BO', 0.08031088, 2994786.0), ('SYLPH.BO', 0.08677685, 258946592.0), ('GTL.NS', 0.12048832, 1071191104.0)]
+skip reasons Counter()
+
+[http 200 49.721621s]
+

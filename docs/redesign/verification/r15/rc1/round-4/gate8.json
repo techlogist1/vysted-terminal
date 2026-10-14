@@ -1,0 +1,105 @@
+{
+ "pass": true,
+ "candidate": "1006c6da694ede5776c3dabbd27b305aeb56b5ad",
+ "sidecar_port": 52310,
+ "routes": {
+  "openapi_method_paths": 111,
+  "app_routes_all": 117,
+  "hits": {
+   "GET /portfolio/positions": "tracked-portfolio legacy ledger, GET-only read-once import (R15-CODE-PLATFORM-021)",
+   "GET /disclosures/shareholding": "false positive: exchange shareholding-pattern disclosure (matched 'holding')"
+  },
+  "trading_routes": 0,
+  "evidence": [
+   "gate8/openapi-paths.txt",
+   "gate8/openapi-hits.txt",
+   "gate8/app-routes-all.txt"
+  ]
+ },
+ "tools": {
+  "CAPABILITY_CATALOG": 56,
+  "TOOL_SCHEMAS": 56,
+  "KNOWN_TOOL_IDS": 56,
+  "registered_tools": 33,
+  "default_grant": 55,
+  "hits": {
+   "portfolio_add_position/update/delete": "tracked-portfolio host actions (data-write, human-gated, never auto-applied)",
+   "shareholding_pattern": "false positive: shareholding disclosure read tool"
+  },
+  "trading_tools": 0,
+  "forbidden_substrings": [
+   "place_order",
+   "submit_order",
+   "execute_order",
+   "auto_approve"
+  ]
+ },
+ "mcp": {
+  "in_process_list_tools": 40,
+  "live_52310_list_tools": 40,
+  "identical": true,
+  "trading_tools": 0,
+  "portfolio_tools_on_mcp": 0
+ },
+ "pytest_no_trading_surface": {
+  "passed": 8,
+  "failed": 0,
+  "file": "gate8/pytest-no-trading-surface.txt"
+ },
+ "grep": {
+  "src": {
+   "total": 111,
+   "product": 0,
+   "historical": 27,
+   "false_positive": 84
+  },
+  "sidecar": {
+   "total": 255,
+   "product": 0,
+   "historical": 74,
+   "false_positive": 181
+  },
+  "src-tauri": {
+   "total": 3,
+   "product": 0,
+   "historical": 2,
+   "false_positive": 1
+  },
+  "plugins": {
+   "total": 0,
+   "product": 0,
+   "historical": 0,
+   "false_positive": 0
+  },
+  "docs": {
+   "total": 193123,
+   "product": 0,
+   "historical": 193121,
+   "false_positive": 2
+  }
+ },
+ "portfolio": {
+  "steps": {
+   "add_3_holdings_via_panel_form (RELIANCE.NS NSE, AAPL US, TCS.NS with note)": "pass",
+   "readback_store": "pass",
+   "pnl_recomputed_from_fresh_quotes (3 rows then 2 rows, exact)": "pass",
+   "update_via_row_edit (AAPL 5@300 -> 8@310)": "pass",
+   "delete_via_row_control (RELIANCE.NS, two-step)": "pass",
+   "csv_export_via_panel_button: 11 columns, rows == holdings, note quoted": "pass",
+   "notes_crud (general + symbol create/update/clear)": "pass",
+   "watchlist_crud (add INFY/IN, MSFT/US, remove MSFT)": "pass",
+   "persist_autosave_path_and_launch_restore_roundtrip": "pass",
+   "agent_get_portfolio_matches_ledger (llama3.1:8b)": "pass",
+   "agent_gated_add_under_ask: proposed, ledger+blob unchanged until accept": "pass",
+   "accept_as_frontend (proposed-changes.accept -> applyIntentAsync -> ack 200) then readback": "pass",
+   "order_attempt_halts (agent declines; no trading tool exists; order names fail closed on host)": "pass",
+   "accept_without_cost_basis_fails_closed (re-pends 'no price given')": "pass",
+   "legacy_ledger_unwritten (GET /portfolio/positions == [] throughout)": "pass",
+   "no audit_log.db / order / audit / broker table in the data dir": "pass"
+  }
+ },
+ "failures": [],
+ "findings": [
+  "rc1-gate8:1 (low, local-model known-limitation instance, not a gate8 failure)"
+ ]
+}

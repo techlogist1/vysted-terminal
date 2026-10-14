@@ -1,0 +1,57 @@
+CMD: in-process _normalise_tool_args on arrange_layout with a bare-names panels list (union JSON-schema type)
+panels schema type: array
+NO_CRASH, result input: {'__vysted_invalid_args__': 'invalid arguments for arrange_layout: missing pattern — ask the user for it; do not guess'}
+NO_CRASH (objects), result input: {'__vysted_invalid_args__': 'invalid arguments for arrange_layout: missing pattern — ask the user for it; do not guess'}
+EXIT: 0
+{
+  "type": "object",
+  "properties": {
+    "pattern": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "default",
+        "focus",
+        "single-focus",
+        "research-cockpit",
+        "compare",
+        "macro-scan",
+        "custom"
+      ],
+      "default": "default"
+    },
+    "panel": {
+      "type": "string",
+      "description": "Required when pattern='focus'."
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Primary symbol for single-focus / research-cockpit."
+    },
+    "symbols": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Two tickers for pattern='compare'."
+    },
+    "panels": {
+      "type": "array",
+      "description": "For pattern='custom': the panels to place, in order. Each item is a panel name (chart|watchlist|news|portfolio|equity-overview|macro|screener|brief) OR {panel, direction:left|right|above|below, reference}. The first anchors; bare items tile coherently.",
+      "items": {
+        "type": [
+          "string",
+          "object"
+        ]
+      }
+    }
+  },
+  "required": [
+    "pattern"
+  ]
+}
+---valid pattern=custom call, bare-name panels list---
+NO_CRASH, result input: {'pattern': 'custom', 'panels': ['chart', 'watchlist']}
+NO_CRASH (objects), result input: {'pattern': 'custom', 'panels': [{'panel': 'chart'}, {'panel': 'watchlist', 'direction': 'right'}]}
+NO_CRASH (stringified array), result input: {'pattern': 'custom', 'panels': ['chart', 'watchlist']}
+EXIT: 0

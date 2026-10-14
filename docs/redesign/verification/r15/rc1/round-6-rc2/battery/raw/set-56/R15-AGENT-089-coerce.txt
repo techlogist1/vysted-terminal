@@ -1,0 +1,8 @@
+# rc1-battery-22 raw R15-AGENT-089 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ cd sidecar && .venv/bin/python3 -c "
+from services import planner as p
+steps=p._coerce_steps([{'action':'close_panel','args':{'panel':'news'}},{'action':'focus_panel','args':{'panel':'chart'}},{'action':'set_chart_symbol','args':{'symbol':'TCS'}},{'action':'bogus'}])
+print(steps)
+"
+[PlanStep(action='close_panel', args={'panel': 'news'}, rationale=''), PlanStep(action='focus_panel', args={'panel': 'chart'}, rationale=''), PlanStep(action='set_chart_symbol', args={'symbol': 'TCS'}, rationale='')]
+EXIT=0

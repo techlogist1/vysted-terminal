@@ -1,0 +1,15 @@
+[
+ {
+  "key": "rc1-datapack:1",
+  "kind": "regression",
+  "severity": "critical",
+  "register_id": "R15-DATA-008",
+  "title": "SIFY revenue_ttm/net_income_ttm still served as INR-scale numbers under currency=USD, status ok, on the candidate",
+  "repro": "GET /fundamentals/SIFY on the isolated stack (own sidecar :52313, candidate 1006c6da694ede5776c3dabbd27b305aeb56b5ad) -> currency: USD, revenue_ttm: 46506049536.0, net_income_ttm: -912369984.0, field_meta.revenue_ttm.status: ok, field_meta.net_income_ttm.status: ok. These are the same INR-scale figures (46.5B / -912M) the original R15-DATA-008 repro cited as a ~94x overstatement of SIFY's real ~$492M USD revenue -- the fix_shape called for either FX-converting these two scalars or withholding them; neither happened. A financial_currency: INR field is now present on the payload and price_to_sales/price_to_book are correctly withheld with a currency-mismatch reason (the newer DATA-117-class fix), but revenue_ttm/net_income_ttm themselves were not brought under that same withhold/convert/label treatment. The register's own note (added at batch-23) already flagged this class of resurfacing as suspected and unverified; this is a live re-confirmation.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-4/battery/collected/P17_SIFY.json",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py",
+   "sidecar/models/fundamentals.py"
+  ]
+ }
+]

@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+date: Fri, 25 Sep 2026 00:26:21 GMT
+server: uvicorn
+content-length: 1421
+content-type: application/json
+vary: Origin
+
+{"symbol":"JONJUA","count":10,"events":[{"symbol":"JONJUA","company":"Jonjua Overseas Limited","purpose":"General","description":null,"date":"2026-09-07","exchange":"BSE"},{"symbol":"JONJUA","company":"Jonjua Overseas Limited","purpose":"General","description":null,"date":"2026-08-12","exchange":"BSE"},{"symbol":"JONJUA","company":"Jonjua Overseas Limited","purpose":"Results","description":null,"date":"2026-08-12","exchange":"BSE"},{"symbol":"JONJUA","company":"Jonjua Overseas Limited","purpose":"A.G.M.","description":null,"date":"2026-07-28","exchange":"BSE"},{"symbol":"JONJUA","company":"Jonjua Overseas Limited","purpose":"Bonus","description":null,"date":"2026-07-28","exchange":"BSE"},{"symbol":"JONJUA","company":"Jonjua Overseas Limited","purpose":"General","description":null,"date":"2026-07-28","exchange":"BSE"},{"symbol":"JONJUA","company":"Jonjua Overseas Limited","purpose":"General","description":null,"date":"2026-05-01","exchange":"BSE"},{"symbol":"JONJUA","company":"Jonjua Overseas Limited","purpose":"General","description":null,"date":"2026-04-23","exchange":"BSE"},{"symbol":"JONJUA","company":"Jonjua Overseas Limited","purpose":"Results","description":null,"date":"2026-04-23","exchange":"BSE"},{"symbol":"JONJUA","company":"Jonjua Overseas Limited","purpose":"General","description":null,"date":"2026-03-24","exchange":"BSE"}],"sources":["BSE"],"errors":{},"coverage":"covered","note":null}

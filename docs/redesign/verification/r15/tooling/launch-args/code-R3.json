@@ -1,0 +1,43 @@
+{
+ "tag": "code-R3",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. A previous attempt at your task may have been killed by a usage wall: if your output file exists, verify and continue.",
+ "stages": [
+  {
+   "label": "refute",
+   "model": "fable",
+   "prompt": "Your task spec is the REFUTE section of docs/redesign/verification/r15/tooling/PROMPT_code.md, with <id> = \"{{id}}\"."
+  }
+ ],
+ "items": [
+  {
+   "id": "agent-runtime"
+  },
+  {
+   "id": "agent-tools-catalog-ledger"
+  },
+  {
+   "id": "fundamentals-profile"
+  },
+  {
+   "id": "research-retrieval-relevance"
+  },
+  {
+   "id": "resolver"
+  },
+  {
+   "id": "screener"
+  },
+  {
+   "id": "disclosures-witnesses"
+  },
+  {
+   "id": "research-depth-iter-deep"
+  },
+  {
+   "id": "market-data-providers-1"
+  },
+  {
+   "id": "plugins"
+  }
+ ]
+}

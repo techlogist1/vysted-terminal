@@ -1,0 +1,7 @@
+Fri Sep 25 09:17:07 IST 2026
+{'symbol': 'AAPL', 'provider': 'yfinance', 'timestamp': '2026-09-24T20:00:01Z', 'freshness': 'eod', 'market_state': None}
+{'symbol': '^NSEI', 'provider': 'yfinance', 'timestamp': '2026-09-25T03:47:07Z', 'freshness': 'eod', 'market_state': None}
+{'symbol': 'RELIANCE', 'provider': 'nse_direct', 'timestamp': '2026-09-24T00:00:00Z', 'freshness': 'eod', 'market_state': 'REGULAR'}
+{'symbol': 'MSFT', 'provider': 'yfinance', 'timestamp': '2026-09-24T20:00:01Z', 'freshness': 'eod', 'market_state': None}
+
+[exited with code 0]

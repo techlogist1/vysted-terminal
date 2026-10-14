@@ -1,0 +1,18 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar && VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-data-rc1-battery-0-inproc ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/t012.py 2>&1 | tail -16
+exit=0
+Kaynes Technology KAYNES n_ann 50 results raw pos [2, 15, 21, 22, 26]
+    floor row: Kaynes Technology India Limited has informed the Exchange regarding 'Corrigendum to the consolidated financial
+    floor row: Financial Results For The Quarter Ended 30 June 2026
+    floor row: Kaynes Technology India Limited has submitted to the Exchange, the financial results for the period ended Jun 
+    floor row: Board Meeting Intimation for Quarterly Results For The Period Ended June 30, 2026
+CG Power CGPOWER n_ann 50 results raw pos [4, 30, 36, 37, 39, 43]
+    floor row: CG Power and Industrial Solutions Limited has submitted to the Exchange, the financial results for the period 
+    floor row: Board Meeting Intimation for Consideration And Approval Of The Unaudited Financial Results For The First Quart
+    floor row: CG Power and Industrial Solutions Limited has informed the Exchange regarding a press release dated September 
+    floor row: Announcement under Regulation 30 (LODR)-Press Release / Media Release (Revised)
+Jonjua Overseas JONJUA n_ann 46 results raw pos [11, 12, 14, 39, 40, 41]
+    floor row: Outcome Of Board Meeting Dated 18-09-2026.
+    floor row: Unaudited Financial Results For Quarter Ended 30-06-2026.
+    floor row: Board Meeting Outcome for Unaudited Financial Results For Quarter Ended 30-06-2026 And General Matters.
+    floor row: Board Meeting Intimation for 30 June 2026 Unaudited Financial Results And General Matters.

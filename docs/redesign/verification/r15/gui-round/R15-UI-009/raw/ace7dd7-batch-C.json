@@ -1,0 +1,15 @@
+[
+ {
+  "cmd": "click",
+  "x": 530,
+  "y": 792
+ },
+ {
+  "cmd": "wait",
+  "seconds": 5
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-009/ace7dd7-11-screener-export-clicked.png"
+ }
+]

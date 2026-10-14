@@ -1,0 +1,20 @@
+# R15-CODE-PLATFORM-018 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:17:57+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p018.py 2>&1 | grep -v Warning
+--- output ---
+health polls during 20000-step binomial workflow run (ms,status): [(24.51, 200)]
+max health ms: 24.51 polls 1
+run wall 0.7288111249217764
+run-start None 
+node-start q 
+node-output q {'result': {'price': 10.450480455837951, 'greeks': {'delta': 0.6368289322734, 'gamma': 0.018762810744335095, 'vega': 37.52281014974059, 'theta': -6.41418278744902, 'rho': 53.23034693751971}, 'method': 'binomial', 'monte_carlo_std_error': None, 'duration_ms': 7
+run-complete None 
+health polls during 100000-step binomial workflow run (ms,status): [(6.04, 200), (5.43, 200), (5.11, 200), (5.25, 200), (5.0, 200)]
+max health ms: 6.04 polls 5
+run wall 10.040848708013073
+run-start None 
+node-start q 
+node-output q {'result': {'price': 10.450562948873902, 'greeks': {'delta': 0.6368303073968352, 'gamma': 0.01876217601960158, 'vega': 37.52318047858392, 'theta': -6.414058593467695, 'rho': 53.2305123348106}, 'method': 'binomial', 'monte_carlo_std_error': None, 'duration_ms':
+run-complete None 
+
+EXIT=0 (12.2s)

@@ -1,0 +1,551 @@
+{
+ "P1-empty": {
+  "panelText": "PortfolioSymbolQuantityCost basisClassEquityCryptoNoteAddThis portfolio is emptyManually add a stock or crypto holding to track P&L, weight, and concentration — no broker connection required.Add your first holding",
+  "exportDisabled": true,
+  "net": 0
+ },
+ "P2-validation": {
+  "empty": {
+   "error": "Symbol, quantity, and cost basis are required",
+   "holdings": []
+  },
+  "qty0": {
+   "error": "Quantity must be greater than 0",
+   "holdings": []
+  },
+  "negcost": {
+   "error": "Cost basis cannot be negative",
+   "holdings": []
+  },
+  "qtyabc": {
+   "error": "Symbol, quantity, and cost basis are required",
+   "holdings": []
+  },
+  "qty-neg": {
+   "error": "Quantity must be greater than 0",
+   "holdings": []
+  },
+  "qty-1e20": {
+   "error": null,
+   "holdings": [
+    [
+     "TCS.NS",
+     100000000000000000000,
+     100
+    ]
+   ]
+  },
+  "cost-blank": {
+   "error": null,
+   "holdings": [
+    [
+     "TCS.NS",
+     5,
+     0
+    ]
+   ]
+  },
+  "qty-comma": {
+   "error": "Symbol, quantity, and cost basis are required",
+   "holdings": []
+  }
+ },
+ "P3-inr": {
+  "settleMs": 9977,
+  "ref": {
+   "RELIANCE.NS": 1240.4,
+   "TCS.NS": 2105
+  },
+  "expected": {
+   "mv": 22929,
+   "pnl": -1571,
+   "pnlPct": -6.412244897959184,
+   "wRel": 0.5409743120066292
+  },
+  "summary": "Market value: ₹22,929.00·Total P&L: -₹1,571.00 (-6.41%)·Concentration: 54.1%SymbolQtyCostPriceMkt valP&LWtRELIANCE.NS10₹1,200.00₹1,240.40₹12,404.00+₹404.00 (+3.37%)54.1%TCS.NS5₹2,500.00₹2,105.00₹10,525.00-₹1,975.00 (-15.80%)45.9%",
+  "rows": [
+   "SymbolQtyCostPriceMkt valP&LWt",
+   "RELIANCE.NS10₹1,200.00₹1,240.40₹12,404.00+₹404.00 (+3.37%)54.1%",
+   "TCS.NS5₹2,500.00₹2,105.00₹10,525.00-₹1,975.00 (-15.80%)45.9%"
+  ],
+  "bus": {
+   "positionCount": 2,
+   "totalValue": 22929,
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "marketValue": 12404,
+     "pnl": 404
+    },
+    {
+     "symbol": "TCS.NS",
+     "quantity": 5,
+     "costBasis": 2500,
+     "assetClass": "equity",
+     "marketValue": 10525,
+     "pnl": -1975
+    }
+   ]
+  }
+ },
+ "P4-stale-closure": {
+  "before": {
+   "active": "Second",
+   "holdings": [
+    "TCS.NS"
+   ]
+  },
+  "afterDelete": {
+   "active": "Second",
+   "holdings": [
+    "TCS.NS"
+   ],
+   "all": [
+    [
+     "Portfolio",
+     [
+      "RELIANCE.NS"
+     ]
+    ],
+    [
+     "Second",
+     [
+      "TCS.NS"
+     ]
+    ]
+   ]
+  },
+  "afterEdit": [
+   [
+    "TCS.NS",
+    7
+   ]
+  ],
+  "controlDeleteInFirstPortfolio": [],
+  "panelText": "PortfolioSecond · 1SymbolQuantityCost basisClassEquityCryptoNoteAddThis portfolio is emptyManually add a stock or crypto holding to track P&L, weight, and concentration — no broker connection required.Add your first holding"
+ },
+ "P4b-fresh-mount-delete": {
+  "holdings": []
+ },
+ "P5-unresolved-crypto": {
+  "unresolved": {
+   "summary": "Market value: ₹0.00·Total P&L: ₹0.00 (0.00%)·Concentration: 0.0%·1 without a live quoteSymbolQtyCostPriceMkt valP&LWtZZZZNOTREAL10₹100.00————",
+   "rows": "SymbolQtyCostPriceMkt valP&LWtZZZZNOTREAL10₹100.00————",
+   "bus": {
+    "positionCount": 1,
+    "totalValue": 0,
+    "activePortfolioId": "default",
+    "activePortfolioName": "Portfolio",
+    "holdings": [
+     {
+      "symbol": "ZZZZNOTREAL",
+      "quantity": 10,
+      "costBasis": 100,
+      "assetClass": "equity",
+      "marketValue": null,
+      "pnl": null
+     }
+    ]
+   }
+  },
+  "cryptoSlash": {
+   "summary": "Market value: ₹0.00·Total P&L: ₹0.00 (0.00%)·Concentration: 0.0%·1 without a live quoteSymbolQtyCostPriceMkt valP&LWtBTC/USDT0.5₹60,000.00————",
+   "rows": "SymbolQtyCostPriceMkt valP&LWtBTC/USDT0.5₹60,000.00————"
+  },
+  "cryptoNoSlash": {
+   "summary": "Market value: $43,350.01·Total P&L: +$13,350.01 (+44.50%)·Concentration: 100.0%SymbolQtyCostPriceMkt valP&LWtBTCUSDT0.5$60,000.00$86,700.02$43,350.01+$13,350.01 (+44.50%)100.0%",
+   "rows": "SymbolQtyCostPriceMkt valP&LWtBTCUSDT0.5$60,000.00$86,700.02$43,350.01+$13,350.01 (+44.50%)100.0%"
+  },
+  "net": [
+   {
+    "t": 1790134472098,
+    "method": "GET",
+    "url": "/quotes/TCS.NS?asset_class=equity",
+    "status": 200,
+    "ms": 758
+   },
+   {
+    "t": 1790134473083,
+    "method": "GET",
+    "url": "/quotes/ZZZZNOTREAL?asset_class=equity",
+    "status": 502,
+    "ms": 3120
+   },
+   {
+    "t": 1790134476822,
+    "method": "GET",
+    "url": "/quotes/BTC%2FUSDT?asset_class=crypto",
+    "status": 404,
+    "ms": 1
+   },
+   {
+    "t": 1790134477542,
+    "method": "GET",
+    "url": "/quotes/BTCUSDT?asset_class=crypto",
+    "status": 200,
+    "ms": 2635
+   }
+  ]
+ },
+ "P6-mixed-csv": {
+  "summary": "Market value: ₹12,404.00 + $1,019.25·Total P&L: +₹404.00 (+3.37%) + +$119.25 (+13.25%)·mixed currencies — totals per currency·1 without a live quoteSymbolQtyCostPriceMkt valP&LRELIANCE.NS10₹1,200.00₹1,240.40₹12,404.00+₹404.00 (+3.37%)AAPL3$300.00$339.75$1,019.",
+  "header": "SymbolQtyCostPriceMkt valP&LRELIANCE.NS10₹1,200.00₹1,240.40₹12,404.00+₹404.00 (+3.37%)AAPL3$300.00$339.75$1,019.25+$119.",
+  "csv": {
+   "name": "vysted-portfolio-portfolio.csv",
+   "content": "Symbol,Quantity,Cost basis,Asset class,Price,Market value,P&L,P&L %,Weight %,Note\nRELIANCE.NS,10,1200,equity,1240.4,12404,404,3.3666666666666663,92.41,\"=HYPERLINK(\"\"http://example.invalid\"\",\"\"x\"\")\"\nAAPL,3,300,equity,339.75,1019.25,119.25,13.25,7.59,\"core, long\"\nZZZZNOTREAL,1,10,equity,,,,,,"
+  },
+  "bus": {
+   "positionCount": 3,
+   "totalValue": null,
+   "totalValueNote": "holdings span multiple currencies (INR, USD) — no cross-currency total; read per-holding values",
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "marketValue": 12404,
+     "pnl": 404
+    },
+    {
+     "symbol": "AAPL",
+     "quantity": 3,
+     "costBasis": 300,
+     "assetClass": "equity",
+     "marketValue": 1019.25,
+     "pnl": 119.25
+    },
+    {
+     "symbol": "ZZZZNOTREAL",
+     "quantity": 1,
+     "costBasis": 10,
+     "assetClass": "equity",
+     "marketValue": null,
+     "pnl": null
+    }
+   ]
+  }
+ },
+ "P7-quotes-down": {
+  "panelText": "Portfolio · 1SymbolQuantityCost basisClassEquityCryptoNoteAddMarket value: ₹0.00·Total P&L: ₹0.00 (0.00%)·Concentration: 0.0%·1 without a live quoteSymbolQtyCostPriceMkt valP&LWtRELIANCE.NS10₹1,200.00————",
+  "bannerShown": false
+ },
+ "P8-100": {
+  "settleMs": 124379,
+  "wallMs": 124464,
+  "quoteRequests": 100,
+  "statusCounts": {
+   "200": 100
+  },
+  "maxMs": 124134,
+  "renderedRows": 101,
+  "tenthRow": "HINDUNILVR.NS",
+  "tenthRowRendered": true,
+  "summary": "Market value: ₹10.0M·Total P&L: +₹9.50M (+1881.07%)·Concentration: 20.7%SymbolQtyCostPriceMkt valP&LWtRELIANCE.NS1₹100.00₹1,240.40₹1,240.40+₹1,140.40 (+1140.40%)0.0%TCS.NS2₹100.00₹2,105.00₹4,210.00+₹4,010.00 (+2005.00%)0.0%HDFCBANK.NS3₹100.00₹738.60₹2,215.80+₹",
+  "optionLabel": "Big · 100"
+ },
+ "P9-agent": {
+  "openPanelSnapshot": {
+   "positionCount": 3,
+   "totalValue": 65029,
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "marketValue": 12404,
+     "pnl": 404
+    },
+    {
+     "symbol": "TCS.NS",
+     "quantity": 5,
+     "costBasis": 2500,
+     "assetClass": "equity",
+     "marketValue": 10525,
+     "pnl": -1975
+    },
+    {
+     "symbol": "TCS.NS",
+     "quantity": 20,
+     "costBasis": 3900,
+     "assetClass": "equity",
+     "marketValue": 42100,
+     "pnl": -35900
+    }
+   ]
+  },
+  "storeIds": [
+   [
+    "h-12e95f70-abf7-40aa-a741-cfcffd378c50",
+    "RELIANCE.NS",
+    10
+   ],
+   [
+    "h-236e5823-52df-4fa2-8d25-c7fef26ddcde",
+    "TCS.NS",
+    5
+   ],
+   [
+    "h-30aef85e-7fa8-40c7-b3e1-53037313a27f",
+    "TCS.NS",
+    20
+   ]
+  ],
+  "closedPanelSnapshot": {
+   "positionCount": 4,
+   "totalValue": null,
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-12e95f70-abf7-40aa-a741-cfcffd378c50",
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-236e5823-52df-4fa2-8d25-c7fef26ddcde",
+     "symbol": "TCS.NS",
+     "quantity": 25,
+     "costBasis": 2500,
+     "assetClass": "equity",
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-30aef85e-7fa8-40c7-b3e1-53037313a27f",
+     "symbol": "TCS.NS",
+     "quantity": 21,
+     "costBasis": 3900,
+     "assetClass": "equity",
+     "marketValue": null,
+     "pnl": null
+    },
+    {
+     "id": "h-7018e87b-384a-4996-a8d6-4a6816b7f5fc",
+     "symbol": "INFY.NS",
+     "quantity": 4,
+     "costBasis": -1500,
+     "assetClass": "equity",
+     "marketValue": null,
+     "pnl": null
+    }
+   ]
+  },
+  "describe_update_by_symbol": {
+   "kind": "data-write",
+   "title": "Update TCS.NS in the paper portfolio",
+   "before": "TCS.NS: ×5 @ ₹2,500",
+   "after": "TCS.NS: ×25"
+  },
+  "update_by_symbol": "Updated TCS.NS: ×25 @ ₹2,500",
+  "after_update": [
+   [
+    "RELIANCE.NS",
+    10,
+    1200,
+    null
+   ],
+   [
+    "TCS.NS",
+    25,
+    2500,
+    null
+   ],
+   [
+    "TCS.NS",
+    20,
+    3900,
+    "second lot"
+   ]
+  ],
+  "update_by_real_id": "Updated TCS.NS: ×21 @ ₹3,900",
+  "after_update_real": [
+   [
+    "RELIANCE.NS",
+    10,
+    1200,
+    null
+   ],
+   [
+    "TCS.NS",
+    25,
+    2500,
+    null
+   ],
+   [
+    "TCS.NS",
+    21,
+    3900,
+    "second lot"
+   ]
+  ],
+  "add_neg_cost": "Added 4 INFY.NS @ ₹-1,500 to the paper portfolio",
+  "add_qty_string": null,
+  "add_ok": "Added 2 HDFCBANK.NS @ ₹1,600 to the paper portfolio",
+  "delete_by_symbol": "Removed HDFCBANK.NS from the paper portfolio",
+  "after_all": [
+   [
+    "RELIANCE.NS",
+    10,
+    1200
+   ],
+   [
+    "TCS.NS",
+    25,
+    2500
+   ],
+   [
+    "TCS.NS",
+    21,
+    3900
+   ],
+   [
+    "INFY.NS",
+    4,
+    -1500
+   ]
+  ],
+  "net": [
+   {
+    "t": 1790134614876,
+    "method": "PUT",
+    "url": "/portfolio/positions/2",
+    "status": 404,
+    "ms": 5,
+    "body": {
+     "symbol": "TCS.NS",
+     "quantity": 25,
+     "cost_basis": 2500,
+     "asset_class": "equity"
+    }
+   },
+   {
+    "t": 1790134614886,
+    "method": "PUT",
+    "url": "/portfolio/positions",
+    "status": 405,
+    "ms": 0,
+    "body": {
+     "symbol": "TCS.NS",
+     "quantity": 21,
+     "cost_basis": 3900,
+     "asset_class": "equity",
+     "note": "second lot"
+    }
+   },
+   {
+    "t": 1790134614890,
+    "method": "POST",
+    "url": "/portfolio/positions",
+    "status": 422,
+    "ms": 1,
+    "body": {
+     "symbol": "INFY.NS",
+     "quantity": 4,
+     "cost_basis": -1500,
+     "asset_class": "equity"
+    }
+   },
+   {
+    "t": 1790134614896,
+    "method": "POST",
+    "url": "/portfolio/positions",
+    "status": 201,
+    "ms": 3,
+    "body": {
+     "symbol": "HDFCBANK.NS",
+     "quantity": 2,
+     "cost_basis": 1600,
+     "asset_class": "equity",
+     "opened_at": "2026-01-05"
+    }
+   },
+   {
+    "t": 1790134614904,
+    "method": "DELETE",
+    "url": "/portfolio/positions",
+    "status": 405,
+    "ms": 1
+   }
+  ],
+  "sidecarLedger": [
+   {
+    "id": 3,
+    "symbol": "RELIANCE",
+    "quantity": 10,
+    "cost_basis": 1250.5,
+    "asset_class": "equity",
+    "opened_at": null,
+    "note": "core"
+   },
+   {
+    "id": 4,
+    "symbol": "",
+    "quantity": 1,
+    "cost_basis": 1,
+    "asset_class": "equity",
+    "opened_at": null,
+    "note": null
+   },
+   {
+    "id": 5,
+    "symbol": "   ",
+    "quantity": 1,
+    "cost_basis": 1,
+    "asset_class": "equity",
+    "opened_at": null,
+    "note": null
+   },
+   {
+    "id": 6,
+    "symbol": "TCS",
+    "quantity": 1,
+    "cost_basis": null,
+    "asset_class": "equity",
+    "opened_at": null,
+    "note": null
+   },
+   {
+    "id": 7,
+    "symbol": "TCS",
+    "quantity": 12,
+    "cost_basis": 3000,
+    "asset_class": "equity",
+    "opened_at": null,
+    "note": null
+   },
+   {
+    "id": 8,
+    "symbol": "TCS",
+    "quantity": 1,
+    "cost_basis": 1,
+    "asset_class": "options",
+    "opened_at": null,
+    "note": null
+   },
+   {
+    "id": 9,
+    "symbol": "HDFCBANK.NS",
+    "quantity": 2,
+    "cost_basis": 1600,
+    "asset_class": "equity",
+    "opened_at": "2026-01-05T00:00:00",
+    "note": null
+   }
+  ]
+ }
+}

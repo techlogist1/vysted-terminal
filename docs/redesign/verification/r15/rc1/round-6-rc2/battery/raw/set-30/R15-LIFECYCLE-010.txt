@@ -1,0 +1,11 @@
+$ grep -rn "a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason\|the_boot_wait_keeps_an_earlier_exit_reason" src-tauri/src
+src-tauri/src/lib.rs:1006:    fn a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason() {
+src-tauri/src/lib.rs:1021:    fn the_boot_wait_keeps_an_earlier_exit_reason() {
+$ grep -n "failed" src/lib/sidecar-client.ts | head
+98:  if (status.state === "failed") {
+108:  state: "starting" | "ready" | "failed";
+24:  it("get_sidecar_port answering failed throws its reason at once, without a /health probe", async () => {
+41:  it("a spawn that fails while the probe waits stops the wait with its reason", async () => {
+116:  it("re-arms after a failed resolution so a later caller re-probes", async () => {
+212:  it("a refused connection is SidecarError(0) with the unreachable sentence, not 'Load failed'", async () => {
+330:  it("a refused load names the engine, never WebKit's 'Load failed'", async () => {

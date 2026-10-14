@@ -1,0 +1,34 @@
+# R15-RESEARCH-004 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:40+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio
+from services.research.verify import cross_check, _split_claims
+from services.budget_guard import BudgetGuard
+from services.research.models import ResearchBrief, ResearchSource
+class LLM:
+    def __init__(s,claims,verdict): s.c=claims; s.v=verdict
+    async def __call__(s,m):
+        sy=m[0]['content'].lower()
+        if 'numeric claims' in sy: return s.c
+        if 'verify one numeric claim' in sy: return s.v
+        return ''
+async def web(n,a): return {'ok':True,'citations':[{'url':u,'title':u,'excerpt':'e'} for u in ['https://reuters.com/a','https://bloomberg.com/b']]}
+claims="40.5% revenue growth\n-0.4% earnings growth\n67.13953 P/E\n1. 53.46% gross margin\n- -24.4% change"
+print('split:',_split_claims(claims,limit=8))
+b=ResearchBrief(query='q',symbol='KAYNES',mode='deep',markdown='# B\nrev +40.5% [1].',sources=[ResearchSource(url='https://ex.com/a',title='A',excerpt='x')],source_count=1)
+b=asyncio.run(cross_check(b,tool_call=web,llm_call=LLM(claims,'UNVERIFIED - no source'),budget=BudgetGuard(max_steps=20)))
+print(b.markdown.split('## Cross-check')[1][:900])
+PY
+--- output ---
+split: ['40.5% revenue growth', '-0.4% earnings growth', '67.13953 P/E', '53.46% gross margin', '-24.4% change']
+
+
+Top numeric claims re-checked against fresh web evidence (at least 2 independent domains required per claim):
+
+- **UNVERIFIED** — 40.5% revenue growth (bloomberg.com, reuters.com) — UNVERIFIED - no source
+- **UNVERIFIED** — -0.4% earnings growth (bloomberg.com, reuters.com) — UNVERIFIED - no source
+- **UNVERIFIED** — 67.13953 P/E (bloomberg.com, reuters.com) — UNVERIFIED - no source
+- **UNVERIFIED** — 53.46% gross margin (bloomberg.com, reuters.com) — UNVERIFIED - no source
+- **UNVERIFIED** — -24.4% change (bloomberg.com, reuters.com) — UNVERIFIED - no source
+
+EXIT=0 (1.2s)

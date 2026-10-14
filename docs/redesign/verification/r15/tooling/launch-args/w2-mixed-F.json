@@ -1,0 +1,49 @@
+{
+ "tag": "w2-mixed-F",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. THEN read the preamble of docs/redesign/verification/r15/tooling/PROMPT_wave2.md.",
+ "stages": [
+  {
+   "label": "task",
+   "model": "fable",
+   "prompt": "Your task spec is in docs/redesign/verification/r15/tooling/{{spec}}. <task-id> = <id> = \"{{id}}\", <port> = {{port}}. {{extra}}"
+  }
+ ],
+ "items": [
+  {
+   "id": "agent-behaviour",
+   "spec": "PROMPT_wave2.md: the `agent-behaviour` bullet of the PROBES section",
+   "port": 52241,
+   "extra": ""
+  },
+  {
+   "id": "test-quality",
+   "spec": "PROMPT_wave2.md: the `test-quality` bullet of the PROBES section",
+   "port": 0,
+   "extra": "(no sidecar needed)"
+  },
+  {
+   "id": "harness-design",
+   "spec": "PROMPT_wave2.md: the `harness-design` bullet of the PROBES section",
+   "port": 0,
+   "extra": "(no sidecar needed)"
+  },
+  {
+   "id": "L3-diagnostics",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L3-diagnostics`",
+   "port": 52233,
+   "extra": ""
+  },
+  {
+   "id": "L5-bounds",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L5-bounds`",
+   "port": 52235,
+   "extra": ""
+  },
+  {
+   "id": "L6-longsession",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L6-longsession`",
+   "port": 52236,
+   "extra": "The operator's instance restarted its sidecars after the machine hibernated today (new pids on ports ~53693-53695): sample those read-only."
+  }
+ ]
+}

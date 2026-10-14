@@ -1,0 +1,20 @@
+## expr=round(2.5) x=0
+data: {"kind":"node-output","runId":"55edf9dd-ee56-41d7-b408-670d85d7cd67","nodeId":"preview","outputs":{"value":3.0},"durationMs":0.19625}
+## expr=2^3 x=0
+data: {"kind":"node-output","runId":"1a52fa10-2dc8-4c59-b61f-d48fdc8c0798","nodeId":"preview","outputs":{"value":8},"durationMs":0.086959}
+## expr=x > 1 ? 1 : 0 x=3
+data: {"kind":"node-output","runId":"902d37ad-d7e7-4659-bb69-14f05d41f4b0","nodeId":"preview","outputs":{"value":1},"durationMs":0.096791}
+## expr=log(x, 10) x=100
+data: {"kind":"node-error","runId":"1c702db8-ca8b-4416-bca8-00f05e16e288","nodeId":"preview","message":"disallowed syntax: Call","durationMs":0.065833}
+## expr=round(x, 2) x=1.005
+data: {"kind":"node-output","runId":"3fbce385-9e41-4669-b38a-ffe62df5ca23","nodeId":"preview","outputs":{"value":1.0},"durationMs":0.053083}
+## expr=x/0 x=3
+data: {"kind":"node-error","runId":"4a4427da-9cbb-4fef-9d87-628c45f06d54","nodeId":"preview","message":"division by zero","durationMs":0.057}
+## expr=x**2+1 x=3
+data: {"kind":"node-output","runId":"c47b4446-32f5-422a-a1d1-6296b4f5b896","nodeId":"preview","outputs":{"value":10},"durationMs":0.053167}
+## expr=max(x, 4) x=3
+data: {"kind":"node-output","runId":"01492bfe-cef4-4394-892e-5d003b1eb94e","nodeId":"preview","outputs":{"value":4},"durationMs":0.0605}
+## expr=abs(-x) x=3
+data: {"kind":"node-output","runId":"4302fb8b-dac2-4899-8903-a96ed00ed9a4","nodeId":"preview","outputs":{"value":3},"durationMs":0.06225}
+## expr=sqrt(x) x=16
+data: {"kind":"node-output","runId":"dc2aa13d-886f-4638-9b75-1e8e3268e73f","nodeId":"preview","outputs":{"value":4.0},"durationMs":0.063333}

@@ -1,0 +1,13 @@
+cwd=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-9bc600e-fix-int/sidecar sha=633f844071d972b337f4c3526d86555c80df0568 VYSTED_DATA_DIR=scratch
+adr_ratio INFY: ConnectError('EDGAR unreachable')
+adr_ratio WIT: TimeoutError()
+adr_ratio SIFY: TimeoutError()
+== entry repro: _fetch raises; two lookups for INFY
+  call1 -> None fetch_calls=1 0.00s
+  call2 -> None fetch_calls=1 0.00s
+== fresh: REAL _fetch against a blackholed EDGAR (submissions + archive URLs -> 10.255.255.1), ticker map served, symbol WIT
+  call1 -> None 8.00s
+  call2 -> None 0.00s
+== fresh: _fetch hangs forever (never returns), symbol SIFY
+  call1 -> None fetch_calls=1 8.00s
+  call2 -> None fetch_calls=1 0.00s

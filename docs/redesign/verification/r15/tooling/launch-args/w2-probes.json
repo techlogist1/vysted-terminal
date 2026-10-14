@@ -1,0 +1,50 @@
+{
+ "tag": "w2-probes",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. THEN read the preamble of docs/redesign/verification/r15/tooling/PROMPT_wave2.md. A previous attempt at your task was killed by a usage wall: your evidence dir, raw file and a sidecar on your port may already exist - verify and continue, never restart.",
+ "stages": [
+  {
+   "label": "probe",
+   "model": "opus",
+   "prompt": "Your task spec is in docs/redesign/verification/r15/tooling/PROMPT_wave2.md: {{spec}}. <task-id> = \"{{id}}\", <port> = {{port}}. {{extra}}"
+  }
+ ],
+ "items": [
+  {
+   "id": "funnel-largecap",
+   "spec": "the FUNNEL section",
+   "port": 52221,
+   "extra": "<query-class> = largecap",
+   "model": "fable"
+  },
+  {
+   "id": "funnel-microcap",
+   "spec": "the FUNNEL section",
+   "port": 52222,
+   "extra": "<query-class> = microcap",
+   "model": "fable"
+  },
+  {
+   "id": "funnel-thematic",
+   "spec": "the FUNNEL section",
+   "port": 52223,
+   "extra": "<query-class> = thematic"
+  },
+  {
+   "id": "screener-probe",
+   "spec": "the `screener-probe` bullet of the PROBES section",
+   "port": 52224,
+   "model": "fable"
+  },
+  {
+   "id": "resolver-probe",
+   "spec": "the `resolver-probe` bullet of the PROBES section",
+   "port": 52225
+  },
+  {
+   "id": "security",
+   "spec": "the `security` bullet of the PROBES section",
+   "port": 52226,
+   "model": "fable"
+  }
+ ]
+}

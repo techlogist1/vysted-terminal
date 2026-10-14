@@ -1,0 +1,15 @@
+COMMAND (live curl, candidate sidecar :52357, sha 1006c6da):
+  curl -s http://127.0.0.1:52357/earnings/AAPL/history
+
+OUTPUT (see R15-LEAD-016-body.txt for the raw JSON body; excerpt of row 1):
+  {"period_end":"2026-06-30","reported_date":"2026-07-30", "eps_actual":2.02, ...}
+  row2: period_end "2025-12-31" vs reported_date "2026-01-29"
+  row3: period_end "2025-09-30" vs reported_date "2025-10-30"
+
+VERDICT: holds.
+Every row's reported_date is now ~4 weeks AFTER period_end (the real announcement lag), not equal
+to it -- the register's defect was reported_date === period_end (mislabeled field). The response
+model carries both fields distinctly (routers/earnings.py, services/earnings_provider.py:454-483
+_nearest_reported_date resolves the true announcement date from separate announcement_dates,
+never falling back to period_end as reported_date). Live AAPL data confirms the split field is
+populated correctly end to end.

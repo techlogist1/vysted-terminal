@@ -1,0 +1,12 @@
+=== CODE-PLATFORM-023: VaR/Sharpe/Sortino/Calmar/Beta/correlation ===
+---sharpe/sortino/calmar---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/backtest_engine.py:236:            sharpe=0.0,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/backtest_engine.py:237:            sortino=0.0,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/backtest_engine.py:238:            calmar=0.0,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/backtest_engine.py:270:    sharpe = (mean_return / stdev) * math.sqrt(252) if stdev > 0 else 0.0
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/backtest_engine.py:271:    sortino = (mean_return / downside_dev) * math.sqrt(252) if downside_dev > 0 else 0.0
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/backtest_engine.py:274:    calmar = (annualised_return / abs(max_drawdown_pct)) if max_drawdown_pct < 0 else 0.0
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/backtest_engine.py:284:        sharpe=sharpe,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/backtest_engine.py:285:        sortino=sortino,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/backtest_engine.py:286:        calmar=calmar,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/backtest_engine.py:525:                    sharpe=slice_metrics.sharpe,

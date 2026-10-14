@@ -1,0 +1,43 @@
+# ace7dd76 source check (vitest-pinned; settings UI is GUI)
+$ grep fallback order / palette / starter cockpit in settings store + panel
+12: * The killed fields (`themeKnobs`, `paletteRecentsEnabled`,
+13: * `paletteScopedToPanel`, `starterCockpitPanelIds`, `panelDefaults`,
+14: * `providerPreferenceOrder`) are silently DROPPED from older blobs on restore
+24: *  - `startLayout` — which cockpit the launch opens on (PanelHost);
+25: *  - `paletteShowRecents` / `paletteSymbolScope` — the command palette's
+64:/** Which instruments the command palette searches: the watchlist only, or the
+97:  startLayout: string | null;
+98:  /** Show the "Recent" group first on an empty palette query. */
+99:  paletteShowRecents: boolean;
+100:  /** Which instruments a palette query searches. */
+101:  paletteSymbolScope: PaletteSymbolScope;
+124:  startLayout: null,
+125:  paletteShowRecents: true,
+126:  paletteSymbolScope: "all",
+163:    startLayout: DEFAULT_SETTINGS.startLayout,
+ugrep: warning: src/modules/settings/SettingsPanel.tsx: No such file or directory
+src/components/SettingsPanel.tsx
+src/modules/chat/streaming.ts
+src/modules/chat/ChatSidebar.tsx
+src/store/llm-providers.ts
+src/store/llm-providers.test.ts
+$ sidecar failure codes
+201:    code: str | None  # machine tag: "provider_402", "network", "auth", ...
+289:        "insufficient_credit",
+336:        "ollama_not_running",
+441:                code="provider_402",
+447:            code="provider_402",
+480:            code="provider_5xx",
+501:                    code="ollama_not_running",
+557:                    code="provider_402",
+$ grep SettingsPanel sections (correct path)
+71:import { type PaletteSymbolScope, type SettingsBundle, useSettingsStore } from "@/store/settings";
+90: *      key rows in fallback order (drag or arrows; one designed grid,
+435:  /** Move one provider to position `to` of the fallback order. */
+466:            label="Fallback order"
+644:  const fallbackModelIds: readonly string[] =
+651:      : fallbackModelIds.map((id) => ({ id, label: formatModelLabel(id) }));
+886: * research is riding the limited keyless fallback meanwhile.
+923:  const fallbackNote = (
+935:        {fallbackNote}
+944:        {fallbackNote}

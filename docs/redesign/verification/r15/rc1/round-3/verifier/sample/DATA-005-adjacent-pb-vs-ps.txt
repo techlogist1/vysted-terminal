@@ -1,0 +1,12 @@
+# Adjacent to R15-DATA-005: mixed-basis P/B served ok while P/S is withheld for the identical reason
+# sidecar :52312 booted from candidate worktree (fix-int) HEAD 5ff9be041180c1c316ad48ceb120a23549a7575a; this shell cwd HEAD 69b6eda1d35d264bc31efb5fa744f9a726edcdde
+# cmd: curl -s $P/fundamentals/TSM ; curl -s $P/fundamentals/SIFY  (raw bodies: fund-TSM.json, fund-SIFY.json)
+TSM currency USD financial_currency TWD ratio_price 450.61
+   book_value 4.8890653 status ok reason 
+   price_to_book 92.1669 status ok reason 
+   price_to_sales None status withheld reason Yahoo's price/sales (market cap over trailing revenue) mixes bases: the listing trades in USD but reports its statements in TWD, so the ratio is off by the exchange rate; withheld
+SIFY currency USD financial_currency INR ratio_price 13.35
+   book_value 2.754225 status ok reason 
+   price_to_book 4.847099 status ok reason 
+   price_to_sales None status withheld reason Yahoo's price/sales (market cap over trailing revenue) mixes bases: the listing trades in USD but reports its statements in INR, so the ratio is off by the exchange rate; withheld
+# truth (yfinance home listings, DATA-005-adjacent-truth.txt): 2330.TW P/B 9.978 (TWD/TWD); HDFCBANK.NS P/B 1.868 (INR/INR). Served: TSM P/B 92.17 ok, HDB P/B 9.32 ok (DATA-005-rerun.txt).

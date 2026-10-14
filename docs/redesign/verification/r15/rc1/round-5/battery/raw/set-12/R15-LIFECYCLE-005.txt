@@ -1,0 +1,19 @@
+=== BEFORE KILL ===
+$ curl -s http://127.0.0.1:52353/openbb-mcp/status
+{"available":true,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52360/mcp","lastToolCallOk":null,"lastError":null}
+$ curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:52353/fundamentals/KPITTECH
+200
+
+=== killed own openbb-mcp worker(57552) + bootloader(57538) on port 52360 ===
+
+=== AFTER KILL ===
+$ curl -s http://127.0.0.1:52353/openbb-mcp/status
+{"available":false,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52360/mcp","lastToolCallOk":false,"lastError":"ProviderError: openbb-mcp tool ...Output validation error..."}
+$ curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:52353/fundamentals/MAZDOCK
+200
+$ curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:52353/fundamentals/KPITTECH
+200
+$ curl -s http://127.0.0.1:52353/openbb-mcp/status (after the two fundamentals calls)
+{"available":false,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:52360/mcp","lastToolCallOk":false,"lastError":"ProviderError: MCP server 'openbb-mcp' failed to open: ConnectError('All connection attempts failed')"}
+
+VERDICT: holds. available:false + lastToolCallOk:false + lastError populated (was true/null on the pre-fix base per R15-LIFECYCLE-005 repro); /fundamentals still 200 (falls through to yfinance) instead of 500.

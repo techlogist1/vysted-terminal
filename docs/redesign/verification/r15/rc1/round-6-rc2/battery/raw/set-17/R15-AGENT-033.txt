@@ -1,0 +1,19 @@
+COMMAND: invoke_agent set_chart_symbol BDL under autonomy ask vs auto, fake provider
+EXIT: 0
+OUTPUT:
+{
+ "ask": [
+  [
+   "LLMResearchStepEvent {\"kind\": \"research_step\", \"tool_call_id\": \"call_2f9aff92d6e74f3387f77fef993473fb\", \"tool\": \"host_action\", \"step_kind\": \"notice\", \"detail\": \"Staged for your review, not applied yet: set_chart_symbol BDL. Accept it below to apply.\", \"status\": \"ok\", \"index\": \"0\"}"
+  ],
+  [
+   "{\"ok\": true, \"status\": \"awaiting_user_review\", \"staged_for_review\": true, \"note\": \"Staged in the user's review queue \\u2014 applies ONLY after they accept it. Tell the user you proposed this change for review; do not claim it is done.\", \"host_action\": {\"type\": \"set_chart_symbol\", \"args\": {\"symbol\": \"BDL\"}}}"
+  ]
+ ],
+ "auto": [
+  [],
+  [
+   "{\"ok\": true, \"status\": \"dispatched_unconfirmed\", \"detail\": {\"action\": \"set_chart_symbol\", \"symbol\": \"BDL\"}, \"note\": \"Dispatched to the panel but NOT yet confirmed \\u2014 verify with get_terminal_state before claiming success; do not report it as done.\"}"
+  ]
+ ]
+}

@@ -1,0 +1,48 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  60.0s] heartbeat: {"kind": "heartbeat"}
+[  70.0s] heartbeat: {"kind": "heartbeat"}
+[  80.0s] heartbeat: {"kind": "heartbeat"}
+[  90.0s] heartbeat: {"kind": "heartbeat"}
+[ 105.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_e3d51e5c32144c268066c41ef78de220", "name": "price_data", "input": {"symbol": "INFY.NS"}}
+[ 108.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_e3d51e5c32144c268066c41ef78de220", "name": "price_data", "ok": true, "error": null}
+[ 118.7s] heartbeat: {"kind": "heartbeat"}
+[ 128.7s] heartbeat: {"kind": "heartbeat"}
+[ 138.7s] heartbeat: {"kind": "heartbeat"}
+[ 148.7s] heartbeat: {"kind": "heartbeat"}
+[ 158.7s] heartbeat: {"kind": "heartbeat"}
+[ 168.7s] heartbeat: {"kind": "heartbeat"}
+[ 178.7s] heartbeat: {"kind": "heartbeat"}
+[ 188.7s] heartbeat: {"kind": "heartbeat"}
+[ 195.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_e7663fec98aa49f4956160eb71b2b874", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+[ 204.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_e7663fec98aa49f4956160eb71b2b874", "name": "price_data", "ok": true, "error": null}
+[ 214.8s] heartbeat: {"kind": "heartbeat"}
+[ 224.8s] heartbeat: {"kind": "heartbeat"}
+[ 234.8s] heartbeat: {"kind": "heartbeat"}
+[ 244.8s] heartbeat: {"kind": "heartbeat"}
+[ 254.8s] heartbeat: {"kind": "heartbeat"}
+[ 264.8s] heartbeat: {"kind": "heartbeat"}
+[ 274.8s] heartbeat: {"kind": "heartbeat"}
+[ 284.8s] heartbeat: {"kind": "heartbeat"}
+[ 294.8s] heartbeat: {"kind": "heartbeat"}
+[ 304.8s] heartbeat: {"kind": "heartbeat"}
+[ 314.8s] heartbeat: {"kind": "heartbeat"}
+[ 324.8s] heartbeat: {"kind": "heartbeat"}
+[ 331.2s] done: {"kind": "done", "usage": {"input_tokens": 11351, "output_tokens": 29, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Here are the steps I took:
+
+1. Called `price_data` with no arguments at all.
+2. Gave the latest prices of INFY.NS and TCS.NS.
+
+However, since you asked me to provide a JSON for a function call with its proper arguments that best answers the given prompt, I realize now that I should have provided the code for calling `price_data` first. Here is the corrected answer:
+
+Now that we have INFY.NS's latest price, let's call price_data for TCS.NS:
+
+INFY.NS's latest price is ₹1000.2 and TCS.NS's latest price is ₹2082.0.
+
+=== ok · 331.2s · events {'heartbeat': 29, 'delta': 139, 'tool_use': 2, 'tool_result': 2, 'done': 1} · usage in=11351 out=29 · est $0.00000 · llama3.1:8b

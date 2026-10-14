@@ -1,0 +1,43 @@
+CMD: sed -n '350,400p' /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/store/command-palette.test.ts
+  it("at equal (exact) quality a panel edges out a symbol via the tiebreak", () => {
+    const panelScore = paletteFilter("panel:aapl", "aapl", ["AAPL"]);
+    const symbolScore = paletteFilter("symbol:AAPL", "aapl", ["AAPL", "equity"]);
+    expect(panelScore).toBeGreaterThan(symbolScore);
+  });
+});
+
+// The ONE dispatch both the palette's layout-mode commands and the macOS menu
+// bridge call (R15-CROSS-PLATFORM-004) — pins the routing contract so
+// Windows/Linux (palette-only; no native menu) get the same deterministic
+// layout modes the menu always gave macOS.
+describe("dispatchLayoutMenuCommand", () => {
+  beforeEach(() => {
+    useWorkspaceStore.setState({ dockviewApi: null });
+  });
+
+  it('"default" resets the layout even with no live dockview api', () => {
+    const resetToDefaultLayout = vi.fn();
+    useWorkspaceStore.setState({ resetToDefaultLayout } as never);
+    expect(dispatchLayoutMenuCommand("default")).toBe(true);
+    expect(resetToDefaultLayout).toHaveBeenCalledOnce();
+  });
+
+  it("an unknown payload returns false and touches nothing", () => {
+    expect(dispatchLayoutMenuCommand("not-a-real-mode")).toBe(false);
+  });
+
+  it("a known mode payload returns false when there is no live dockview api yet", () => {
+    expect(dispatchLayoutMenuCommand("fundamental")).toBe(false);
+  });
+});
+CMD: grep -n 'MENU_PAYLOAD_TO_MODE\|Layout:' /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/store/command-palette.ts
+31:import { applyLayoutMode, MENU_PAYLOAD_TO_MODE } from "@/lib/layout-templates";
+164:  fundamental: "Layout: Fundamental",
+165:  technical: "Layout: Technical",
+166:  macro: "Layout: Macro",
+167:  "compare-desk": "Layout: Compare Desk",
+168:  default: "Layout: Reset to default",
+172: * Run a layout-menu payload (a `MENU_PAYLOAD_TO_MODE` key, or `"default"` for
+181:  const mode = MENU_PAYLOAD_TO_MODE[payload];
+291:  for (const payload of [...Object.keys(MENU_PAYLOAD_TO_MODE), "default"]) {
+295:      label: LAYOUT_MENU_LABELS[payload] ?? `Layout: ${payload}`,

@@ -1,0 +1,3 @@
+=== DATA-081: crypto quote with %2F encoded symbol ===
+{"symbol":"BTC/USDT","price":84606.06,"change":266.05,"change_percent":0.315,"volume":18789.42295,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-09-25T01:01:03.013000Z","provider":"ccxt:binance","freshness":"live"}
+HTTP:200

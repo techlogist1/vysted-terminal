@@ -1,0 +1,11 @@
+R15-CODE-AGENT-013: in-process probe against candidate sidecar venv.
+CMD: python3 (candidate .venv) — internal_tool_ids/agent_selectable_tool_ids/default_grant_tool_ids/mcp_capabilities
+internal 56
+selectable 56
+default_grant 55
+same internal==selectable==default? False
+mcp count 32
+
+aliases reader (catalog.py:1824, inside resolve_tool_ids):
+1824:    by_alias = {alias: cap.id for cap in CAPABILITY_CATALOG.values() for alias in cap.aliases}
+1825-    resolved: list[str] = []

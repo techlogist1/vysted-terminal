@@ -1,0 +1,4 @@
+# in-process probe at ace7dd7: yahoo_batch_provider.fetch_quotes_batch (curl_cffi transport, live Yahoo v7)
+CMD: sidecar/.venv/bin/python3 /private/tmp/b17/l045.py
+<class 'tuple'> 2
+rows 16 failures {}

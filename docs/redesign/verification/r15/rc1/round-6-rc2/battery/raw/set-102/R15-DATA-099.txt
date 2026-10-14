@@ -1,0 +1,9 @@
+$ venv python: fred_provider._coerce_freq on FRED codes
+D -> daily
+W -> weekly
+BW -> other
+M -> monthly
+Q -> quarterly
+SA -> other
+A -> annual
+exit=0

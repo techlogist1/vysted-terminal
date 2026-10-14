@@ -1,0 +1,13 @@
+{
+  "result_type": "<class 'services.research.models.ResearchBrief'>",
+  "n_floor_rows_pre_seeded": 5,
+  "n_sources_total": 6,
+  "n_filing_sources": 5,
+  "filing_source_titles": [
+    "Kaynes Technology India Limited has informed the Exchange regarding 'Corrigendum to the consolidated financial results for the year ended 31, March 2026'.",
+    "Financial Results For The Quarter Ended 30 June 2026",
+    "Kaynes Technology India Limited has submitted to the Exchange, the financial results for the period ended Jun 30, 2026.",
+    "Board Meeting Intimation for Quarterly Results For The Period Ended June 30, 2026",
+    "Outcome of the Board meeting - Appointment of Internal Auditor for the FY 2026-27."
+  ]
+}

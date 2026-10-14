@@ -1,0 +1,16 @@
+COMMAND (1): grep -n "R15-CODE-FRONTEND-012" src/lib/host-actions.test.ts
+COMMAND (2): grep -rn "sidecarPositionId\|syncPositionToSidecar" src/
+CONTEXT: batch-6/VERDICTS.md: "Same commit f37543d ... the importer-less
+addPosition/updatePosition/deletePosition/refresh client in portfolios.ts is
+deleted along with the sync call, closing the same write-only-ledger class as
+CODE-FRONTEND-012". Re-checked live: the named helper functions
+(sidecarPositionId, syncPositionToSidecar) that produced the NaN/405/discarded
+bug no longer exist anywhere in src/ on the candidate, and the pinned no-fetch
+test above covers the same code path. Not executed as vitest (no-vitest-suite rule).
+1127:  it("add/update/delete write only the store — no sidecar ledger call (R15-CODE-FRONTEND-012)", async () => {
+
+--- grep 2 (sidecarPositionId / syncPositionToSidecar) ---
+(no matches -- helper fully removed)
+
+EXIT: 0
+VERDICT: ci_pinned -- src/lib/host-actions.test.ts:1127 (shared commit f37543d fix + no-fetch pinned test); live grep confirms sidecarPositionId/syncPositionToSidecar removed from src/

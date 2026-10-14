@@ -1,0 +1,3 @@
+2026-10-03T10:53:54 1988 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-UI-083/Library/Application Support/com.vysted.terminal/exports/research/setfnif50.md
+2026-10-03T10:54:02 7450598 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-UI-083/Library/Application Support/com.vysted.terminal/exports/research/setfnif50.pdf
+2026-10-03T10:54:10 392228 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-UI-083/Library/Application Support/com.vysted.terminal/exports/research/setfnif50.png

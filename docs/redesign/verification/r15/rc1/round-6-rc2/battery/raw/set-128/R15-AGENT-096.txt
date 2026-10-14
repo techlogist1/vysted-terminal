@@ -1,0 +1,33 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: grep the vitest pins for AGENT-096 at the candidate (screener applyFilters is frontend-only; the entry's live :52415 replay re-sent the same bodies to /screener/run which is unchanged)
+src/lib/host-actions.test.ts:1463:    // later test in this file (R15-AGENT-096's own tests need the REAL
+src/lib/host-actions.test.ts:1487:  // R15-AGENT-096: a flat group (AND or OR) supersedes the flat `criteria`
+src/lib/host-actions.test.ts:1490:  describe("write_screener_filters / save_screen: a flat group's leaves are what actually runs (R15-AGENT-096)", () => {
+src/store/screener.test.ts:492:    it("applyFilters: a FLAT group supersedes the caller's flat criteria — runScreener must send the group's leaves, not the stale list (R15-AGENT-096)", () => {
+  setGroup: (group) => set({ group }),
+  setAdvanced: (advanced) => set({ advanced }),
+  setFormula: (formula) => set({ formula }),
+  applyFilters: ({ criteria, group, universe, formula }) =>
+    set((state) => ({
+      // R15-AGENT-096: a flat group SUPERSEDES the caller's flat `criteria` —
+      // the ack, label and server all treat the group as the source of truth,
+      // so `runScreener` must send the same leaves, not the stale flat list.
+      // A nested group is unchanged (it drives `advanced` / the `group` wire
+      // field instead).
+      criteria:
+        group && !hasNestedGroup(group) ? (group.criteria as ScreenerCriterion[]) : criteria,
+      group: group ?? null,
+      advanced: hasNestedGroup(group ?? null),
+      // A flat group from the agent collapses to the simple combinator so the
+      // simple builder reflects it; a nested one drives advanced mode.
+      combinator: group && group.combinator === "or" && !hasNestedGroup(group) ? "or" : "and",
+      universe: universe ?? state.universe,
+      universeChosen: state.universeChosen || universe !== undefined,
+      // `formula` overrides when provided; omitting it leaves the user's own formula.
+      ...(formula !== undefined ? { formula } : {}),
+    })),
+
+  setSort: (sortBy, sortDir) => {
+    set({ sortBy, sortDir });
+    void get().runScreener();
+EXIT=0

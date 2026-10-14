@@ -1,0 +1,18 @@
+# R15-UI-057 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:46+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for p in openai anthropic groq deepseek gemini; do for sfx in ' ' '\n'; do echo -n "$p key+$(printf %q "$sfx"): "; python3 -c "import json,sys;print(json.dumps({'provider':sys.argv[1],'api_key':'fakekey0000000000000000'+sys.argv[2].replace('\\\\n','\n')}))" "$p" "$sfx" | curl -s -m 30 -X POST -H 'content-type: application/json' -d @- "$H/llm/keys/validate"; echo; done; done; grep -n 'trim()' "$C/src/components/KeyEntryDialog.tsx" | head -2
+--- output ---
+openai key+\ : {"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+openai key+\\n: {"ok":false,"reason":"invalid","detail":"OpenAI rejected this key."}
+anthropic key+\ : {"ok":false,"reason":"invalid","detail":"Anthropic rejected this key."}
+anthropic key+\\n: {"ok":false,"reason":"invalid","detail":"Anthropic rejected this key."}
+groq key+\ : {"ok":false,"reason":"invalid","detail":"Groq rejected this key."}
+groq key+\\n: {"ok":false,"reason":"invalid","detail":"Groq rejected this key."}
+deepseek key+\ : {"ok":false,"reason":"invalid","detail":"DeepSeek rejected this key."}
+deepseek key+\\n: {"ok":false,"reason":"invalid","detail":"DeepSeek rejected this key."}
+gemini key+\ : {"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+gemini key+\\n: {"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+68:    const secret = key.trim();
+192:            <Button type="submit" size="sm" disabled={status === "validating" || !key.trim()}>
+
+EXIT=0 (4.9s)

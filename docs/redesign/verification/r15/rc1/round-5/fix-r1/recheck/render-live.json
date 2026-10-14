@@ -1,0 +1,242 @@
+{
+  "AAPL": {
+    "rowCount": 9,
+    "headers": [
+      "Date",
+      "Reporter",
+      "Title",
+      "Form",
+      "Code",
+      "Direction",
+      "Shares",
+      "Price",
+      "Value"
+    ],
+    "note": "Filing index only — the SEC feed lists these filings without per-trade detail (reporter, direction, shares, price); open the filing for its trades.",
+    "consoleErrors": [],
+    "firstRows": [
+      {
+        "cells": [
+          "2026-09-24",
+          "—",
+          "—",
+          "4",
+          "—",
+          "—",
+          "—",
+          "—",
+          "—"
+        ],
+        "positive": 0,
+        "negative": 0,
+        "blankCells": 0
+      },
+      {
+        "cells": [
+          "2026-09-17",
+          "—",
+          "—",
+          "4",
+          "—",
+          "—",
+          "—",
+          "—",
+          "—"
+        ],
+        "positive": 0,
+        "negative": 0,
+        "blankCells": 0
+      },
+      {
+        "cells": [
+          "2026-09-10",
+          "—",
+          "—",
+          "4",
+          "—",
+          "—",
+          "—",
+          "—",
+          "—"
+        ],
+        "positive": 0,
+        "negative": 0,
+        "blankCells": 0
+      }
+    ],
+    "rowsWithColour": 0,
+    "rowsWithBlankCell": 0
+  },
+  "MSFT": {
+    "rowCount": 44,
+    "headers": [
+      "Date",
+      "Reporter",
+      "Title",
+      "Form",
+      "Code",
+      "Direction",
+      "Shares",
+      "Price",
+      "Value"
+    ],
+    "note": "Filing index only — the SEC feed lists these filings without per-trade detail (reporter, direction, shares, price); open the filing for its trades.",
+    "consoleErrors": [],
+    "firstRows": [
+      {
+        "cells": [
+          "2026-09-17",
+          "—",
+          "—",
+          "4",
+          "—",
+          "—",
+          "—",
+          "—",
+          "—"
+        ],
+        "positive": 0,
+        "negative": 0,
+        "blankCells": 0
+      },
+      {
+        "cells": [
+          "2026-09-17",
+          "—",
+          "—",
+          "4",
+          "—",
+          "—",
+          "—",
+          "—",
+          "—"
+        ],
+        "positive": 0,
+        "negative": 0,
+        "blankCells": 0
+      },
+      {
+        "cells": [
+          "2026-09-17",
+          "—",
+          "—",
+          "4",
+          "—",
+          "—",
+          "—",
+          "—",
+          "—"
+        ],
+        "positive": 0,
+        "negative": 0,
+        "blankCells": 0
+      }
+    ],
+    "rowsWithColour": 0,
+    "rowsWithBlankCell": 0
+  },
+  "NVDA": {
+    "rowCount": 27,
+    "headers": [
+      "Date",
+      "Reporter",
+      "Title",
+      "Form",
+      "Code",
+      "Direction",
+      "Shares",
+      "Price",
+      "Value"
+    ],
+    "note": "Filing index only — the SEC feed lists these filings without per-trade detail (reporter, direction, shares, price); open the filing for its trades.",
+    "consoleErrors": [],
+    "firstRows": [
+      {
+        "cells": [
+          "2026-09-23",
+          "—",
+          "—",
+          "4",
+          "—",
+          "—",
+          "—",
+          "—",
+          "—"
+        ],
+        "positive": 0,
+        "negative": 0,
+        "blankCells": 0
+      },
+      {
+        "cells": [
+          "2026-09-22",
+          "—",
+          "—",
+          "4",
+          "—",
+          "—",
+          "—",
+          "—",
+          "—"
+        ],
+        "positive": 0,
+        "negative": 0,
+        "blankCells": 0
+      },
+      {
+        "cells": [
+          "2026-09-18",
+          "—",
+          "—",
+          "4",
+          "—",
+          "—",
+          "—",
+          "—",
+          "—"
+        ],
+        "positive": 0,
+        "negative": 0,
+        "blankCells": 0
+      }
+    ],
+    "rowsWithColour": 0,
+    "rowsWithBlankCell": 0
+  },
+  "TSLA": {
+    "rowCount": 1,
+    "headers": [
+      "Date",
+      "Reporter",
+      "Title",
+      "Form",
+      "Code",
+      "Direction",
+      "Shares",
+      "Price",
+      "Value"
+    ],
+    "note": "Filing index only — the SEC feed lists these filings without per-trade detail (reporter, direction, shares, price); open the filing for its trades.",
+    "consoleErrors": [],
+    "firstRows": [
+      {
+        "cells": [
+          "2026-09-09",
+          "—",
+          "—",
+          "4",
+          "—",
+          "—",
+          "—",
+          "—",
+          "—"
+        ],
+        "positive": 0,
+        "negative": 0,
+        "blankCells": 0
+      }
+    ],
+    "rowsWithColour": 0,
+    "rowsWithBlankCell": 0
+  }
+}

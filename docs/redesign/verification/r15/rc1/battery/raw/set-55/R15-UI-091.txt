@@ -1,0 +1,6 @@
+$ curl -s http://127.0.0.1:52341/indicators/suggested?timeframe=5m&asset_class=equity
+{"indicators":["ema:9","ema:21","vwap","rsi"]}
+$ curl -s http://127.0.0.1:52341/indicators/suggested?timeframe=1d&asset_class=crypto
+{"indicators":["ema:50","ema:200","vwap:week","rsi"]}
+$ curl -s http://127.0.0.1:52341/indicators/suggested?timeframe=1d&asset_class=equity
+{"indicators":["ma","volume","rsi","macd"]}

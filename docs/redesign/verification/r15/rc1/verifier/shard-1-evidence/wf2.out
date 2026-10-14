@@ -1,0 +1,8 @@
+data: {"kind":"run-start","runId":"aa17b1b8-467e-489b-89ae-518b094b133d","startedAt":1790396704660}
+
+data: {"kind":"node-start","runId":"aa17b1b8-467e-489b-89ae-518b094b133d","nodeId":"res","nodeType":"ai.agent_invoke","startedAt":1790396704660}
+
+data: {"kind":"node-output","runId":"aa17b1b8-467e-489b-89ae-518b094b133d","nodeId":"res","outputs":{"content":"It seems there is no question provided. Please provide the question you'd like me to respond to, and I'll format my response as a JSON object with the function name and its corresponding parameters.\n\nIf you're ready to ask your question, please go ahead and I'll be happy to assist you!","agent_id":"researcher"},"durationMs":47681.762917}
+
+data: {"kind":"run-complete","runId":"aa17b1b8-467e-489b-89ae-518b094b133d","durationMs":47682.066667}
+

@@ -1,0 +1,11 @@
+# probe at ace7dd76 (candidate worktree /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand)
+$ grep -n -B1 -A3 'lock().unwrap()\|lock().take\|\.take()' src-tauri/src/lib.rs src-tauri/src/openbb_mcp.rs src-tauri/src/sec_edgar_mcp.rs | grep -n 'take\|lock'
+2:src-tauri/src/lib.rs:53:        self.0.lock().unwrap().clone()
+8:src-tauri/src/lib.rs:60:        let mut snapshot = self.0.lock().unwrap();
+14:src-tauri/src/lib.rs:68:        let mut snapshot = self.0.lock().unwrap();
+20:src-tauri/src/lib.rs:773:                let child = state.0.lock().unwrap().take();
+26:src-tauri/src/lib.rs:812:                log.lock().unwrap().push(name);
+32:src-tauri/src/lib.rs:849:        let order = log.lock().unwrap().clone();
+38:src-tauri/src/openbb_mcp.rs:190:        let child = state.0.lock().unwrap().take();
+44:src-tauri/src/sec_edgar_mcp.rs:185:        let child = state.0.lock().unwrap().take();
+EXIT=0

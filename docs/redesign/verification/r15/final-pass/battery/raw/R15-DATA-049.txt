@@ -1,0 +1,43 @@
+# R15-DATA-049 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:18:48+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/fundamentals/VIYASH' | grep -oE '"dividend[^,]*|no dividends[^"]*|trailing-12m[^"]*|\[http.*'
+[exit 0] [16.67s]
+"dividend_yield":0.0
+"dividend_per_share":null
+"dividend_per_share_ttm":0.0
+"dividend_yield":{"status":"ok"
+no dividends paid (trailing 12m)
+no dividends paid (trailing 12m)
+"dividend_per_share":{"status":"unavailable"
+"dividend_per_share_ttm":{"status":"ok"
+no dividends paid (trailing 12m)
+no dividends paid (trailing 12m)
+[http 200 16.657792s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/fundamentals/ICON' | grep -oE '"dividend[^,]*|no dividends[^"]*|trailing-12m[^"]*|\[http.*'
+[exit 0] [3.52s]
+"dividend_yield":0.0
+"dividend_per_share":null
+"dividend_per_share_ttm":0.0
+"dividend_yield":{"status":"ok"
+no dividends paid (trailing 12m)
+no dividends paid (trailing 12m)
+"dividend_per_share":{"status":"unavailable"
+"dividend_per_share_ttm":{"status":"ok"
+no dividends paid (trailing 12m)
+no dividends paid (trailing 12m)
+[http 200 3.500197s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/fundamentals/ELCIDIN' | grep -oE '"dividend[^,]*|no dividends[^"]*|trailing-12m[^"]*|\[http.*'
+[exit 0] [11.05s]
+"dividend_yield":0.0002447261514365425
+"dividend_per_share":null
+"dividend_per_share_ttm":25.0
+"dividend_yield":{"status":"ok"
+trailing-12m dividends paid (25) / price (102155)
+"dividend_per_share":{"status":"unavailable"
+"dividend_per_share_ttm":{"status":"ok"
+[http 200 11.035165s]
+

@@ -1,0 +1,20 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+method: live POST /workflow/run against rc1-battery-11's own sidecar (:52351)
+with a single ai.agent_invoke node whose agent_id does not exist, forcing an
+LLMErrorEvent/exception path with no key/provider configured on the request
+(same "no credentials threaded" condition the entry's repro describes).
+
+node config: {"agent_id": "nonexistent_agent_xyz", "prompt_template": "hello"}
+
+cmd: curl -s -m 25 -N -X POST http://127.0.0.1:52351/workflow/run -d @wf_agent_fail.json
+
+raw SSE output:
+data: {"kind":"node-error","nodeId":"ai","message":"ai.agent_invoke (nonexistent_agent_xyz): unknown agent: 'nonexistent_agent_xyz'","durationMs":1.031708}
+data: {"kind":"run-error","message":"failures in nodes: ['ai']","durationMs":1.18725}
+
+observed: the failure is reported as a real node-error + run-error, naming
+the actual cause. There is no "(no provider key configured)" sentinel and no
+status "ok" — the original defect (every failure laundered into a fake
+successful sentinel string) does not reproduce.
+
+verdict: holds

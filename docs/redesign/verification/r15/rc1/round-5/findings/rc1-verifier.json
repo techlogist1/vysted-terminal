@@ -1,0 +1,509 @@
+[
+ {
+  "key": "rc1-verifier:1",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-CODE-PLATFORM-072",
+  "title": "ccxt is a live provider_registry provider (listed by /data-sources) but still has no marketplace row; REGISTRY_PROVIDER_ID maps only vysted-yfinance and openbb-mcp",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Own sidecar :52312 from the candidate worktree: curl /data-sources lists ccxt (crypto ohlcv/quote, available true). grep src/lib/marketplace.ts: no ccxt pluginId, REGISTRY_PROVIDER_ID = {vysted-yfinance, openbb-mcp}.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/cp072.out.txt",
+  "suspected_files": [
+   "src/lib/marketplace.ts:185-190",
+   "src/lib/marketplace.ts:204 (INDIA_DATA_LANES hand-written rows)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:2",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-LIFECYCLE-024",
+  "title": "Upgrading from a data dir with no data_cache meta build row (every build before ca25a5ca, incl. v0.8.0 tagged 2026-05-18) clears the cache with no backup",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. l024.py: case a builds a data dir with no meta table (released-build shape) and calls data_cache.ensure_build('0.8.0') -> cleared=True, backups dir absent. Case b (meta build=0.7.9-prior) -> backup '0.7.9-prior' made. ensure_build switch() only calls _backup_data_dir when a meta build row exists.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/l024.out.txt",
+  "suspected_files": [
+   "sidecar/services/data_cache.py:115 (ensure_build switch: if row is not None: _backup_data_dir)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-RESEARCH-022",
+  "title": "DdgSearchBackend never runs raise_if_challenge_page: a 200 DuckDuckGo block page reads as a healthy empty result and resets the breaker failure count",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. r022.py: feed DdgSearchBackend a 200 challenge/block page -> ok, 0 rows; through KeylessSearchBackend -> ok 0 rows backend keyless; ddg breaker failures 1 -> 0.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/r022.out.txt",
+  "suspected_files": [
+   "sidecar/services/search/ddg.py:323 (DdgSearchBackend)",
+   "sidecar/services/search/base.py:118 (raise_if_challenge_page)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:4",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-AGENT-027",
+  "title": "A body-less HTTP 413 from the provider humanizes to unknown \"Something went wrong ... Try again or switch provider\" instead of context_overflow; the 413 rule is gated on a non-empty body",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. python with PYTHONPATH=sidecar: humanize(groq, status=413, body '') -> code unknown, 'Something went wrong with Groq.'; with body 'Request Entity Too Large' -> context_overflow.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/a027.out.txt",
+  "suspected_files": [
+   "sidecar/services/errors.py:369 (humanize: _BODY_RULES checked only when raw text non-empty)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:5",
+  "kind": "new_defect",
+  "severity": "high",
+  "register_id": "R15-CODE-DATA-001",
+  "title": "FOCUS announcements merge the BSE feed of a different company (BSE scrip 543312) with Focus Lighting and Fixtures NSE items under one symbol",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Own sidecar :52312, X-Vysted-Region IN: GET /disclosures/announcements?symbol=FOCUS -> 50 rows mixing exchange BSE rows (scrip 543312, not Focus Lighting) and NSE Focus Lighting rows; resolve shows FOCUS NSE != BSE 543312.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/cd001-ann.json; docs/redesign/verification/r15/rc1/round-5/verifier/refutations/cd001-resolve.json",
+  "suspected_files": [
+   "sidecar/services/corporate_disclosures.py",
+   "sidecar/services/symbol_resolver.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:6",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-RESEARCH-002",
+  "title": "Verifier verdict text wrapped in underscore emphasis (_UNVERIFIED_ / __UNVERIFIED__) parses as AGREE",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. _parse_verdict('_UNVERIFIED_ - no source confirms the 23% operating margin.') -> agree; '__UNVERIFIED__ - ...' -> agree; plain, backtick, quote and *asterisk* forms -> unverified.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/r002-variants.out.txt",
+  "suspected_files": [
+   "sidecar/services/research/verify.py:130 (_parse_verdict: \\bWORD\\b defeated by underscore)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:7",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-RESEARCH-029",
+  "title": "strip_model_bibliography misses common bibliography heading variants, so a model-written source list survives beside the verified one",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. r029.py runs strip_model_bibliography over heading variants; variants outside ^(merged |cited )?(sources|references|bibliography|works cited)( used)?$ are not stripped.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/r029.out.txt",
+  "suspected_files": [
+   "sidecar/services/research/citecheck.py:75,94"
+  ]
+ },
+ {
+  "key": "rc1-verifier:8",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-AGENT-027",
+  "title": "A Gemini free-tier per-minute 429 (RESOURCE_EXHAUSTED ... retry in Ns) is shown as \"out of credit or quota. Add credit or check your plan\"",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. humanize(gemini, 429 RESOURCE_EXHAUSTED per-minute quota body) -> insufficient_credit 'Your Google Gemini account is out of credit or quota.'",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/adjacent/adj-batch1.out.txt",
+  "suspected_files": [
+   "sidecar/services/errors.py (humanize rules)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:9",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-AGENT-040",
+  "title": "historyForSend drops the oldest turns once the thread passes 60k chars with no notice to the user or the model",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. src/store/chat-history.ts HISTORY_CHAR_BUDGET = 60_000; historyForSend FIFO-drops the oldest turns before the runtime can fold them. Re-ran the runtime half (agent_runtime._coerce_history) on the client histories captured by the shard vitest: short-6x keeps the turn-1 constraint (the entry's own repro passes); research-6x-12k sends 8 of 12 turns and the summary starts at question 3; chat-20x-3.5k sends 32 of 40 and starts at question 5. The UI says 'Older turns summarised' either way.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/a040.out.txt; docs/redesign/verification/r15/rc1/round-5/logs/rc1-vshard-2-evidence/vt/a040.vs2.test.ts",
+  "suspected_files": [
+   "src/store/chat-history.ts:296"
+  ]
+ },
+ {
+  "key": "rc1-verifier:10",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-DATA-060",
+  "title": "20-F ownership lane returns not_applicable with 0 holders for ADRs whose 20-F has a holders table (IBN, HDB)",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Own sidecar :52312: GET shareholding for IBN and HDB -> not_applicable, holders []; SIFY/WIT compared.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/d060-IBN.json.txt; docs/redesign/verification/r15/rc1/round-5/verifier/refutations/d060-HDB.json.txt",
+  "suspected_files": [
+   "sidecar/services (20-F ownership parser)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:11",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-RESEARCH-027",
+  "title": "FAST research web-only branch (no instrument resolves) awaits _web_round without a time box; only the resolved branch uses asyncio.wait_for",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Code: sidecar/services/research/fast.py:597 web = await _web_round(tool_call, f'{query} news outlook') has no wait_for, while the resolved branch at :692 uses asyncio.wait_for(..., _WEB_ROUND_TIMEOUT_S). Shard-9 pytest stalls web_search 20 s with no instrument resolving -> 'web-only NORMAL path held 20.0s by an un-boxed web round'; the resolved paths stop at 8.0 s with reason timeout. The entry's own KSE repro does not reproduce (r027b: 8.1/8.5/6.0 s).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-9-evidence/research027-pytest-output.txt; docs/redesign/verification/r15/rc1/round-5/verifier/refutations/r027b.out.txt",
+  "suspected_files": [
+   "sidecar/services/research/fast.py:597"
+  ]
+ },
+ {
+  "key": "rc1-verifier:12",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-AGENT-024",
+  "title": "write_screener_filters with only the documented OR/nested group tree is rejected: schema requires criteria",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Validate args {'group': {...}} for write_screener_filters -> __vysted_invalid_args__ 'missing criteria'; {'criteria': [], 'group': ...} passes.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/adjacent/adj-s0-groupfilters.out.txt",
+  "suspected_files": [
+   "sidecar/services/agent_tools/catalog.py (write_screener_filters schema)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:13",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-UI-029",
+  "title": "Macro search failure renders as an empty \"No matching series\": the store catches every error and stores []; keyless FRED search is a 502 with an actionable message",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Live keyless GET /macro/search?q=unemployment&provider=fred -> 502 provider_error 'FRED needs a free API key...'; src/store/macro.ts:120 catch {} sets searchResults[key]=[].",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/adjacent/adj-batch1.out.txt; docs/redesign/verification/r15/rc1/round-5/verifier/adjacent/adj-batch2.out.txt",
+  "suspected_files": [
+   "src/store/macro.ts:120"
+  ]
+ },
+ {
+  "key": "rc1-verifier:14",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-UI-052",
+  "title": "Settings privacy copy over-promises: \"Nothing leaves this machine except calls you make to providers you configure\" while keyless lanes (Yahoo, NSE/BSE, DDG) call out without configuration",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. grep src/components/SettingsPanel.tsx:122 and :1324.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/adjacent/adj-batch2.out.txt",
+  "suspected_files": [
+   "src/components/SettingsPanel.tsx:122",
+   "src/components/SettingsPanel.tsx:1324"
+  ]
+ },
+ {
+  "key": "rc1-verifier:15",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-RESEARCH-025",
+  "title": "Screener formula validate accepts a boolean operand in a comparison (\"roe > (pe_ratio < 15)\", \"(pe_ratio > 3) > 0.5\") and coerces it",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. POST formula validate -> ok true for '(pe_ratio > 3) > 0.5', 'roe > (pe_ratio < 15)', '(pe_ratio < 15) == 1'.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/adjacent/adj-batch1.out.txt",
+  "suspected_files": [
+   "sidecar/services/screener_formula.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:16",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-DATA-069",
+  "title": "Analyst ratings swallow a Yahoo rate-limit into an empty 200 list that reads as no coverage",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. sidecar/services/analyst_ratings_extended.py except Exception blocks at :189-203 return empty; shard-4 raw shows the 429 path.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/adjacent/adj-batch2.out.txt; docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/analyst_ratings_extended.py:189-203"
+  ]
+ },
+ {
+  "key": "rc1-verifier:17",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-LEAD-009",
+  "title": "A Yahoo rate-limit on earnings history is swallowed as an empty history and cached for 24 h",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. sidecar/services/earnings_provider.py:225-239 bare excepts return empty; shard-2 eh.py drives the 429 into the cache.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/adjacent/adj-batch2.out.txt; docs/redesign/verification/r15/rc1/round-5/logs/rc1-vshard-2-evidence/eh.py",
+  "suspected_files": [
+   "sidecar/services/earnings_provider.py:225-275",
+   "sidecar/routers/earnings.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:18",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-RESEARCH-009",
+  "title": "Heavy/ULTRA brief stopped by its spend ceiling publishes note=None, and the cross-check keeps spending after the breach",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md",
+  "suspected_files": [
+   "sidecar/services/research/iter.py",
+   "sidecar/services/agent_tools/deep_research.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:19",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-AGENT-008",
+  "title": "The latest round's tool results are never elided by _fit_to_window, so a multi-result round leaves the answer below the 1/8 reserve",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:20",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-CODE-FRONTEND-006",
+  "title": "Scheduled and MCP-run workflows run with no event sink: action.notify_desktop reports notified:true but nothing is shown",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md",
+  "suspected_files": [
+   "sidecar/services/workflow_scheduler.py:136",
+   "sidecar/services/mcp_server.py:277-301"
+  ]
+ },
+ {
+  "key": "rc1-verifier:21",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-UI-003",
+  "title": "Editing a custom agent silently clears its default_model on save (customSpecToSummary sets defaultModel: null)",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-1.md",
+  "suspected_files": [
+   "src/store/agents.ts:128",
+   "src/modules/agent-builder/AgentBuilderPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-verifier:22",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-UI-055",
+  "title": "A partially throttled screen shows \"No rows matched - loosen a threshold / Reset filters\" although most symbols were never evaluated",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/logs/rc1-vshard-2-evidence/u055-custom.json",
+  "suspected_files": [
+   "src/modules/screener/ScreenerResultsTable.tsx"
+  ]
+ },
+ {
+  "key": "rc1-verifier:23",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-CODE-FRONTEND-015",
+  "title": "A focused SEC Filings panel publishes identifier, not symbol, so the agent context names the wrong symbol",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/logs/rc1-vshard-2-evidence/vt/f015.vs2.test.tsx",
+  "suspected_files": [
+   "src/modules/sec/SecFilingsPanel.tsx:164",
+   "src/modules/chat/context-provider.ts"
+  ]
+ },
+ {
+  "key": "rc1-verifier:24",
+  "kind": "chain",
+  "severity": "medium",
+  "register_id": "R15-CROSS-PLATFORM-002",
+  "title": "Flaky test_research_fast::test_fast_web_round_runs_alongside_a_time_boxed_fan_out: an unstubbed earnings-quality leg makes it timing-dependent",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/tests/test_research_fast.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:25",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-LEAD-018",
+  "title": "ReasoningSplitter releases a held reasoning echo in full when an answer follows it (provisional, shard evidence only)",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "sidecar/services/llm/reasoning_split.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:26",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-UI-028",
+  "title": "Agent/MCP compute_greeks and price_option return QuantLib-unit vega/theta/rho unlabelled; the model restated them as per-unit values",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-5-raw/ag-greeks.sse",
+  "suspected_files": [
+   "sidecar/services/agent_tools/quant_tools.py",
+   "sidecar/services/agent_tools/catalog.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:27",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-LEAD-013",
+  "title": "sp500 screen serves S&P 500 member PTC as PTC India Limited (INR) from a fundamentals row written before the LEAD-044 fix; no migration purges it",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-6-raw/adjacent-sp500-PTC.txt",
+  "suspected_files": [
+   "sidecar/services/fundamentals_store.py",
+   "sidecar/services/screener.py",
+   "sidecar/services/fundamentals_warm.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:28",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-DATA-112",
+  "title": "Screener top-K round-robin gives currency-less rows their own group slot, so a null-market-cap row displaces a real one",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-7-raw/DATA-112-fresh.txt",
+  "suspected_files": [
+   "sidecar/services/screener.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:29",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-DATA-068",
+  "title": "Earnings drill-down As-of chip shows the client fetch clock and ignores the envelope server as_of",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Verifier sample-shard evidence (not re-run by the lead verifier); see evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-7-raw/DATA-068.txt",
+  "suspected_files": [
+   "src/store/earnings.ts",
+   "src/modules/earnings/EarningsCalendarPanel.tsx"
+  ]
+ },
+ {
+  "key": "rc1-verifier:30",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-073",
+  "title": "NSE holiday table ends 2026-12-25; 2027-01-26 (Republic Day) is treated as an IN trading day (D-B9-4 covers the test horizon, not the data)",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. See evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/data073.out.txt",
+  "suspected_files": [
+   "sidecar/services (NSE holiday table)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:31",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-LEAD-026",
+  "title": "Suffixed unknown symbols (QQZZFAKE.NS, XYZNOTATICKER.BO) still return 200, 0 bars, reason null",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. See evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/lead026.out.txt",
+  "suspected_files": [
+   "sidecar/routers/history"
+  ]
+ },
+ {
+  "key": "rc1-verifier:32",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-LEAD-033",
+  "title": "The sibling [failed: ...] trailer still rides verbatim assistant history to the provider (_without_step_trailers strips only [tool steps:])",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. See evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/lead033.out.txt",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py:660",
+   "src/store/chat-history.ts"
+  ]
+ },
+ {
+  "key": "rc1-verifier:33",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-095",
+  "title": "Ratio guard still replaces a correct ADS-ratio sentence dated 26-Jun-2026 / Jun-26-2026 with \"not available\"",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. See evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/a095.out.txt",
+  "suspected_files": [
+   "sidecar/services (ratio guard)"
+  ]
+ },
+ {
+  "key": "rc1-verifier:34",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-044",
+  "title": "Resolver suggestions for MAZAGONDOCK / RELIANCEIND variants",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. See evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/a044-MAZAGONDOCK.json.txt",
+  "suspected_files": [
+   "sidecar/services/symbol_resolver.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:35",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-UI-058",
+  "title": "Import toast says \"Imported settings.\" for {settings:{fontSize}} when nothing applied",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. Shard-4 vitest probe of SettingsPanel handleImportFile: {settings:{fontSize:14}}, only-unknown keybinding ids and empty sections all toast 'Imported settings.' with no state change (appliedAny is set when a section key is an object). The entry's own repro ({} and {theme:'dark'}) now errors.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/shard-4.md",
+  "suspected_files": [
+   "src/components/SettingsPanel.tsx:2044-2081",
+   "src/components/SettingsPanel.test.tsx:394-404"
+  ]
+ },
+ {
+  "key": "rc1-verifier:36",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-RESEARCH-006",
+  "title": "Cross-check extract still slow before the wall timeout (verdict leg boxed)",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. See evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/r006.out.txt",
+  "suspected_files": [
+   "sidecar/services/research"
+  ]
+ },
+ {
+  "key": "rc1-verifier:37",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-LEAD-031",
+  "title": "Type-first JSON tool-call text can leak into the visible answer",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. See evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/l031.out.txt",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:38",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-DATA-005",
+  "title": "_row_value has a twin implementation that can drift",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. See evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/cd005.out.txt",
+  "suspected_files": [
+   "sidecar/services/screener.py"
+  ]
+ },
+ {
+  "key": "rc1-verifier:39",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DOCS-016",
+  "title": "One doc line still says \"the 18\" host actions while the others and the catalog say 19",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. See evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/verifier/refutations/docs016.out.txt",
+  "suspected_files": [
+   "docs/"
+  ]
+ },
+ {
+  "key": "rc1-verifier:40",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "title": "sidecar/agents/copilot.json system prompt example reply \"Built you a brief on NVDA - it's at the top of the cockpit\" teaches an applied-tense claim that conflicts with review mode (local rb1/rb4 overclaim)",
+  "repro": "HEAD 633f844071d972b337f4c3526d86555c80df0568. See evidence_file.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/scenarios/rb1-local-t1.jsonl; docs/redesign/verification/r15/rc1/round-5/scenarios/rb4-local-t1.jsonl",
+  "suspected_files": [
+   "sidecar/agents/copilot.json"
+  ]
+ },
+ {
+  "key": "rc1-verifier:41",
+  "kind": "environment",
+  "severity": "low",
+  "register_id": "",
+  "title": "The read-only candidate worktree carries 3 uncommitted spend-ledger.jsonl lines (free local ollama calls, 16:44-16:50) written by vy.py runs from that worktree, 2 tagged agent-eval:ollama:disclosures-tcs and 1 tagged rc1-vshard-7:CODE-AGENT-033",
+  "repro": "git -C <scratchpad>/rc1-round-5-9bc600e-fix-int diff --stat -> docs/redesign/verification/r15/spend-ledger.jsonl | 3 +++. HEAD is still 633f844071d972b337f4c3526d86555c80df0568; the tagged tree (the commit) is unaffected. Left in place as spend evidence; the lead should fold the lines into the main ledger before the worktree is removed.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/logs/rc1-verifier.md",
+  "suspected_files": [
+   "scripts/r15/vy.py (ledger path follows the invoking checkout)"
+  ]
+ }
+]

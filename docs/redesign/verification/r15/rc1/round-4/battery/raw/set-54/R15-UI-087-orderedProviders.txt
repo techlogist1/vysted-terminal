@@ -1,0 +1,2 @@
+no order (catalog order): ["ollama","openrouter","anthropic","openai"]
+order=[openai,ollama]: ["openai","ollama","openrouter","anthropic"]

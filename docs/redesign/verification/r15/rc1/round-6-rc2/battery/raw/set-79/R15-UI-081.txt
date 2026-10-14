@@ -1,0 +1,69 @@
+CMD: grep -n 'disabled portfolio: openPanel returns false' src/store/workspace.test.ts; grep -n 'isModuleEnabled\|enabled' src/store/workspace.ts | head -8; sed -n 1,5p /dev/null; grep -n 'AI Assistant\|chat' src/components/SettingsPanel.tsx | sed -n 1,8p
+71:  it("disabled portfolio: openPanel returns false, no panel added", () => {
+99: * dockview layout and the modules `enabled` map.
+116:    const spec = modules.enabledPanels().find((panel) => panel.id === panelId);
+174:    const enabledPanelIds = new Set(
+177:        .enabledPanels()
+180:    applyDefaultLayout(api, enabledPanelIds);
+187:    // are enabled unless explicitly `false`) so a prior workspace that disabled
+663:          hint="The persona the chat starts on — applies now and at every launch."
+677:                <option value="">Raw chat (no persona)</option>
+1312: * SearXNG retrieval with the active chat model; Tier B routes research (and
+1324:        description="Private local search via SearXNG, paired with your active chat model. Unmetered and free — nothing leaves this machine but the pages it fetches."
+1332:        description="Purpose-built internet-native research via OpenRouter — research routes here at every depth regardless of chat model. Chat stays on your chat model."
+1349:        hint="Two ways to run research: unlimited private local search with your chat model, or a hosted research model on your own OpenRouter key."
+EXIT=0
+
+--- openPanel guard:
+   */
+  resetLayout: () => void;
+  /**
+   * The explicit factory reset (Settings / menu): re-enables every module,
+   * deletes every chart drawing and view, re-applies the default layout and
+   * renames the workspace "default".
+   */
+  resetToDefaultLayout: () => void;
+}
+
+/**
+ * Workspace store — the active workspace name and a handle to the dockview
+ * layout. Phase 1.A-2 ships the open/close/focus plumbing; Teammate D
+ * (Phase 1.B) enriches it with `.vysted-workspace` save/load that serialises the
+ * dockview layout and the modules `enabled` map.
+ */
+export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
+  name: "default",
+  researchSymbol: null,
+  dockviewApi: null,
+  lastAutosaveError: null,
+  setLastAutosaveError: (lastAutosaveError) => set({ lastAutosaveError }),
+  setName: (name) => set({ name }),
+  setResearchSymbol: (researchSymbol) => set({ researchSymbol }),
+  setDockviewApi: (dockviewApi) => set({ dockviewApi }),
+  openPanel: (panelId) => {
+    const api = get().dockviewApi;
+    if (!api) {
+      return false;
+    }
+    const modules = useModulesStore.getState();
+    const spec = modules.enabledPanels().find((panel) => panel.id === panelId);
+    if (!spec) {
+      if (process.env.NODE_ENV !== "production" && !modules.findPanel(panelId)) {
+        console.error(`openPanel: no registered panel "${panelId}" (a component id?)`);
+      }
+      return false;
+    }
+    // Seed the opened panel's size from the spec's declared defaultSize (a
+    // proportional starting ratio; dockview redistributes from there).
+    const applySize = (panel: IDockviewPanel) => {
+--- chat module toggle:
+src/modules/chat/index.ts:9: * a panel produced a second, identical agent surface ("AI Assistant") alongside
+src/modules/chat/index.ts:18:  title: "AI Assistant",
+src/components/SettingsPanel.tsx:838: *  the wire ids). Exported so the chip contract is locked by tests. */
+src/components/SettingsPanel.tsx:852:      // R15-RESEARCH-028: the container answers but its engines are blocked
+src/components/SettingsPanel.tsx:855:      return { label: "Degraded — engines blocked", className: "text-caution border-caution/40" };
+src/components/SettingsPanel.tsx:959:    // Still a running container (just blocked) — Stop is the same honest verb
+src/components/SettingsPanel.tsx:1019:          Degraded — engines blocked ({status.reason ?? "no results from any engine"}). Research is
+src/components/SettingsPanel.tsx:1928:          const alwaysOn = module.id === PLATFORM_MODULE_ID || contributesNothing(module);
+src/components/SettingsPanel.tsx:1929:          const isEnabled = alwaysOn || enabled[module.id] !== false;
+src/components/SettingsPanel.tsx:1938:                  {alwaysOn ? " · always on" : ""}

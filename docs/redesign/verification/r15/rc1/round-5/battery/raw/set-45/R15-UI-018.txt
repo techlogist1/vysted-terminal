@@ -1,0 +1,104 @@
+
+== ConfirmButton usage in marketplace/MarketplacePanel.tsx ==
+6:import { ConfirmButton } from "@/components/ConfirmButton";
+282:            <ConfirmButton
+291:            </ConfirmButton>
+
+== ConfirmButton.tsx double-click semantics ==
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import type { VariantProps } from "class-variance-authority";
+
+import { Button, buttonVariants } from "@/components/ui/button";
+
+const ARM_MS = 4000;
+
+/**
+ * A destructive action's confirmation, inline (R15-UI-018): first click arms
+ * the button — it shows "Confirm delete?" for 4s — and a second click within
+ * that window calls `onConfirm`. Clicking elsewhere, or letting the window
+ * lapse, disarms with no action taken. One shared primitive for every
+ * destructive click in the shell so none of them fire on a single stray click.
+ */
+export function ConfirmButton({
+  onConfirm,
+  armedLabel = "Confirm delete?",
+  children,
+  className,
+  variant,
+  size,
+  "aria-label": ariaLabel,
+  disabled,
+  ...props
+}: Omit<React.ComponentProps<"button">, "onClick"> &
+  VariantProps<typeof buttonVariants> & {
+    onConfirm: () => void;
+    armedLabel?: React.ReactNode;
+  }) {
+  const [armed, setArmed] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    [],
+  );
+
+  function handleClick() {
+    if (!armed) {
+      setArmed(true);
+      timerRef.current = setTimeout(() => setArmed(false), ARM_MS);
+      return;
+    }
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setArmed(false);
+    onConfirm();
+  }
+
+  return (
+    <Button
+      type="button"
+      variant={armed ? "destructive" : variant}
+      size={size}
+      className={className}
+      disabled={disabled}
+      aria-label={armed ? "Confirm: this cannot be undone" : ariaLabel}
+
+== pinned vitest assertion ==
+80:  it("a single click on Remove does not remove the plugin; a second click confirms it", async () => {
+
+== ConfirmButton usage count across the shell ==
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/components/ConfirmButton.tsx
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/components/SettingsPanel.tsx
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/modules/screener/ScreenerPanel.tsx
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/modules/platform/WorkspaceDialog.tsx
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/modules/marketplace/MarketplacePanel.tsx
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/modules/agent-builder/AgentBuilderPanel.tsx
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/modules/portfolio/PortfolioPanel.tsx
+
+== keychain.ts delete: try/catch now? ==
+3- *
+4- * Thin typed bindings over the Tauri Rust `keychain_set` / `keychain_get` /
+5: * `keychain_delete` commands (`src-tauri/src/keychain.rs`). Every Vysted
+6- * secret — LLM provider API keys, MCP server endpoints, plugin-granted
+7- * secrets — flows through here. The `KEYCHAIN_NAMESPACES` helpers build the
+8- * canonical secret-id strings so the namespace conventions stay consistent
+9- * across the AI core, the MCP layer, and plugin authors.
+10- *
+--
+63-/** Remove a secret from the OS keychain. No-op if the secret was never set. */
+64-export async function deleteSecret(account: string): Promise<void> {
+65:  await invoke<void>("keychain_delete", { account });
+66-}
+67-
+68-/** Report from {@link migrateDevKeystore}. */
+69-export interface KeychainMigrateReport {
+70-  /** `"dev-keystore"` in dev builds, `"os-keychain"` in release. */
+
+== ConfirmButton is used in all 5 original repro surfaces ==
+SettingsPanel.tsx, ScreenerPanel.tsx, WorkspaceDialog.tsx, MarketplacePanel.tsx, AgentBuilderPanel.tsx, PortfolioPanel.tsx
+
+== SettingsPanel.handleRemove wraps deleteSecret in try/catch, sets removeError ==
+confirmed

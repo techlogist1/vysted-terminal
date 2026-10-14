@@ -1,0 +1,204 @@
+positions_before=HTTP 200
+[]
+
+== p-sbi-short.r1
+prompt='Get the latest price of SBIN.NS and state it in one sentence that calls the company SBI.'
+calls=[('price_data', {'asset_class': 'equity', 'range': '1d', 'symbol': 'SBIN.NS', 'timeframe': '1d'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The latest price of SBI is ₹1035.1.
+
+== p-tcs-short.r1
+prompt='Get the latest price of TCS.NS and state it in one sentence.'
+calls=[('price_data', {'symbol': 'TCS.NS'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The current price of TCS.NS is ₹2082.00.
+
+== p-infy-now.r1
+prompt='What is INFY.NS trading at right now? One line.'
+calls=[('price_data', {'asset_class': 'equity', 'range': '1d', 'symbol': 'INFY.NS', 'timeframe': '1h'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+INFY.NS is trading at ₹1,000.20 as of now.
+
+== p-itc-current.r1
+prompt='Fetch ITC.NS with price_data and tell me its current price.'
+calls=[('price_data', {'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo', 'symbol': 'ITC.NS'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The current price of ITC.NS is ₹269.0.
+
+You can see the live data for ITC.NS on the chart. Would you like to know anything else about this stock?
+
+== p-hdfc-latest.r1
+prompt='Latest HDFCBANK.NS price please, just the number and the date.'
+calls=[('price_data', {'symbol': 'HDFCBANK.NS'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The current price of HDFCBANK.NS is ₹780.5.
+
+== p-wipro-now.r1
+prompt="Use price_data for WIPRO.NS and give me the current price and today's change."
+calls=[('price_data', {'symbol': 'WIPRO.NS'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The current price of WIPRO.NS is ₹164.02 and the change today is +0.38% (₹0.62).
+
+== p-sbi-short.r2
+prompt='Get the latest price of SBIN.NS and state it in one sentence that calls the company SBI.'
+calls=[('price_data', {'symbol': 'SBIN.NS', 'timeframe': '1d'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The latest price of SBI is ₹983.0.
+
+== p-tcs-short.r2
+prompt='Get the latest price of TCS.NS and state it in one sentence.'
+calls=[('price_data', {'symbol': 'TCS.NS'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The current price of TCS.NS is ₹2082.0.
+
+== p-infy-now.r2
+prompt='What is INFY.NS trading at right now? One line.'
+calls=[('price_data', {'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo', 'symbol': 'INFY.NS'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+INFY.NS is currently trading at ₹1,000.20 (₹1,000.20).
+
+== p-itc-current.r2
+prompt='Fetch ITC.NS with price_data and tell me its current price.'
+calls=[('price_data', {'symbol': 'ITC.NS'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The current price of ITC.NS is ₹269.0.
+
+== p-hdfc-latest.r2
+prompt='Latest HDFCBANK.NS price please, just the number and the date.'
+calls=[('price_data', {'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo', 'symbol': 'HDFCBANK.NS'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The latest price of HDFCBANK.NS is ₹735.60 as of September 25, 2023.
+
+== p-wipro-now.r2
+prompt="Use price_data for WIPRO.NS and give me the current price and today's change."
+calls=[('price_data', {'timeframe': '1d', 'symbol': 'WIPRO.NS', 'range': '1d'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The current price of WIPRO.NS is ₹164.02 and the today's change is +0.38 (+0.23%).
+
+== p-sbi-short.r3
+prompt='Get the latest price of SBIN.NS and state it in one sentence that calls the company SBI.'
+calls=[('price_data', {'range': '1mo', 'symbol': 'SBIN.NS', 'timeframe': '1d', 'asset_class': 'equity'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The current price of SBI is ₹983.0.
+
+== p-tcs-short.r3
+prompt='Get the latest price of TCS.NS and state it in one sentence.'
+calls=[('price_data', {'symbol': 'TCS.NS', 'timeframe': '1d', 'asset_class': 'equity', 'range': '1mo'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The current price of TCS.NS is ₹20,820.
+
+== p-infy-now.r3
+prompt='What is INFY.NS trading at right now? One line.'
+calls=[('price_data', {'asset_class': 'equity', 'range': '1d', 'symbol': 'INFY.NS', 'timeframe': '1d'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+INFY.NS is trading at ₹1000.2 as of the last available data on 2026-09-25.
+
+== p-itc-current.r3
+prompt='Fetch ITC.NS with price_data and tell me its current price.'
+calls=[('price_data', {'asset_class': 'equity', 'range': '1d', 'symbol': 'ITC.NS', 'timeframe': '1d'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The current price of ITC.NS is ₹269.0.
+
+== p-hdfc-latest.r3
+prompt='Latest HDFCBANK.NS price please, just the number and the date.'
+calls=[('price_data', {'timeframe': '1d', 'symbol': 'HDFCBANK.NS'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+The latest price of HDFCBANK.NS is ₹735.6 as of 25th September, 2026.
+
+== p-wipro-now.r3
+prompt="Use price_data for WIPRO.NS and give me the current price and today's change."
+calls=[('price_data', {'symbol': 'WIPRO.NS'})]
+results=[('price_data', True, '')]
+kinds=['done']
+staged_host_writes=[]
+positions=HTTP 200
+[]
+---
+Based on the `price_data` tool result, I can tell you that the current price of WIPRO.NS is ₹164.02 and today's change is 0.38%.
+
+ALLDONE

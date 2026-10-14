@@ -1,0 +1,17 @@
+# R15-CODE-DATA-015 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:10+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- 'R15-CODE-DATA-015: skeleton and loaded colgroups' src/modules/earnings/EarningsCalendarPanel.test.tsx | head -3; test -f src/modules/earnings/EarningsCalendarPanel.test.tsx || echo 'MISSING src/modules/earnings/EarningsCalendarPanel.test.tsx'
+[exit 0] [0.01s]
+154:  it("R15-CODE-DATA-015: skeleton and loaded colgroups share widths", async () => {
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-DATA-015\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/modules/earnings/EarningsCalendarPanel.test.tsx:154:  it("R15-CODE-DATA-015: skeleton and loaded colgroups share widths", async () => {
+src/modules/earnings/EarningsCalendarPanel.tsx:28: *  apart (R15-CODE-DATA-015). */
+

@@ -1,0 +1,4 @@
+first ensure_build(0.7.9) cleared: True
+same-version reboot ensure_build(0.7.9) cleared: False
+upgrade ensure_build(0.8.0) cleared: True
+same-version-again ensure_build(0.8.0) cleared: False

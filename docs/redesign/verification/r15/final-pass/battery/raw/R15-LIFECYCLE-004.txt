@@ -1,0 +1,11 @@
+# R15-LIFECYCLE-004 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:30+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b19_set13.py 004 2>&1 | grep -v Warning
+--- output ---
+== A0 real rows: 10
+== A1 nse_provider direct raises: ProviderError: nse_direct: historical row for 2026-09-22 lacks CH_OPENING_PRICE, CH_TRADE_HIGH_PRICE, CH_TRADE_LOW_PRICE, CH_TOT_TRADED_QTY (payload shape changed)
+WARNING:services.provider_registry:provider nse_direct failed for ohlcv, falling through: nse_direct: historical row for 2026-09-22 lacks CH_OPENING_PRICE, CH_TRADE_HIGH_PRICE, CH_TRADE_LOW_PRICE, CH_TOT_TRADED_QTY (payload shape changed)
+  return np.datetime64(dt)
+== A2 registry served: {'provider': 'nse', 'n': 26, 'flat': 0, 'zero_vol': 0}
+
+EXIT=0 (2.9s)

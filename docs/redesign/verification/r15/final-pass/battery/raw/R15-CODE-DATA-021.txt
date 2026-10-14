@@ -1,0 +1,17 @@
+# R15-CODE-DATA-021 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C/sidecar"; grep -n 'windowed' services/research/range_check.py | head; echo "windowed_ts count: $(grep -c 'windowed_ts' services/research/range_check.py)"
+--- output ---
+78:#: Coverage floors: the windowed series must span at least this many calendar
+144:    ``max(b.high)`` / ``min(b.low)`` over the windowed bars. Returns ``None``
+145:    when there are no bars, or the windowed series fails the coverage floors
+156:    windowed = [(ts, bar) for ts, bar in stamped if ts >= window_start]
+157:    if not windowed:
+159:    coverage_days = (latest - min(ts for ts, _ in windowed)).days
+160:    if coverage_days < _COVERAGE_MIN_DAYS or len(windowed) < _COVERAGE_MIN_BARS:
+162:    highs = [float(bar.high) for _, bar in windowed if bar.high is not None]
+163:    lows = [float(bar.low) for _, bar in windowed if bar.low is not None]
+170:        bars=len(windowed),
+windowed_ts count: 0
+
+EXIT=0 (0.0s)

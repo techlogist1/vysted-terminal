@@ -1,0 +1,9 @@
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand
+
+
+ Test Files  1 passed (1)
+      Tests  106 passed (106)
+   Start at  02:13:41
+   Duration  837ms (transform 249ms, setup 44ms, import 284ms, tests 37ms, environment 334ms)
+

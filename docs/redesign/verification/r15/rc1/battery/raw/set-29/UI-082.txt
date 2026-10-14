@@ -1,0 +1,6 @@
+=== UI-082: workspace save with unicode/long name ===
+{"status":"saved","name":"मेरा लेआउट"}
+{"detail":"Workspace name 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' is too long to save."}
+=== UI-082 with status codes ===
+unicode-name: HTTP 200
+260-char-name: HTTP 400

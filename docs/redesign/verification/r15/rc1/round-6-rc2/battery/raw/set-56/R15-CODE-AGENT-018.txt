@@ -1,0 +1,6 @@
+# rc1-battery-22 raw R15-CODE-AGENT-018 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ cd sidecar && .venv/bin/python3 -c "from services import agent_runtime as a; print(a._STAGEABLE_PLAN_ACTIONS == a._READ_SAFE_PANEL_ACTIONS); print(sorted(a._STAGEABLE_PLAN_ACTIONS)); print(sorted(a._READ_SAFE_PANEL_ACTIONS))"
+False
+['add_to_watchlist', 'arrange_layout', 'close_panel', 'focus_panel', 'open_panel', 'set_chart_indicators', 'set_chart_symbol']
+['add_to_watchlist', 'arrange_layout', 'open_company_overview', 'open_panel', 'set_chart_indicators', 'set_chart_symbol']
+EXIT=0

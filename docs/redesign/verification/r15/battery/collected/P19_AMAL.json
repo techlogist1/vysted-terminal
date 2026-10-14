@@ -1,0 +1,3427 @@
+{
+ "slot": "P19",
+ "symbol": "AMAL",
+ "manifest_name": "Amalgamated Financial Corp.",
+ "exchange": "NASDAQ",
+ "bse_code": null,
+ "collected_at": "2026-09-19T15:30:19+0530",
+ "sidecar": "http://127.0.0.1:52152",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52152/resolve?q=AMAL",
+   "status": 200,
+   "elapsed_ms": 19,
+   "body": {
+    "ok": true,
+    "query": "AMAL",
+    "region": "IN",
+    "resolved": {
+     "symbol": "AMAL",
+     "name": "Amal Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "AMAL.BO",
+     "confidence": 1.0,
+     "isin": "INE841D01013",
+     "bse_code": "506597",
+     "industry": null,
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "AMAL",
+      "name": "Amal Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "AMAL.BO",
+      "confidence": 1.0,
+      "isin": "INE841D01013",
+      "bse_code": "506597",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "AMAL",
+      "name": "Amalgamated Financial Corp.",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "AMAL",
+      "confidence": 1.0,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52152/resolve?q=Amalgamated+Financial+Corp.",
+   "status": 200,
+   "elapsed_ms": 2738,
+   "body": {
+    "ok": true,
+    "query": "Amalgamated Financial Corp.",
+    "region": "IN",
+    "resolved": {
+     "symbol": "AMAL",
+     "name": "Amalgamated Financial Corp.",
+     "exchange": "US",
+     "region": "US",
+     "asset_class": "equity",
+     "yahoo_symbol": "AMAL",
+     "confidence": 1.0,
+     "isin": null,
+     "bse_code": null,
+     "industry": null,
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "AMAL",
+      "name": "Amalgamated Financial Corp.",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "AMAL",
+      "confidence": 1.0,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "GUJSTATFIN",
+      "name": "Gujarat State Financial Corporation",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "GUJSTATFIN.BO",
+      "confidence": 0.6557,
+      "isin": "INE944A01011",
+      "bse_code": "532160",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "AMALGAM",
+      "name": "Amalgamated Electricity Company Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "AMALGAM.BO",
+      "confidence": 0.623,
+      "isin": "INE492N01022",
+      "bse_code": "501622",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "HARAFIN",
+      "name": "Haryana Financial Corporation Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "HARAFIN.BO",
+      "confidence": 0.6102,
+      "isin": "INE737G01016",
+      "bse_code": "530927",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "MFC",
+      "name": "MANULIFE FINANCIAL CORP",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "MFC",
+      "confidence": 0.7755,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "MNUPF",
+      "name": "MANULIFE FINANCIAL CORP",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "MNUPF",
+      "confidence": 0.7755,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52152/quotes/AMAL?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 5087,
+   "body": {
+    "symbol": "AMAL",
+    "price": 720.8,
+    "change": -7.650000000000091,
+    "change_percent": -1.050175029171541,
+    "volume": null,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-18T00:00:00Z",
+    "provider": "bse",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52152/fundamentals/AMAL",
+   "status": 200,
+   "elapsed_ms": 4821,
+   "body": {
+    "symbol": "AMAL.BO",
+    "name": "Amal Ltd",
+    "sector": "Basic Materials",
+    "industry": "Chemicals",
+    "currency": "INR",
+    "market_cap": 8911006720.0,
+    "pe_ratio": 29.98336,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 7.399347,
+    "price_to_sales": 3.0847628,
+    "ev_to_ebitda": 20.71,
+    "book_value": 97.414,
+    "dividend_yield": 0.0021,
+    "dividend_per_share": 1.5,
+    "eps": 24.04,
+    "beta": 0.01,
+    "fifty_two_week_high": 1010.0,
+    "fifty_two_week_low": 408.2,
+    "fifty_two_week_change": -0.20622206,
+    "roe": null,
+    "roa": null,
+    "gross_margin": 0.20179,
+    "operating_margin": 0.15264,
+    "profit_margin": 0.10284001,
+    "debt_to_equity": null,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "revenue_ttm": 2888717056.0,
+    "net_income_ttm": 297070016.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 12362662.0,
+    "revenue_growth": 1.041,
+    "earnings_growth": 0.778,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.71419,
+    "held_percent_institutions": 0.0,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "forward_pe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "dividend_yield": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "dividend_per_share": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "beta": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "roe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "debt_to_equity": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_insiders": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_institutions": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": null,
+      "label": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:06.979185+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52152/fundamentals/AMAL/income",
+   "status": 200,
+   "elapsed_ms": 241,
+   "body": {
+    "symbol": "AMAL",
+    "periods": [
+     "2025-12-31",
+     "2024-12-31",
+     "2023-12-31",
+     "2022-12-31",
+     "2021-12-31"
+    ],
+    "lines": [
+     {
+      "label": "other_non_interest_expense",
+      "values": {
+       "2025-12-31": 37158000.0,
+       "2024-12-31": 32321000.0,
+       "2023-12-31": 30314000.0,
+       "2022-12-31": 30692000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "professional_expense_and_contract_services_expense",
+      "values": {
+       "2025-12-31": 14301000.0,
+       "2024-12-31": 9957000.0,
+       "2023-12-31": 9637000.0,
+       "2022-12-31": 10417000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "occupancy_and_equipment",
+      "values": {
+       "2025-12-31": 13385000.0,
+       "2024-12-31": 13081000.0,
+       "2023-12-31": 13605000.0,
+       "2022-12-31": 13723000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2025-12-31": 330457000.0,
+       "2024-12-31": 316476000.0,
+       "2023-12-31": 285715000.0,
+       "2022-12-31": 266510000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2025-12-31": 330457000.0,
+       "2024-12-31": 316476000.0,
+       "2023-12-31": 285715000.0,
+       "2022-12-31": 266510000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "salaries_and_wages",
+      "values": {
+       "2025-12-31": 98555000.0,
+       "2024-12-31": 93766000.0,
+       "2023-12-31": 85774000.0,
+       "2022-12-31": 74712000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "insurance_and_claims",
+      "values": {
+       "2025-12-31": 3775000.0,
+       "2024-12-31": 3715000.0,
+       "2023-12-31": 4018000.0,
+       "2022-12-31": 3228000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_gand_a",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": null,
+       "2021-12-31": 16042000.0
+      }
+     },
+     {
+      "label": "general_and_administrative_expense",
+      "values": {
+       "2025-12-31": 102330000.0,
+       "2024-12-31": 97481000.0,
+       "2023-12-31": 89792000.0,
+       "2022-12-31": 77940000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "selling_and_marketing_expense",
+      "values": {
+       "2025-12-31": 2353000.0,
+       "2024-12-31": 3731000.0,
+       "2023-12-31": 4181000.0,
+       "2022-12-31": 3741000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2025-12-31": 104683000.0,
+       "2024-12-31": 101212000.0,
+       "2023-12-31": 93973000.0,
+       "2022-12-31": 81681000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "depreciation_income_statement",
+      "values": {
+       "2025-12-31": 2145000.0,
+       "2024-12-31": 2471000.0,
+       "2023-12-31": 2830000.0,
+       "2022-12-31": 3012000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "amortization_of_intangibles_income_statement",
+      "values": {
+       "2025-12-31": 574000.0,
+       "2024-12-31": 730000.0,
+       "2023-12-31": 888000.0,
+       "2022-12-31": 1046000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "amortization",
+      "values": {
+       "2025-12-31": 574000.0,
+       "2024-12-31": 730000.0,
+       "2023-12-31": 888000.0,
+       "2022-12-31": 1046000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "depreciation_and_amortization_in_income_statement",
+      "values": {
+       "2025-12-31": 2719000.0,
+       "2024-12-31": 3201000.0,
+       "2023-12-31": 3718000.0,
+       "2022-12-31": 4058000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "depreciation_amortization_depletion_income_statement",
+      "values": {
+       "2025-12-31": 2719000.0,
+       "2024-12-31": 3201000.0,
+       "2023-12-31": 3718000.0,
+       "2022-12-31": 4058000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "gain_on_sale_of_security",
+      "values": {
+       "2025-12-31": -3431000.0,
+       "2024-12-31": -9698000.0,
+       "2023-12-31": -7392000.0,
+       "2022-12-31": -3637000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2025-12-31": 140155000.0,
+       "2024-12-31": 145589000.0,
+       "2023-12-31": 124730000.0,
+       "2022-12-31": 108164000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2025-12-31": 35708000.0,
+       "2024-12-31": 39155000.0,
+       "2023-12-31": 36752000.0,
+       "2022-12-31": 26687000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2025-12-31": 104447000.0,
+       "2024-12-31": 106434000.0,
+       "2023-12-31": 87978000.0,
+       "2022-12-31": 81477000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2025-12-31": 104447000.0,
+       "2024-12-31": 106434000.0,
+       "2023-12-31": 87978000.0,
+       "2022-12-31": 81477000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2025-12-31": 104447000.0,
+       "2024-12-31": 106434000.0,
+       "2023-12-31": 87978000.0,
+       "2022-12-31": 81477000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "preferred_stock_dividends",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 22000.0,
+       "2021-12-31": 22000.0
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2025-12-31": 104447000.0,
+       "2024-12-31": 106434000.0,
+       "2023-12-31": 87978000.0,
+       "2022-12-31": 81455000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2025-12-31": 104447000.0,
+       "2024-12-31": 106434000.0,
+       "2023-12-31": 87978000.0,
+       "2022-12-31": 81455000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2025-12-31": 3.44,
+       "2024-12-31": 3.48,
+       "2023-12-31": 2.88,
+       "2022-12-31": 2.64,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2025-12-31": 3.41,
+       "2024-12-31": 3.44,
+       "2023-12-31": 2.86,
+       "2022-12-31": 2.61,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2025-12-31": 30328000.0,
+       "2024-12-31": 30588000.0,
+       "2023-12-31": 30555000.0,
+       "2022-12-31": 30818000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2025-12-31": 30632000.0,
+       "2024-12-31": 30926000.0,
+       "2023-12-31": 30785000.0,
+       "2022-12-31": 31193000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2025-12-31": 104447000.0,
+       "2024-12-31": 106434000.0,
+       "2023-12-31": 87978000.0,
+       "2022-12-31": 81477000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2025-12-31": 104447000.0,
+       "2024-12-31": 106434000.0,
+       "2023-12-31": 87978000.0,
+       "2022-12-31": 81603554.4,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "interest_income",
+      "values": {
+       "2025-12-31": 422229000.0,
+       "2024-12-31": 401296000.0,
+       "2023-12-31": 358077000.0,
+       "2022-12-31": 258489000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "interest_expense",
+      "values": {
+       "2025-12-31": 124445000.0,
+       "2024-12-31": 118866000.0,
+       "2023-12-31": 96766000.0,
+       "2022-12-31": 18649000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2025-12-31": 297784000.0,
+       "2024-12-31": 282430000.0,
+       "2023-12-31": 261311000.0,
+       "2022-12-31": 239840000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2025-12-31": 6796000.0,
+       "2024-12-31": 5433000.0,
+       "2023-12-31": 6397000.0,
+       "2022-12-31": 10350000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2025-12-31": 104447000.0,
+       "2024-12-31": 106434000.0,
+       "2023-12-31": 87978000.0,
+       "2022-12-31": 81477000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 0.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": -168000.0,
+       "2021-12-31": -407000.0
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 0.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": -168000.0,
+       "2021-12-31": -407000.0
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2025-12-31": 0.2548,
+       "2024-12-31": 0.2689,
+       "2023-12-31": 0.2947,
+       "2022-12-31": 0.2467,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 0.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": -41445.6,
+       "2021-12-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52152/fundamentals/AMAL/balance",
+   "status": 200,
+   "elapsed_ms": 422,
+   "body": {
+    "symbol": "AMAL",
+    "periods": [
+     "2025-12-31",
+     "2024-12-31",
+     "2023-12-31",
+     "2022-12-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_cash_equivalents_and_federal_funds_sold",
+      "values": {
+       "2025-12-31": 339879000.0,
+       "2024-12-31": 84490000.0,
+       "2023-12-31": 140570000.0,
+       "2022-12-31": 89294000.0
+      }
+     },
+     {
+      "label": "cash_financial",
+      "values": {
+       "2025-12-31": 4501000.0,
+       "2024-12-31": 4042000.0,
+       "2023-12-31": 2856000.0,
+       "2022-12-31": 5110000.0
+      }
+     },
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2025-12-31": 291217000.0,
+       "2024-12-31": 60749000.0,
+       "2023-12-31": 90570000.0,
+       "2022-12-31": 63540000.0
+      }
+     },
+     {
+      "label": "short_term_investments",
+      "values": {
+       "2025-12-31": 633551000.0,
+       "2024-12-31": 579058000.0,
+       "2023-12-31": 1483042000.0,
+       "2022-12-31": 1812476000.0
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2025-12-31": 65128000.0,
+       "2024-12-31": 61172000.0,
+       "2023-12-31": 55484000.0,
+       "2022-12-31": 41441000.0
+      }
+     },
+     {
+      "label": "net_receivables",
+      "values": {
+       "2025-12-31": 65128000.0,
+       "2024-12-31": 61172000.0,
+       "2023-12-31": 55484000.0,
+       "2022-12-31": 41441000.0
+      }
+     },
+     {
+      "label": "buildings_and_improvements",
+      "values": {
+       "2025-12-31": 26549000.0,
+       "2024-12-31": 28168000.0,
+       "2023-12-31": 28150000.0,
+       "2022-12-31": 28150000.0
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2025-12-31": 4364000.0,
+       "2024-12-31": 5722000.0,
+       "2023-12-31": 7266000.0,
+       "2022-12-31": 6787000.0
+      }
+     },
+     {
+      "label": "other_properties",
+      "values": {
+       "2025-12-31": 9602000.0,
+       "2024-12-31": 14231000.0,
+       "2023-12-31": 21074000.0,
+       "2022-12-31": 28236000.0
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2025-12-31": 1856000.0,
+       "2024-12-31": 1064000.0,
+       "2023-12-31": 323000.0,
+       "2022-12-31": 561000.0
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2025-12-31": 42371000.0,
+       "2024-12-31": 49185000.0,
+       "2023-12-31": 56813000.0,
+       "2022-12-31": 63734000.0
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2025-12-31": -28084000.0,
+       "2024-12-31": -28568000.0,
+       "2023-12-31": -27932000.0,
+       "2022-12-31": -25642000.0
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2025-12-31": 14287000.0,
+       "2024-12-31": 20617000.0,
+       "2023-12-31": 28881000.0,
+       "2022-12-31": 38092000.0
+      }
+     },
+     {
+      "label": "goodwill",
+      "values": {
+       "2025-12-31": 12936000.0,
+       "2024-12-31": 12936000.0,
+       "2023-12-31": 12936000.0,
+       "2022-12-31": 12936000.0
+      }
+     },
+     {
+      "label": "other_intangible_assets",
+      "values": {
+       "2025-12-31": 900000.0,
+       "2024-12-31": 1500000.0,
+       "2023-12-31": 2217000.0,
+       "2022-12-31": 3105000.0
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2025-12-31": 13836000.0,
+       "2024-12-31": 14436000.0,
+       "2023-12-31": 15153000.0,
+       "2022-12-31": 16041000.0
+      }
+     },
+     {
+      "label": "long_term_equity_investment",
+      "values": {
+       "2025-12-31": 7979000.0,
+       "2024-12-31": 8482000.0,
+       "2023-12-31": 13024000.0,
+       "2022-12-31": 8305000.0
+      }
+     },
+     {
+      "label": "held_to_maturity_securities",
+      "values": {
+       "2025-12-31": 1160215000.0,
+       "2024-12-31": 1113005000.0,
+       "2023-12-31": 1696834000.0,
+       "2022-12-31": 1541301000.0
+      }
+     },
+     {
+      "label": "investments_and_advances",
+      "values": {
+       "2025-12-31": 1801745000.0,
+       "2024-12-31": 1700545000.0,
+       "2023-12-31": 3192900000.0,
+       "2022-12-31": 3362082000.0
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2025-12-31": 8869836000.0,
+       "2024-12-31": 8256892000.0,
+       "2023-12-31": 7972324000.0,
+       "2022-12-31": 7843124000.0
+      }
+     },
+     {
+      "label": "long_term_debt",
+      "values": {
+       "2025-12-31": 69600000.0,
+       "2024-12-31": 314400000.0,
+       "2023-12-31": 304927000.0,
+       "2022-12-31": 657708000.0
+      }
+     },
+     {
+      "label": "long_term_capital_lease_obligation",
+      "values": {
+       "2025-12-31": 12255000.0,
+       "2024-12-31": 19734000.0,
+       "2023-12-31": 30646000.0,
+       "2022-12-31": 40779000.0
+      }
+     },
+     {
+      "label": "long_term_debt_and_capital_lease_obligation",
+      "values": {
+       "2025-12-31": 81855000.0,
+       "2024-12-31": 334134000.0,
+       "2023-12-31": 335573000.0,
+       "2022-12-31": 698487000.0
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2025-12-31": 8075372000.0,
+       "2024-12-31": 7549238000.0,
+       "2023-12-31": 7386960000.0,
+       "2022-12-31": 7334169000.0
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2025-12-31": 312000.0,
+       "2024-12-31": 308000.0,
+       "2023-12-31": 307000.0,
+       "2022-12-31": 307000.0
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2025-12-31": 312000.0,
+       "2024-12-31": 308000.0,
+       "2023-12-31": 307000.0,
+       "2022-12-31": 307000.0
+      }
+     },
+     {
+      "label": "additional_paid_in_capital",
+      "values": {
+       "2025-12-31": 294134000.0,
+       "2024-12-31": 288656000.0,
+       "2023-12-31": 288232000.0,
+       "2022-12-31": 286947000.0
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2025-12-31": 567269000.0,
+       "2024-12-31": 480144000.0,
+       "2023-12-31": 388033000.0,
+       "2022-12-31": 330275000.0
+      }
+     },
+     {
+      "label": "treasury_stock",
+      "values": {
+       "2025-12-31": 35163000.0,
+       "2024-12-31": 2817000.0,
+       "2023-12-31": 5337000.0,
+       "2022-12-31": 0.0
+      }
+     },
+     {
+      "label": "other_equity_adjustments",
+      "values": {
+       "2025-12-31": -32088000.0,
+       "2024-12-31": -58637000.0,
+       "2023-12-31": -86004000.0,
+       "2022-12-31": -108707000.0
+      }
+     },
+     {
+      "label": "gains_losses_not_affecting_retained_earnings",
+      "values": {
+       "2025-12-31": -32088000.0,
+       "2024-12-31": -58637000.0,
+       "2023-12-31": -86004000.0,
+       "2022-12-31": -108707000.0
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2025-12-31": 794464000.0,
+       "2024-12-31": 707654000.0,
+       "2023-12-31": 585231000.0,
+       "2022-12-31": 508822000.0
+      }
+     },
+     {
+      "label": "minority_interest",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 0.0,
+       "2023-12-31": 133000.0,
+       "2022-12-31": 133000.0
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2025-12-31": 794464000.0,
+       "2024-12-31": 707654000.0,
+       "2023-12-31": 585364000.0,
+       "2022-12-31": 508955000.0
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2025-12-31": 864064000.0,
+       "2024-12-31": 1022054000.0,
+       "2023-12-31": 890158000.0,
+       "2022-12-31": 1166530000.0
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2025-12-31": 794464000.0,
+       "2024-12-31": 707654000.0,
+       "2023-12-31": 585231000.0,
+       "2022-12-31": 508822000.0
+      }
+     },
+     {
+      "label": "capital_lease_obligations",
+      "values": {
+       "2025-12-31": 12255000.0,
+       "2024-12-31": 19734000.0,
+       "2023-12-31": 30646000.0,
+       "2022-12-31": 40779000.0
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2025-12-31": 780628000.0,
+       "2024-12-31": 693218000.0,
+       "2023-12-31": 570078000.0,
+       "2022-12-31": 492781000.0
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2025-12-31": 864064000.0,
+       "2024-12-31": 1022054000.0,
+       "2023-12-31": 890158000.0,
+       "2022-12-31": 1166530000.0
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2025-12-31": 780628000.0,
+       "2024-12-31": 693218000.0,
+       "2023-12-31": 570078000.0,
+       "2022-12-31": 492781000.0
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2025-12-31": 81855000.0,
+       "2024-12-31": 334134000.0,
+       "2023-12-31": 335573000.0,
+       "2022-12-31": 698487000.0
+      }
+     },
+     {
+      "label": "net_debt",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 253651000.0,
+       "2023-12-31": 214357000.0,
+       "2022-12-31": 594168000.0
+      }
+     },
+     {
+      "label": "share_issued",
+      "values": {
+       "2025-12-31": 31045377.0,
+       "2024-12-31": 30809484.0,
+       "2023-12-31": 30736141.0,
+       "2022-12-31": 30700198.0
+      }
+     },
+     {
+      "label": "ordinary_shares_number",
+      "values": {
+       "2025-12-31": 29818424.0,
+       "2024-12-31": 30670982.0,
+       "2023-12-31": 30428359.0,
+       "2022-12-31": 30700198.0
+      }
+     },
+     {
+      "label": "treasury_shares_number",
+      "values": {
+       "2025-12-31": 1226953.0,
+       "2024-12-31": 138502.0,
+       "2023-12-31": 307782.0,
+       "2022-12-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52152/fundamentals/AMAL/cashflow",
+   "status": 200,
+   "elapsed_ms": 814,
+   "body": {
+    "symbol": "AMAL",
+    "periods": [
+     "2025-12-31",
+     "2024-12-31",
+     "2023-12-31",
+     "2022-12-31",
+     "2021-12-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2025-12-31": 104447000.0,
+       "2024-12-31": 106434000.0,
+       "2023-12-31": 87978000.0,
+       "2022-12-31": 81477000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "gain_loss_on_investment_securities",
+      "values": {
+       "2025-12-31": 3431000.0,
+       "2024-12-31": 9698000.0,
+       "2023-12-31": 7392000.0,
+       "2022-12-31": 3637000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "earnings_losses_from_equity_investments",
+      "values": {
+       "2025-12-31": 1733000.0,
+       "2024-12-31": 831000.0,
+       "2023-12-31": -4932000.0,
+       "2022-12-31": 2773000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "operating_gains_losses",
+      "values": {
+       "2025-12-31": 7884000.0,
+       "2024-12-31": 18726000.0,
+       "2023-12-31": 2428000.0,
+       "2022-12-31": 7020000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "depreciation",
+      "values": {
+       "2025-12-31": 6222000.0,
+       "2024-12-31": 4703000.0,
+       "2023-12-31": 5509000.0,
+       "2022-12-31": 9304000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "amortization_of_intangibles",
+      "values": {
+       "2025-12-31": 574000.0,
+       "2024-12-31": 730000.0,
+       "2023-12-31": 888000.0,
+       "2022-12-31": 1046000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "amortization_cash_flow",
+      "values": {
+       "2025-12-31": 574000.0,
+       "2024-12-31": 730000.0,
+       "2023-12-31": 888000.0,
+       "2022-12-31": 1046000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2025-12-31": 6796000.0,
+       "2024-12-31": 5433000.0,
+       "2023-12-31": 6397000.0,
+       "2022-12-31": 10350000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "depreciation_amortization_depletion",
+      "values": {
+       "2025-12-31": 6796000.0,
+       "2024-12-31": 5433000.0,
+       "2023-12-31": 6397000.0,
+       "2022-12-31": 10350000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "deferred_income_tax",
+      "values": {
+       "2025-12-31": 1677000.0,
+       "2024-12-31": 5175000.0,
+       "2023-12-31": 4244000.0,
+       "2022-12-31": 14375000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "deferred_tax",
+      "values": {
+       "2025-12-31": 1677000.0,
+       "2024-12-31": 5175000.0,
+       "2023-12-31": 4244000.0,
+       "2022-12-31": 14375000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "amortization_of_securities",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 1203000.0,
+       "2022-12-31": 4396000.0,
+       "2021-12-31": 3869000.0
+      }
+     },
+     {
+      "label": "stock_based_compensation",
+      "values": {
+       "2025-12-31": 6918000.0,
+       "2024-12-31": 5534000.0,
+       "2023-12-31": 4687000.0,
+       "2022-12-31": 2682000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2025-12-31": -1667000.0,
+       "2024-12-31": -647000.0,
+       "2023-12-31": 1211000.0,
+       "2022-12-31": 17663000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "changes_in_account_receivables",
+      "values": {
+       "2025-12-31": -3956000.0,
+       "2024-12-31": -5688000.0,
+       "2023-12-31": -14043000.0,
+       "2022-12-31": -12621000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2025-12-31": -3956000.0,
+       "2024-12-31": -5688000.0,
+       "2023-12-31": -14043000.0,
+       "2022-12-31": -12621000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_accrued_expense",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": null,
+       "2021-12-31": -11071000.0
+      }
+     },
+     {
+      "label": "change_in_payables_and_accrued_expense",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": null,
+       "2021-12-31": -11071000.0
+      }
+     },
+     {
+      "label": "change_in_other_current_assets",
+      "values": {
+       "2025-12-31": -856000.0,
+       "2024-12-31": -2440000.0,
+       "2023-12-31": 11740000.0,
+       "2022-12-31": 19114000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_liabilities",
+      "values": {
+       "2025-12-31": 778000.0,
+       "2024-12-31": -16248000.0,
+       "2023-12-31": 181000.0,
+       "2022-12-31": -5767000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_other_working_capital",
+      "values": {
+       "2025-12-31": -2562000.0,
+       "2024-12-31": -2498000.0,
+       "2023-12-31": -2269000.0,
+       "2022-12-31": -1973000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2025-12-31": -6596000.0,
+       "2024-12-31": -26874000.0,
+       "2023-12-31": -4391000.0,
+       "2022-12-31": -1247000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_operating_activities",
+      "values": {
+       "2025-12-31": 135782000.0,
+       "2024-12-31": 124065000.0,
+       "2023-12-31": 117224000.0,
+       "2022-12-31": 147322000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2025-12-31": 135782000.0,
+       "2024-12-31": 124065000.0,
+       "2023-12-31": 117224000.0,
+       "2022-12-31": 147322000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2025-12-31": -1379000.0,
+       "2024-12-31": -1775000.0,
+       "2023-12-31": -1477000.0,
+       "2022-12-31": -1668000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2025-12-31": -1379000.0,
+       "2024-12-31": -1775000.0,
+       "2023-12-31": -1477000.0,
+       "2022-12-31": -1668000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "purchase_of_investment",
+      "values": {
+       "2025-12-31": -1122937000.0,
+       "2024-12-31": -916718000.0,
+       "2023-12-31": -380951000.0,
+       "2022-12-31": -1263816000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "sale_of_investment",
+      "values": {
+       "2025-12-31": 1033559000.0,
+       "2024-12-31": 909250000.0,
+       "2023-12-31": 562068000.0,
+       "2022-12-31": 714876000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_investment_purchase_and_sale",
+      "values": {
+       "2025-12-31": -95850000.0,
+       "2024-12-31": -5560000.0,
+       "2023-12-31": 180360000.0,
+       "2022-12-31": -556299000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_other_investing_changes",
+      "values": {
+       "2025-12-31": 12939000.0,
+       "2024-12-31": -11304000.0,
+       "2023-12-31": 28167000.0,
+       "2022-12-31": -21515000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_investing_activities",
+      "values": {
+       "2025-12-31": -378019000.0,
+       "2024-12-31": -315947000.0,
+       "2023-12-31": -134407000.0,
+       "2022-12-31": -1202491000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2025-12-31": -378019000.0,
+       "2024-12-31": -315947000.0,
+       "2023-12-31": -134407000.0,
+       "2022-12-31": -1202491000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_issuance",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 16325000.0,
+       "2023-12-31": null,
+       "2022-12-31": 580000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_payments",
+      "values": {
+       "2025-12-31": -244946000.0,
+       "2024-12-31": -5925000.0,
+       "2023-12-31": -351666000.0,
+       "2022-12-31": -5633000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2025-12-31": -244946000.0,
+       "2024-12-31": 10400000.0,
+       "2023-12-31": -351666000.0,
+       "2022-12-31": 574367000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2025-12-31": -244946000.0,
+       "2024-12-31": 10400000.0,
+       "2023-12-31": -351666000.0,
+       "2022-12-31": 574367000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "repurchase_of_common_equity",
+      "values": {
+       "2025-12-31": -32346000.0,
+       "2024-12-31": -1282000.0,
+       "2023-12-31": -8315000.0,
+       "2022-12-31": -12478000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_common_stock_issuance",
+      "values": {
+       "2025-12-31": -32346000.0,
+       "2024-12-31": -1282000.0,
+       "2023-12-31": -8315000.0,
+       "2022-12-31": -12478000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "common_stock_dividend_paid",
+      "values": {
+       "2025-12-31": -17203000.0,
+       "2024-12-31": -14234000.0,
+       "2023-12-31": -12333000.0,
+       "2022-12-31": -11211000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_dividends_paid",
+      "values": {
+       "2025-12-31": -17203000.0,
+       "2024-12-31": -14234000.0,
+       "2023-12-31": -12333000.0,
+       "2022-12-31": -11211000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "proceeds_from_stock_option_exercised",
+      "values": {
+       "2025-12-31": -1436000.0,
+       "2024-12-31": -1440000.0,
+       "2023-12-31": -424000.0,
+       "2022-12-31": -1236000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_financing_activities",
+      "values": {
+       "2025-12-31": 472705000.0,
+       "2024-12-31": 162061000.0,
+       "2023-12-31": 44213000.0,
+       "2022-12-31": 788224000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2025-12-31": 472705000.0,
+       "2024-12-31": 162061000.0,
+       "2023-12-31": 44213000.0,
+       "2022-12-31": 788224000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2025-12-31": 230468000.0,
+       "2024-12-31": -29821000.0,
+       "2023-12-31": 27030000.0,
+       "2022-12-31": -266945000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2025-12-31": 60749000.0,
+       "2024-12-31": 90570000.0,
+       "2023-12-31": 63540000.0,
+       "2022-12-31": 330485000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2025-12-31": 291217000.0,
+       "2024-12-31": 60749000.0,
+       "2023-12-31": 90570000.0,
+       "2022-12-31": 63540000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "income_tax_paid_supplemental_data",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 30108000.0,
+       "2023-12-31": 22625000.0,
+       "2022-12-31": 6646000.0,
+       "2021-12-31": 5692000.0
+      }
+     },
+     {
+      "label": "interest_paid_supplemental_data",
+      "values": {
+       "2025-12-31": 124394000.0,
+       "2024-12-31": 128780000.0,
+       "2023-12-31": 85714000.0,
+       "2022-12-31": 18000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2025-12-31": -1379000.0,
+       "2024-12-31": -1775000.0,
+       "2023-12-31": -1477000.0,
+       "2022-12-31": -1668000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "issuance_of_debt",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 16325000.0,
+       "2023-12-31": null,
+       "2022-12-31": 580000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "repayment_of_debt",
+      "values": {
+       "2025-12-31": -244946000.0,
+       "2024-12-31": -5925000.0,
+       "2023-12-31": -351666000.0,
+       "2022-12-31": -5633000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "repurchase_of_capital_stock",
+      "values": {
+       "2025-12-31": -32346000.0,
+       "2024-12-31": -1282000.0,
+       "2023-12-31": -8315000.0,
+       "2022-12-31": -12478000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2025-12-31": 134403000.0,
+       "2024-12-31": 122290000.0,
+       "2023-12-31": 115747000.0,
+       "2022-12-31": 145654000.0,
+       "2021-12-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52152/fundamentals/AMAL/ratings",
+   "status": 200,
+   "elapsed_ms": 703,
+   "body": {
+    "symbol": "AMAL.BO",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52152/disclosures/shareholding?symbol=AMAL",
+   "status": 200,
+   "elapsed_ms": 13,
+   "body": {
+    "symbol": "AMAL",
+    "count": 85,
+    "patterns": [
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2026-06-30",
+      "promoter_percent": 71.35,
+      "fii_percent": null,
+      "dii_percent": 0.03,
+      "institutions_percent": 0.03,
+      "public_percent": 28.65,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.62,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-07-05",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/506597_57202695344_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2026-03-31",
+      "promoter_percent": 71.35,
+      "fii_percent": null,
+      "dii_percent": 0.02,
+      "institutions_percent": 0.02,
+      "public_percent": 28.65,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.64,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-04-09",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/506597_94202614185_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2025-12-31",
+      "promoter_percent": 71.35,
+      "fii_percent": null,
+      "dii_percent": 0.02,
+      "institutions_percent": 0.02,
+      "public_percent": 28.65,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.64,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-01-15",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/506597_1512026175853_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2025-09-30",
+      "promoter_percent": 71.35,
+      "fii_percent": null,
+      "dii_percent": 0.02,
+      "institutions_percent": 0.02,
+      "public_percent": 28.65,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.64,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-10-11",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/506597_1110202511311_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2025-06-30",
+      "promoter_percent": 71.35,
+      "fii_percent": null,
+      "dii_percent": 0.02,
+      "institutions_percent": 0.02,
+      "public_percent": 28.65,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.64,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-07-16",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/506597_1672025154445_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2025-03-31",
+      "promoter_percent": 71.35,
+      "fii_percent": null,
+      "dii_percent": 0.02,
+      "institutions_percent": 0.02,
+      "public_percent": 28.65,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.64,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-04-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_104202595930_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2024-12-31",
+      "promoter_percent": 71.35,
+      "fii_percent": null,
+      "dii_percent": 0.02,
+      "institutions_percent": 0.02,
+      "public_percent": 28.65,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.64,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-01-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_712025102150_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2024-09-30",
+      "promoter_percent": 71.35,
+      "fii_percent": null,
+      "dii_percent": 0.02,
+      "institutions_percent": 0.02,
+      "public_percent": 28.65,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.64,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-10-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_1210202493536_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2024-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-07-05",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_572024114947_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2024-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-04-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_74202491839_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2023-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-01-06",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_61202494719_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2023-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-10-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_7102023143555_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2023-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-07-17",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_177202316314_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2023-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-04-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_104202393927_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2022-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-01-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_712023161149_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2022-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-10-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_18102022152517_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2022-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-07-08",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_8720221628_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2022-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-04-08",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_8420228286_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2021-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-01-08",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_812022113157_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2021-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-10-14",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_1410202185927_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2021-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-07-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_1072021154238_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2021-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-04-03",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_342021173127_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2020-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-01-11",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_111202114423_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2020-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-10-08",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_810202010479_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2020-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-07-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_77202014834_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2020-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-04-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_1042020114323_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2019-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-01-09",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_9120201468_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2019-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-10-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_7102019144329_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2019-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-07-05",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_57201913160_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2019-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-04-04",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_44201918112_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2018-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-01-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_712019174215_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2018-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-10-06",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_610201895336_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2018-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-07-05",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_57201884535_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2018-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-04-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_10420188320_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2017-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-01-06",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_61201893145_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2017-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-10-05",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_5102017104936_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2017-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-07-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_107201783841_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2017-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_642017155926_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2016-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-01-06",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_61201714432_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2016-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-10-25",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_610201614937_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2016-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-07-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/506597_77201610330_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2016-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2015-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2015-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2015-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2015-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2014-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2014-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2014-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2014-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2013-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2013-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2013-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2013-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2012-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2012-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2012-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2012-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2011-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2011-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2011-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2011-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2010-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2010-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2006-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2005-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2005-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2005-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2005-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2004-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2004-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2004-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2004-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2003-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2003-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2003-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2003-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2002-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2002-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2002-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2002-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2001-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2001-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2001-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "AMAL",
+      "quarter_end": "2001-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52152/disclosures/announcements?symbol=AMAL&limit=25",
+   "status": 200,
+   "elapsed_ms": 445,
+   "body": {
+    "symbol": "AMAL",
+    "exchange": null,
+    "count": 1,
+    "announcements": [
+     {
+      "symbol": "AMAL",
+      "exchange": "BSE",
+      "headline": "Speech Of Chairman / Video Recording / Presentation",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/143b2177-5969-412c-9f50-eb7d2aea3554.pdf",
+      "ts": "2026-08-20T16:07:26.060000+05:30"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {}
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52152/disclosures/results?symbol=AMAL",
+   "status": 502,
+   "elapsed_ms": 26,
+   "body": {
+    "detail": "nse_direct: 'AMAL' is not a known NSE instrument"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

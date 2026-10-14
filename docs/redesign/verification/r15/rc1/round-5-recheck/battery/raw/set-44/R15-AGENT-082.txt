@@ -1,0 +1,33 @@
+=== R15-AGENT-082: sidecar leg live check via vy.py (ollama, ollama lock held+released) ===
+-- cmd: python3 scripts/r15/vy.py invoke copilot 'Say OK.' --port 52363 --provider ollama --model llama3.1:8b --
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  53.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_0dc03f25883743f5992814a5f4bb993f", "name": "get_terminal_state", "input": {}}
+[  53.4s] tool_result: {"kind": "tool_result", "tool_call_id": "call_0dc03f25883743f5992814a5f4bb993f", "name": "get_terminal_state", "ok": true, "error": null}
+[  56.0s] done: {"kind": "done", "usage": {"input_tokens": 2800, "output_tokens": 41, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+It seems like we're all set! You don't have any open charts or watchlists yet. Your portfolio summary shows a balance of ₹50,000.
+
+What would you like to do first?
+
+=== ok · 56.0s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 42, 'done': 1} · usage in=2800 out=41 · est $0.00000 · llama3.1:8b
+
+-- done frame carries spend_usd (present, not omitted): spend_usd=0.0 --
+"kind": "done", "usage": {"input_tokens": 2800, "output_tokens": 41, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+-- ChatSidebar.tsx / AgentsRail.tsx frontend leg (no GUI this run; source check only) --
+134:              {cost.tokens.toLocaleString()} tok · ${cost.spendUsd.toFixed(4)}
+984:        onDone: (usage, finishReason, contextWindow, spendUsd) => {
+993:          finalize(assistantId, usage, contextWindow, spendUsd);
+998:                spendUsd: spendUsd ?? 0,
+1571: *  "N tok · ~$X". Spend is omitted when unknown (`spendUsd` absent/null) and
+1578:  const spendUsd = message.spendUsd;
+1580:    typeof spendUsd === "number"
+1581:      ? `${tokens.toLocaleString()} tok · ~$${spendUsd.toFixed(2)}`
+2217:    spendUsd?: number,
+--- AgentsRail spendUsd 0 hide check ---
+134:              {cost.tokens.toLocaleString()} tok · ${cost.spendUsd.toFixed(4)}

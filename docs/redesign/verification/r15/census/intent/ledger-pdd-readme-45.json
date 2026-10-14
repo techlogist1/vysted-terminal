@@ -1,0 +1,452 @@
+[
+  {
+    "pid": "INT-PD-46",
+    "promise": "The tertiary text tier is charcoal-500 (#79736a), often smaller, used for process/meta text such as 'Read...', 'Thought...', timestamps, kbd hints, and source domains.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "styles/tokens.css:41 (--color-charcoal-500 = tertiary text token); src/components/DataTable.tsx:47 (tier 'tertiary' -> text-charcoal-500); src/components/EmptyState.tsx:56,hint tier; src/modules/chat/PlanView.tsx:66, src/modules/research/BriefPanel.tsx:106 (meta '. N steps' / '. deepest' at charcoal-500)",
+    "gap": "The ROLE is delivered. The literal hex #79736a (warm) is superseded: charcoal-500 was revalued to the pure-neutral #8a8a8a by the R6 Pure Black revalue (tokens.css:12-19 'token NAMES are historical, not literal').",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec4 (R6 Pure Black doctrine stands); styles/tokens.css:12-19"
+  },
+  {
+    "pid": "INT-PD-47",
+    "promise": "Headings are distinguished by size and weight (font-weight-heading 590), never by color.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "styles/tokens.css:124 (--font-weight-heading); tokens.css:202-219 (text-section/overview/hero @utility: size + font-weight-heading, no color); grep of text-section|text-overview|text-hero|text-panel-title call sites in src/**/*.tsx intersected with text-amber|text-positive|text-negative returns zero hits",
+    "gap": "Weight is 700, not the promised 590 \u2014 revalued by R9 sec2 ('weight (400/500/700)'). The 'never by color' invariant holds in code.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec2"
+  },
+  {
+    "pid": "INT-PD-48",
+    "promise": "Accent text (amber-300) is reserved for the active/selected affordance only, never for general emphasis.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a74",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:47-51 (accent 'reserved for ONE rare spotlight role only: LIVE agent activity'); the only non-token amber call sites app-wide are src/components/StatusChrome.tsx:264 (active-run counter), src/modules/chat/AgentsRail.tsx:96,134 (running run + budget bar), src/modules/node-editor/workflow-run-overlay.tsx:243,260 (running node)",
+    "gap": "R9 narrowed the accent FURTHER than this promise: it is no longer permitted on 'the active/selected affordance' generally (active tabs/pills are neutral luminance steps). Not a gap \u2014 a deliberate tightening.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec4"
+  },
+  {
+    "pid": "INT-PD-49",
+    "promise": "Minimum interactive text size anywhere in the app is 12px; primary inputs are 14px; only dense data tables stay at 13px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:107-120 (six sizes 11/13/16/19/23/28); tokens.css:112 '12, 15, 18, 22 are dead sizes; the audit script rejects them'",
+    "gap": "12px floor and 14px inputs were both abolished. Floor is 11px (text-micro); inputs render text-body 13px (src/modules/chat/ChatSidebar.tsx:1857). Only the 'dense tables 13px' clause survives (see INT-PD-62).",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec2"
+  },
+  {
+    "pid": "INT-PD-50",
+    "promise": "Control heights follow a fixed scale: small = 32px, medium = 40px, large = 48px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/components/ui/button.tsx:29-36 (size ladder: default h-8, xs h-6, sm h-7, lg h-8, icon size-8/size-6/size-7)",
+    "gap": "The 32/40/48 ladder was replaced by R9's 24/28/32 ladder. No 40px or 48px control rung exists.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec3"
+  },
+  {
+    "pid": "INT-PD-51",
+    "promise": "The header/top bar targets a height of 48px (h-12) with a larger brand mark and comfortable gap, up from the prior 36px (h-9).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/app/page.tsx:215 \u2014 `<header className=\"bg-charcoal-925 relative flex h-12 shrink-0 items-center gap-4 px-4\">`",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-52",
+    "promise": "The composer input targets a minimum height of ~52px for multiline text, 14px font size, px-4/py-3 padding, and rounded-lg corners.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:1840 (field container `rounded-control border`, i.e. 4px not rounded-lg), :1857 (`text-body ... px-3 pt-2 pb-1`), :1559-1566 (auto-grow one line min to ~6 lines, no 52px floor)",
+    "gap": "Every numeric clause (52px min-height, 14px, px-4/py-3, rounded-lg) was revalued: R9 sec5 keeps containers sharp and explicitly says 'Claude-exact composer' means Claude's STRUCTURE, not its radius language.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec2, sec3, sec5"
+  },
+  {
+    "pid": "INT-PD-53",
+    "promise": "The composer toolbar (mode/model/send controls) targets 12px pill text with pill height h-8 and px-3 padding.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:1868 (controls row `flex items-center gap-2 px-2 pt-1 pb-2`); src/components/ui/button.tsx:30 (xs pill = h-6 text-caption px-2)",
+    "gap": "12px pill text is a dead size under R9 sec2; the chrome pill rung is h-6/text-caption-13, not h-8/12px.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec2, sec3"
+  },
+  {
+    "pid": "INT-PD-54",
+    "promise": "The send button targets size-10 (40px), up from the prior size-8 (32px).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:1835-1839 (comment: 'law sec3: primary actions 28x28 with 16px icons'); no size-10 control exists in src/components/ui/button.tsx:29-36",
+    "gap": "size-10 (40px) is not a rung in the R9 control ladder; the send square is 28x28 keyed to the depth-heat token.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec3, sec4"
+  },
+  {
+    "pid": "INT-PD-55",
+    "promise": "The command palette (Cmd+K) targets max-width 2xl, a 14px h-12 input, 14px rows at py-2.5, and 11px tracked group headers.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/components/CommandPalette.tsx:89 (max-w-3xl, not 2xl), :249 (input `text-body` = 13px), :307,387,458 (rows `min-h-8 ... px-4 py-1`), :283 + src/app/globals.css:70-78 (group-heading-style = text-micro 11px, 0.1em tracking)",
+    "gap": "The only clause that survived intact is the 11px tracked group header (globals.css:70-78). Width, input height and row sizes were revalued by R9 sec2/sec3.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec2, sec3"
+  },
+  {
+    "pid": "INT-PD-56",
+    "promise": "The ticker search/Load control targets width >= 32 (w-32+), height h-9, and 14px text.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/modules/chart/ChartPanel.tsx:1128 \u2014 `h-7 ... text-body ... w-[6.5rem]`/`w-[8.5rem]` with an inline `tokens-ok` note citing R9 sec3",
+    "gap": "R9 sec3 replaced 'w-32+, h-9, 14px' with a content-class FIXED width (w-[8.5rem] = 136px, fits 'SAKSOFT.NS') at h-7/text-body-13.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec3"
+  },
+  {
+    "pid": "INT-PD-57",
+    "promise": "Pills/chips/capsules target a minimum of text-xs (12px), px-2.5/py-1 padding, and rounded-md corners.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/components/DataBadges.tsx:28 (`rounded-control px-2 py-1 font-mono text-micro`); src/components/ui/button.tsx:30 (xs pill h-6 px-2 text-caption)",
+    "gap": "text-xs/12px is a dead size; px-2.5 (10px) and rounded-md are both off the R9 grid/radius scale (sec1 allows 2*/4/8/12..., sec5 pins controls at 4px).",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec1, sec2, sec5"
+  },
+  {
+    "pid": "INT-PD-58",
+    "promise": "Data provenance badges target py-0.5 padding and text-[11px] size.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/components/DataBadges.tsx:28 \u2014 `text-micro` = 11px (styles/tokens.css:113)",
+    "gap": "The 11px size clause is delivered. py-0.5 (2px) was revalued to py-1 (4px): R9 sec1 restricts the 2px quarter-step to intra-control optical gaps only, never padding.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec1"
+  },
+  {
+    "pid": "INT-PD-59",
+    "promise": "dockview tabs target 12px text, a modest bump from the prior 11px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/app/globals.css:370 \u2014 `--dv-tab-font-size: var(--text-caption, 0.8125rem)` (13px), pinned to the token not a literal",
+    "gap": "12px is a dead size under R9 sec2; tabs were bumped past the promised 12px to the caption-13 chrome step.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec2, sec7"
+  },
+  {
+    "pid": "INT-PD-60",
+    "promise": "Mention/slash pickers target 13-14px text with py-2 rows, up from the prior 11.2px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/modules/chat/MentionPicker.tsx:62 and src/modules/chat/SlashCommandPicker.tsx:53 \u2014 `text-body flex w-full items-baseline gap-2 px-3 py-2 text-left` (13px rows at py-2)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-61",
+    "promise": "Spacing in new/changed code draws only from the token scale (component padding from {8,12,16}, section gaps from {16,24,32}); no raw off-scale Tailwind values (e.g. px-[7px], gap-2.5) are allowed.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "scripts/audit-design-tokens.mjs exists and passes today (`node scripts/audit-design-tokens.mjs` -> 'design-token audit clean'); R9 sec1 says it 'runs in the gate battery'. But it is referenced by NO package.json script (package.json:6-23, incl. the `ci-local` chain at :19) and by none of .github/workflows/{build,lint,test}.yml (grep 'audit-design' returns nothing there).",
+    "gap": "The law is currently satisfied but UNENFORCED \u2014 nothing in lint, test, build or `pnpm ci-local` runs the audit, so the next off-grid value lands silently. The R4 halved-spacing disease (R9 sec0) is exactly what an unenforced spacing law produces.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-62",
+    "promise": "Dense data tables and numeric grids stay at 13px body size with their existing row rhythm -- the 'breathe' sizing increase applies only to composer, palette, header, buttons, pills, empty states, and the brief-reading column.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a75",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/components/DataTable.tsx:165 (`text-caption px-3 py-1` body cells = 13px); styles/tokens.css:114 (text-caption 13px, 'data cells'); R9 sec7 'Data-dense ... caption-13 tabular cells'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-63",
+    "promise": "Structural borders are 1px charcoal-700; fine dividers use the --hairline token (zinc at ~14% opacity).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a76",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/app/globals.css:41 (`--color-border: var(--color-charcoal-700)`), :56 (`--hairline: rgb(115 115 115 / 0.14)`), :57 (--hairline-strong 0.24); styles/tokens.css:39 (charcoal-700 #353535 'borders / inputs / dividers')",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-64",
+    "promise": "Radius follows a fixed scale: --radius-control 0.25rem for small controls, --radius-panel 0.375rem for cards/panels, with the composer and palette allowed a slightly larger rounded-lg (0.5rem).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a76",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:145-146 \u2014 `--radius-panel: 0` / `--radius-control: 0.25rem`; src/modules/chat/ChatSidebar.tsx:1840 and src/components/CommandPalette.tsx:307 both use rounded-control, not rounded-lg",
+    "gap": "radius-control 0.25rem is delivered. radius-panel 0.375rem and the composer/palette rounded-lg exemption were both dropped: containers are sharp rectangles (0) and 'Vysted stays sharp'.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec5; docs/redesign/VYSTED_DESIGN.md (Radius)"
+  },
+  {
+    "pid": "INT-PD-65",
+    "promise": "Elevation is expressed only as a luminance step plus a 1px border, never a blurred shadow (e.g. a popover sits on charcoal-875 with a charcoal-700 border).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a76",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/app/globals.css:58-60 ('No shadow/glow primitive of ANY kind ... Depth = the surface ladder + a 1px hairline'); :201-203 .hud-active and :207-210 .node-active use `box-shadow: 0 0 0 1px` (spread only, zero blur) over a charcoal-875 step; a grep for shadow-(md|lg|xl|2xl)/drop-shadow/blurred box-shadow across src/ and plugins/ returns zero hits",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-66",
+    "promise": "UI chrome uses a clean sans (Inter-class) typeface over a mono data face, with clear weight contrast: body 400, labels 510, headings 590.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a77",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:94-105 (ONE monospace family, JetBrains Mono, in all three of --font-sans/--font-serif/--font-mono: 'even a stray font-sans/font-serif utility renders mono -- there is no second face'); src/app/globals.css:106-110 applies it to html/body; tokens.css:122-124 weights 400/500/700",
+    "gap": "The sans-over-mono two-face system and the 510/590 weights were both abolished. This is a whole-system reversal, recorded in the token file itself.",
+    "decision_ref": "docs/redesign/VYSTED_DESIGN.md (one typeface); docs/redesign/R9_DESIGN_SYSTEM.md sec2"
+  },
+  {
+    "pid": "INT-PD-67",
+    "promise": "Numeric values use tabular figures and a slashed zero.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a77",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "src/app/globals.css:113-116 \u2014 `font-variant-numeric: tabular-nums; font-feature-settings: \"tnum\" 1, \"calt\" 0`. Tabular figures delivered. A grep for `\"zero\"` / `ss01` / `slashed` across src/ and styles/ returns only the CLAIM at styles/tokens.css:101 ('Numerics use tabular figures + slashed zero (globals.css)') \u2014 no rule enables it.",
+    "gap": "The slashed-zero half was never implemented; JetBrains Mono renders its default dotted zero. The token file asserts otherwise, so nobody will look again.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-68",
+    "promise": "Brief-reading prose uses a 1.6 line-height (--leading-prose) and a comfortable reading measure.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a77",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "styles/tokens.css:131 (--leading-prose: 1.6) and :190-194 (text-prose @utility binds it) \u2014 the leading half is delivered. The measure half is absent: grep for `max-w-prose` across src/ returns ZERO hits; the brief body instead only steps the SIZE by container width (src/modules/research/brief-blocks.tsx:1001 `text-body @min-[420px]:text-prose`), and src/modules/equity-overview/EquityOverviewPanel.tsx:419 renders the AI narrative as bare `text-prose leading-relaxed` with no width cap.",
+    "gap": "No reading surface caps its line length, so a brief in a wide dockview panel runs 16px prose across the full panel width (~150 characters at 1440px) \u2014 the exact thing R9 sec7 requires `max-w-prose` for.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-69",
+    "promise": "Every empty state in the app is a designed, composed placeholder centered in its panel (quiet icon, headline, one calm caption line, optional single CTA) -- never a bare 'No data.' text node and never a spinner used as the empty state.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a78",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/components/EmptyState.tsx:22-60 (icon/headline/hint/cta, centered, no spinner); 33 files reference EmptyState; a grep for bare `>No data<`-shaped text nodes across src/ and plugins/*.tsx returns zero hits",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-70",
+    "promise": "Empty states ship as one shared EmptyState component (icon/headline/hint/cta props) reused across every previously-dead-text surface, including analyst tables, broker connect, and the screener universe picker.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a78",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/analyst-ratings/RatingsHistoryTable.tsx:7,116 + IndividualAnalystTable.tsx:6,105 + AnalystRatingsPanel.tsx:6,124,188 + PriceTargetTimeline.tsx:14,116; src/modules/broker-connect/BrokerConnectPanel.tsx:21,160; src/modules/screener/ScreenerResultsTable.tsx:7,402,413,450 \u2014 all three named surfaces plus 26 import sites in total",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-71",
+    "promise": "The composer's empty state additionally shows 'teach-the-agent' suggestion chips (Perplexity-style 'try this' capsules) below the input.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a78",
+    "kind": "use-case",
+    "status": "delivered",
+    "evidence": "src/modules/chat/SuggestionChips.tsx (+ SuggestionChips.test.tsx); mounted at src/modules/chat/ChatSidebar.tsx:97,1507",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-72",
+    "promise": "Active pills / selected tabs use amber text or an amber tick while the fill stays a neutral luminance step; only a primary CTA gets an amber FILL with dark (charcoal-950) text, and at most one amber-filled element is visible at a time.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a79",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:47-51 + 85-92 (the only permitted accent FILL is the composer send button keyed to --color-depth-*); src/modules/chat/ChatSidebar.tsx:1835-1839",
+    "gap": "The amber-filled primary CTA and the amber pill/tab affordance were both removed; active pills/tabs are neutral luminance steps (src/app/globals.css:377-379 active dockview tab = a charcoal-400 underline).",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec4"
+  },
+  {
+    "pid": "INT-PD-73",
+    "promise": "The focus ring is 1px amber-400 with a 1px offset; selection highlight uses amber at 30% opacity.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a79",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/app/globals.css:161-164 (`:focus-visible { outline: 1px solid var(--color-charcoal-400); outline-offset: 1px }`) and :156-159 + :55 (`::selection { background: rgb(var(--accent-rgb) / 0.3) }` where --accent-rgb is `120 120 120`, a neutral gray)",
+    "gap": "The GEOMETRY is delivered exactly (1px ring, 1px offset, 30% selection). Only the amber color was dropped \u2014 both are neutral, per the monochrome-chrome rule.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec4; src/app/globals.css:52-55"
+  },
+  {
+    "pid": "INT-PD-74",
+    "promise": "Scrollbars use a quiet warm-neutral rail whose thumb brightens to amber at ~55% opacity on hover.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a79",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/app/globals.css:469-479 \u2014 rail transparent, thumb `rgb(115 115 115 / 0.4)`, hover `rgb(var(--accent-rgb) / 0.55)` with --accent-rgb = neutral gray (:55)",
+    "gap": "The 55% hover-brighten is delivered; 'warm' and 'amber' were dropped for neutral gray by the R6 pure-neutral revalue.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec4; styles/tokens.css:1-10"
+  },
+  {
+    "pid": "INT-PD-75",
+    "promise": "Icons use the lucide set at ~1.5-1.75 stroke width, sized to their control, tertiary tint by default and primary tint on hover.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a79",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "lucide-react is the icon set throughout (e.g. src/modules/chat/ChatSidebar.tsx:12). Tint pattern delivered: src/components/ui/button.tsx:25 ghost = `text-muted-foreground hover:text-foreground`; src/modules/notes/NotesToolbar.tsx:105 `text-charcoal-400 hover:text-charcoal-100`. Stroke width is NOT: the whole app carries only 5 explicit strokeWidth props (1.5 x2, 2, 2.25, 0), so essentially every icon renders lucide's DEFAULT strokeWidth 2 \u2014 above the promised 1.5-1.75 band.",
+    "gap": "Stroke weight is unspecified app-wide. Not filed as a raw finding: COMMON.md scopes UI findings to functional defects, and R9 sec6 replaced numeric visual conformance with side-by-side reference verification.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec6"
+  },
+  {
+    "pid": "INT-PD-76",
+    "promise": "Motion keeps the existing timing tiers (micro 120ms / default 180ms / entrance 240ms / exit 160ms), honors reduced-motion preferences, and introduces no new motion vocabulary.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a79",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "styles/tokens.css:150-153 (micro 120 / default 180 / entrance 240 / exit 160); src/lib/motion.ts:8-11,28,31 (DUR {fast .12, base .18, slow .24}, DUR_EXIT .16 \u2014 mirrors the CSS tiers in seconds); src/app/globals.css:169-178 (prefers-reduced-motion collapses animation + transition) plus <MotionConfig reducedMotion=\"user\"> noted at globals.css:167",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-77",
+    "promise": "A redesigned surface passes design acceptance only when, compared to its reference at equal zoom: the background reads warm not blue; controls are at reference generosity; three text tiers are visible; accent appears on 0-2 elements and is amber, never neon; there is no glow anywhere; and empty states look intentional.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a710",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "styles/tokens.css:1-10 ('a PURE NEUTRAL grayscale ramp (R=G=B at every step -- a clean near-black, ZERO warm/brown cast'); src/app/globals.css:135-137 ('Flat pure-neutral field')",
+    "gap": "The acceptance test's first criterion ('the background reads warm not blue') is now the opposite of the shipped doctrine, and R9 sec6 replaced this self-graded checklist with fresh-context side-by-side reference verification against Linear/Cursor/Claude captures.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec4, sec6"
+  },
+  {
+    "pid": "INT-PD-78",
+    "promise": "Every tabular/numeric surface (equity-overview statements, screener, analyst, earnings, SEC, portfolio, watchlist) renders through one shared DataTable component (src/components/DataTable.tsx) -- no more per-panel hand-rolled <table> markup.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "src/components/DataTable.tsx:180-298 exists and is used by 12 surfaces (watchlist, screener, portfolio, equity-overview, analyst x2, SEC x2, earnings, quant x2). But SIX hand-rolled `<table>` elements remain: src/modules/research/brief-blocks.tsx:926, src/modules/screener/ScreenerResultsTable.tsx:347, src/modules/safety/AuditLogViewer.tsx:155, src/modules/backtest/BacktestResultView.tsx:242, src/modules/earnings/EarningsCalendarPanel.tsx:216 and :278, src/modules/watchlist/WatchlistPanel.tsx:437.",
+    "gap": "'No more per-panel hand-rolled <table> markup' is false. Each of the six re-implements header tint, row rhythm, null glyph and sort affordance by hand, so a change to the table law has to be made in seven places.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-79",
+    "promise": "All numeric table cells are right-aligned with tabular-nums figures and are formatted exclusively through the single src/lib/format.ts suite (formatMoney, formatCompactMoney, formatPercent, formatPrice, formatUnit) -- never a per-panel formatter and never an unsuffixed raw number.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "src/lib/format.ts:65,82,105,117,133,141,156,188,210 provides the full suite and is currency-aware by construction (:74-80 'so the compact path never hardcodes `$`'). DataTable enforces right-align + tabular-nums centrally (src/components/DataTable.tsx:167). But the exclusivity clause is violated: src/modules/research/brief-blocks.tsx:55-101 declares a COMPLETE shadow formatter suite (formatNumber/formatLarge/formatFractionPct/formatSignedPct/formatSigned) under the header comment 'mirror EquityOverviewPanel's battle-tested conventions'; src/modules/broker-connect/BrokerReadsSection.tsx:150 hand-rolls toLocaleString; src/modules/quant/BondPricerPanel.tsx:301,323,326 and src/modules/quant/OptionPricerPanel.tsx:525,532 hardcode a `$` prefix.",
+    "gap": "Two distinct defects fall out (filed separately): the research brief formats money with a hardcoded en-US locale and NO currency symbol at all, and the quant pricers stamp `$` on currency-free inputs.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-80",
+    "promise": "Table header rows use text-micro (11px), weight 510, charcoal-400, uppercase, px-3/py-1.5 padding; sortable headers add an aria-sort attribute plus a quiet caret, and the active sort key is the only amber affordance in the table.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/components/DataTable.tsx:254-258 (`text-micro text-charcoal-400 px-3 py-1`; text-micro carries weight-label + uppercase + 0.1em, styles/tokens.css:169-175), :244-252 (aria-sort ascending/descending/none), :261-265 (caret)",
+    "gap": "Delivered except the amber clause: the active-sort caret renders `text-charcoal-300` (neutral), not amber \u2014 correct under R9 sec4, but the file's own contract docstring at DataTable.tsx:30-31 still promises 'a quiet caret that is amber only on the active sort key'. py-1.5 was revalued to py-1 for the 28px row rung.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec3, sec4"
+  },
+  {
+    "pid": "INT-PD-81",
+    "promise": "Table body rows use text-body (13px) at weight 400 with px-3/py-1.5 padding as one consistent rhythm across every dense table; primary values are charcoal-100, supporting values charcoal-400, and subtotals/meta charcoal-500.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/components/DataTable.tsx:165 (`text-caption px-3 py-1` = 13px, weight inherited 400), :44-48 (TIER_CLASS primary charcoal-100 / secondary charcoal-400 / tertiary charcoal-500), :290 (footnote row at charcoal-500)",
+    "gap": "py-1.5 (6px) was revalued to py-1 (4px) for the 28px data-row rung; 1.5 steps are explicitly off-grid under R9 sec1.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec1, sec3"
+  },
+  {
+    "pid": "INT-PD-82",
+    "promise": "Financial statement tables show explicit period columns (e.g. TTM, FY2025, FY2024) as first-class, right-aligned headers.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:508-540 \u2014 StatementTable maps `statement.periods` to one right-aligned `numeric: true` DataColumn each with the period as its header, left of a 40% 'Line item' label column",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-83",
+    "promise": "Grouped table sections (e.g. Valuation, Profitability, Financial Health) use a dedicated section-header row style, not ad-hoc spacing.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/components/DataTable.tsx:88-94 (DataSection type), :272-283 (a dedicated `<th scope=\"colgroup\">` row at `text-micro text-charcoal-500 bg-charcoal-900/40 px-3 py-1`); consumed by src/modules/equity-overview/EquityOverviewPanel.tsx:85 FIELD_GROUPS (Valuation / Profitability / Financial health / ...)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-84",
+    "promise": "Missing table values render as an em dash (charcoal-600); a row or section that is wholly null collapses to a single muted note instead of a wall of dashes.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/components/DataTable.tsx:51 (`NULL_GLYPH = '\u2014'`) and :166 (`isNull ? 'text-charcoal-600' : tier`) deliver the em-dash half exactly. The collapse half was deliberately REVERSED: src/modules/equity-overview/EquityOverviewPanel.tsx:81-84 \u2014 'Every group ALWAYS renders (R13) \u2014 a group that happens to be all-null (e.g. ownership for an index fund) still shows its field rows, each with an honest em-dash + reason chip, never a silently-hidden section', with a regression test at EquityOverviewPanel.test.tsx:345.",
+    "gap": "R13 chose honest all-dashes over collapse, because a hidden section reads as 'this company has no ownership data to show' rather than 'we could not fetch it'. A data-trust decision, not a regression.",
+    "decision_ref": "src/modules/equity-overview/EquityOverviewPanel.tsx:81-84 (R13); EquityOverviewPanel.test.tsx:345"
+  },
+  {
+    "pid": "INT-PD-85",
+    "promise": "Tables never expose raw snake_case field names to the user -- labels always come from a curated map such as FIELD_GROUPS.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a711",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:81-82 ('Labels are curated (never snake_case)'), :85-160 FIELD_GROUPS with human labels ('Debt / equity', 'Free cash flow'), :490 humanizeLineLabel for statement line items",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-86",
+    "promise": "Notes is a real editor built on the already-installed Tiptap v3 with a visible formatting toolbar (h-12, gap-4 groups) covering Headings (H1/H2/H3), Inline (bold/italic/code), Lists (bullet/numbered/task), Blocks (blockquote/link), and [[wikilink]].",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a712",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "package.json:29-38 pins @tiptap/* 3.25.0 (v3). src/modules/notes/NotesToolbar.tsx delivers Headings H1/H2/H3 (:166-183), Inline bold/italic/code (:190-205), Blocks blockquote/code-block (:229-240), Link (:246-251) and [[wikilink]] (:155-158). MISSING: the Lists group (:210-224) has bullet + numbered ONLY \u2014 no task-list control, though the node ships and is reachable from the slash menu (src/modules/notes/slash-commands.ts:44-46 'Task List' -> toggleTaskList) and is styled (src/app/globals.css:277-285).",
+    "gap": "One promised toolbar control is absent. The h-12/gap-4 geometry was separately revalued to an h-7 wrapping row at gap-2 (NotesToolbar.tsx:5,163) by the R9 control ladder.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec3 (geometry only)"
+  },
+  {
+    "pid": "INT-PD-87",
+    "promise": "Each Notes toolbar button reflects active formatting state via editor.isActive(x) as an amber active indicator (text/tick, not a fill).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a712",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/modules/notes/NotesToolbar.tsx:169-251 \u2014 every control passes `active={editor.isActive(...)}`; the wiring is delivered. The indicator renders `text-charcoal-300` when active vs `text-charcoal-400` when idle (:104-105) \u2014 neutral, not amber, per R9 sec4.",
+    "gap": "The amber clause is correctly dropped. Two residues remain (filed low): the file's contract comment at :10 still states 'amber TEXT, not a fill', and the surviving indicator is a single luminance step (#cccccc vs #a8a8a8) with no weight, fill or tick to back it.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec4"
+  },
+  {
+    "pid": "INT-PD-88",
+    "promise": "Notes renders live markdown in a locked type scale (.notes-prose: h2=18px, body=13px, code=mono) rather than Tailwind's default 16px prose.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a712",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "src/app/globals.css:236-322 defines .notes-prose against tokens: body `var(--text-body)` = 13px (:238) and code/pre `var(--font-mono)` (:293,300) are delivered. h2 resolves to `var(--text-section)` = 19px (styles/tokens.css:118), not the promised 18px \u2014 an R9 sec2 revalue (18px is a dead size).",
+    "gap": "The rule bodies are token-bound and correct. What is stale is every literal FALLBACK in the block \u2014 h1 `1.375rem`, h2 `1.125rem` (18px), h3 `0.9375rem` (15px), pre `0.75rem` (12px), weight `590` (globals.css:243-256, 301) \u2014 all of which are R9 dead sizes/weights, so a missing token degrades .notes-prose onto exactly the scale R9 abolished.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec2"
+  },
+  {
+    "pid": "INT-PD-89",
+    "promise": "Notes popovers (slash menu, wikilink menu) use a 1px charcoal-700 border with no shadow-lg (no-glow rule); menu rows are h-9 with a text-caption title and a text-micro hint.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a712",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "src/modules/notes/NotesPanel.tsx:357 (slash menu) and :394 (wikilink menu) \u2014 `border-charcoal-700 bg-charcoal-900 overflow-y-auto rounded-none border`: 1px charcoal-700 and no shadow, both delivered. Row height h-9 was revalued to h-8 (:364,:401) per the R9 form-row rung.",
+    "gap": "The slash-menu row is a two-line stack (`flex h-8 ... flex-col`, :364) holding a `text-caption` title (:375) above a `text-caption` description (:376). text-caption is 13px at --leading-body 1.5 = 19.5px per line, so 39px of text sits in a 32px fixed-height box \u2014 R9 sec3's descender rule is violated and the rows collide.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md sec2 (hint tier is now weight+color, not a smaller size), sec3"
+  },
+  {
+    "pid": "INT-PD-90",
+    "promise": "Notes preserves markdown/PNG/PDF export, atomic persistence, wikilinks, and slash commands.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md \u00a712",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/notes/NotesPanel.tsx:13-16 (dual persistence + .md/PNG/PDF sharing), :225-229 (saveTextArtifact .md), :234-238 (savePngArtifact), :245-249 (savePdfArtifact); src/modules/notes/notes-persistence.ts:4-5,69,93 (Rust `write_text_atomic`, temp-file + rename, SC-032); wikilinks src/modules/notes/WikiLinkExtension.ts; slash commands src/modules/notes/SlashCommandExtension.ts + slash-commands.ts",
+    "gap": "",
+    "decision_ref": ""
+  }
+]

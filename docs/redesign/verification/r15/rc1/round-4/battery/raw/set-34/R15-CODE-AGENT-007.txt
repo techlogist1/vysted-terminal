@@ -1,0 +1,6 @@
+deepseek base (registry): https://api.deepseek.com
+xai base (registry): https://api.x.ai/v1
+deepseek provider base_url: None
+xai provider base_url: None
+before edit — deepseek: https://api.deepseek.com xai: https://api.x.ai/v1 openrouter: https://openrouter.ai/api/v1
+after edit — deepseek: https://edited.deepseek.example/v9 xai: https://edited.x.example/v2

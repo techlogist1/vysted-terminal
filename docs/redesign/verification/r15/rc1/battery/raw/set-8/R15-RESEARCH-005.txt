@@ -1,0 +1,14 @@
+$ find sidecar/tests -iname "*synthesis_timeout*"
+sidecar/tests/test_research_synthesis_timeout.py
+
+$ grep -n "def test_synthesis_timeout" sidecar/tests/test_research_synthesis_timeout.py
+109:def test_synthesis_timeout_with_web_sources_is_stated_not_called_thin(local_run) -> None:
+123:def test_synthesis_timeout_reaches_the_execution_record(local_run) -> None:
+
+Both tests present at HEAD (4c6dfe8c), unmodified path. Per the entry's own certification
+text ("Limit: the 3 s cut also starved the live runs of web sources ... so 'timeout with
+web sources present' is pinned by the committed stub test ... not live"), this half was
+never meant to be re-derived live — the register's own verifier pinned it to these tests.
+The other half (degraded_reason: synthesis_timeout on a real DEEP/ULTRA run) needs the LLM
+call timeout force-reduced to 3s, a source code change, not reproducible as a black-box
+regression check without editing the candidate.

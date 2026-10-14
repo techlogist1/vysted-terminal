@@ -1,0 +1,313 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_80712f377e184d22a62c8b12b2e17e13", "name": "news", "input": {"symbols": ["NVDA"]}}
+{"kind": "tool_result", "tool_call_id": "call_80712f377e184d22a62c8b12b2e17e13", "name": "news", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": " articles"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " NVIDIA"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "Tech"}
+{"kind": "delta", "text": " stocks"}
+{"kind": "delta", "text": " gain"}
+{"kind": "delta", "text": " after"}
+{"kind": "delta", "text": " tech"}
+{"kind": "delta", "text": " titan"}
+{"kind": "delta", "text": " dinner"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " Trump"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " China"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " Xi"}
+{"kind": "delta", "text": " Jinping"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Alpha"}
+{"kind": "delta", "text": "Check"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " Finance"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "Stock"}
+{"kind": "delta", "text": " Market"}
+{"kind": "delta", "text": " Today"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Sept"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "&P"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": " edges"}
+{"kind": "delta", "text": " higher"}
+{"kind": "delta", "text": " amid"}
+{"kind": "delta", "text": " easing"}
+{"kind": "delta", "text": " oil"}
+{"kind": "delta", "text": " prices"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " Street"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "Trump"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Xi"}
+{"kind": "delta", "text": " Buy"}
+{"kind": "delta", "text": " Time"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " Trade"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Farm"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Chip"}
+{"kind": "delta", "text": " Stocks"}
+{"kind": "delta", "text": " Are"}
+{"kind": "delta", "text": " Watching"}
+{"kind": "delta", "text": " C"}
+{"kind": "delta", "text": "los"}
+{"kind": "delta", "text": "ely"}
+{"kind": "delta", "text": ".\""}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "247"}
+{"kind": "delta", "text": "wall"}
+{"kind": "delta", "text": "st"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": "ig"}
+{"kind": "delta", "text": "etti"}
+{"kind": "delta", "text": " Computing"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": "GT"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " R"}
+{"kind": "delta", "text": "ides"}
+{"kind": "delta", "text": " Quantum"}
+{"kind": "delta", "text": " Momentum"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Does"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " Val"}
+{"kind": "delta", "text": "uation"}
+{"kind": "delta", "text": " Already"}
+{"kind": "delta", "text": " Look"}
+{"kind": "delta", "text": " Full"}
+{"kind": "delta", "text": "?\""}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " Finance"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "Why"}
+{"kind": "delta", "text": " Vert"}
+{"kind": "delta", "text": "iv"}
+{"kind": "delta", "text": " Holdings"}
+{"kind": "delta", "text": " Co"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "VRT"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " Is"}
+{"kind": "delta", "text": " Back"}
+{"kind": "delta", "text": " In"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " Spotlight"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " Finance"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "El"}
+{"kind": "delta", "text": "on"}
+{"kind": "delta", "text": " Musk"}
+{"kind": "delta", "text": " Makes"}
+{"kind": "delta", "text": " Massive"}
+{"kind": "delta", "text": " Nvidia"}
+{"kind": "delta", "text": " Move"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " SpaceX"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " Finance"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "189"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " Year"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Date"}
+{"kind": "delta", "text": " Number"}
+{"kind": "delta", "text": " That"}
+{"kind": "delta", "text": " Push"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": " AMD"}
+{"kind": "delta", "text": " Into"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " Tr"}
+{"kind": "delta", "text": "illion"}
+{"kind": "delta", "text": " Dollar"}
+{"kind": "delta", "text": " Club"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "247"}
+{"kind": "delta", "text": "wall"}
+{"kind": "delta", "text": "st"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "NS"}
+{"kind": "delta", "text": "CALE"}
+{"kind": "delta", "text": " RA"}
+{"kind": "delta", "text": "ISE"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "36"}
+{"kind": "delta", "text": "B"}
+{"kind": "delta", "text": " IN"}
+{"kind": "delta", "text": " PRE"}
+{"kind": "delta", "text": "-I"}
+{"kind": "delta", "text": "PO"}
+{"kind": "delta", "text": " CONVERT"}
+{"kind": "delta", "text": "IBLE"}
+{"kind": "delta", "text": " FIN"}
+{"kind": "delta", "text": "ANC"}
+{"kind": "delta", "text": "ING"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " Finance"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "Technology"}
+{"kind": "delta", "text": " Stocks"}
+{"kind": "delta", "text": " Are"}
+{"kind": "delta", "text": " Back"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Because"}
+{"kind": "delta", "text": " Nothing"}
+{"kind": "delta", "text": " Else"}
+{"kind": "delta", "text": " Is"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " Finance"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "N"}
+{"kind": "delta", "text": "vidia"}
+{"kind": "delta", "text": " Stock"}
+{"kind": "delta", "text": " R"}
+{"kind": "delta", "text": "ises"}
+{"kind": "delta", "text": " After"}
+{"kind": "delta", "text": " Elon"}
+{"kind": "delta", "text": " Musk"}
+{"kind": "delta", "text": "\u2019s"}
+{"kind": "delta", "text": " SpaceX"}
+{"kind": "delta", "text": " Chip"}
+{"kind": "delta", "text": " Surprise"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " Finance"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "11"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "N"}
+{"kind": "delta", "text": "vidia"}
+{"kind": "delta", "text": " Vs"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " AMD"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Who"}
+{"kind": "delta", "text": " Wins"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " Critical"}
+{"kind": "delta", "text": " Coming"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": " Month"}
+{"kind": "delta", "text": " Period"}
+{"kind": "delta", "text": "?\""}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "247"}
+{"kind": "delta", "text": "wall"}
+{"kind": "delta", "text": "st"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "Note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " articles"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " various"}
+{"kind": "delta", "text": " sources"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " including"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Finance"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "247"}
+{"kind": "delta", "text": "wall"}
+{"kind": "delta", "text": "st"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5342, "output_tokens": 307, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

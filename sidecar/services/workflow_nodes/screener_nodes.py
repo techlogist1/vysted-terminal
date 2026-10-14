@@ -45,15 +45,13 @@ async def screener_query(inputs: dict[str, Any], config: dict[str, Any]) -> dict
     from models.screener import ScreenerRequest
     from services import screener
 
-    universe = inputs.get("universe") or config.get("universe")
+    universe = workflow_engine.resolve(inputs, config, "universe")
     if not universe:
         raise ValueError(
             "analysis.screener_query: missing 'universe' (provide via input or config)"
         )
 
-    criteria = inputs.get("criteria")
-    if criteria is None:
-        criteria = config.get("criteria")
+    criteria = workflow_engine.resolve(inputs, config, "criteria")
     if criteria is None:
         raise ValueError(
             "analysis.screener_query: missing 'criteria' (provide via input or config)"
@@ -61,8 +59,8 @@ async def screener_query(inputs: dict[str, Any], config: dict[str, Any]) -> dict
     if not isinstance(criteria, list):
         raise ValueError("analysis.screener_query: 'criteria' must be a list")
 
-    custom_symbols = inputs.get("custom_symbols") or config.get("custom_symbols")
-    limit = inputs.get("limit") or config.get("limit") or 50
+    custom_symbols = workflow_engine.resolve(inputs, config, "custom_symbols")
+    limit = workflow_engine.resolve(inputs, config, "limit", default=50)
 
     try:
         request = ScreenerRequest.model_validate(

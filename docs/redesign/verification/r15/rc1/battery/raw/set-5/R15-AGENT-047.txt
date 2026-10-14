@@ -1,0 +1,3 @@
+=== AGENT-047a portfolio_add_position quantity string 'ten' ===
+tool: portfolio_add_position in: {'symbol': 'RELIANCE', 'quantity': 'ten', 'cost_basis': 100}
+out: {'__vysted_invalid_args__': "invalid arguments for portfolio_add_position: 'ten' is not of type 'number'; call again with valid args"}

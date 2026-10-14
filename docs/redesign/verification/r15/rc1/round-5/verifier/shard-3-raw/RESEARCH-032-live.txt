@@ -1,0 +1,7 @@
+# RESEARCH-032 live, own sidecar :52603
+## GET /search/searxng/status
+{"state":"degraded","detail":"SearXNG is running but its search engines are blocked","reason":"brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA","port":8888,"url":null,"container":"running","container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":true,"daemon_running":true,"runtime":"Docker Engine - Community"}}
+HTTP 200
+
+## GET /system/hardware
+{"device":{"ramBytes":17179869184,"ramGib":16.0,"gpuBudgetBytes":11338713661,"gpuBudgetGib":10.6,"totalCores":8,"perfCores":6,"isAppleSilicon":true,"arch":"arm64","chip":"Apple M1 Pro","osName":"macOS","osVersion":"26.3","reserveBytes":4294967296,"estimated":false},"ollama":{"endpoint":"http://127.0.0.1:11434","models":[{"name":"qwen3:8b","verdict":"green","gpuFitRatio":0.767,"ramFitRatio":0.756,"demandBytes":8698215702,"demandGib":8.1,"weightsBytes":5225388164,"kvBytes":2399085714,"ctxMax":1024

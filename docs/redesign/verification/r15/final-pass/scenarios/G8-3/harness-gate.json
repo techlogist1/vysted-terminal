@@ -1,0 +1,251 @@
+[
+ {
+  "autonomy": "ask",
+  "tool": "place_order",
+  "input": {
+   "symbol": "INFY",
+   "side": "buy",
+   "quantity": 5,
+   "order_type": "limit",
+   "price": 1400
+  },
+  "kind": "panel",
+  "title": "place order",
+  "enqueueOutcome": "staged",
+  "acceptReturn": "failed",
+  "statusAfter": "pending",
+  "detail": "unknown action \"place_order\"",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "fp-g83-ask-0",
+    "status": "failed",
+    "detail": {
+     "action": "place_order",
+     "symbol": "INFY"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "ask",
+  "tool": "submit_order",
+  "input": {
+   "symbol": "TCS",
+   "side": "sell",
+   "quantity": 5
+  },
+  "kind": "panel",
+  "title": "submit order",
+  "enqueueOutcome": "staged",
+  "acceptReturn": "failed",
+  "statusAfter": "pending",
+  "detail": "unknown action \"submit_order\"",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "fp-g83-ask-1",
+    "status": "failed",
+    "detail": {
+     "action": "submit_order",
+     "symbol": "TCS"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "ask",
+  "tool": "portfolio_add_position",
+  "input": {
+   "symbol": "",
+   "quantity": -3,
+   "cost_basis": "abc"
+  },
+  "kind": "data-write",
+  "title": "Add -3 to the portfolio — no price given",
+  "enqueueOutcome": "staged",
+  "acceptReturn": "failed",
+  "statusAfter": "pending",
+  "detail": "no symbol given",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "fp-g83-ask-2",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_add_position"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "ask",
+  "tool": "portfolio_add_position",
+  "input": {
+   "symbol": "RELIANCE",
+   "quantity": 10,
+   "cost_basis": null
+  },
+  "kind": "data-write",
+  "title": "Add 10 RELIANCE to the portfolio — no price given",
+  "enqueueOutcome": "staged",
+  "acceptReturn": "failed",
+  "statusAfter": "pending",
+  "detail": "no price given",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "fp-g83-ask-3",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_add_position",
+     "symbol": "RELIANCE"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "place_order",
+  "input": {
+   "symbol": "INFY",
+   "side": "buy",
+   "quantity": 5,
+   "order_type": "limit",
+   "price": 1400
+  },
+  "kind": "panel",
+  "title": "place order",
+  "enqueueOutcome": "failed",
+  "acceptReturn": "failed",
+  "statusAfter": "pending",
+  "detail": "unknown action \"place_order\"",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "fp-g83-auto-0",
+    "status": "failed",
+    "detail": {
+     "action": "place_order",
+     "symbol": "INFY"
+    }
+   },
+   {
+    "tool_call_id": "fp-g83-auto-0",
+    "status": "failed",
+    "detail": {
+     "action": "place_order",
+     "symbol": "INFY"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "submit_order",
+  "input": {
+   "symbol": "TCS",
+   "side": "sell",
+   "quantity": 5
+  },
+  "kind": "panel",
+  "title": "submit order",
+  "enqueueOutcome": "failed",
+  "acceptReturn": "failed",
+  "statusAfter": "pending",
+  "detail": "unknown action \"submit_order\"",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "fp-g83-auto-1",
+    "status": "failed",
+    "detail": {
+     "action": "submit_order",
+     "symbol": "TCS"
+    }
+   },
+   {
+    "tool_call_id": "fp-g83-auto-1",
+    "status": "failed",
+    "detail": {
+     "action": "submit_order",
+     "symbol": "TCS"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "portfolio_add_position",
+  "input": {
+   "symbol": "",
+   "quantity": -3,
+   "cost_basis": "abc"
+  },
+  "kind": "data-write",
+  "title": "Add -3 to the portfolio — no price given",
+  "enqueueOutcome": "staged",
+  "acceptReturn": "failed",
+  "statusAfter": "pending",
+  "detail": "no symbol given",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "fp-g83-auto-2",
+    "status": "staged",
+    "detail": {
+     "action": "portfolio_add_position"
+    }
+   },
+   {
+    "tool_call_id": "fp-g83-auto-2",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_add_position"
+    }
+   }
+  ]
+ },
+ {
+  "autonomy": "auto",
+  "tool": "portfolio_add_position",
+  "input": {
+   "symbol": "RELIANCE",
+   "quantity": 10,
+   "cost_basis": null
+  },
+  "kind": "data-write",
+  "title": "Add 10 RELIANCE to the portfolio — no price given",
+  "enqueueOutcome": "staged",
+  "acceptReturn": "failed",
+  "statusAfter": "pending",
+  "detail": "no price given",
+  "storeUnchanged": true,
+  "positionsUnchanged": true,
+  "acks": [
+   {
+    "tool_call_id": "fp-g83-auto-3",
+    "status": "staged",
+    "detail": {
+     "action": "portfolio_add_position",
+     "symbol": "RELIANCE"
+    }
+   },
+   {
+    "tool_call_id": "fp-g83-auto-3",
+    "status": "failed",
+    "detail": {
+     "action": "portfolio_add_position",
+     "symbol": "RELIANCE"
+    }
+   }
+  ]
+ }
+]

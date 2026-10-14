@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+The current price of RELIANCE.NS is ₹1226.0 and its P/E ratio is 22.222223.
+
+=== ok · 55.5s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 27, 'done': 1} · usage in=5852 out=28 · est $0.00000 · llama3.1:8b

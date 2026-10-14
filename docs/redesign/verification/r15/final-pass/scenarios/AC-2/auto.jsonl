@@ -1,0 +1,85 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_de40dde7d74c417d90cd1f2bcaebc6a5", "name": "portfolio_add_position", "input": {"symbol": "TCS", "quantity": 5, "cost_basis": 3500}}
+{"kind": "tool_use", "tool_call_id": "call_5186f6fd252646bba8f3e7b945c66563", "name": "add_to_watchlist", "input": {"asset_class": "equity", "symbol": "INFY"}}
+{"kind": "tool_use", "tool_call_id": "call_db5f21b96ae84b428d075252ed0aa65b", "name": "portfolio_delete_position", "input": {"position_id": "AAPL"}}
+{"kind": "tool_result", "tool_call_id": "call_de40dde7d74c417d90cd1f2bcaebc6a5", "name": "portfolio_add_position", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_5186f6fd252646bba8f3e7b945c66563", "name": "add_to_watchlist", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_db5f21b96ae84b428d075252ed0aa65b", "name": "portfolio_delete_position", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " actions"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " been"}
+{"kind": "delta", "text": " dispatched"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " verify"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " status"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " actions"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " Portfolio"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " must"}
+{"kind": "delta", "text": " inform"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " V"}
+{"kind": "delta", "text": "yst"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " brokerage"}
+{"kind": "delta", "text": " connections"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " so"}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " cannot"}
+{"kind": "delta", "text": " place"}
+{"kind": "delta", "text": " trades"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " stage"}
+{"kind": "delta", "text": " them"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " execution"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 1975, "output_tokens": 74, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

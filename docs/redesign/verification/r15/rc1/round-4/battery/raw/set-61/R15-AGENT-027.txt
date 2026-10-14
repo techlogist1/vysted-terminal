@@ -1,0 +1,9 @@
+=== R15-AGENT-027: humanize() repro (register rows + batch-12 fresh cases) ===
+openai status=429 -> code='insufficient_credit' message='Your OpenAI account is out of credit or quota.'
+openai status=400 -> code='context_overflow' message='The conversation is too long for this OpenAI model.'
+groq status=413 -> code='context_overflow' message='The conversation is too long for this Groq model.'
+ollama status=None -> code='ollama_not_running' message='Ollama is not running.'
+gemini status=400 -> code='context_overflow' message='The conversation is too long for this Google Gemini model.'
+openrouter status=403 -> code='insufficient_credit' message='Your OpenRouter account is out of credit or quota.'
+together status=404 -> code='model_not_found' message='The requested model is not available on together — pick another model.'
+openai status=None -> code='network' message='Could not reach OpenAI — check your network.'

@@ -1,0 +1,10 @@
+# R15-AGENT-020 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:23:07+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py/R15-AGENT-020.py 2>&1 | grep -v "^WARNING\|DEBUG" | tail -c 9000
+[exit 0] [0.39s]
+read_notes capability: ('read_notes', 'per_invocation', True, "Read the user's own notes (their thesis) for a scope. Call it before write_note with mode 'replace', and whenever the user refers to their notes, thesis or plan for a stock.")
+read_notes in default grant: True
+480:    """The ``__notes__`` entry (C2): ``{"general": str, "bySymbol": {SYM: str}}``,
+484:    notes = snapshot.by_source.get("__notes__")
+
+

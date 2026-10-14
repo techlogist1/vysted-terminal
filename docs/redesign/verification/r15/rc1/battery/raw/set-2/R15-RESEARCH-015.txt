@@ -1,0 +1,3 @@
+a) same-domain independence= 1 domains= {'example.com'}
+b) distinct-domain independence= 2 domains= {'example.com', 'other.com'}
+c) uncited-native independence= 2 domains= {'example.com'}

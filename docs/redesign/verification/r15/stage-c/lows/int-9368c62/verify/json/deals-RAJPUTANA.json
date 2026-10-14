@@ -1,0 +1,80 @@
+{
+ "symbol": "RAJPUTANA",
+ "kind": null,
+ "count": 5,
+ "deals": [
+  {
+   "symbol": "RAJPUTANA",
+   "kind": "bulk",
+   "date": "2026-04-20",
+   "party": "MANISHA LODHA",
+   "side": "sell",
+   "quantity": 90000.0,
+   "price": 226.21,
+   "value": 20358900.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  },
+  {
+   "symbol": "RAJPUTANA",
+   "kind": "bulk",
+   "date": "2026-04-15",
+   "party": "SANJAY KUMAR GUPTA HUF",
+   "side": "buy",
+   "quantity": 50000.0,
+   "price": 220.0,
+   "value": 11000000.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  },
+  {
+   "symbol": "RAJPUTANA",
+   "kind": "bulk",
+   "date": "2026-04-15",
+   "party": "SHRUTI LODHA",
+   "side": "sell",
+   "quantity": 72000.0,
+   "price": 220.35,
+   "value": 15865200.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  },
+  {
+   "symbol": "RAJPUTANA",
+   "kind": "sast",
+   "date": "2026-04-15",
+   "party": "Shruti Lodha",
+   "side": "sell",
+   "quantity": 173000.0,
+   "price": null,
+   "value": null,
+   "percent_after": 0.0,
+   "exchange": "NSE",
+   "source_url": "https://nsearchives.nseindia.com/corporate/Regulation2_04172026180321_51155.zip"
+  },
+  {
+   "symbol": "RAJPUTANA",
+   "kind": "bulk",
+   "date": "2026-02-26",
+   "party": "SHRUTI LODHA",
+   "side": "sell",
+   "quantity": 101000.0,
+   "price": 224.61,
+   "value": 22685610.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  }
+ ],
+ "sources": [
+  "NSE bulk",
+  "NSE block",
+  "NSE sast"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": "BSE RAJPUTANA is a different company; only the NSE feed is served"
+}

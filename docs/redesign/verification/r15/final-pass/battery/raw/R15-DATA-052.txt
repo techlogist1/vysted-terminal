@@ -1,0 +1,8 @@
+# R15-DATA-052 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:50:59+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in NAPEROL ELCIDIN; do echo -n "\$ GET /fundamentals/$s: "; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/fundamentals/$s" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('sector'),'/',d.get('industry'),'sector_source',d.get('sector_source'))"; done
+--- output ---
+$ GET /fundamentals/NAPEROL: Financial Services / Investment Company sector_source resolver
+$ GET /fundamentals/ELCIDIN: Financial Services / Investment Company sector_source resolver
+
+EXIT=0 (5.4s)

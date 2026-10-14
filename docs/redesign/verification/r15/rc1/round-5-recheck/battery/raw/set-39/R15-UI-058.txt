@@ -1,0 +1,9 @@
+Entry: R15-UI-058 (batch-9, W5-frontend-shell)
+Repro per register: Settings Export carries only 3 fields; Import reports "Imported settings." unconditionally for any JSON, resets region, wipes remaps (pre-fix).
+No GUI/no vitest available to this battery role -> ci_pinned.
+Pinned committed tests covering this exact class:
+  src/store/keybindings.test.ts:85  it("R15-UI-058: merges over the CURRENT overrides instead of replacing them")
+  src/store/keybindings.test.ts:94  it("R15-UI-058: rejects an unknown action id and a non-string value without touching existing overrides")
+  src/store/settings.test.ts:134    it("R15-UI-058: a field ABSENT from a later setAll preserves the CURRENT value, not the seed")
+  src/store/search-settings.test.ts:243 it("R15-UI-058: setAll with fields absent entirely preserves the CURRENT state, not the seed")
+  src/components/SettingsPanel.test.tsx:362 region comment "Import gating + SettingsExport v2 (R15-UI-058)"

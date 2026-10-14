@@ -1,0 +1,8 @@
+{
+  "sha": "1fddb2b1",
+  "ids": ["R15-LIFECYCLE-008", "R15-UI-022"],
+  "scratch": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad",
+  "gui_wait_min": 45,
+  "max_entries": 2,
+  "note": "GUI HALF OF THE FINAL PASS at r15-rc2 (1fddb2b1). Hard deadline: the away sentinel expires 2026-10-03T21:43:50Z (03:13 IST); the rig refuses after that, so start nothing you cannot finish before it and treat its expiry as operator_present. R15-LIFECYCLE-008: the rotation and the Copy diagnostics preview were already shown at d38b5d1 (docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-008/DRIVE.md); the part never landed is the Copy-to-clipboard click — the earlier driver missed the button three times, so compute its point from a fresh passive capture (point = pixel / 2), and capture the button state after the click; read pbpaste into raw/clipboard.txt. Repeat the rotation check briefly so the verdict rests on this sha. R15-UI-022: never attempted at d38b5d1; prior evidence at ace7dd7 lives in its entry dir. Read prior DRIVE/VERIFY files, never overwrite them; new captures carry the 1fddb2b prefix. Judge each entry only against its own stated repro (gate rule change 1); anything else is an adjacent note. Record machine load (uptime) at each launch."
+}

@@ -1,0 +1,36 @@
+candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98 source inspection
+CMD: grep -n "formatCompactMoney|currency unknown|formatInstrumentMoney" src/modules/research/brief-blocks.tsx src/lib/format.ts
+OUTPUT:
+46:  formatInstrumentMoney,
+163:    return formatInstrumentMoney(value, derivedCurrency(v, currency), false);
+315:    push("Market cap", formatInstrumentMoney(num(fund.market_cap), currency));
+336:      formatInstrumentMoney(num(fund.revenue_ttm), fund.financial_currency ?? currency),
+355:    push("Market cap", formatInstrumentMoney(num(fund.market_cap), currency));
+376:    push("Net assets", formatInstrumentMoney(num(fund.market_cap), currency));
+766:              {formatInstrumentMoney(model.price, model.currency, false)}
+
+src/lib/format.ts:139-149 (formatInstrumentMoney):
+
+/** Money in the INSTRUMENT's currency: compact (`formatCompactMoney`) by
+ *  default, full (`formatMoney`) with `compact = false`. With no known currency
+ *  the bare magnitude is labelled "· currency unknown", never a silent region
+ *  default that reads identically to USD. Non-finite -> "—". */
+export function formatInstrumentMoney(
+  value: number,
+  currency: string | null | undefined,
+  compact = true,
+): string {
+  if (!Number.isFinite(value)) return "—";
+  const code = instrumentCurrency(currency);
+  if (code) {
+    return compact ? formatCompactMoney(value, code) : formatMoney(value, code);
+  }
+  return `${compact ? formatCompactNumber(value) : formatPrice(value)} · currency unknown`;
+
+Register claimed brief-blocks.tsx had its own shadow formatNumber/formatLarge using
+toLocaleString('en-US') with withCode: null-or-'USD' -> bare number (no currency
+label). Candidate state: brief-blocks.tsx now calls formatInstrumentMoney (shared
+src/lib/format.ts, the SAME function Equity Overview uses via formatCompactMoney),
+and a missing/non-3-letter currency renders "<magnitude> · currency unknown"
+instead of a bare number byte-identical to USD. No shadow formatNumber/formatLarge
+found in brief-blocks.tsx (grep for those names returns 0 hits).

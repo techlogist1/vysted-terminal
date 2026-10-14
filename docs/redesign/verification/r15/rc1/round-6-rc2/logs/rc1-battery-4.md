@@ -1,0 +1,3 @@
+# rc1-battery-4 log
+Candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd. Own sidecar :52344 from candidate source on a copy of the seed data (sleep pid 74593, killed at end). In-process probes used the candidate venv with a separate data copy (rc1-round-6-rc2-data-rc1-battery-4-inproc; fresh dirs for LIFECYCLE-019/022). No Ollama, no hosted keys, no vitest/pytest. Shared MCP subprocesses (52153/52154) used read-only. Adjacent notes: /fundamentals does not echo board/face_value (documented batch-8 scope); MCP handlers that RETURN {ok:false} stay isError:false (only raising handlers became isError). All 24 ids hold; no findings.
+COVERAGE: 24/24 ids raw; no raw: none

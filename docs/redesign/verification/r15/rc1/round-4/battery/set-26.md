@@ -1,0 +1,24 @@
+# set-26 — batch-7/W2-delegate-runs-runtime
+
+Candidate: 1006c6da694ede5776c3dabbd27b305aeb56b5ad. All 12 entries re-run via fake-provider
+in-process scripts against `services.run_manager`/`services.agent_runtime` (candidate's own
+`sidecar/.venv`) — the same technique the batch-7 verifier used ("Faked provider that emits
+tool_use + done(…) every round"), never a real LLM call, never pytest. UI-040 additionally
+checked live against the running sidecar (:52341) + source inspection (frontend, no vitest
+run per role instructions).
+
+| id | repro run | observed | verdict |
+| --- | --- | --- | --- |
+| R15-CODE-AGENT-010 | Launch a `OneShotProvider` run to `done`, then `cancel_run`/`resume_run`/`answer_run` on it; `start_run` on an unknown id | each raises `RunStateError: run '…' is done; it cannot become {cancelled,running}`; unknown id raises `RunNotFound`; row status unchanged after the rejected cancel | holds |
+| R15-AGENT-034 | `launch_run(..., budget=RunBudget())` (empty/all-default budget) | stored budget: `max_spend_usd=1.0, max_tokens=120000, max_steps=12, max_wall_seconds=600.0` — a cleared/omitted budget gets the documented floor, never `None`/unbounded | holds |
+| R15-AGENT-037 | `LoopingProvider(per_round=100000)` + `RunBudget(max_tokens=1000)` | `status=error`, `detail="token ceiling 1000 reached (100000 used)"`, `provider.calls == 1` (the pending tool call is halted BEFORE dispatch on breach — `agent_runtime.py` `may_continue` gate — so no 2nd provider call fires) | holds |
+| R15-AGENT-038 | `OneShotProvider` (delta+done, no tool call) + `RunBudget(max_steps=1)` | `status="done"`, `detail="completed (step ceiling 1 reached (1 taken) on the final round)"`, transcript carries the final text | holds |
+| R15-AGENT-074 | `launch_run` with NO `provider` kwarg (copilot's `defaultProvider` is `"ollama"`, rate 0 $/M), 100k-token round | `spend_usd = 0.0` (vs `0.5` if still priced at the buggy 5 $/M default) | holds |
+| R15-AGENT-036 | Two full ask_user→answer cycles on one run (`ORIGINAL PROMPT` → answer ONE → ask again → answer TWO) | `checkpoint["prompt"]` stays `"ORIGINAL PROMPT"` throughout (never overwritten/appended); `turns` in strict chronological order `[ask Q1, ANSWER ONE, ask Q2, ANSWER TWO, Final.]` — no corruption | holds |
+| R15-AGENT-035 / R15-LIFECYCLE-013 | Launch with explicit `provider="openrouter", model="mistral-fake-model"` (spy on `get_provider`), force a token-ceiling breach, `resume_run(run_id)` with NO provider/model/api_key re-supplied | spy shows `get_provider` called with `"openrouter"` on BOTH launch and resume; `row.provider`/`row.model` unchanged (`"openrouter"`/`"mistral-fake-model"`) after resume — never falls to the agent default | holds |
+| R15-UI-040 | Source inspection of `src/lib/delegate-runs.ts` `adoptSidecarRuns()` (297-326) and `cancelDelegateRun()` (336-343), cross-checked against a live `GET /runs` on :52341 for wire shape | `cancelDelegateRun` only marks local state `cancelled` inside the `try`, after `sidecarRequest` resolves; `sidecarRequest` throws `SidecarError` on `!response.ok` (`sidecar-client.ts:264`) so a failed cancel returns `{ok:false, error}` without touching local state; `adoptSidecarRuns` adopts any live-status run `GET /runs` returns that the store doesn't mirror yet; live `GET /runs` confirms the `RunWire` shape (`id`, `agent_id`/`agentId`, `status`, `cost`, both snake_case+camelCase) `adoptSidecarRuns` expects | holds |
+| R15-CODE-AGENT-011 | Fake `ask_user` tool_use provider: pauses with `question`, then `answer_run(run_id, "MSFT please")` | `status="paused"`, `question="Which ticker would you like a price for?"`; after answer: `status="done"`, checkpoint shows `price_data` actually dispatched post-answer | holds |
+| R15-AGENT-039 | Fake planner provider (`oneshot.get_provider` patched) returning a 3-step JSON plan for a compound prompt on `provider="openrouter"`; `start_run` after | launch parks `status="planned"` with the 3-step plan (`research`, `add_to_watchlist` staged, `set_chart_symbol` staged); `start_run` executes it to `done`, activity carries the staged `add_to_watchlist` call | holds |
+| R15-LIFECYCLE-012 | Provider whose round-2 call genuinely never resolves (`await asyncio.Future()`, not a fresh-generator sleep) after a valid round-1 tool dispatch; task ref dropped with NO `run_manager.shutdown()` call (simulates `kill -9`); `runs_store._RECONCILED.clear()` + a fresh `get_run` (simulates the next process's first DB connection) | mid-stall: `status="running"`, task still pending, checkpoint already carries the round-1 tool turn; after the simulated restart's first connection: `status="error"`, `detail="interrupted by sidecar restart"`; `resume_run` succeeds and re-uses the checkpoint (`cost.steps=2` after resume) | holds |
+
+COVERAGE: 12/12 ids raw; no raw: none.

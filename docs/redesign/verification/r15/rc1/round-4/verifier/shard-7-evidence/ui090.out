@@ -1,0 +1,14 @@
+RESULT RELIANCE.NS region=US now=2026-09-23T15:00:00+00:00 last_trade=2026-09-23T10:00:00+00:00 -> freshness=eod
+RESULT %5ENSEBANK region=US now=2026-09-23T15:00:00+00:00 last_trade=2026-09-23T10:00:00+00:00 -> freshness=eod
+RESULT %5ECNXIT region=US now=2026-09-23T05:00:00+00:00 last_trade=2026-09-23T05:00:00+00:00 -> freshness=live
+RESULT MSFT region=IN now=2026-09-23T05:00:00+00:00 last_trade=2026-09-22T20:00:00+00:00 -> freshness=eod
+RESULT BHP.AX region=US now=2026-09-23T15:00:00+00:00 last_trade=2026-09-23T06:00:00+00:00 -> freshness=live
+RESULT 7203.T region=US now=2026-09-23T15:00:00+00:00 last_trade=2026-09-23T06:00:00+00:00 -> freshness=live
+RESULT %5EN225 region=IN now=2026-09-23T15:00:00+00:00 last_trade=2026-09-23T06:00:00+00:00 -> freshness=live
+RESULT HSBA.L region=US now=2026-09-23T17:00:00+00:00 last_trade=2026-09-23T15:30:00+00:00 -> freshness=live
+FAILED ../../vshard7/t/test_vshard7_ui090.py::test_case[%5ECNXIT-ts2-now2-US]
+FAILED ../../vshard7/t/test_vshard7_ui090.py::test_case[BHP.AX-ts4-now4-US]
+FAILED ../../vshard7/t/test_vshard7_ui090.py::test_case[7203.T-ts5-now5-US]
+FAILED ../../vshard7/t/test_vshard7_ui090.py::test_case[%5EN225-ts6-now6-IN]
+FAILED ../../vshard7/t/test_vshard7_ui090.py::test_case[HSBA.L-ts7-now7-US]
+5 failed, 3 passed, 1 warning in 3.28s

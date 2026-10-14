@@ -1,0 +1,62 @@
+## sed -n 740,780p docs/CURRENT_STATE.md @e032be7
+places with a clean ownership split. `get_data_dir()` reads `VYSTED_DATA_DIR`
+(set by the core via `--data-dir`), falling back to `~/.vysted-terminal` outside
+Tauri.
+
+| Surface                                                                        | Owner      | Backing store                  | Location                                       |
+| ------------------------------------------------------------------------------ | ---------- | ------------------------------ | ---------------------------------------------- |
+| Workspace blob (layout, modules, drawings, default provider, watchlist)        | Sidecar    | `<name>.vysted-workspace` JSON | `get_data_dir()/workspaces/`                   |
+| BYOK secrets (LLM keys, MCP endpoints, plugin secrets, first-launch-terms ack) | Tauri Rust | OS credential store            | macOS Keychain / Win Cred Mgr / Secret Service |
+| Portfolio positions (manually tracked — no broker connection)                  | Sidecar    | SQLite `positions`             | `get_data_dir()/portfolio.db`                  |
+| Upstream-data TTL cache                                                        | Sidecar    | SQLite `cache` (WAL)           | `get_data_dir()/data_cache.db`                 |
+
+There is no order audit log any more (D81); the append-only `audit_orders`
+table and `audit_log.db` existed only to record order placement. A user who
+upgraded from a pre-D81 install may still have a stale `audit_log.db` on
+disk — nothing reads it — see the UNSURE item in
+`docs/redesign/DECISIONS_FOR_OPERATOR.md`.
+
+**The sidecar owns all filesystem persistence so the frontend never needs file
+access** — it reaches persistence only through `/workspace`, `/portfolio`
+over loopback. The workspace blob is **opaque JSON** the sidecar stores
+verbatim (never validates); name safety is a `^[A-Za-z0-9 _-]+$` regex. An
+`__autosave__` slot holds the last session; restore skips cleanly to the
+bundled default on an unknown-component reference rather than corrupting the
+grid.
+
+**BYOK invariant:** secrets never touch disk/`localStorage`/cookies. The only
+frontend path is `src/lib/keychain.ts` (`setSecret`/`getSecret`/`deleteSecret`
+→ Tauri `invoke`). Namespaces: `llm-provider:<id>`, `mcp-server:<id>`,
+`plugin-secret:<pluginId>:<key>`, first-launch-terms ack (there is no
+per-broker namespace any more, D81). The `provider-keys` store tracks
+**presence only** (`configured|missing|unknown`), never the value. **BYOK is
+effectively Tauri-only** — outside the shell `getSecret` rejects →
+`"unknown"`, no localStorage fallback by design.
+
+**Honest gaps:** **no DB migrations anywhere** (all three SQLite stores use
+`CREATE TABLE IF NOT EXISTS` — adding a column to an existing install would not
+migrate); workspace blobs are server-unvalidated (corruption caught only at
+`fromJSON` on the client); autosave is best-effort (a transient failure silently
+fails to persist until the next layout change); `data_cache` stale rows are never
+auto-evicted.
+
+
+## grep DB_FILENAME sidecar/services/*.py
+sidecar/services/agents_store.py:39:DB_FILENAME = "custom_agents.db"
+sidecar/services/agents_store.py:59:    return str(get_data_dir() / DB_FILENAME)
+sidecar/services/data_cache.py:59:DB_FILENAME = "data_cache.db"
+sidecar/services/data_cache.py:119:        _db_path = get_data_dir() / DB_FILENAME
+sidecar/services/fundamentals_store.py:49:DB_FILENAME = "fundamentals_cache.db"
+sidecar/services/fundamentals_store.py:162:    return str(get_data_dir() / DB_FILENAME)
+sidecar/services/fundamentals_store.py:833:    "DB_FILENAME",
+sidecar/services/plugins_store.py:5:state lives in ``config.get_data_dir() / "plugins.db"``. The schema is created
+sidecar/services/plugins_store.py:35:DB_FILENAME = "plugins.db"
+sidecar/services/plugins_store.py:60:    return str(get_data_dir() / DB_FILENAME)
+sidecar/services/portfolio_db.py:6:``config.get_data_dir() / "portfolio.db"``; the schema is created lazily and
+sidecar/services/portfolio_db.py:21:DB_FILENAME = "portfolio.db"
+sidecar/services/portfolio_db.py:38:    return str(get_data_dir() / DB_FILENAME)
+sidecar/services/runs_store.py:69:DB_FILENAME = "delegate_runs.db"
+sidecar/services/runs_store.py:141:    return str(get_data_dir() / DB_FILENAME)
+sidecar/services/workflow_store.py:5:workflow's persisted state lives in ``config.get_data_dir() / "workflows.db"``.
+sidecar/services/workflow_store.py:35:DB_FILENAME = "workflows.db"
+sidecar/services/workflow_store.py:60:    return str(get_data_dir() / DB_FILENAME)

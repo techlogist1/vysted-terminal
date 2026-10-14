@@ -1,0 +1,29 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-315-1",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds as stated: PLUGIN_DEVELOPMENT.md and CLAUDE.md both direct plugin authors to a sibling panels.ts + PLUGIN_COMPANIONS/BUNDLED_PLUGINS registration, none of which exists; the live mechanism is CatalogRow.panelComponents passed through row() in marketplace.ts and read by moduleForPlugin. Latent today (no plugin sets contributesPanels: true) but CLAUDE.md is session DNA every agent follows, so it misdirects the next maintainer; medium stands.",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:347-358, src/lib/marketplace.ts:50-67, src/lib/plugin-bootstrap.ts:127-170, src/store/keybindings.ts:8",
+    "evidence_checked": "Opened the doc section and both code files at HEAD 38919fd; grepped src/plugins/types/scripts for PLUGIN_COMPANIONS|BUNDLED_PLUGINS (only a comment in keybindings.ts:8), find plugins -iname 'panels.ts*' (none), grep 'contributesPanels: true' in plugins/src (none).",
+    "repro_check": "grep -rn 'PLUGIN_COMPANIONS\\|BUNDLED_PLUGINS' --include=*.ts src plugins types -> only src/store/keybindings.ts:8 comment; find plugins -iname 'panels.ts*' -> empty."
+  },
+  {
+    "raw_id": "INT-pdd-readme-315-2",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds: the Roadmap (framed 'out of scope for v0.3.0') still lists the Tauri-spawned subprocess pattern and the node-editor consumer as future, yet openbb/sec-edgar MCP children already spawn via app.shell().sidecar() and NodeEditorPanel/VystedNode consume usePluginsStore.nodes; plugin-contributed agents are only counted in PluginManagerPanel, never selectable, so the one genuinely open item is obscured. Docs-only, low.",
+    "evidence": "docs/PLUGIN_DEVELOPMENT.md:360-373, src/lib/plugin-bootstrap.ts:37, src-tauri/src/openbb_mcp.rs:98-101, src-tauri/src/sec_edgar_mcp.rs:98-101, src/modules/node-editor/NodeEditorPanel.tsx:116, src/modules/node-editor/VystedNode.tsx:29, src/components/PluginManagerPanel.tsx:29,42, src/store/plugins.ts:63,87",
+    "evidence_checked": "Opened each cited file at HEAD; grepped src for usePluginsStore consumers (agents read only by PluginManagerPanel for a count string; nodes read by the node editor).",
+    "repro_check": "grep -rn usePluginsStore src | grep -v test -> agents consumed only at PluginManagerPanel.tsx:29 (count at :42); nodes consumed at NodeEditorPanel.tsx:116 and VystedNode.tsx:29."
+  },
+  {
+    "raw_id": "INT-pdd-readme-315-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Mechanism is real and broader than stated: mcp-endpoint.json is written only on a healthy boot and nothing in src-tauri or sidecar ever removes it, so it goes stale after EVERY normal quit as well as a failed relaunch, and docs/MCP_INTEGRATION.md:53-54's 'a stale file never points at a dead port' is false. Downgraded medium->low: the outcome is a loopback connection-refused for an external MCP client when the sidecar is not up, the same thing it would see with no file; no wrong data, no safety impact. Fix: remove the file at the start of start_main_sidecar and on app exit.",
+    "evidence": "src-tauri/src/lib.rs:176-193, src-tauri/src/lib.rs:200-270, docs/MCP_INTEGRATION.md:53-54",
+    "evidence_checked": "Opened lib.rs start_main_sidecar and write_mcp_endpoint_file at HEAD; grepped src-tauri/src and sidecar for remove_file|MCP_ENDPOINT_FILENAME|mcp-endpoint (remove_file appears only in keychain.rs, never for the endpoint file). No live repro (would need to relaunch the operator's app, not allowed).",
+    "repro_check": "grep -rn 'remove_file\\|mcp-endpoint' src-tauri/src sidecar -> no deletion of mcp-endpoint.json anywhere; lib.rs:260-268 writes it only when bound."
+  }
+]

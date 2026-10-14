@@ -1,0 +1,63 @@
+{
+ "moduleRows": [
+  "Chart enabled",
+  "Watchlist enabled",
+  "News enabled",
+  "Portfolio enabled",
+  "Equity Overview enabled",
+  "AI Assistant enabled",
+  "Research enabled",
+  "Platform enabled [disabled]",
+  "Plugin Manager enabled",
+  "Marketplace enabled",
+  "Agent Builder enabled",
+  "Node Editor enabled",
+  "Backtest enabled",
+  "Broker Connect enabled",
+  "Safety enabled",
+  "Macro enabled",
+  "SEC Filings enabled",
+  "Quant enabled",
+  "Earnings enabled",
+  "Analyst Ratings enabled",
+  "Screener enabled",
+  "Notes enabled"
+ ],
+ "moduleSectionText": "ModulesDisabled modules contribute no panels or ⌘K commands.Chart1 panel · 1 commandWatchlist1 panel · 1 commandNews1 panel · 1 commandPortfolio1 panel · 1 commandEquity Overview1 panel · 1 commandAI Assistant0 panels · 0 commandsResearch1 panel · 1 commandPlatform1 panel · 4 commands · always onPlugin Manager1 panel · 1 commandMarketplace1 panel · 1 commandAgent Builder1 panel · 1 commandNode Editor1 panel · 1 commandBacktest1 panel · 1 commandBroker Connect2 panels · 2 commandsSafety1 panel · 1 commandMacro1 panel · 1 commandSEC Filings1 panel · 1 commandQuant4 panels · 4 commandsEarnings1 panel · 1 commandAnalyst Ratings1 panel · 1 commandScreener1 panel · 1 commandNotes1 panel · 1 command",
+ "enabledMapAfterNotesOff": {
+  "chart": true,
+  "watchlist": true,
+  "news": true,
+  "portfolio": true,
+  "equity-overview": true,
+  "chat": true,
+  "research": true,
+  "platform": true,
+  "plugin-manager": true,
+  "marketplace": true,
+  "agent-builder": true,
+  "node-editor": true,
+  "backtest": true,
+  "broker-connect": true,
+  "safety": true,
+  "macro": true,
+  "sec-filings": true,
+  "quant": true,
+  "earnings": true,
+  "analyst-ratings": true,
+  "screener": true,
+  "notes": false
+ },
+ "notesCommandsBefore": [
+  "notes.open"
+ ],
+ "notesCommandsAfter": [],
+ "region": {
+  "before": {
+   "value": "IN",
+   "store": "IN",
+   "hint": "United StatesIndiaGlobal"
+  },
+  "afterStore": "US"
+ }
+}

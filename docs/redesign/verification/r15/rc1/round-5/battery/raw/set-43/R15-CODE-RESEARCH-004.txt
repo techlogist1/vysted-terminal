@@ -1,0 +1,21 @@
+--- CODE-RESEARCH-004: dead search-locale/autodetect scaffolding check ---
+grep for 'autodetect' across sidecar/services (only comment-site hits expected):
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/searxng_manager.py:70:#: autodetect already probes). The container listens on 8080 internally.
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/searxng_manager.py:204:    Mirrors the backend's autodetect probe (:mod:`services.search.searxng`):
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/searxng_manager.py:838:#: Process-global manager — the router and the backend autodetect share it so
+
+def-sites in sidecar/services/search/searxng.py and scrub.py (no dead locale/autodetect function should remain):
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/search/scrub.py:56:def escape_guard_markers(text: str) -> str:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/search/scrub.py:67:def sanitize_label(label: str) -> str:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/search/scrub.py:79:def sanitize_inline(text: str) -> str:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/search/scrub.py:89:def wrap_untrusted(label: str, content: Any) -> str:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/search/searxng.py:50:def _normalize_base_url(base_url: str | None) -> str:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/search/searxng.py:63:    def __init__(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/search/searxng.py:77:    async def search(self, query: str, *, options: dict | None = None) -> SearchResponse:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/search/searxng.py:126:def _map_results(payload: Any) -> list[SearchResult]:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/search/searxng.py:159:def _opt_str(value: Any) -> str | None:
+
+file sizes (post-deletion, for reference against the certified '196 deletions' diff):
+     176 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/search/searxng.py
+     110 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/services/search/scrub.py
+     286 total

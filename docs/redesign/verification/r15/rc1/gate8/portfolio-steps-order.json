@@ -1,0 +1,65 @@
+[
+  {
+    "name": "AUTO: the buy-request's portfolio_add_position is staged, not applied",
+    "ok": true,
+    "detail": {
+      "outcome": "staged",
+      "kind": "data-write",
+      "title": "Add 10 AAPL @ ₹0 to the portfolio",
+      "status": "pending"
+    }
+  },
+  {
+    "name": "reject(): ledger unchanged",
+    "ok": true,
+    "detail": {
+      "status": "rejected"
+    }
+  },
+  {
+    "name": "fabricated order action: never applied (AUTO attempt fails as unknown action), human accept fails closed, ledger unchanged",
+    "ok": true,
+    "detail": [
+      {
+        "mode": "auto",
+        "name": "propose_order",
+        "outcome": "failed",
+        "kind": "panel",
+        "title": "propose order",
+        "accept": "failed",
+        "detail": "unknown action \"propose_order\"",
+        "ledgerUnchanged": true
+      },
+      {
+        "mode": "auto",
+        "name": "place_order",
+        "outcome": "failed",
+        "kind": "panel",
+        "title": "place order",
+        "accept": "failed",
+        "detail": "unknown action \"place_order\"",
+        "ledgerUnchanged": true
+      },
+      {
+        "mode": "ask",
+        "name": "propose_order",
+        "outcome": "staged",
+        "kind": "panel",
+        "title": "propose order",
+        "accept": "failed",
+        "detail": "unknown action \"propose_order\"",
+        "ledgerUnchanged": true
+      },
+      {
+        "mode": "ask",
+        "name": "place_order",
+        "outcome": "staged",
+        "kind": "panel",
+        "title": "place order",
+        "accept": "failed",
+        "detail": "unknown action \"place_order\"",
+        "ledgerUnchanged": true
+      }
+    ]
+  }
+]

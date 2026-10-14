@@ -1,0 +1,50 @@
+{
+  "RELIANCE": {
+    "symbol": "RELIANCE",
+    "price": 1226,
+    "change": 6.7999999999999545,
+    "change_percent": 0.5577427821522273,
+    "volume": 13138735,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-25T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+  },
+  "AAPL": {
+    "symbol": "AAPL",
+    "price": 341.07,
+    "change": 5.159999999999968,
+    "change_percent": 1.5361257479681962,
+    "volume": 29649787,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "USD",
+    "market_state": null,
+    "timestamp": "2026-09-25T20:00:01Z",
+    "provider": "yfinance",
+    "freshness": "eod"
+  },
+  "INFY": {
+    "symbol": "INFY",
+    "price": 1000.2,
+    "change": -14.299999999999955,
+    "change_percent": -1.4095613602759935,
+    "volume": 10240700,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-25T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+  }
+}

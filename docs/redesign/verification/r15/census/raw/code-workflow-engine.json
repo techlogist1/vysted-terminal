@@ -1,0 +1,132 @@
+[
+  {
+    "raw_id": "COD-workflow-engine-1",
+    "title": "Node-editor built-in palette specs drift from the sidecar handlers: 9 of 10 built-in nodes wire ports/config keys the handler never reads",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "Proof run (scratchpad wf/proof.py) of a spec shaped exactly as the palette builds it: json_path wired on targetPort 'input' -> {extracted: None}; logic.branch wired on 'condition' -> {true_path: None, false_path: None}; flow.sleep config {duration_ms: 1000} -> slept 0.0; logic.compare op 'ne' (the palette's option) -> 'unknown op ne'; notify_desktop wired on 'message' -> message ''. Every node except compare reports status ok.",
+    "evidence": "src/modules/node-editor/node-registry.ts:102-165 (ports: compute.indicator out 'values', agent_invoke out 'response', branch in 'condition' out 'true'/'false', compare in 'left'/'right', notify in 'message', json_path in 'input' out 'value', sleep in 'trigger' out 'done'), node-registry.ts:438-509 (config keys 'indicator'+'period', 'prompt', op option 'ne', 'duration_ms'); vs sidecar/services/workflow_nodes/builtin.py:109 ('indicator_id'), :122 (out 'result'), :167 ('prompt_template'), :207 (out 'content'), :235,249-250 ('value' -> 'true_path'/'false_path'), :258-265,281-282 ('a'/'b', 'neq'), :335 ('message_template' default '{value}'), :391-392 ('value' -> 'extracted'), :406,414 ('seconds' -> 'value'/'slept'); node-registry.ts:162 says 'milliseconds', handler clamps seconds",
+    "notes": "Information leakage / no single source of truth: the node contract (ports + config schema) is hand-copied into TS with no parity test, unlike the v0.6.0 SIDECAR_NODE_SPECS which were mirrored against the handlers and do match. Consequence: almost any graph a user composes from the built-in palette silently yields None/0/'' as SUCCESS or fails on the UI's own option values; compute.indicator always errors ('missing indicator_id'), the agent node ignores the typed prompt. Smallest fix: make the handler registration carry its port/config spec (register_node_type(type_id, handler, spec)), expose GET /workflow/node-types, derive the palette from it; interim: correct the 10 TS specs to the handler keys + a vitest/pytest parity test that diffs the two."
+  },
+  {
+    "raw_id": "COD-workflow-engine-2",
+    "title": "The agent node launders every failure into a fake success: '(no provider key configured)' with status ok, no key path, no budget meter",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "Any ai.agent_invoke failure (bad agent_id, rate limit, 401, network) -> handler catches it (builtin.py:197), content is replaced with the literal '(no provider key configured)' (builtin.py:205-206) and the node returns normally -> engine records status 'ok' and downstream nodes consume the sentinel string as the agent's answer.",
+    "evidence": "sidecar/services/workflow_nodes/builtin.py:20-23 (CI motive stated), :156-162 (docstring claims env VYSTED_<PROV>_API_KEY fallback), :170 (api_key from node config), :183-206; sidecar/services/agent_runtime.py:1229-1239 (no env-key read; on_round_usage defaults None); src/modules/node-editor/node-registry.ts:448-463 (UI offers no provider/key field)",
+    "notes": "Define-errors-out-of-existence taken the wrong way: special-casing to make CI pass converts real failures into plausible data. The docstring's env-var fallback does not exist, and the node editor supplies no key/provider, so in the app this node realistically always hits the sentinel or a provider-less default. An api_key placed in node config (the documented override, reachable via MCP save_workflow) is persisted plaintext in workflows.db spec_json, contrary to the BYOK never-persist rule; and invoke_agent is called without on_round_usage so workflow agent calls escape BudgetGuard metering. Fix: raise on LLMErrorEvent/exception (engine already turns raises into node-error), drop config api_key, thread the foreground BYOK creds from the run request like agents.invoke does, pass a BudgetGuard callback; keep the CI stub in the test fixture, not the handler."
+  },
+  {
+    "raw_id": "COD-workflow-engine-3",
+    "title": "logic.branch does not branch: both downstream subgraphs always execute, and 'false'/'no'/'0'/'off' strings route TRUE",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "builtin.logic_branch({'value': 'false'}, {}) -> {'true_path': 'false', 'false_path': None} (same for 'no', '0', 'off' — proof run). And in the engine a node fed by the un-taken port still runs with input None (proof: notify_desktop wired to branch's false port ran, status ok, notified: True).",
+    "evidence": "sidecar/services/workflow_nodes/builtin.py:44 (_TRUTHY_STRINGS), :215-219 (`in _TRUTHY_STRINGS or bool(value.strip())` — any non-empty string is truthy, the set is dead), :248-250; sidecar/services/workflow_engine.py:210-282 (no skip state: a dep is satisfied by output-or-failure; None payloads are ordinary outputs)",
+    "notes": "Obviousness + missing abstraction: the engine has only ok/error, no 'skipped', so a condition node cannot gate anything — every side-effecting node (notify, agent invoke = LLM spend, log) on the 'not taken' path fires with None. The comment at builtin.py:42-43 promises string-aware falsiness the code does not implement. Fix: add a 'skipped' node status to the engine (a node whose every input edge carries a sentinel SKIP from an un-taken branch port is skipped and propagates skip, not error), have logic.branch emit SKIP on the un-taken port; fix _is_truthy to map a falsy-string set ('false','no','0','off','') to False."
+  },
+  {
+    "raw_id": "COD-workflow-engine-4",
+    "title": "POST /workflow/run swallows spec-validation errors: the SSE stream closes with zero frames and the reason is only in the sidecar log",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "Run a spec containing an unregistered node type (e.g. a plugin-contributed node) or a dangling edge -> _validate_spec raises before run-start (proof: 'events emitted: []') -> routers/workflow.py:55-58 logs and ends the stream -> the editor shows its generic 'stream ended without a terminal frame … e.g. a node type with no server-side handler' guess.",
+    "evidence": "sidecar/routers/workflow.py:50-60 (comment at :57 'The engine emits run-error on validation failures already' is false); sidecar/services/workflow_engine.py:191 (_validate_spec before any _emit); siblings that do it right: sidecar/routers/llm.py:144-145 and sidecar/routers/agents.py:109-110 (yield an error frame), sidecar/services/mcp_server.py:282-285 (returns the WorkflowEngineError text); workarounds: src/modules/node-editor/NodeEditorPanel.tsx:374-379,435-441 and src/modules/node-editor/code-node-run.ts:76-90 (client re-implements cycle detection because of this)",
+    "notes": "The route with no error handling while its siblings have it; the defect is documented in two frontend comments instead of fixed, and the frontend duplicates Kahn's algorithm to pre-empt one of the causes. Fix: in _run, on WorkflowEngineError put a run-error WorkflowRunEvent carrying str(exc) (or have run_workflow emit run-start + run-error for validation failures), then delete the client-side 'no terminal frame' guesswork."
+  },
+  {
+    "raw_id": "COD-workflow-engine-5",
+    "title": "The Notify Desktop node never notifies: the bridge is fed by useWorkflowStore, which no production code writes to",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "Run a workflow containing action.notify_desktop from the node editor -> NodeEditorPanel consumes SSE with its own consumeSse + local setRunState and never calls useWorkflowStore.appendEvent -> pendingNotifications stays empty -> useDesktopNotificationBridge (mounted in page.tsx:43) never fires.",
+    "evidence": "src/store/workflow.ts:173-192,203-220,240-311 (the only intent capture + a second full SSE client); grep: no production caller of runWorkflow/appendEvent outside src/store/workflow.ts (only src/lib/desktop-notification.ts reads the slice); src/modules/node-editor/NodeEditorPanel.tsx:386-431,937-976 (separate SSE parser); src/app/page.tsx:43; sidecar/services/workflow_nodes/builtin.py:325-344",
+    "notes": "Duplicated truth that already drifted: two SSE clients/run-state models for one wire; the one with the side effect is dead (376 lines, unit-tested in isolation so the gap is invisible). The palette advertises 'Show a native desktop notification' (node-registry.ts:146). The dead store's runs map also has no eviction (clearRun/clearAll have no callers). Fix: make NodeEditorPanel dispatch every server event through useWorkflowStore.appendEvent (or call the intent capture directly) and delete the store's unused runWorkflow SSE client."
+  },
+  {
+    "raw_id": "COD-workflow-engine-6",
+    "title": "transform.code has two evaluators with different semantics: the UI (mathjs) and the agent/MCP path (Python ast) give different answers for the same saved workflow",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "round(2.5): mathjs 3 vs server 2; 2^3: mathjs 8 vs server 'disallowed syntax: BinOp'; 'a > 1 ? 1 : 0': mathjs 1 vs server parse error (both measured). A workflow authored and tested in the editor then run by the agent via MCP run_workflow yields a different value or fails.",
+    "evidence": "sidecar/services/workflow_nodes/code_node.py:20-45,97 (Python round = banker's rounding, '^' unsupported, no ternary); src/modules/node-editor/code-node.ts:1-27 (mathjs); stale comments claiming no server handler exists: src/modules/node-editor/code-node.ts:26-27, src/modules/node-editor/code-node-run.ts:12-15; now-obsolete restriction: code-node-run.ts:63-74; sidecar/services/mcp_server.py:258-285",
+    "notes": "Design-it-twice gone wrong (two implementations shipped, not compared) + comments that lie. Since code_node.py registers transform.code server-side, the whole client partition (code nodes evaluate after the stream, code->server edges forbidden) is obsolete complexity. Fix: pick one lane — run transform.code only on the server (delete the mathjs execution path, keep mathjs for inline syntax preview if wanted) and drop the partition restriction; if both stay, add a shared parity fixture both suites evaluate."
+  },
+  {
+    "raw_id": "COD-workflow-engine-7",
+    "title": "Server code node is not resource-safe: unbounded ** and list * run on the sidecar event loop (7**10**7 blocked 8.2 s)",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "evaluate_code({}, {'expression': '7**(10**7)'}) took 8.226 s on the event loop (7**10**6: 0.2 s; growth is super-linear, 7**10**8 is minutes). '[0]*10**9' is also admitted (ast.List + BinOp Mult). Reachable by an agent through MCP run_workflow/save_workflow.",
+    "evidence": "sidecar/services/workflow_nodes/code_node.py:5-6 ('Safe by construction'), :20-27 (ast.Pow, ast.Mult unbounded), :62-63, :84-85, :89-100 (sync evaluation inside an async handler, no to_thread, no size guard)",
+    "notes": "The 'safe' claim covers code execution but not CPU/memory exhaustion; while it runs, every sidecar route (chart, research, the agent itself) stalls. Fix: guard Pow (reject exponent > ~1e4 or result bit_length estimate), reject Mult when either operand is a list/str, and run evaluation via asyncio.to_thread with a timeout."
+  },
+  {
+    "raw_id": "COD-workflow-engine-8",
+    "title": "Quant workflow nodes run CPU-bound pricing synchronously on the event loop (Monte Carlo up to 10M paths)",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "A workflow with quant.price_option {method: 'monte-carlo', monte_carlo_paths: 10000000} (MAX_MC_PATHS) or binomial_steps up to 100000 -> options.price runs inline in the async handler, freezing the whole sidecar for the duration.",
+    "evidence": "sidecar/services/workflow_nodes/quant_nodes.py:46-52,57-63,68-74,79-85 (sync calls, no to_thread); sidecar/models/quant.py:33-34 (MAX_BINOMIAL_STEPS=100_000, MAX_MC_PATHS=10_000_000); contrast sidecar/services/workflow_nodes/builtin.py:62-64,87-89,121 (to_thread) and sidecar/routers/quant.py:36-37 (sync def -> threadpool)",
+    "notes": "Inconsistency between sibling adapters: the builtin adapters and the HTTP route both keep blocking work off the loop, the quant adapters do not. Fix: wrap each quant call in asyncio.to_thread (four one-line changes); ideally the engine runs every handler under a per-node timeout so no adapter has to remember."
+  },
+  {
+    "raw_id": "COD-workflow-engine-9",
+    "title": "Engine has no per-node or per-run timeout, and waves are gather-barriers: a slow node stalls unrelated downstream work",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "Sources A (flow.sleep 300 s or a hung provider fetch) and B (fast); C depends only on B -> C does not start until A finishes because each wave is awaited with asyncio.gather. A handler that never returns keeps the run (and the MCP run_workflow tool call) open indefinitely.",
+    "evidence": "sidecar/services/workflow_engine.py:3-5 (docstring: 'runs downstream nodes when their inputs are available'), :210-282 (ready-set recomputed only after the whole wave's gather), :366-367 (await handler with no wait_for); sidecar/services/mcp_server.py:282-283 (no timeout around run_workflow)",
+    "notes": "Docstring contradicts behaviour; the only bound anywhere is flow.sleep's 300 s clamp. Fix: schedule with asyncio.wait(FIRST_COMPLETED) so each completion releases its dependants immediately, and wrap each handler in asyncio.wait_for(node_timeout) (config-overridable) producing a node-error on timeout."
+  },
+  {
+    "raw_id": "COD-workflow-engine-10",
+    "title": "Saved workflows have no schema versioning; one incompatible row makes GET /workflow/saved 500 for every workflow",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "A row whose spec_json no longer validates (a field removed/renamed in a later release, or any extra key — every model is extra='forbid') -> list_workflows validates all rows in one comprehension -> ValidationError -> 500 -> Load dialog shows 'list failed (500)' and no workflow is loadable.",
+    "evidence": "sidecar/services/workflow_store.py:53-63; sidecar/models/workflow.py:23,32,43,55 (extra='forbid'), :60 (version stored, never checked); types/workflow.ts:65 ('the engine refuses unknown majors' — not implemented anywhere); src/modules/node-editor/NodeEditorPanel.tsx:292-295",
+    "notes": "Comment promising a version gate that does not exist; persistence couples the on-disk format to the live wire model with zero tolerance. Fix: in list_workflows skip-and-log rows that fail validation (return them as a 'needs migration' summary), and check spec.version on load with an explicit migrate step."
+  },
+  {
+    "raw_id": "COD-workflow-engine-11",
+    "title": "Domain node adapters re-own domain knowledge and each invents its own input/config precedence rule",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "design",
+    "evidence": "sidecar/services/workflow_nodes/macro_nodes.py:22,38-42 (_VALID_PROVIDERS copy of sidecar/services/macro/macro_router.py:47-52, and a third copy in src/modules/node-editor/node-registry.ts:364); precedence idioms: quant_nodes.py:31-36 (_merge, inputs win unless None), research_nodes.py:47 (`or` chain), :57 ('watchlist' in inputs), screener_nodes.py:54-56 (None check), sec_nodes.py:35-42 (6-way or-chain)",
+    "notes": "Information leakage (the partition FLAG): adding an Indian macro provider to macro_router will be rejected by the node until someone edits macro_nodes.py and node-registry.ts. The `or` chains also treat a legitimate 0/''/[] input as missing and silently fall back to config. Fix: let macro_router's own ProviderError validate (delete _VALID_PROVIDERS), and give the engine one helper resolve(inputs, config, key, default) with 'input present (not None) wins' semantics used by every adapter."
+  },
+  {
+    "raw_id": "COD-workflow-engine-12",
+    "title": "Registration is decomposed by release, not by concept: version-stamped aggregators, split boot paths, stale docstrings",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "design",
+    "evidence": "sidecar/services/workflow_nodes/registry_v0_6_0.py:27-68 (dead else branch at :67-68, 'Teammate M/F/Q/E/Sc' ordering); sidecar/app.py:188-200 (docstring 'Aggregator stubs that no-op until a Phase 6 teammate's submodule uncomments'); sidecar/main.py:46,61 (builtins registered only here); sidecar/services/workflow_nodes/__init__.py:60 (hardcoded count 11); sidecar/routers/workflow.py:120-121 (_encode_event_dict dead 'kept for parity'); sidecar/models/workflow.py:73-74 + types/workflow.ts:82-89 (mode 'resume-from'/resumeFrom accepted, ignored by the engine)",
+    "notes": "Temporal decomposition: a new node type means finding the right release-numbered aggregator and remembering which boot path (create_app vs main) registers it — TestClient apps see domain nodes but not builtins. The resume-from field is a dead interface promising partial replay. Fix: one register_all() in services/workflow_nodes that imports every *_nodes module, called from one place; drop resume-from from the request model until implemented."
+  },
+  {
+    "raw_id": "COD-workflow-engine-13",
+    "title": "Plugin-contributed nodes appear in the palette but have no execution path",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "workflow-engine",
+    "repro": "A plugin with contributesNodes=true registers a NodeSpec -> buildRegistry shows it in the palette -> the sidecar engine only knows Python handlers registered via register_node_type -> _validate_spec rejects it -> zero-frame stream (COD-workflow-engine-4). No bundled plugin sets contributesNodes today.",
+    "evidence": "src/modules/node-editor/node-registry.ts:563-573; src/modules/node-editor/NodeEditorPanel.tsx:116-117; sidecar/services/workflow_engine.py:9-12,115-120 (claims plugin nodes 'register through the same surface' — no TS->Python bridge exists); plugins/*/index.ts (all contributesNodes: false)",
+    "notes": "A contract capability that is structurally unreachable. Changing types/plugin.ts is Tier-4 (operator), so the smallest non-contract fix is host-side: have buildRegistry filter out (or badge 'not runnable') plugin nodes whose id is not in the sidecar's registered types (GET /workflow/node-types from COD-workflow-engine-1)."
+  }
+]

@@ -1,0 +1,4 @@
+COMMAND: python -c KeylessSearchBackend(engines={'ddg': block-page-stub}).search('q') -> breaker state
+EXIT: 0
+OUTPUT:
+outcome=SearchError reason=rate_limited msg=keyless web search has no engine available right now — DuckDuckGo: blocked (challenge page); Brave: unavailable; Mojeek: unavailable. Wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route. breaker_state=closed failures=1

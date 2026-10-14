@@ -1,0 +1,61 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " afraid"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " assist"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " buying"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " selling"}
+{"kind": "delta", "text": " securities"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "V"}
+{"kind": "delta", "text": "yst"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " no"}
+{"kind": "delta", "text": " brokerage"}
+{"kind": "delta", "text": " connection"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " only"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " tools"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " tracking"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " analyzing"}
+{"kind": "delta", "text": " investments"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " historical"}
+{"kind": "delta", "text": " performance"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2741, "output_tokens": 59, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

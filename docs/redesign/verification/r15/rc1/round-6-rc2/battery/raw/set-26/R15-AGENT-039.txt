@@ -1,0 +1,8 @@
+CMD 1 (in-process, candidate venv, patched planner decompose, fake provider; plan half): EXIT=0
+after launch: planned | plan ready: start or discard it | plan steps: ['Open the chart', 'Research NVDA'] | provider calls before Start: 0
+after start: done Done. | activity: [('price_data', 'ok')]
+
+CMD 2 (live, ollama llama3.1:8b compound launch; ollama is not a planner provider by design so plan=null; activity half):
+launch resp: {"run_id":"9965e4aca1964a3aa193744ef4c8140e"}
+final status poll: done (18 polls)
+{"id":"9965e4aca1964a3aa193744ef4c8140e","agent_id":"copilot","agent_name":"Vysted Copilot","mode":"delegate","status":"done","cost":{"tokens":10536,"spend_usd":0.0,"steps":2},"budget":{"max_tokens":120000,"max_spend_usd":1.0,"max_wall_seconds":600.0,"max_steps":12},"provider":"ollama","model":"llama3.1:8b","plan":null,"activity":[{"tool":"compare_symbols","status":"error","summary":"fewer than two symbols resolved — 0 of 4 returned a quote. PSU: ambiguous name: 'PSU' did not resolve to one known instrument — did you mean: NATCAPSUQ.NS (Natural Capsules Limited), PSUBNKBEES.NS (NI"}],"detail":"completed","question":null,"created_at":1790985982,"updated_at":1790986052,"transcript":[{"role":"user","content":"Screen PSU defence names, compare the top 3 by price performance, add them to my watchlist and set the chart to the best one."},{"role":"assistant","content":"[compare_symbols → fewer than two symbols resolved — 0 of 4 returned a quote. PSU: ambiguous name: 'PSU' did not resolve to one known instrument — did you mean: NATCAPSUQ.NS (Natural Capsules Limited), PSUBNKBEES.NS (NI]"},{"role":"assistant","content":"Before we proceed, I'd like to clarify which PSU defence names you woul

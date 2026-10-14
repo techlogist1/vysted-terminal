@@ -1,0 +1,102 @@
+[
+  {
+    "raw_id": "COD-market-data-providers-3-1",
+    "title": "Earnings + analyst surfaces discard the contract's `currency`; the calendar sorts mixed-currency EPS as one column",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "market-data-providers-3",
+    "repro": "Earnings Calendar with a watchlist spanning regions (e.g. AAPL + RELIANCE-NS): the Consensus EPS column renders '2.35' and '42.10' unlabelled, and clicking the 'Consensus EPS' header sorts USD against INR by raw magnitude, producing a false ranking. Same class: EpsEstimateGrid revenue/EPS, the surprise chart's hardcoded '$' title, the individual-analyst Target column, the price-target line.",
+    "evidence": "src/modules/earnings/EarningsCalendarPanel.tsx:34-37, src/modules/earnings/EarningsCalendarPanel.tsx:51-66, src/modules/earnings/EarningsCalendarPanel.tsx:360-365, src/modules/earnings/EpsEstimateGrid.tsx:25-31, src/modules/earnings/EarningsSurpriseChart.tsx:83, src/modules/analyst-ratings/IndividualAnalystTable.tsx:69, src/modules/analyst-ratings/PriceTargetTimeline.tsx:96-108, types/earnings.ts (EarningsEvent.currency), types/analyst.ts (PriceTargetEntry.currency, IndividualAnalystForecast.currency), sidecar/services/earnings_provider.py:270",
+    "notes": "Information hiding / consistency: the wire contract carries the unit, the view drops it. `grep -rn currency src/modules/earnings src/modules/analyst-ratings` returns ZERO production hits (test fixtures only). EarningsSurpriseChart.tsx:83 hardcodes `title: \"Surprise (EPS $)\"` on an India-capable terminal. PriceTargetTimeline sums target_to across firms without checking entry.currency. Consequence: money-relevant figures presented as comparable when they are not — a sortable cross-currency column is a false ranking, and the one place that got this right (EquityOverviewPanel.tsx:54-59, the R8 §6 'the live D10 defect put ₹ on AAPL's market cap' fix) proves the rule is known. Smallest fix: thread the row's currency into fmt/eps/revenue/target via the existing formatMoney(value, currency); take the chart series title's unit from the data; disable or group the consensus/dispersion sort when the visible rows span >1 currency."
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-2",
+    "title": "Analyst + earnings per-symbol caches are permanent for the session: no TTL, no invalidation, no refresh path, no as-of shown",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-3",
+    "repro": "Open Analyst Ratings, load AAPL (succeeds). Any later change upstream is invisible: pressing Load with 'AAPL' again sets the same string so React bails and the effect never re-runs; the Retry button calls the same cached accessor, which short-circuits on the cache. No control in the panel can re-fetch, and no timestamp is rendered. Same for the earnings drill-down caches (history/surprises/estimates).",
+    "evidence": "src/store/analyst-ratings.ts:51-54, src/store/analyst-ratings.ts:79-82, src/store/analyst-ratings.ts:107-110, src/store/earnings.ts:105-108, src/store/earnings.ts:133-136, src/store/earnings.ts:161-164, src/modules/analyst-ratings/AnalystRatingsPanel.tsx:71-77, src/modules/analyst-ratings/AnalystRatingsPanel.tsx:96-102, src/modules/equity-overview/EquityOverviewPanel.tsx:286-314, src/store/sec.ts:82",
+    "notes": "Define-errors-out-of-existence + consistency: `const cached = get().histories[normalized]; if (cached) return cached;` has no timestamp, so staleness is structurally indistinguishable from freshness. Consequence: analyst ratings / price targets / earnings surprises loaded at 09:00 are still shown after an 11:00 downgrade, with nothing on screen saying when they were fetched — on the axis the product calls its moat (data trust). The sibling EquityOverviewPanel DOES badge provider + freshness/as-of (ProvenanceBadge), so the gap is inconsistent inside one subsystem. Secondary: every cache is an unbounded Record with no eviction; store/sec.ts:82 filingDetailByAccession holds whole parsed filings. Smallest fix: store {payload, fetchedAt}, treat older-than-N-minutes as a miss, render fetchedAt as an as-of chip, and give each panel a Refresh that bypasses the cache — the in-repo precedent is NewsFeedPanel.tsx:209-257 (refreshNonce)."
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-3",
+    "title": "EquityOverviewPanel.doLoad has no sequence guard (its own sibling fetchNarrative does) — a late response overwrites a newer symbol",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "market-data-providers-3",
+    "repro": "With Equity Overview open and a load in flight, issue an external open-company command (screener row / watchlist entry / brief $CASHTAG chip / ⌘K result -> useEquityCommandStore.loadSymbol). The command effect is not gated on `loading`, so a second doLoad starts; whichever loadEquityOverview settles LAST calls setData and wins, and whichever settles FIRST runs `finally { setLoading(false) }` and clears the spinner while the other is still in flight.",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:740-769, src/modules/equity-overview/EquityOverviewPanel.tsx:707-734, src/modules/equity-overview/EquityOverviewPanel.tsx:599-603, src/modules/equity-overview/EquityOverviewPanel.tsx:821-831, src/modules/equity-overview/EquityOverviewPanel.tsx:922, src/modules/equity-overview/api.ts:101-125",
+    "notes": "Consistency violation with a concrete consequence: the file implements the exact out-of-order guard 33 lines above (narrativeSeqRef, and comments the hazard at :600-603) and omits it from the data fetch. The manual path IS guarded (the submit button is disabled while loading, which also blocks implicit Enter-submit), but the command-bus path — the one CLAUDE.md documents as always-consumed — is not. loadEquityOverview also has no AbortController and no timeout, so a hung leg is unbounded. Consequence: company A's fundamentals can render after the user asked for B. Smallest fix: copy the seqRef pattern already in the file into doLoad (~4 lines)."
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-4",
+    "title": "SEC store's `select*` are not selectors — they call getState(), so panel reactivity is held by a `void x;` no-op statement",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "market-data-providers-3",
+    "repro": "design (latent). Delete `void filingsByIdentifier; // subscribe` from SecFilingsPanel.tsx:75 (or `void byIdentifier;` from InsiderTradingTable.tsx:107): the component stops re-rendering on store updates and freezes at its first render — no error, no type failure, and the existing tests (which mount a fresh component per case) do not catch it.",
+    "evidence": "src/store/sec.ts:274-281, src/store/sec.ts:284-287, src/store/sec.ts:290-297, src/store/sec.ts:17-21, src/modules/sec/SecFilingsPanel.tsx:74-77, src/modules/sec/InsiderTradingTable.tsx:106-115",
+    "notes": "Information hiding + obviousness: selectFilings/selectFilingDetail/selectInsider take an identifier and call useSecStore.getState() instead of taking state, so the store's subscription requirement leaks to every call site as a statement that reads like dead code. The file's own header (:17-21) documents the frozen-empty stable-identity pattern a real selector needs, then the functions sidestep being selectors. A `no-unused-expressions` lint pass or a routine cleanup silently breaks two panels. Smallest fix: delete the three module-level functions and subscribe directly, one line per call site — `useSecStore((s) => s.insiderByIdentifier[insiderKey(id, form)] ?? EMPTY_INSIDER)`; the frozen empties at :52-65 already supply the stable identity."
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-5",
+    "title": "News feed retries hopeless 4xx failures 12 times (~50s) before showing any error; the SEC store's search swallows the reason entirely",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "market-data-providers-3",
+    "repro": "Configure an invalid BYOK NewsAPI key (sidecar answers 401) or force any 4xx on /news: the panel shows a pulsing skeleton for ~50 seconds (12 attempts, backoff 1s/2s/4s capped 5s) and issues 12 pointless requests before the honest error state appears.",
+    "evidence": "src/modules/news/NewsFeedPanel.tsx:220-251, src/modules/news/NewsFeedPanel.tsx:152-156, src/lib/use-sidecar-retry.ts:32-33, src/store/sec.ts:241-243",
+    "notes": "Exception handling: the catch never inspects `error`, though SidecarError.status is available and used 80 lines up in errorMessage. The backoff exists for a cold-boot CONNECTION failure — exactly the case a status check would leave untouched — so gating it costs nothing and removes the 50s dead wait on failures that can never succeed. The same unconditional shape is in the shared hook the Earnings and SEC panels use (lib/use-sidecar-retry.ts, MAX_ATTEMPTS 12). Separately store/sec.ts:241-243 `catch { ... searchStatus: \"error\" }` discards err.message while every sibling action in the same file preserves it. Smallest fix: `if (error instanceof SidecarError && error.status >= 400 && error.status < 500) { setState({status:\"error\", message: errorMessage(error)}); return; }` before the backoff, in both places; keep the reason in searchCompanies."
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-6",
+    "title": "Earnings, Analyst-Ratings and SEC panels are dead ends: they publish no panel context and consume no symbol command bus",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "market-data-providers-3",
+    "repro": "Open the Earnings Calendar (or Analyst Ratings, or SEC Filings) and ask the chat agent what is on screen — the panel contributes nothing to the preamble. Click a symbol in an earnings row, or a symbol chip on a news item: nothing happens; neither opens the chart or the equity overview.",
+    "evidence": "src/modules/earnings/EarningsCalendarPanel.tsx:347, src/modules/news/NewsFeedPanel.tsx:136-143, src/modules/news/NewsFeedPanel.tsx:187-207, src/modules/equity-overview/EquityOverviewPanel.tsx:620-661, src/store/equity-command.ts:1-33, src/modules/chat/context-provider.ts",
+    "notes": "Verified by grep: `usePanelContextBus` publishers are watchlist / chart / news / portfolio / equity-overview / backtest / chat only; there are ZERO references to panel-context, equity-command or chart-command anywhere under src/modules/earnings, src/modules/analyst-ratings, src/modules/sec. Two consequences in an agent-first product: (a) the agent cannot see three of the app's data panels, though context-provider.ts builds its preamble from exactly that bus; (b) every symbol those panels render is inert — an earnings row's symbol, a news item's symbol chips (plain <span>s), an insider reporter — while CLAUDE.md documents the brief's ticker chips doing exactly this via the always-consumed chart-command seam. Smallest fix: one publishPanelContext effect per panel (copy NewsFeedPanel.tsx:187-207) and make the symbol cell a button calling useEquityCommandStore.getState().loadSymbol."
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-7",
+    "title": "SEC company search is fully built in the store and on the sidecar but has no UI — the panel only accepts a symbol/CIK you already know",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "market-data-providers-3",
+    "repro": "Open SEC Filings and try to find a company by NAME. There is no name search: the only entry point is a free-text Symbol / CIK field. Meanwhile `searchCompanies` hits a real /sec/filings/search route and populates searchResults/searchStatus, which no component reads.",
+    "evidence": "src/store/sec.ts:228-248, src/store/sec.ts:93-95, src/store/sec.ts:246-248, src/modules/sec/SecFilingsPanel.tsx:123-138, src/store/sec.test.ts:163-176",
+    "notes": "Dead capability, not merely dead code: `grep -rn 'searchCompanies|searchResults|clearSearch|searchStatus' src types` finds consumers ONLY in src/store/sec.test.ts — the store action, its state, its clear action and its sidecar route are all wired with no surface. Against the stated screener.in benchmark ('any listed company, however obscure returns complete data'), the SEC panel's reachable surface is ticker-or-CIK-you-already-know. The Equity Overview panel already ships the pattern this needs (EquityOverviewPanel.tsx:667-697 debounced autocomplete + :884-920 dropdown). Smallest fix: wire the existing store action into the existing symbol field as an autocomplete, or delete the unused action + state so the store stops advertising a feature that is not there."
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-8",
+    "title": "PriceTargetTimeline plots an unweighted daily mean of whichever firms re-rated, labelled as 'Price Target' with no n, no firm, no currency",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "market-data-providers-3",
+    "repro": "A symbol whose covering firms revise on different days: a day on which a single boutique firm cuts its target renders as a cliff in a continuous line the user reads as consensus. Nothing on the chart states how many firms contributed to any point.",
+    "evidence": "src/modules/analyst-ratings/PriceTargetTimeline.tsx:93-111, src/modules/analyst-ratings/PriceTargetTimeline.tsx:71-77, src/modules/analyst-ratings/PriceTargetTimeline.tsx:51-57, src/modules/analyst-ratings/AnalystRatingsPanel.tsx:141-145",
+    "notes": "Design-it-twice: one aggregation was chosen (bucket by day, sum/count) with no alternative weighed and no honest label — the series is titled 'Price Target' under a tab called 'Price Targets', so a per-day mean of a varying, unstated subset of firms reads as a consensus series. Not a bug in arithmetic; it is a presentation that asserts more than the data supports, on a money figure. Smallest fix: label the series with what it is ('mean of targets revised that day') and surface n per point in the tooltip, or plot the per-firm scatter plus a real rolling consensus."
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-9",
+    "title": "EarningsCalendarPanel hand-rolls a table the rest of the slice gets from DataTable, and duplicates its seven column widths",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "market-data-providers-3",
+    "repro": "design. Change any earnings column width: the real table's <colgroup> (:279-287) and the skeleton's <colgroup> (:217-225) are two independent copies of the same seven percentages, so editing one silently misaligns the loading state against the loaded state.",
+    "evidence": "src/modules/earnings/EarningsCalendarPanel.tsx:216-225, src/modules/earnings/EarningsCalendarPanel.tsx:279-287, src/modules/earnings/EarningsCalendarPanel.tsx:453-480, src/modules/earnings/EarningsCalendarPanel.tsx:34-37, src/components/DataTable.tsx:51, src/components/DataTable.tsx:237-253, src/modules/earnings/EpsEstimateGrid.tsx:58, src/modules/sec/FilingsListTable.tsx:123, src/modules/analyst-ratings/RatingsHistoryTable.tsx:128",
+    "notes": "Consistency + repetition: six of the seven tables in this slice (including EpsEstimateGrid, in the same module) use the shared DataTable; this one re-implements the sortable header (:453-480 vs DataTable.tsx:237-253) and the null glyph (:34-37 vs DataTable.tsx:51 NULL_GLYPH), and so misses stickyHeader, rowTestId, the tier tokens and the truncation rules the shared component already solves. Three copies of the same truth in one file. Smallest fix: at minimum hoist the colgroup to one module constant used by both branches; properly, move the rows onto DataTable with an expansion row."
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-10",
+    "title": "Unreachable error branch, a dead sort key, triplicated fmtDate and duplicated rating maps in the analyst/earnings modules",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "market-data-providers-3",
+    "repro": "design. (a) AnalystRatingsPanel's `tabError && tabData !== null` banner cannot render: the store only records an error on a cache MISS and clears it on the success that populates the cache, so 'cached data + error' is unproducible. (b) SortKey 'analysts' has a sortValue case but no header wires handleSort('analysts').",
+    "evidence": "src/modules/analyst-ratings/AnalystRatingsPanel.tsx:152-164, src/store/analyst-ratings.ts:55-71, src/modules/earnings/EarningsCalendarPanel.tsx:22, src/modules/earnings/EarningsCalendarPanel.tsx:63-64, src/modules/earnings/EarningsCalendarPanel.tsx:317-322, src/modules/analyst-ratings/IndividualAnalystTable.tsx:11-25, src/modules/analyst-ratings/RatingsHistoryTable.tsx:15-29, src/modules/earnings/EarningsCalendarPanel.tsx:39-43, src/modules/analyst-ratings/IndividualAnalystTable.tsx:27-31, src/modules/analyst-ratings/RatingsHistoryTable.tsx:31-35, src/modules/earnings/EarningsSurpriseChart.tsx:102",
+    "notes": "Duplicated truth that will drift + code the next reader will believe runs. RATING_LABEL and RATING_COLOR are byte-identical in two files, so a colour or label change to the rating scale must be made twice or the two analyst tables disagree; fmtDate is triplicated verbatim across three files. The unreachable banner (with a comment explaining behaviour that cannot occur) and the unwired 'analysts' sort key will be maintained as if live. Also EarningsSurpriseChart.tsx:102 comments 'Sort newest-first -> reverse for chart' above a plain ascending sort with no reverse — the output is right, the comment is not. Smallest fix: one shared rating-label/colour map and one shared fmtDate in the analyst module; delete the unreachable branch and the dead sort key; correct the comment."
+  }
+]

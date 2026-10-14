@@ -1,0 +1,26 @@
+COMMAND 1 (live curl, candidate sidecar :52357): re-ran the register's exact deterministic-502
+repro:
+  curl -s http://127.0.0.1:52357/macro/DGS10?provider=fred
+OUTPUT: HTTP 502, {"detail":"FRED needs a free API key for macro data...","code":"provider_error",
+"action":"Retry, or try again later."}  (see R15-UI-015-body.txt / -httpcode.txt)
+-> confirms the deterministic failure still reproduces exactly as the register described (a
+keyless fresh install cannot get FRED data).
+
+COMMAND 2 (node, re-running the extracted classifier from src/lib/use-sidecar-retry.ts, sha
+1006c6da) against that live 502 plus the register's other cases:
+  see R15-UI-015-classify.txt
+
+OUTPUT:
+SidecarError(502) transient: false
+SidecarError(503) transient: true
+SidecarError(0) transient: true
+plain TypeError transient: true
+
+VERDICT: holds.
+isTransientSidecarFailure (use-sidecar-retry.ts:39-42) now classifies the real live 502 as
+NON-transient (no retry, one attempt then settled error state) while a genuine "not up yet"
+signal (status 503, status 0, a raw fetch TypeError) still retries with the bounded backoff
+(MAX_ATTEMPTS=12, capped 5s, use-sidecar-retry.ts:34-35). NewsFeedPanel.tsx:253 and
+MacroPanel.tsx:68 both call the shared useRetryOnSidecarReady hook now (grep confirms no
+hand-rolled duplicate backoff remains in NewsFeedPanel). The 13x-hammer-on-a-502 defect the
+register named is gone: the classification, not the retry loop itself, was the fix.

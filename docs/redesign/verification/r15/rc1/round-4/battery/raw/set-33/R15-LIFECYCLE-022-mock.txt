@@ -1,0 +1,6 @@
+WARNING:services.nse_bhavcopy:nse_bhavcopy: 2 past trading days 404 on both hosts (latest https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20260922_F_0000.csv.zip) — has the archive path moved?
+WARNING:services.nse_bhavcopy:nse_bhavcopy: no bhavcopy found within 3 days of 2026-09-24
+CASE A (primary 404, fallback ok): trade_date= 2026-09-24 rows= 1
+empty markers written (should be 0): 0
+CASE B (both hosts 404, non-holiday weekdays): result= None
+empty markers written on non-holiday 404 run (should be 0): 0

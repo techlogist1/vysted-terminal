@@ -1,0 +1,7 @@
+Source confirmation (no live browser this shard): types/drawings.ts:97-98 DrawingSpec now carries
+`symbol: string; timeframe: string;` (comment line 95: "fields are adopted by the panel's restored
+symbol/timeframe"). Chart-view persistence type (lines 130-134) carries symbol/timeframe/compare.
+workspace.ts:71 "Per-chart-panel symbol/timeframe/indicators/compare (R15-UI-020)"; restore logic at
+lines 339-340 falls back to DEFAULT_CHART_SYMBOL/DEFAULT_CHART_TIMEFRAME for older blobs missing the
+fields (guarded restore per CLAUDE.md rule). Matches PLAN.md fix exactly.
+Verdict: holds (source-confirmed); ci_pinned for the store-filter and workspace round-trip vitest cases.

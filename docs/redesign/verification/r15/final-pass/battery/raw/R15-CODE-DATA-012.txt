@@ -1,0 +1,13 @@
+# R15-CODE-DATA-012 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:14:01+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C/sidecar"; "$IP" $B/sc/probe104.py 012 2>&1 | grep -v -i warning; grep -c '_cached(' "$C/sidecar/routers/earnings.py"; grep -c 'data_cache\.' "$C/sidecar/routers/earnings.py"; true
+--- output ---
+  from starlette.testclient import TestClient as TestClient  # noqa
+EarningsSurprisesResponse: cache deserialise failed for earnings:NVDA:surprises; refetching
+corrupt row: first 200 {'symbol': 'NVDA', 'surprises': [], 'as_of': '2026-10-03T12:14:01.192983Z'}  second(cached) 200 provider calls: ['surprises']
+upcoming: 200 200 calls ['surprises', 'upcoming'] as_of set: True
+PASS: corrupt entry refetched once then served from cache; helper shared
+4
+0
+
+EXIT=0 (2.9s)

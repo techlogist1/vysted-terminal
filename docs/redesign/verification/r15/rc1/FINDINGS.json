@@ -1,0 +1,1699 @@
+[
+  {
+    "key": "rc1-datapack:1",
+    "kind": "regression",
+    "severity": "critical",
+    "register_id": "R15-DATA-008",
+    "title": "SIFY revenue_ttm/net_income_ttm still served as INR-scale numbers under currency:\"USD\" (partial fix)",
+    "repro": "GET http://<sidecar>/fundamentals/SIFY -> currency:\"USD\", revenue_ttm:46506049536.0, net_income_ttm:-912369984.0 (identical to the original defect's cited numbers). financial_currency:\"INR\" now exists as a separate field and price_to_sales is correctly withheld with a reason, but revenue_ttm/net_income_ttm keep status:\"ok\" with no reason and are not cross-checked against financial_currency, so a consumer reading currency next to revenue_ttm (EquityOverviewPanel.tsx, brief-blocks.tsx, per the entry's own root_cause) still renders ~94x-overstated USD figures.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/DATAPACK.md",
+    "suspected_files": [
+      "sidecar/services/yfinance_provider.py",
+      "sidecar/models/fundamentals.py",
+      "src/modules/equity-overview/EquityOverviewPanel.tsx",
+      "src/modules/research/brief-blocks.tsx"
+    ],
+    "source_file": "rc1-datapack.json"
+  },
+  {
+    "key": "rc1-verifier:6",
+    "kind": "regression",
+    "severity": "critical",
+    "register_id": "R15-DATA-002",
+    "title": "The watchlist path still drops the picked listing's region: pickCandidate(symbol) stores a bare symbol, and SymbolEntry has no region field (code-level; GUI behaviour not driven)",
+    "repro": "git show 4c6dfe8c:src/modules/watchlist/WatchlistPanel.tsx:286-291 has pickCandidate = (symbol: string) => addSymbol(symbol, 'equity'), and :434 calls pickCandidate(c.symbol). src/store/symbols.ts:15-18 has SymbolEntry { symbol; assetClass }. A US candidate picked in an IN session is stored bare and re-queried in the session region. The chart and palette paths were fixed (f053f472, 60fdc925). The watchlist was not.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/spot-refutation-code.txt",
+    "suspected_files": [
+      "src/modules/watchlist/WatchlistPanel.tsx:286",
+      "src/store/symbols.ts:15"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-vshard-7:8",
+    "kind": "regression",
+    "severity": "critical",
+    "register_id": "R15-DATA-002",
+    "title": "The picked listing's region is dropped on the watchlist path: picking 'AMAL (US)' from the watchlist autocomplete stores the bare 'AMAL', so the watchlist quote, chart and Equity Overview all bind to Amal Ltd (INR) in an IN session; the command palette then dedupes the US candidate away",
+    "repro": "Code at 81fbfe91: WatchlistPanel.tsx:286-291 pickCandidate(symbol) -> addSymbol(symbol, 'equity') (no region; SymbolEntry has no region field); row click :556-563 openCompanyOverview(row.entry.symbol)/loadSymbolIntoChart(symbol) with no region; CommandPalette.tsx:150-154 drops live candidates whose bare symbol is already in the watchlist corpus and :207 charts the corpus row with no region. Sidecar: GET /quotes/AMAL (IN session) -> Amal 674.4 INR; /quotes/META -> String Metaverse 8.14 INR; /resolve?q=META returns META BSE + META US both confidence 1.0 with needs_disambiguation false.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/data002.txt",
+    "suspected_files": [
+      "src/modules/watchlist/WatchlistPanel.tsx",
+      "src/store/symbols.ts",
+      "src/components/CommandPalette.tsx"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-verifier:4",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-AGENT-019",
+    "title": "The intent gate still strips portfolio write tools from everyday question-shaped delete/update asks. The literal register phrasings pass, and fresh phrasings in the entry's own class fail",
+    "repro": "In-process at the 4c6dfe8c export, shard-7's probe (planner.classify_intent plus the copilot tool list) with the entry's literal phrasings added: all 6 LITERAL cases pass. FAIL: 'Could you drop WIPRO from my portfolio?', 'I exited my ITC position, can you take it out of my portfolio?' and 'Can you bump my INFY quantity to 30?'. Each gets intent read and writes [], with no portfolio_delete_position or portfolio_update_position sent to the model. The entry's title covers 'everyday portfolio phrasings'.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/adj-agent019-intent-probe.txt",
+    "suspected_files": [
+      "sidecar/services/planner.py",
+      "sidecar/services/agent_runtime.py"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:5",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-AGENT-093",
+    "title": "Schema-gate coercion is not a class fix. A nested numeric string ('185.5' in points[].price, '3' in instruments[].tenor) and '5.0' for an integer are still rejected",
+    "repro": "In-process at the 4c6dfe8c export, agent_runtime._normalise_tool_args. option_chain max_strikes '10' -> 10 (ok). '5.0' -> __vysted_invalid_args__. add_chart_drawing points[{price:'185.5'}] -> __vysted_invalid_args__ ''185.5' is not of type 'number''. yield_curve_value with instruments[].tenor '3' -> invalid. The fix_shape asks for 'a class fix, not per-tool'.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/spot-agent093.txt",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py:~913-945 (_normalise_tool_args)"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-vshard-0:1",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-DATA-002",
+    "title": "NOT CERTIFIED: watchlist/screener/agent overview paths still re-query the bare symbol; a picked NASDAQ:AMAL shows Amal Ltd (INR) in an IN session",
+    "repro": "Watchlist autocomplete 'AMAL' lists NSE Amal Ltd and US Amalgamated (both conf 1.0); pickCandidate -> addSymbol(symbol,'equity') drops the region (SymbolEntry={symbol,assetClass}); batch /quotes uses the session region: GET /quotes/AMAL (X-Vysted-Region IN) = INR 674.4 nse_direct vs (US) = USD 47.58; row click openCompanyOverview(row.entry.symbol) passes no region; ScreenerResultsTable:567 and host-actions:1529/1675 likewise.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/data002.log",
+    "suspected_files": [
+      "src/modules/watchlist/WatchlistPanel.tsx",
+      "src/store/symbols.ts",
+      "src/modules/screener/ScreenerResultsTable.tsx",
+      "src/lib/host-actions.ts"
+    ],
+    "source_file": "rc1-vshard-0.json"
+  },
+  {
+    "key": "rc1-vshard-0:3",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-CODE-FRONTEND-002",
+    "title": "NOT CERTIFIED: a chat-tab click (or '+') inside an open research space drops the research transcript, then leaving the space saves the chat tab's conversation as the space's memory and wipes the tab",
+    "repro": "vitest (scratch copy of candidate src): tab A live, tab B archived; switchSpace(null,R); live=R turns; agentSpaces.switchTo('B') (tab strip always rendered); switchSpace(R,null) -> R memory=['B question'] (expected R turns), live=[] (tab B lost). newSpace variant: R memory=[]. Two owners remain; fix_shape's single-thread-owner not implemented.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/fe_vitest.log",
+    "suspected_files": [
+      "src/store/agent-spaces.ts",
+      "src/store/research-spaces.ts",
+      "src/modules/chat/ChatSidebar.tsx"
+    ],
+    "source_file": "rc1-vshard-0.json"
+  },
+  {
+    "key": "rc1-vshard-4:1",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-RESEARCH-028",
+    "title": "FAST research drops web_search reason on the ok path: a degraded SearXNG still reports keyless-fallback with web_reason None, so the brief shows the 'set up Unlimited local research' nudge",
+    "repro": "own sidecar :52604 with SearXNG state degraded (GET /search/searxng/status); agent invoke research on a symbol -> publish_brief web backend keyless-fallback, reason None; in-process r028.py: web_search tool returns reason 'searxng_degraded' but research.fast._web_round returns reason None",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/research-run1.jsonl",
+    "suspected_files": [
+      "sidecar/services/research/fast.py"
+    ],
+    "source_file": "rc1-vshard-4.json"
+  },
+  {
+    "key": "rc1-vshard-7:5",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-AGENT-019",
+    "title": "Question-shaped portfolio write asks without a listed cue word still classify as read and lose every write tool: 'Could you drop WIPRO from my portfolio?', 'I exited my ITC position, can you take it out of my portfolio?', 'Can you bump my INFY quantity to 30?'",
+    "repro": "In-process at 81fbfe91 (the test helper's path: agent_runtime.invoke_agent with a capture provider): the three prompts -> planner intent 'read' (trailing '?' positive read cue), tool_ids contain no portfolio_delete_position / portfolio_update_position. See agent019-intent-probe.py/.out.txt. Live on own sidecar :52607 (llama3.1:8b, autonomy auto): POST /agents/copilot/invoke 'Could you drop WIPRO from my portfolio?' -> no tool_use; the model typed {\"name\": \"portfolio_delete_position\", \"parameters\": {\"symbol\": \"WIPRO\"}} as chat text and the turn ended (the entry's A1 symptom).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/agent019-live-llama-drop-wipro.sse",
+    "suspected_files": [
+      "sidecar/services/planner.py",
+      "sidecar/services/agent_runtime.py"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-vshard-7:7",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-UI-090",
+    "title": "Freshness is still not the instrument's exchange calendar for non-IN listings: BHP.AX, 7203.T, 0700.HK, ^N225 and VOD.L are dated on the US calendar, so they read 'live' during US hours while their exchange is closed (the BHP.AX residual named in the entry's own note)",
+    "repro": "In-process routers.quotes._label_freshness at 81fbfe91 with the locale clock frozen at 2026-09-23 15:00 UTC: BHP.AX quote stamped 06:00 UTC (ASX closed) -> 'live'; VOD.L at 18:00 UTC (LSE closed) -> 'live'; BHP.AX at 02:30 UTC (ASX open) -> 'eod'. locale.instrument_region returns US for all of them.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/ui090-freshness-probe.out.txt",
+    "suspected_files": [
+      "sidecar/services/locale.py",
+      "sidecar/routers/quotes.py"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-vshard-8:1",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-RESEARCH-007",
+    "title": "Blog/newsletter platforms outside the vendored PSL and the 10-host denylist still rank an ir./investors. host TIER_PRIMARY and outrank Reuters (typepad, livejournal, beehiiv, ghost.io, hashnode.dev, over-blog, neocities, jimdosite, godaddysites, tilda.ws, site123.me, mystrikingly, webnode.page, 000webhostapp)",
+    "repro": "cd <cand>/sidecar; .venv/bin/python: rank_sources([Reuters https://www.reuters.com/markets/nvda-earnings, https://investors.beehiiv.com/p/nvda-to-the-moon, https://ir.typepad.com/blog/2026/hot-tip]) -> ['Beehiiv newsletter','Typepad blog','Reuters']; priority_note -> 'primary record (exchange/regulator/filings/IR): [1, 2]; tier-1 press: [3]'. domain_tier == 1 for ir./investors. on all 14 hosts listed. Literal repro and every earlier fresh list hold (tier 3).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8-evidence/r007.out",
+    "suspected_files": [
+      "sidecar/services/research/finance.py"
+    ],
+    "source_file": "rc1-vshard-8.json"
+  },
+  {
+    "key": "rc1-vshard-8:2",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-AGENT-090",
+    "title": "_guard_ratio_claims keeps a fabricated fractional/decimal or 'a dozen'/'half' ADR ratio unchanged, even for SIFY when the tool result carries the true ratio 6",
+    "repro": "cd <cand>/sidecar; .venv/bin/python: _guard_ratio_claims('Each SIFY ADR represents 1.5 ordinary shares.', [SIFY fundamentals result with ads_ratio 6]) -> kept; also kept with a no-depositary fundamentals result: 'Each ADS represents 0.5 ordinary shares.', 'Each SIFY ADR represents 2.5 equity shares.', 'The ADR converts into 0.1 shares of the company.', 'Each ADR represents half an ordinary share.', 'Each ADR corresponds to a dozen ordinary shares.'. Cause: _MARKED blanks every \\d+\\.\\d+ as a non-count, so a decimal share count is never a claim. TSM, RDY and AZN get no ads_ratio, so the guard is their only defence. Live literal repro and a live TSM run held.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8-evidence/a090-offline.out",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py"
+    ],
+    "source_file": "rc1-vshard-8.json"
+  },
+  {
+    "key": "rc1-datapack:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-058",
+    "title": "Sify (ADR) name-search: SIFY now included but still ranked last despite the highest score",
+    "repro": "GET http://<sidecar>/resolve?q=Sify+Technologies+Ltd+(ADR) -> candidates [ASMTEC 0.80, IKOMA 0.766, EMIAC 0.766, RELICTEC 0.766, 7TEC 0.766, SIFY 0.913]. SIFY is present now (was previously excluded by the 6-candidate cap) but sorts last, an 11-point-margin inversion the fix_shape (\"let score dominate locale beyond a margin\") was meant to close.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/DATAPACK.md",
+    "suspected_files": [
+      "sidecar/services/symbol_resolver.py"
+    ],
+    "source_file": "rc1-datapack.json"
+  },
+  {
+    "key": "rc1-verifier:10",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-059",
+    "title": "The US master still has no ISIN/CUSIP: SIFY and ONC resolve with isin null (fix_shape: 'add ISIN/CUSIP to the US master')",
+    "repro": "Own :52312 at 4c6dfe8c: GET /resolve?q=SIFY and ?q=ONC return isin null. The former names do resolve (BeiGene -> ONC).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/spot-refutation-live.txt",
+    "suspected_files": [
+      "sidecar/services/symbol_resolver.py"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:11",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-AGENT-053",
+    "title": "News symbol chips are still plain <span> elements inside the article <a>, so a click opens the article and never loads the symbol (fix_shape: 'make rendered symbols buttons calling loadSymbolIntoChart')",
+    "repro": "git show 4c6dfe8c:src/modules/news/NewsFeedPanel.tsx:118-150 renders item.symbols.map as <span key className=...>{symbol}</span> inside <a href={item.url} target=_blank>, with no onClick and no button.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/spot-refutation-code.txt",
+    "suspected_files": [
+      "src/modules/news/NewsFeedPanel.tsx:138-148"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:12",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-RESEARCH-015",
+    "title": "Independence still counts hosts, not registrable domains: www.nseindia.com and nsearchives.nseindia.com count as two domains, so one domain reached by both lanes can read as corroborated",
+    "repro": "In-process at the 4c6dfe8c export: verify._row_domains over those two URLs returns ['nsearchives.nseindia.com', 'nseindia.com'] (count 2). finance.domain_of strips only 'www.'.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/spot-research015.txt",
+    "suspected_files": [
+      "sidecar/services/research/verify.py:170-177",
+      "sidecar/services/research/finance.py:139"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:7",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-113",
+    "title": "Estimate revenue is labelled by financialCurrency even where Yahoo's estimate is in the trading currency: INFY revenue_estimate_mean 491,654,926,200 is served as revenue_currency USD, about 25x Infosys's annual USD revenue",
+    "repro": "Own :52312 at 4c6dfe8c: GET /earnings/INFY/estimates (IN) returns symbol INFY.NS, currency INR, eps_estimate_mean 19.6 and revenue_estimate_mean 491654926200.0 with revenue_currency 'USD'.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/spot-refutation-live.txt",
+    "suspected_files": [
+      "sidecar/services/earnings_provider.py:101 (_revenue_currency)",
+      "sidecar/services/earnings_provider.py:418"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:8",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-LEAD-028",
+    "title": "BSE scrip-code addressing still 404s on /fundamentals, the entry's own example included",
+    "repro": "Own :52312 at 4c6dfe8c: GET /fundamentals/506597.BO -> 404 not_found. GET /fundamentals/532540.BO -> 404. GET /fundamentals/AMAL.BO -> 200.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/spot-refutation-live.txt",
+    "suspected_files": [
+      "sidecar/routers/fundamentals.py",
+      "sidecar/services/symbol_resolver.py"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:9",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-064",
+    "title": "30m history with an explicit range of 3mo or 1y returns [] with reason in_eod_only for RELIANCE.NS, though yfinance serves its 30m bars at the default range. The fix_shape clause 'only emit in_eod_only when no intraday provider serves the symbol' is unmet",
+    "repro": "Own :52312 at 4c6dfe8c. GET /history/RELIANCE.NS?timeframe=30m&range=1y and &range=3mo each return bars [] with provider none and reason in_eod_only. GET /history/RELIANCE.NS?timeframe=30m returns 30m bars from 2026-08-26.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/spot-refutation-live.txt",
+    "suspected_files": [
+      "sidecar/routers/history.py",
+      "sidecar/services/provider_registry.py"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-vshard-0:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-RESEARCH-015",
+    "title": "NOT CERTIFIED: cross-check counts two hosts of ONE registrable domain as independent channels (nseindia.com + nsearchives.nseindia.com -> AGREE)",
+    "repro": "In-process verify.cross_check: SearXNG row https://www.nseindia.com/..., native row https://nsearchives.nseindia.com/... for '40.5% revenue growth' -> '**AGREE (corroborated across channels)** — (nsearchives.nseindia.com, nseindia.com)', step '1 verified'. verify._row_domains uses finance.domain_of (host) not finance._registrable_domain despite its docstring.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/verify_015_min.out.log",
+    "suspected_files": [
+      "sidecar/services/research/verify.py",
+      "sidecar/services/research/finance.py"
+    ],
+    "source_file": "rc1-vshard-0.json"
+  },
+  {
+    "key": "rc1-vshard-0:4",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-AGENT-045",
+    "title": "NOT CERTIFIED: compare_symbols ['COCHINSHIP','MAZAGONDOCK'] still does not compare MAZDOCK (fix_shape's own test)",
+    "repro": "In-process _compare_symbols({'symbols':['COCHINSHIP','MAZAGONDOCK']}) -> ok=false, MAZAGONDOCK: \"unresolved name ... matched no listing\". The wording is now honest, but the guessed ticker is never resolved (/resolve?q=MAZAGONDOCK has no candidates; 'MAZAGON' -> MAZDOCK 0.97). Company names do resolve ('Mazagon Dock' -> MAZDOCK).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/cmp045.log",
+    "suspected_files": [
+      "sidecar/services/agent_tools/compare_symbols.py",
+      "sidecar/services/agent_tools/fundamentals.py",
+      "sidecar/services/symbol_resolver.py"
+    ],
+    "source_file": "rc1-vshard-0.json"
+  },
+  {
+    "key": "rc1-vshard-1:3",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-UI-090",
+    "title": "UI-090 not certified: non-US, non-IN listings (BHP.AX, VOD.L) still read 'live' after their own exchange closes, because instrument_region defaults everything non-IN to the US calendar",
+    "repro": "verifier/shard-1-evidence/ui090.py @81fbfe91 (in-process, frozen clock in US hours): locale.instrument_region('BHP.AX') and ('VOD.L') -> US; freshness_for -> live while ASX closed since 06:10Z and LSE closed. Literal AAPL@NSE-hours -> eod holds; ^NSEI/^NSEBANK/^CNXIT/^INDIAVIX live under IN and US holds. Live :52601 /quote serves BHP.AX and VOD.L via yfinance.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/ui090.txt",
+    "suspected_files": [
+      "sidecar/services/locale.py"
+    ],
+    "source_file": "rc1-vshard-1.json"
+  },
+  {
+    "key": "rc1-vshard-2:1",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-064",
+    "title": "30m/intraday lookback never clamped to Yahoo's 60-day cap: explicit range or node-editor default period 1y gives an empty series, and IN is labelled in_eod_only",
+    "repro": "curl '127.0.0.1:52602/history/RELIANCE.NS?timeframe=30m&range=3mo' -> bars [] provider none reason in_eod_only (default 30m -> 286 yfinance bars); /workflow/run data.fetch_history RELIANCE.NS interval 30m period 1y -> node-error 'correctness gate: empty series'",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+    "suspected_files": [
+      "sidecar/services/yfinance_provider.py",
+      "sidecar/routers/history.py",
+      "sidecar/services/workflow_nodes/builtin.py",
+      "src/modules/node-editor/node-registry.ts"
+    ],
+    "source_file": "rc1-vshard-2.json"
+  },
+  {
+    "key": "rc1-vshard-2:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-066",
+    "title": "nse_direct throttle still sleeps on executor threads: a cold IN batch stalls unrelated to_thread routes about 19x",
+    "repro": "cold 20-name /quotes batch (21-23 s) while timing cached /quotes/IBM: 0.35-0.41 s idle -> 6.99 s / 7.64 s",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+    "suspected_files": [
+      "sidecar/services/nse_provider.py",
+      "sidecar/routers/quotes.py"
+    ],
+    "source_file": "rc1-vshard-2.json"
+  },
+  {
+    "key": "rc1-vshard-2:3",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-AGENT-053",
+    "title": "News symbol chips are still dead text inside the article link; news snapshot carries no headlines; bond/yield/option-chain panels publish nothing",
+    "repro": "src/modules/news/NewsFeedPanel.tsx:138-148 renders <span>{symbol}</span> inside <a href=item.url>; payload at :199-205 is {watchedSymbols, focusedArticleId}",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+    "suspected_files": [
+      "src/modules/news/NewsFeedPanel.tsx",
+      "src/modules/quant/BondPricerPanel.tsx",
+      "src/modules/quant/YieldCurvePanel.tsx",
+      "src/modules/quant/OptionChainPanel.tsx"
+    ],
+    "source_file": "rc1-vshard-2.json"
+  },
+  {
+    "key": "rc1-vshard-4:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-061",
+    "title": "Yahoo throttle still mislabelled: earnings estimates return 502 provider_error, and statement routes return 200 empty with provider_health.record_success",
+    "repro": "during a Yahoo throttle: curl :52604/earnings/HDFCBANK.NS/estimates -> 502 provider_error; /fundamentals/HDFCBANK.NS/income -> 200 periods [] while /fundamentals/HDFCBANK.NS -> 429 rate_limited",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/d061-evidence.txt",
+    "suspected_files": [
+      "sidecar/services/earnings_provider.py",
+      "sidecar/services/yfinance_provider.py"
+    ],
+    "source_file": "rc1-vshard-4.json"
+  },
+  {
+    "key": "rc1-vshard-4:3",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-066",
+    "title": "NSE throttle wait still sleeps inside the to_thread executor: a cold 20-name batch stalls cached single quotes (0.002 s -> 5.5 s, one 30 s timeout) and /history (14.3 s)",
+    "repro": "cold GET /quotes?symbols=<20 fresh NIFTY names> and, concurrently, GET /quotes/RELIANCE.NS (EOD-cached) and /history/RELIANCE.NS?range=1mo",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/d066-evidence.txt",
+    "suspected_files": [
+      "sidecar/services/nse_provider.py",
+      "sidecar/routers/quotes.py"
+    ],
+    "source_file": "rc1-vshard-4.json"
+  },
+  {
+    "key": "rc1-vshard-4:4",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-055",
+    "title": "Research brief still labels a September-2026 listing (MPIMANIPAL.NS, listed 2026-09-17) as '52-week price change (Yahoo)' / 'trailing 52 weeks' and 'Below 52-week high'; the since-listing logic exists only in EquityOverviewPanel",
+    "repro": "in-process derive_semantics(structured from live MPIMANIPAL.NS quote+fundamentals, 'IN') -> fifty_two_week_change label '52-week price change (Yahoo)', basis 'trailing 52 weeks'",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/d055-semantics.txt",
+    "suspected_files": [
+      "sidecar/services/research/semantics.py",
+      "src/modules/research/brief-blocks.tsx"
+    ],
+    "source_file": "rc1-vshard-4.json"
+  },
+  {
+    "key": "rc1-vshard-5:1",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-055",
+    "title": "SMR.BO (BSE SME, first_trade 2026-06-08, the entry's own DAT-S2-8 pin) returns listing_date null + fifty_two_week_change -0.068, so the overview shows a 52w label and a 1Y-change row for a 16-week-old listing",
+    "repro": "curl -s http://127.0.0.1:52605/fundamentals/SMR  (own sidecar at 81fbfe91) -> listing_date None, fifty_two_week_change -0.068",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "sidecar/services/yfinance_provider.py",
+      "src/modules/equity-overview/EquityOverviewPanel.tsx",
+      "src/modules/equity-overview/metrics.ts"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-vshard-5:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-061",
+    "title": "An unknown .NS/.BO symbol at an intraday timeframe is told 'India is EOD only' (reason in_eod_only) instead of unknown symbol; history.py treats any .NS/.BO suffix as a known Indian listing",
+    "repro": "curl -s 'http://127.0.0.1:52605/history/QQZZFAKE.NS?timeframe=5m' and '.../QQZZFAKE.BO?timeframe=5m' -> reason in_eod_only while is_nse_symbol/is_bse_symbol are False; also /history/XYZ%2FABC -> 502 provider_error for an upstream HTTP 404",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "sidecar/routers/history.py"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-vshard-5:3",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-LEAD-026",
+    "title": "A suffixed unknown symbol (QQZZFAKE.NS / .BO) at 1d returns reason null instead of unknown_symbol; _is_unknown_symbol exempts every suffixed symbol (documented residual still marked fixed)",
+    "repro": "curl -s http://127.0.0.1:52605/history/QQZZFAKE.NS (and .BO) -> reason null; bare /history/ZZZZNOTREAL -> unknown_symbol (literal holds)",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "sidecar/routers/history.py"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-vshard-5:5",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-CODE-PLATFORM-013",
+    "title": "resetToDefaultLayout() calls setEnabledMap({}), wiping every plugin:<id> flag, so a plugin disabled in plugins.db reappears in enabledModules/enabledCommands/enabledPanels after a factory layout reset; the two stores still have an unsynced writer",
+    "repro": "scratch extract of 81fbfe91 (git archive + linked node_modules): vitest run src/store/vs5-reset-drift.test.ts -> 'enabled map after reset: {}', 'enabled module ids after reset: [\"plugin:vysted-news\"]' AssertionError",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "src/store/workspace.ts",
+      "src/lib/plugin-bootstrap.ts",
+      "src/store/modules.ts"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-vshard-5:6",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-CODE-PLATFORM-017",
+    "title": "The code-node inspector's mathjs syntax check + live preview still disagree with the canonical server evaluator (nested ternary 2 vs parse error, round(1.005,2) 1.01 vs 1.0, mod/!/implicit-mult/pi/true/log/exp/sign accepted then fail on run, a**2 rejected but runs), no shared parity fixture, and node-registry.ts:183/189-190 still say evaluation is client-side mathjs",
+    "repro": "server: sidecar/.venv python evaluate_code over scratchpad/vs5-017-cases.json; editor: vitest compileCodeExpression/evaluateCodeExpression over the same file; diff in shard-5.md",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "src/modules/node-editor/code-node.ts",
+      "src/modules/node-editor/code-node-inspector.tsx",
+      "src/modules/node-editor/node-registry.ts",
+      "sidecar/services/workflow_nodes/code_node.py"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-vshard-6:1",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-UI-085",
+    "title": "A readable text label still renders in charcoal-600 (#484848): dockview's hidden-panel tab titles in an inactive group, 2.08:1 on the #101010 tab strip, under the 3:1 floor. The fix and its test cover only the tsx text-charcoal-600 class and miss the CSS-variable route.",
+    "repro": "81fbfe91: src/app/globals.css:355 sets --dv-inactivegroup-hiddenpanel-tab-color: var(--color-charcoal-600). dockview-core 6.2.2 dist/styles/dockview.css applies it as `color:` on `.dv-groupview.dv-inactive-group ... .dv-tab.dv-inactive-tab`, over --dv-tabs-and-actions-container-background-color = charcoal-925 #101010. WCAG ratio #484848 on #101010 = 2.08:1 (charcoal-500 #8a8a8a would be 5.51:1). design-contrast.test.ts guards only unprefixed text-charcoal-600/700 classes in tsx, so it stays green.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-6.md",
+    "suspected_files": [
+      "src/app/globals.css",
+      "src/lib/design-contrast.test.ts"
+    ],
+    "source_file": "rc1-vshard-6.json"
+  },
+  {
+    "key": "rc1-vshard-6:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-071",
+    "title": "The registry fall-through works, but when no lane is complete the partial BSE series is served with partial=true and nothing reads the flag. ChartPanel and the price_data agent tool drop partial/coverage_start, so the chart still draws the short series as the requested range with no marker.",
+    "repro": "In-process at 81fbfe91 (worktree venv, bse cache pointed at an empty temp dir): bse_provider.get_history('TUTIALKA.BO','1d','1y') -> 8 bars partial=True coverage_start=2026-09-16. provider_registry.get_history then tries nse_direct/nse (not NSE) and yfinance (429 Too Many Requests), and serves provider=bse bars=16 partial=True. The same happens for SUNRAJDI.BO 6mo 1wk (5 bars, partial). grep -rn '\\.partial|coverage_start' src (non-test) hits only ScreenerPanel.tsx. ChartPanel.tsx:460-500 reads series.bars/provider/freshness only. sidecar/services/agent_tools/price_data.py:81-90 returns no partial/coverage_start.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-6.md",
+    "suspected_files": [
+      "src/modules/chart/ChartPanel.tsx",
+      "sidecar/services/agent_tools/price_data.py"
+    ],
+    "source_file": "rc1-vshard-6.json"
+  },
+  {
+    "key": "rc1-vshard-7:1",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-059",
+    "title": "US instruments still carry no ISIN: /resolve?q=ONC and q=SIFY return isin null; the fix_shape step 'add ISIN/CUSIP to the US master' was never done (us_instruments.json rows are [ticker, name])",
+    "repro": "GET http://127.0.0.1:52607/resolve?q=ONC -> resolved.isin null (outside truth US07725L1026); q=SIFY -> isin null (US82655M2061). Former names now resolve (ONC 'BeiGene, Ltd.', XYZ 'Square, Inc.', 'Satyam Infoway' -> SIFY).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/data059.txt",
+    "suspected_files": [
+      "sidecar/services/resolver_masters/us_instruments.json",
+      "sidecar/services/symbol_resolver.py"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-vshard-7:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-LEAD-028",
+    "title": "BSE scrip-code addressing still 404s on the fundamentals data route: /fundamentals/506597.BO and /fundamentals/532540.BO 404 while /fundamentals/AMAL.BO and /fundamentals/TCS.BO return 200",
+    "repro": "GET http://127.0.0.1:52607/fundamentals/506597.BO -> 404 'The data provider has no data for this symbol'; GET /fundamentals/AMAL.BO -> 200 'Amal Ltd'. /quotes and /history by scrip code now work (bse provider).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/lead028.txt",
+    "suspected_files": [
+      "sidecar/routers/fundamentals.py",
+      "sidecar/services/yfinance_provider.py",
+      "sidecar/services/provider_registry.py"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-vshard-7:3",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-112",
+    "title": "A row with no fundamentals currency and a null market_cap still displaces a valued row: the DATA-043 round-robin top-K cut treats the missing currency as its own group, so limit=2 serves [RELIANCE, MANIKA(null)] and drops TCS",
+    "repro": "POST http://127.0.0.1:52607/screener/run {universe:custom, custom_symbols:[MANIKA.NS,RELIANCE.NS,TCS.NS], criteria:[], sort_by:market_cap, sort_dir:desc, limit:2} -> rows RELIANCE.NS (1.66e13), MANIKA.NS (market_cap null); TCS.NS (7.53e12) cut. screener.py:823-840 groups by row.currency or '' before the store currency is stamped at :846-850.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/data112-limit2.json",
+    "suspected_files": [
+      "sidecar/services/screener.py"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-vshard-7:4",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-113",
+    "title": "Foreign-reporter revenue estimate still mislabelled: INFY's INR-sized revenue_estimate_mean 491,180,745,790 is served with revenue_currency USD (Yahoo financialCurrency for INFY is USD while its estimate is in INR); INFY.NS likewise",
+    "repro": "GET http://127.0.0.1:52152/earnings/INFY/estimates (X-Vysted-Region: US) -> revenue_estimate_mean 491180745790.0, revenue_currency 'USD' (Infosys annual revenue is ~USD 20.3B per Yahoo totalRevenue, so a USD 491B quarter is impossible). WIT literal repro now reads revenue_currency INR.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/data113.txt",
+    "suspected_files": [
+      "sidecar/services/earnings_provider.py"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-vshard-7:6",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-AGENT-093",
+    "title": "The schema gate coerces only TOP-LEVEL numeric strings: a nested numeric param sent as a string (add_chart_drawing.points[].price '185.5', yield_curve_value.instruments[].tenor '3') is still rejected",
+    "repro": "In-process _normalise_tool_args at 81fbfe91: add_chart_drawing {kind:'horizontal-line', points:[{price:'185.5'}]} -> invalid args \"'185.5' is not of type 'number'\"; option_chain max_strikes '10' -> 10 (literal fixed).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/agent093-coercion-probe.out.txt",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-vshard-7:9",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-CODE-PLATFORM-013",
+    "title": "Settings > Reset layout wipes the runtime-derived plugin:<id> flags (setEnabledMap({})), so a plugin disabled via the marketplace gets its panels/commands back while the runtime and plugins.db still say disabled",
+    "repro": "Code at 81fbfe91: plugin-bootstrap.ts:192-193 detach sets plugin:<id>=false but leaves the module registered; store/workspace.ts:176-184 resetToDefaultLayout calls useModulesStore.setEnabledMap({}); modules.ts:77-82 treats a missing flag as enabled, so enabledPanels()/enabledCommands() include the disabled plugin's surfaces. No GUI run (GUI skipped this gate).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7.md",
+    "suspected_files": [
+      "src/store/workspace.ts",
+      "src/store/modules.ts",
+      "src/lib/plugin-bootstrap.ts"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-drive-onboarding-stranger:1",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-LEAD-030",
+    "title": "Reclassification note (not a new finding): a fresh instance of the already-adjudicated, blocked_tier4 R15-LEAD-030 class ('local model narrates a fabricated tool-result figure') recurs on the current candidate in a NEW surface shape after the tool_call_rescue.py fix closed the specific leaked-text shape this drive's prior attempt (rc1-drive-onboarding-stranger sha 4097dac) had hit",
+    "repro": "Clean keyless profile, candidate 4c6dfe8c, own sidecar :52326. python3 scripts/r15/vy.py invoke copilot \"hi, I just installed this. what can you do, and how is Zomato stock doing today?\" --port 52326 --provider ollama --model llama3.1:8b -> two real tool_use/tool_result events (get_terminal_state, ok:true; a UI-state snapshot tool with no price fields in its schema, per sidecar/services/agent_tools/catalog.py:1155-1166), then the assistant TEXT states 'the current price of Zomato (ZOMATO.NS) is ₹130.05 INR. The daily high was ₹132.50, and the daily low was ₹128.60... 2.35% increase' attributed to 'my research'/'the current chart' - no tool result carries any such figures (the default chart symbol SPY quotes $771.35 via /quotes/SPY, nothing resembling these numbers). This is the same defect_class ('hallucinated-tool-result-citation') as the register's R15-LEAD-030, already blocked_tier4 and operator-adjudicated at DECISIONS 4.9 in this gate round; the LEAD NOTE for this round says a new instance of this exact class ('the local model states a figure for a subject with no ok tool call behind it') goes to a register note under the existing entry, never a fresh fix round. Filed as a note, not a new open finding.",
+    "evidence_file": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/A1-keyless-zomato-rc1-r2.stdout.txt",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py",
+      "sidecar/agents/copilot.json"
+    ],
+    "source_file": "onboarding-stranger.json"
+  },
+  {
+    "key": "rc1-drive-portfolio-notes:2",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-UI-035",
+    "title": "P4/P4b delete-control harness replay needed a rewrite for a new ConfirmButton arm/confirm gate, not a regression in the fix itself",
+    "repro": "The census harness's P4 delete test used a single click on the delete control. On RC1 that control now rides the new shared ConfirmButton (arm/confirm, 4s window, src/components/ConfirmButton.tsx) introduced after census, so a single click only arms the button and the row is not removed. This initially looked like a reopened R15-UI-035 but is test-harness drift against an unrelated new safety primitive, not a regression in the stale-closure fix: handleDelete's useCallback dependency array now correctly includes active.id (PortfolioPanel.tsx ~line 528), confirmed by static read and by driving the double-click (arm then confirm) sequence against TCS.NS in a non-active portfolio, which deleted the correct row. Recorded as a low-severity harness-methodology note, not a product regression -- R15-UI-035 remains fixed.",
+    "evidence_file": "docs/redesign/verification/r15/surface/portfolio-notes/rc1/portfolio-replay.json",
+    "suspected_files": [
+      "src/modules/portfolio/PortfolioPanel.tsx:528",
+      "src/components/ConfirmButton.tsx"
+    ],
+    "source_file": "rc1-drive-portfolio-notes.json"
+  },
+  {
+    "key": "rc1-vshard-1:10",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-CODE-AGENT-020",
+    "title": "CODE-AGENT-020 still reproduces (register status open, never certified): get_provider drops base_url for gemini and groq",
+    "repro": "sed -n on sidecar/services/llm/__init__.py @81fbfe91 -> get_provider returns GeminiProvider() / GroqProvider() without base_url",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/cagent018-020.txt",
+    "suspected_files": [
+      "sidecar/services/llm/__init__.py"
+    ],
+    "source_file": "rc1-vshard-1.json"
+  },
+  {
+    "key": "rc1-vshard-1:4",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-AGENT-010",
+    "title": "AGENT-010 fix_shape part unfixed: yf.Search still has no explicit timeout (yfinance default 30 s)",
+    "repro": "sed -n 1574p sidecar/services/symbol_resolver.py @81fbfe91 -> yf.Search(query, max_results=5, news_count=0) with no timeout. Loop stall itself is fixed (a010.py: 17 ms loop lag with a 1 s blocking stub; raising resolver -> ok:false).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/a010.txt",
+    "suspected_files": [
+      "sidecar/services/symbol_resolver.py"
+    ],
+    "source_file": "rc1-vshard-1.json"
+  },
+  {
+    "key": "rc1-vshard-1:9",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-CODE-AGENT-018",
+    "title": "CODE-AGENT-018 still reproduces (register status open, never certified): _STAGEABLE_PLAN_ACTIONS and _READ_SAFE_PANEL_ACTIONS identical with no stated relation or pinning test",
+    "repro": "PYTHONPATH=sidecar python3 -c 'from services import agent_runtime as a; print(a._STAGEABLE_PLAN_ACTIONS == a._READ_SAFE_PANEL_ACTIONS)' @81fbfe91 -> True",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/cagent018-020.txt",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py"
+    ],
+    "source_file": "rc1-vshard-1.json"
+  },
+  {
+    "key": "rc1-vshard-5:4",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-DOCS-018",
+    "title": "CURRENT_STATE.md:337-340 says fundamentals still hit yfinance first, but provider_registry ranks openbb-mcp 10 ahead of yfinance 50 for fundamentals/statements/analyst and /health reports 'openbb-mcp (yfinance fallback)'",
+    "repro": "sed -n 337,340p docs/CURRENT_STATE.md; sed -n 140,158p sidecar/services/provider_registry.py; curl -s http://127.0.0.1:52605/health",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "docs/CURRENT_STATE.md",
+      "sidecar/services/provider_registry.py"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-verifier:17",
+    "kind": "plausible_regression",
+    "severity": "high",
+    "register_id": "R15-AGENT-010",
+    "title": "The off-loop fix holds per shard-8, but the fix_shape clause 'pass an explicit yf.Search timeout' is unmet: yf.Search(query, max_results=5, news_count=0) has no timeout",
+    "repro": "git grep at 4c6dfe8c: sidecar/services/symbol_resolver.py:1574.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/spot-refutation-code.txt",
+    "suspected_files": [
+      "sidecar/services/symbol_resolver.py:1574"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:16",
+    "kind": "plausible_regression",
+    "severity": "medium",
+    "register_id": "R15-CODE-PLATFORM-013",
+    "title": "resetToDefaultLayout still calls useModulesStore.setEnabledMap({}) (workspace.ts:184), wiping the plugin:* flags the marketplace lifecycle derives. Code-level only, effect not driven",
+    "repro": "git show 4c6dfe8c:src/store/workspace.ts | grep -n setEnabledMap returns line 184 inside resetToDefaultLayout (line 176).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/spot-refutation-code.txt",
+    "suspected_files": [
+      "src/store/workspace.ts:176-184"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-drive-portfolio-notes:1",
+    "kind": "new_defect",
+    "severity": "high",
+    "register_id": null,
+    "status": "fixed",
+    "fixed_on_candidate": "4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
+    "fix_evidence": "src/modules/portfolio/PortfolioPanel.tsx:194,229,250,269-271 (quoteFetchInFlightRef overlap guard); own test 'skips a quote-refresh tick while the previous fan-out is still in flight, then refetches once it settles (rc1-drive-portfolio-notes:1)' passes; full PortfolioPanel.test.tsx + notes suites 65/65 pass on the candidate. See docs/redesign/verification/r15/surface/portfolio-notes/rc1/round2-vitest-p8-fix-confirmed.log and round2-diff-portfolio-panel.stat.txt.",
+    "title": "Portfolio quote auto-refresh has no overlap guard or request cancellation, causing an unbounded in-flight backlog once any symbol resolves slowly",
+    "repro": "Open the Portfolio panel with holdings that include a symbol not covered by fast providers (e.g. small/delisted NSE tickers that only nse_direct attempts, each call ~0.3-1.6s per fallthrough). QUOTE_REFRESH_MS=5000 fires setInterval(() => setQuotesNonce(n=>n+1), 5000) with no in-flight check; the fetch effect's `cancelled` flag only gates the .then()/.catch() state write, it never aborts the underlying fetch (no AbortController/signal anywhere in api.ts). Every 5s tick starts a brand-new full Promise.all fan-out on top of whatever is still in flight. Verified live: seeded my sidecar with a 100-holding portfolio including ~9 symbols with no EOD data (ABAN, ABINFRA, ABMINTLLTD, ACCURACY, ACSTECH, 3IINFOLTD, AARNAV, AARTECH, AARTISURF); the sidecar log shows an unbroken, non-decreasing cycle through the exact same 9 symbols for 4.5+ minutes (05:45:07 through past 05:50) with zero progress, continuing even after the originating test client process had fully exited (confirmed via ps aux / lsof -i :52324 -sTCP:ESTABLISHED showing no established connections at 05:50). A direct 20-symbol concurrent curl probe against my sidecar timed out at 60s; the identical RELIANCE.NS quote query against the separate, unrelated shared :52152 stack (same candidate code, no backlog) answered in 8ms, proving the hang is instance-specific accumulated backlog, not a systemic code defect in the provider itself. The sidecar self-recovered after the backlog eventually drained (~10 additional minutes idle, confirmed via a background watch probe: relianceQuote http=200 took=0s, RECOVERED) -- so this is a resource-exhaustion / temporary-DoS bug, not a permanent hang, but during the backlog window the panel's live quotes are completely unusable and the sidecar's worker pool is saturated by redundant retries of calls that were already known-unresolvable seconds earlier.",
+    "evidence_file": "docs/redesign/verification/r15/surface/portfolio-notes/rc1/sidecar-log-p8-wedged-window.log",
+    "suspected_files": [
+      "src/modules/portfolio/PortfolioPanel.tsx:136",
+      "src/modules/portfolio/PortfolioPanel.tsx:224-248",
+      "src/modules/portfolio/PortfolioPanel.tsx:255-259",
+      "src/modules/portfolio/api.ts:32-58"
+    ],
+    "source_file": "rc1-drive-portfolio-notes.json"
+  },
+  {
+    "key": "rc1-scenarios:1",
+    "kind": "new_defect",
+    "severity": "high",
+    "title": "price_data's silent 90-bar cap masquerades as a '52-week' window; the model states an internally-impossible 52-week-low/current-price relationship as fact",
+    "repro": "vy invoke, provider ollama model llama3.1:8b, autonomy ask, candidate 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2, prompt \"What is ELCIDIN's 52-week low, and how far above it is the current price?\" -> tool_use price_data(symbol=ELCIDIN, range omitted so default 6mo is used server-side; a prior run with range=1y showed the same mechanism) -> tool_result ok:true. Direct backend probe of the SAME tool handler (services.agent_tools.price_data._price_data({'symbol':'ELCIDIN.NS','range':'1y'})) shows the tool caps at 90 bars regardless of the requested range (bars_returned=90, bars_available=111, window_start=2026-05-20, i.e. ~4.5 months of data served for a '1y' request) and the tool payload carries no 52-week/window-label field at all -- the model must be inferring '52-week' from a 4.5-month window on its own. In the live scenario the model's final answer was: \"The 52-week low for ELCIDIN is ₹110,095. The current price of ₹103,800 is ₹6,295 above the 52-week low.\" 103,800 is LOWER than 110,095, not above it -- a stated logical impossibility narrated as flat, unremarked fact. Worse, ₹110,095 does not even match the tool's own returned data (the direct probe's min low in its 90-bar window was ₹102,210, and the live scenario's own quote showed current price ₹103,800) -- the model's '52-week low' figure is not traceable to any number in its own tool result. This is a live, reproducible skepticism-property failure, and a distinct root cause from the already-fixed R15-DATA-015 (which added a 'flagged, kept' annotation to the UNRELATED /fundamentals fifty_two_week_low field only -- sidecar/services/agent_tools/price_data.py has zero mentions of fifty_two_week/flagged/reason and was not touched by that fix).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/scenarios/ollama-sk3-elcidin-v2.jsonl",
+    "suspected_files": [
+      "sidecar/services/agent_tools/price_data.py (silently caps at 90 bars for any requested range, no window-label/52-week field, no docstring warning the model that '1y' is not honoured)",
+      "sidecar/agents/copilot.json or agent_runtime.py (no instruction telling the model to sanity-check a stated 'low' against the current price it also has, nor to avoid inferring '52-week' semantics from a tool that doesn't provide them)"
+    ],
+    "source_file": "rc1-scenarios.json"
+  },
+  {
+    "key": "rc1-verifier:1",
+    "kind": "new_defect",
+    "severity": "high",
+    "register_id": "",
+    "title": "BSE shareholding index is fetched with plain httpx and BSE answers 403, so /disclosures/shareholding returns 502 for every BSE-only name (AMAL, ELCIDIN, JUMBO, NAPEROL, DAL; S2 SMR, S3 VERTEX, S4 TTC in the packs) while the provider's own Chrome-impersonated _api_json gets 200 for the same call. This also leaves the live repros of R15-DATA-022 (SMR) and R15-DATA-056 (CREST/VERTEX/TTC) unanswerable",
+    "repro": "Own sidecar :52312 booted from the 4c6dfe8c export, header X-Vysted-Region: IN. GET /disclosures/shareholding?symbol=AMAL|DAL|NAPEROL|JUMBO|ELCIDIN returns 502 provider_error, and sidecar.log says 'every shareholding source failed ... (BSE: bse shareholding: index HTTP 403)'. TCS, RELIANCE and JNPR (NSE lane) return 200. In-process at the export: httpx.get(SHPQNewFormat/w?scripcode=503681) returns 403 Access Denied, and bse_provider._api_json('SHPQNewFormat/w', {'scripcode':'503681'}) returns a dict with Table rows (June 2026 quarter). The rc1 data packs show the same 502 on 17 of 24 names.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/spot-bse-shp.txt; docs/redesign/verification/r15/rc1/verifier/g2/spot-shareholding.txt",
+    "suspected_files": [
+      "sidecar/services/bse_provider.py:861-870 (_fetch_shp_index uses _http_get)",
+      "sidecar/services/bse_provider.py:1189 (_api_json, curl_cffi impersonate=chrome)"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:2",
+    "kind": "new_defect",
+    "severity": "high",
+    "register_id": "",
+    "title": "The MCP tools list_workspaces and get_workspace call GET /workspaces and /workspaces/{id}, but the router prefix is /workspace. Every call 404s and raise_for_status turns that into a tool error",
+    "repro": "git show 4c6dfe8c:sidecar/services/mcp_server.py lines 252-265 call client.get('/workspaces') and client.get(f'/workspaces/{workspace_id}'). sidecar/routers/workspace.py:21 is APIRouter(prefix='/workspace'). Own :52312 at 4c6dfe8c: GET /workspaces -> 404, /workspaces/rc1-verifier-g2-g8 -> 404, /workspace -> 200, /workspace/rc1-verifier-g2-g8 -> 200. openapi lists only /workspace and /workspace/{name}.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/adj-mcp-workspaces.txt",
+    "suspected_files": [
+      "sidecar/services/mcp_server.py:252-265",
+      "sidecar/routers/workspace.py:21"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-vshard-1:1",
+    "kind": "new_defect",
+    "severity": "high",
+    "register_id": null,
+    "title": "BSE shareholding-pattern index fetched with plain httpx gets 403 Access Denied live: no FII/DII split for any name, BSE-only shareholding provider_error",
+    "repro": "sidecar/.venv/bin/python3 verifier/shard-1-evidence/bseprobe.py @81fbfe91 -> bse_provider._http_get('https://api.bseindia.com/BseIndiaAPI/api/SHPQNewFormat/w?scripcode=530017') 403 'Access Denied'; bse_provider._api_json('SHPQNewFormat/w', {'scripcode':'530017'}) 200 with data. GET :52601 shareholding ELCIDIN (503681, BSE-only) -> provider_error; SIL/DIXON split fields all None.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/d021diag.txt",
+    "suspected_files": [
+      "sidecar/services/bse_provider.py"
+    ],
+    "source_file": "rc1-vshard-1.json"
+  },
+  {
+    "key": "rc1-vshard-5:9",
+    "kind": "new_defect",
+    "severity": "high",
+    "register_id": "R15-RESEARCH-028",
+    "title": "Research query 'KPIT Technologies — latest quarterly results' is resolved to BSOFT (Birlasoft, former_name KPIT) at score 1.00 with no disambiguation although KPITTECH is a candidate; the brief is published for the wrong company",
+    "repro": "MCP research {query:'KPIT Technologies — latest quarterly results'} -> brief symbol BSOFT; curl -s 'http://127.0.0.1:52605/resolve?q=KPIT' -> BSOFT only",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "sidecar/services/symbol_resolver.py"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-drive-research-briefs:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "title": "Citation-integrity net only recognises a bare '[n]' marker; a bracketed group '[2, 3]' or a prose pseudo-citation '[New findings]' ships as literal, unresolved text in the published brief",
+    "repro": "Round-2 gate re-drive, candidate 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2, own sidecar 127.0.0.1:52321 (data dir scratchpad/rc1-data-rc1-drive-research-briefs-r2). (a) BDL DEEP, openai gpt-4o-mini (docs/redesign/verification/r15/surface/research-briefs/rc1/r2/1-deep-bdl-4omini.stdout.txt): published markdown contains four literal '[New findings]' tokens ('an operating margin of 10.98% [New findings]', 'increase by approximately 5.47% year-over-year [New findings]', 'Order Book: ... [New findings]', 'Dividend per Share: ₹4.90 [New findings]') that resolve to nothing on the numbered source rail. (b) Kaynes ULTRA, openai gpt-4o-mini, heavy mode (.../3-ultra-kaynes-4omini.stdout.txt): published markdown contains bracketed multi-citation groups '[2, 3]' and '[2, 4]'. Direct repro: python3 -c \"import re; print(re.compile(r'\\[(\\d{1,3})\\](?!\\()').findall('[2, 3]'))\" -> [] (no match at all) on both sidecar/services/research/citecheck.py's MARKER_RE and src/lib/brief-ingest.ts's CITE_MARKER_RE (identical pattern, digits-only, no comma/prose allowed). Because the pattern requires the bracket to contain ONLY 1-3 digits, neither '[New findings]' nor '[2, 3]' is ever matched -- so strip_invalid_markers() (citecheck.py) never evaluates them as out-of-range, strip_model_bibliography()'s _N_LITERAL_RE only catches the literal string '[n]' (not other bracketed prose), and brief-ingest.ts never turns them into a resolvable citation chip either. Both patterns ship through verbatim as dead bracket text in front of the user, undermining the citation-integrity guarantee the R8/citecheck system exists to provide (R15-RESEARCH-029's fix_shape explicitly aimed for 'reject or rewrite [n]-literal markers'; this is the same defect class -- the net only covers the exact string '[n]' and a bare integer, not the wider space of bracketed non-numeric or multi-numeric tokens a model naturally writes).",
+    "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/rc1/r2/1-deep-bdl-4omini.stdout.txt",
+    "suspected_files": [
+      "sidecar/services/research/citecheck.py",
+      "src/lib/brief-ingest.ts"
+    ],
+    "source_file": "rc1-drive-research-briefs.json"
+  },
+  {
+    "key": "rc1-fix-r1-recheck:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "Citation grammar fix covers only ',' / ';' groups and a pseudo-label NOT followed by '[': range groups '[2-4]' / '[2–4]' and '[New findings][2]' still ship as literal, unresolved text (remainder of rc1-drive-research-briefs:2)",
+    "repro": "Candidate ca6ec990, candidate venv, in-process: expand_marker_groups + strip_model_bibliography + strip_invalid_markers(md, 5) on 'Revenue grew 18% [2-4].' -> unchanged; '[2–4]' -> unchanged; 'Order book ₹23,000 cr [7-9].' (out of range, 5 sources) -> unchanged, removed=0; 'Margin 10.98% [New findings][2].' -> unchanged; 'Margin 10.98% [Web evidence][9].' -> 'Margin 10.98% [Web evidence].'. Frontend (candidate src/lib/brief-ingest.ts via node type-strip): same inputs -> '[2-4]', '[2–4]', '[7-9]' verbatim with countBrokenCitations 0; '[New findings][2]' verbatim; '[Web evidence][?]'. ULTRA: iter._remap_markers('x [1-2] y.', angle_local, merged) -> 'x [1-2] y.' (keeps angle-local numbering) while 'x [1, 2] y.' -> 'x [3][1] y.'. Cause: MARKER_GROUP_RE only accepts [,;] separators; _PSEUDO_CITE_RE lookahead (?![(\\[:]) spares any label followed by '['.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/fix-r1/recheck/gr2-backend-citecheck-probe.txt",
+    "suspected_files": [
+      "sidecar/services/research/citecheck.py",
+      "src/lib/brief-ingest.ts",
+      "sidecar/services/research/iter.py"
+    ],
+    "source_file": "rc1-fix-r1-recheck.json"
+  },
+  {
+    "key": "rc1-fix-r1-recheck:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "Pseudo-citation rule deletes (backend) or flags as a broken citation (frontend) any letter-led bracket token, including the metric basis qualifiers the product feeds the model ('[basis: trailing 52 weeks]') and ordinary bracketed text ('[NSE: BDL]', '[Note: consolidated]')",
+    "repro": "Take the published markdown of the finding's own BDL brief (surface/research-briefs/rc1/r2/1-deep-bdl-4omini.jsonl, 32 sources) and run it through candidate ca6ec990: backend strip_invalid_markers removes 9 tokens, 2 of them the basis qualifiers -> '- **Dividend Yield**: 0.43%.' and '- **52-Week Price Change**: -22.89%.' (the '[basis: fraction of price]' / '[basis: trailing 52 weeks]' disclosure is gone); frontend sanitizeCitationMarkers renders both as '[?]' and countBrokenCitations reports 9 broken (2 false). The basis text originates in services/research/semantics.py:1290 ('(basis: …)' in the METRIC FACTS prompt block). Fresh: 'Bharat Dynamics [NSE: BDL] trades at ₹1155 [1].' -> backend drops '[NSE: BDL]'; 'Revenue [Note: consolidated] rose 12% [2].' -> backend drops the note, frontend shows '[?]'. Before the fix these rendered as text and were not counted broken.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/fix-r1/recheck/gr2-original-bdl-brief-through-candidate.txt",
+    "suspected_files": [
+      "sidecar/services/research/citecheck.py",
+      "src/lib/brief-ingest.ts"
+    ],
+    "source_file": "rc1-fix-r1-recheck.json"
+  },
+  {
+    "key": "rc1-fix-r2-recheck:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "rc1-drive-research-briefs:2 not certified at 81fbfe91: bracketed pseudo-citations outside the hard-coded prompt-label family, and groups that mix a label with a real [n], still ship as literal unresolved text in the published brief",
+    "repro": "Own sidecar :52337 from rc1-4c6dfe8-fix-int at 81fbfe91, fresh keyless seed copy, harness/turn.py. (1) Kaynes ULTRA (heavy), gpt-4o-mini: publish_brief #1 (13 sources) has '... ₹746.12 million [NSE filing, August 2026].', 'Gross Margin: ~33.4% [NSE filing, August 2026].' and '... ₹371.36 million [NSE filing, August 2026; 2][3].' The [2] inside the group never chips. (2) Cochin Shipyard DEEP, llama3.1:8b: publish_brief (7 sources) has '... yielded no results [Structured: {'ok': True, 'count': 0, 'news': []}]'. That is the leaked deep.py:987-994 'Structured (tool): {result}' prompt-block label, the mechanism PLAN.md names, but it is missing from the enumerated family. In-process, both candidate nets (citecheck.strip_invalid_markers after expand_marker_groups, and brief-ingest.sanitizeCitationMarkers/countBrokenCitations) leave all of them byte-identical: removed=0, broken=0. The same holds for the variants '[Structured]', '[Web evidence; 2]', '[Source 2]', '[Sources 2, 3]' and '[exchange disclosures]'. The literal repro tokens ('[New findings]', '[2, 3]', '[2, 4]') and the triage cases are fixed.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/fix-r2/recheck/gr2/live-published-scan.txt",
+    "suspected_files": [
+      "sidecar/services/research/citecheck.py",
+      "src/lib/brief-ingest.ts",
+      "sidecar/services/research/deep.py"
+    ],
+    "source_file": "rc1-fix-r2-recheck.json"
+  },
+  {
+    "key": "rc1-verifier:3",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "",
+    "title": "Fix loop not closed: rc1-drive-research-briefs:2 reproduces at 4c6dfe8c. The citation-integrity net matches only a bare [n], so '[2, 3]' groups and '[New findings]' pseudo-citations ship unresolved in a published brief",
+    "repro": "In-process at the 4c6dfe8c export: citecheck.MARKER_RE.findall('[2, 3]') returns []. There is no expand_marker_groups. strip_invalid_markers leaves '[New findings]' and '[2, 3]'/'[2, 4]' untouched (removed=0) and strips only the out-of-range bare '[7]'. The frontend CITE_MARKER_RE (brief-ingest.ts:396) has the same digits-only pattern. Both fix rounds (r1 ca6ec990, r2 81fbfe91) sit off the candidate, and the round-2 recheck (rc1-fix-r2-recheck:1) says even 81fbfe91 does not certify it.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/fixloop-briefs2-citecheck.txt",
+    "suspected_files": [
+      "sidecar/services/research/citecheck.py:39",
+      "src/lib/brief-ingest.ts:396"
+    ],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-vshard-0:5",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-RESEARCH-003",
+    "title": "Deep brief cites fundamentals-only figures (P/E, market cap, EPS, dividend yield) to exchange result PDFs instead of vysted://fundamentals",
+    "repro": "vy.py deep runs gpt-4o-mini on :52396 (candidate): BLUESTARCO market cap/revenue TTM/growth -> [1]/[2] exchange PDFs, 'P/E Not currently available [7]' while pe_ratio=61.74, citation audit skipped ('10s wall remaining < 15s'); VOLTAS published brief 'P/E 81.98 (as of Sept 26) [2]', market cap/EPS/52-week change [2] = BSE Q1 results PDF while [12] is vysted://fundamentals. Numbering itself is stable (append-only).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/r003-fresh.jsonl",
+    "suspected_files": [
+      "sidecar/services/research/iter.py",
+      "sidecar/services/research/citecheck.py",
+      "sidecar/services/research/deep.py"
+    ],
+    "source_file": "rc1-vshard-0.json"
+  },
+  {
+    "key": "rc1-vshard-0:6",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-AGENT-008",
+    "title": "A 3-result round on a multi-cue prompt overflows the ollama num_ctx by estimate; _fit_to_window never trims the latest round and only debug-logs",
+    "repro": "In-process copilot on ollama window 16384: multi-cue prompt -> 43-tool subset est 11,622 tok; one round with three capped (8,192-char) results -> est 18,114 > 16,384 num_ctx; no elision (latest round untouched), no warning event.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/ctx008.out.log",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py"
+    ],
+    "source_file": "rc1-vshard-0.json"
+  },
+  {
+    "key": "rc1-vshard-1:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "INFY.NS earnings estimate labels an INR revenue estimate (491,180,745,790 = Rs 49,118 cr) as revenue_currency USD, so the grid renders about $491B",
+    "repro": "curl :52601/earnings/INFY/estimates @81fbfe91 -> symbol INFY.NS, currency INR, revenue_estimate_mean 491180745790, revenue_currency USD. yfinance: INFY.NS financialCurrency USD, quarterly Total Revenue 5.08e9 (USD), calendar 'Revenue Average' 4.91e11 (INR, trading currency). _revenue_currency applies financialCurrency to the calendar figure, which Yahoo quotes in the trading currency.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/d029-infy.txt",
+    "suspected_files": [
+      "sidecar/services/earnings_provider.py",
+      "src/modules/earnings/EpsEstimateGrid.tsx"
+    ],
+    "source_file": "rc1-vshard-1.json"
+  },
+  {
+    "key": "rc1-vshard-1:5",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "Research news-lane sources drop published_at and carry a feed label as domain ('Yahoo! Finance: DIXON News'); filing-floor rows carry the date only inside the excerpt",
+    "repro": "verifier/shard-1-evidence/research024.txt and r016-jonjua.txt @81fbfe91: deep._record_structured builds news ResearchSource with domain=item['source'] and no published_at; disclosures.announcement_rows floor rows have published_at None.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/research024.txt",
+    "suspected_files": [
+      "sidecar/services/research/deep.py",
+      "sidecar/services/research/iter.py"
+    ],
+    "source_file": "rc1-vshard-1.json"
+  },
+  {
+    "key": "rc1-vshard-3:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "MCP list_workspaces and get_workspace always fail: they call GET /workspaces (plural) but the router is mounted at /workspace, so both published MCP tools 404 on every call",
+    "repro": "Own sidecar at 81fbfe91 on :52603. fastmcp Client('http://127.0.0.1:52603/mcp/').call_tool('list_workspaces', {}) -> ToolError \"Client error '404 Not Found' for url 'http://sidecar/workspaces'\"; call_tool('get_workspace', {'workspace_id':'__autosave__'}) -> same 404 for /workspaces/__autosave__. curl :52603/workspaces -> 404; curl :52603/workspace -> [\"__autosave__\"].",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-3.md",
+    "suspected_files": [
+      "sidecar/services/mcp_server.py",
+      "sidecar/routers/workspace.py"
+    ],
+    "source_file": "rc1-vshard-3.json"
+  },
+  {
+    "key": "rc1-vshard-3:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-LIFECYCLE-023",
+    "title": "The agent dock (ChatSidebar) has no error boundary: a render throw in chat still unmounts the whole cockpit, portfolio panels included, even though each dockview panel is now guarded",
+    "repro": "Scratch vitest in a git-archive copy of 81fbfe91 (not committed): ChatSidebar mocked to throw, root = createRoot(host); render <AgentDock><Guarded/></AgentDock> where Guarded = withPanelErrorBoundaries({p: () => <div>portfolio panel</div>}).p. After act: THROWN: Error: chat render boom; host.innerHTML === \"\" (the guarded portfolio panel is gone). Code: src/app/page.tsx:273-275 (AgentDock wraps PanelHost), src/components/AgentDock.tsx:117 (<ChatSidebar /> with no boundary); the only boundary in src is PanelHost's PanelErrorBoundary.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-3.md",
+    "suspected_files": [
+      "src/components/AgentDock.tsx",
+      "src/app/page.tsx"
+    ],
+    "source_file": "rc1-vshard-3.json"
+  },
+  {
+    "key": "rc1-vshard-4:5",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-DATA-032",
+    "title": "INFY.NS revenue estimate is INR-sized (491,180,745,790) but labelled revenue_currency USD (from financialCurrency); Yahoo's annual totalRevenue is 20.3B USD",
+    "repro": "GET :52604/earnings/INFY.NS/estimates -> revenue_estimate_mean 491180745790, revenue_currency USD",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4.md",
+    "suspected_files": [
+      "sidecar/services/earnings_provider.py"
+    ],
+    "source_file": "rc1-vshard-4.json"
+  },
+  {
+    "key": "rc1-vshard-4:6",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-DATA-048",
+    "title": "Derived ROCE and ROE diverge from screener.in (KPITTECH ROCE 21.3% vs 26.3%, ROE 16.5% vs 20.9%): period-end capital, no average, no witness",
+    "repro": "GET :52604/fundamentals/KPITTECH.NS -> roce 0.2127 (derived); compare screener.in",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4.md",
+    "suspected_files": [
+      "sidecar/services/yfinance_provider.py"
+    ],
+    "source_file": "rc1-vshard-4.json"
+  },
+  {
+    "key": "rc1-vshard-5:7",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-AGENT-083",
+    "title": "External MCP save_workflow persists and overwrites a user's saved workflow with no confirmation, while spec.md:329/:783 call the external MCP surface read-only; the 8 hand-written tools carry no readOnlyHint",
+    "repro": "fastmcp Client http://127.0.0.1:52605/mcp/ call save_workflow(vs5-probe) then again with name 'OVERWRITTEN by external client' -> stored workflow overwritten",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "sidecar/services/mcp_server.py",
+      "specs/"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-vshard-6:3",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-UI-091",
+    "title": "Indicator params are silently ignored except ema:N and vwap:week|session. rsi:7 computes RSI(14), sma:50 computes SMA(20), and ema:0/ema:abc compute EMA(20), yet the frontend accepts the spec and labels the chip with the requested param.",
+    "repro": "Live on the candidate sidecar :52606: GET /indicators/INFY.NS?indicators=rsi:7 -> 200 line 'RSI(14)'; sma:50 -> 'SMA(20)'; ema:abc -> 'EMA(20)'. sidecar/services/indicators.py:1335-1387 drops a param for every key but ema/vwap. src/modules/chart/indicators.ts:417-435 indicatorByKey('rsi:7') returns the rsi def with label 'RSI 7'. src/lib/host-actions.ts:571-585 therefore accepts set_chart_indicators ['rsi:7'] as known, so an agent asked for RSI 7 reports success while RSI(14) is drawn.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-6.md",
+    "suspected_files": [
+      "sidecar/services/indicators.py",
+      "src/modules/chart/indicators.ts",
+      "src/lib/host-actions.ts"
+    ],
+    "source_file": "rc1-vshard-6.json"
+  },
+  {
+    "key": "rc1-vshard-7:10",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "Every 10-Q opens as an empty filing viewer: sec-edgar-mcp get_filing_sections returns only {has_financials: true} for a 10-Q, and get_filing serves 200 with sections [] total_chars 0 (cached 24h) with no fallback or label",
+    "repro": "GET http://127.0.0.1:52607/sec/filings/0000320193-26-000020?identifier=AAPL -> 200 form 10-Q, sections [], total_chars 0; same for NVDA 0001045810-26-000075 and 0001045810-24-000124. 10-Ks (MSFT 0000950170-23-035122, NVDA 0001045810-26-000021) return sections.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7.md",
+    "suspected_files": [
+      "sidecar/services/sec_filings_provider.py"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-vshard-7:11",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "_parse_verdict's marker-scan fallback reads a negated reason as AGREE when the reply has no verdict word: 'Not verified - no source confirms the figure', 'I cannot verify this; no source confirms it', 'Unverifiable: no sources match' -> agree",
+    "repro": "In-process at 81fbfe91: services.research.verify._parse_verdict('Not verified - no source confirms the figure')[0] == 'agree' (the docstring says anything ambiguous is UNVERIFIED; deep._reflect_says_complete has a negation guard, this fallback has none).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7.md",
+    "suspected_files": [
+      "sidecar/services/research/verify.py"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-vshard-7:12",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "fetch_latest_fo still returns None (502) when an older, uncached day's probe fails transiently even though an older good day sits in cache, and re-probes that day on every request",
+    "repro": "In-process at 81fbfe91 (fake _fetch_fo_day, isolated data dir): today Mon 2026-09-28 -> missing, Fri 09-25 -> failed, Thu 09-24 cached -> three requests all serve None; network calls [09-28, 09-25, 09-25, 09-25]. option_chain.py:181-182 'if status == \"failed\": return None'.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/data114-probe.py",
+    "suspected_files": [
+      "sidecar/services/option_chain.py"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-vshard-8:3",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-LEAD-033",
+    "title": "The history trailer's '[failed: …]' line still rides the assistant content to the provider; only '[tool steps:' lines are stripped",
+    "repro": "cd <cand>/sidecar; .venv/bin/python: _without_step_trailers(_coerce_history([... {'role':'assistant','content':\"[tool steps: Using fundamentals; Using price data]\\n\\n[failed: price_data: yfinance has no instrument data for 'MSFT.NS']\"} ...])[0]) keeps the assistant turn \"[failed: price_data: yfinance has no instrument data for 'MSFT.NS']\". src/store/chat-history.ts withTrailer appends that line to every errored assistant turn. Live (llama3.1:8b, :52152, history l033-failed-opts.json, prompt 'Repeat your previous answer word for word...'): the model recites the [failed:] text as its own prior answer ('The initial response was an error message indicating that the provider was throttled and to try again shortly').",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8-evidence/l033-failed.out",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py",
+      "src/store/chat-history.ts"
+    ],
+    "source_file": "rc1-vshard-8.json"
+  },
+  {
+    "key": "rc1-vshard-8:6",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-LEAD-030",
+    "title": "With an ok fundamentals(MSFT) call in the turn, llama3.1:8b streams an invented 'previous answer' (MSFT P/E 27.42, market cap ₹1,23,011 cr, EV/EBITDA 14.17) that contradicts the ok result (P/E 28.72, market cap 3.83e12 USD)",
+    "repro": "python3 scripts/r15/vy.py invoke copilot 'Repeat your previous answer word for word, including every line of it, then say what went wrong.' --options \"$(cat shard-8-evidence/l033-failed-opts.json)\" --port 52152 --provider ollama --model llama3.1:8b --autonomy ask. An ok call exists, so this may fall outside the DECISIONS 4.9-4.12 'no ok tool call' known limitation; the lead decides the lane.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8-evidence/l033-failed.out",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py",
+      "sidecar/services/figure_grounding.py"
+    ],
+    "source_file": "rc1-vshard-8.json"
+  },
+  {
+    "key": "rc1-gate8:1",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "",
+    "title": "The review card and the applied label price an agent's portfolio write in the REGION currency, not the listing's: a US holding reads 'Add 10 AAPL @ ₹0 to the portfolio' under the India region",
+    "repro": "Region India (seed default). Enqueue portfolio_add_position {symbol:'AAPL', quantity:10, cost_basis:0} (the llama3.1:8b tool_use from agent-05) through useProposedChangesStore.enqueue; the change title is 'Add 10 AAPL @ ₹0 to the portfolio'. The catalog defines cost_basis as 'per-share cost in the listing currency', and the Portfolio panel/CSV show AAPL in USD. host-actions.ts currencySign() reads regionConfig(region).currency only, so every non-INR listing is labelled ₹ on the one card whose job is to let the user check the price (and the reverse under the US region).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/gate8/portfolio-steps-order.json",
+    "suspected_files": [
+      "src/lib/host-actions.ts:650-660",
+      "src/lib/host-actions.ts:1366-1380",
+      "src/lib/host-actions.ts:749",
+      "src/lib/host-actions.ts:1867"
+    ],
+    "source_file": "rc1-gate8.json"
+  },
+  {
+    "key": "rc1-gate8:2",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "",
+    "title": "Portfolio CSV export writes Market value, P&L and P&L % as raw binary floats (805.3499999999999, 11.454545454545455) while Weight % is rounded to 2 dp",
+    "repro": "Holdings AAPL 5 @ 180 (quote 341.07), RELIANCE 10 @ 1100 (quote 1226); click the panel's 'Export portfolio to CSV'. Rows: 'AAPL,5,180,equity,USD,341.07,1705.35,805.3499999999999,89.48333333333332,,' and 'RELIANCE,...,1260,11.454545454545455,,'. handleExport passes marketValue/pnl/pnlPercent unformatted into buildCsv but formats weight with toFixed(2).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/gate8/portfolio-03-export.csv",
+    "suspected_files": [
+      "src/modules/portfolio/PortfolioPanel.tsx:715-741"
+    ],
+    "source_file": "rc1-gate8.json"
+  },
+  {
+    "key": "rc1-gate8:3",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "",
+    "title": "'Buy 10 shares of AAPL at market' under AUTO: llama3.1:8b emits portfolio_add_position with an invented cost_basis 0 (the runtime accepts it though the tool says 'never ... zero a cost basis'), then replies only that it cannot trade, never mentioning the staged proposal",
+    "repro": "python3 scripts/r15/vy.py invoke copilot 'Buy 10 shares of AAPL for me at market price right now.' --provider ollama --model llama3.1:8b --autonomy auto --context gate8/agent-context.json --port 52310 ($0). tool_use portfolio_add_position {symbol:AAPL, quantity:10, cost_basis:0, purchased_at:'2026-09-26'} -> tool_result ok:true; reply 'Vysted has no brokerage connection. I can't place trades or simulate transactions.' No order path exists and the product gate held: in the frontend the change is kind data-write, STAGED even under AUTO ('Add 10 AAPL @ ₹0 to the portfolio'), and the ledger is unchanged until a human accepts (rejected here). The gap: _normalise_tool_args only rejects a MISSING cost_basis; the schema allows 0 (the description forbids it), so a price the user never gave reaches the review queue, and the reply contradicts the pending card. Same defect family as R15-AGENT-022 (fixed for the missing-arg case; its run3 was cost_basis:0), not the DECISIONS 4.9-4.12 narration class.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/gate8/agent-05-order-attempt.stdout",
+    "suspected_files": [
+      "sidecar/services/agent_tools/catalog.py:1590-1612",
+      "sidecar/services/agent_runtime.py:908-960"
+    ],
+    "source_file": "rc1-gate8.json"
+  },
+  {
+    "key": "rc1-vshard-0:7",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-AGENT-082",
+    "title": "Chat footer pairs last-round tokens with whole-turn spend",
+    "repro": "Multi-round copilot turn: done.usage = last round only (29,826 tok) while spend_usd (0.037645) is summed over all rounds (~62.7k tok) -> footer 'N tok · ~$X' inconsistent.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/r003-literal.stdout.txt",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py",
+      "src/modules/chat/ChatSidebar.tsx"
+    ],
+    "source_file": "rc1-vshard-0.json"
+  },
+  {
+    "key": "rc1-vshard-0:8",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-007",
+    "title": "10-Q and 8-K filing detail returns 200 with zero sections",
+    "repro": "GET /sec/filings/0000320193-23-000077?identifier=AAPL -> 10-Q metadata correct, n_sections 0, total_chars 0; NVDA 8-K same; 10-K returns 2 sections.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/data007.log",
+    "suspected_files": [
+      "sidecar/services/providers/sec_filings_provider.py"
+    ],
+    "source_file": "rc1-vshard-0.json"
+  },
+  {
+    "key": "rc1-vshard-0:9",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-009",
+    "title": "Backtest skips a buy sized exactly to available cash (float rounding)",
+    "repro": "scripts/bt_exactcash.py (bt009_010.py with allocation 100000/n of initialCapital 100000, N=3 seed 20260926): 'insufficient cash for 347.619 S2 @ 95.89 (have 33333.33, need 33333.33) — order skipped'; one leg never bought (sharpe 0.4296 vs 0.8942 reference).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/bt_exactcash.log",
+    "suspected_files": [
+      "sidecar/services/backtest_engine.py"
+    ],
+    "source_file": "rc1-vshard-0.json"
+  },
+  {
+    "key": "rc1-vshard-1:6",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "web_search category (news/financial) never reaches any backend: dispatch passes 'category', SearXNG reads 'categories', other backends ignore it",
+    "repro": "grep -n categor sidecar/services/search/searxng.py sidecar/services/agent_tools/web_search.py @81fbfe91 -> opts.get('categories') vs dispatch key 'category'.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/research020.txt",
+    "suspected_files": [
+      "sidecar/services/search/searxng.py",
+      "sidecar/services/agent_tools/web_search.py"
+    ],
+    "source_file": "rc1-vshard-1.json"
+  },
+  {
+    "key": "rc1-vshard-1:7",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "DAL fundamentals withhold the 52-week range but still ship 52-week high/low dates (2025-09-25, a forward-filled bar) and fifty_two_week_change 0.0 with status ok",
+    "repro": "curl :52601 fundamentals DAL @81fbfe91 -> fifty_two_week_high/low withheld 'no trades in 52 weeks (last trade 2025-03-12)', fifty_two_week_high_date/low_date 2025-09-25 ok, fifty_two_week_change 0.0 ok.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/d016-dal.json",
+    "suspected_files": [
+      "sidecar/services/yfinance_provider.py",
+      "sidecar/services/correctness_gate.py"
+    ],
+    "source_file": "rc1-vshard-1.json"
+  },
+  {
+    "key": "rc1-vshard-1:8",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "Sibling stream consumers still surface raw FastAPI error bodies: workflow runWorkflow throws the raw text, screener stream interpolates a 422 detail array",
+    "repro": "curl -X POST :52601/workflow/run -d '{\"spec\":{}}' -> 422 JSON array; src/store/workflow.ts runWorkflow !ok -> throw new Error(_safeText(response)) (raw 500 chars). curl POST :52601/screener/run/stream with value 'abc' -> 422 array; src/store/screener.ts sets detail = parsed.detail (array) -> '[object Object],...'. Neither uses extractSidecarDetail.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1.md",
+    "suspected_files": [
+      "src/store/workflow.ts",
+      "src/store/screener.ts"
+    ],
+    "source_file": "rc1-vshard-1.json"
+  },
+  {
+    "key": "rc1-vshard-2:4",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-CODE-PLATFORM-018",
+    "title": "Quant workflow nodes reject the engine's generic per-node timeout_seconds (extra_forbidden)",
+    "repro": "POST /workflow/run quant.price_option config incl. timeout_seconds:110 -> node-error 'timeout_seconds Extra inputs are not permitted'",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+    "suspected_files": [
+      "sidecar/services/workflow_nodes/quant_nodes.py",
+      "sidecar/services/workflow_engine.py"
+    ],
+    "source_file": "rc1-vshard-2.json"
+  },
+  {
+    "key": "rc1-vshard-2:5",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-CODE-PLATFORM-020",
+    "title": "GET /workflow/saved/{id} and POST /schedules return 500 for a malformed saved row (version mismatch returns 409)",
+    "repro": "insert a row with an extra key or broken JSON into workflows.db; GET /workflow/saved/bad-extra -> 500, bad-json -> 500, bad-v2 -> 409",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+    "suspected_files": [
+      "sidecar/routers/workflow.py",
+      "sidecar/services/workflow_store.py"
+    ],
+    "source_file": "rc1-vshard-2.json"
+  },
+  {
+    "key": "rc1-vshard-2:6",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-AGENT-052",
+    "title": "Screener and Earnings still publish under literal bus keys that differ from their dockview ids",
+    "repro": "ScreenerPanel.tsx:216 source 'screener' vs layout id 'screener-panel'; EarningsCalendarPanel.tsx:178 'earnings' vs id 'earnings-calendar'",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+    "suspected_files": [
+      "src/modules/screener/ScreenerPanel.tsx",
+      "src/modules/earnings/EarningsCalendarPanel.tsx"
+    ],
+    "source_file": "rc1-vshard-2.json"
+  },
+  {
+    "key": "rc1-vshard-2:7",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-017",
+    "title": "Generic-token-only legal-name queries still return unrelated fuzzy 'X Engineering Limited' candidates at 0.80-0.88 when the live rung finds nothing",
+    "repro": "GET /resolve?q=Zyphor Gas Engineering Limited -> AZAD/JASH/PATELENG; q=Axiom Gas Engineering Limited (NSE-SME listed 25-Sep-26) -> AIAENG 0.8846",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+    "suspected_files": [
+      "sidecar/services/symbol_resolver.py"
+    ],
+    "source_file": "rc1-vshard-2.json"
+  },
+  {
+    "key": "rc1-vshard-2:8",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-AGENT-049",
+    "title": "Register marks AGENT-049 blocked_tier4 but the candidate implements and pins the fix",
+    "repro": "grep R15-AGENT-049 sidecar -> counting/pricing/cap code; pytest test_native_search/test_budget_guard/test_runtime_phases -k native/search/budget -> 58 passed",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+    "suspected_files": [
+      "docs/redesign/verification/vysted-r15-register.json"
+    ],
+    "source_file": "rc1-vshard-2.json"
+  },
+  {
+    "key": "rc1-vshard-2:9",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-CODE-PLATFORM-022",
+    "title": "Stale vi.mock of @/modules/portfolio/api with functions that module does not export",
+    "repro": "src/modules/panel-context-publishers.test.tsx:87-93 mocks fetchPositions/createPosition/updatePosition/deletePosition; api.ts exports none of them",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-2.md",
+    "suspected_files": [
+      "src/modules/panel-context-publishers.test.tsx"
+    ],
+    "source_file": "rc1-vshard-2.json"
+  },
+  {
+    "key": "rc1-vshard-4:10",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-061",
+    "title": "Unknown macro provider returns 502 provider_error 'Retry' instead of a 4xx client error",
+    "repro": "curl :52604/macro/GDP?provider=bogus -> 502 provider_error",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4.md",
+    "suspected_files": [
+      "sidecar/routers/macro.py"
+    ],
+    "source_file": "rc1-vshard-4.json"
+  },
+  {
+    "key": "rc1-vshard-4:7",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-114",
+    "title": "fetch_latest_fo stops walking on an older-day transport failure: today 404, D-1 failed, D-2 cached -> returns None instead of the cached D-2",
+    "repro": "in-process d114.py script B -> (None, ['2026-10-01','2026-09-30'])",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/d114.py",
+    "suspected_files": [
+      "sidecar/services/option_chain.py"
+    ],
+    "source_file": "rc1-vshard-4.json"
+  },
+  {
+    "key": "rc1-vshard-4:8",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-054",
+    "title": "listing_date field_meta provider is stamped 'yfinance' while the value comes from the NSE master (symbol_resolver.nse_listing_date)",
+    "repro": "GET :52604/fundamentals/MPIMANIPAL.NS -> listing_date 2026-09-17, field_meta.listing_date.provider yfinance",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4-evidence/mpim-fund.json",
+    "suspected_files": [
+      "sidecar/services/yfinance_provider.py"
+    ],
+    "source_file": "rc1-vshard-4.json"
+  },
+  {
+    "key": "rc1-vshard-4:9",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-UI-027",
+    "title": "Keybinding recorder uses event.key: on macOS Option+1 records 'alt+¡', conflicts() misses the clash with alt+1 (agent.mode.agent), so the remap silently never fires",
+    "repro": "code trace: SettingsPanel comboFromEvent(event.key) + store/keybindings.ts matchesEvent event.code fallback",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-4.md",
+    "suspected_files": [
+      "src/components/SettingsPanel.tsx",
+      "src/store/keybindings.ts"
+    ],
+    "source_file": "rc1-vshard-4.json"
+  },
+  {
+    "key": "rc1-vshard-5:10",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-RESEARCH-028",
+    "title": "web.detail handed to the model says 'add an Exa key / local SearXNG' while SearXNG is running (degraded)",
+    "repro": "MCP web_search while /search/searxng/status = degraded -> detail text suggests setting up SearXNG",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "sidecar/services/search/"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-vshard-5:11",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-CODE-RESEARCH-004",
+    "title": "test_search_exports.py rglob('*.py') from sidecar/ also scans .venv (24,960 files) so a site-packages hit can count as the second-file caller; base.py:109 docstring still offers preferredDomains that nothing consumes",
+    "repro": "read sidecar/tests/test_search_exports.py; find sidecar -name '*.py' | wc -l",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "sidecar/tests/test_search_exports.py",
+      "sidecar/services/search/base.py"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-vshard-5:12",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DOCS-004",
+    "title": "CLAUDE.md Frontend gotcha + Visual verification describe a zinc + cool-indigo palette, but tokens.css/globals.css/VYSTED_DESIGN.md at the candidate are the pure-neutral + peach #fab283 system (CLAUDE.md is Tier-1; report only)",
+    "repro": "grep -n 'fab283' styles/tokens.css; grep -n 'cool-indigo' CLAUDE.md",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "CLAUDE.md",
+      "styles/tokens.css"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-vshard-5:8",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-068",
+    "title": "Earnings drill-down 'As of' chip renders the client fetchedAt, not the server as_of, so a 24h-cached surprises envelope reads as current",
+    "repro": "read EarningsCalendarPanel.tsx:447-457 vs /fundamentals/MSFT/earnings/surprises as_of",
+    "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/verifier/shard-5.md",
+    "suspected_files": [
+      "src/modules/earnings/EarningsCalendarPanel.tsx"
+    ],
+    "source_file": "rc1-vshard-5.json"
+  },
+  {
+    "key": "rc1-vshard-6:4",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-079",
+    "title": "option_chain answers a non-date expiry with the raw Python error \"Invalid isoformat string: 'nearest'\" and not the listed expiries or 'omit for the nearest'. llama3.1:8b retried with the same value and gave up without the chain.",
+    "repro": "Candidate sidecar :52606, ollama llama3.1:8b (under the lock), agent mode: 'Show me the open interest on BANKNIFTY puts for the nearest expiry - which strikes have the most put OI?' -> option_chain {symbol: BANKNIFTY, expiry: 'nearest'} -> ok:false 'invalid argument: Invalid isoformat string: 'nearest''. Retried once identically, and the answer said it was unable to fetch. The same route without expiry returns 312 contracts, which match NSE's bhavcopy.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-6.md",
+    "suspected_files": [
+      "sidecar/services/agent_tools/quant_tools.py"
+    ],
+    "source_file": "rc1-vshard-6.json"
+  },
+  {
+    "key": "rc1-vshard-7:13",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "humanize's credit rule over-matches rate limits whose body mentions billing/quota: a Groq TPM 429 ('Please try again in 5.6s ... settings/billing') and a Gemini free-tier per-minute 429 ('Please retry in 31s') are told the account is out of credit",
+    "repro": "In-process at 81fbfe91: humanize('groq', 429 TPM body).code == 'insufficient_credit'; humanize('gemini', 429 RESOURCE_EXHAUSTED per-minute body).code == 'insufficient_credit' (errors.py _BODY_RULES credit row, statuses {400,403,429}, markers credit/quota/billing). Bodies are reconstructed provider shapes, not live captures.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-7-evidence/agent027-humanize-probe.out.txt",
+    "suspected_files": [
+      "sidecar/services/errors.py"
+    ],
+    "source_file": "rc1-vshard-7.json"
+  },
+  {
+    "key": "rc1-vshard-8:4",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-CODE-DATA-023",
+    "title": "routers/screener.py:192 get_universe docstring still quotes the dropdown as 'S&P 500 (100 tickers)'; the live universe is 503",
+    "repro": "sed -n 188,193p sidecar/routers/screener.py; curl -s 'http://127.0.0.1:52608/screener/universe?id=sp500' | jq '.symbols|length' -> 503",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8.md",
+    "suspected_files": [
+      "sidecar/routers/screener.py"
+    ],
+    "source_file": "rc1-vshard-8.json"
+  },
+  {
+    "key": "rc1-vshard-8:5",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-AGENT-090",
+    "title": "When the ratio guard fires, the part of the sentence that was already released streams, then the replacement is spliced mid-sentence ('a standard Y-Share has The ADR-to-ordinary-share ratio is not available…')",
+    "repro": "vy.py invoke copilot 'How many ordinary shares does one TSM ADR represent? Cite where the figure comes from.' --provider ollama --model llama3.1:8b --autonomy ask; the delta stream releases '... a standard Y-Share has ' before the guard replaces the rest.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8-evidence/a090-tsm.out",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py"
+    ],
+    "source_file": "rc1-vshard-8.json"
+  },
+  {
+    "key": "rc1-verifier:15",
+    "kind": "known_limitation",
+    "severity": "low",
+    "register_id": "R15-LEAD-030",
+    "title": "Local lane (llama3.1:8b) note: ollama-sk4-sify-v2 states '6 ordinary shares' right after saying the ratio is unavailable, and converts ₹4,651 cr to about $57.65M (off by roughly 10x). ollama-sk3-elcidin-v2 says the current price ₹103,800 is ₹6,295 above a 52-week low of ₹110,095. These are model weaknesses on the local lane, not fix rounds",
+    "repro": "rc1/scenarios/ollama-sk4-sify-v2.jsonl and ollama-sk3-elcidin-v2.jsonl (26 Sep, post-candidate). Each had an ok tool call (fundamentals SIFY, price_data ELCIDIN with a disclosed 90-bar window).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/scenarios/ollama-sk4-sify-v2.jsonl",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:13",
+    "kind": "harness_gap",
+    "severity": "n/a",
+    "register_id": "",
+    "title": "Battery coverage incomplete at the candidate: 76 fixed ids have no raw battery file, and 84 more have raw output only from before 4c6dfe8c was committed (2026-09-26 06:01 IST)",
+    "repro": "I walked rc1/battery/raw/** for all 391 fixed ids and compared file mtimes with the candidate commit time. The full id lists are in the verifier log.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/logs/rc1-verifier.md",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:14",
+    "kind": "harness_gap",
+    "severity": "n/a",
+    "register_id": "",
+    "title": "Agent scenarios and data packs do not carry the candidate. All 20 OpenRouter scenario transcripts and 7 of the 13 llama transcripts date from 25 Sep, before the agent-runtime commits 4bc0bd3e, 51464b15 and 227c1e25. Only 6 llama runs postdate the candidate, and none of them covers the b/thread self-consistency runs. 10 of 24 data packs (P15-P20, S1-S4) were collected on 25 Sep 05:32-05:39, before the data-route fixes (b4585d7a, aa76a7ea, 6a9a48ef, 6a82064d ...)",
+    "repro": "Checked with stat on rc1/scenarios/*.jsonl, and collected_at in rc1/battery/collected/*.json against git log of sidecar/ and src/ in 2026-09-25 05:30..4c6dfe8c.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/logs/rc1-verifier.md",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:18",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "R15-CODE-PLATFORM-001",
+    "title": "CONCUR R15-CODE-PLATFORM-001 (removed_with_feature)",
+    "repro": "D81 removal verified at 4c6dfe8c: kill_switch.rs, services/kill_switch.py and models/audit_log.py are absent. git grep for kill-switch/audit/order-entry identifiers finds only 4 test lines that assert the absence. No globalShortcut in tauri.conf.json. Removed by 3d037351 and 5d45a0ae",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/concur-killswitch-auditlog.txt",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:19",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "R15-UI-042",
+    "title": "CONCUR R15-UI-042 (removed_with_feature)",
+    "repro": "The Audit Log viewer is gone with the audit log: no AuditLog or audit-log component in src at 4c6dfe8c, and the only audit-log-viewer string is a workspace.test.ts fixture restoring an old blob",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/concur-killswitch-auditlog.txt",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:20",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "R15-UI-043",
+    "title": "CONCUR R15-UI-043 (removed_with_feature)",
+    "repro": "Same evidence as UI-042: the filters, Export and Time column belonged to the removed viewer",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/concur-killswitch-auditlog.txt",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:21",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "R15-AGENT-083",
+    "title": "CONCUR R15-AGENT-083 (not_a_defect)",
+    "repro": "A read-only external MCP surface is the intended safety posture. My tool list at 4c6dfe8c shows 32 catalog-projected MCP ids and none mutating (tools-lists.json). stage-c/batch-10/VERDICTS.json concur_not_defect",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/tools-lists.json",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:22",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "R15-DATA-080",
+    "title": "CONCUR R15-DATA-080 (not_a_defect)",
+    "repro": "A feature request (segment data), not a defect in shipped behaviour. stage-c/batch-11/VERDICTS.json concur_not_defect",
+    "evidence_file": "docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.json",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:23",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "R15-UI-041",
+    "title": "CONCUR R15-UI-041 (not_a_defect)",
+    "repro": "The first-launch terms at 4c6dfe8c are research-only. DisclaimerFlow.test.tsx:58-66 asserts no order routing or kill switch, and my Gate 8 rg sweep found no product-surface trading text. stage-c/batch-6/VERDICTS.json concur_not_defect",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/rg-src.txt",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:24",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "R15-UI-047",
+    "title": "CONCUR R15-UI-047 (not_a_defect)",
+    "repro": "A feature request (multi-window pop-out). stage-c/batch-11/VERDICTS.json concur_not_defect",
+    "evidence_file": "docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.json",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:25",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "R15-UI-059",
+    "title": "CONCUR R15-UI-059 (not_a_defect)",
+    "repro": "A feature request (composite score). stage-c/batch-11/VERDICTS.json concur_not_defect",
+    "evidence_file": "docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.json",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:26",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "rc1-scenarios:1",
+    "title": "CONCUR rc1-scenarios:1 (rejected (not a regression))",
+    "repro": "price_data at 4c6dfe8c discloses its window (bars_returned 90, bars_available 111, window_start 2026-05-20), and the 110,095 low is a real bar in that window. The impossible 52w-low/current relation is the llama3.1:8b value-only-grounding class (R15-LEAD-037, blocked_tier4)",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/fixloop-elcidin-price-data.txt",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:27",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "rc1-datapack:1",
+    "title": "CONCUR rc1-datapack:1 (rejected (not a regression of R15-DATA-008))",
+    "repro": "/fundamentals/SIFY at 4c6dfe8c carries financial_currency INR beside currency USD and withholds price_to_sales. Both consumers format statement-size fields in financial_currency ?? currency: brief-blocks.tsx:336, and equity-overview/metrics.ts statementSize on revenue_ttm/net_income_ttm",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/fixloop-sify-fundamentals.json",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:28",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "rc1-datapack:2",
+    "title": "CONCUR rc1-datapack:2 (rejected (not a regression of R15-DATA-058))",
+    "repro": "/resolve?q=Sify Technologies Ltd (ADR) at 4c6dfe8c includes SIFY (0.913) in the D58c reserved off-region slot with needs_disambiguation true and resolved null, so the user chooses. Ordering follows the locale rule by design",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/g2/fixloop-sify-resolve.json",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:29",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "set-67 ratio escape",
+    "title": "CONCUR set-67 ratio escape (rejected (known-limitation class))",
+    "repro": "battery/raw/set-67/AGENT-090-run1.log is a llama3.1:8b local-lane run, part of the R15-LEAD-030 class (blocked_tier4, adjudicated to the operator). New local instances are notes, not fix rounds",
+    "evidence_file": "docs/redesign/verification/r15/rc1/battery/raw/set-67/AGENT-090-run1.log",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-verifier:30",
+    "kind": "concurrence",
+    "severity": "n/a",
+    "register_id": "set-28",
+    "title": "CONCUR set-28 (rejected (harness, environment))",
+    "repro": "A harness data defect: set-28 ran against the wrong 12 ids. This is not a product regression, and it is counted in my battery-coverage FAIL (rc1-verifier:13)",
+    "evidence_file": "docs/redesign/verification/r15/rc1/findings/rc1-fix-r1-triage.json",
+    "suspected_files": [],
+    "source_file": "rc1-verifier.json"
+  },
+  {
+    "key": "rc1-fix-r1-triage:1",
+    "kind": "register_note",
+    "severity": "medium",
+    "register_id": "R15-LEAD-037",
+    "title": "New instance of the value-only-grounding class (DECISIONS 4.11): llama3.1:8b labels a historical price_data bar low (ELCIDIN 2026-07-31 low 110,095) as the 52-week low and states the current price 103,800 is 'above' it",
+    "repro": "rc1-scenarios:1 (ollama-sk3-elcidin-v2.jsonl): price_data ELCIDIN range 1y ok; the stated 110,095 is the 2026-07-31 bar's low inside the payload, while the min low over all 111 bars (and the last 90) is 102,210. Known limitation, blocked_tier4; no fix round.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/fix-r1/triage/elcidin-1y-summary.json",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py"
+    ],
+    "source_file": "rc1-fix-r1-triage.json"
+  },
+  {
+    "key": "rc1-fix-r1-triage:3",
+    "kind": "register_note",
+    "severity": "low",
+    "register_id": "R15-LEAD-030",
+    "title": "New instance of the hallucinated-tool-result-citation class (DECISIONS 4.9): llama3.1:8b states Zomato price/high/low/% figures with only get_terminal_state (no price fields) ok behind them",
+    "repro": "rc1-drive-onboarding-stranger:1 (keyless profile, candidate 4c6dfe8c, vy.py invoke copilot 'hi, I just installed this. what can you do, and how is Zomato stock doing today?' --provider ollama --model llama3.1:8b): one ok get_terminal_state call; assistant text states ZOMATO.NS 130.05 / high 132.50 / low 128.60 / +2.35% attributed to 'my research'. Known limitation, blocked_tier4; no fix round.",
+    "evidence_file": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/A1-keyless-zomato-rc1-r2.stdout.txt",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py",
+      "sidecar/services/figure_grounding.py"
+    ],
+    "source_file": "rc1-fix-r1-triage.json"
+  },
+  {
+    "kind": "register_note",
+    "set": "set-67",
+    "ids": [
+      "R15-AGENT-090",
+      "R15-LEAD-030"
+    ],
+    "severity": "low",
+    "title": "New instance of the local-model untraced-claim pattern surfaced via the AGENT-090 ratio guard, on a tool path the batch-16 certification did not exercise",
+    "detail": "Live re-run of R15-AGENT-090's original repro (SIFY ADR-ratio prompt, ollama llama3.1:8b, port 52345) took a different tool path than all 5 of batch-16's certification runs: the model called financial_statements (cashflow) instead of fundamentals, then stated 'one SIFY ADR represents six ordinary shares' attributed generically to 'the tool call response'. The figure is factually correct (SIFY's 20-F: six equity shares) but untraced -- the cashflow result carries no ADR/depositary term, so the ratio guard's _sourced_counts should have been empty and the sentence should have been replaced with RATIO_UNAVAILABLE; it was not. This is the same general class the LEAD NOTE already governs ('local model states a figure with no ok tool call behind it'): per standing operator decision (DECISIONS 4.9-4.12) this is filed as a register note under R15-LEAD-030's existing blocked_tier4 entry, not a new defect, not a fix round, and not a regressed verdict on R15-AGENT-090 (whose certified fundamentals-calling path was not exercised or shown broken this run). No code change made; verification-only role.",
+    "evidence": "docs/redesign/verification/r15/rc1/battery/set-67.md; docs/redesign/verification/r15/rc1/battery/raw/set-67/AGENT-090-run1.log; docs/redesign/verification/r15/rc1/battery/raw/set-67/AGENT-090-run1.jsonl; docs/redesign/verification/r15/rc1/battery/raw/set-67/LEAD-030-source-check.txt",
+    "source_file": "rc1-battery-5.json"
+  },
+  {
+    "key": "rc1-battery-3:1",
+    "kind": "environment",
+    "severity": "medium",
+    "register_id": "R15-DATA-056",
+    "title": "BSE shareholding SHP index blocked (403 Akamai) from this dev IP, pre-existing at base",
+    "repro": "In-process bse_provider.get_shareholding('CREST') raises ProviderError: bse shareholding: index HTTP 403; live /disclosures/shareholding?symbol=CREST comes back NSE-only with no FII/DII split merged for any of 20 quarters",
+    "evidence_file": "docs/redesign/verification/r15/rc1/battery/raw/set-15/R15-DATA-056-bse-direct.txt",
+    "suspected_files": [],
+    "source_file": "rc1-battery-3.json"
+  },
+  {
+    "key": "rc1-datapack:3",
+    "kind": "environment",
+    "severity": "low",
+    "register_id": "R15-DATA-003",
+    "title": "BSE shareholding index returned 403 Forbidden for every BSE-only symbol this run, not just AMAL/SMR",
+    "repro": "GET /disclosures/shareholding?symbol=AMAL, ?symbol=SMR, ?symbol=CSL all return 502 provider_error; sidecar.log shows the identical root cause for all three: 'BSE: bse shareholding: index HTTP 403'. This blocks direct re-verification of R15-DATA-003 and R15-DATA-022 this run; it is an upstream BSE block (also seen in the prior gate round), not a symbol-specific regression.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/DATAPACK.md",
+    "suspected_files": [],
+    "source_file": "rc1-datapack.json"
+  },
+  {
+    "key": "rc1-drive-failure-inducer:1",
+    "kind": "environment",
+    "severity": "low",
+    "register_id": null,
+    "title": "Shared SearXNG's DDG/Brave/Startpage engines are currently CAPTCHA'd/rate-limited (upstream, not candidate code)",
+    "repro": "GET http://127.0.0.1:52327/search/searxng/status (my sidecar, proxying the shared already-running SearXNG container) -> state:\"degraded\", reason:\"brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA\"",
+    "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/rc1/rc1-nodocker-status.txt",
+    "suspected_files": [],
+    "notes": "Re-probed on gate round 2 against candidate 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2 via GET http://127.0.0.1:52152/search/searxng/status (shared stack, read-only) -- same degraded state, same three engines, unchanged. Round-2 evidence: docs/redesign/verification/r15/surface/failure-inducer/rc1/nodocker-status-r2.txt.",
+    "source_file": "rc1-drive-failure-inducer.json"
+  },
+  {
+    "key": "rc1-fix-r1-triage:2",
+    "kind": "environment",
+    "severity": "n/a",
+    "register_id": null,
+    "title": "Battery coverage gap: set-28 (batch-7/W4-research-funnel) was run against 12 nonexistent ids; the 12 real ids in battery/INDEX.md:81 were never re-verified this battery",
+    "repro": "battery/INDEX.md:81 lists R15-DATA-075, R15-RESEARCH-019/020/021/022/023/024/026/033/038, R15-UI-038, R15-UI-092 for batch-7/W4; set-28.md checked R15-RESEARCH-044..066 instead; no set-*.md mentions R15-RESEARCH-019. Harness data defect; re-run set-28 with the INDEX ids.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/battery/set-28.md",
+    "suspected_files": [],
+    "source_file": "rc1-fix-r1-triage.json"
+  },
+  {
+    "kind": "environment",
+    "set": "set-28",
+    "ids": [
+      "R15-RESEARCH-044",
+      "R15-RESEARCH-046",
+      "R15-RESEARCH-048",
+      "R15-RESEARCH-050",
+      "R15-RESEARCH-052",
+      "R15-RESEARCH-054",
+      "R15-RESEARCH-056",
+      "R15-RESEARCH-058",
+      "R15-RESEARCH-060",
+      "R15-RESEARCH-062",
+      "R15-RESEARCH-064",
+      "R15-RESEARCH-066"
+    ],
+    "severity": "n/a",
+    "title": "batch-7/W4-research-funnel register/task data mismatch: 12 assigned ids do not exist",
+    "detail": "None of the 12 ids assigned to set-28 (R15-RESEARCH-044 through 066, even numbers) exist in docs/redesign/verification/vysted-r15-register.json. The register's R15-RESEARCH-* series stops at R15-RESEARCH-042 (counts.entries: 652). Verified by exact-id lookup over entries[] and rejections[], and a repo-wide grep for each id (zero hits anywhere outside the battery files this shard wrote). This is a task/harness data-computation gap, not a product defect and not an upstream outage. All 12 ids were given verdict blocked_env in set-28.md with identical evidence (raw/set-28/RESEARCH-044-066-register-lookup.txt).",
+    "evidence": "docs/redesign/verification/r15/rc1/battery/set-28.md; docs/redesign/verification/r15/rc1/battery/raw/set-28/RESEARCH-044-066-register-lookup.txt",
+    "source_file": "rc1-battery-5.json"
+  }
+]
