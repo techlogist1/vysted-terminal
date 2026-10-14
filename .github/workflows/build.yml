@@ -74,6 +74,11 @@ jobs:
         run: node scripts/smoke-test-sidecars.mjs
 
       - name: Build Tauri bundle (unsigned)
+        env:
+          # Same linuxdeploy/FUSE + strip defenses as release.yml's build-linux
+          # job (see its comments) — no-ops on macOS/Windows.
+          APPIMAGE_EXTRACT_AND_RUN: ${{ matrix.os == 'ubuntu-latest' && '1' || '' }}
+          NO_STRIP: ${{ matrix.os == 'ubuntu-latest' && 'true' || '' }}
         run: pnpm tauri build
 
       - name: Smoke-test bundled llama-server (macOS)

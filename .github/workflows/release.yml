@@ -172,7 +172,8 @@ jobs:
             curl \
             wget \
             file \
-            libssl-dev
+            libssl-dev \
+            libfuse2
 
       - uses: pnpm/action-setup@v4
         with:
@@ -208,8 +209,17 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           VYSTED_SKIP_DEV_SIGN: 1
+          # ubuntu-22.04 ships libfuse3, not the libfuse2 AppImages (including
+          # linuxdeploy and its appimagetool plugin) are built against, and the
+          # hosted runner has no usable /dev/fuse either way — force every
+          # nested AppImage invocation to self-extract instead of FUSE-mounting.
+          APPIMAGE_EXTRACT_AND_RUN: 1
+          # Defends against linuxdeploy's bundled `strip` erroring on sections
+          # (e.g. .relr.dyn) emitted by a newer toolchain than it was built
+          # against — a known cause of a bare "failed to run linuxdeploy".
+          NO_STRIP: true
         run: |
-          pnpm tauri build --bundles appimage --config '{"bundle":{"createUpdaterArtifacts":true}}'
+          pnpm tauri build --bundles appimage --config '{"bundle":{"createUpdaterArtifacts":true}}' --verbose
 
       - name: Upload bundle artifacts
         uses: actions/upload-artifact@v4
