@@ -120,7 +120,7 @@ export function UpdatePrompt() {
                 >
                   What&apos;s new
                   <ChevronDown
-                    className={`size-3.5 transition-transform ${notesOpen ? "rotate-180" : ""}`}
+                    className={`size-4 transition-transform ${notesOpen ? "rotate-180" : ""}`}
                     aria-hidden="true"
                   />
                 </button>
@@ -145,7 +145,7 @@ export function UpdatePrompt() {
                     className="text-charcoal-500 hover:text-charcoal-200 text-caption rounded-control flex shrink-0 items-center gap-1 px-1 py-1 font-mono"
                   >
                     Later
-                    <X className="size-3.5" aria-hidden="true" />
+                    <X className="size-4" aria-hidden="true" />
                   </button>
                 </>
               )}
@@ -171,7 +171,7 @@ export function UpdatePrompt() {
               </div>
             )}
             {notesOpen && info.notes && !installing && (
-              <p className="text-charcoal-400 text-caption mt-2 max-h-40 overflow-y-auto font-mono leading-snug whitespace-pre-wrap">
+              <p className="text-charcoal-400 text-caption mt-2 max-h-24 overflow-y-auto font-mono leading-snug whitespace-pre-wrap">
                 {info.notes}
               </p>
             )}
