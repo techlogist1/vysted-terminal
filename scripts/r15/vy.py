@@ -47,8 +47,8 @@ UNKNOWN_PRICE = (3.0, 12.0)
 
 
 def _is_free(provider: str, model: str) -> bool:
-    # Ollama runs local (no network spend, ever) — always free for ledger/budget purposes.
-    if provider == "ollama":
+    # Ollama and the bundled llama-server run local (no network spend, ever) — always free.
+    if provider in ("ollama", "local"):
         return True
     return provider == "openrouter" and (
         model.endswith(":free") or model == "openrouter/free"
@@ -68,6 +68,8 @@ def _ledger_rows() -> list[dict]:
 
 
 def _budget_check(provider: str, model: str) -> None:
+    if provider == "local":
+        return  # the bundled engine costs nothing and must not eat the free-lane day quota
     rows = _ledger_rows()
     today = time.strftime("%Y-%m-%d")
     if _is_free(provider, model):
@@ -141,10 +143,10 @@ def cmd_invoke(args) -> int:
     # up or require one.
     key = (
         None
-        if args.no_key or args.provider == "ollama"
+        if args.no_key or args.provider in ("ollama", "local")
         else ("sk-invalid-r15-induced-401" if args.bad_key else _key(args.provider))
     )
-    if key is None and not args.no_key and args.provider != "ollama":
+    if key is None and not args.no_key and args.provider not in ("ollama", "local"):
         sys.exit(f"vy: no key for provider {args.provider!r} in the dev keystore")
     payload = {
         "prompt": args.prompt,
@@ -279,7 +281,7 @@ def main() -> int:
     inv.add_argument(
         "--provider",
         required=True,
-        choices=["openrouter", "openai", "deepseek", "ollama"],
+        choices=["openrouter", "openai", "deepseek", "ollama", "local"],
     )
     inv.add_argument("--model")
     inv.add_argument(

@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """Agent-eval runner: the fixed scenario set, k trials per scenario, pass^k per lane.
 
-  run.py --lane ollama|openrouter-free|openai --k 3 --port 52390 --out-dir DIR
-         [--model SLUG] [--only id,id] [--max-minutes 18]
+  run.py --lane ollama|openrouter-free|openai|local --k 3 --port 52390 --out-dir DIR
+         [--model SLUG] [--only id,id] [--max-minutes 18] [--tap FILE]
+
+Lane ``local`` drives the bundled llama-server (provider "local"); --model is a
+catalog id and is required. ``--tap`` is the JSONL the sidecar writes when started
+through ``scripts/r16/sidecar_tap.py``: with it every trial also gets the invented-
+figure check (``grounding.py``), because that file is where the tool payloads are.
 
 Every trial is driven through ``scripts/r15/vy.py invoke`` (key-safe, spend-
 ledgered, budget-guarded; its port guard allows R15 isolated sidecars only) under
@@ -34,6 +39,7 @@ LANES = {
     "ollama": ("ollama", "llama3.1:8b"),
     "openrouter-free": ("openrouter", "qwen/qwen3.8-27b:free"),
     "openai": ("openai", "gpt-4o-mini"),
+    "local": ("local", None),
 }
 TRIAL_TIMEOUT_S = 600
 
@@ -56,12 +62,24 @@ def _read_events(path: Path) -> list[dict]:
     return events
 
 
+def _read_tap(path: str | None, offset: int) -> list[dict] | None:
+    """Tool results the sidecar tapped since ``offset``; ``None`` when no tap is wired."""
+    if not path:
+        return None
+    with open(path, "rb") as fh:
+        fh.seek(offset)
+        lines = fh.read().decode("utf-8", "replace").splitlines()
+    return [json.loads(line) for line in lines if line.strip()]
+
+
 def run_trial(args, scenario: dict, provider: str, model: str, trial: int) -> dict | None:
     """One graded trial; ``None`` when vy refused on budget (stop the run)."""
     events_path = Path(args.out_dir) / args.lane / f"{scenario['id']}.{trial}.jsonl"
     events_path.parent.mkdir(parents=True, exist_ok=True)
     probe = scenario.get("state_probe")
     before = _probe(args.port, probe) if probe else None
+    tap = getattr(args, "tap", None)
+    tap_offset = Path(tap).stat().st_size if tap and Path(tap).exists() else 0
     cmd = [
         sys.executable, str(VY), "invoke", scenario.get("agent", "copilot"), scenario["prompt"],
         "--provider", provider, "--model", model, "--mode", scenario.get("mode", "agent"),
@@ -69,6 +87,8 @@ def run_trial(args, scenario: dict, provider: str, model: str, trial: int) -> di
         "--tag", f"agent-eval:{args.lane}:{scenario['id']}", "--out", str(events_path),
         "--port", str(args.port), "--timeout", str(TRIAL_TIMEOUT_S), "--quiet",
     ]  # fmt: skip
+    if scenario.get("options"):
+        cmd += ["--options", json.dumps(scenario["options"])]
     started = time.time()
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=TRIAL_TIMEOUT_S + 30)
@@ -79,7 +99,9 @@ def run_trial(args, scenario: dict, provider: str, model: str, trial: int) -> di
         print(f"vy budget guard refused: {tail.strip()}", file=sys.stderr)
         return None
     after = _probe(args.port, probe) if probe else None
-    failures = grader.grade(scenario, _read_events(events_path), before, after)
+    events = _read_events(events_path)
+    tool_results = _read_tap(tap, tap_offset)
+    failures = grader.grade(scenario, events, before, after, tool_results)
     if code != 0:
         failures.insert(0, f"vy exit {code}: {tail.strip()[-160:]}")
     return {
@@ -91,6 +113,17 @@ def run_trial(args, scenario: dict, provider: str, model: str, trial: int) -> di
         "failures": failures,
         "secs": round(time.time() - started, 1),
         "events": str(events_path),
+        "tool_calls": [
+            {"name": e.get("name"), "input": e.get("input")}
+            for e in events
+            if e.get("kind") == "tool_use"
+        ],
+        "ungrounded": (
+            None
+            if tool_results is None
+            else grader.ungrounded_figures(scenario, events, tool_results)
+        ),
+        "answer": grader.answer_text(events),
     }
 
 
@@ -103,9 +136,14 @@ def main() -> int:
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--only", help="comma-separated scenario ids")
     ap.add_argument("--max-minutes", type=float, help="start no trial after this long")
+    ap.add_argument(
+        "--tap", help="sidecar tool-result tap file (enables the invented-figure check)"
+    )
     args = ap.parse_args()
     provider, default_model = LANES[args.lane]
     model = args.model or default_model
+    if model is None:
+        ap.error(f"--model is required for lane {args.lane}")
     scenarios = json.loads((HERE / "scenarios.json").read_text(encoding="utf-8"))
     if args.only:
         wanted = set(args.only.split(","))
