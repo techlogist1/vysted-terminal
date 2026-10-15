@@ -104,8 +104,9 @@ jobs:
           # same and assert a variant was actually dlopen'ed. --list-devices omits CPU and ggml's
           # own load line is below the default log level, so ask glibc (LD_DEBUG) what it loaded.
           OUT="$(cd "$LLAMA_LIB_DIR" && LD_DEBUG=files LD_LIBRARY_PATH="$LLAMA_LIB_DIR" "$LLAMA_BIN" --list-devices 2>&1)"
-          grep -E 'libggml-cpu|Available devices' <<<"$OUT" || true
-          grep -qE 'file=[^ ]*libggml-cpu-[a-z0-9_]+\.so .*dynamically loaded' <<<"$OUT"
+          grep -E 'libggml-cpu-[a-z0-9_]+\.so .*dynamically loaded|Available devices' <<<"$OUT" || true
+          # The bundle path contains a space ("usr/lib/Vysted Terminal"), so match from the name.
+          grep -qE 'libggml-cpu-[a-z0-9_]+\.so \[[0-9]+\]; +dynamically loaded' <<<"$OUT"
 
       - name: Smoke-test bundled llama-server (Windows)
         if: matrix.os == 'windows-latest'
