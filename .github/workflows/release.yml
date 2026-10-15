@@ -272,8 +272,10 @@ jobs:
           PRERELEASE=""
           case "$VERSION" in *-*) PRERELEASE="--prerelease" ;; esac
           if gh release view "$TAG" >/dev/null 2>&1; then
-            if [ -n "$NOTES_FILE" ]; then
-              gh release edit "$TAG" --draft --notes-file "$NOTES_FILE"
+            # Never change an existing release's draft state (a re-run must not un-publish it);
+            # refresh the notes only while it is still a draft.
+            if [ -n "$NOTES_FILE" ] && [ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = "true" ]; then
+              gh release edit "$TAG" --notes-file "$NOTES_FILE"
             fi
           else
             if [ -n "$NOTES_FILE" ]; then

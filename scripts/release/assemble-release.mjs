@@ -22,9 +22,12 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join, basename } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const DEFAULT_REPO = "techlogist1/vysted-terminal";
+const DEFAULT_TAURI_CONF = fileURLToPath(
+  new URL("../../src-tauri/tauri.conf.json", import.meta.url),
+);
 
 /** "v0.10.0" -> "0.10.0"; a tag with no leading "v<digit>" passes through unchanged. */
 export function versionFromTag(tag) {
@@ -113,15 +116,40 @@ function copyAsset(srcPath, outDir, stableName) {
   return versionedName;
 }
 
-export async function assemble({ tag, artifactsDir, repo = DEFAULT_REPO, notesFile, outDir }) {
+export async function assemble({
+  tag,
+  artifactsDir,
+  repo = DEFAULT_REPO,
+  notesFile,
+  outDir,
+  tauriConf = DEFAULT_TAURI_CONF,
+}) {
   if (!tag) throw new Error("assemble-release: --tag is required");
   if (!artifactsDir) throw new Error("assemble-release: --artifacts-dir is required");
   const version = versionFromTag(tag);
+  // latest.json's version drives the updater's comparison: a tag that disagrees with the version the
+  // binaries were built with makes every install loop on "update available" (or never see one).
+  const builtVersion = JSON.parse(readFileSync(tauriConf, "utf8")).version;
+  if (builtVersion !== version) {
+    throw new Error(
+      `assemble-release: tag ${tag} (version ${version}) does not match tauri.conf.json version ${builtVersion}; bump every version source before tagging`,
+    );
+  }
   const resolvedOutDir = outDir ?? join(artifactsDir, "assembled");
   mkdirSync(resolvedOutDir, { recursive: true });
 
   const files = walkFiles(artifactsDir);
   const { dmg, macTarGz, macSig, winExe, winSig, appImage, appImageSig } = locateArtifacts(files);
+  // The .app.tar.gz carries no version in its name; the dmg, setup.exe and AppImage do.
+  const unversioned = [dmg, winExe, appImage]
+    .filter(Boolean)
+    .map((f) => basename(f))
+    .filter((name) => !name.includes(`_${version}_`));
+  if (unversioned.length > 0) {
+    throw new Error(
+      `assemble-release: built asset(s) do not carry version ${version}: ${unversioned.join(", ")}`,
+    );
+  }
 
   const macTarGzVersioned = copyAsset(macTarGz, resolvedOutDir);
   copyAsset(macSig, resolvedOutDir);
