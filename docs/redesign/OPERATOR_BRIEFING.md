@@ -1,3 +1,57 @@
+# Operator Briefing - R16 "Easy Install" (0.10.0)
+
+Written against the R16 integration branch at `ebf033c6`. The sections below this one are the 0.9.0 briefing, kept for the record. Where they disagree with this section, this section wins. In particular, the 0.9.0 steps that sign and notarize the dmg (its steps 3 and 4) and the line "no release pipeline" no longer apply: 0.10.0 ships unsigned on purpose, and a pipeline builds it.
+
+## 0.10.0 in one page
+
+0.10.0 is the public launch. R16 made the app something a person who has never used a terminal can download, open and use. There is no account and no key to start with.
+
+- **Downloads.** A tag push runs `.github/workflows/release.yml`. It builds macOS (Apple Silicon), Windows and Linux, and leaves a **draft** release with stable file names: `Vysted-Terminal-macOS-AppleSilicon.dmg`, `Vysted-Terminal-Windows-x64-Setup.exe`, `Vysted-Terminal-Linux-x86_64.AppImage`, `SHA256SUMS.txt` and `latest.json`. The stable links (`https://github.com/techlogist1/vysted-terminal/releases/latest/download/<name>`) work only after you publish the draft.
+- **Not code-signed, by your decision.** First open on a Mac shows "can't verify"; the user clicks Done, then Open Anyway in System Settings, Privacy & Security. Windows shows SmartScreen (More info, Run anyway). The dmg window carries the macOS note. This is fine for the launch; it is also the main friction a new user will hit.
+- **First run.** Terms, then "How should Vysted think?" with three paths: on this computer (a free model downloads in the app and nothing leaves the machine), your own key (kept in the OS keychain, sent only to that provider), or skip (charts and data work with no key). A short tour ends in an example question. Research is keyless by default; Docker and a private SearXNG search sit under Advanced and are never required.
+- **On-computer models.** Vysted bundles llama.cpp's `llama-server` (build b11429, MIT) and offers four Apache-2.0 models, recommended by memory size. Downloads resume, are checksum-verified and check free disk. If the engine crashes it restarts itself up to three times in ten minutes, then stops and says so. The per-tier recommendation is still being measured: <!-- R16-MEASURE: per-tier recommendation -->.
+- **Updates.** The app checks 15 seconds after launch and every 6 hours, shows the version and notes, and offers "Restart to update". It waits for a running model download. Updates are checked against a signing key (below). Self-update was proven from `0.10.0-beta.1` to `0.10.0-beta.2` on a Mac (`docs/redesign/verification/r16/rc1/RC1_PROOF.md`).
+- **Still true.** Source-available under PolyForm Strict 1.0.0 (plugin contract and example plugin Apache-2.0, `LICENSING.md`). No trading of any kind. Not investment advice.
+
+## The buttons that stay yours
+
+1. **Publish the draft release.** After the tag's workflow finishes green enough (macOS and Windows are required; Linux is allowed to fail), check the draft's assets and `SHA256SUMS.txt`, then publish:
+   ```sh
+   gh release view v0.10.0 --json isDraft,assets --jq '{isDraft, assets:[.assets[]|{name,size}]}'
+   gh release edit v0.10.0 --draft=false
+   ```
+   Publishing is the moment the stable download links and `latest.json` go live, so it is a public announcement. If the commercial contact address problem from the 0.9.0 briefing (section 2, step 5) is still open, settle it first. The Linux AppImage is listed in the public docs only if its build is green; if it is not, the lead drops those lines before you publish.
+2. **The Windows run on the ROG.** Nobody has run the Windows build. Follow `docs/WINDOWS_MANUAL_CHECK.md`. Install from the CI-built `Vysted-Terminal-Windows-x64-Setup.exe` and add two R16 checks to that list: the on-computer model starts (the engine has never been run on Windows hardware), and the update bar appears and installs against a loopback test server (`scripts/release/serve-update.mjs`).
+3. **The Mac walk.** `docs/HAND_TESTING_GUIDE.md`, "Part R16": install, Open Anyway, terms, all three wizard paths, a model download with a pause and a relaunch, the example question, and an update, plus four scenario checks (a download dying at 80 percent, an 8 GB Mac, the engine crashing mid-answer, an update during a download). Nobody has yet clicked the never-run wizard path by hand on a real Mac; the one earlier run could not click the terms dialog because another app's window covered the button.
+
+What is proven and what is not: the release build, the checksums and the Mac self-update are proven (rc1). The Windows installer and the engine on Windows, the Linux AppImage, an update fetched from the real GitHub endpoint, and the q8 KV-cache flags anywhere but macOS are not. `docs/CURRENT_STATE.md` section 3a keeps this list.
+
+## UPDATER KEY CUSTODY
+
+Every update the app installs must be signed by one key. The matching public half is built into the app (`plugins.updater.pubkey` in `src-tauri/tauri.conf.json`). The private half is what signs each release in CI.
+
+| Item                             | Where                                                                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Private key file                 | `~/.tauri/vysted-updater.key` on the Mac                                                                                 |
+| Backup copy                      | `~/.tauri/backup/` on the same Mac                                                                                       |
+| CI copy                          | GitHub Actions secret `TAURI_SIGNING_PRIVATE_KEY` (the workflow also sets an empty `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`) |
+| Key id (shown in the public key) | `89FF38F7524553ED`                                                                                                       |
+| Password                         | None                                                                                                                     |
+
+**What losing it means.** Installed copies trust only that key. If the private key is gone, no future release can be signed in a way they accept, so no installed copy can ever auto-update again. Every user would have to download and reinstall by hand, from a build that carries a new public key (which means changing `tauri.conf.json`, a Tier-1 locked file). GitHub secrets cannot be read back out, so the CI copy is not a backup.
+
+**What to do now.** Both copies on disk are on this one Mac, so they do not count as an off-machine backup. Put a copy in Bitwarden now: a secure note holding the key file's contents, labelled "Vysted updater key 89FF38F7524553ED, no password". Then check you can open it back from Bitwarden.
+
+**Handling rules.**
+
+- Never paste the key's contents into a chat, an issue, a commit, a log or a screenshot. Read it only to copy it into Bitwarden or into the GitHub secret.
+- If the key may have leaked, treat it as lost and plan a key change: a leaked key alone cannot push an update, because updates are fetched from this repository's releases, but someone with both the key and write access to the repo could.
+- The public key and the key id are not secret. They are in the repository.
+
+**The test endpoint.** `VYSTED_UPDATER_ENDPOINT` is honoured in release builds, but only for an `https://` address or `http://127.0.0.1:<port>/`. Anything else (including `localhost`) is logged and ignored. The signature check still applies, so pointing an app at a different endpoint cannot install an unsigned or foreign update. It exists for the loopback update test (`src-tauri/src/updater.rs`).
+
+---
+
 # Operator Briefing - R15 "LAUNCH" (0.9.0)
 
 True at the launch tag `1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056` (tags `r15-rc2` and `r15-launch`); register and docs read at `4b460027` (docs-only commits on top of the launch tag, where R15-LEAD-143 and R15-LEAD-144 were filed).
