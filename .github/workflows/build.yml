@@ -102,17 +102,34 @@ jobs:
 
       - name: Smoke-test bundled llama-server (Windows)
         if: matrix.os == 'windows-latest'
-        shell: bash
+        timeout-minutes: 15
+        shell: pwsh
         run: |
-          set -euo pipefail
-          NSIS="$(find src-tauri/target/release/bundle/nsis -maxdepth 1 -iname '*-setup.exe' | head -1)"
-          INSTDIR="${RUNNER_TEMP}\\llama-smoke"
-          "$NSIS" /S "/D=$INSTDIR"
-          for i in $(seq 1 30); do
-            [ -f "$INSTDIR/llama-server.exe" ] && break
-            sleep 2
-          done
-          "$INSTDIR/llama-server.exe" --version
+          $ErrorActionPreference = 'Stop'
+          $nsis = Get-ChildItem src-tauri/target/release/bundle/nsis -Filter '*-setup.exe' | Select-Object -First 1
+          $instdir = Join-Path $env:RUNNER_TEMP 'llama-smoke'
+          Write-Host "installing $($nsis.FullName) -> $instdir"
+          $p = Start-Process -FilePath $nsis.FullName -ArgumentList '/S', "/D=$instdir" -PassThru
+          if (-not $p.WaitForExit(300000)) {
+            # A silent install that never returns would also stall the Windows
+            # auto-updater (it runs the same installer): show what it is waiting on.
+            Write-Host "installer still running after 300 s; process tree:"
+            Get-CimInstance Win32_Process | Select-Object ProcessId, ParentProcessId, Name, CommandLine | Format-Table -AutoSize -Wrap | Out-String -Width 400 | Write-Host
+            Stop-Process -Id $p.Id -Force
+            throw 'silent NSIS install did not finish'
+          }
+          Write-Host "installer exit code $($p.ExitCode)"
+          Get-ChildItem $instdir | Select-Object Name, Length | Format-Table -AutoSize | Out-String | Write-Host
+          $exe = Join-Path $instdir 'llama-server.exe'
+          $out = Join-Path $env:RUNNER_TEMP 'llama-version.txt'
+          $l = Start-Process -FilePath $exe -ArgumentList '--version' -PassThru -NoNewWindow -RedirectStandardError $out
+          if (-not $l.WaitForExit(60000)) {
+            Stop-Process -Id $l.Id -Force
+            Get-Content $out | Write-Host
+            throw 'llama-server --version did not exit within 60 s'
+          }
+          Get-Content $out | Write-Host
+          if ($l.ExitCode -ne 0) { throw "llama-server --version exited $($l.ExitCode)" }
 
       - name: Upload bundle artifacts
         uses: actions/upload-artifact@v4
