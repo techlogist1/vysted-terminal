@@ -249,7 +249,8 @@ class Engine:
             shutil.copy2(lib, workdir / lib.name)
         self.workdir, self.port = workdir, free_ephemeral()
         self.args = ["--host", "127.0.0.1", "--port", str(self.port), "-m", str(model_path),
-                     "--jinja", "-c", str(ctx), "-ngl", "999", "--no-webui"]  # fmt: skip
+                     "--jinja", "-c", str(ctx), "-ngl", "999", "--no-webui",
+                     "-fa", "on", "-ctk", "q8_0", "-ctv", "q8_0"]  # fmt: skip  (= local_engine.rs on macOS)
         self.cmd = [str(workdir / "llama-server"), *self.args, "--metrics"]
         self.errfile = errfile.open("w")
         # /usr/bin/time -l reports the child's peak RSS + footprint on exit.
