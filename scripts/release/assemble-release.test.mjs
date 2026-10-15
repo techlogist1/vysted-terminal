@@ -53,6 +53,10 @@ function put(rel, contents = "x") {
   return p;
 }
 
+function putConf(version = "0.10.0") {
+  return put("tauri.conf.json", JSON.stringify({ version }));
+}
+
 function putFullFixture() {
   put("macos/dmg/Vysted Terminal_0.10.0_aarch64.dmg", "dmg-bytes");
   put("macos/macos/Vysted Terminal.app.tar.gz", "mac-tar-bytes");
@@ -122,6 +126,7 @@ describe("assemble", () => {
     const result = await assemble({
       tag: "v0.10.0",
       artifactsDir: root,
+      tauriConf: putConf(),
       outDir,
       notesFile: join(root, "nonexistent-notes.md"),
     });
@@ -160,6 +165,7 @@ describe("assemble", () => {
     const result = await assemble({
       tag: "v0.10.0",
       artifactsDir: root,
+      tauriConf: putConf(),
       outDir,
       repo: "someone/else",
     });
@@ -176,6 +182,7 @@ describe("assemble", () => {
     const result = await assemble({
       tag: "v0.10.0",
       artifactsDir: root,
+      tauriConf: putConf(),
       outDir: join(root, "out"),
       notesFile: notesPath,
     });
@@ -187,7 +194,36 @@ describe("assemble", () => {
     putFullFixture();
     rmSync(join(root, "windows"), { recursive: true, force: true });
     await expect(
-      assemble({ tag: "v0.10.0", artifactsDir: root, outDir: join(root, "out") }),
+      assemble({
+        tag: "v0.10.0",
+        artifactsDir: root,
+        tauriConf: putConf(),
+        outDir: join(root, "out"),
+      }),
     ).rejects.toThrow(/setup\.exe/);
+  });
+
+  it("rejects a tag that disagrees with the tauri.conf.json version", async () => {
+    putFullFixture();
+    await expect(
+      assemble({
+        tag: "v0.10.0",
+        artifactsDir: root,
+        tauriConf: putConf("0.10.0-beta.3"),
+        outDir: join(root, "out"),
+      }),
+    ).rejects.toThrow(/does not match tauri\.conf\.json version 0\.10\.0-beta\.3/);
+  });
+
+  it("rejects built assets whose names do not carry the tag's version", async () => {
+    putFullFixture();
+    await expect(
+      assemble({
+        tag: "v0.11.0",
+        artifactsDir: root,
+        tauriConf: putConf("0.11.0"),
+        outDir: join(root, "out"),
+      }),
+    ).rejects.toThrow(/do not carry version 0\.11\.0/);
   });
 });
