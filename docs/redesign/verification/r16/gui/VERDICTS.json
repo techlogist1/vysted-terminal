@@ -1,130 +1,120 @@
 [
- {
-  "step": "A1",
-  "verdict": "PASS",
-  "captures": [
-   "A-local/01-terms.png"
-  ],
-  "note": "Terms dialog shown on fresh profile; 'I understand \u2014 continue' accepted via return."
- },
- {
-  "step": "A2",
-  "verdict": "PASS",
-  "captures": [
-   "A-local/02-choose.png"
-  ],
-  "note": "Three choices shown; On this computer tagged Recommended."
- },
- {
-  "step": "A3",
-  "verdict": "PARTIAL",
-  "captures": [
-   "A-local/03-local-models.png",
-   "A-local/03b-local-models-tall.png",
-   "A-local/03c-focus-download.png"
-  ],
-  "note": "RAM/disk line, Granite 3B + Qwen 4B (Recommended) both 'Runs well here', Apache 2.0 licence; rows 3-4 below scroll fold not seen; Ollama models listed (F1); low-memory warning on 16 GB (F2); dialog clipped at 832pt (F4)."
- },
- {
-  "step": "A4",
-  "verdict": "PASS",
-  "captures": [
-   "A-local/04-downloading.png",
-   "A-local/04b-focus-continue.png"
-  ],
-  "note": "'Downloading \u2014 1% \u00b7 about 2 min left', bar, Continue (clipped, reached by keyboard)."
- },
- {
-  "step": "A5",
-  "verdict": "PASS",
-  "captures": [
-   "A-local/05-tour-1.png",
-   "A-local/06-tour-4.png",
-   "A-local/07-tour-try-it.png",
-   "A-local/08-strip-downloading.png",
-   "A-local/09-strip-progress.png"
-  ],
-  "note": "Tour 4 cards, Try it says still downloading (11%), Got it; strip 'Downloading Qwen 3.5 4B \u2014 11% \u00b7 26 MB/s \u00b7 about 2 min left' + Pause."
- },
- {
-  "step": "A6",
-  "verdict": "PARTIAL",
-  "captures": [
-   "A-local/10-before-quit.png",
-   "A-local/11-relaunch-ready.png"
-  ],
-  "note": "Quit at 76% (.part 2133735015 B = 77.8%), all processes exited; relaunch auto-resumed from .part (not 0), finished, verified, llama-server loaded with no click; no terms/wizard. Resuming/verifying/starting strip states not captured (900 s rig gate); chip still 'NOT RUNNING \u2014 SET UP IN SETTINGS' after engine loaded (F3)."
- },
- {
-  "step": "A7",
-  "verdict": "NOT TESTED",
-  "captures": [],
-  "note": "Operator present: rig exit 3 mid-batch at 21:18:52 IST; question likely not submitted (composer coordinate off after window reset); no agent call logged."
- },
- {
-  "step": "A8",
-  "verdict": "NOT TESTED",
-  "captures": [],
-  "note": "Operator present; kill never fired."
- },
- {
-  "step": "A9",
-  "verdict": "NOT TESTED",
-  "captures": [],
-  "note": "Operator present."
- },
- {
-  "step": "A10",
-  "verdict": "NOT TESTED",
-  "captures": [],
-  "note": "Operator present; profile A app still running (pids 33963 33986 34005 35208), profile not wiped."
- },
- {
-  "step": "C1",
-  "verdict": "NOT TESTED",
-  "captures": [],
-  "note": "Operator present; profile C never launched."
- },
- {
-  "step": "C2",
-  "verdict": "NOT TESTED",
-  "captures": [],
-  "note": "Operator present."
- },
- {
-  "step": "C3",
-  "verdict": "NOT TESTED",
-  "captures": [],
-  "note": "Operator present."
- },
- {
-  "step": "C4",
-  "verdict": "NOT TESTED",
-  "captures": [],
-  "note": "Operator present."
- },
- {
-  "step": "B1",
-  "verdict": "NOT TESTED",
-  "captures": [],
-  "note": "Operator present; profile B never launched."
- },
- {
-  "step": "B2",
-  "verdict": "NEEDS-MANUAL-CHECK",
-  "captures": [],
-  "note": "Own-key success path: no real keys on the rig."
- },
- {
-  "step": "B3",
-  "verdict": "NOT TESTED",
-  "captures": [],
-  "note": "Operator present."
- },
- {
-  "step": "Gatekeeper",
-  "verdict": "NEEDS-MANUAL-CHECK",
-  "captures": [],
-  "note": "gh download carries no quarantine flag."
- }
+  {
+    "step": "A1",
+    "verdict": "PASS",
+    "captures": ["A-local/01-terms.png"],
+    "note": "Terms dialog shown on fresh profile; 'I understand \u2014 continue' accepted via return."
+  },
+  {
+    "step": "A2",
+    "verdict": "PASS",
+    "captures": ["A-local/02-choose.png"],
+    "note": "Three choices shown; On this computer tagged Recommended."
+  },
+  {
+    "step": "A3",
+    "verdict": "PARTIAL",
+    "captures": [
+      "A-local/03-local-models.png",
+      "A-local/03b-local-models-tall.png",
+      "A-local/03c-focus-download.png"
+    ],
+    "note": "RAM/disk line, Granite 3B + Qwen 4B (Recommended) both 'Runs well here', Apache 2.0 licence; rows 3-4 below scroll fold not seen; Ollama models listed (F1); low-memory warning on 16 GB (F2); dialog clipped at 832pt (F4)."
+  },
+  {
+    "step": "A4",
+    "verdict": "PASS",
+    "captures": ["A-local/04-downloading.png", "A-local/04b-focus-continue.png"],
+    "note": "'Downloading \u2014 1% \u00b7 about 2 min left', bar, Continue (clipped, reached by keyboard)."
+  },
+  {
+    "step": "A5",
+    "verdict": "PASS",
+    "captures": [
+      "A-local/05-tour-1.png",
+      "A-local/06-tour-4.png",
+      "A-local/07-tour-try-it.png",
+      "A-local/08-strip-downloading.png",
+      "A-local/09-strip-progress.png"
+    ],
+    "note": "Tour 4 cards, Try it says still downloading (11%), Got it; strip 'Downloading Qwen 3.5 4B \u2014 11% \u00b7 26 MB/s \u00b7 about 2 min left' + Pause."
+  },
+  {
+    "step": "A6",
+    "verdict": "PARTIAL",
+    "captures": ["A-local/10-before-quit.png", "A-local/11-relaunch-ready.png"],
+    "note": "Quit at 76% (.part 2133735015 B = 77.8%), all processes exited; relaunch auto-resumed from .part (not 0), finished, verified, llama-server loaded with no click; no terms/wizard. Resuming/verifying/starting strip states not captured (900 s rig gate); chip still 'NOT RUNNING \u2014 SET UP IN SETTINGS' after engine loaded (F3)."
+  },
+  {
+    "step": "A7",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present: rig exit 3 mid-batch at 21:18:52 IST; question likely not submitted (composer coordinate off after window reset); no agent call logged."
+  },
+  {
+    "step": "A8",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present; kill never fired."
+  },
+  {
+    "step": "A9",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present."
+  },
+  {
+    "step": "A10",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present; profile A app still running (pids 33963 33986 34005 35208), profile not wiped."
+  },
+  {
+    "step": "C1",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present; profile C never launched."
+  },
+  {
+    "step": "C2",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present."
+  },
+  {
+    "step": "C3",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present."
+  },
+  {
+    "step": "C4",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present."
+  },
+  {
+    "step": "B1",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present; profile B never launched."
+  },
+  {
+    "step": "B2",
+    "verdict": "NEEDS-MANUAL-CHECK",
+    "captures": [],
+    "note": "Own-key success path: no real keys on the rig."
+  },
+  {
+    "step": "B3",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present."
+  },
+  {
+    "step": "Gatekeeper",
+    "verdict": "NEEDS-MANUAL-CHECK",
+    "captures": [],
+    "note": "gh download carries no quarantine flag."
+  }
 ]
