@@ -74,6 +74,10 @@ jobs:
         run: node scripts/smoke-test-sidecars.mjs
 
       - name: Build Tauri bundle (unsigned)
+        env:
+          # Linux: linuxdeploy resolves llama-server's staged shared libs
+          # (libllama-server-impl.so, ggml) through the loader path.
+          LD_LIBRARY_PATH: ${{ matrix.os == 'ubuntu-latest' && format('{0}/src-tauri/llama-libs/x86_64-unknown-linux-gnu', github.workspace) || '' }}
         run: pnpm tauri build
 
       - name: Smoke-test bundled llama-server (macOS)

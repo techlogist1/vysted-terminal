@@ -218,6 +218,10 @@ jobs:
           # (e.g. .relr.dyn) emitted by a newer toolchain than it was built
           # against — a known cause of a bare "failed to run linuxdeploy".
           NO_STRIP: true
+          # llama-server links libllama-server-impl.so and the ggml libs staged
+          # here; linuxdeploy resolves ELF deps through the loader path, so
+          # without this it stops at "Could not find dependency".
+          LD_LIBRARY_PATH: ${{ github.workspace }}/src-tauri/llama-libs/x86_64-unknown-linux-gnu
         run: |
           pnpm tauri build --bundles appimage --config '{"bundle":{"createUpdaterArtifacts":true}}' --verbose
 
