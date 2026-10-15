@@ -1082,3 +1082,15 @@ Recorded here at the operator's instruction. These are operator decisions alread
 - Order after the rc1 tag: push, hygiene prune, version-branch merge, handover; then lows integration as one combined candidate (all three partitions rebased onto the tag off-lane, conflicts resolved, one chain run and one fresh verifier; bisect by partition only if the chain is red) with the GUI round in parallel on the rig and docs promotion as results land; then the clean-profile production bundle, r15-rc2, exactly one final adversarial pass under the same bar (criticals and highs closed in one round, mediums and lows filed for 0.9.1), and r15-launch on that head.
 - The handover is refreshed at each tag; the operator briefing and the 0.9.1 backlog (the filed mediums and lows, BL-03, BL-18, the tier-4 bucket) are written before the launch tag.
 - Estimates: measured wall-clock is recorded beside each estimate at each tag and the remainder re-derived from measured durations only. The message cites a "pacing change 6" that was not on disk at acknowledgement time; steady mode (pacing change 5B) continues to apply until it arrives.
+
+## 7. R16 (0.10.0 "Easy Install") decisions
+
+### 7.1 Tier-3: Qwen 3.5 4B is the recommended on-computer model on every memory tier, including 32 GB
+
+**What.** `recommendedByTier` in the local-model catalog names `qwen3.5-4b` for under-8 GB, 8 GB, 16 GB and 32 GB. The rc2 certifier (finding M2) pointed out that on the 32 GB tier the 9B model ties the 4B at 32k context on clean trials and invents fewer figures.
+
+**Why.** The ranking rule from the brief is tool-use correctness and no invented figures first, speed second. Pooled clean trials: Qwen 4B 29/36 (5 trials with an invented figure), Granite 3B 26/36 (6), Qwen 9B 18/24 (1), Granite 8B 16/24 (3). Qwen 4B has the best clean rate. The 9B's single invented figure is one trial out of 24, against five of 36 for the 4B, so the 9B is better on that axis. But it failed 5 of 24 trials with "no text and no tool call", which leaves the user with an empty answer. It also generates at about 15 tok/s against 19 to 21 for the 4B, and downloads 5.7 GB against 2.7 GB. Measured: 16 GB hardware at 32k and 16k context. Inferred, not measured: the 8 GB tier (24k), the 32 GB tier (64k) and under-8 GB hardware.
+
+**Recommendation.** Keep 4B everywhere for 0.10.0. Re-measure the 9B on a 32 GB machine at 64k for 0.10.1.
+
+**Undo.** Set `recommendedByTier["32gb"]` to `qwen3.5-9b` in `sidecar/services/local_models/catalog.json` and update the matching catalog test.
