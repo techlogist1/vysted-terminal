@@ -117,14 +117,29 @@ describe("needsStage", () => {
 });
 
 describe("copyWindowsCrtRuntime", () => {
-  it("warns and skips without throwing when staging the Windows triple off Windows", () => {
-    expect(process.platform).not.toBe("win32"); // this suite only runs on macOS/Linux CI
+  const onWindows = process.platform === "win32";
+
+  it.skipIf(onWindows)(
+    "warns and skips without throwing when staging the Windows triple off Windows",
+    () => {
+      const dir = mkdtempSync(join(tmpdir(), "llama-crt-"));
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+      expect(() => copyWindowsCrtRuntime(dir)).not.toThrow();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("non-Windows host"));
+      expect(readdirSync(dir)).toHaveLength(0);
+      warnSpy.mockRestore();
+      rmSync(dir, { recursive: true, force: true });
+    },
+  );
+
+  it.runIf(onWindows)("stages all three VC++ runtime DLLs app-local on Windows", () => {
     const dir = mkdtempSync(join(tmpdir(), "llama-crt-"));
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    expect(() => copyWindowsCrtRuntime(dir)).not.toThrow();
-    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("non-Windows host"));
-    expect(readdirSync(dir)).toHaveLength(0);
-    warnSpy.mockRestore();
+    copyWindowsCrtRuntime(dir);
+    expect(
+      readdirSync(dir)
+        .map((f) => f.toLowerCase())
+        .sort(),
+    ).toEqual(["msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll"]);
     rmSync(dir, { recursive: true, force: true });
   });
 });
