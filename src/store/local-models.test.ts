@@ -86,7 +86,12 @@ beforeEach(() => {
   engine.start.mockResolvedValue(ready);
   engine.stop.mockResolvedValue({ ...ready, state: "stopped", port: null });
   engine.refresh.mockResolvedValue(ready);
-  useLocalModelsStore.setState({ downloads: {}, installed: [], activeModelId: null });
+  useLocalModelsStore.setState({
+    downloads: {},
+    installed: [],
+    activeModelId: null,
+    catalog: null,
+  });
   useAppStore.setState({ sidecarStatus: "connecting" });
   useLLMProvidersStore.setState({ defaultProviderId: "ollama" });
   useModelSelectionStore.setState({ overrides: {} });
@@ -147,6 +152,25 @@ describe("local-models store", () => {
     expect(useModelSelectionStore.getState().modelFor("local")).toBe("qwen");
   });
 
+  it.each([
+    ["under-8gb", 16384],
+    ["8gb", 24576],
+    ["16gb", 32768],
+    ["32gb", 65536],
+  ] as const)("a %s machine starts the engine with -c %i", async (tier, ctxSize) => {
+    api.catalog.mockResolvedValue({ models: [], recommendedId: null, tier, reason: "" });
+    await useLocalModelsStore.getState().refresh();
+    useLocalModelsStore.setState({ installed: [qwen] });
+    await useLocalModelsStore.getState().activate("qwen");
+    expect(engine.start).toHaveBeenCalledWith({ modelPath: qwen.path, modelId: "qwen", ctxSize });
+  });
+
+  it("an unknown tier leaves the context size to the engine's default", async () => {
+    useLocalModelsStore.setState({ installed: [qwen] });
+    await useLocalModelsStore.getState().activate("qwen");
+    expect(engine.start.mock.calls[0][0].ctxSize).toBeUndefined();
+  });
+
   it("activate leaves the choice unsaved when the engine start fails", async () => {
     useLocalModelsStore.setState({ installed: [qwen] });
     const failed = { ...ready, state: "failed", port: null, error: "out of memory" };
@@ -192,7 +216,11 @@ describe("local-models store", () => {
     expect(engine.start).not.toHaveBeenCalled();
     useAppStore.setState({ sidecarStatus: "connected" });
     await vi.waitFor(() => expect(engine.start).toHaveBeenCalledTimes(1));
-    expect(engine.start).toHaveBeenCalledWith({ modelPath: qwen.path, modelId: "qwen" });
+    expect(engine.start).toHaveBeenCalledWith({
+      modelPath: qwen.path,
+      modelId: "qwen",
+      ctxSize: 32768,
+    });
     expect(api.download).toHaveBeenCalledTimes(1);
     expect(api.download).toHaveBeenCalledWith("big");
     // A later reconnect re-loads but does not start or resume again.
