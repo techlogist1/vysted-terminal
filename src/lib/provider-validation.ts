@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 
 import { extractSidecarDetail, getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useAppStore } from "@/store/app";
+import { useLocalEngineStore } from "@/store/local-engine";
 
 export type ProviderReason = "invalid" | "not_configured" | "unreachable" | "model_not_pulled";
 
@@ -104,13 +105,28 @@ export async function validateProvider(
 // keyless default lane usable?"). The answer is cached at module level so
 // re-mounts never hammer the sidecar: a positive holds for 5 minutes, a negative
 // re-probes after 30 s (so starting Ollama heals the chrome without a restart).
-const PROBE_TTL_OK_MS = 300_000;
-const PROBE_TTL_FAIL_MS = 30_000;
+// Provider `local` also re-probes whenever the engine's state reaches the sidecar.
+export const PROBE_TTL_OK_MS = 300_000;
+export const PROBE_TTL_FAIL_MS = 30_000;
 const probeCache = new Map<string, { result: ProviderValidation; at: number }>();
+// Bumped on every drop, so a probe already in flight cannot write a stale answer back.
+let probeGeneration = 0;
+let lastLocalSync = 0;
 
 /** Test seam — clears the module-level probe cache between tests. */
 export function __resetProviderProbeCacheForTests(): void {
   probeCache.clear();
+  probeGeneration += 1;
+  lastLocalSync = 0;
+}
+
+function dropProvider(provider: string): void {
+  for (const key of probeCache.keys()) {
+    if (key.startsWith(probeKey(provider, ""))) {
+      probeCache.delete(key);
+    }
+  }
+  probeGeneration += 1;
 }
 
 function probeKey(provider: string, model: string | null | undefined): string {
@@ -122,12 +138,19 @@ export function cachedReadiness(
   provider: string,
   model?: string | null,
 ): ProviderValidation | undefined {
+  return msUntilExpiry(provider, model) > 0
+    ? probeCache.get(probeKey(provider, model))?.result
+    : undefined;
+}
+
+/** Milliseconds a cached probe stays fresh (0 = none or expired). */
+function msUntilExpiry(provider: string, model: string | null | undefined): number {
   const cached = probeCache.get(probeKey(provider, model));
   if (!cached) {
-    return undefined;
+    return 0;
   }
   const ttl = cached.result.ok ? PROBE_TTL_OK_MS : PROBE_TTL_FAIL_MS;
-  return Date.now() - cached.at < ttl ? cached.result : undefined;
+  return Math.max(0, cached.at + ttl - Date.now());
 }
 
 /** Validate a keyless lane through the cache (a fresh entry is served as-is). */
@@ -139,8 +162,11 @@ export async function probeReadiness(
   if (fresh) {
     return fresh;
   }
+  const generation = probeGeneration;
   const result = await validateProvider(provider, { model });
-  probeCache.set(probeKey(provider, model), { result, at: Date.now() });
+  if (generation === probeGeneration) {
+    probeCache.set(probeKey(provider, model), { result, at: Date.now() });
+  }
   return result;
 }
 
@@ -148,7 +174,9 @@ export async function probeReadiness(
  * Readiness of a keyless lane, probed fire-and-forget so the caller renders at
  * once. `null` = not known yet (or not a keyless lane). The sidecar status is a
  * dependency: a probe that failed while the engine was still binding re-runs
- * once it connects.
+ * once it connects. An entry re-probes when its TTL lapses, and for provider
+ * `local` each confirmed engine sync drops the cached answer and re-probes (so
+ * a model finishing loading heals at once, and a crash downgrades at once).
  */
 export function useKeylessReadiness(
   provider: string | null | undefined,
@@ -156,22 +184,35 @@ export function useKeylessReadiness(
   keyless: boolean,
 ): ProviderValidation | null {
   const sidecarStatus = useAppStore((state) => state.sidecarStatus);
-  const [, setTick] = useState(0);
+  const localSync = useLocalEngineStore((state) => (provider === "local" ? state.syncCount : 0));
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    if (!provider || !keyless || cachedReadiness(provider, model)) {
+    if (!provider || !keyless) {
       return;
     }
+    if (provider === "local" && localSync !== lastLocalSync) {
+      lastLocalSync = localSync;
+      dropProvider("local");
+    }
     let cancelled = false;
-    void probeReadiness(provider, model).then(() => {
+    const rerender = () => {
       if (!cancelled) {
         setTick((t) => t + 1);
       }
-    });
+    };
+    const fresh = msUntilExpiry(provider, model);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (fresh > 0) {
+      timer = setTimeout(rerender, fresh);
+    } else {
+      void probeReadiness(provider, model).then(rerender);
+    }
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
-  }, [provider, model, keyless, sidecarStatus]);
+  }, [provider, model, keyless, sidecarStatus, localSync, tick]);
 
   if (!provider || !keyless) {
     return null;
