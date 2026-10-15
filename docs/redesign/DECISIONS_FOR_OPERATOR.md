@@ -8,12 +8,12 @@ recommendation, and how to undo it in one step.
 
 0.10.0 is tagged `v0.10.0` on `main` and its draft release carries every artifact and `SHA256SUMS.txt`. Nothing is published. The run report is `docs/redesign/verification/R16_RUN_REPORT.md`. Nothing from this run is running on this Mac.
 
-1. **Your Mac walk.** Use the dmg from the `v0.10.0` draft, so macOS quarantines it the way a stranger's download would. Follow `docs/HAND_TESTING_GUIDE.md` on a second macOS user account, or after `scripts/fresh-profile.sh launch <app>`. The GUI round stopped when it saw you at the keyboard (21:18 IST, 15 Oct). It proved terms, the three-way choice, the model list, the download, the tour, and the quit at 78% followed by an automatic resume on relaunch. Still yours, in this order:
+1. **Your Mac walk.** Use the dmg from the `v0.10.0` draft, so macOS quarantines it the way a stranger's download would. Follow `docs/HAND_TESTING_GUIDE.md` on a second macOS user account, or after `scripts/fresh-profile.sh launch <app>`. Both GUI rounds stopped when they saw you at the keyboard (21:18 and 23:02 IST, 15 Oct; see 7.2). It proved terms, the three-way choice, the model list, the download, the tour, and the quit at 78% followed by an automatic resume on relaunch. Still yours, in this order:
    - **Gatekeeper's first-open prompt.** A gh download carries no quarantine flag, so the rig never saw it.
    - **The first answer.** On "On this computer", ask "How has Reliance Industries done over the past year?" and check that the answer shows tool steps.
    - **The three fixes made after the round, before the tag:**
      - **F3:** the header chip reads ready once the model is loaded, and the setup banner goes away.
-     - **F4:** on the default window size, the model step scrolls down to its Download and Continue buttons.
+     - **F4:** already confirmed on screen by round 2: the model step scrolls at the default window size.
      - **F7:** quit mid-download, relaunch, and check that "Your on-computer model is ready" offers the example question.
    - **The engine crash.** While an answer streams, end `llama-server` in Activity Monitor. The answer should end with "stopped while answering… restarts on its own" and asking again should work.
    - **Settings → Models:** the installed model shows as in use.
@@ -1123,3 +1123,11 @@ Recorded here at the operator's instruction. These are operator decisions alread
 **Recommendation.** Keep 4B everywhere for 0.10.0. Re-measure the 9B on a 32 GB machine at 64k for 0.10.1.
 
 **Undo.** Set `recommendedByTier["32gb"]` to `qwen3.5-9b` in `sidecar/services/local_models/catalog.json` and update the matching catalog test.
+
+### 7.2 Record: v0.10.0 tagged without the full GUI round (no decision asked)
+
+**What.** The brief's v0.10.0 gate asks for one GUI round through every first-run path, a first answer, quit and relaunch, the Models page and the update prompt. Two rounds ran, on beta.4 at 17:47 and on the v0.10.0 draft at 22:48, and each stopped on the rig's presence check, at 21:18 and 23:02. Proven on screen: terms, the three-way choice, the model list with fit labels and licence, the download, the tour, the quit at 78% followed by an automatic resume and engine start on relaunch, and the F4 fix. Not on screen: the first answer, the engine crash, the Models page, the skip and own-key paths, the update prompt, and the F3 and F7 fixes (unit-tested).
+
+**Why it was tagged anyway.** Only you can publish, and §0 puts your Mac walk before Publish, with every missing step listed there. A tag on a draft ships nothing.
+
+**Undo.** If the walk fails, do not publish. Fix it on a branch and cut 0.10.1. The `v0.10.0` draft can be deleted, and the tag stays as history.

@@ -1,0 +1,58 @@
+[
+  {
+    "step": "A1",
+    "verdict": "PASS",
+    "captures": [
+      "A-local/01-terms.png",
+      "A-local/02-choose.png",
+      "A-local/03-models-default-size.png",
+      "A-local/04-focus-download-default-size.png",
+      "A-local/05-downloading.png",
+      "A-local/06-focus-continue.png",
+      "A-local/07-tour-1.png",
+      "A-local/08-tour-4.png",
+      "A-local/09-tour-try-it.png",
+      "A-local/10-strip-downloading.png"
+    ],
+    "note": "F4 fixed: dialog capped and scrolls at 1280x832; Continue scrolls into view; Download focus does not scroll fully into view (R2-F1, low). Download started, tour done, Got it."
+  },
+  {
+    "step": "A2",
+    "verdict": "NOT TESTED",
+    "captures": ["A-local/11-wait-30s.png", "A-local/11-wait-60s.png"],
+    "note": "Operator present (rig exit 3 at 23:02:31). Log shows model loaded + PUT /local-models/engine 200 at 23:02:58; F3 ready-state UI not captured."
+  },
+  { "step": "A3", "verdict": "NOT TESTED", "captures": [], "note": "Operator present." },
+  {
+    "step": "A4",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present; no kill sent."
+  },
+  { "step": "A5", "verdict": "NOT TESTED", "captures": [], "note": "Operator present." },
+  {
+    "step": "A6",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present; profile A still running (44265 44283 44285 44288 44289, llama-server 45333), not wiped."
+  },
+  {
+    "step": "C1",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present; profile C never launched."
+  },
+  { "step": "C2", "verdict": "NOT TESTED", "captures": [], "note": "Operator present." },
+  {
+    "step": "B1",
+    "verdict": "NOT TESTED",
+    "captures": [],
+    "note": "Operator present; profile B never launched."
+  },
+  {
+    "step": "B2",
+    "verdict": "NEEDS-MANUAL-CHECK",
+    "captures": [],
+    "note": "No real keys on the rig."
+  }
+]
