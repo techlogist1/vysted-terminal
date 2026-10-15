@@ -584,6 +584,9 @@ class OpenAIProvider(LLMProvider):
             return None
         return parsed
 
+    def _api_messages(self, messages: list[LLMMessage]) -> list[dict[str, Any]]:
+        return _to_api_messages(messages)
+
     async def stream_chat(
         self,
         messages: list[LLMMessage],
@@ -596,7 +599,7 @@ class OpenAIProvider(LLMProvider):
         # ``web_search_max_uses`` is Anthropic-only; pop it so it never reaches
         # the OpenAI/xAI SDK (the runtime caps these providers loop-side).
         kwargs.pop("web_search_max_uses", None)
-        api_messages = _to_api_messages(messages)
+        api_messages = self._api_messages(messages)
         request_kwargs: dict[str, Any] = {
             "model": model,
             "messages": api_messages,
