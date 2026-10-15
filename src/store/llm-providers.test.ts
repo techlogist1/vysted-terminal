@@ -48,3 +48,19 @@ describe("orderedProviders (R15-UI-087)", () => {
     expect(ids).toEqual(["groq", "anthropic", ...rest]);
   });
 });
+
+describe("first-run default (R16 wizard-first-run)", () => {
+  it("a never-configured profile defaults to the on-computer lane, never Ollama", () => {
+    expect(useLLMProvidersStore.getInitialState().defaultProviderId).toBe("local");
+  });
+
+  it("a key saved while the fresh local default is not set up becomes the default", async () => {
+    useLLMProvidersStore.setState({ providers: DEFAULT_PROVIDERS, defaultProviderId: "local" });
+    probeMock.mockReset();
+    probeMock.mockResolvedValue({ ok: false, reason: "not_configured", detail: null });
+    await expect(useLLMProvidersStore.getState().promoteKeyedProvider("openrouter")).resolves.toBe(
+      true,
+    );
+    expect(useLLMProvidersStore.getState().defaultProviderId).toBe("openrouter");
+  });
+});
