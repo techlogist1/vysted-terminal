@@ -34,6 +34,7 @@ from routers import (
     history,
     indicators,
     llm,
+    local_models,
     macro,
     mcp,
     news,
@@ -97,6 +98,7 @@ _ROUTERS = (
     search_status,
     search_tiers,
     system,
+    local_models,
 )
 
 _log = logging.getLogger(__name__)
@@ -323,7 +325,7 @@ class _OriginGuardMiddleware:
 
 def create_app() -> FastAPI:
     """Build and return a fully wired sidecar FastAPI application."""
-    app = FastAPI(title="Vysted Terminal Sidecar", version="0.9.0", lifespan=_lifespan)
+    app = FastAPI(title="Vysted Terminal Sidecar", version="0.10.0", lifespan=_lifespan)
 
     # Shared pooled outbound-HTTP client for routes that fetch external sources
     # (currently the news provider). Created at build time so TestClient builds

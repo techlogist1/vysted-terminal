@@ -74,7 +74,70 @@ jobs:
         run: node scripts/smoke-test-sidecars.mjs
 
       - name: Build Tauri bundle (unsigned)
+        env:
+          # Linux: linuxdeploy resolves llama-server's staged shared libs
+          # (libllama-server-impl.so, ggml) through the loader path.
+          LD_LIBRARY_PATH: ${{ matrix.os == 'ubuntu-latest' && format('{0}/src-tauri/llama-libs/x86_64-unknown-linux-gnu', github.workspace) || '' }}
         run: pnpm tauri build
+
+      - name: Smoke-test bundled llama-server (macOS)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="$(find src-tauri/target/release/bundle/macos -maxdepth 1 -name '*.app' | head -1)"
+          "$APP/Contents/MacOS/llama-server" --version
+
+      - name: Smoke-test bundled llama-server (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          set -euo pipefail
+          APPIMAGE="$(find src-tauri/target/release/bundle/appimage -maxdepth 1 -name '*.AppImage' | head -1)"
+          chmod +x "$APPIMAGE"
+          "$APPIMAGE" --appimage-extract
+          LLAMA_BIN="$(realpath "$(find squashfs-root -type f -name 'llama-server' | head -1)")"
+          LLAMA_LIB_DIR="$(realpath "$(find squashfs-root -type d -name 'llama-libs' | head -1)")"
+          LD_LIBRARY_PATH="$LLAMA_LIB_DIR" "$LLAMA_BIN" --version
+          # The CPU backend is a dlopen'ed libggml-cpu-<variant>.so that ggml only finds
+          # in the exe's dir or the CWD; the app spawns with CWD = llama-libs, so do the
+          # same and assert a variant was actually dlopen'ed. --list-devices omits CPU and ggml's
+          # own load line is below the default log level, so ask glibc (LD_DEBUG) what it loaded.
+          OUT="$(cd "$LLAMA_LIB_DIR" && LD_DEBUG=files LD_LIBRARY_PATH="$LLAMA_LIB_DIR" "$LLAMA_BIN" --list-devices 2>&1)"
+          grep -E 'libggml-cpu-[a-z0-9_]+\.so .*dynamically loaded|Available devices' <<<"$OUT" || true
+          # The bundle path contains a space ("usr/lib/Vysted Terminal"), so match from the name.
+          grep -qE 'libggml-cpu-[a-z0-9_]+\.so \[[0-9]+\]; +dynamically loaded' <<<"$OUT"
+
+      - name: Smoke-test bundled llama-server (Windows)
+        if: matrix.os == 'windows-latest'
+        timeout-minutes: 15
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $nsis = Get-ChildItem src-tauri/target/release/bundle/nsis -Filter '*-setup.exe' | Select-Object -First 1
+          $instdir = Join-Path $env:RUNNER_TEMP 'llama-smoke'
+          Write-Host "installing $($nsis.FullName) -> $instdir"
+          $p = Start-Process -FilePath $nsis.FullName -ArgumentList '/S', "/D=$instdir" -PassThru
+          if (-not $p.WaitForExit(300000)) {
+            # A silent install that never returns would also stall the Windows
+            # auto-updater (it runs the same installer): show what it is waiting on.
+            Write-Host "installer still running after 300 s; process tree:"
+            Get-CimInstance Win32_Process | Select-Object ProcessId, ParentProcessId, Name, CommandLine | Format-Table -AutoSize -Wrap | Out-String -Width 400 | Write-Host
+            Stop-Process -Id $p.Id -Force
+            throw 'silent NSIS install did not finish'
+          }
+          Write-Host "installer exit code $($p.ExitCode)"
+          Get-ChildItem $instdir | Select-Object Name, Length | Format-Table -AutoSize | Out-String | Write-Host
+          $exe = Join-Path $instdir 'llama-server.exe'
+          $out = Join-Path $env:RUNNER_TEMP 'llama-version.txt'
+          $l = Start-Process -FilePath $exe -ArgumentList '--version' -PassThru -NoNewWindow -RedirectStandardError $out
+          if (-not $l.WaitForExit(60000)) {
+            Stop-Process -Id $l.Id -Force
+            Get-Content $out | Write-Host
+            throw 'llama-server --version did not exit within 60 s'
+          }
+          Get-Content $out | Write-Host
+          if ($l.ExitCode -ne 0) { throw "llama-server --version exited $($l.ExitCode)" }
 
       - name: Upload bundle artifacts
         uses: actions/upload-artifact@v4

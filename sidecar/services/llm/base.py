@@ -52,8 +52,13 @@ LLMStreamEvent = (
 CONNECT_TIMEOUT_S = 10.0
 #: The longest silence between stream bytes from a hosted provider.
 IDLE_TIMEOUT_S = 180.0
-#: The same for a local Ollama server, which may be loading the model.
+#: The same for a model on this computer, which may be loading or slow to read
+#: a long prompt.
 LOCAL_IDLE_TIMEOUT_S = 300.0
+
+#: Keyless providers whose model runs on this computer: Ollama and the bundled
+#: llama.cpp engine (``local``). They get the local timeouts and the no-key path.
+ON_DEVICE_PROVIDERS = frozenset({"ollama", "local"})
 
 
 def client_timeout(idle: float = IDLE_TIMEOUT_S) -> httpx.Timeout:

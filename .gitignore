@@ -13,6 +13,7 @@ next-env.d.ts
 *.tsbuildinfo
 src-tauri/target/
 src-tauri/binaries/
+src-tauri/llama-libs/
 sidecar/build/
 sidecar/dist/
 sidecar/openbb_mcp_subprocess/build/
@@ -65,5 +66,7 @@ dev-keystore.json
 # run brief and machine-level evidence (process tables, account balances).
 docs/redesign/verification/R15_BRIEF*.md
 docs/redesign/verification/r15/local/
+docs/redesign/verification/R16_BRIEF*.md
+docs/redesign/verification/r16/local/
 Claude outputs/
 coverage/

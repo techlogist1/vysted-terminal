@@ -87,7 +87,10 @@ interface LLMProvidersState {
 
 export const useLLMProvidersStore = create<LLMProvidersState>((set, get) => ({
   providers: DEFAULT_PROVIDERS,
-  defaultProviderId: "ollama",
+  // A never-configured profile starts on the bundled on-computer lane: its
+  // not_configured answer opens setup (or starts an installed model), never an
+  // Ollama instruction. A restored workspace blob still wins.
+  defaultProviderId: "local",
   setDefaultProviderId: (id) => set({ defaultProviderId: id }),
   promoteKeyedProvider: async (id) => {
     const { defaultProviderId, providers } = get();

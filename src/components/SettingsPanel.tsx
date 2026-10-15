@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
+import { ModelsSection } from "@/components/settings/ModelsSection";
 import { formatModelLabel } from "@/components/StatusChrome";
 import { DEFAULT_REGION, type Region, REGIONS, regionConfig } from "@/lib/region";
 import { cn } from "@/lib/utils";
@@ -126,6 +127,14 @@ export const SettingsPanel: FunctionComponent = () => {
             <SectionNav />
           </header>
           <ProvidersSection />
+          <section aria-labelledby="settings-models">
+            <SectionHeader
+              id="settings-models"
+              title="Models"
+              hint="Add, switch and remove the AI models that run on this computer. They work without internet and cost nothing."
+            />
+            <ModelsSection />
+          </section>
           <ResearchSection />
           <RegionSection />
           <KeybindingsSection />
@@ -146,6 +155,7 @@ const ICON_14 = "size-3.5"; // tokens-ok: the law's 14px icon step inside 28/32p
 
 const SECTION_NAV: { id: string; label: string; short: string }[] = [
   { id: "settings-providers", label: "AI Providers", short: "Providers" },
+  { id: "settings-models", label: "Models", short: "Models" },
   { id: "settings-research", label: "Research", short: "Research" },
   { id: "settings-region", label: "Region & locale", short: "Region" },
   { id: "settings-keybindings", label: "Keybindings", short: "Keys" },
@@ -159,8 +169,8 @@ const SECTION_NAV: { id: string; label: string; short: string }[] = [
  * Thresholds = the MEASURED chip-row widths (text-micro uppercase JetBrains
  * Mono, h-6, px-3, gap-2 — full row 578px, short row ≈432px) + slack.
  */
-const NAV_FULL_MIN_W = 592;
-const NAV_SHORT_MIN_W = 440;
+const NAV_FULL_MIN_W = 672;
+const NAV_SHORT_MIN_W = 520;
 
 /** Smooth-scroll one section head into view. */
 function jumpToSection(id: string) {
@@ -1321,10 +1331,13 @@ function ResearchTierGroup() {
       <TierCard
         selected={researchTier === "tier_a"}
         name="Unlimited (Local)"
-        description="Private local search via SearXNG, paired with your active chat model. Unmetered and free — nothing leaves this machine but the pages it fetches."
+        description="Searches the web from this computer and answers with your chat model. Free — no account or key needed."
         onSelect={() => setResearchTier("tier_a")}
       >
-        <SearxngManagedFlow />
+        <p className="text-charcoal-300 text-caption">
+          Works out of the box. Nothing to set up. When the free search is busy, answers can be
+          slower or less complete.
+        </p>
       </TierCard>
       <TierCard
         selected={researchTier === "tier_b"}
@@ -1338,6 +1351,47 @@ function ResearchTierGroup() {
   );
 }
 
+/**
+ * The only place Docker / SearXNG appear: a collapsed "Advanced" disclosure.
+ * The managed flow mounts only while open (a layperson's app never probes
+ * Docker). A user who already pointed Vysted at a SearXNG instance sees it
+ * open, so nothing they configured is hidden.
+ */
+function ResearchAdvanced() {
+  const configured = useSearchSettingsStore((s) => s.searxngUrl.trim() !== "");
+  const [open, setOpen] = useState(configured);
+  return (
+    <div>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="settings-research-advanced"
+        onClick={() => setOpen((v) => !v)}
+        className="text-charcoal-500 hover:text-charcoal-300 text-micro flex cursor-pointer items-center gap-1 select-none"
+      >
+        <ChevronDown
+          className={cn("size-3 transition-transform", !open && "-rotate-90")}
+          aria-hidden
+        />
+        Advanced search options
+      </button>
+      {open && (
+        <div id="settings-research-advanced" className="mt-3 flex flex-col gap-2">
+          <p className="text-charcoal-400 text-caption">
+            For power users: run your own private search server (SearXNG, needs Docker) for
+            unlimited searches. Vysted works fine without it.
+          </p>
+          <Card>
+            <div className="px-4 py-3">
+              <SearxngManagedFlow />
+            </div>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ResearchSection() {
   const { value: report, error: reportError } = useLiveSidecarRead(fetchHardwareReport);
 
@@ -1346,10 +1400,11 @@ function ResearchSection() {
       <SectionHeader
         id="settings-research"
         title="Research"
-        hint="Two ways to run research: unlimited private local search with your chat model, or a hosted research model on your own OpenRouter key."
+        hint="Free search from this computer by default, or a hosted research model on your own OpenRouter key."
       />
       <div className="flex flex-col gap-6">
         <ResearchTierGroup />
+        <ResearchAdvanced />
         <div>
           <GroupLabel
             label="Hardware & local models"

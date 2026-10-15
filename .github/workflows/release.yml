@@ -1,0 +1,287 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.10.0) — must already exist"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  determine-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - id: tag
+        shell: bash
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          TAG="${INPUT_TAG:-$REF_NAME}"
+          if ! [[ "$TAG" =~ ^v[0-9][0-9A-Za-z.-]*$ ]]; then
+            echo "not a release tag: $TAG" >&2
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+  build-macos:
+    needs: determine-tag
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine-tag.outputs.tag }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # GitHub's macos-latest image ships a non-standard Rust layout: every
+      # ~/.cargo/bin proxy is a symlink to `rustup`, which symlinks to the
+      # `rustup-init` binary. The tauri CLI can resolve `cargo` through that
+      # chain and invoke it in installer mode (`cargo metadata` -> rustup-init).
+      # Point CARGO and PATH straight at the real toolchain binary instead.
+      - name: Use the real rustup toolchain cargo (macOS)
+        shell: bash
+        run: |
+          toolchain_bin="$(dirname "$(rustup which cargo)")"
+          echo "CARGO=$toolchain_bin/cargo" >> "$GITHUB_ENV"
+          echo "$toolchain_bin" >> "$GITHUB_PATH"
+          "$toolchain_bin/cargo" --version
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all Python sidecar binaries
+        run: node scripts/ensure-all-sidecars.mjs
+
+      - name: Smoke-test sidecar binaries (catches PackageNotFoundError-at-runtime)
+        run: node scripts/smoke-test-sidecars.mjs
+
+      - name: Build Tauri bundle (macOS app + dmg, signed updater artifacts)
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          VYSTED_SKIP_DEV_SIGN: 1
+        run: |
+          pnpm tauri build --bundles app,dmg --config '{"bundle":{"createUpdaterArtifacts":true}}'
+
+      - name: Upload bundle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-bundle
+          path: src-tauri/target/release/bundle/**/*
+          if-no-files-found: error
+
+  build-windows:
+    needs: determine-tag
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine-tag.outputs.tag }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all Python sidecar binaries
+        run: node scripts/ensure-all-sidecars.mjs
+
+      - name: Smoke-test sidecar binaries (catches PackageNotFoundError-at-runtime)
+        run: node scripts/smoke-test-sidecars.mjs
+
+      - name: Build Tauri bundle (Windows NSIS, signed updater artifacts)
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          VYSTED_SKIP_DEV_SIGN: 1
+        run: |
+          pnpm tauri build --bundles nsis --config '{"bundle":{"createUpdaterArtifacts":true}}'
+
+      - name: Upload bundle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-bundle
+          path: src-tauri/target/release/bundle/**/*
+          if-no-files-found: error
+
+  build-linux:
+    needs: determine-tag
+    runs-on: ubuntu-22.04
+    # A red Linux build must never block the release — macOS + Windows are the
+    # supported, verified platforms; Linux ships best-effort.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine-tag.outputs.tag }}
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libgtk-3-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libssl-dev \
+            libfuse2
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all Python sidecar binaries
+        run: node scripts/ensure-all-sidecars.mjs
+
+      - name: Smoke-test sidecar binaries (catches PackageNotFoundError-at-runtime)
+        run: node scripts/smoke-test-sidecars.mjs
+
+      - name: Build Tauri bundle (Linux AppImage, signed updater artifacts)
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          VYSTED_SKIP_DEV_SIGN: 1
+          # ubuntu-22.04 ships libfuse3, not the libfuse2 AppImages (including
+          # linuxdeploy and its appimagetool plugin) are built against, and the
+          # hosted runner has no usable /dev/fuse either way — force every
+          # nested AppImage invocation to self-extract instead of FUSE-mounting.
+          APPIMAGE_EXTRACT_AND_RUN: 1
+          # Defends against linuxdeploy's bundled `strip` erroring on sections
+          # (e.g. .relr.dyn) emitted by a newer toolchain than it was built
+          # against — a known cause of a bare "failed to run linuxdeploy".
+          NO_STRIP: true
+          # llama-server links libllama-server-impl.so and the ggml libs staged
+          # here; linuxdeploy resolves ELF deps through the loader path, so
+          # without this it stops at "Could not find dependency".
+          LD_LIBRARY_PATH: ${{ github.workspace }}/src-tauri/llama-libs/x86_64-unknown-linux-gnu
+        run: |
+          pnpm tauri build --bundles appimage --config '{"bundle":{"createUpdaterArtifacts":true}}' --verbose
+
+      - name: Upload bundle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-bundle
+          path: src-tauri/target/release/bundle/**/*
+          if-no-files-found: warn
+
+  publish:
+    needs: [determine-tag, build-macos, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.determine-tag.outputs.tag }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: "*-bundle"
+
+      - name: Assemble release assets
+        run: |
+          node scripts/release/assemble-release.mjs \
+            --tag "${{ needs.determine-tag.outputs.tag }}" \
+            --artifacts-dir artifacts \
+            --out-dir release-assets
+
+      - name: Create or update the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ needs.determine-tag.outputs.tag }}"
+          VERSION="${TAG#v}"
+          NOTES_FILE="docs/RELEASE_NOTES_v${VERSION}.md"
+          if [ ! -f "$NOTES_FILE" ]; then
+            NOTES_FILE=""
+          fi
+          PRERELEASE=""
+          case "$VERSION" in *-*) PRERELEASE="--prerelease" ;; esac
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            # Never change an existing release's draft state (a re-run must not un-publish it);
+            # refresh the notes only while it is still a draft.
+            if [ -n "$NOTES_FILE" ] && [ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = "true" ]; then
+              gh release edit "$TAG" --notes-file "$NOTES_FILE"
+            fi
+          else
+            if [ -n "$NOTES_FILE" ]; then
+              gh release create "$TAG" --draft $PRERELEASE --title "$TAG" --notes-file "$NOTES_FILE"
+            else
+              gh release create "$TAG" --draft $PRERELEASE --title "$TAG" --notes "See release-assets/latest.json for build metadata."
+            fi
+          fi
+          gh release upload "$TAG" release-assets/* --clobber

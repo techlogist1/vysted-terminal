@@ -36,7 +36,7 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
-from services.errors import humanize, says_invalid_key
+from services.errors import LOCAL_STOPPED_ERROR, humanize, says_invalid_key
 
 #: The sentinel lives in ``base`` (every adapter stamps it); re-exported here
 #: for the runtime's existing ``from services.llm.openai import`` path.
@@ -62,11 +62,12 @@ logger = logging.getLogger(__name__)
 #: assistant text — a ``{"name": ..., "arguments": {...}}`` JSON block in
 #: ``delta.content`` instead of the native ``tool_calls`` array. DeepSeek's
 #: documented text-fall-through is the canonical case; OpenRouter routes through
-#: many such models and Ollama's local models do the same. The content-leak
+#: many such models and the small models run on this computer (Ollama, the
+#: bundled ``local`` engine) do the same. The content-leak
 #: rescue (Step 2, ported from litellm's ``function_call_prompt`` round-trip as
 #: original code) is GATED to this set so a chatty-but-correct OpenAI/Anthropic
 #: model that merely *describes* a tool in prose never mis-fires a real call.
-_CONTENT_LEAK_PROVIDERS = frozenset({"deepseek", "openrouter", "ollama"})
+_CONTENT_LEAK_PROVIDERS = frozenset({"deepseek", "openrouter", "ollama", "local"})
 
 #: Transport retry budget for the streaming request (Step 3, ported from the
 #: vercel/ai ``retry-with-exponential-backoff.ts`` pattern as original code).
@@ -583,6 +584,9 @@ class OpenAIProvider(LLMProvider):
             return None
         return parsed
 
+    def _api_messages(self, messages: list[LLMMessage]) -> list[dict[str, Any]]:
+        return _to_api_messages(messages)
+
     async def stream_chat(
         self,
         messages: list[LLMMessage],
@@ -595,7 +599,7 @@ class OpenAIProvider(LLMProvider):
         # ``web_search_max_uses`` is Anthropic-only; pop it so it never reaches
         # the OpenAI/xAI SDK (the runtime caps these providers loop-side).
         kwargs.pop("web_search_max_uses", None)
-        api_messages = _to_api_messages(messages)
+        api_messages = self._api_messages(messages)
         request_kwargs: dict[str, Any] = {
             "model": model,
             "messages": api_messages,
@@ -690,7 +694,10 @@ class OpenAIProvider(LLMProvider):
             # content all come out as thinking events.
             splitter = ReasoningSplitter()
             async for chunk in stream:
-                served_model = getattr(chunk, "model", None) or served_model
+                # llama-server names the model by its file path on disk: never
+                # surface that, the requested id is the one that answered.
+                if self._provider_id != "local":
+                    served_model = getattr(chunk, "model", None) or served_model
                 # Some providers (DeepSeek, occasionally OpenAI) emit a
                 # terminal chunk with no choices but populated usage. Guard
                 # both branches independently.
@@ -790,8 +797,11 @@ class OpenAIProvider(LLMProvider):
             # A stream that ended with no finish_reason and no tool call never
             # finished (a cut socket, a 200 non-SSE body, empty choices): do not
             # fabricate a clean ``done`` for it — the consumer reports the
-            # missing terminator (R15-AGENT-026).
+            # missing terminator (R15-AGENT-026). On this computer that is the
+            # engine dying mid-answer, which says so plainly.
             if finish_reason is None and not emitted_tool_events:
+                if self._provider_id == "local":
+                    yield LOCAL_STOPPED_ERROR.to_event()
                 return
             metered = [u for u in repairs if u is not None]
             if metered:

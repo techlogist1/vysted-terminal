@@ -145,10 +145,11 @@ describe("AgentBuilderPanel", () => {
     }
     // R15-UI-003: the provider dropdown reads the LIVE catalog
     // (`useLLMProvidersStore`, `DEFAULT_PROVIDERS` fallback) — which, unlike
-    // the old static `KNOWN_PROVIDER_IDS` array, also carries "openrouter".
+    // the old static `KNOWN_PROVIDER_IDS` array, also carries "openrouter" and
+    // the bundled on-computer engine "local" (R16).
     const select = screen.getByLabelText("Default provider") as HTMLSelectElement;
     const options = Array.from(select.options).map((o) => o.value);
-    expect(options).toEqual([...KNOWN_PROVIDER_IDS, "openrouter"]);
+    expect(options).toEqual([...KNOWN_PROVIDER_IDS, "openrouter", "local"]);
   });
 
   it("surfaces field errors when submitted empty", async () => {

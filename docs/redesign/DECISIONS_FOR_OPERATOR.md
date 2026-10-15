@@ -1,10 +1,39 @@
-# Decisions for the operator (R15)
+# Decisions for the operator (R15, R16)
 
 Things R15 did that reverse a standing rule of yours, or that are yours alone to decide
 (Tier-4). Newest concerns at the top of each section. Each entry: what, why, my
 recommendation, and how to undo it in one step.
 
-## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026; updated 21:45 IST 4 Oct after the LEAD-145 fix round; closed out by the operator 14:52 IST Tue 6 Oct; r15-launch at `dd0670fb`, code == `9f6bd4be`, which carries the fix; r15-rc2 stays at `1fddb2b1`)
+## 0. Start here — R16 (0.10.0), your steps in order
+
+0.10.0 is tagged `v0.10.0` on `main` and its draft release carries every artifact and `SHA256SUMS.txt`. Nothing is published. The run report is `docs/redesign/verification/R16_RUN_REPORT.md`. Nothing from this run is running on this Mac.
+
+1. **Your Mac walk.** Use the dmg from the `v0.10.0` draft, so macOS quarantines it the way a stranger's download would. Follow `docs/HAND_TESTING_GUIDE.md` on a second macOS user account, or after `scripts/fresh-profile.sh launch <app>`. The GUI round stopped when it saw you at the keyboard (21:18 IST, 15 Oct). It proved terms, the three-way choice, the model list, the download, the tour, and the quit at 78% followed by an automatic resume on relaunch. Still yours, in this order:
+   - **Gatekeeper's first-open prompt.** A gh download carries no quarantine flag, so the rig never saw it.
+   - **The first answer.** On "On this computer", ask "How has Reliance Industries done over the past year?" and check that the answer shows tool steps.
+   - **The three fixes made after the round, before the tag:**
+     - **F3:** the header chip reads ready once the model is loaded, and the setup banner goes away.
+     - **F4:** on the default window size, the model step scrolls down to its Download and Continue buttons.
+     - **F7:** quit mid-download, relaunch, and check that "Your on-computer model is ready" offers the example question.
+   - **The engine crash.** While an answer streams, end `llama-server` in Activity Monitor. The answer should end with "stopped while answering… restarts on its own" and asking again should work.
+   - **Settings → Models:** the installed model shows as in use.
+   - **"Skip for now".** The tour's keyless example opens RELIANCE.NS in the chart, and a chat message opens setup, with no Ollama text.
+   - **"My own API key".** Save a real key, then check that Back leads to Skip.
+   - **The update prompt.** Only possible after you publish (step 3), when 0.10.1 exists; the updater ignores drafts and prereleases.
+2. **The Windows run on the ROG.** Use the paste-ready resume prompt in the run-state header (`docs/redesign/verification/vysted-r16-run-state.md`) and the checklist in `docs/WINDOWS_MANUAL_CHECK.md`. That covers SmartScreen, the installer, the wizard, the Vulkan-or-CPU engine and its GPU measurement, the default model, uninstall, and the R15 Windows items.
+3. **Publish.** On GitHub, open the `v0.10.0` draft, check the notes against `docs/RELEASE_NOTES_v0.10.0.md`, untick "pre-release" if it is ticked, and click Publish. Publishing does three things:
+   - the README's stable download links (`releases/latest/download/...`) start working;
+   - the in-app updater begins to see 0.10.0 and later;
+   - 0.9.0 users must install by hand once, as the release notes say.
+
+**Read, no action needed:**
+
+- 7.1: Qwen 3.5 4B is the recommended model on every tier, including 32 GB.
+- The 0.10.1 backlog: `docs/redesign/BACKLOG_0.10.1.md`.
+
+## 0b. R15 close-out (superseded by §0; kept for the record)
+
+R15 close-out, priority order (01:30 IST Sun 4 Oct 2026; updated 21:45 IST 4 Oct after the LEAD-145 fix round; closed out by the operator 14:52 IST Tue 6 Oct; r15-launch at `dd0670fb`, code == `9f6bd4be`, which carries the fix; r15-rc2 stays at `1fddb2b1`)
 
 **Session closed (6 Oct).** The rig activation fix is done and tested (`scripts/rig/rig.py`; 7a07c82f, 8fc82619, d1d6632d). The GUI round of brief 2 step 2 — the six parked scenarios, UI-022, LIFECYCLE-008's Copy diagnostics click, the on-screen 0.8.0 to 0.9.0 upgrade — is **optional and pending** at the moved tag; the paste-ready resume prompt with its presence prerequisites is in the run-state header (`docs/redesign/verification/vysted-r15-run-state.md`). Your next steps, in order: the hand-test from `docs/HAND_TESTING_GUIDE.md` including a true first run on a second macOS user account; the commercial contact address; then merge, the v0.9.0 tag, signing, rebuild and swap the dmg on the draft, publish; Windows on the ROG. Nothing is running on this Mac.
 
@@ -1082,3 +1111,15 @@ Recorded here at the operator's instruction. These are operator decisions alread
 - Order after the rc1 tag: push, hygiene prune, version-branch merge, handover; then lows integration as one combined candidate (all three partitions rebased onto the tag off-lane, conflicts resolved, one chain run and one fresh verifier; bisect by partition only if the chain is red) with the GUI round in parallel on the rig and docs promotion as results land; then the clean-profile production bundle, r15-rc2, exactly one final adversarial pass under the same bar (criticals and highs closed in one round, mediums and lows filed for 0.9.1), and r15-launch on that head.
 - The handover is refreshed at each tag; the operator briefing and the 0.9.1 backlog (the filed mediums and lows, BL-03, BL-18, the tier-4 bucket) are written before the launch tag.
 - Estimates: measured wall-clock is recorded beside each estimate at each tag and the remainder re-derived from measured durations only. The message cites a "pacing change 6" that was not on disk at acknowledgement time; steady mode (pacing change 5B) continues to apply until it arrives.
+
+## 7. R16 (0.10.0 "Easy Install") decisions
+
+### 7.1 Tier-3: Qwen 3.5 4B is the recommended on-computer model on every memory tier, including 32 GB
+
+**What.** `recommendedByTier` in the local-model catalog names `qwen3.5-4b` for under-8 GB, 8 GB, 16 GB and 32 GB. The rc2 certifier (finding M2) pointed out that on the 32 GB tier the 9B model ties the 4B at 32k context on clean trials and invents fewer figures.
+
+**Why.** The ranking rule from the brief is tool-use correctness and no invented figures first, speed second. Pooled clean trials: Qwen 4B 29/36 (5 trials with an invented figure), Granite 3B 26/36 (6), Qwen 9B 18/24 (1), Granite 8B 16/24 (3). Qwen 4B has the best clean rate. The 9B's single invented figure is one trial out of 24, against five of 36 for the 4B, so the 9B is better on that axis. But it failed 5 of 24 trials with "no text and no tool call", which leaves the user with an empty answer. It also generates at about 15 tok/s against 19 to 21 for the 4B, and downloads 5.7 GB against 2.7 GB. Measured: 16 GB hardware at 32k and 16k context. Inferred, not measured: the 8 GB tier (24k), the 32 GB tier (64k) and under-8 GB hardware.
+
+**Recommendation.** Keep 4B everywhere for 0.10.0. Re-measure the 9B on a 32 GB machine at 64k for 0.10.1.
+
+**Undo.** Set `recommendedByTier["32gb"]` to `qwen3.5-9b` in `sidecar/services/local_models/catalog.json` and update the matching catalog test.

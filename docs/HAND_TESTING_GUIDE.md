@@ -1,4 +1,154 @@
-# Hand-testing guide - Vysted Terminal 0.9.0
+# Hand-testing guide - Vysted Terminal 0.10.0
+
+Two parts. Part R16 is new for 0.10.0 "Easy Install" and comes first: it is a walk on your Mac, from a Mac profile that has never run Vysted, through install, the first-run wizard, a model download, an example question and an update. Part 0.9.0 further down is the older tour; it still applies where a feature still exists. Nothing here needs the source tree except `scripts/fresh-profile.sh`, which you run from a checkout of this repository.
+
+Every expected behaviour in Part R16 ends with the code path it was read from, in parentheses. Where a path says "unit test only", nobody has watched it happen in the packaged app.
+
+## Part R16 - the 0.10.0 Mac walk
+
+Allow about 90 minutes, most of it waiting for downloads. You need: an Apple Silicon Mac, about 7 GB of free disk space, an internet connection, a real API key for one provider (for the "own key" path), and a checkout of this repository for `scripts/fresh-profile.sh`.
+
+### R16-0. Get the dmg and check it
+
+1. Download from the draft release (visible only to repo writers until you publish): `gh release download v0.10.0 --repo techlogist1/vysted-terminal --pattern 'Vysted-Terminal-macOS-AppleSilicon.dmg' --pattern 'SHA256SUMS.txt'`. After you publish, the same files are at `https://github.com/techlogist1/vysted-terminal/releases/latest/download/Vysted-Terminal-macOS-AppleSilicon.dmg` and `.../SHA256SUMS.txt`.
+2. Compare `shasum -a 256 Vysted-Terminal-macOS-AppleSilicon.dmg` with the matching line in `SHA256SUMS.txt`. Expected: identical. (The release job writes both; the rc1 run matched them: `docs/redesign/verification/r16/rc1/RC1_PROOF.md`.)
+
+### R16-1. Install and Open Anyway
+
+1. Open the dmg. Expected: a window with the app, an Applications shortcut, and a note about the first open. Drag the app to Applications. (dmg layout: `RC1_PROOF.md`.)
+2. Open Vysted Terminal once from Applications. Expected: macOS says it cannot verify the app. The build is not code-signed, by decision. Click Done.
+3. System Settings, Privacy & Security, scroll to the Vysted Terminal notice, click **Open Anyway**, confirm. Right-click then Open no longer works on macOS 15 and later.
+4. If macOS says the app is damaged instead, run: `xattr -dr com.apple.quarantine "/Applications/Vysted Terminal.app"` and open it again.
+5. After you confirm, the app starts once on your normal profile. Quit it with Cmd-Q. The walk uses a separate, never-run profile from here on.
+
+### R16-2. Start a never-run profile
+
+From the repository checkout:
+
+```sh
+scripts/fresh-profile.sh launch "/Applications/Vysted Terminal.app"
+```
+
+Expected: it prints `profile_dir=`, `service=`, `pid=` and `log=`. Keep the `profile_dir`. The app runs from a new empty folder with its own keychain items, so it behaves like a first install. Your real data and your real keychain entries are never read or changed (`scripts/fresh-profile.sh`, `src-tauri/src/keychain.rs` `service_for`). The log is `<profile_dir>/launch.log`; the app's own log is `<profile_dir>/logs/vysted.log`.
+
+The first start can take a few minutes while the bundled data engine unpacks (see 1a in Part 0.9.0). If the wizard says "Getting things ready — the first launch takes about a minute.", wait; it is the same wait (`src/store/local-models.ts` `WARMING_UP`).
+
+To start over at any point: quit the app, then `scripts/fresh-profile.sh wipe <profile_dir>` (deletes the folder, its downloaded models and its keychain items), then launch again. To relaunch the same profile without wiping, pass the folder: `scripts/fresh-profile.sh launch "/Applications/Vysted Terminal.app" <profile_dir>`.
+
+### R16-3. Terms
+
+Expected: a dialog titled "Welcome to Vysted" saying "Please review the terms before you start." with a button **I understand — continue**. Nothing else opens first. After the click the wizard appears. (`src/modules/safety/DisclaimerFlow.tsx`; the wizard waits for the acknowledgement in `src/components/OnboardingFlow.tsx`, `shouldOpen = tosAcked && ...`.)
+
+### R16-4. The three wizard paths
+
+The wizard asks **How should Vysted think?** It says prices, charts and news already work with no account, and offers three choices. It shows once per profile. Each path below needs its own never-run profile, so wipe and relaunch between them (R16-2). Run path A first, because it carries the download tests.
+
+**Path A - On this computer.**
+
+1. Click **On this computer**. Expected: a line "This computer: N GB RAM · N GB free space", then the four models: IBM Granite 4.2 3B, Qwen 3.5 4B, IBM Granite 4.2 8B, Qwen 3.5 9B. Each row shows a fit label (**Runs well here**, **Tight fit here** or **Too big for this computer**), what the model is for, its download size, how much free space it needs, and a link "Licence: Apache License 2.0". One row is tagged **Recommended**: Qwen 3.5 4B, at every memory size. (`src/components/onboarding/LocalStep.tsx`, `sidecar/services/local_models/catalog.py` `catalog_for`.)
+2. Click a licence link. Expected: it opens in your browser, not in the app window (`openExternal`, `LocalStep.tsx`). The licence is shown before any download starts.
+3. Click **Download <model name> (size)**. Expected: a notice "Downloading — N%" with time left, a thin progress bar, a **Continue →** button, and the line "We'll finish in the background — you can keep going. The bar at the top shows progress."
+4. Click **Continue →**. Expected: a short tour of four cards (the assistant, the chart, the watchlist, find anything), each with **Next →**, a "Skip the tour" link, then a last step headed "Try it". Because the model is not ready, the last step says "Your model is still downloading (N%) — we'll let you know when it's ready." and offers **Got it**. Click it. (`src/components/onboarding/TourStep.tsx`.)
+5. Look at the bar under the header. Expected: "Downloading <name> — N% · speed · time left" with a **Pause** button and a progress bar. (`src/components/LocalModelStrip.tsx`.)
+6. Pause test. Click **Pause** at some percentage. Expected: the bar changes to "The download of <name> is paused at N%." with **Resume**, **Use my own key** and **Cancel download**. The partial file is kept. Click **Resume**; it continues from N%, not from zero. (`LocalModelStrip.tsx` `isStalled`; `sidecar/services/local_models/store.py` `cancel` keeps the `.part` unless discarded, `_fetch` sends a Range header.)
+7. Relaunch test. While it downloads, quit with Cmd-Q. Relaunch the same profile (R16-2, with the folder). Expected: the wizard does not return, and the download comes back at about the percentage it had and carries on by itself. It may flash "paused at N%" first. (`OnboardingFlow.tsx` writes `onboarding-complete` when the tour starts; `src/store/local-models.ts` `initLocalModels` resumes each paused download once when the data engine connects; `store.py` `_scan` rebuilds `paused` from the `.part` and `.part.json`.)
+8. Let it finish. Expected, in order: "Checking <name>… almost done" (the sha256 check), then "Starting the on-computer model…", then **Your on-computer model is ready.** with a button **Ask: "How has Reliance Industries done over the past year?"**. (`LocalModelStrip.tsx`; `store.py` `_run`; the model is switched on automatically if none was active, `local-models.ts`.)
+9. Click the Ask button. Expected: the question goes to the assistant on the left and a tool-backed answer arrives. A small on-computer model is slow; wait. The known limitation for keyless local models (Part 0.9.0 section 2, item 4, and `RELEASE_NOTES.md`) applies: file only new shapes. (`src/components/onboarding/example.ts` `askAgent`.)
+
+**Path B - My own API key.**
+
+1. Click **My own API key**. Expected: a provider grid and a box "Paste your key" with **Check & save →**. Paste a real key. Expected: it is checked with the provider and saved. A wrong key says the provider "didn't accept that key"; with no internet it says "No internet connection. Connect and try again." (`src/components/onboarding/KeyStep.tsx`.)
+2. Expected: the tour, then a last step with "Ask your first question." and **Ask: "How has Reliance Industries done over the past year?"**. Click it. Expected: a tool-backed answer from the provider you chose. (`TourStep.tsx`, `path === "key"`.)
+3. The key is in the macOS keychain under the profile's own service name, not in a file. Check with `scripts/fresh-profile.sh service <profile_dir>`, then Keychain Access. Wiping the profile removes it. (`CLAUDE.md` Credentials; `scripts/fresh-profile.sh wipe`.)
+
+**Path C - Skip for now.**
+
+1. Click **Skip for now**. Expected: the tour, then a last step "See how Reliance Industries has done — no setup needed." with a button **Show Reliance on the chart**. Click it. Expected: RELIANCE.NS opens in the chart with daily bars and no key. (`TourStep.tsx` `path === "skip"`, `example.ts` `showChartExample`.) You can also open it yourself from the command palette; the tour's "Find anything" card names the shortcut.
+2. Expected: charts, prices and news work with no model and no key. Ask the assistant anything. The status line reads "No AI model is set up yet — opening setup. (Quotes, charts, news and screeners already work without one.)" and the wizard opens again, without the tour, so you can pick a path. (`src/modules/chat/ChatSidebar.tsx`, reason `not_configured`.)
+3. Settings can change the choice later: Settings, Models for on-computer models, Settings, AI Providers for keys. (`src/components/SettingsPanel.tsx`.)
+
+Every path has a way forward: each screen offers **Use my own key** or **Skip for now** if the model path fails.
+
+### R16-5. The Models page
+
+Settings, then **Models**. Expected: "This computer" with memory, free memory and free disk; the engine line ("Running on this computer: <name>."); "On this computer" with installed models (**In use** badge, remove asks "Remove for good?"); "Downloading"; "Add a model" with the four models and **Recommended for you** on one. If Ollama is running its models are listed too ("Vysted never needs Ollama."). (`src/components/settings/ModelsSection.tsx`.)
+
+### R16-6. Update check
+
+The app checks for an update 15 seconds after launch and every 6 hours. There is no "check now" button. (`src/components/UpdatePrompt.tsx` `FIRST_CHECK_MS`, `RECHECK_MS`.)
+
+1. On the published 0.10.0 build with nothing newer out, wait 20 seconds. Expected: nothing appears. A failed or empty check is silent. (`src-tauri/src/updater.rs` `update_check` answers `available: false` on any error.)
+2. To see the strip you need a newer signed build. Use scenario 4 below.
+
+## Four scenario checks
+
+### Scenario 1 - a download dies at about 80%, then relaunch
+
+Setup: start a download from the wizard or Settings, Models. At about 80% force-quit the app (Cmd-Option-Esc, Force Quit) or kill the process printed by `fresh-profile.sh`. For a clean look at the paused state, turn Wi-Fi off before the relaunch and turn it back on after.
+
+Expected:
+
+1. On disk, `<profile_dir>/models/<file>.gguf.part` and `<file>.gguf.part.json` remain, and no finished `.gguf` appears. (`store.py` writes the model file only by `os.replace` after the hash matches.)
+2. After the relaunch the model shows **paused at about 80%**: "The download of <name> is paused at N%." with **Resume**. With Wi-Fi off it stays paused, with the reason "No internet connection" (the app tries three times with growing waits, then pauses). (`store.py` `_scan` sets `paused` with "Download was interrupted — resume to continue"; `_run` pauses after `RETRIES = 3`; `_fetch` maps a connection error to `NO_INTERNET`.)
+3. With the network on, the app resumes by itself once, or you click **Resume**. It continues from about 80%, not from zero (HTTP Range with the stored etag). (`local-models.ts` `initLocalModels`; `store.py` `_fetch`.)
+4. At 100% the bar says "Checking <name>… almost done", then the model starts. The whole file is hashed first; a bad file is deleted and you see "The download was corrupted — try again", and the next try starts clean. The corrupt case is unit test only (`sidecar/tests/test_local_models.py`); to try it by hand, edit one byte of the `.part` file before the relaunch. (`store.py` `_run`, `CORRUPTED`.)
+
+### Scenario 2 - an 8 GB Mac with a browser open
+
+You need an 8 GB Mac for the real thing. On a bigger Mac you cannot reproduce the labels, but the Models page "This computer" line shows what the app measured.
+
+Expected on an 8 GB machine:
+
+1. The app puts it in the "8 GB" tier (a machine that reports 7.5 GiB or more counts as 8 GB). (`sidecar/services/local_models/hardware.py` `tier_for`.)
+2. Fit labels depend on **total** memory, not on what is free, so a browser being open does not change them. A model whose minimum memory is within 75 percent of total is **Runs well here**; up to 100 percent is **Tight fit here** (Models page: "A tight fit"); above that **Too big for this computer**. With the shipped catalog on an 8 GB Mac, IBM Granite 4.2 3B and Qwen 3.5 4B read "Tight fit here", and IBM Granite 4.2 8B and Qwen 3.5 9B read "Too big for this computer". The minimums are measured peak memory plus 1 GiB. (`catalog.py` `fits`; minimum memory values in `catalog.json`; the arithmetic is unit tested, the 8 GB result is derived, not watched.)
+3. The Recommended tag sits on Qwen 3.5 4B, which reads **Tight fit here**, so the yellow low-memory notice in step 4 shows even with nothing else open. Under 8 GB the wizard stops recommending **On this computer** and tags **My own API key** as Recommended instead. (`ChooseStep.tsx`.)
+4. With a browser and other apps open, free memory is low. If free memory is below what the chosen model needs, or the model is a tight fit, the wizard shows a yellow notice: "This computer is short on free memory for <name>. Closing your web browser and other apps before you ask a question will help. Or use your own key — then the thinking happens online, not on this computer." with **Use my own key instead**. It is advice, not a block. (`LocalStep.tsx` `lowRam`.)
+5. A too-big model cannot be downloaded: the button is disabled and the text says "<name> is too big for this computer — pick a smaller one." (`LocalStep.tsx`.)
+6. Expect slow answers. The engine's context size follows the tier (16384 under 8 GB, 24576 at 8 GB); asking a very long question can end with "The conversation is too long for the on-computer model. Start a new chat." (`src/lib/local-engine.ts` `CTX_SIZE_BY_TIER`; `sidecar/services/errors.py` `_humanize_local`.)
+7. Low disk: if free space is less than the model needs, the wizard says "Not enough space on this computer. <name> needs X free and there is Y. Free up space or pick a smaller model." with a button to pick a smaller one. The same check repeats every 256 MB during the download. (`LocalStep.tsx` `shortOnDisk`; `store.py` `DiskSpaceError`, `DISK_CHECK_EVERY`.)
+
+### Scenario 3 - the engine crashes mid-answer
+
+Setup: the on-computer model is ready. Ask a question that takes a while (the Reliance example). While the answer is streaming, in Terminal run `pgrep -fl llama-server` to confirm the process, then `pkill -9 -f llama-server`.
+
+Expected:
+
+1. The answer stops and ends with a plain message: "The on-computer model stopped while answering. It restarts on its own — send your question again in a few seconds." It does not blame your key or your network. (`sidecar/services/errors.py` `LOCAL_STOPPED_ERROR`, chosen in `_humanize_local` for a dropped connection. Unit tested; the live mid-answer kill is what you are checking.)
+2. The bar under the header reads "The on-computer model stopped unexpectedly — restarting it…", then "Starting the on-computer model…", then disappears when ready. The Settings, Models engine line shows a similar message. Restart waits are 1 second, then 4, then 10. (`LocalModelStrip.tsx`; `src-tauri/src/local_engine.rs` `on_crash`, `Timings::backoff`.)
+3. Ask again. If you ask while it is still starting, the status line says "The on-computer model is starting — send your question again in a moment." (`ChatSidebar.tsx`). Once it is ready, ask again. Expected: it works. No second `llama-server` is left over: `pgrep -fl llama-server` shows one process. (`local_engine.rs`; the live lifecycle test asserts the crashed child is gone.)
+4. Crash limit. Wait for "ready" each time (the bar disappears), then kill again. Count only kills made while the model was ready. The 1st, 2nd and 3rd crashes restart it. On the **4th crash within 10 minutes** it stays stopped. The bar shows "The on-computer model couldn't start. The on-computer model stopped 4 times in 10 minutes, so it won't restart on its own. Start it again when you're ready." with **Try again**, **Use a smaller model** and **Use my own key**. Settings, Models shows the same text and a **Try again** button. (`local_engine.rs` `MAX_CRASHES = 4`, `crash_window` 600 s; `LocalModelStrip.tsx` `engine.state === "failed"`; `ModelsSection.tsx`. The button is labelled "Try again", not "Start".)
+5. Click **Try again**. Expected: the engine starts fresh, the crash count is zero again, and the next question works. (`local_engine.rs` `start` clears the crash list.)
+6. If you kill it while it is still "Starting...", that is not a crash. The start fails with the engine's last message instead. Do not count that kill. (`local_engine.rs` `on_child_event`, `Starting` branch.)
+
+### Scenario 4 - an update arrives during a model download
+
+This needs a newer signed build to offer. Use the two beta builds, as the rc1 proof did (`RC1_PROOF.md`), or any two consecutive signed builds.
+
+Setup:
+
+1. Download the newer build's `latest.json` and its `Vysted-Terminal.app.tar.gz` (and `.sig`) into one folder, e.g. `gh release download v0.10.0-beta.2 --repo techlogist1/vysted-terminal --dir ~/update-test --pattern 'latest.json' --pattern '*.tar.gz*'` (the beta drafts must still exist; otherwise use two builds of your own).
+2. Serve it: `node scripts/release/serve-update.mjs --dir ~/update-test --rewrite`. It listens on `127.0.0.1:8787`.
+3. Copy the **older** app (from its dmg) to a folder you can write to, e.g. `~/update-test/older/`, because the update replaces the app in place.
+4. Launch it on a never-run profile with the test endpoint: `VYSTED_UPDATER_ENDPOINT=http://127.0.0.1:8787/latest.json scripts/fresh-profile.sh launch ~/update-test/older/"Vysted Terminal.app"`. Only `https://` or `http://127.0.0.1:<port>/` addresses are accepted; the signature is still checked against the app's own key, so an unsigned or foreign bundle is refused. (`src-tauri/src/updater.rs` `validate_endpoint`.)
+5. Get through the terms and wizard, choose **On this computer** and start a large download (Qwen 3.5 9B is the largest).
+
+Expected:
+
+1. About 15 seconds after launch a bar appears: "Vysted Terminal <version> is available." with **What's new** (the release notes), **Restart to update** and **Later**. (`UpdatePrompt.tsx`.)
+2. While the download is running (downloading or checking), the button reads **Update after the download finishes**. (`UpdatePrompt.tsx` `downloadActive`; `src/lib/updater.ts` `hasActiveModelDownload` counts only "downloading" and "verifying".)
+3. Click it. The button turns grey and reads "Updating after the download finishes…". Nothing is interrupted. Within about 5 seconds of the download ending the update downloads ("Downloading update… N%"), installs and the app relaunches. It does not install by itself unless you clicked first. (`UpdatePrompt.tsx` `waiting`, poll every `DOWNLOAD_POLL_MS`.)
+4. After the relaunch the app shows the new version and no update bar. If you saved an API key on this profile, macOS first asks for your login password to let the updated app read it (unsigned builds get a new code signature every update): enter it and click **Always Allow**. That prompt is expected, not a bug (seen on the rc1 self-update, 15 Oct). The model that finished is still installed and still the active one. (`RC1_PROOF.md`: the beta.1 to beta.2 update left no old process behind.)
+5. Interrupted case. Repeat from step 5 but, after you clicked the waiting button, turn Wi-Fi off. The download retries three times and then pauses, so it no longer counts as active and the update installs (the update itself comes from your own machine, so it still works). After the relaunch, turn Wi-Fi on. The paused download resumes by itself from where it stopped. (`updater.ts` ignores `paused`; `local-models.ts` `initLocalModels`; `store.py` `_scan`.)
+6. **Later** hides the bar until the next 6-hour check. Pressing **Pause** on a download also frees the update to install. (`UpdatePrompt.tsx` `later`; a cancelled download is not active.)
+7. If the install fails the bar says "The update could not be installed. Check your connection and try again." (`UpdatePrompt.tsx` `failed`.)
+
+## What to send back
+
+For each step: pass, fail, or "did not see it". For a fail, send the `launch.log` and `logs/vysted.log` from the profile folder, Settings, "Copy diagnostics", macOS version and memory size, and the step number. The rest of this guide's reporting advice (the last section of Part 0.9.0) applies unchanged.
+
+---
+
+## Part 0.9.0 - the earlier tour (Vysted Terminal 0.9.0)
 
 For someone coming back cold. Allow 45 to 60 minutes total: the three items in section 1 below (fresh install, the 0.8.0 upgrade, and the two owed GUI checks) come first because nobody has clicked through them yet — the final adversarial pass's GUI half was not tested at the launch head (`DECISIONS_FOR_OPERATOR.md` 5.15). Sections 2 and 3 are the rest of the tour, for when you have more time. Report what you find using the last section. Nothing here needs the source tree.
 

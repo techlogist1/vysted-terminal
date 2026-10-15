@@ -1,0 +1,18 @@
+{
+  "bundle": {
+    "macOS": {
+      "files": {
+        "MacOS/libllama-server-impl.dylib": "llama-libs/aarch64-apple-darwin/libllama-server-impl.dylib",
+        "MacOS/libllama-common.0.dylib": "llama-libs/aarch64-apple-darwin/libllama-common.0.dylib",
+        "MacOS/libmtmd.0.dylib": "llama-libs/aarch64-apple-darwin/libmtmd.0.dylib",
+        "MacOS/libllama.0.dylib": "llama-libs/aarch64-apple-darwin/libllama.0.dylib",
+        "MacOS/libggml.0.dylib": "llama-libs/aarch64-apple-darwin/libggml.0.dylib",
+        "MacOS/libggml-cpu.0.dylib": "llama-libs/aarch64-apple-darwin/libggml-cpu.0.dylib",
+        "MacOS/libggml-blas.0.dylib": "llama-libs/aarch64-apple-darwin/libggml-blas.0.dylib",
+        "MacOS/libggml-metal.0.dylib": "llama-libs/aarch64-apple-darwin/libggml-metal.0.dylib",
+        "MacOS/libggml-rpc.0.dylib": "llama-libs/aarch64-apple-darwin/libggml-rpc.0.dylib",
+        "MacOS/libggml-base.0.dylib": "llama-libs/aarch64-apple-darwin/libggml-base.0.dylib"
+      }
+    }
+  }
+}

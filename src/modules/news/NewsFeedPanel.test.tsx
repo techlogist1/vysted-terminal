@@ -243,9 +243,12 @@ describe("NewsFeedPanel", () => {
     await waitFor(() => {
       expect(screen.getByText("AAPL slumps after weak guidance")).toBeInTheDocument();
     });
-    expect(usePanelContextBus.getState().lastEventBySource.news?.payload).toMatchObject({
-      topHeadline: "NVDA shares climb on strong demand",
-      focusedHeadline: null,
+    // The bus publish runs in an effect after the list renders; wait for it, don't race it.
+    await waitFor(() => {
+      expect(usePanelContextBus.getState().lastEventBySource.news?.payload).toMatchObject({
+        topHeadline: "NVDA shares climb on strong demand",
+        focusedHeadline: null,
+      });
     });
 
     const row2 = screen.getByText("AAPL slumps after weak guidance").closest("a");

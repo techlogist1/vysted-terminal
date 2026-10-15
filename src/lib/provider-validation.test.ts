@@ -1,6 +1,14 @@
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { validateProvider, VALIDATION_TIMEOUT_MS } from "@/lib/provider-validation";
+import {
+  __resetProviderProbeCacheForTests,
+  PROBE_TTL_FAIL_MS,
+  useKeylessReadiness,
+  validateProvider,
+  VALIDATION_TIMEOUT_MS,
+} from "@/lib/provider-validation";
+import { useLocalEngineStore } from "@/store/local-engine";
 
 vi.mock("@/lib/sidecar-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/sidecar-client")>()),
@@ -101,5 +109,66 @@ describe("validateProvider (C4)", () => {
     const pending = validateProvider("openai", { apiKey: "sk-x", signal: controller.signal });
     controller.abort();
     await expect(pending).rejects.toThrow();
+  });
+});
+
+describe("useKeylessReadiness re-probes (F3)", () => {
+  const notReady = { ok: false, reason: "unreachable", detail: "engine not running" };
+  const ready = { ok: true, reason: null, detail: null };
+
+  async function flush() {
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+    __resetProviderProbeCacheForTests();
+    useLocalEngineStore.setState({ syncCount: 0 });
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it("re-probes a cached negative once its TTL lapses, with no prop change", async () => {
+    answer(200, notReady);
+    const { result } = renderHook(() => useKeylessReadiness("ollama", "qwen2.5:7b", true));
+    await flush();
+    expect(result.current?.ok).toBe(false);
+
+    answer(200, ready);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(PROBE_TTL_FAIL_MS);
+    });
+    await flush();
+    expect(result.current?.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("for provider local, a confirmed engine sync drops the cached negative and re-probes", async () => {
+    answer(200, notReady);
+    const { result } = renderHook(() => useKeylessReadiness("local", "qwen3.5-4b", true));
+    await flush();
+    expect(result.current?.ok).toBe(false);
+
+    answer(200, ready);
+    act(() => {
+      useLocalEngineStore.setState({ syncCount: 1 });
+    });
+    await flush();
+    expect(result.current?.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    // And the other way: an engine stop after ready downgrades at once.
+    answer(200, notReady);
+    act(() => {
+      useLocalEngineStore.setState({ syncCount: 2 });
+    });
+    await flush();
+    expect(result.current?.ok).toBe(false);
   });
 });

@@ -78,8 +78,10 @@ _LLM_CALL_TIMEOUT_SECS = 60.0
 #: research dispatch guard (deep 390 s / ultra 570 s) still bounds the run.
 _LOCAL_LLM_CALL_TIMEOUT_SECS = 150.0
 
-#: Providers that run on the user's own machine (the per-call cap scales up).
-_LOCAL_PROVIDERS = frozenset({"ollama"})
+#: Providers that run on the user's own machine (the per-call cap scales up):
+#: Ollama and the bundled engine (mirrors ``services.llm.base.ON_DEVICE_PROVIDERS``;
+#: not imported, this module stays import-light).
+_LOCAL_PROVIDERS = frozenset({"ollama", "local"})
 
 #: Reserved wall (seconds) for the ULTRA cross-check round — carved OUT of the
 #: profile wall so the heavy panel can never starve the verification round.

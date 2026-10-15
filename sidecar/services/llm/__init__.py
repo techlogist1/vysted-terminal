@@ -21,11 +21,12 @@ from __future__ import annotations
 import logging
 from typing import Any, cast
 
-from models.llm import LLMProviderId, LLMProviderInfo
+from models.llm import LLMMessage, LLMModelOption, LLMProviderId, LLMProviderInfo
 from services import model_registry
+from services.local_models import engine as local_engine
 
 from .anthropic import AnthropicProvider
-from .base import LLMProvider
+from .base import LOCAL_IDLE_TIMEOUT_S, LLMProvider, client_timeout
 from .gemini import GeminiProvider
 from .groq import GroqProvider
 from .ollama import OllamaProvider
@@ -63,6 +64,81 @@ PROVIDER_INFO: tuple[LLMProviderInfo, ...] = tuple(
 
 
 logger = logging.getLogger(__name__)
+
+#: llama-server takes no key, but the OpenAI SDK refuses to build without one.
+LOCAL_ENGINE_DUMMY_KEY = "local-engine"
+LOCAL_NOT_RUNNING = "The on-computer model isn't running"
+#: Real llama-server prompt tokens per runtime chars/4 estimated token, rounded up
+#: from the worst measured (R16 calibration, granite-4.2-3b, b11429): tool schemas
+#: 1.08, prose ~1.0, numeric tool-result JSON (price bars, statements, macro
+#: series) up to 1.9. Dividing ``n_ctx`` by it keeps the runtime's estimate plus
+#: its answer reserve under the engine's real context.
+LOCAL_TOKENS_PER_ESTIMATE = 2
+
+
+#: Prefix for a mid-run system note sent to the engine as a user turn.
+LOCAL_NOTE_PREFIX = "[Note from Vysted, not the user] "
+
+
+def single_leading_system(api_messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Qwen/Llama/Gemma/Mistral chat templates raise "System message must be at
+    the beginning." (llama-server HTTP 500) on any system turn but one leading
+    one: merge the leading run into one, and turn a later system note into a
+    labelled user turn at its own position."""
+    lead = 0
+    while lead < len(api_messages) and api_messages[lead]["role"] == "system":
+        lead += 1
+    rest = [
+        {"role": "user", "content": LOCAL_NOTE_PREFIX + (m["content"] or "")}
+        if m["role"] == "system"
+        else m
+        for m in api_messages[lead:]
+    ]
+    if not lead:
+        return rest
+    head = "\n\n".join(m["content"] for m in api_messages[:lead] if m["content"])
+    return [{"role": "system", "content": head}, *rest]
+
+
+class LocalEngineNotRunning(RuntimeError):
+    def __init__(self) -> None:
+        super().__init__(LOCAL_NOT_RUNNING)
+
+
+class LocalEngineProvider(OpenAIProvider):
+    """Provider ``local``: the bundled llama-server's OpenAI-compatible ``/v1``,
+    resolved from the engine port at call time (it moves on every restart)."""
+
+    def __init__(self) -> None:
+        super().__init__(base_url=local_engine.base_url(), provider_id="local")
+
+    def context_window(self, model: str) -> int | None:  # noqa: ARG002
+        """llama-server answers 400 past ``-c``: the window, in the runtime's
+        chars/4 estimate, that the engine's real context holds."""
+        return local_engine.n_ctx() // LOCAL_TOKENS_PER_ESTIMATE
+
+    def _api_messages(self, messages: list[LLMMessage]) -> list[dict[str, Any]]:
+        return single_leading_system(super()._api_messages(messages))
+
+    def _client(self, api_key: str | None) -> Any:
+        self._base_url = local_engine.base_url()
+        if self._base_url is None:
+            raise LocalEngineNotRunning()
+        # A model on this computer may sit silent for minutes reading a long
+        # prompt on a CPU: the local idle bound, not the hosted one.
+        return (
+            super()
+            ._client(api_key or LOCAL_ENGINE_DUMMY_KEY)
+            .with_options(timeout=client_timeout(LOCAL_IDLE_TIMEOUT_S))
+        )
+
+    async def validate_key(self, api_key: str | None = None) -> bool:
+        return await super().validate_key(api_key or LOCAL_ENGINE_DUMMY_KEY)
+
+    async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
+        active = local_engine.active_model_id()
+        return [LLMModelOption(id=active, label=active)] if active else []
+
 
 #: Option keys an adapter's ``stream_chat`` consumes (``**options``): provider
 #: tuning params + the runtime's web-search flags. The ONE allowlist for every
@@ -116,6 +192,10 @@ def get_provider(provider_id: LLMProviderId, base_url: str | None = None) -> LLM
         return GroqProvider(base_url=base_url)
     if provider_id == "ollama":
         return OllamaProvider(base_url=base_url)
+    if provider_id == "local":
+        # The URL comes only from the engine's port (PUT /local-models/engine),
+        # never from a request: a caller-supplied base_url is ignored.
+        return LocalEngineProvider()
     if provider_id in ("deepseek", "xai", "openrouter"):
         return OpenAIProvider(
             base_url=base_url or model_registry.default_base_url_for(provider_id),
@@ -126,6 +206,7 @@ def get_provider(provider_id: LLMProviderId, base_url: str | None = None) -> LLM
 
 __all__ = [
     "ADAPTER_OPTION_KEYS",
+    "LOCAL_NOT_RUNNING",
     "DEEPSEEK_BASE_URL",
     "OPENROUTER_BASE_URL",
     "PROVIDER_INFO",

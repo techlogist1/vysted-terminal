@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Vysted Terminal",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "identifier": "com.vysted.terminal",
   "build": {
     "frontendDist": "../out",
@@ -40,16 +40,32 @@
     "externalBin": [
       "binaries/vysted-sidecar",
       "binaries/vysted-openbb-mcp-sidecar",
-      "binaries/vysted-sec-edgar-mcp-sidecar"
+      "binaries/vysted-sec-edgar-mcp-sidecar",
+      "binaries/llama-server"
     ],
-    "createUpdaterArtifacts": false
+    "resources": {
+      "../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md",
+      "../LICENSE": "LICENSE"
+    },
+    "createUpdaterArtifacts": false,
+    "macOS": {
+      "dmg": {
+        "background": "dmg/background.png",
+        "windowSize": { "width": 660, "height": 400 },
+        "appPosition": { "x": 180, "y": 150 },
+        "applicationFolderPosition": { "x": 480, "y": 150 }
+      }
+    }
   },
   "plugins": {
     "updater": {
       "endpoints": [
         "https://github.com/techlogist1/vysted-terminal/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVFMzkyRTdGQTAzNUM1MTQKUldRVXhUV2dmeTQ1WHQ5WTFJVUV5VjIvVm8rNTdhTzJSaHllbGloTm9PWWcwbHBZazRKRHZZckQK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDg5RkYzOEY3NTI0NTUzRUQKUldUdFUwVlM5emovaVUrYkR0enpFRGg1Y3AyVER1OGE3KzhQNjRrUmVWc1BpNEJuNDdkZDVBQ3gK",
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }

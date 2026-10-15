@@ -1,15 +1,13 @@
 # Vysted Terminal
 
-Source-available, AI-native desktop finance terminal — Bloomberg-level data coverage,
-agent-assisted, **local-first**, and **bring-your-own-keys**. No account, no hosted
-backend, no telemetry: data and secrets stay on your machine.
+Vysted Terminal is a desktop app for looking at the markets. It shows prices, charts,
+news and company filings in one window, and it has an assistant you can ask in plain words,
+such as "How has Reliance Industries done over the past year?" The assistant looks up the
+numbers and shows where each one came from. Vysted runs on your own computer. You do not
+need an account, and there is no Vysted server that holds your data or your keys.
 
-> **Redesign in flight.** Vysted is being reframed into an **agent-native finance
-> workspace** — a hybrid of a dense pro command-station and an agent-first assistant
-> that drives the terminal for you. See **[`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md)**
-> for an honest inventory of what exists today and
-> **[`specs/001-agent-native-redesign/spec.md`](./specs/001-agent-native-redesign/spec.md)**
-> for where it's headed.
+Vysted is source-available under PolyForm Strict 1.0.0. It is a research tool. It has no
+trading of any kind, and nothing it shows is investment advice.
 
 <p align="center">
   <img src="docs/screenshots/v0.8.0/research-cockpit-hero.png" width="880"
@@ -20,95 +18,191 @@ backend, no telemetry: data and secrets stay on your machine.
 
 ---
 
-## Overview
+## Download
 
-Vysted Terminal is a Tauri desktop app with three cooperating processes on one machine
-(loopback only): a **Rust core** (windowing, OS keychain, sidecar lifecycle), a
-**Next.js static-export frontend** (the panel cockpit), and a **Python FastAPI sidecar**
-(data + AI compute), plus two bundled MCP subprocesses (OpenBB fundamentals/macro,
-SEC EDGAR filings).
+Pick the file for your computer. These links always point to the newest release.
 
-What's in the box today:
+- **Mac (Apple Silicon, M1 or newer):**
+  [Vysted-Terminal-macOS-AppleSilicon.dmg](https://github.com/techlogist1/vysted-terminal/releases/latest/download/Vysted-Terminal-macOS-AppleSilicon.dmg)
+- **Windows (64-bit):**
+  [Vysted-Terminal-Windows-x64-Setup.exe](https://github.com/techlogist1/vysted-terminal/releases/latest/download/Vysted-Terminal-Windows-x64-Setup.exe)
 
-- **A multi-panel cockpit** (dockview) — Chart (50 server-computed indicators + drawing
-  tools), Watchlist, News (RSS + optional NewsAPI, sentiment), Portfolio (manual tracked
-  holdings with P&L and CSV export), Equity Overview, plus Macro, SEC Filings, Earnings,
-  Analyst Ratings, Screener, Quant (QuantLib), Backtest, and a Node Editor / workflow
-  surface.
-- **An agentic AI copilot** — a real tool-use loop in the sidecar: the model calls
-  read/host-action tools to pull data and drive the terminal. 13 first-party agents
-  (a terminal-aware copilot + 12 investor personas) plus user-authored custom agents.
-- **BYOK across 7 LLM providers** (Anthropic, OpenAI, Gemini, Groq, Ollama, DeepSeek,
-  xAI). Keys live in the OS keychain and never persist to disk.
-- **A plugin platform** — one serializable `VystedPlugin` contract (six capabilities:
-  data, panels, commands, agents, nodes, control plane) so the terminal is extensible.
-- **MCP on both sides** — Vysted proxies bundled MCP data servers _and_ re-exposes its
-  own capabilities as MCP tools for external agents (Claude Desktop / Code).
+<!-- R16-LINUX -->
 
-**Honest status:** green on every machine-checkable gate (`pnpm ci-local`, 619 vitest,
-942 pytest, the Gate-8 no-trading-surface test) and broadly tested; **live UX and
-populated visuals are operator-verified, not CI-verified** (the harness can't drive the
-webview with real data). Vysted has no brokerage connection — it cannot place, stage or
-simulate an order. The app currently ships **unsigned with no release pipeline**, and
-version strings sit at `0.9.0` pending the launch tag. See
-[`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) for the full works/buggy/deferred map.
+- **Linux (64-bit, x86_64):**
+  [Vysted-Terminal-Linux-x86_64.AppImage](https://github.com/techlogist1/vysted-terminal/releases/latest/download/Vysted-Terminal-Linux-x86_64.AppImage)
+
+<!-- /R16-LINUX -->
+
+Intel Macs are not supported yet.
+
+To check that your download is intact, get
+[SHA256SUMS.txt](https://github.com/techlogist1/vysted-terminal/releases/latest/download/SHA256SUMS.txt)
+from the same place. It lists the expected checksum for each file. On a Mac, run
+`shasum -a 256 <file>` in Terminal. On Windows, run `certutil -hashfile <file> SHA256` in
+Command Prompt. The result should match the line for your file.
+
+## Install
+
+Vysted is not code-signed. Apple and Microsoft charge a yearly fee for signing, and Vysted
+does not pay it. This means your computer will warn you the first time you open the app. The
+warning is expected. Follow the steps for your system once. After that the app opens
+normally.
+
+### Mac
+
+1. Open the `.dmg` file. Drag **Vysted Terminal** onto **Applications**. The window itself
+   repeats the next steps.
+2. Open **Vysted Terminal** from Applications. macOS says it cannot verify the app. Click
+   **Done**. Do not move it to the Trash.
+3. Open **System Settings**, then **Privacy & Security**. Scroll down to the notice about
+   Vysted Terminal and click **Open Anyway**.
+4. Confirm. From now on the app opens like any other.
+
+On macOS 15 and later, right-click then Open no longer works for unsigned apps. Use
+**Open Anyway** as above.
+
+If macOS says the app is "damaged", the cause is a quarantine flag that macOS puts on
+downloaded files. The app is not broken. Open Terminal and run this once, then try again:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Vysted Terminal.app"
+```
+
+### Windows
+
+1. Run `Vysted-Terminal-Windows-x64-Setup.exe`. It installs for your user account only.
+2. Windows may show "Windows protected your PC". Click **More info**, then **Run anyway**.
+3. Finish the installer and open Vysted Terminal from the Start menu.
+
+<!-- R16-LINUX -->
+
+### Linux
+
+1. Make the file runnable. In a terminal: `chmod +x Vysted-Terminal-Linux-x86_64.AppImage`.
+2. Run it: `./Vysted-Terminal-Linux-x86_64.AppImage`.
+
+On Ubuntu 22.04 and newer, AppImages need a small helper package. Install it with
+`sudo apt install libfuse2`. On Ubuntu 24.04 the package is called `libfuse2t64`.
+
+<!-- /R16-LINUX -->
+
+The first launch takes a little longer than later ones, because the app unpacks its built-in
+data engine. Wait until the status chip shows that it is connected. No Python or other
+software needs to be installed first.
+
+## First run
+
+1. **Terms.** A short page explains what Vysted is and is not. Read it and click **I
+   understand — continue**.
+2. **How should Vysted think?** Prices, charts and news already work without any setup. This
+   question is only about the assistant. You have three choices:
+   - **On this computer.** Vysted downloads a free model and runs it here. Nothing you ask
+     leaves your machine. There is no key and no cost. Answers are slower than from an online
+     model.
+   - **My own API key.** You paste a key from a provider such as OpenRouter, OpenAI or
+     Anthropic. Answers are fastest. The provider charges you for use, usually cents per
+     question. The key is stored in your computer's keychain and is sent only to that
+     provider.
+   - **Skip for now.** Look around first. Charts and data still work without a key. You can
+     turn the assistant on later from Settings.
+3. **A short tour.** Four cards show the assistant, the chart, the watchlist, and the command
+   palette (Cmd+K on a Mac, Ctrl+K on Windows and Linux). The tour ends with an example. If you
+   chose a model or a key, it offers "How has Reliance Industries done over the past year?" If
+   you skipped, it offers **Show Reliance on the chart**, which opens `RELIANCE.NS` for you.
+
+Every path has a way forward. If something does not work, the app tells you what to do next.
+You can change your choice at any time in Settings.
+
+Web research works without a key. A private search engine (SearXNG, which needs Docker) is an
+optional extra under **Settings, Advanced**. You never need it.
+
+## Using a model on your computer
+
+Vysted ships with a small program (llama.cpp's `llama-server`, build b11429, MIT licence) that
+runs a model on your machine. The models themselves are downloaded when you ask for them, from
+the first-run question or from **Settings, Models**. Before a download starts, the page shows
+the model's licence. All four choices are Apache-2.0.
+
+| Model              | Download size |
+| ------------------ | ------------- |
+| IBM Granite 4.2 3B | about 2.1 GB  |
+| Qwen 3.5 4B        | about 2.6 GB  |
+| IBM Granite 4.2 8B | about 5.0 GB  |
+| Qwen 3.5 9B        | about 5.3 GB  |
+
+Vysted checks how much memory your computer has and recommends one model. The Models page
+marks each one "Runs well here", "A tight fit" or "Too big for this computer". The
+recommendation depends on memory size: under 8 GB, 8 GB, 16 GB, or 32 GB and more.
+
+Vysted recommends **Qwen 3.5 4B** at every memory size. On a 16 GB Mac it was the most reliable of the four at picking the right data tool without making up numbers: 29 of 36 test questions came out clean. It also runs on an 8 GB computer, where the app marks it a tight fit and suggests closing your browser first. The 16 GB recommendation was measured; the other sizes are inferred from the same results.
+
+On a computer with under 8 GB, a model is possible but tight, and an own key is usually the
+better choice.
+
+Downloads are built to survive bad connections:
+
+- If your connection drops, or you close and reopen the app, the download resumes where it
+  stopped.
+- Vysted checks free disk space before the download and again during it.
+- When the file is complete, Vysted verifies it against a known checksum before using it. If
+  the file is damaged, it is deleted and you are asked to try again.
+- If the model engine stops by accident, Vysted restarts it. After three restarts in ten
+  minutes it stops trying, tells you so, and offers **Try again**.
+
+If you already use Ollama, the models you have there are detected and can be used too.
+
+Small models can still word things loosely. Vysted checks the figures an answer states against
+what the data tools actually returned.
+
+## Updates
+
+Vysted checks for a new version 15 seconds after it starts, and every 6 hours after that. When
+one is found it shows the version and what changed. Click **Restart to update** when you are
+ready, or **Later**. If a model is still downloading, the button reads **Update after the
+download finishes** and waits. Updates are signature-checked with Vysted's own signing key
+before they are installed.
+
+Because the app is not code-signed, macOS sees each update as a new app. On a Mac where you
+saved an API key, the first start after an update asks for your login password so Vysted can
+read its own saved key again. Type your Mac password and click **Always Allow**. It asks again
+after each update, once for each saved key.
+
+## Privacy
+
+- There is no account and no Vysted server.
+- Your keys are stored in your computer's keychain. They are sent only to the provider they
+  belong to.
+- Your notes, watchlist and portfolio stay on your computer.
+- Nothing is sent anywhere except the data providers you query and the model provider you
+  choose. A model running on your computer sends nothing at all.
 
 ---
 
-## Powering the AI: keyless or one key
+## What is in the box
 
-Vysted works the moment you open it — **no account, no key, no setup.** Live quotes,
-charts, news, screeners, and web research (keyless, via DuckDuckGo) all run out of the
-box. A first-run flow then offers two ways to turn on the AI agent and deep research,
-and you can switch anytime from Settings:
+Vysted is a Tauri desktop app with three cooperating processes on one machine (loopback only):
+a **Rust core** (windowing, OS keychain, sidecar lifecycle), a **Vite + React frontend** (the
+panel cockpit), and a **Python FastAPI sidecar** (data and AI compute), plus bundled MCP
+subprocesses (OpenBB fundamentals and macro, SEC EDGAR filings) and the llama.cpp engine.
 
-<p align="center">
-  <img src="docs/screenshots/v0.8.0/onboarding-welcome.png" width="760"
-       alt="Vysted first-run: a dark welcome that explains the terminal already works keyless, then offers two paths — connect one OpenRouter key, or run a model locally." />
-</p>
+- **A multi-panel cockpit** (dockview): Chart (50 server-computed indicators and drawing
+  tools), Watchlist, News (RSS and optional NewsAPI, with sentiment), Portfolio (hand-kept
+  holdings with P&L and CSV export), Equity Overview, Macro, SEC Filings, Earnings, Analyst
+  Ratings, Screener, Quant (QuantLib), Backtest, and a Node Editor workflow surface.
+- **An agentic AI copilot**: a real tool-use loop in the sidecar. The model calls tools to
+  pull data and drive the terminal. It ships with first-party agents plus user-authored custom
+  agents.
+- **Bring-your-own-key** for several providers, or a free model on your own computer.
+- **A plugin platform**: one serializable `VystedPlugin` contract (data, panels, commands,
+  agents, nodes, control plane).
+- **MCP on both sides**: Vysted proxies bundled MCP data servers and re-exposes its own
+  capabilities as MCP tools for external agents.
 
-- **Private & free — a local model.** Vysted fit-scores your machine and sets up a model
-  that runs entirely on your computer through [Ollama](https://ollama.com) — no key, no
-  cost, fully offline. Slower and less capable than the cloud, but it never leaves your
-  machine.
-- **Most power — one OpenRouter key.** [OpenRouter](https://openrouter.ai/keys) is a
-  single key that brokers every top model (Claude, GPT, Gemini, DeepSeek, Kimi…). Add a
-  few dollars of credit; a typical research run costs only cents. The default is a fast,
-  cheap, non-thinking agentic model so research never stalls.
-
-Either way, **your keys live in the OS keychain — they never touch disk, and there is no
-Vysted server for them to reach.** The app only makes network calls to the data and LLM
-providers you configure.
-
----
-
-## Download & install (macOS, Apple Silicon)
-
-Grab the latest `.dmg` from the
-[Releases](https://github.com/techlogist1/vysted-terminal/releases) page (Apple Silicon /
-M-series — an Intel build isn't published yet), open it, and drag **Vysted Terminal** to
-Applications.
-
-Because the app is **source-available and unsigned** (no paid Apple Developer certificate),
-macOS Gatekeeper blocks it on first launch. To open it the first time:
-
-1. Double-click the app — macOS says it "cannot be opened." Click **Done** (do _not_ move
-   it to Trash).
-2. Open **System Settings → Privacy & Security**, scroll to the bottom, and click
-   **Open Anyway** next to the Vysted Terminal notice.
-3. Confirm **Open**. macOS remembers the choice — every later launch opens normally.
-
-> The old "right-click → Open" trick no longer works for unsigned apps on macOS 15
-> (Sequoia) and later — use **Open Anyway** above. From a terminal you can instead clear
-> the quarantine flag directly:
->
-> ```bash
-> xattr -dr com.apple.quarantine "/Applications/Vysted Terminal.app"
-> ```
-
-On first launch the app starts its local data/AI engine (a one-time ~30–90s warm-up while
-the bundled engine unpacks); the cockpit populates once it's ready. Everything runs on
-`127.0.0.1` — no Python or other runtime needs to be pre-installed.
+Vysted has no brokerage connection. It cannot place, stage or simulate an order. See
+[`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) for what works, what is buggy and what is
+deferred, and [`docs/RELEASE_NOTES_v0.10.0.md`](./docs/RELEASE_NOTES_v0.10.0.md) for this
+release.
 
 ---
 
@@ -152,7 +246,7 @@ node scripts/smoke-test-sidecars.mjs # spawn each sidecar binary, probe /health 
 
 | Path         | Contents                                                                    |
 | ------------ | --------------------------------------------------------------------------- |
-| `src/`       | Next.js 16 frontend (React 19, TypeScript, Tailwind 4, shadcn/ui)           |
+| `src/`       | Vite + React 19 frontend (TypeScript, Tailwind 4, shadcn/ui)                |
 | `src-tauri/` | Rust Tauri 2.x core — windowing, keychain, sidecar lifecycle, IPC           |
 | `sidecar/`   | Python 3.13 FastAPI sidecar (+ MCP subprocesses), bundled by PyInstaller    |
 | `types/`     | Shared TypeScript types; `plugin.ts` is the canonical plugin contract       |
@@ -168,7 +262,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-Source-available. Free for noncommercial use under
+Vysted Terminal is source-available. It is free for noncommercial use under
 [PolyForm Strict 1.0.0](./LICENSE). Commercial use, modification, or redistribution
 requires a paid license — see [`COMMERCIAL_LICENSE.md`](./COMMERCIAL_LICENSE.md) and
 [`LICENSING.md`](./LICENSING.md) for the plain-language summary. Every commit before the
@@ -178,8 +272,9 @@ contract and example plugin are separately licensed under
 
 ## Status
 
-Phases 0–10 merged to `main` (data layer, charting, AI copilot, node editor + backtest,
-agent-write safety, macro/research/QuantLib, integrations hub). Status for the
+**Version 0.10.0 ("Easy Install").** One-file installers for macOS, Windows and Linux, free
+models that run on your own computer, a first-run setup, and a built-in updater. See
+[`docs/RELEASE_NOTES_v0.10.0.md`](./docs/RELEASE_NOTES_v0.10.0.md). Status for the
 agent-native redesign — build phase, what's shipped vs still in flight — is
 tracked live in [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md), the
 current-state baseline; the original plan is

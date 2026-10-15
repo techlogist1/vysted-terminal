@@ -2,8 +2,10 @@
 #[macro_use]
 mod diag_log;
 mod keychain;
+mod local_engine;
 mod openbb_mcp;
 mod sec_edgar_mcp;
+mod updater;
 
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
@@ -223,13 +225,13 @@ pub(crate) fn wait_for_port_with_retries(
 /// Without it, the only way to isolate a rehearsal or a second profile was a
 /// full `$HOME` override — which WKWebView does not honour, leaking its cache
 /// into the real `~/Library/WebKit` and `~/Library/Caches`.
-const DATA_DIR_OVERRIDE_ENV: &str = "VYSTED_DATA_DIR";
+pub(crate) const DATA_DIR_OVERRIDE_ENV: &str = "VYSTED_DATA_DIR";
 
 /// Parse a `VYSTED_DATA_DIR` lookup into an override path: `Some` when the var
 /// is set to a non-blank value, `None` otherwise (falls back to the platform
 /// default). Takes the raw lookup result so it is unit-testable without
 /// touching the real process environment.
-fn parse_data_dir_override(raw: Result<String, std::env::VarError>) -> Option<String> {
+pub(crate) fn parse_data_dir_override(raw: Result<String, std::env::VarError>) -> Option<String> {
     match raw {
         Ok(value) if !value.trim().is_empty() => Some(value),
         _ => None,
@@ -704,6 +706,11 @@ pub fn run() {
             keychain::keychain_migrate,
             openbb_mcp::get_openbb_mcp_port,
             sec_edgar_mcp::get_sec_edgar_mcp_port,
+            local_engine::local_engine_start,
+            local_engine::local_engine_stop,
+            local_engine::local_engine_status,
+            updater::update_check,
+            updater::update_download_and_install,
         ])
         // macOS Layout menu CLICK handler. Registered on the BUILDER (not via
         // `app.on_menu_event` in setup, which rendered the items but never fired on
@@ -729,6 +736,7 @@ pub fn run() {
             // shows disconnected rather than panicking at boot.
             let port = pick_free_port().unwrap_or(0);
             app.manage(SidecarStatus::new(port));
+            local_engine::init(app.handle());
 
             // Boot the three children off the main thread so the window paints
             // at once (R15-LIFECYCLE-001): the MCP starts pick their ports, the
@@ -770,25 +778,38 @@ pub fn run() {
 
             Ok(())
         })
-        .build(tauri::generate_context!())
+        .build({
+            let mut context = tauri::generate_context!();
+            updater::allow_loopback_override(&mut context);
+            context
+        })
         .expect("error while building Vysted Terminal");
 
     app.run(|app_handle, event| {
         if let RunEvent::Exit = event {
-            if let Some(state) = app_handle.try_state::<SidecarProcess>() {
-                // Take the child in its own statement so the guard drops before kill().
-                let child = state.0.lock().unwrap().take();
-                if let Some(child) = child {
-                    let _ = child.kill();
-                }
-            }
-            // Reap the openbb-mcp subprocess alongside the main sidecar.
-            openbb_mcp::kill(app_handle);
-            // Reap the sec-edgar-mcp subprocess alongside the main sidecar.
-            sec_edgar_mcp::kill(app_handle);
-            clear_mcp_endpoint_file(&app_data_dir(app_handle).to_string_lossy());
+            teardown_children(app_handle);
         }
     });
+}
+
+/// Kill every child process and clear the MCP endpoint file. Runs on
+/// `RunEvent::Exit` and, on Windows, before the updater's installer exits the
+/// process directly (`std::process::exit`, which skips `RunEvent::Exit`).
+pub(crate) fn teardown_children(app_handle: &tauri::AppHandle) {
+    if let Some(state) = app_handle.try_state::<SidecarProcess>() {
+        // Take the child in its own statement so the guard drops before kill().
+        let child = state.0.lock().unwrap().take();
+        if let Some(child) = child {
+            let _ = child.kill();
+        }
+    }
+    // Reap the openbb-mcp subprocess alongside the main sidecar.
+    openbb_mcp::kill(app_handle);
+    // Reap the sec-edgar-mcp subprocess alongside the main sidecar.
+    sec_edgar_mcp::kill(app_handle);
+    // Reap the bundled llama-server (R16 local engine).
+    local_engine::kill(app_handle);
+    clear_mcp_endpoint_file(&app_data_dir(app_handle).to_string_lossy());
 }
 
 #[cfg(test)]

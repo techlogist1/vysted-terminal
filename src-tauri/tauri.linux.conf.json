@@ -1,0 +1,7 @@
+{
+  "bundle": {
+    "resources": {
+      "llama-libs/x86_64-unknown-linux-gnu/*": "llama-libs"
+    }
+  }
+}

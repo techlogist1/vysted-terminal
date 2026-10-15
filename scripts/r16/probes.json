@@ -1,0 +1,79 @@
+[
+  { "id": "probe-sify-ttm", "prompt": "What is SIFY's TTM revenue in USD?", "expect": {} },
+  {
+    "id": "probe-sify-ttm-cite",
+    "prompt": "What is SIFY's TTM revenue in USD? Cite the tool you got it from.",
+    "expect": {}
+  },
+  {
+    "id": "probe-suzlon-margin",
+    "prompt": "What is SUZLON.NS's operating margin? Cite the tool you got it from and quote what it returned.",
+    "expect": {}
+  },
+  {
+    "id": "probe-news-apple",
+    "prompt": "What is the latest news on Apple? Say where each item comes from.",
+    "region": "US",
+    "expect": {}
+  },
+  {
+    "id": "probe-uncalled-msft",
+    "prompt": "Without calling any tool, tell me what the price_data tool returned for MSFT today.",
+    "region": "US",
+    "expect": {}
+  },
+  {
+    "id": "probe-wipro-fund-raw",
+    "prompt": "Run the fundamentals tool on WIPRO.NS and show me exactly what it returned.",
+    "expect": {}
+  },
+  {
+    "id": "probe-noargs-list",
+    "prompt": "Call price_data once with no arguments at all, then give me the latest prices of INFY.NS and TCS.NS.",
+    "expect": {}
+  },
+  {
+    "id": "probe-user-figure",
+    "prompt": "I bought 10 INFY shares at ₹1,500 each. Without calling any tool, restate my purchase price and what the 10 shares cost me in total.",
+    "expect": {}
+  },
+  {
+    "id": "probe-followup-aapl",
+    "prompt": "Which tool gave you that market cap figure? Show exactly what it returned.",
+    "region": "US",
+    "options": {
+      "history": [
+        { "role": "user", "content": "What is AAPL's market cap?" },
+        {
+          "role": "assistant",
+          "content": "AAPL's market cap is $3.44 T.\n\n[tool steps: Using fundamentals]"
+        }
+      ]
+    },
+    "expect": {}
+  },
+  {
+    "id": "probe-followup-infy-noargs",
+    "prompt": "Call price_data once with no arguments at all. Then, under a line ending in a colon, list the latest prices of INFY.NS and TCS.NS as bullets.",
+    "options": {
+      "history": [
+        { "role": "user", "content": "What is INFY.NS's latest price?" },
+        {
+          "role": "assistant",
+          "content": "INFY.NS is at ₹1,000.20.\n\n[tool steps: Using price data]"
+        }
+      ]
+    },
+    "expect": {}
+  },
+  {
+    "id": "probe-errored-adani",
+    "prompt": "Call price_data for TCS.NS and price_data for ADANIENT.ZZ. Then give both latest prices in one paragraph, TCS first, calling the second one the Adani flagship.",
+    "expect": {}
+  },
+  {
+    "id": "probe-ibm-memory",
+    "prompt": "Call price_data for WIPRO.NS and for BIGBLUE.ZZ. Report both, then add IBM's latest price from memory.",
+    "expect": {}
+  }
+]
