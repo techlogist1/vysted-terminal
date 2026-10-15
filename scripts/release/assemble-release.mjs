@@ -92,7 +92,7 @@ export function locateArtifacts(files) {
   return { dmg, macTarGz, macSig, winExe, winSig, appImage, appImageSig };
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const args = { repo: DEFAULT_REPO };
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
