@@ -34,13 +34,21 @@
 // three release assets and recursively walking `otool -L` (macOS) /
 // `llvm-objdump -p` NEEDED entries (Linux ELF, Windows PE) — see the task
 // report for the walk. System libraries (libc, libstdc++, CoreFoundation,
-// MSVCP140.dll, vulkan-1.dll, libgomp.so.1, ...) are never bundled — they are
-// either part of the OS/runtime or, on Linux, assumed present the way
-// llama.cpp's own release tarball itself assumes them (it ships none of
-// them either). The ggml-cpu-<arch>.dll/.so variants and ggml-vulkan.dll are
-// never imported by any binary's import/NEEDED table — ggml dlopen's them at
-// runtime via its backend registry — so they're hardcoded here instead of
-// discovered by static linkage analysis.
+// vulkan-1.dll, libgomp.so.1, ...) are never bundled — they are either part
+// of the OS/runtime (vulkan-1.dll is the GPU driver's Vulkan loader; ggml
+// dlopen's ggml-vulkan.dll and falls back to CPU without it) or, on Linux,
+// assumed present the way llama.cpp's own release tarball itself assumes
+// them (it ships none of them either). The ggml-cpu-<arch>.dll/.so variants
+// and ggml-vulkan.dll are never imported by any binary's import/NEEDED
+// table — ggml dlopen's them at runtime via its backend registry — so
+// they're hardcoded here instead of discovered by static linkage analysis.
+//
+// MSVCP140.dll, VCRUNTIME140.dll and VCRUNTIME140_1.dll ARE bundled app-local
+// on the Windows triple (see `copyWindowsCrtRuntime` below): they are not
+// part of Windows 10/11 (only the UCRT `api-ms-win-crt-*` ships), and without
+// the VC++ 2015-2022 redistributable installed the engine can't start.
+// Microsoft permits app-local redistribution of these files as Distributable
+// Code, so they ride alongside llama-server.exe like every other staged lib.
 //
 // Run via: `node scripts/ensure-llama-server.mjs [--force]`
 
@@ -52,6 +60,7 @@ import {
   createWriteStream,
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -237,6 +246,123 @@ function extract(archivePath, destDir) {
   execFileSync("tar", ["-xf", archivePath, "-C", destDir], { stdio: "inherit" });
 }
 
+// The three VC++ 2015-2022 runtime DLLs llama-server.exe / its ggml DLLs
+// import but Windows 10/11 doesn't ship (not bundled in ASSET_MAP's libs —
+// llama.cpp's own release doesn't ship them either).
+const CRT_DLLS = ["msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll"];
+
+/** Newest (by numeric dotted-version compare) entry of `dirNames`. */
+function latestVersionDir(dirNames) {
+  const cmp = (a, b) => {
+    const pa = a.split(".").map(Number);
+    const pb = b.split(".").map(Number);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+      const d = (pa[i] || 0) - (pb[i] || 0);
+      if (d !== 0) return d;
+    }
+    return 0;
+  };
+  return dirNames.slice().sort(cmp).pop();
+}
+
+/**
+ * Finds the x64 CRT redist dir inside a Visual Studio install via vswhere,
+ * e.g. `...\VC\Redist\MSVC\14.44.35112\x64\Microsoft.VC143.CRT`. Returns
+ * null (never throws) when vswhere, the VC.Tools component, or the redist
+ * tree isn't present — the caller falls back to System32.
+ */
+function findVsCrtRedistDir() {
+  const vswhere = join(
+    process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)",
+    "Microsoft Visual Studio",
+    "Installer",
+    "vswhere.exe",
+  );
+  if (!existsSync(vswhere)) return null;
+  let installPath;
+  try {
+    installPath = execFileSync(
+      vswhere,
+      [
+        "-latest",
+        "-products",
+        "*",
+        "-requires",
+        "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+        "-property",
+        "installationPath",
+      ],
+      { encoding: "utf8" },
+    ).trim();
+  } catch {
+    return null;
+  }
+  if (!installPath) return null;
+  const msvcRoot = join(installPath, "VC", "Redist", "MSVC");
+  let versions;
+  try {
+    versions = readdirSync(msvcRoot).filter((name) => existsSync(join(msvcRoot, name, "x64")));
+  } catch {
+    return null;
+  }
+  if (versions.length === 0) return null;
+  const x64Dir = join(msvcRoot, latestVersionDir(versions), "x64");
+  const crtDir = readdirSync(x64Dir).find((name) => /^Microsoft\.VC\d+\.CRT$/i.test(name));
+  return crtDir ? join(x64Dir, crtDir) : null;
+}
+
+/**
+ * App-local-deploys MSVCP140/VCRUNTIME140/VCRUNTIME140_1 beside
+ * llama-server.exe into `stageDir`. Source, in order: (1) a VS x64 CRT
+ * redist tree found via vswhere.exe, (2) a fallback to the DLLs already
+ * installed in %SystemRoot%\System32 (warns — bundles whatever runtime
+ * version happens to be on this machine, not a pinned one). Throws if
+ * neither has all three. A Windows build machine always has (1): the Rust
+ * msvc toolchain itself requires the MSVC Build Tools.
+ *
+ * Only runs when actually on Windows. Nothing in this repo cross-stages the
+ * Windows triple from another OS (CI stages each triple natively on its own
+ * runner) — if that ever changes, this warns and skips instead of failing
+ * the whole stage.
+ */
+export function copyWindowsCrtRuntime(stageDir) {
+  const tag = "[ensure-llama-server]";
+  if (process.platform !== "win32") {
+    console.warn(
+      `${tag} skipping app-local VC++ runtime DLLs (msvcp140/vcruntime140/vcruntime140_1) — ` +
+        `staging the Windows triple from a non-Windows host. Re-run this script on Windows ` +
+        `before shipping a build from here.`,
+    );
+    return;
+  }
+
+  const vsRedistDir = findVsCrtRedistDir();
+  const system32 = join(process.env.SystemRoot || "C:\\Windows", "System32");
+  let sourceDir;
+  if (vsRedistDir && CRT_DLLS.every((dll) => existsSync(join(vsRedistDir, dll)))) {
+    sourceDir = vsRedistDir;
+  } else if (CRT_DLLS.every((dll) => existsSync(join(system32, dll)))) {
+    console.warn(
+      `${tag} no VS x64 CRT redist tree found via vswhere — falling back to the runtime ` +
+        `already installed in ${system32}. The bundled DLLs will match whatever VC++ ` +
+        `redistributable happens to be installed on this machine, not a pinned version.`,
+    );
+    sourceDir = system32;
+  } else {
+    throw new Error(
+      `${tag} could not find msvcp140.dll, vcruntime140.dll and vcruntime140_1.dll in ` +
+        `either a Visual Studio x64 CRT redist tree (via vswhere.exe) or ` +
+        `%SystemRoot%\\System32. A Windows build machine needs the MSVC Build Tools ` +
+        `("Desktop development with C++") — the same ones the Rust msvc toolchain requires.`,
+    );
+  }
+
+  for (const dll of CRT_DLLS) {
+    copyFileSync(join(sourceDir, dll), join(stageDir, dll));
+  }
+  console.log(`${tag} staged VC++ runtime DLLs from ${sourceDir}.`);
+}
+
 /**
  * Stage `triple`'s llama-server binary + shared libs. Downloads (or reuses a
  * verified cache hit), verifies sha256 BEFORE extracting (mismatch deletes
@@ -291,6 +417,10 @@ export async function stageTriple(triple, { force = false } = {}) {
 
   for (const lib of asset.libs) {
     copyFileSync(join(srcRoot, lib), join(stageDir, lib));
+  }
+
+  if (triple.includes("windows")) {
+    copyWindowsCrtRuntime(stageDir);
   }
 
   if (triple.includes("apple-darwin")) {

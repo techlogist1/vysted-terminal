@@ -19,6 +19,7 @@ import {
   ASSET_MAP,
   LIB_STAGE_ROOT,
   binaryOutPath,
+  copyWindowsCrtRuntime,
   needsStage,
   resolveAsset,
   sha256OfFile,
@@ -112,6 +113,19 @@ describe("needsStage", () => {
 
   it("an unknown triple needs staging (no marker can exist for it) without throwing", () => {
     expect(needsStage("not-a-real-triple")).toBe(true);
+  });
+});
+
+describe("copyWindowsCrtRuntime", () => {
+  it("warns and skips without throwing when staging the Windows triple off Windows", () => {
+    expect(process.platform).not.toBe("win32"); // this suite only runs on macOS/Linux CI
+    const dir = mkdtempSync(join(tmpdir(), "llama-crt-"));
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    expect(() => copyWindowsCrtRuntime(dir)).not.toThrow();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("non-Windows host"));
+    expect(readdirSync(dir)).toHaveLength(0);
+    warnSpy.mockRestore();
+    rmSync(dir, { recursive: true, force: true });
   });
 });
 
