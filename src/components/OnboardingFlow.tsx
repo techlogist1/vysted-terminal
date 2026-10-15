@@ -98,7 +98,8 @@ export function OnboardingFlow() {
         onEscapeKeyDown={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
-        className="border-charcoal-700 bg-charcoal-950 max-w-2xl gap-0 overflow-hidden p-0"
+        // Taller steps (LocalStep) scroll inside the viewport clamp, down to the 600 px window.
+        className="border-charcoal-700 bg-charcoal-950 max-h-[calc(100dvh-2rem)] max-w-2xl gap-0 overflow-x-hidden overflow-y-auto p-0" // tokens-ok: max-h is a viewport clamp (layout), not rhythm
       >
         <DialogTitle className="sr-only">Welcome to Vysted</DialogTitle>
         <DialogDescription className="sr-only">
