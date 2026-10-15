@@ -252,7 +252,7 @@ function extract(archivePath, destDir) {
 const CRT_DLLS = ["msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll"];
 
 /** Newest (by numeric dotted-version compare) entry of `dirNames`. */
-function latestVersionDir(dirNames) {
+export function latestVersionDir(dirNames) {
   const cmp = (a, b) => {
     const pa = a.split(".").map(Number);
     const pb = b.split(".").map(Number);
@@ -271,7 +271,7 @@ function latestVersionDir(dirNames) {
  * null (never throws) when vswhere, the VC.Tools component, or the redist
  * tree isn't present — the caller falls back to System32.
  */
-function findVsCrtRedistDir() {
+export function findVsCrtRedistDir() {
   const vswhere = join(
     process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)",
     "Microsoft Visual Studio",
