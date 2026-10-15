@@ -1,5 +1,20 @@
 # Windows manual check (NEEDS-MANUAL-CHECK) - ROG test
 
+## R16 (0.10.0)
+
+Run this on the ROG before the Windows part of the 0.10.0 release. Source: `docs/redesign/verification/r16/CONTRACT.md`. For every item, record pass or fail, the screenshot path, and the log line named in the item. Screenshots go in `docs/screenshots/v0.10.0/`, never over an existing file.
+
+- [ ] **Install.** Download `Vysted-Terminal-Windows-x64-Setup.exe` from the CI artifact. SmartScreen shows "Windows protected your PC". Click More info, then Run anything. Record: the SmartScreen wording, the install path, and that the app starts from the Start menu.
+- [ ] **Fresh first launch.** Set `VYSTED_DATA_DIR` to an empty folder first, so the profile has never run. Launch the app. Record: the folder contents before and after launch, and the first screen shown.
+- [ ] **Wizard, all three paths.** Run the first-run wizard once per path: "on this computer", "your own key", and "skip". Each path must reach the short tour and end in an example question. Record: the path chosen, the example question shown, and a screenshot of each end state. For "your own key", confirm the key is stored in Credential Manager and not in `logs/vysted.log`.
+- [ ] **Download Qwen 3.5 4B.** Open Settings, then Models, and download Qwen 3.5 4B. Confirm the licence is shown before the download starts. Record: the sha256 check result and the download time.
+- [ ] **Vulkan engine loads the model.** Ask a question that uses the local model. Open the llama-server log and find the device line. It should name the Vulkan device. On a machine with no usable GPU, the log should show CPU instead. Record: the exact device line from the log and whether the answer came back.
+- [ ] **Ask the example question.** Ask the example question shown in the wizard. Record: pass or fail, the screenshot path, and how long the answer took to start.
+- [ ] **Kill the engine mid-answer.** Start a long answer, then end `llama-server.exe` in Task Manager while it streams. The app should restart the engine by itself and say so. Record: the message shown, and the restart log line. Kill it a fourth time within 10 minutes and confirm the app stops restarting it on its own and offers to start it again.
+- [ ] **Updater against a later beta.** With a later beta published, wait for the check (15 s after launch, then every 6 hours). The prompt must show the version and notes. Start a model download first and confirm the button reads "Update after the download finishes" until the download ends. Record: the version shown, and that the update installs only after the signature check passes.
+- [ ] **Uninstall leaves nothing running.** Quit the app. Uninstall with the Windows uninstaller. In Task Manager, check the details view. No `vysted-*` process and no `llama-server.exe` may remain. Record: the process list before and after the uninstall.
+- [ ] **Memory at the tier context size.** Windows does not get the `-fa`, `-ctk` and `-ctv q8` KV cache flags. Those flags are macOS only. Watch RAM in Task Manager while the 4B model answers at the tier context size. Record: peak RAM used by `llama-server.exe`, and whether the machine slowed or swapped.
+
 Nobody has built or run this branch on Windows, and CI has never run on `004-r4-experience-rebuild` (R15-RELEASE-004, R15-CROSS-PLATFORM-001). Source: `docs/RELEASE_RUNBOOK.md` sections 0, 4, 6 and 10, the register at `4b460027`, `CLAUDE.md` gotchas. Build target is the NSIS installer (`bundle.targets` includes `nsis`); the installer is unsigned, so SmartScreen will warn (R15-RELEASE-001).
 
 ## 0. Setup
