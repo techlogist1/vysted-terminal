@@ -14,6 +14,8 @@ import { useAppStore } from "@/store/app";
 
 interface LocalEngineStore {
   status: EngineStatus;
+  /** Bumped after each PUT the sidecar accepted — readers of provider `local` re-probe on it. */
+  syncCount: number;
   /** Rejects with the core's reason (e.g. a model path outside the allowed folders). */
   start: (args: EngineStartArgs) => Promise<EngineStatus>;
   stop: () => Promise<EngineStatus>;
@@ -22,6 +24,7 @@ interface LocalEngineStore {
 
 export const useLocalEngineStore = create<LocalEngineStore>(() => ({
   status: STOPPED_ENGINE,
+  syncCount: 0,
   start: async (args) => {
     await initLocalEngine();
     return applyStatus(await startLocalEngine(args));
@@ -76,6 +79,7 @@ function syncSidecar(status: EngineStatus, force: boolean): void {
     try {
       await sidecarRequest("PUT", "/local-models/engine", { body });
       lastSent = key;
+      useLocalEngineStore.setState((state) => ({ syncCount: state.syncCount + 1 }));
     } catch (error) {
       if (error instanceof SidecarError && error.status === 404) {
         if (!warnedMissingRouter) {

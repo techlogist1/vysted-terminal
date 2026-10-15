@@ -190,6 +190,15 @@ describe("OnboardingFlow welcome step (R15-UI-052)", () => {
     }
   });
 
+  // F4: on a short window (minHeight 600) the local step is taller than the
+  // viewport — the dialog must clamp to it and scroll, never clip its buttons.
+  it("is height-capped to the viewport and scrolls instead of clipping", async () => {
+    render(<OnboardingFlow />);
+    const dialog = await screen.findByTestId("onboarding-flow");
+    expect(dialog).toHaveClass("max-h-[calc(100dvh-2rem)]", "overflow-y-auto"); // tokens-ok: asserts the viewport clamp
+    expect(dialog).not.toHaveClass("overflow-hidden");
+  });
+
   it("waits for the terms first", async () => {
     useSafetyStore.setState({ firstLaunchTosAcked: false });
     render(<OnboardingFlow />);
