@@ -108,6 +108,23 @@ describe("LocalModelStrip", () => {
     expect(useOnboardingStore.getState()).toMatchObject({ forceOpen: true, forceStep: "key" });
   });
 
+  it("a non-retryable failed download still offers Try again, Use my own key and Cancel", () => {
+    useLocalModelsStore.setState({
+      downloads: {
+        qwen: dl({
+          state: "failed",
+          retryable: false,
+          error: "The download link stopped working — try again later",
+        }),
+      },
+    });
+    render(<LocalModelStrip />);
+    expect(screen.getByRole("button", { name: "Use my own key" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cancel download" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(actions.download).toHaveBeenCalledWith("qwen");
+  });
+
   it("says the model is starting", () => {
     engine({ state: "starting", modelId: "qwen" });
     render(<LocalModelStrip />);
