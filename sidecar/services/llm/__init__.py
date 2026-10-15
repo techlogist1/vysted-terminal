@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 from typing import Any, cast
 
-from models.llm import LLMModelOption, LLMProviderId, LLMProviderInfo
+from models.llm import LLMMessage, LLMModelOption, LLMProviderId, LLMProviderInfo
 from services import model_registry
 from services.local_models import engine as local_engine
 
@@ -76,6 +76,30 @@ LOCAL_NOT_RUNNING = "The on-computer model isn't running"
 LOCAL_TOKENS_PER_ESTIMATE = 2
 
 
+#: Prefix for a mid-run system note sent to the engine as a user turn.
+LOCAL_NOTE_PREFIX = "[Note from Vysted, not the user] "
+
+
+def single_leading_system(api_messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Qwen/Llama/Gemma/Mistral chat templates raise "System message must be at
+    the beginning." (llama-server HTTP 500) on any system turn but one leading
+    one: merge the leading run into one, and turn a later system note into a
+    labelled user turn at its own position."""
+    lead = 0
+    while lead < len(api_messages) and api_messages[lead]["role"] == "system":
+        lead += 1
+    rest = [
+        {"role": "user", "content": LOCAL_NOTE_PREFIX + (m["content"] or "")}
+        if m["role"] == "system"
+        else m
+        for m in api_messages[lead:]
+    ]
+    if not lead:
+        return rest
+    head = "\n\n".join(m["content"] for m in api_messages[:lead] if m["content"])
+    return [{"role": "system", "content": head}, *rest]
+
+
 class LocalEngineNotRunning(RuntimeError):
     def __init__(self) -> None:
         super().__init__(LOCAL_NOT_RUNNING)
@@ -92,6 +116,9 @@ class LocalEngineProvider(OpenAIProvider):
         """llama-server answers 400 past ``-c``: the window, in the runtime's
         chars/4 estimate, that the engine's real context holds."""
         return local_engine.n_ctx() // LOCAL_TOKENS_PER_ESTIMATE
+
+    def _api_messages(self, messages: list[LLMMessage]) -> list[dict[str, Any]]:
+        return single_leading_system(super()._api_messages(messages))
 
     def _client(self, api_key: str | None) -> Any:
         self._base_url = local_engine.base_url()
