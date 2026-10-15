@@ -27,6 +27,7 @@ vi.mock("@/store/local-engine", () => ({
   useLocalEngineStore: { getState: () => engine },
 }));
 
+import { getAppMeta, setAppMeta } from "@/lib/keychain";
 import { useAppStore } from "@/store/app";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import {
@@ -237,6 +238,99 @@ describe("local-models store", () => {
     await initLocalModels();
     expect(engine.start).not.toHaveBeenCalled();
     expect(useLocalModelsStore.getState().activeModelId).toBe("gone");
+  });
+
+  it("activate rejects with a clear message for a model that isn't installed", async () => {
+    await expect(useLocalModelsStore.getState().activate("ghost")).rejects.toThrow(
+      /isn't on this computer yet/,
+    );
+    expect(engine.start).not.toHaveBeenCalled();
+  });
+
+  it("activate still saves the engine state even when persisting the active id fails", async () => {
+    vi.mocked(setAppMeta).mockRejectedValueOnce(new Error("keychain locked"));
+    useLocalModelsStore.setState({ installed: [qwen] });
+    const status = await useLocalModelsStore.getState().activate("qwen");
+    expect(status).toEqual(ready);
+    expect(useLocalModelsStore.getState().activeModelId).toBe("qwen");
+  });
+
+  it("swallows an auto-activation failure once a user-started download finishes", async () => {
+    engine.start.mockRejectedValueOnce(new Error("out of memory"));
+    await useLocalModelsStore.getState().download("qwen");
+    installed = [qwen];
+    downloads = [dl("done", 100)];
+    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.waitFor(() => expect(engine.start).toHaveBeenCalled());
+    expect(useLocalModelsStore.getState().activeModelId).toBeNull();
+  });
+
+  it("surfaces a plain error message when the sidecar is already connected", async () => {
+    useAppStore.setState({ sidecarStatus: "connected" });
+    api.hardware.mockRejectedValue(new Error("disk full"));
+    await useLocalModelsStore.getState().refresh();
+    expect(useLocalModelsStore.getState().loadError).toBe("disk full");
+  });
+
+  it("download() rejects and forgets a download that fails to start", async () => {
+    api.download.mockRejectedValueOnce(new Error("network down"));
+    await expect(useLocalModelsStore.getState().download("qwen")).rejects.toThrow("network down");
+    // A later "done" report for this id must not auto-activate: the failed
+    // start already forgot it was user-started.
+    installed = [qwen];
+    downloads = [dl("done", 100)];
+    await useLocalModelsStore.getState().refresh();
+    expect(engine.start).not.toHaveBeenCalled();
+  });
+
+  it("cancel without discard keeps a cancelled-state record for the download", async () => {
+    await useLocalModelsStore.getState().download("qwen");
+    await useLocalModelsStore.getState().cancel("qwen");
+    expect(api.cancel).toHaveBeenCalledWith("qwen", false);
+    expect(useLocalModelsStore.getState().downloads.qwen?.state).toBe("cancelled");
+  });
+
+  it("cancel with discard removes the download from state entirely", async () => {
+    await useLocalModelsStore.getState().download("qwen");
+    await useLocalModelsStore.getState().cancel("qwen", true);
+    expect(useLocalModelsStore.getState().downloads.qwen).toBeUndefined();
+  });
+
+  it("boots even when the local engine's own refresh fails", async () => {
+    engine.refresh.mockRejectedValueOnce(new Error("engine offline"));
+    meta.set(LOCAL_MODEL_ACTIVE_KEY, "qwen");
+    await initLocalModels();
+    expect(useLocalModelsStore.getState().activeModelId).toBe("qwen");
+    // Consume this test's connection subscriber now so it can't fire again
+    // (as a stale listener) during a later test in this file.
+    useAppStore.setState({ sidecarStatus: "connected" });
+    await vi.waitFor(() => expect(api.installed).toHaveBeenCalled());
+  });
+
+  it("treats a keychain read failure as no persisted active model, not a crash", async () => {
+    vi.mocked(getAppMeta).mockRejectedValueOnce(new Error("keychain locked"));
+    await initLocalModels();
+    expect(useLocalModelsStore.getState().activeModelId).toBeNull();
+    useAppStore.setState({ sidecarStatus: "connected" });
+    await vi.waitFor(() => expect(api.installed).toHaveBeenCalled());
+  });
+
+  it("swallows an engine-start failure for the persisted active model on launch", async () => {
+    meta.set(LOCAL_MODEL_ACTIVE_KEY, "qwen");
+    installed = [qwen];
+    engine.start.mockRejectedValueOnce(new Error("boom"));
+    await initLocalModels();
+    useAppStore.setState({ sidecarStatus: "connected" });
+    await vi.waitFor(() => expect(engine.start).toHaveBeenCalledTimes(1));
+    expect(useLocalModelsStore.getState().activeModelId).toBe("qwen");
+  });
+
+  it("swallows a resume failure for a paused download on launch", async () => {
+    downloads = [{ ...dl("paused"), id: "big" }];
+    api.download.mockRejectedValueOnce(new Error("resume failed"));
+    useAppStore.setState({ sidecarStatus: "connected" });
+    await initLocalModels();
+    await vi.waitFor(() => expect(api.download).toHaveBeenCalledWith("big"));
   });
 });
 

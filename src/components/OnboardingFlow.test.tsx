@@ -15,6 +15,7 @@ import { useLocalModelsStore, WARMING_UP } from "@/store/local-models";
 import { useOnboardingStore } from "@/store/onboarding";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { useSafetyStore } from "@/store/safety";
+import { openExternal } from "@/components/onboarding/shared";
 import type { CatalogModel, DownloadState, LocalHardwareInfo } from "../../types/data";
 
 const appMeta = vi.hoisted(() => new Map<string, string>());
@@ -39,6 +40,10 @@ vi.mock("@/lib/provider-validation", async (importOriginal) => ({
   validateProvider,
 }));
 vi.mock("@/lib/host-actions", () => ({ loadSymbolIntoChart }));
+vi.mock("@/components/onboarding/shared", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/components/onboarding/shared")>()),
+  openExternal: vi.fn(async () => undefined),
+}));
 
 const GB = 1024 ** 3;
 const model = (id: string, gb: number, fits: CatalogModel["fits"] = "good"): CatalogModel => ({
@@ -58,6 +63,7 @@ const model = (id: string, gb: number, fits: CatalogModel["fits"] = "good"): Cat
 });
 const BIG = model("big", 5);
 const SMALL = model("small", 2);
+const TINY = model("tiny", 1);
 const HW: LocalHardwareInfo = {
   os: "macos",
   arch: "arm64",
@@ -131,6 +137,7 @@ beforeEach(() => {
   actions.activate.mockResolvedValue({ ...STOPPED_ENGINE, state: "ready", port: 1 });
   validateProvider.mockReset().mockResolvedValue({ ok: true, reason: null, detail: null });
   loadSymbolIntoChart.mockReset();
+  vi.mocked(openExternal).mockReset().mockResolvedValue(undefined);
   vi.mocked(fetchLocalModelRecommendation).mockResolvedValue(_rec(false));
   useSafetyStore.setState({ firstLaunchTosAcked: true });
   useOnboardingStore.setState({
@@ -218,6 +225,12 @@ describe("On this computer", () => {
     fireEvent.click(await screen.findByRole("button", { name: /On this computer/ }));
     if (ready) await screen.findByRole("radiogroup", { name: "Models" });
   }
+
+  it("Back returns to the choice step on a first run (not a re-open)", async () => {
+    await openLocal();
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    expect(await screen.findByText("How should Vysted think?")).toBeInTheDocument();
+  });
 
   it("preselects the recommended model and shows size, disk, purpose and the licence before the download button", async () => {
     await openLocal();
@@ -388,6 +401,119 @@ describe("On this computer", () => {
       "true",
     );
   });
+
+  it("a real load error (not warming up) offers Try again, own key and skip", async () => {
+    useAppStore.setState({ sidecarStatus: "connected" });
+    seedModels({ catalog: null, hardware: null, loadError: "sidecar said no" });
+    useOnboardingStore.setState({ forceOpen: true, forceStep: "local" });
+    render(<OnboardingFlow />);
+    await screen.findByText(/Couldn't load the list of models/);
+    expect(screen.getByText(/sidecar said no/)).toBeInTheDocument();
+    const before = actions.refresh.mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(actions.refresh.mock.calls.length).toBeGreaterThan(before);
+  });
+
+  it("clicking a model's own tile selects it, and the keyboard selects it too", async () => {
+    await openLocal();
+    fireEvent.click(screen.getByRole("radio", { name: /Model small/ }));
+    expect(screen.getByRole("radio", { name: /Model small/ })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    fireEvent.keyDown(screen.getByRole("radio", { name: /Model big/ }), { key: "Enter" });
+    expect(screen.getByRole("radio", { name: /Model big/ })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
+  it("clicking the licence link opens it externally without also selecting a different model", async () => {
+    await openLocal();
+    fireEvent.click(screen.getByRole("radio", { name: /Model small/ }));
+    const radio = screen.getByRole("radio", { name: /Model big/ });
+    fireEvent.click(within(radio).getByText(/Licence: Apache 2.0/));
+    expect(openExternal).toHaveBeenCalledWith(BIG.licence.url);
+    // The licence click must not have re-selected Model big over Model small.
+    expect(screen.getByRole("radio", { name: /Model small/ })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
+  it("picking a smaller model among two candidates compares them by disk size", async () => {
+    seedModels({
+      catalog: { models: [BIG, SMALL, TINY], recommendedId: "big", tier: "16gb", reason: "" },
+      hardware: { ...HW, freeDiskBytes: 4 * GB },
+    });
+    await openLocal();
+    const notice = screen.getByTestId("disk-short");
+    fireEvent.click(within(notice).getByRole("button", { name: /Pick Model small/ }));
+    expect(screen.getByRole("radio", { name: /Model small/ })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
+  it("a model already installed outside the catalog can be used directly, and a start failure shows plainly", async () => {
+    seedModels({
+      installed: [
+        {
+          id: "extra",
+          name: "Extra Model",
+          path: "/m/extra.gguf",
+          sizeBytes: 1,
+          verified: true,
+          active: false,
+        },
+      ],
+    });
+    await openLocal();
+    const row = screen.getByText("Extra Model").closest("div")!;
+    actions.activate.mockResolvedValueOnce({ ...STOPPED_ENGINE, state: "ready", port: 1 });
+    await act(async () => {
+      fireEvent.click(within(row).getByRole("button", { name: "Use this one" }));
+    });
+    expect(actions.activate).toHaveBeenCalledWith("extra");
+    expect(await screen.findByTestId("onboarding-tour")).toBeInTheDocument();
+  });
+
+  it("using the selected (already installed) model surfaces a plain message when activation throws", async () => {
+    seedModels({
+      installed: [
+        {
+          id: "big",
+          name: "Model big",
+          path: "/m/big.gguf",
+          sizeBytes: 1,
+          verified: true,
+          active: false,
+        },
+      ],
+    });
+    actions.activate.mockRejectedValue(new Error("sidecar vanished"));
+    await openLocal();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Use Model big/ }));
+    });
+    expect(screen.getByTestId("start-error")).toHaveTextContent("sidecar vanished");
+  });
+
+  it("a download failure that is neither a disk error nor offline shows its own message", async () => {
+    actions.download.mockRejectedValue(new Error("sidecar exploded"));
+    await openLocal();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Download Model big/ }));
+    });
+    expect(screen.getByTestId("start-error")).toHaveTextContent("sidecar exploded");
+  });
+
+  it("the local step's own Skip for now link ends the flow the same as the top-level one", async () => {
+    await openLocal();
+    fireEvent.click(screen.getByRole("button", { name: "Skip for now" }));
+    expect(await screen.findByTestId("onboarding-tour")).toBeInTheDocument();
+    expect(appMeta.get("onboarding-complete")).toBe("skip");
+  });
 });
 
 describe("My own API key", () => {
@@ -486,5 +612,26 @@ describe("shows once", () => {
     expect(screen.queryByTestId("onboarding-tour")).toBeNull();
     expect(screen.queryByTestId("onboarding-flow")).toBeNull();
     expect(useOnboardingStore.getState().forceOpen).toBe(false);
+  });
+
+  it("on a re-open, Back closes the whole flow instead of returning to the choice step", async () => {
+    useOnboardingStore.setState({ seen: true, forceOpen: true, forceStep: "local" });
+    render(<OnboardingFlow />);
+    await screen.findByRole("radiogroup", { name: "Models" });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    });
+    expect(screen.queryByTestId("onboarding-flow")).toBeNull();
+    expect(appMeta.get("onboarding-complete")).toBe("seen");
+  });
+
+  it("ignores Escape and an outside click while the dialog is open", async () => {
+    render(<OnboardingFlow />);
+    const dialog = await screen.findByTestId("onboarding-flow");
+    fireEvent.keyDown(dialog, { key: "Escape", code: "Escape" });
+    expect(screen.getByTestId("onboarding-flow")).toBeInTheDocument();
+    fireEvent.pointerDown(document.body);
+    fireEvent.mouseDown(document.body);
+    expect(screen.getByTestId("onboarding-flow")).toBeInTheDocument();
   });
 });

@@ -18,7 +18,7 @@ export default defineConfig({
         // into `ci-local`) and never down, so it self-bootstraps from this
         // starting floor without a hand-picked number, while still catching a
         // real regression below whatever was last measured.
-        lines: 82.62,
+        lines: 82.99,
         autoUpdate: true,
       },
     },
