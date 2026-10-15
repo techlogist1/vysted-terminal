@@ -13,7 +13,9 @@
  * deciding to render. `forceOpen` lets a CTA (e.g. the keyless chat empty-state)
  * re-open the flow on demand even after it was seen. `waitingQuestion` is the
  * tour's example question parked while the on-computer model finishes; the
- * model strip offers it once the model is ready.
+ * model strip offers it once the model is ready. It is durable too
+ * (`onboarding-waiting-question`, an empty value = none), so a relaunch
+ * mid-download still gets the promised "ready" nudge.
  */
 
 import { create } from "zustand";
@@ -23,6 +25,8 @@ import { getAppMeta, getSecret, KEYCHAIN_NAMESPACES, setAppMeta } from "@/lib/ke
 const ONBOARDING_KEY = "onboarding-complete";
 /** The setup banner's dismissal, kept beside the "seen" marker (R15-UI-019). */
 const BANNER_KEY = "onboarding-banner-dismissed";
+/** The parked tour question; app-meta has no delete, so "" means none. */
+const WAITING_QUESTION_KEY = "onboarding-waiting-question";
 
 /**
  * A flag's value from the app-meta file, else from its legacy keychain item
@@ -48,9 +52,9 @@ interface OnboardingState {
   forceOpen: boolean;
   /** The step a forced open lands on (`local` = the model list, `key` = own key). */
   forceStep: OnboardingStep | null;
-  /** The example question waiting for the on-computer model (session only). */
+  /** The example question waiting for the on-computer model (durable). */
   waitingQuestion: string | null;
-  setWaitingQuestion: (question: string | null) => void;
+  setWaitingQuestion: (question: string | null) => Promise<void>;
   /** Probe the app-meta file for the completion marker (call once on boot). */
   refresh: () => Promise<void>;
   /** Probe the app-meta file for the banner-dismissed marker. */
@@ -71,11 +75,20 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   forceOpen: false,
   forceStep: null,
   waitingQuestion: null,
-  setWaitingQuestion: (question) => set({ waitingQuestion: question }),
+  setWaitingQuestion: async (question) => {
+    set({ waitingQuestion: question });
+    try {
+      await setAppMeta(WAITING_QUESTION_KEY, question ?? "");
+    } catch {
+      // Non-Tauri — parked for the session.
+    }
+  },
   // Outside the Tauri shell (browser dev) both stores reject — "not seen", so
   // the flow is exercisable in dev.
   refresh: async () => {
-    set({ seen: Boolean(await readFlag(ONBOARDING_KEY)) });
+    const parked = await getAppMeta(WAITING_QUESTION_KEY).catch(() => null);
+    const seen = Boolean(await readFlag(ONBOARDING_KEY));
+    set((s) => ({ seen, waitingQuestion: s.waitingQuestion ?? (parked || null) }));
   },
   refreshBanner: async () => {
     set({ bannerDismissed: Boolean(await readFlag(BANNER_KEY)) });

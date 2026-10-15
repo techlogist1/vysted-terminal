@@ -21,7 +21,12 @@ const mockSetMeta = vi.mocked(setAppMeta);
 
 describe("onboarding store — first-run gate", () => {
   beforeEach(() => {
-    useOnboardingStore.setState({ seen: null, bannerDismissed: null, forceOpen: false });
+    useOnboardingStore.setState({
+      seen: null,
+      bannerDismissed: null,
+      forceOpen: false,
+      waitingQuestion: null,
+    });
     appMeta.clear();
     vi.clearAllMocks();
   });
@@ -81,5 +86,37 @@ describe("onboarding store — first-run gate", () => {
     await useOnboardingStore.getState().refreshBanner();
     expect(useOnboardingStore.getState().bannerDismissed).toBe(true);
     expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it("a parked tour question is persisted, restored on the next launch and cleared", async () => {
+    await useOnboardingStore.getState().setWaitingQuestion("How has Reliance done?");
+    expect(mockSetMeta).toHaveBeenCalledWith(
+      "onboarding-waiting-question",
+      "How has Reliance done?",
+    );
+
+    useOnboardingStore.setState({ waitingQuestion: null });
+    await useOnboardingStore.getState().refresh();
+    expect(useOnboardingStore.getState().waitingQuestion).toBe("How has Reliance done?");
+    expect(mockGet).not.toHaveBeenCalledWith("app-meta:onboarding-waiting-question");
+
+    await useOnboardingStore.getState().setWaitingQuestion(null);
+    expect(mockSetMeta).toHaveBeenLastCalledWith("onboarding-waiting-question", "");
+    useOnboardingStore.setState({ waitingQuestion: null });
+    await useOnboardingStore.getState().refresh();
+    expect(useOnboardingStore.getState().waitingQuestion).toBeNull();
+  });
+
+  it("refresh does not overwrite a question parked this session", async () => {
+    appMeta.set("onboarding-waiting-question", "old");
+    useOnboardingStore.setState({ waitingQuestion: "new" });
+    await useOnboardingStore.getState().refresh();
+    expect(useOnboardingStore.getState().waitingQuestion).toBe("new");
+  });
+
+  it("setWaitingQuestion swallows a non-Tauri rejection and keeps the question for the session", async () => {
+    mockSetMeta.mockRejectedValueOnce(new Error("not tauri"));
+    await expect(useOnboardingStore.getState().setWaitingQuestion("q")).resolves.toBeUndefined();
+    expect(useOnboardingStore.getState().waitingQuestion).toBe("q");
   });
 });
