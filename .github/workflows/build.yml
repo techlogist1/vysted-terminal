@@ -96,9 +96,15 @@ jobs:
           APPIMAGE="$(find src-tauri/target/release/bundle/appimage -maxdepth 1 -name '*.AppImage' | head -1)"
           chmod +x "$APPIMAGE"
           "$APPIMAGE" --appimage-extract
-          LLAMA_BIN="$(find squashfs-root -type f -name 'llama-server' | head -1)"
-          LLAMA_LIB_DIR="$(dirname "$(find squashfs-root -type d -name 'llama-libs' | head -1)")/llama-libs"
+          LLAMA_BIN="$(realpath "$(find squashfs-root -type f -name 'llama-server' | head -1)")"
+          LLAMA_LIB_DIR="$(realpath "$(find squashfs-root -type d -name 'llama-libs' | head -1)")"
           LD_LIBRARY_PATH="$LLAMA_LIB_DIR" "$LLAMA_BIN" --version
+          # The CPU backend is a dlopen'ed libggml-cpu-<variant>.so that ggml only finds
+          # in the exe's dir or the CWD; the app spawns with CWD = llama-libs, so do the
+          # same and assert the variant actually loaded (--list-devices omits CPU itself).
+          OUT="$(cd "$LLAMA_LIB_DIR" && LD_LIBRARY_PATH="$LLAMA_LIB_DIR" "$LLAMA_BIN" --list-devices 2>&1)"
+          echo "$OUT"
+          grep -q 'loaded CPU backend from' <<<"$OUT"
 
       - name: Smoke-test bundled llama-server (Windows)
         if: matrix.os == 'windows-latest'

@@ -547,9 +547,15 @@ impl Backend for TauriBackend {
             .sidecar("llama-server")
             .map_err(|e| e.to_string())?
             .args(args);
+        // LD_LIBRARY_PATH resolves the NEEDED libs; ggml's backend loader only scans
+        // the exe's dir and the CWD for the dlopen'ed libggml-cpu-*.so variants, so the
+        // libs dir is the CWD too (`-m` is canonical, nothing else is CWD-relative).
         #[cfg(target_os = "linux")]
         let command = match self.0.path().resource_dir() {
-            Ok(dir) => command.env("LD_LIBRARY_PATH", dir.join("llama-libs")),
+            Ok(dir) => {
+                let libs = dir.join("llama-libs");
+                command.env("LD_LIBRARY_PATH", &libs).current_dir(libs)
+            }
             Err(_) => command,
         };
         let (mut rx, child) = command.spawn().map_err(|e| e.to_string())?;
