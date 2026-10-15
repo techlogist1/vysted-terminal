@@ -190,14 +190,18 @@ export function StatusChrome() {
   const providerMeta = provider ? providers.find((p) => p.id === provider) : undefined;
   // D60: probe the default lane's actual readiness instead of asserting it.
   const notReady = useProviderNotReady(provider, model, providerMeta?.requiresKey ?? true);
-  const notReadyShort =
-    notReady?.reason === "not_configured"
+  // The on-computer lane's not_configured means its engine isn't running, not a missing key.
+  const localNotRunning = provider === "local" && notReady?.reason === "not_configured";
+  const notReadyShort = localNotRunning
+    ? "not running"
+    : notReady?.reason === "not_configured"
       ? "no API key"
       : notReady?.reason === "model_not_pulled"
         ? "model not downloaded"
         : "not running";
-  const notReadyWhy =
-    notReady?.reason === "not_configured"
+  const notReadyWhy = localNotRunning
+    ? "the on-computer model isn't running. Set one up or start it in Settings → Models."
+    : notReady?.reason === "not_configured"
       ? "no API key is stored. Add one in Settings → AI Providers."
       : notReady?.reason === "model_not_pulled"
         ? `${model} is not downloaded yet. Download it, or pick a provider in Settings → AI Providers.`

@@ -133,6 +133,24 @@ describe("StatusChrome", () => {
     expect(chip.title).toContain("qwen2.5:7b is not downloaded");
   });
 
+  it("the on-computer lane with its engine down says not running, never 'no API key' (R16)", async () => {
+    answerValidate({
+      ok: false,
+      reason: "not_configured",
+      detail: "The on-computer model isn't running",
+    });
+    useLLMProvidersStore.setState({
+      providers: [{ id: "local", label: "On this computer", requiresKey: false }],
+      defaultProviderId: "local",
+    });
+    render(<StatusChrome />);
+
+    const chip = await screen.findByTestId("provider-not-ready");
+    expect(chip).toHaveTextContent("On this computer · not running — set up in Settings");
+    expect(chip).not.toHaveTextContent("API key");
+    expect(chip.title).toContain("Settings → Models");
+  });
+
   it("a reachable keyless default keeps exactly today's confident chip (D60)", async () => {
     answerValidate(READY);
     useLLMProvidersStore.setState({
