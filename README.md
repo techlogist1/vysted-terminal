@@ -163,6 +163,11 @@ ready, or **Later**. If a model is still downloading, the button reads **Update 
 download finishes** and waits. Updates are signature-checked with Vysted's own signing key
 before they are installed.
 
+Because the app is not code-signed, macOS sees each update as a new app. On a Mac where you
+saved an API key, the first start after an update asks for your login password so Vysted can
+read its own saved key again. Type your Mac password and click **Always Allow**. It asks again
+after each update, once for each saved key.
+
 ## Privacy
 
 - There is no account and no Vysted server.

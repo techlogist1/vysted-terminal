@@ -43,8 +43,8 @@ The first launch takes longer than later ones while the built-in data engine unp
 - **Windows has not been hand-tested on real hardware** for this release.
 - **Mac is Apple Silicon only.** There is no Intel Mac build.
 - **Under 8 GB of memory, the on-computer lane is tight.** It can run out of room on very large answers. On such a machine, an own key is suggested.
-- **Small on-computer models can still word things loosely.** Figures an answer states are checked against what the data tools returned, but the surrounding wording can still be imprecise. Treat any figure that matters as something to confirm at the source.
-- **A keyless local model can still state a figure it never fetched in some cases.** This is the documented limitation carried from 0.9.0 (see `docs/RELEASE_NOTES_v0.9.0.md`). Portfolio changes the assistant proposes always wait for your review.
+- **Small on-computer models can still word things loosely, and in rare cases state a figure they never fetched** (the limitation documented in 0.9.0, `docs/RELEASE_NOTES_v0.9.0.md`). Figures are checked against what the data tools returned, but confirm any figure that matters at the source. Portfolio changes the assistant proposes always wait for your review.
+- **On a Mac, each update asks for your login password once per saved API key.** The app is unsigned, so macOS treats every update as a new app. Type your password and click **Always Allow**.
 
 ## Licence
 
