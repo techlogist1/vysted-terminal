@@ -6,6 +6,8 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 
+import type { LocalModelTier } from "../../types/data";
+
 export type EngineState = "stopped" | "starting" | "ready" | "crashed" | "failed";
 
 export interface EngineStatus {
@@ -28,6 +30,20 @@ export interface EngineStartArgs {
 }
 
 export const LOCAL_ENGINE_STATUS_EVENT = "local-engine://status";
+
+/**
+ * The engine's `-c` by RAM tier. 16k is the floor a copilot turn fits in (the
+ * Rust default; a round of 5 parallel large tool results can still overflow
+ * it); a larger context admits more tools and longer tool results. Measured
+ * engine peak RSS, granite-4.2-3b with q8_0 KV on Metal: 2.95 GiB at 16k,
+ * 3.3 at 24k, 5.3 at 32k, 6.6 at 64k.
+ */
+export const CTX_SIZE_BY_TIER: Record<LocalModelTier, number> = {
+  "under-8gb": 16384,
+  "8gb": 24576,
+  "16gb": 32768,
+  "32gb": 65536,
+};
 
 export const STOPPED_ENGINE: EngineStatus = {
   state: "stopped",

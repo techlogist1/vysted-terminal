@@ -68,6 +68,12 @@ logger = logging.getLogger(__name__)
 #: llama-server takes no key, but the OpenAI SDK refuses to build without one.
 LOCAL_ENGINE_DUMMY_KEY = "local-engine"
 LOCAL_NOT_RUNNING = "The on-computer model isn't running"
+#: Real llama-server prompt tokens per runtime chars/4 estimated token, rounded up
+#: from the worst measured (R16 calibration, granite-4.2-3b, b11429): tool schemas
+#: 1.08, prose ~1.0, numeric tool-result JSON (price bars, statements, macro
+#: series) up to 1.9. Dividing ``n_ctx`` by it keeps the runtime's estimate plus
+#: its answer reserve under the engine's real context.
+LOCAL_TOKENS_PER_ESTIMATE = 2
 
 
 class LocalEngineNotRunning(RuntimeError):
@@ -81,6 +87,11 @@ class LocalEngineProvider(OpenAIProvider):
 
     def __init__(self) -> None:
         super().__init__(base_url=local_engine.base_url(), provider_id="local")
+
+    def context_window(self, model: str) -> int | None:  # noqa: ARG002
+        """llama-server answers 400 past ``-c``: the window, in the runtime's
+        chars/4 estimate, that the engine's real context holds."""
+        return local_engine.n_ctx() // LOCAL_TOKENS_PER_ESTIMATE
 
     def _client(self, api_key: str | None) -> Any:
         self._base_url = local_engine.base_url()

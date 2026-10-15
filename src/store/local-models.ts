@@ -8,7 +8,7 @@
 import { create } from "zustand";
 
 import { getAppMeta, setAppMeta } from "@/lib/keychain";
-import type { EngineStatus } from "@/lib/local-engine";
+import { CTX_SIZE_BY_TIER, type EngineStatus } from "@/lib/local-engine";
 import { isActiveDownload, localModelsApi } from "@/lib/local-models";
 import { SidecarError } from "@/lib/sidecar-client";
 import { useAppStore } from "@/store/app";
@@ -50,11 +50,13 @@ const userStarted = new Set<string>();
 let pollTimer: ReturnType<typeof setTimeout> | null = null;
 
 function engineStart(id: string): Promise<EngineStatus> {
-  const model = useLocalModelsStore.getState().installed.find((m) => m.id === id);
+  const { installed, catalog } = useLocalModelsStore.getState();
+  const model = installed.find((m) => m.id === id);
   if (!model) {
     return Promise.reject(new Error("That model isn't on this computer yet."));
   }
-  return useLocalEngineStore.getState().start({ modelPath: model.path, modelId: id });
+  const ctxSize = catalog ? CTX_SIZE_BY_TIER[catalog.tier] : undefined;
+  return useLocalEngineStore.getState().start({ modelPath: model.path, modelId: id, ctxSize });
 }
 
 function persistActive(id: string | null): Promise<void> {

@@ -21,7 +21,14 @@ use tauri_plugin_shell::ShellExt;
 use crate::pick_free_port;
 
 pub const STATUS_EVENT: &str = "local-engine://status";
-const DEFAULT_CTX: u32 = 8192;
+/// The safe floor: the copilot's tool subset alone is ~7.7k real tokens, so an
+/// 8k engine answers its first request with a context-overflow 400 (R16
+/// calibration). The frontend passes a larger `-c` by RAM tier.
+const DEFAULT_CTX: u32 = 16384;
+/// q8_0 KV cache (needs flash attention): about half the KV memory per token
+/// on granite-4.2-3b with tool calls and prompt speed unchanged (measured on
+/// Metal, b11429). Only the macOS build is verified with it.
+const KV_ARGS: [&str; 6] = ["-fa", "on", "-ctk", "q8_0", "-ctv", "q8_0"];
 /// The 4th crash inside the window fails the engine instead of restarting it.
 const MAX_CRASHES: usize = 4;
 /// Spawns per launch when llama-server reports it could not bind its port.
@@ -155,6 +162,9 @@ pub fn engine_args(port: u16, model: &Path, ctx: u32) -> Vec<String> {
     args.push("-c".into());
     args.push(ctx.to_string());
     args.extend(["-ngl", "999", "--no-webui"].map(String::from));
+    if cfg!(target_os = "macos") {
+        args.extend(KV_ARGS.map(String::from));
+    }
     args
 }
 
@@ -750,10 +760,15 @@ mod tests {
             engine_args(port, &model(), DEFAULT_CTX),
             "the port in the args is the one reported"
         );
+        let kv = if cfg!(target_os = "macos") {
+            " -fa on -ctk q8_0 -ctv q8_0"
+        } else {
+            ""
+        };
         assert_eq!(
             spawned[0].args.join(" "),
             format!(
-                "--host 127.0.0.1 --port {port} -m /models/a.gguf --jinja -c 8192 -ngl 999 --no-webui"
+                "--host 127.0.0.1 --port {port} -m /models/a.gguf --jinja -c 16384 -ngl 999 --no-webui{kv}"
             )
         );
     }
