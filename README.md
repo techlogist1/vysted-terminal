@@ -135,7 +135,7 @@ Vysted checks how much memory your computer has and recommends one model. The Mo
 marks each one "Runs well here", "A tight fit" or "Too big for this computer". The
 recommendation depends on memory size: under 8 GB, 8 GB, 16 GB, or 32 GB and more.
 
-<!-- R16-MEASURE: per-tier recommendation -->
+Vysted recommends **Qwen 3.5 4B** at every memory size. On a 16 GB Mac it was the most reliable of the four at picking the right data tool without making up numbers: 29 of 36 test questions came out clean. It also fits on an 8 GB computer. The 16 GB recommendation was measured; the other sizes are inferred from the same results.
 
 On a computer with under 8 GB, a model is possible but tight, and an own key is usually the
 better choice.

@@ -339,7 +339,9 @@ def test_real_catalog_is_pinned_and_consistent() -> None:
         )
         assert re.fullmatch(r"[0-9a-f]{64}", m["sha256"])
         assert m["licence"]["id"] in {"apache-2.0", "mit"}
-        assert m["minRamBytes"] == m["sizeBytes"] + int(1.5 * 1024**3)
+        # Measured peak RSS (always above the file size) + 1 GiB, rounded up to 50 MB.
+        assert m["minRamBytes"] >= m["sizeBytes"] + 1024**3
+        assert m["minRamBytes"] % 50_000_000 == 0
         assert m["diskNeededBytes"] == math.ceil(m["sizeBytes"] * 1.1)
         assert m["purpose"].endswith(".")
 
