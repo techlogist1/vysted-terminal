@@ -141,7 +141,8 @@ export function ModelsSection() {
       !(d.state === "cancelled" && d.receivedBytes === 0) &&
       !installedIds.has(d.id),
   );
-  const pendingIds = new Set(pending.map((d) => d.id));
+  // A failed download keeps its row above but never hides the catalog's Download.
+  const pendingIds = new Set(pending.filter((d) => d.state !== "failed").map((d) => d.id));
   const models = [...(catalog?.models ?? [])].sort(
     (a, b) => Number(b.id === catalog?.recommendedId) - Number(a.id === catalog?.recommendedId),
   );
@@ -411,8 +412,9 @@ function DownloadRow({
   } else {
     status = d.error ?? "Paused";
   }
-  const canResume =
-    d.state === "paused" || d.state === "cancelled" || (d.state === "failed" && d.retryable);
+  // Every failed download offers a way forward; the sidecar starts a
+  // non-resumable one over from zero.
+  const canResume = d.state === "paused" || d.state === "cancelled" || d.state === "failed";
 
   return (
     <li className="flex flex-col gap-2 px-4 py-3" data-testid={`download-${d.id}`}>
@@ -441,7 +443,7 @@ function DownloadRow({
         {canResume && (
           <>
             <Button size="sm" variant="outline" disabled={busy} onClick={onResume}>
-              Resume
+              {d.state === "failed" ? "Try again" : "Resume"}
             </Button>
             <ConfirmButton
               size="sm"

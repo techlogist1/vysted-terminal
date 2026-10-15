@@ -261,6 +261,34 @@ describe("ModelsSection", () => {
     await waitFor(() => expect(actions.cancel).toHaveBeenCalledWith("qwen-big", true));
   });
 
+  it.each([true, false])(
+    "a failed download (retryable=%s) is never a dead end: Try again, Discard and the catalog Download",
+    async (retryable) => {
+      setModels({
+        downloads: {
+          "qwen-big": dl({
+            state: "failed",
+            error: "The download link stopped working — try again later",
+            retryable,
+            bytesPerSec: null,
+          }),
+        },
+      });
+      actions.download.mockResolvedValue(dl({}));
+      render(<ModelsSection />);
+      const row = screen.getByTestId("download-qwen-big");
+      expect(row).toHaveTextContent("The download link stopped working");
+      expect(within(row).getByRole("button", { name: "Discard Qwen Big" })).toBeInTheDocument();
+      const catalogRow = screen.getByTestId("catalog-qwen-big");
+      expect(within(catalogRow).queryByText("Downloading — see above")).toBeNull();
+      expect(
+        within(catalogRow).getByRole("button", { name: "Download Qwen Big" }),
+      ).toBeInTheDocument();
+      fireEvent.click(within(row).getByRole("button", { name: "Try again" }));
+      await waitFor(() => expect(actions.download).toHaveBeenCalledWith("qwen-big"));
+    },
+  );
+
   it("Pause stops the transfer (partial kept) and the row then reads Paused", async () => {
     setModels({ downloads: { "qwen-big": dl({}) } });
     render(<ModelsSection />);

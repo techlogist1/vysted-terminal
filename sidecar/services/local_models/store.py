@@ -13,6 +13,7 @@ import contextlib
 import errno
 import hashlib
 import json
+import logging
 import os
 import shutil
 import time
@@ -32,10 +33,13 @@ DISK_CHECK_EVERY = 256 * 1024 * 1024
 RETRIES = 3
 OLLAMA_TAGS_URL = "http://127.0.0.1:11434/api/tags"
 
+logger = logging.getLogger(__name__)
+
 NO_INTERNET = "No internet connection"
 INTERRUPTED = "Download was interrupted — resume to continue"
 CORRUPTED = "The download was corrupted — try again"
 LINK_GONE = "The download link stopped working — try again later"
+UNEXPECTED = "The download stopped unexpectedly — try again"
 
 
 def _gb(n: int) -> str:
@@ -170,8 +174,11 @@ class ModelStore:
             self._states[model_id] = st
             return st
         meta = self._read_meta(m)
-        if meta is None or meta.get("sha256") != m["sha256"]:
-            # No record, or a .part of an older catalog pin: never splice files.
+        prev = self._states.get(model_id)
+        not_resumable = prev is not None and prev.state == "failed" and not prev.retryable
+        if not_resumable or meta is None or meta.get("sha256") != m["sha256"]:
+            # No record, a .part of an older catalog pin, or a failure that said
+            # the bytes can't be resumed: never splice files, start over.
             _unlink(part)
             meta = None
         have = part.stat().st_size if part.exists() else 0
@@ -249,6 +256,15 @@ class ModelStore:
         except asyncio.CancelledError:
             st.state, st.bytesPerSec = "cancelled", None
             raise
+        except Exception as exc:  # noqa: BLE001 — never leave a download stuck in flight
+            # Type + errno only: str(exc) of an httpx error can carry the URL.
+            logger.error(
+                "download of %s stopped unexpectedly: %s (errno=%s)",
+                m["id"],
+                type(exc).__name__,
+                getattr(exc, "errno", None),
+            )
+            st.state, st.error, st.retryable, st.bytesPerSec = "failed", UNEXPECTED, True, None
 
     async def _fetch(self, m: dict[str, Any], st: DownloadState, job: _Job) -> None:
         """One HTTP attempt from ``job.offset``; raises _Transient / _Fatal."""

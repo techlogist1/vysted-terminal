@@ -376,3 +376,63 @@ async def test_disk_filling_mid_download_fails_and_keeps_part(
     assert st.state == "failed" and st.retryable
     assert st.error and st.error.startswith("Not enough disk space (needs ")
     assert (tmp_path / f"{FILE}.part").exists() and not (tmp_path / FILE).exists()
+
+
+@pytest.mark.asyncio
+async def test_unexpected_error_fails_retryably_then_try_again_finishes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    real_replace = store.os.replace
+
+    def locked(src: Any, dst: Any) -> None:
+        raise PermissionError(13, "file in use")
+
+    monkeypatch.setattr(store.os, "replace", locked)
+    s = _store(tmp_path, Server())
+    st = s.start("fake")
+    await _finish(s)
+    assert st.state == "failed" and st.retryable and st.error == store.UNEXPECTED
+    assert st.bytesPerSec is None
+    assert "PermissionError" in caplog.text and URL not in caplog.text
+
+    monkeypatch.setattr(store.os, "replace", real_replace)
+    again = s.start("fake")
+    await _finish(s)
+    assert again.state == "done"
+    assert (tmp_path / FILE).read_bytes() == DATA
+
+
+@pytest.mark.asyncio
+async def test_non_transport_httpx_error_is_not_stuck_in_flight(tmp_path: Path) -> None:
+    async def loop(request: httpx.Request) -> httpx.Response:
+        raise httpx.TooManyRedirects("redirect loop", request=request)
+
+    s = store.ModelStore(tmp_path, transport=httpx.MockTransport(loop), disk_free=lambda: 10**12)
+    st = s.start("fake")
+    await _finish(s)
+    assert st.state == "failed" and st.retryable and st.error == store.UNEXPECTED
+
+
+@pytest.mark.asyncio
+async def test_non_resumable_failure_starts_over_on_try_again(tmp_path: Path) -> None:
+    half = len(DATA) // 2
+    (tmp_path / f"{FILE}.part").write_bytes(b"\0" * half)  # bytes a 404 says not to trust
+    (tmp_path / f"{FILE}.part.json").write_text(
+        json.dumps({"url": URL, "sha256": SHA, "totalBytes": len(DATA)}), encoding="utf-8"
+    )
+    s = store.ModelStore(
+        tmp_path,
+        transport=httpx.MockTransport(lambda r: httpx.Response(404)),
+        disk_free=lambda: 10**12,
+    )
+    st = s.start("fake")
+    await _finish(s)
+    assert st.state == "failed" and not st.retryable and st.error == store.LINK_GONE
+
+    srv = Server()
+    s._transport = httpx.MockTransport(srv.handler)
+    again = s.start("fake")
+    await _finish(s)
+    assert "range" not in srv.requests[0].headers
+    assert again.state == "done"
+    assert (tmp_path / FILE).read_bytes() == DATA
